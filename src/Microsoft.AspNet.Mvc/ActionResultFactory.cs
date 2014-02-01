@@ -6,6 +6,11 @@ namespace Microsoft.AspNet.Mvc
     {
         public IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue, RequestContext requestContext)
         {
+            if (actionReturnValue is int)
+            {
+                return new HttpStatusCodeResult((int)actionReturnValue);
+            }
+
             return new ContentResult
             {
                 ContentType = "text/plain",
