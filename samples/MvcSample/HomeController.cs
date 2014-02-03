@@ -10,6 +10,11 @@ namespace MvcSample
             return "Hello World";
         }
 
+        public int Status()
+        {
+            return 201;
+        }
+
         public IActionResult Something()
         {
             return new ContentResult
