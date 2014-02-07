@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.DependencyInjection;
+﻿using System.Collections.Generic;
+using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Razor;
@@ -21,8 +22,6 @@ namespace Microsoft.AspNet.Mvc.Startup
             Add<IActionResultFactory, ActionResultFactory>();
             Add<IActionDescriptorProvider, TypeMethodBasedActionDescriptorProvider>();
             Add<IParameterDescriptorFactory, DefaultParameterDescriptorFactory>();
-            Add<IValueProviderFactory, RouteValueValueProviderFactory>();
-            Add<IValueProviderFactory, QueryStringValueProviderFactory>();
             Add<IActionInvokerProvider, ActionInvokerProvider>();
             Add<IControllerAssemblyProvider, AppDomainControllerAssemblyProvider>();
             Add<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
@@ -36,6 +35,19 @@ namespace Microsoft.AspNet.Mvc.Startup
             Add<IRazorCompilationService, RazorCompilationService>();
             Add<IVirtualPathViewFactory, VirtualPathViewFactory>();
             Add<IViewEngine, RazorViewEngine>();
+
+            Add<IModelMetadataProvider, DataAnnotationsModelMetadataProvider>();
+            Add<IModelBindingConfigProvider, DefaultModelBindingConfigProvider>();
+
+            Add<IValueProviderFactory, RouteValueValueProviderFactory>();
+            Add<IValueProviderFactory, QueryStringValueProviderFactory>();
+
+            Add<IModelBinder, TypeConverterModelBinder>();
+            Add<IModelBinder, TypeMatchModelBinder>();
+            Add<IModelBinder, JsonModelBinder>();
+            Add<IModelBinder, GenericModelBinder>();
+            Add<IModelBinder, MutableObjectModelBinder>();
+            Add<IModelBinder, ComplexModelDtoModelBinder>();
         }
 
         private void Add<T, TU>() where TU : T
