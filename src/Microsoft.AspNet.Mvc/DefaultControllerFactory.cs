@@ -31,7 +31,17 @@ namespace Microsoft.AspNet.Mvc
                     {
                         try
                         {
-                            return ActivatorUtilities.CreateInstance(_serviceProvider, descriptor.ControllerType);
+                            var controller = ActivatorUtilities.CreateInstance(_serviceProvider, descriptor.ControllerType);
+
+                            // TODO: How do we feed the controller with context (need DI improvements)
+                            var contextProperty = descriptor.ControllerType.GetRuntimeProperty("Context");
+
+                            if (contextProperty != null)
+                            {
+                                contextProperty.SetMethod.Invoke(controller, new [] { context });
+                            }
+
+                            return controller;
                         }
                         catch (ReflectionTypeLoadException)
                         {
