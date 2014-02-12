@@ -1,4 +1,7 @@
-﻿#if NET45
+﻿using System.Collections.Generic;
+using Microsoft.AspNet.Routing.Owin;
+using Microsoft.AspNet.Routing.Template;
+#if NET45
 using System;
 using System.IO;
 using Microsoft.AspNet.Abstractions;
@@ -27,15 +30,13 @@ namespace MvcSample
 
             var mvcServices = new MvcServices(appRoot);
 
-            var handler = ActivatorUtilities.CreateInstance<MvcHandler>(mvcServices.Services);
+            var router = builder.UseRouter();
 
-            builder.Run(async context =>
-            {
-                // Pretending to be routing
-                var routeData = new FakeRouteData(context);
-
-                await handler.ExecuteAsync(context, routeData);
-            });
+            var endpoint = ActivatorUtilities.CreateInstance<RouteEndpoint>(mvcServices.Services);
+            router.Add(new TemplateRoute(
+                endpoint, 
+                "{controller}/{action}", 
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase){ { "controller", "Home"}, { "action", "Index" } }));
         }
     }
 }
