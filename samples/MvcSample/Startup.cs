@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNet.Routing.Owin;
-using Microsoft.AspNet.Routing.Template;
+﻿
 #if NET45
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Routing.Owin;
+using Microsoft.AspNet.Routing.Template;
 using Microsoft.AspNet.Mvc.Startup;
 using Owin;
 
