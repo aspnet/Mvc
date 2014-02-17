@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -25,5 +26,11 @@ namespace Microsoft.AspNet.Mvc
         public virtual IDictionary<string, object> RouteValues { get; set; }
 
         public virtual HttpContext HttpContext { get; set; }
+
+        public virtual ViewPaths ActionDescriptor
+        {
+            get;
+            set;
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc
             _result = result;
         }
 
-        public IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue, RequestContext requestContext)
+        public IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue, ActionContext actionContext)
         {
             // optimize common path
             IActionResult actionResult = actionReturnValue as IActionResult;
@@ -43,12 +43,14 @@ namespace Microsoft.AspNet.Mvc
                 return new NoContentResult();
             }
 
-            if (actionReturnValue is string)
+            var actionReturnString = actionReturnValue as string;
+
+            if (actionReturnString != null || declaredReturnType.IsAssignableFrom(typeof(string)))
             {
                 return new ContentResult
                 {
                     ContentType = "text/plain",
-                    Content = (string)actionReturnValue,
+                    Content = actionReturnString ?? string.Empty,
                 };
             }
 
