@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc
         public IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue, ActionContext actionContext)
         {
             // optimize common path
-            IActionResult actionResult = actionReturnValue as IActionResult;
+            var actionResult = actionReturnValue as IActionResult;
 
             if (actionResult != null)
             {
@@ -38,14 +38,14 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException("HttpActionDescriptor_NoConverterForGenericParamterTypeExists");
             }
 
-            if (declaredReturnType.IsAssignableFrom(typeof(void)))
+            if (declaredReturnType.IsAssignableFrom(typeof(void)) || actionReturnValue == null)
             {
                 return new NoContentResult();
             }
 
             var actionReturnString = actionReturnValue as string;
 
-            if (actionReturnString != null || declaredReturnType.IsAssignableFrom(typeof(string)))
+            if (actionReturnString != null)
             {
                 return new ContentResult
                 {

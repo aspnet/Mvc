@@ -7,11 +7,11 @@ namespace Microsoft.AspNet.Mvc
     public class TypeMethodBasedActionDescriptorProvider : IActionDescriptorProvider
     {
         private readonly IControllerAssemblyProvider _controllerAssemblyProvider;
-        private readonly IControllerActionConventions _conventions;
+        private readonly IActionDiscoveryConventions _conventions;
         private readonly IControllerDescriptorFactory _controllerDescriptorFactory;
 
         public TypeMethodBasedActionDescriptorProvider(IControllerAssemblyProvider controllerAssemblyProvider,
-                                                       IControllerActionConventions conventions,
+                                                       IActionDiscoveryConventions conventions,
                                                        IControllerDescriptorFactory controllerDescriptorFactory)
         {
             _controllerAssemblyProvider = controllerAssemblyProvider;
@@ -34,21 +34,27 @@ namespace Microsoft.AspNet.Mvc
                     string[] httpMethods;
                     string actionName;
 
-                    if (_conventions.TryRestAction(methodInfo, out actionName, out httpMethods))
+                    ActionConvention convention = _conventions.GetRestAction(methodInfo);
+                    if (convention != null)
                     {
-                        var d = BuildDescriptor(cd, methodInfo, actionName);
+                        var d = BuildDescriptor(cd, methodInfo, convention.ActionName);
 
-                        ApplyRest(d, httpMethods);
+                        ApplyRest(d, convention.HttpMethods);
 
                         yield return d;
                     }
-                    else if (_conventions.TryRpcAction(methodInfo, out actionName, out httpMethods))
+                    else
                     {
-                        var d = BuildDescriptor(cd, methodInfo, actionName);
+                        convention = _conventions.GetRpcAction(methodInfo);
 
-                        ApplyRpc(d, actionName, httpMethods);
+                        if (convention != null)
+                        {
+                            var d = BuildDescriptor(cd, methodInfo, convention.ActionName);
 
-                        yield return d;
+                            ApplyRpc(d, convention);
+
+                            yield return d;
+                        }
                     }
                 }
             }
@@ -79,16 +85,18 @@ namespace Microsoft.AspNet.Mvc
             descriptor.RouteConstraints.Add(new RouteDataActionConstraint("action", RouteKeyHandling.DenyKey));
         }
 
-        private static void ApplyRpc(TypeMethodBasedActionDescriptor descriptor, string actionName, IEnumerable<string> httpMethods)
+        private static void ApplyRpc(TypeMethodBasedActionDescriptor descriptor, ActionConvention convention)
         {
-            descriptor.RouteConstraints.Add(new RouteDataActionConstraint("action", actionName));
+            descriptor.RouteConstraints.Add(new RouteDataActionConstraint("action", convention.ActionName));
+
+            var methods = convention.HttpMethods;
 
             // rest action require specific methods, but RPC actions do not.
-            if (httpMethods != null)
+            if (methods != null)
             {
                 descriptor.MethodConstraints = new List<HttpMethodConstraint>
                 {
-                    new HttpMethodConstraint(httpMethods)
+                    new HttpMethodConstraint(methods)
                 };
             }
         }

@@ -6,7 +6,7 @@ namespace Microsoft.AspNet.Mvc
     {
         public ControllerDescriptor CreateControllerDescriptor(TypeInfo typeInfo)
         {
-            return new ControllerDescriptor(typeInfo, typeInfo.Assembly);
+            return new ControllerDescriptor(typeInfo);
         }
     }
 }

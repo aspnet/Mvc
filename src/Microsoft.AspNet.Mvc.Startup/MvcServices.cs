@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Startup
             Add<IActionDescriptorProvider, TypeMethodBasedActionDescriptorProvider>();
             Add<IActionInvokerProvider, ActionInvokerProvider>();
             Add<IControllerAssemblyProvider, AppDomainControllerAssemblyProvider>();
-            Add<IControllerActionConventions, ControllerActionConventions>();
+            Add<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
 
             AddInstance<IFileSystem>(new PhysicalFileSystem(appRoot));
             AddInstance<IMvcRazorHost>(new MvcRazorHost(typeof(RazorView).FullName));

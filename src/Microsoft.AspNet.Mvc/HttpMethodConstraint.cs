@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc
             _methods = new ReadOnlyCollection<string>(methods);
         }
 
-        public IEnumerable<string> HttpMethod
+        public IEnumerable<string> HttpMethods
         {
             get
             {
@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
 
             var request = context.HttpContext.Request;
 
-            return (HttpMethod.Any(m => m.Equals(request.Method, StringComparison.Ordinal)));
+            return (HttpMethods.Any(m => m.Equals(request.Method, StringComparison.Ordinal)));
         }
     }
 }

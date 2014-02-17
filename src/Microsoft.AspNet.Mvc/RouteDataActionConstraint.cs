@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Microsoft.AspNet.Mvc
@@ -43,7 +44,11 @@ namespace Microsoft.AspNet.Mvc
                     KeyHandling = keyHandling;
                     break;
                 default:
-                    throw new ArgumentException("Key handling doesn't match RouteKeyHandling values", "keyHandling");
+#if NET45
+                    throw new InvalidEnumArgumentException("keyHandling", (int)keyHandling, typeof (RouteKeyHandling));
+#else
+                    throw new ArgumentOutOfRangeException("keyHandling");
+#endif
             }
         }
 

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ControllerActionConventions : IControllerActionConventions
+    public class DefaultActionDiscoveryConventions : IActionDiscoveryConventions
     {
         private static readonly string[] _supportedHttpMethodsByConvention = 
         { 
@@ -36,42 +36,39 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
-                   typeof (Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
+                   typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
 
         }
 
-        public bool TryRestAction(MethodInfo methodInfo, out string actionName, out string[] httpMethods)
+        public ActionConvention GetRestAction(MethodInfo methodInfo)
         {
             if (methodInfo == null)
             {
                 throw new ArgumentNullException("methodInfo");
             }
 
-            actionName = null;
-            httpMethods = null;
-
             if (!IsValidMethod(methodInfo))
             {
-                return false;
+                return null;
             }
 
             for (var i = 0; i < _supportedHttpMethodsByConvention.Length; i++)
             {
                 if (methodInfo.Name.StartsWith(_supportedHttpMethodsByConvention[i], StringComparison.OrdinalIgnoreCase))
                 {
-                    httpMethods = new[] {_supportedHttpMethodsByConvention[i]};
-                    actionName = methodInfo.Name;
-                    return true;
+                    return new ActionConvention()
+                    {
+                        HttpMethods = new[] { _supportedHttpMethodsByConvention[i] },
+                        ActionName = methodInfo.Name,
+                    };
                 }
             }
 
-            return false;
+            return null;
         }
 
-        public bool TryRpcAction(MethodInfo methodInfo, out string actionName, out string[] httpMethods)
+        public ActionConvention GetRpcAction(MethodInfo methodInfo)
         {
-            httpMethods = null;
-
             if (methodInfo == null)
             {
                 throw new ArgumentNullException("methodInfo");
@@ -79,14 +76,14 @@ namespace Microsoft.AspNet.Mvc
 
             if (!IsValidMethod(methodInfo))
             {
-                actionName = null;
-                return false;
+                return null;
             }
 
             // support action name attribute
-            actionName = methodInfo.Name;
-
-            return true;
+            return new ActionConvention()
+            {
+                ActionName = methodInfo.Name,
+            };
         }
 
         public virtual bool IsValidMethod(MethodInfo method)
