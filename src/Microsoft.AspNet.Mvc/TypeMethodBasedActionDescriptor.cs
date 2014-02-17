@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    [DebuggerDisplay("CA {Path}:{Name}(RC-{RouteConstraints.Count})")]
     public class TypeMethodBasedActionDescriptor : ActionDescriptor
     {
         public override string Path

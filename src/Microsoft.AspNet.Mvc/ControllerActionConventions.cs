@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -10,12 +7,12 @@ namespace Microsoft.AspNet.Mvc
     {
         private static readonly string[] _supportedHttpMethodsByConvention = 
         { 
-            "Get", 
-            "Post", 
-            "Put", 
-            "Delete", 
-            "Head", 
-            "Options", 
+            "GET", 
+            "POST", 
+            "PUT", 
+            "DELETE", 
+            "HEAD", 
+            "OPTIONS", 
             "PATCH",
         };
 
