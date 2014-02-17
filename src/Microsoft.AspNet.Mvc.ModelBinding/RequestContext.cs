@@ -26,11 +26,5 @@ namespace Microsoft.AspNet.Mvc
         public virtual IDictionary<string, object> RouteValues { get; set; }
 
         public virtual HttpContext HttpContext { get; set; }
-
-        public virtual ViewPaths ActionDescriptor
-        {
-            get;
-            set;
-        }
     }
 }

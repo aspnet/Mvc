@@ -53,8 +53,6 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             var actionDescriptor = ActionSelector.Select(requestContext);
 
-            requestContext.ActionDescriptor = actionDescriptor;
-
             if (actionDescriptor == null)
             {
                 return false;

@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
-                   typeof (Controller).IsAssignableFrom(typeInfo);
+                   typeof (Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
 
         }
 
