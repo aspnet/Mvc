@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -6,8 +7,6 @@ namespace Microsoft.AspNet.Mvc
     {
         bool IsController(TypeInfo typeInfo);
 
-        ActionConvention GetRestAction(MethodInfo methodInfo);
-
-        ActionConvention GetRpcAction(MethodInfo methodInfo);
+        IEnumerable<ActionInfo> GetActions(MethodInfo methodInfo);
     }
 }

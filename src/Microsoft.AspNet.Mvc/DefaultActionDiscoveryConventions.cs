@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
@@ -40,7 +42,7 @@ namespace Microsoft.AspNet.Mvc
 
         }
 
-        public ActionConvention GetRestAction(MethodInfo methodInfo)
+        public IEnumerable<ActionInfo> GetActions(MethodInfo methodInfo)
         {
             if (methodInfo == null)
             {
@@ -56,33 +58,26 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (methodInfo.Name.StartsWith(_supportedHttpMethodsByConvention[i], StringComparison.OrdinalIgnoreCase))
                 {
-                    return new ActionConvention()
-                    {
-                        HttpMethods = new[] { _supportedHttpMethodsByConvention[i] },
-                        ActionName = methodInfo.Name,
+                    return new [] {
+                        new ActionInfo()
+                        {
+                            HttpMethods = new[] { _supportedHttpMethodsByConvention[i] },
+                            ActionName = methodInfo.Name,
+                            RequireActionNameMatch = false,
+                        }
                     };
                 }
             }
 
-            return null;
-        }
+            // TODO: Consider mapping Index here to both Get and also to Index
 
-        public ActionConvention GetRpcAction(MethodInfo methodInfo)
-        {
-            if (methodInfo == null)
+            return new[]
             {
-                throw new ArgumentNullException("methodInfo");
-            }
-
-            if (!IsValidMethod(methodInfo))
-            {
-                return null;
-            }
-
-            // support action name attribute
-            return new ActionConvention()
-            {
-                ActionName = methodInfo.Name,
+                new ActionInfo()
+                {
+                    ActionName = methodInfo.Name,
+                    RequireActionNameMatch = true,
+                }
             };
         }
 

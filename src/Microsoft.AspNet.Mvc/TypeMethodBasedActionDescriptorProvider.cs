@@ -30,64 +30,64 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var methodInfo in cd.ControllerTypeInfo.DeclaredMethods)
                 {
-                    // Rest comes ahead of RPC in priority because Rest method looks like RPC as well.
-                    string[] httpMethods;
-                    string actionName;
+                    var actionInfos = _conventions.GetActions(methodInfo);
 
-                    ActionConvention convention = _conventions.GetRestAction(methodInfo);
-                    if (convention != null)
+                    if (actionInfos == null)
                     {
-                        var d = BuildDescriptor(cd, methodInfo, convention.ActionName);
-
-                        ApplyRest(d, convention.HttpMethods);
-
-                        yield return d;
+                        continue;
                     }
-                    else
+
+                    foreach (var actionInfo in actionInfos)
                     {
-                        convention = _conventions.GetRpcAction(methodInfo);
-
-                        if (convention != null)
-                        {
-                            var d = BuildDescriptor(cd, methodInfo, convention.ActionName);
-
-                            ApplyRpc(d, convention);
-
-                            yield return d;
-                        }
+                        yield return BuildDescriptor(cd, methodInfo, actionInfo);
                     }
                 }
             }
         }
 
-        private static TypeMethodBasedActionDescriptor BuildDescriptor(ControllerDescriptor controllerDescriptor, MethodInfo methodInfo, string actionName)
+        private static TypeMethodBasedActionDescriptor BuildDescriptor(ControllerDescriptor controllerDescriptor, MethodInfo methodInfo, ActionInfo actionInfo)
         {
-            return new TypeMethodBasedActionDescriptor
+            var ad = new TypeMethodBasedActionDescriptor
             {
                 RouteConstraints = new List<RouteDataActionConstraint>
                 {
                     new RouteDataActionConstraint("controller", controllerDescriptor.Name)
                 },
 
-                Name = actionName,
+                Name = actionInfo.ActionName,
                 ControllerDescriptor = controllerDescriptor,
                 MethodInfo = methodInfo,
             };
+
+            var httpMethods = actionInfo.HttpMethods;
+            if (httpMethods != null && httpMethods.Length > 0)
+            {
+                ad.MethodConstraints = new List<HttpMethodConstraint>
+                {
+                    new HttpMethodConstraint(httpMethods)
+                };
+            }
+
+            if (actionInfo.RequireActionNameMatch)
+            {
+                ad.RouteConstraints.Add(new RouteDataActionConstraint("action", actionInfo.ActionName));   
+            }
+            else
+            {
+                ad.RouteConstraints.Add(new RouteDataActionConstraint("action", RouteKeyHandling.DenyKey));
+            }
+
+            return ad;
         }
 
         private static void ApplyRest(TypeMethodBasedActionDescriptor descriptor, IEnumerable<string> httpMethods)
         {
-            descriptor.MethodConstraints = new List<HttpMethodConstraint>
-            {
-                new HttpMethodConstraint(httpMethods)
-            };
 
             descriptor.RouteConstraints.Add(new RouteDataActionConstraint("action", RouteKeyHandling.DenyKey));
         }
 
-        private static void ApplyRpc(TypeMethodBasedActionDescriptor descriptor, ActionConvention convention)
+        private static void ApplyRpc(TypeMethodBasedActionDescriptor descriptor, ActionInfo convention)
         {
-            descriptor.RouteConstraints.Add(new RouteDataActionConstraint("action", convention.ActionName));
 
             var methods = convention.HttpMethods;
 
