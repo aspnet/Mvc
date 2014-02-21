@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using MvcSample.Models;
 
 namespace MvcSample
@@ -7,7 +8,17 @@ namespace MvcSample
     {
         public IActionResult Index()
         {
-            return View("MyView", User());
+            return View("MyView", new User());
+        }
+
+        public IActionResult SaveUser(User user)
+        {
+            return View("MyView", user);
+        }
+
+        public IActionResult Post([MustBeReadFromRequestBody]User user)
+        {
+            return View("MyView", user);
         }
 
         public IActionResult Something()
