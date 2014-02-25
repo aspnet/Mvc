@@ -10,6 +10,16 @@ namespace MvcSample
             return View("MyView", User());
         }
 
+        public IActionResult SaveUser(User user)
+        {
+            return View("MyView", user);
+        }
+
+        public IActionResult Post([FromBody]User user)
+        {
+            return View("MyView", user);
+        }
+
         public IActionResult Something()
         {
             return new ContentResult
