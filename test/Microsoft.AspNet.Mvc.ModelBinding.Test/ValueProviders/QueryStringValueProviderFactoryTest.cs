@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Moq;
 using Xunit;
@@ -18,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public void GetValueProvider_ReturnsQueryStringValueProviderInstaceWithInvariantCulture()
+        public async Task GetValueProvider_ReturnsQueryStringValueProviderInstaceWithInvariantCulture()
         {
             // Arrange
             var request = new Mock<HttpRequest>();
@@ -29,10 +30,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var requestContext = new RequestContext(context.Object, new Dictionary<string, object>());
 
             // Act
-            IValueProvider result = _factory.GetValueProvider(requestContext);
+            var result = await _factory.GetValueProvider(requestContext);
 
             // Assert
-            var valueProvider = Assert.IsType<QueryStringValueProvider>(result);
+            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider>(result);
             Assert.Equal(CultureInfo.InvariantCulture, valueProvider.Culture);
         }
     }
