@@ -49,13 +49,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // If we fell back to an empty prefix above and are dealing with simple types,
             // propagate the non-blank model name through for user clarity in validation errors.
             // Complex types will reveal their individual properties as model names and do not require this.
-            // TODO: Validation
-            //if (!newBindingContext.ModelMetadata.IsComplexType && String.IsNullOrEmpty(newBindingContext.ModelName))
-            //{
-            //    newBindingContext.ValidationNode = new Validation.ModelValidationNode(newBindingContext.ModelMetadata, bindingContext.ModelName);
-            //}
+            if (!newBindingContext.ModelMetadata.IsComplexType && String.IsNullOrEmpty(newBindingContext.ModelName))
+            {
+                newBindingContext.ValidationNode = new ModelValidationNode(newBindingContext.ModelMetadata, bindingContext.ModelName);
+            }
 
-            //newBindingContext.ValidationNode.Validate(context, null /* parentNode */);
+            var validationContext = new ModelValidationContext(bindingContext.ModelMetadata,
+                                                               bindingContext.ModelState,
+                                                               bindingContext.MetadataProvider,
+                                                               bindingContext.ValidatorProviders);
+
+            newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
             bindingContext.Model = newBindingContext.Model;
             return true;
         }
@@ -93,17 +97,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelName = modelName,
                 ModelState = oldBindingContext.ModelState,
                 ValueProvider = oldBindingContext.ValueProvider,
+                ValidatorProviders = oldBindingContext.ValidatorProviders,
                 MetadataProvider = oldBindingContext.MetadataProvider,
                 ModelBinder = oldBindingContext.ModelBinder,
                 HttpContext = oldBindingContext.HttpContext               
             };
 
-            // TODO: Validation
-            //// validation is expensive to create, so copy it over if we can
-            //if (Object.ReferenceEquals(modelName, oldBindingContext.ModelName))
-            //{
-            //    newBindingContext.ValidationNode = oldBindingContext.ValidationNode;
-            //}
+            // validation is expensive to create, so copy it over if we can
+            if (Object.ReferenceEquals(modelName, oldBindingContext.ModelName))
+            {
+                newBindingContext.ValidationNode = oldBindingContext.ValidationNode;
+            }
 
             return newBindingContext;
         }
