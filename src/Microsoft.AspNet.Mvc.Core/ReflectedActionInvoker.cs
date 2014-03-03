@@ -6,19 +6,19 @@ using Microsoft.AspNet.Abstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class TypeMethodBasedActionInvoker : IActionInvoker
+    public class ReflectedActionInvoker : IActionInvoker
     {
         private readonly ActionContext _actionContext;
-        private readonly TypeMethodBasedActionDescriptor _descriptor;
+        private readonly ReflectedActionDescriptor _descriptor;
         private readonly IActionResultFactory _actionResultFactory;
         private readonly IServiceProvider _serviceProvider;
         private readonly IControllerFactory _controllerFactory;
 
-        public TypeMethodBasedActionInvoker(ActionContext actionContext,
-                                            TypeMethodBasedActionDescriptor descriptor,
-                                            IActionResultFactory actionResultFactory,
-                                            IControllerFactory controllerFactory,
-                                            IServiceProvider serviceProvider)
+        public ReflectedActionInvoker(ActionContext actionContext,
+                                      ReflectedActionDescriptor descriptor,
+                                      IActionResultFactory actionResultFactory,
+                                      IControllerFactory controllerFactory,
+                                      IServiceProvider serviceProvider)
         {
             _actionContext = actionContext;
             _descriptor = descriptor;
