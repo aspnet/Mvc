@@ -13,6 +13,7 @@
     "Microsoft.AspNet.Mvc.Rendering" : "",
     "Microsoft.AspNet.Mvc.Razor.Host": ""
   },
+  "shared": "Common",
   "configurations": {
     "net45": { },
     "k10" : { }

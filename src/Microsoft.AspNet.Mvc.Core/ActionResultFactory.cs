@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNet.Mvc.Common;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -6,12 +7,14 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly IActionResultHelper _result;
 
-        public ActionResultFactory(IActionResultHelper result)
+        public ActionResultFactory([NotNull]IActionResultHelper result)
         {
             _result = result;
         }
 
-        public IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue, ActionContext actionContext)
+        public IActionResult CreateActionResult([NotNull]Type declaredReturnType, 
+                                                [NotNull]object actionReturnValue, 
+                                                [NotNull]ActionContext actionContext)
         {
             // optimize common path
             var actionResult = actionReturnValue as IActionResult;
