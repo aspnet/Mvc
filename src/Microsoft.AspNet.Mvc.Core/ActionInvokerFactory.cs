@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.Mvc.Common;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -6,7 +7,7 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly INestedProviderManager<ActionInvokerProviderContext> _actionInvokerProvider;
 
-        public ActionInvokerFactory(INestedProviderManager<ActionInvokerProviderContext> actionInvokerProvider)
+        public ActionInvokerFactory([NotNull]INestedProviderManager<ActionInvokerProviderContext> actionInvokerProvider)
         {
             _actionInvokerProvider = actionInvokerProvider;
         }

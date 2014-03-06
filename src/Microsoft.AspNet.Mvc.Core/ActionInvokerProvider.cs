@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNet.Mvc.Common;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -9,10 +10,10 @@ namespace Microsoft.AspNet.Mvc
         private readonly IControllerFactory _controllerFactory;
         private readonly IActionBindingContextProvider _bindingProvider;
 
-        public ActionInvokerProvider(IActionResultFactory actionResultFactory,
-                                     IControllerFactory controllerFactory,
-                                     IActionBindingContextProvider bindingProvider,
-                                     IServiceProvider serviceProvider)
+        public ActionInvokerProvider([NotNull]IActionResultFactory actionResultFactory,
+                                     [NotNull]IControllerFactory controllerFactory,
+                                     [NotNull]IActionBindingContextProvider bindingProvider,
+                                     [NotNull]IServiceProvider serviceProvider)
         {
             _actionResultFactory = actionResultFactory;
             _controllerFactory = controllerFactory;

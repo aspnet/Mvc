@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.Common;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class ActionContext
     {
-        public ActionContext(HttpContext httpContext, IDictionary<string, object> routeValues, ActionDescriptor actionDescriptor)
+        public ActionContext([NotNull]HttpContext httpContext, 
+                             [NotNull]IDictionary<string, object> routeValues, 
+                             [NotNull]ActionDescriptor actionDescriptor)
         {
             HttpContext = httpContext;
             RouteValues = routeValues;

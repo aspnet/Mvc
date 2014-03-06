@@ -1,11 +1,12 @@
 ﻿using System;
+using Microsoft.AspNet.Mvc.Common;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class ModelError
     {
-        public ModelError(Exception exception)
+        public ModelError([NotNull]Exception exception)
             : this(exception, errorMessage: null)
         {
         }

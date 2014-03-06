@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Mvc.Common;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -13,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
         }
 
-        public ModelStateDictionary(ModelStateDictionary dictionary)
+        public ModelStateDictionary([NotNull]ModelStateDictionary dictionary)
         {
             if (dictionary == null)
             {
