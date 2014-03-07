@@ -1,22 +1,26 @@
 ﻿using System;
+using Microsoft.AspNet.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ActionInvokerProvider : IActionInvokerProvider
+    public class ReflectedActionInvokerProvider : IActionInvokerProvider
     {
         private readonly IActionResultFactory _actionResultFactory;
         private readonly IServiceProvider _serviceProvider;
         private readonly IControllerFactory _controllerFactory;
         private readonly IActionBindingContextProvider _bindingProvider;
+        private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
 
-        public ActionInvokerProvider(IActionResultFactory actionResultFactory,
-                                     IControllerFactory controllerFactory,
+        public ReflectedActionInvokerProvider(IActionResultFactory actionResultFactory,
+                                              IControllerFactory controllerFactory,
                                      IActionBindingContextProvider bindingProvider,
-                                     IServiceProvider serviceProvider)
+                                              INestedProviderManager<FilterProviderContext> filterProvider,
+                                              IServiceProvider serviceProvider)
         {
             _actionResultFactory = actionResultFactory;
             _controllerFactory = controllerFactory;
             _bindingProvider = bindingProvider;
+            _filterProvider = filterProvider;
             _serviceProvider = serviceProvider;
         }
 
@@ -37,6 +41,7 @@ namespace Microsoft.AspNet.Mvc
                                     _actionResultFactory,
                                     _controllerFactory,
                                     _bindingProvider,
+                                    _filterProvider,
                                     _serviceProvider);
             }
 

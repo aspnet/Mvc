@@ -4,6 +4,7 @@ using Microsoft.AspNet.ConfigurationModel;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.DependencyInjection.NestedProviders;
 using Microsoft.AspNet.FileSystems;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.Net.Runtime;
@@ -51,7 +52,7 @@ namespace Microsoft.AspNet.Mvc
             yield return DescribeService<INestedProvider<ActionDescriptorProviderContext>,
                                          ReflectedActionDescriptorProvider>(configuration);
             yield return DescribeService<INestedProvider<ActionInvokerProviderContext>,
-                                         ActionInvokerProvider>(configuration);
+                                         ReflectedActionInvokerProvider>(configuration);
 
             yield return DescribeService<IModelMetadataProvider, DataAnnotationsModelMetadataProvider>(configuration);
             yield return DescribeService<IActionBindingContextProvider, DefaultActionBindingContextProvider>(configuration);
@@ -64,6 +65,9 @@ namespace Microsoft.AspNet.Mvc
             yield return DescribeService<IModelBinder, GenericModelBinder>(configuration);
             yield return DescribeService<IModelBinder, MutableObjectModelBinder>(configuration);
             yield return DescribeService<IModelBinder, ComplexModelDtoModelBinder>(configuration);
+
+            yield return DescribeService<INestedProviderManager<FilterProviderContext>, NestedProviderManager<FilterProviderContext>>(configuration);
+            yield return DescribeService<INestedProvider<FilterProviderContext>, DefaultFilterProvider>(configuration);
 
             yield return DescribeService<IInputFormatter, JsonInputFormatter>(configuration);
         }
@@ -90,6 +94,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var serviceTypeName = serviceType.FullName;
             var implementationTypeName = configuration.Get(serviceTypeName);
+
             if (!String.IsNullOrEmpty(implementationTypeName))
             {
                 try
