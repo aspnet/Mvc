@@ -3,11 +3,20 @@
   "dependencies": {
     "Microsoft.AspNet.Razor" : "0.1-alpha-*",
     "Microsoft.AspNet.Mvc.Razor.Host" : "",
-    "Moq": "4.0.10827",
-    "Xunit": "1.9.1",
-    "Xunit.extensions": "1.9.1"
+    "Xunit.KRunner": "0.1-alpha-*",
+    "xunit.abstractions": "3.0.0-alpha-*",
+    "xunit2": "0.1-alpha-*",
+    "xunit2.assert": "0.1-alpha-*"
+  },
+  "commands": {
+    "test": "Xunit.KRunner"
   },
   "configurations": {
-    "net45": { }
+    "net45": {
+      "dependencies": {
+        "Moq": "4.2.1312.1622",
+        "System.Runtime": ""
+      }
+    }
   }
 }
