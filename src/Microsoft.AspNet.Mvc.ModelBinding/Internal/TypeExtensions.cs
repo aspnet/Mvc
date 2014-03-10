@@ -5,10 +5,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
 {
     public static class TypeExtensions
     {
-        public static bool IsCompatibleWith(this Type type, object value)
+        public static bool IsCompatibleObject(Type type, object value)
         {
-            return (value == null && AllowsNullValue(type)) ||
-                   type.GetTypeInfo().IsAssignableFrom(value.GetType().GetTypeInfo());
+            return (value == null && type.AllowsNullValue()) || 
+                   type.IsInstanceOfType(value);
         }
 
         public static bool IsNullableValueType(this Type type)
@@ -20,6 +20,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
         {
             return (!type.GetTypeInfo().IsValueType || IsNullableValueType(type));
         }
+
+#if K10
+        public static bool IsInstanceOfType(this Type type, object value)
+        {
+            return value != null && 
+                   type.GetTypeInfo().IsAssignableFrom(value.GetType().GetTypeInfo());
+        }
+#endif
 
         public static bool HasStringConverter(this Type type)
         {
