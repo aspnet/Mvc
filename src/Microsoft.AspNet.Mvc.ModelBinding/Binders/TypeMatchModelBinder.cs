@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return null; // the value doesn't exist
             }
 
-            if (!bindingContext.ModelType.IsCompatibleWith(valueProviderResult.RawValue))
+            if (!TypeExtensions.IsCompatibleObject(bindingContext.ModelType, valueProviderResult.RawValue))
             {
                 return null; // value is of incompatible type
             }
