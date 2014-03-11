@@ -5,6 +5,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
 {
     public static class TypeExtensions
     {
+        /// <summary>
+        /// Gets the default value for the specified type.
+        /// </summary>
+        public static object GetDefaultValue([NotNull] Type type)
+        {
+            if (type.GetTypeInfo().IsValueType)
+            {
+                return Activator.CreateInstance(type);
+            }
+            return null;
+        }
+
         public static bool IsCompatibleWith([NotNull] this Type type, object value)
         {
             return (value == null && AllowsNullValue(type)) ||
