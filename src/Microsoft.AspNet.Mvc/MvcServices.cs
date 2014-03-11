@@ -15,6 +15,8 @@ namespace Microsoft.AspNet.Mvc
         {
             var describe = new ServiceDescriber(configuration);
 
+            yield return describe.Transient<ITypeActivator, TypeActivator>();
+
             yield return describe.Transient<IControllerFactory, DefaultControllerFactory>();
             yield return describe.Transient<IControllerDescriptorFactory, DefaultControllerDescriptorFactory>();
             yield return describe.Transient<IActionSelector, DefaultActionSelector>();
