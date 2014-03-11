@@ -16,6 +16,8 @@ namespace Microsoft.AspNet.Mvc
 
         public IServiceProvider ServiceProvider { get; private set; }
 
+        public IUrlHelper Url { get; set; }
+
         public ViewData ViewData { get; private set; }
     }
 }

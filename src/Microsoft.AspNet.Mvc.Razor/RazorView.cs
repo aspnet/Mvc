@@ -5,22 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
-using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     public abstract class RazorView : IView
     {
-        public HttpContext Context { get; set; }
+        public ViewContext Context { get; set; }
 
         public string Layout { get; set; }
 
         protected TextWriter Output { get; set; }
 
+        public IUrlHelper Url 
+        {
+            get { return Context == null ? null : Context.Url; }
+        }
+
         private string BodyContent { get; set; }
 
         public virtual async Task RenderAsync(ViewContext context, TextWriter writer)
         {
+            Context = context;
+
             var contentBuilder = new StringBuilder(1024);
             using (var bodyWriter = new StringWriter(contentBuilder))
             {

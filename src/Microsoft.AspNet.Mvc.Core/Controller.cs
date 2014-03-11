@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -14,6 +13,8 @@ namespace Microsoft.AspNet.Mvc
         public IActionResultHelper Result { get; private set; }
 
         public HttpContext Context { get; set; }
+
+        public IUrlHelper Url { get; set; }
 
         public ViewData<object> ViewData { get; set; }
 
