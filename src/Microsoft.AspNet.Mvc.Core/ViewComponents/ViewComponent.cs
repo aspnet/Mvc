@@ -14,5 +14,31 @@ namespace Microsoft.AspNet.Mvc
         {
             Result = result;
         }
+
+        public IViewComponentResult View()
+        {
+            return View<object>(null, null);
+        }
+
+        public IViewComponentResult View(string viewName)
+        {
+            return View<object>(viewName, null);
+        }
+
+        public IViewComponentResult View<TModel>(TModel model)
+        {
+            return View(null, model);
+        }
+
+        public IViewComponentResult View<TModel>(string viewName, TModel model)
+        {
+            var viewData = new ViewData<TModel>(ViewData);
+            if (model != null)
+            {
+                viewData.Model = model;
+            }
+
+            return Result.View(viewName ?? "Default", viewData);
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
@@ -33,13 +34,6 @@ namespace Microsoft.AspNet.Mvc
                 context.HttpContext.Response.ContentType = "text/html";
                 using (var writer = new StreamWriter(context.HttpContext.Response.Body, Encoding.UTF8, 1024, leaveOpen: true))
                 {
-                    var viewContext = new ViewContext(_serviceProvider, context.HttpContext, context.RouteValues)
-                    {
-                        Url = new UrlHelper(context.HttpContext, context.Router, context.RouteValues),
-                        ViewData = ViewData,
-                        Writer = writer,
-                    };
-
                     await view.RenderAsync(viewContext, writer);
                 }
             }
@@ -56,6 +50,26 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return result.View;
+        }
+
+        private ViewContext CreateViewContext([NotNull] ActionContext actionContext, [NotNull] TextWriter writer)
+        {
+            var urlHelper = new UrlHelper(actionContext.HttpContext, actionContext.Router, actionContext.RouteValues);
+
+            var viewContext = new ViewContext(_serviceProvider, actionContext.HttpContext, actionContext.RouteValues)
+            {
+                ViewData = ViewData,
+                Url = urlHelper,
+                Writer = writer,
+            };
+
+            viewContext.Component = new DefaultViewComponentHelper(
+                _serviceProvider.GetService<IViewComponentSelector>(),
+                _serviceProvider.GetService<IViewComponentInvokerFactory>(),
+                viewContext,
+                writer);
+
+            return viewContext;
         }
     }
 }
