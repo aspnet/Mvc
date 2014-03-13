@@ -5,10 +5,10 @@ namespace Microsoft.AspNet.Mvc
 {
     public interface IViewComponentResultHelper
     {
-        IViewComponentResult Content(string content);
+        IViewComponentResult Content([NotNull] string content);
 
-        IViewComponentResult Json(object value);
+        IViewComponentResult Json([NotNull] object value);
 
-        IViewComponentResult View(string viewName, ViewData viewData);
+        IViewComponentResult View([NotNull] string viewName, [NotNull] ViewData viewData);
     }
 }

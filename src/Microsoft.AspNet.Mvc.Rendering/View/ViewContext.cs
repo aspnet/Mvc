@@ -15,6 +15,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             ViewData = viewData;
         }
 
+        public IViewComponentHelper Component { get; set; }
+
         public HttpContext HttpContext { get; private set; }
 
         public IServiceProvider ServiceProvider { get; private set; }

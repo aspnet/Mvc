@@ -6,14 +6,11 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ViewComponentInvokerContext
     {
-        public ViewComponentInvokerContext(ViewContext viewContext, TextWriter writer, object[] arguments)
+        public ViewComponentInvokerContext([NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
         {
             ViewContext = viewContext;
             Writer = writer;
-            Arguments = arguments;
         }
-
-        public object[] Arguments { get; private set; }
 
         public TextWriter Writer { get; private set; }
 

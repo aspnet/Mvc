@@ -25,10 +25,15 @@ namespace Microsoft.AspNet.Mvc
         public static async Task<object> ExecuteAsync(MethodInfo actionMethodInfo, object instance, IDictionary<string, object> actionArguments)
         {
             var methodArguments = PrepareArguments(actionArguments, actionMethodInfo.GetParameters());
+            return await ExecuteAsync(actionMethodInfo, instance, methodArguments);
+        }
+
+        public static async Task<object> ExecuteAsync(MethodInfo actionMethodInfo, object instance, object[] actionArguments)
+        {
             object invocationResult = null;
             try
             {
-                invocationResult = actionMethodInfo.Invoke(instance, methodArguments);
+                invocationResult = actionMethodInfo.Invoke(instance, actionArguments);
             }
             catch (TargetInvocationException targetInvocationException)
             {
