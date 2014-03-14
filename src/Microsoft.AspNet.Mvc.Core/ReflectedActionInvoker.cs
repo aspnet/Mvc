@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.Filters;
@@ -13,18 +14,20 @@ namespace Microsoft.AspNet.Mvc
         private readonly ActionContext _actionContext;
         private readonly ReflectedActionDescriptor _descriptor;
         private readonly IActionResultFactory _actionResultFactory;
-        private readonly IServiceProvider _serviceProvider;
         private readonly IControllerFactory _controllerFactory;
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
+
+        private readonly List<IAuthorizationFilter> _authorizationFilters = new List<IAuthorizationFilter>();
+        private readonly List<IActionFilter> _actionFilters = new List<IActionFilter>();
+        private readonly List<IActionResultFilter> _actionResultFilters = new List<IActionResultFilter>();
 
         public ReflectedActionInvoker(ActionContext actionContext,
                                       ReflectedActionDescriptor descriptor,
                                       IActionResultFactory actionResultFactory,
                                       IControllerFactory controllerFactory,
                                       IActionBindingContextProvider bindingContextProvider,
-                                      INestedProviderManager<FilterProviderContext> filterProvider,
-                                      IServiceProvider serviceProvider)
+                                      INestedProviderManager<FilterProviderContext> filterProvider)
         {
             _actionContext = actionContext;
             _descriptor = descriptor;
@@ -32,15 +35,21 @@ namespace Microsoft.AspNet.Mvc
             _controllerFactory = controllerFactory;
             _bindingProvider = bindingContextProvider;
             _filterProvider = filterProvider;
-
-            _serviceProvider = serviceProvider;
         }
 
         public async Task InvokeActionAsync()
         {
             IActionResult actionResult;
-            var context = new FilterProviderContext(_descriptor);
-            _filterProvider.Invoke(context);
+            var filterProviderContext =
+                new FilterProviderContext(_descriptor,
+                                          _descriptor.
+                                          FilterDescriptors.
+                                          Select(fd => new FilterItem(fd)).ToList());
+
+            _filterProvider.Invoke(filterProviderContext);
+
+            // TODO: arrange when needed.
+            PreArrangeFiltersInPipeline(filterProviderContext);
 
             var modelState = new ModelStateDictionary();
             object controller = _controllerFactory.CreateController(_actionContext, modelState);
@@ -59,17 +68,13 @@ namespace Microsoft.AspNet.Mvc
                 }
                 else
                 {
-                    var parameterValues = await GetParameterValues(modelState);
-
-                    var authZFilters = context.AuthorizationFilters;
-
-                    if (authZFilters != null && authZFilters.Count > 0)
+                    if (_authorizationFilters.Count > 0)
                     {
                         var authZEndPoint = new AuthorizationFilterEndPoint();
-                        authZFilters.Add(authZEndPoint);
+                        _authorizationFilters.Add(authZEndPoint);
 
                         var authZContext = new AuthorizationFilterContext(_actionContext);
-                        var authZPipeline = new FilterPipelineBuilder<AuthorizationFilterContext>(authZFilters, authZContext);
+                        var authZPipeline = new FilterPipelineBuilder<AuthorizationFilterContext>(_authorizationFilters, authZContext);
 
                         await authZPipeline.InvokeAsync();
 
@@ -92,7 +97,8 @@ namespace Microsoft.AspNet.Mvc
 
                     if (actionResult == null)
                     {
-                        var actionFilters = context.ActionFilters ?? new List<IActionFilter>();
+                        var parameterValues = await GetParameterValues(modelState);
+
                         var actionFilterContext = new ActionFilterContext(_actionContext,
                                                                           parameterValues,
                                                                           method.ReturnType);
@@ -101,9 +107,9 @@ namespace Microsoft.AspNet.Mvc
                         var actionEndPoint = new ReflectedActionFilterEndPoint(async (inArray) => method.Invoke(controller, inArray),
                                                                                 _actionResultFactory);
 
-                        actionFilters.Add(actionEndPoint);
+                        _actionFilters.Add(actionEndPoint);
 
-                        var actionFilterPipeline = new FilterPipelineBuilder<ActionFilterContext>(actionFilters,
+                        var actionFilterPipeline = new FilterPipelineBuilder<ActionFilterContext>(_actionFilters,
                             actionFilterContext);
 
                         await actionFilterPipeline.InvokeAsync();
@@ -113,12 +119,11 @@ namespace Microsoft.AspNet.Mvc
                 }
             }
 
-            var actionResultFilters = context.ActionResultFilters ?? new List<IActionResultFilter>();
             var actionResultFilterContext = new ActionResultFilterContext(_actionContext, actionResult);
             var actionResultFilterEndPoint = new ActionResultFilterEndPoint();
-            actionResultFilters.Add(actionResultFilterEndPoint);
+            _actionResultFilters.Add(actionResultFilterEndPoint);
 
-            var actionResultPipeline = new FilterPipelineBuilder<ActionResultFilterContext>(actionResultFilters, actionResultFilterContext);
+            var actionResultPipeline = new FilterPipelineBuilder<ActionResultFilterContext>(_actionResultFilters, actionResultFilterContext);
 
             await actionResultPipeline.InvokeAsync();
         }
@@ -153,25 +158,41 @@ namespace Microsoft.AspNet.Mvc
             return parameterValues;
         }
 
-        private object[] GetArgumentValues(IDictionary<string, object> parameterValues)
+        private void PreArrangeFiltersInPipeline(FilterProviderContext context)
         {
-            var parameters = _descriptor.MethodInfo.GetParameters();
-            var arguments = new object[parameters.Length];
-
-            for (int i = 0; i < arguments.Length; i++)
+            if (context.Result == null || context.Result.Count == 0)
             {
-                object value;
-                if (parameterValues.TryGetValue(parameters[i].Name, out value))
-                {
-                    arguments[i] = value;
-                }
-                else
-                {
-                    arguments[i] = parameters[i].DefaultValue;
-                }
+                return;
             }
 
-            return arguments;
+            foreach (var filter in context.Result)
+            {
+                PlaceFilter(filter.Filter);
+            }
+        }
+
+        private void PlaceFilter(object filter)
+        {
+            var authFilter = filter as IAuthorizationFilter;
+            var actionFilter = filter as IActionFilter;
+            var actionResultFilter = filter as IActionResultFilter;
+
+            // TODO: Exception filters
+
+            if (authFilter != null)
+            {
+                _authorizationFilters.Add(authFilter);
+            }
+
+            if (actionFilter != null)
+            {
+                _actionFilters.Add(actionFilter);
+            }
+
+            if (actionResultFilter != null)
+            {
+                _actionResultFilters.Add(actionResultFilter);
+            }
         }
     }
 }
