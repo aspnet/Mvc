@@ -117,6 +117,42 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ArgumentNullOrEmpty" xml:space="preserve">
+    <value>The argument '{0}' is null or empty.</value>
+  </data>
+  <data name="Common_NullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="Common_PartialViewNotFound" xml:space="preserve">
+    <value>The partial view '{0}' was not found or no view engine supports the searched locations. The following locations were searched:{1}</value>
+  </data>
+  <data name="ExpressionHelper_InvalidIndexerExpression" xml:space="preserve">
+    <value>The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.</value>
+  </data>
+  <data name="HtmlHelper_InvalidHttpMethod" xml:space="preserve">
+    <value>The GET and POST HTTP methods are not supported.</value>
+  </data>
+  <data name="HtmlHelper_InvalidHttpVerb" xml:space="preserve">
+    <value>The specified HttpVerbs value is not supported. The supported values are Delete, Head, Put, Options, and Patch.</value>
+  </data>
+  <data name="TemplateHelpers_TemplateLimitations" xml:space="preserve">
+    <value>Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationParameterCannotBeEmpty" xml:space="preserve">
+    <value>Validation parameter names in unobtrusive client validation rules cannot be empty. Client rule type: {0}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationParameterMustBeLegal" xml:space="preserve">
+    <value>Validation parameter names in unobtrusive client validation rules must start with a lowercase letter and consist of only lowercase letters or digits. Validation parameter name: {0}, client rule type: {1}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationTypeCannotBeEmpty" xml:space="preserve">
+    <value>Validation type names in unobtrusive client validation rules cannot be empty. Client rule type: {0}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationTypeMustBeLegal" xml:space="preserve">
+    <value>Validation type names in unobtrusive client validation rules must consist of only lowercase letters. Invalid name: "{0}", client rule type: {1}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationTypeMustBeUnique" xml:space="preserve">
+    <value>Validation type names in unobtrusive client validation rules must be unique. The following validation type was seen more than once: {0}</value>
+  </data>
   <data name="ViewData_ModelCannotBeNull" xml:space="preserve">
     <value>The model item passed is null, but this ViewData instance requires a non-null model item of type '{0}'.</value>
   </data>

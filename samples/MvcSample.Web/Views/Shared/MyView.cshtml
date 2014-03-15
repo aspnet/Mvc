@@ -4,6 +4,15 @@
     Layout = "/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Home Page";
     string nullValue = null;
+
+    ViewBag.Anon = new
+    {
+        Name = "FirstName LastName",
+        Id = 27,
+        DrinkingAge = true,
+        Retired = false,
+        Address = new { Street = "123 Fake St.", City = "Redmond", State = "WA", Country = "USA", },
+    };
 }
 
 <div class="jumbotron">
@@ -33,4 +42,105 @@
         <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
         <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
     </div>
+</div>
+
+<div class="row">
+    <form action="/Home/Hello" method="post">
+        @Html.Hidden("Anon.Id")
+        <table>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Model.Name</label>
+                </td>
+                <td>
+                    @Html.TextBox("Name")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Model.Address</label>
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Address, htmlAttributes: new { @class = "form-control" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Name</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Name")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.Street</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.Street", (object)ViewBag.Anon.Address.Street)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.City</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.City", value: null, format: "{0} (3)")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.State</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.State", value: null, htmlAttributes: new { @class = "form-control" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.Country</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.Country", value: null, format: "{0} (4)",
+                         htmlAttributes: new { @class = "form-control" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.DrinkingAge</label>
+                </td>
+                <td>
+                    @Html.CheckBox("Anon.DrinkingAge")
+                    or
+                    @Html.RadioButton("Anon.DrinkingAge", value: false) False
+                    @Html.RadioButton("Anon.DrinkingAge", value: true) True
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Retired</label>
+                </td>
+                <td>
+                    @Html.CheckBox("Anon.Retired", isChecked: (bool)ViewBag.Anon.Retired)
+                    or
+                    @Html.RadioButton("Anon.Retired", value: false, isChecked: !(bool)ViewBag.Anon.Retired) False
+                    @Html.RadioButton("Anon.Retired", value: true, isChecked: (bool)ViewBag.Anon.Retired) True
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Password</label>
+                </td>
+                <td>
+                    @Html.Password("Password")
+                </td>
+            </tr>
+        </table>
+
+        <div class="form-group">
+            <div class="col-md-2">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </form>
 </div>

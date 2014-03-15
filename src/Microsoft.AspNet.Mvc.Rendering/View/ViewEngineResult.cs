@@ -1,7 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class ViewEngineResult
     {
@@ -18,26 +19,16 @@ namespace Microsoft.AspNet.Mvc
             get { return View != null; } 
         }
 
-        public static ViewEngineResult NotFound(IEnumerable<string> searchedLocations)
+        public static ViewEngineResult NotFound([NotNull] IEnumerable<string> searchedLocations)
         {
-            if (searchedLocations == null)
-            {
-                throw new ArgumentNullException("searchedLocations");
-            }
-
             return new ViewEngineResult
             {
                 SearchedLocations = searchedLocations
             };
         }
 
-        public static ViewEngineResult Found(IView view)
+        public static ViewEngineResult Found([NotNull] IView view)
         {
-            if (view == null)
-            {
-                throw new ArgumentNullException("view");
-            }
-
             return new ViewEngineResult
             {
                 View = view

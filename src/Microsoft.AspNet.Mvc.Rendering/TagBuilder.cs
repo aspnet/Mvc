@@ -6,17 +6,15 @@ using System.Globalization;
 using System.Net;
 using System.Text;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class TagBuilder
     {
-        private string _idAttributeDotReplacement;
-
         private string _innerHtml;
 
         public TagBuilder(string tagName)
         {
-            if (String.IsNullOrEmpty(tagName))
+            if (string.IsNullOrEmpty(tagName))
             {
                 throw new ArgumentException("CommonResources.Argument_Cannot_Be_Null_Or_Empty", "tagName");
             }
@@ -29,11 +27,39 @@ namespace Microsoft.AspNet.Mvc
 
         public string InnerHtml
         {
-            get { return _innerHtml ?? String.Empty; }
+            get { return _innerHtml ?? string.Empty; }
             set { _innerHtml = value; }
         }
 
         public string TagName { get; private set; }
+
+        public static string CreateSanitizedId(string originalId, [NotNull] string invalidCharReplacement)
+        {
+            if (string.IsNullOrEmpty(originalId))
+            {
+                return string.Empty;
+            }
+
+            var firstChar = originalId[0];
+
+            var sb = new StringBuilder(originalId.Length);
+            sb.Append(firstChar);
+
+            for (var i = 1; i < originalId.Length; i++)
+            {
+                var thisChar = originalId[i];
+                if (!char.IsWhiteSpace(thisChar))
+                {
+                    sb.Append(thisChar);
+                }
+                else
+                {
+                    sb.Append(invalidCharReplacement);
+                }
+            }
+
+            return sb.ToString();
+        }
 
         public void AddCssClass(string value)
         {
@@ -49,72 +75,34 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public static string CreateSanitizedId(string originalId)
-        {
-            return CreateSanitizedId(originalId, "." /*HtmlHelper.IdAttributeDotReplacement*/);
-        }
-
-        public static string CreateSanitizedId(string originalId, string invalidCharReplacement)
-        {
-            if (String.IsNullOrEmpty(originalId))
-            {
-                return null;
-            }
-
-            if (invalidCharReplacement == null)
-            {
-                throw new ArgumentNullException("invalidCharReplacement");
-            }
-
-            char firstChar = originalId[0];
-
-            StringBuilder sb = new StringBuilder(originalId.Length);
-            sb.Append(firstChar);
-
-            for (int i = 1; i < originalId.Length; i++)
-            {
-                char thisChar = originalId[i];
-                if (!Char.IsWhiteSpace(thisChar))
-                {
-                    sb.Append(thisChar);
-                }
-                else
-                {
-                    sb.Append(invalidCharReplacement);
-                }
-            }
-
-            return sb.ToString();
-        }
-
-        public void GenerateId(string name)
-        {
-            if (!Attributes.ContainsKey("id"))
-            {
-                string sanitizedId = name; // CreateSanitizedId(name, IdAttributeDotReplacement);
-                if (!String.IsNullOrEmpty(sanitizedId))
-                {
-                    Attributes["id"] = sanitizedId;
-                }
-            }
-        }
-
         private void AppendAttributes(StringBuilder sb)
         {
             foreach (var attribute in Attributes)
             {
-                string key = attribute.Key;
-                if (String.Equals(key, "id", StringComparison.Ordinal) && String.IsNullOrEmpty(attribute.Value))
+                var key = attribute.Key;
+                if (string.Equals(key, "id", StringComparison.Ordinal) && string.IsNullOrEmpty(attribute.Value))
                 {
                     continue;
                 }
-                //string value = HttpUtility.HtmlAttributeEncode(attribute.Value);
-                string value = WebUtility.HtmlEncode(attribute.Value);
+
+                var value = WebUtility.HtmlEncode(attribute.Value);
                 sb.Append(' ')
                     .Append(key)
                     .Append("=\"")
                     .Append(value)
                     .Append('"');
+            }
+        }
+
+        public void GenerateId(string name, [NotNull] string idAttributeDotReplacement)
+        {
+            if (!Attributes.ContainsKey("id"))
+            {
+                var sanitizedId = CreateSanitizedId(name, idAttributeDotReplacement);
+                if (!string.IsNullOrEmpty(sanitizedId))
+                {
+                    Attributes["id"] = sanitizedId;
+                }
             }
         }
 
@@ -125,7 +113,7 @@ namespace Microsoft.AspNet.Mvc
 
         public void MergeAttribute(string key, string value, bool replaceExisting)
         {
-            if (String.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException("CommonResources.Argument_Cannot_Be_Null_Or_Empty", "key");
             }
@@ -147,8 +135,8 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var entry in attributes)
                 {
-                    string key = Convert.ToString(entry.Key, CultureInfo.InvariantCulture);
-                    string value = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
+                    var key = Convert.ToString(entry.Key, CultureInfo.InvariantCulture);
+                    var value = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                     MergeAttribute(key, value, replaceExisting);
                 }
             }
@@ -159,7 +147,7 @@ namespace Microsoft.AspNet.Mvc
             InnerHtml = WebUtility.HtmlEncode(innerText);
         }
 
-        internal HtmlString ToHtmlString(TagRenderMode renderMode)
+        public HtmlString ToHtmlString(TagRenderMode renderMode)
         {
             return new HtmlString(ToString(renderMode));
         }
@@ -171,7 +159,7 @@ namespace Microsoft.AspNet.Mvc
 
         public string ToString(TagRenderMode renderMode)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             switch (renderMode)
             {
                 case TagRenderMode.StartTag:
@@ -202,6 +190,7 @@ namespace Microsoft.AspNet.Mvc
                         .Append('>');
                     break;
             }
+
             return sb.ToString();
         }
     }

@@ -1,5 +1,5 @@
 ﻿
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public interface IUrlHelper
     {

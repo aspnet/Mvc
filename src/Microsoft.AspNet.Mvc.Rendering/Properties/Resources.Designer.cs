@@ -11,6 +11,198 @@ namespace Microsoft.AspNet.Mvc.Rendering
             = new ResourceManager("Microsoft.AspNet.Mvc.Rendering.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
+        /// The argument '{0}' is null or empty.
+        /// </summary>
+        internal static string ArgumentNullOrEmpty
+        {
+            get { return GetString("ArgumentNullOrEmpty"); }
+        }
+
+        /// <summary>
+        /// The argument '{0}' is null or empty.
+        /// </summary>
+        internal static string FormatArgumentNullOrEmpty(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ArgumentNullOrEmpty"), p0);
+        }
+
+        /// <summary>
+        /// Value cannot be null or empty.
+        /// </summary>
+        internal static string Common_NullOrEmpty
+        {
+            get { return GetString("Common_NullOrEmpty"); }
+        }
+
+        /// <summary>
+        /// Value cannot be null or empty.
+        /// </summary>
+        internal static string FormatCommon_NullOrEmpty()
+        {
+            return GetString("Common_NullOrEmpty");
+        }
+
+        /// <summary>
+        /// The partial view '{0}' was not found or no view engine supports the searched locations. The following locations were searched:{1}
+        /// </summary>
+        internal static string Common_PartialViewNotFound
+        {
+            get { return GetString("Common_PartialViewNotFound"); }
+        }
+
+        /// <summary>
+        /// The partial view '{0}' was not found or no view engine supports the searched locations. The following locations were searched:{1}
+        /// </summary>
+        internal static string FormatCommon_PartialViewNotFound(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Common_PartialViewNotFound"), p0, p1);
+        }
+
+        /// <summary>
+        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
+        /// </summary>
+        internal static string ExpressionHelper_InvalidIndexerExpression
+        {
+            get { return GetString("ExpressionHelper_InvalidIndexerExpression"); }
+        }
+
+        /// <summary>
+        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
+        /// </summary>
+        internal static string FormatExpressionHelper_InvalidIndexerExpression(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ExpressionHelper_InvalidIndexerExpression"), p0, p1);
+        }
+
+        /// <summary>
+        /// The GET and POST HTTP methods are not supported.
+        /// </summary>
+        internal static string HtmlHelper_InvalidHttpMethod
+        {
+            get { return GetString("HtmlHelper_InvalidHttpMethod"); }
+        }
+
+        /// <summary>
+        /// The GET and POST HTTP methods are not supported.
+        /// </summary>
+        internal static string FormatHtmlHelper_InvalidHttpMethod()
+        {
+            return GetString("HtmlHelper_InvalidHttpMethod");
+        }
+
+        /// <summary>
+        /// The specified HttpVerbs value is not supported. The supported values are Delete, Head, Put, Options, and Patch.
+        /// </summary>
+        internal static string HtmlHelper_InvalidHttpVerb
+        {
+            get { return GetString("HtmlHelper_InvalidHttpVerb"); }
+        }
+
+        /// <summary>
+        /// The specified HttpVerbs value is not supported. The supported values are Delete, Head, Put, Options, and Patch.
+        /// </summary>
+        internal static string FormatHtmlHelper_InvalidHttpVerb()
+        {
+            return GetString("HtmlHelper_InvalidHttpVerb");
+        }
+
+        /// <summary>
+        /// Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.
+        /// </summary>
+        internal static string TemplateHelpers_TemplateLimitations
+        {
+            get { return GetString("TemplateHelpers_TemplateLimitations"); }
+        }
+
+        /// <summary>
+        /// Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.
+        /// </summary>
+        internal static string FormatTemplateHelpers_TemplateLimitations()
+        {
+            return GetString("TemplateHelpers_TemplateLimitations");
+        }
+
+        /// <summary>
+        /// Validation parameter names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
+        /// </summary>
+        internal static string UnobtrusiveJavascript_ValidationParameterCannotBeEmpty
+        {
+            get { return GetString("UnobtrusiveJavascript_ValidationParameterCannotBeEmpty"); }
+        }
+
+        /// <summary>
+        /// Validation parameter names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
+        /// </summary>
+        internal static string FormatUnobtrusiveJavascript_ValidationParameterCannotBeEmpty(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationParameterCannotBeEmpty"), p0);
+        }
+
+        /// <summary>
+        /// Validation parameter names in unobtrusive client validation rules must start with a lowercase letter and consist of only lowercase letters or digits. Validation parameter name: {0}, client rule type: {1}
+        /// </summary>
+        internal static string UnobtrusiveJavascript_ValidationParameterMustBeLegal
+        {
+            get { return GetString("UnobtrusiveJavascript_ValidationParameterMustBeLegal"); }
+        }
+
+        /// <summary>
+        /// Validation parameter names in unobtrusive client validation rules must start with a lowercase letter and consist of only lowercase letters or digits. Validation parameter name: {0}, client rule type: {1}
+        /// </summary>
+        internal static string FormatUnobtrusiveJavascript_ValidationParameterMustBeLegal(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationParameterMustBeLegal"), p0, p1);
+        }
+
+        /// <summary>
+        /// Validation type names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
+        /// </summary>
+        internal static string UnobtrusiveJavascript_ValidationTypeCannotBeEmpty
+        {
+            get { return GetString("UnobtrusiveJavascript_ValidationTypeCannotBeEmpty"); }
+        }
+
+        /// <summary>
+        /// Validation type names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
+        /// </summary>
+        internal static string FormatUnobtrusiveJavascript_ValidationTypeCannotBeEmpty(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationTypeCannotBeEmpty"), p0);
+        }
+
+        /// <summary>
+        /// Validation type names in unobtrusive client validation rules must consist of only lowercase letters. Invalid name: "{0}", client rule type: {1}
+        /// </summary>
+        internal static string UnobtrusiveJavascript_ValidationTypeMustBeLegal
+        {
+            get { return GetString("UnobtrusiveJavascript_ValidationTypeMustBeLegal"); }
+        }
+
+        /// <summary>
+        /// Validation type names in unobtrusive client validation rules must consist of only lowercase letters. Invalid name: "{0}", client rule type: {1}
+        /// </summary>
+        internal static string FormatUnobtrusiveJavascript_ValidationTypeMustBeLegal(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationTypeMustBeLegal"), p0, p1);
+        }
+
+        /// <summary>
+        /// Validation type names in unobtrusive client validation rules must be unique. The following validation type was seen more than once: {0}
+        /// </summary>
+        internal static string UnobtrusiveJavascript_ValidationTypeMustBeUnique
+        {
+            get { return GetString("UnobtrusiveJavascript_ValidationTypeMustBeUnique"); }
+        }
+
+        /// <summary>
+        /// Validation type names in unobtrusive client validation rules must be unique. The following validation type was seen more than once: {0}
+        /// </summary>
+        internal static string FormatUnobtrusiveJavascript_ValidationTypeMustBeUnique(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationTypeMustBeUnique"), p0);
+        }
+
+        /// <summary>
         /// The model item passed is null, but this ViewData instance requires a non-null model item of type '{0}'.
         /// </summary>
         internal static string ViewData_ModelCannotBeNull

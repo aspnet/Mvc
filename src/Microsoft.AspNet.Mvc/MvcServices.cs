@@ -1,4 +1,5 @@
-﻿
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using Microsoft.AspNet.ConfigurationModel;
 using Microsoft.AspNet.DependencyInjection;
@@ -6,6 +7,8 @@ using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Mvc.Razor.Compilation;
+using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Rendering.Html;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -31,12 +34,14 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
 
             yield return describe.Instance<IMvcRazorHost>(new MvcRazorHost(typeof(RazorView).FullName));
+            yield return describe.Instance<IHtmlSettings>(new HtmlSettings());
 
             yield return describe.Transient<ICompilationService, RoslynCompilationService>();
 
             yield return describe.Transient<IRazorCompilationService, RazorCompilationService>();
             yield return describe.Transient<IVirtualPathViewFactory, VirtualPathViewFactory>();
             yield return describe.Transient<IViewEngine, RazorViewEngine>();
+            yield return describe.Transient<IHtmlHelper, HtmlHelper>();
 
             yield return describe.Transient<INestedProvider<ActionDescriptorProviderContext>,
                                             ReflectedActionDescriptorProvider>();
