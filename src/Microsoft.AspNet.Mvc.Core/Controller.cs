@@ -1,18 +1,24 @@
 ﻿using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class Controller
     {
-        public void Initialize(IActionResultHelper actionResultHelper)
+        public void Initialize(IActionResultHelper actionResultHelper, IHtmlSettings htmlSettings,
+            IModelMetadataProvider metadataProvider)
         {
             Result = actionResultHelper;
-            ViewData = new ViewData<object>();
+            HtmlSettings = htmlSettings;
+            ViewData = new ViewData<object>(metadataProvider);
         }
 
         public IActionResultHelper Result { get; private set; }
 
         public HttpContext Context { get; set; }
+
+        public IHtmlSettings HtmlSettings { get; private set; }
 
         public IUrlHelper Url { get; set; }
 
@@ -30,8 +36,7 @@ namespace Microsoft.AspNet.Mvc
 
         public IActionResult View(string view)
         {
-            object model = null;
-            return View(view, model);
+            return View(view, model: (object)null);
         }
 
         public IActionResult View<TModel>(TModel model)
@@ -41,11 +46,13 @@ namespace Microsoft.AspNet.Mvc
 
         public IActionResult View<TModel>(string view, TModel model)
         {
-            var viewDataDictionary = new ViewData<TModel>
+            var viewData = ViewData as ViewData<TModel> ?? new ViewData<TModel>(ViewData);
+            if (typeof(TModel).IsValueType() || (object)model != null)
             {
-                Model = model
-            };
-            return Result.View(view, viewDataDictionary);
+                viewData.Model = model;
+            }
+
+            return Result.View(view, viewData);
         }
     }
 }
