@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class ViewData : DynamicObject
     {
@@ -14,13 +16,8 @@ namespace Microsoft.AspNet.Mvc
             _data = new Dictionary<object, dynamic>();
         }
 
-        public ViewData(ViewData source)
+        public ViewData([NotNull] ViewData source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
-
             _data = source._data;
             SetModel(source.Model);
         }
