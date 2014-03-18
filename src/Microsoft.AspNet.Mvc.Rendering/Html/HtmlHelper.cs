@@ -85,7 +85,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return value != null ? WebUtility.HtmlEncode(value.ToString()) : string.Empty;
         }
 
-        internal static IView FindPartialView(ViewContext viewContext, string partialViewName, [NotNull] IViewEngine viewEngine)
+        internal static IView FindPartialView([NotNull] ViewContext viewContext, string partialViewName,
+            [NotNull] IViewEngine viewEngine)
         {
             ViewEngineResult result = viewEngine.FindView(viewContext, partialViewName).Result;
             if (result.View != null)
