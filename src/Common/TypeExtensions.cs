@@ -8,6 +8,8 @@ namespace Microsoft.AspNet.Mvc
 {
     internal static class TypeExtensions
     {
+        // NOTE: Do not make #105 worse! Do not add new extension methods that conflict w/ .NET 4.5 methods. The
+        // exising NETFX_CORE || K10 methods should go away (soon).
 #if NETFX_CORE || K10
         private static bool EqualTo([NotNull] this Type[] t1, [NotNull] Type[] t2)
         {
