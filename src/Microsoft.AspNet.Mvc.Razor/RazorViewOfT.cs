@@ -1,12 +1,20 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     public abstract class RazorView<TModel> : RazorView
     {
-        public TModel Model { get; set; }
+        public TModel Model
+        {
+            get
+            {
+                return ViewData == null ? default(TModel) : ViewData.Model;
+            }
+        }
 
         public dynamic ViewBag
         {
@@ -19,9 +27,23 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public override Task RenderAsync(ViewContext context, TextWriter writer)
         {
-            var viewData = context.ViewData as ViewData<TModel>;
-            ViewData = viewData ?? new ViewData<TModel>(context.ViewData);
-            Model = ViewData.Model;
+            ViewData = context.ViewData as ViewData<TModel>;
+            if (ViewData == null)
+            {
+                if (context.ViewData != null)
+                {
+                    ViewData = new ViewData<TModel>(context.ViewData);
+                }
+                else
+                {
+                    var metadataProvider = context.ServiceProvider.GetService<IModelMetadataProvider>();
+                    ViewData = new ViewData<TModel>(metadataProvider);
+                }
+
+                // Have new ViewData; make sure it's visible everywhere.
+                context = new ViewContext(context.HttpContext, ViewData, context.ServiceProvider);
+            }
+
             InitHelpers(context);
 
             return base.RenderAsync(context, writer);
