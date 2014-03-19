@@ -9,7 +9,8 @@
     "xunit.abstractions": "2.0.0-aspnet-*",
     "xunit.assert": "2.0.0-aspnet-*",
     "xunit.core": "2.0.0-aspnet-*",
-    "xunit.execution": "2.0.0-aspnet-*"
+    "xunit.execution": "2.0.0-aspnet-*",
+	"Newtonsoft.Json": "5.0.8"
   },
   "commands": {
     "test": "Xunit.KRunner"
