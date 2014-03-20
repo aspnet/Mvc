@@ -4,6 +4,8 @@ using Microsoft.AspNet.DependencyInjection.Fallback;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.RequestContainer;
 using Microsoft.AspNet.Routing;
+using System;
+using System.Collections.Generic;
 
 namespace MvcSample.Web
 {
@@ -11,12 +13,21 @@ namespace MvcSample.Web
     {
         public void Configuration(IBuilder builder)
         {
+            var services = CreateServices();
+            var serviceProvider = services.BuildServiceProvider(builder.ServiceProvider);
+            ConfigurationCore(builder, serviceProvider);
+        }
+
+        public ServiceCollection CreateServices()
+        {
             var services = new ServiceCollection();
             services.Add(MvcServices.GetDefaultServices());
             services.AddSingleton<PassThroughAttribute, PassThroughAttribute>();
+            return services;
+        }
 
-            var serviceProvider = services.BuildServiceProvider(builder.ServiceProvider);
-
+        public void ConfigurationCore(IBuilder builder, IServiceProvider serviceProvider)
+        {
             var routes = new RouteCollection()
             {
                 DefaultHandler = new MvcApplication(serviceProvider),
