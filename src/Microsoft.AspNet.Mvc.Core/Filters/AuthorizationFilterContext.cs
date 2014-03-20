@@ -1,23 +1,21 @@
-﻿namespace Microsoft.AspNet.Mvc
+﻿using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.Filters;
+
+namespace Microsoft.AspNet.Mvc
 {
-    public class AuthorizationFilterContext
+    public class AuthorizationFilterContext : FilterContext
     {
         private IActionResult _actionResult;
-        private bool _fail;
 
-        public AuthorizationFilterContext(ActionContext actionContext)
+        public AuthorizationFilterContext([NotNull] ActionContext actionContext, [NotNull] IReadOnlyList<FilterItem> filterItems)
+            : base(actionContext, filterItems)
         {
-            ActionContext = actionContext;
         }
 
-        public bool HasFailed
-        {
-            get { return _fail; }
-        }
+        public bool HasFailed { get; private set; }
 
-        public ActionContext ActionContext { get; private set; }
-
-        public IActionResult ActionResult
+        // Result
+        public override IActionResult ActionResult
         {
             get { return _actionResult; }
             set
@@ -33,7 +31,7 @@
 
         public void Fail()
         {
-            _fail = true;
+            HasFailed = true;
         }
     }
 }
