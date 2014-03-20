@@ -1,0 +1,53 @@
+﻿{
+  "version" : "0.1-alpha-*",
+  "dependencies": {
+    "Common": "",
+    "TestCommon": "",
+    "MvcSample.Web": "",
+    "Xunit.KRunner": "0.1-alpha-*",
+    "xunit.abstractions": "2.0.0-aspnet-*",
+    "xunit.assert": "2.0.0-aspnet-*",
+    "xunit.core": "2.0.0-aspnet-*",
+    "xunit.execution": "2.0.0-aspnet-*",
+    "Microsoft.AspNet.Abstractions": "0.1-alpha-*",
+    "Microsoft.AspNet.ConfigurationModel": "0.1-alpha-*",
+    "Microsoft.AspNet.DependencyInjection": "0.1-alpha-*",
+    "Microsoft.AspNet.FeatureModel": "0.1-alpha-*",
+    "Microsoft.AspNet.Hosting": "0.1-alpha-*",
+    "Microsoft.AspNet.TestHost": "0.1-alpha-*",
+    "Microsoft.AspNet.HttpFeature": "0.1-alpha-*",
+    "Microsoft.AspNet.RequestContainer": "0.1-alpha-*",
+    "Microsoft.AspNet.Routing": "0.1-alpha-*",
+    "Microsoft.AspNet.Mvc": "",
+    "Microsoft.AspNet.Mvc.Core": "",
+    "Microsoft.AspNet.Mvc.ModelBinding": "",
+    "Microsoft.AspNet.Mvc.Razor": "",
+    "Microsoft.AspNet.Mvc.Razor.Host": "",
+    "Microsoft.AspNet.PipelineCore": "0.1-alpha-*",
+    "Microsoft.AspNet.Security.DataProtection": "0.1-alpha-*",
+    "Microsoft.ComponentModel.DataAnnotations": "4.0.10.0"
+  },
+  "commands": {
+    "test": "Xunit.KRunner"
+  },
+  "configurations": {
+    "k10": {
+        "dependencies": {
+            "System.Runtime": "4.0.20.0",
+            "System.Runtime.Extensions": "4.0.10.0",
+            "System.Reflection": "4.0.10.0",
+            "System.Reflection.Extensions": "4.0.0.0"
+        }
+    },
+    "net45": {
+        "dependencies": {
+            "System.Reflection": "4.0.10.0",
+            "System.Runtime": "4.0.20.0",
+            "System.Runtime.Extensions": "4.0.10.0",
+            "System.Threading": "4.0.0.0",
+            "System.Threading.Tasks": "4.0.10.0",
+            "System.Threading.Thread": "4.0.0.0"
+        }
+    }
+  }
+}
