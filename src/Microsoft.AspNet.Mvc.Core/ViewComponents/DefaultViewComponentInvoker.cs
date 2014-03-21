@@ -144,11 +144,11 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var prop in _componentType.GetRuntimeProperties())
             {
-                if (prop.Name == "ViewContext" && typeof(ViewContext).IsAssignableFrom(prop.PropertyType))
+                if (prop.Name == "ViewContext" && typeof(ViewContext).GetTypeInfo().IsAssignableFrom(prop.PropertyType))
                 {
                     prop.SetValue(component, context.HttpContext);
                 }
-                else if (prop.Name == "ViewData" && typeof(ViewData).IsAssignableFrom(prop.PropertyType))
+                else if (prop.Name == "ViewData" && typeof(ViewData).GetTypeInfo().IsAssignableFrom(prop.PropertyType))
                 {
                     // Creating a new copy of the view data, so changes aren't visible in the calling view.
                     var viewData = new ViewData(context.ViewData);
