@@ -21,11 +21,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             get { return ViewData; }
         }
 
-        public ViewData<TModel> ViewData { get; set; }
+        public ViewData<TModel> ViewData { get; private set; }
 
         public HtmlHelper<TModel> Html { get; set; }
 
-        public override Task RenderAsync(ViewContext context, TextWriter writer)
+        public override Task RenderAsync([NotNull] ViewContext context, [NotNull] TextWriter writer)
         {
             ViewData = context.ViewData as ViewData<TModel>;
             if (ViewData == null)
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 // Have new ViewData; make sure it's visible everywhere.
-                context = new ViewContext(context.HttpContext, ViewData, context.ServiceProvider);
+                context.ViewData = ViewData;
             }
 
             InitHelpers(context);

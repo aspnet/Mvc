@@ -1,8 +1,8 @@
 ﻿@using MvcSample.Web.Models
 @model User
 @{
-    ViewBag.Title = (Model == null) ? "Create Page" : "Edit Page";
     string nullValue = null;
+    ViewBag.Title = (Model == null) ? "Create Page" : "Edit Page";
     if (ViewData["Gift"] == null)
     {
         ViewBag.Gift = "nothing";
@@ -11,7 +11,7 @@
 
 <div class="row">
     <h2 title="@ViewBag.Title" class="@nullValue">@ViewBag.Title</h2>
-    <h3 title="Thanks" class="@nullValue">Thanks for @ViewData["Gift"]</h3>
+    <h3 title="Thanks" class="@nullValue">Thanks for @ViewBag.Gift</h3>
     @if (Model == null)
     {
         <h4 title ="Null Model" class="@nullValue">Howdy, your model is null.</h4>
