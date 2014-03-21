@@ -3,7 +3,8 @@ using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ViewComponent
+    [ViewComponent]
+    public abstract class ViewComponent
     {
         public IViewComponentResultHelper Result { get; private set; }
 
