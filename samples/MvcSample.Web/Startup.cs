@@ -1,5 +1,4 @@
-﻿using System.Collections;
-
+﻿
 #if NET45
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
