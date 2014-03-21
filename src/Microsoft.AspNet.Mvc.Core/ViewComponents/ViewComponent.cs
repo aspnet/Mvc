@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
@@ -6,7 +7,14 @@ namespace Microsoft.AspNet.Mvc
     [ViewComponent]
     public abstract class ViewComponent
     {
+        public HttpContext Context
+        {
+            get { return ViewContext == null ? null : ViewContext.HttpContext; }
+        }
+
         public IViewComponentResultHelper Result { get; private set; }
+
+        public ViewContext ViewContext { get; set; }
 
         public ViewData ViewData { get; set; }
 

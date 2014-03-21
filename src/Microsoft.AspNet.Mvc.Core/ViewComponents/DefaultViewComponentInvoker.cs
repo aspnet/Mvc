@@ -144,17 +144,15 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var prop in _componentType.GetRuntimeProperties())
             {
-                if (prop.Name == "Context" && prop.PropertyType == typeof(HttpContext))
+                if (prop.Name == "ViewContext" && typeof(ViewContext).IsAssignableFrom(prop.PropertyType))
                 {
                     prop.SetValue(component, context.HttpContext);
                 }
-                else if (prop.Name == "Url" && prop.PropertyType == typeof(IUrlHelper))
+                else if (prop.Name == "ViewData" && typeof(ViewData).IsAssignableFrom(prop.PropertyType))
                 {
-                    prop.SetValue(component, context.Url);
-                }
-                else if (prop.Name == "ViewData" && prop.PropertyType == typeof(ViewData))
-                {
-                    prop.SetValue(component, context.ViewData);
+                    // Creating a new copy of the view data, so changes aren't visible in the calling view.
+                    var viewData = new ViewData(context.ViewData);
+                    prop.SetValue(component, viewData);
                 }
             }
 
