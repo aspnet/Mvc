@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -25,9 +26,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private bool IsSupportedContentType(HttpRequest request)
         {
-            var contentType = request.Headers["Content-Type"];
-            return !String.IsNullOrEmpty(contentType) && 
-                   contentType.Equals(FormEncodedContentType, StringComparison.OrdinalIgnoreCase);
+            var contentType = request.GetContentType();
+            return contentType != null &&
+                   contentType.ContentType.Equals(FormEncodedContentType, StringComparison.OrdinalIgnoreCase);
         }
 
         private static CultureInfo GetCultureInfo(HttpRequest request)
