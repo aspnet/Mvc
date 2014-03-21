@@ -1,5 +1,5 @@
 ﻿
-using System.IO;
+
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -20,14 +20,14 @@ namespace Microsoft.AspNet.Mvc
             _encoded = encoded;
         }
 
-        public void Execute([NotNull] ViewContext viewContext, TextWriter writer)
+        public void Execute([NotNull] ComponentContext componentContext)
         {
-            writer.Write(_encoded.ToString());
+            componentContext.Writer.Write(_encoded.ToString());
         }
 
-        public async Task ExecuteAsync([NotNull] ViewContext viewContext, TextWriter writer)
+        public async Task ExecuteAsync([NotNull] ComponentContext componentContext)
         {
-            await writer.WriteAsync(_encoded.ToString());
+            await componentContext.Writer.WriteAsync(_encoded.ToString());
         }
     }
 }

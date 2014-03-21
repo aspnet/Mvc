@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Rendering;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.Mvc
@@ -69,9 +68,9 @@ namespace Microsoft.AspNet.Mvc
             return jsonWriter;
         }
 
-        public void Execute([NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
+        public void Execute([NotNull] ComponentContext componentContext)
         {
-            using (JsonWriter jsonWriter = CreateJsonWriter(writer))
+            using (JsonWriter jsonWriter = CreateJsonWriter(componentContext.Writer))
             {
                 jsonWriter.CloseOutput = false;
 
@@ -82,9 +81,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public async Task ExecuteAsync([NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
+        public async Task ExecuteAsync([NotNull] ComponentContext componentContext)
         {
- 	        Execute(viewContext, writer);
+            Execute(componentContext);
         }
     }
 }

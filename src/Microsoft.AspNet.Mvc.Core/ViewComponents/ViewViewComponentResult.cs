@@ -10,6 +10,8 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ViewViewComponentResult : IViewComponentResult
     {
+        private const string ViewPathFormat = "Components/{0}/{1}";
+
         private readonly IViewEngine _viewEngine;
         private readonly string _viewName;
         private readonly ViewData _viewData;
@@ -21,28 +23,56 @@ namespace Microsoft.AspNet.Mvc
             _viewData = viewData;
         }
 
-        public void Execute([NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
+        public void Execute([NotNull] ComponentContext componentContext)
         {
+            ExecuteAsync(componentContext).Wait();
+            return;
             throw new NotImplementedException("There's no support for syncronous views right now.");
         }
 
-        public async Task ExecuteAsync([NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
+        public async Task ExecuteAsync([NotNull] ComponentContext componentContext)
         {
             var childViewContext = new ViewContext(
-                viewContext.ServiceProvider,
-                viewContext.HttpContext,
-                viewContext.ViewEngineContext,
-                _viewData ?? viewContext.ViewData)
+                componentContext.ViewContext.ServiceProvider,
+                componentContext.ViewContext.HttpContext,
+                componentContext.ViewContext.ViewEngineContext,
+                _viewData ?? componentContext.ViewContext.ViewData)
             {
-                Component = viewContext.Component,
-                Url = viewContext.Url,
-                Writer = writer,
+                Component = componentContext.ViewContext.Component,
+                Url = componentContext.ViewContext.Url,
+                Writer = componentContext.Writer,
             };
 
-            var view = await FindView(viewContext.ViewEngineContext, _viewName);
+            string qualifiedViewName;
+            if (_viewName.Length > 0 && _viewName[0] == '/')
+            {
+                // View name that was passed in is already a rooted path, the view engine will handle this.
+                qualifiedViewName = _viewName;
+            }
+            else
+            {
+                // This will produce a string like: 
+                //  
+                //  Components/Cart/Default
+                //
+                // The view engine will combine this with other path info to search paths like:
+                //
+                //  Views/Shared/Components/Cart/Default.cshtml
+                //  Views/Home/Components/Cart/Default.cshtml
+                //  Areas/Blog/Views/Shared/Components/Cart/Default.cshtml
+                //
+                // This support a controller or area providing an override for component views.
+                qualifiedViewName = string.Format(
+                    CultureInfo.InvariantCulture,
+                    ViewPathFormat,
+                    ViewComponentMetadata.GetComponentName(componentContext.ComponentType),
+                    _viewName);
+            }
+
+            var view = await FindView(componentContext.ViewContext.ViewEngineContext, qualifiedViewName);
             using (view as IDisposable)
             {
-                await view.RenderAsync(childViewContext, writer);
+                await view.RenderAsync(childViewContext, componentContext.Writer);
             }
         }
 

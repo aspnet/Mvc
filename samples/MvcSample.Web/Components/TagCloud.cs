@@ -11,22 +11,24 @@ namespace MvcSample.Web.Components
         // Hipster lorum ipsum, generated with http://hipsum.co/
         private readonly string[] Tags =
             ("Post-ironic iPhone +1 small-batch meggings occupy ennui Truffaut ethical try-hard gastropub" +
-            "brunch High-Life Schlitz Photo booth scenester forage Cosby sweater food truck Truffaut" + 
-            "narwhal Brooklyn fashion axe beard chambray craft beer Drinking vinegar PBR&B Cosby sweater" +
-            "asymmetrical lo-fi beard cray mixtape locavore Master cleanse squid mumblecore ethnic " +
-            "Intelligentsia Godard Odd Future XOXO asymmetrical gastropub distillery PBR&B swag" +
-            "Helvetica yr art party occupy ug Leggings Austin plaid pork belly")
-            .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+             "brunch High-Life Schlitz Photo booth scenester forage Cosby sweater food truck Truffaut" +
+             "narwhal Brooklyn fashion axe beard chambray craft beer Drinking vinegar PBR&B Cosby sweater" +
+             "asymmetrical lo-fi beard cray mixtape locavore Master cleanse squid mumblecore ethnic " +
+             "Intelligentsia Godard Odd Future XOXO asymmetrical gastropub distillery PBR&B swag" +
+             "Helvetica yr art party occupy ug Leggings Austin plaid pork belly")
+                .Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(s => Guid.NewGuid().ToString())
+                .ToArray();
 
-        public async Task<IViewComponentResult> InvokeAsync()
+        public async Task<IViewComponentResult> InvokeAsync(int count)
         {
-            var tags = await GetTagsAsync(20);
+            var tags = await GetTagsAsync(count);
             return View(tags);
         }
 
-        public IViewComponentResult Invoke()
+        public IViewComponentResult Invoke(int count)
         {
-            var tags = GetTags(20);
+            var tags = GetTags(count);
             return View(tags);
         }
 

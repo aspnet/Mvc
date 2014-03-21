@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc
             _args = args;
         }
 
-        public void Invoke([NotNull] ViewComponentInvokerContext context)
+        public void Invoke([NotNull] ComponentContext context)
         {
             var method = FindSyncMethod();
             if (method == null)
@@ -41,10 +41,10 @@ namespace Microsoft.AspNet.Mvc
             }
 
             var result = InvokeSyncCore(method, context.ViewContext);
-            result.Execute(context.ViewContext, context.Writer);
+            result.Execute(context);
         }
 
-        public async Task InvokeAsync([NotNull] ViewComponentInvokerContext context)
+        public async Task InvokeAsync([NotNull] ComponentContext context)
         {
             IViewComponentResult result;
 
@@ -73,7 +73,7 @@ namespace Microsoft.AspNet.Mvc
             }
 
 
-            await result.ExecuteAsync(context.ViewContext, context.Writer);
+            await result.ExecuteAsync(context);
         }
 
         private MethodInfo FindAsyncMethod()
@@ -139,12 +139,8 @@ namespace Microsoft.AspNet.Mvc
 
         private object CreateComponent([NotNull] ViewContext context)
         {
-            object component = _serviceProvider.GetService(_componentType);
-            if (component == null)
-            {
-                var activator = _serviceProvider.GetService<ITypeActivator>();
-                component = activator.CreateInstance(_componentType);
-            }
+            var activator = _serviceProvider.GetService<ITypeActivator>();
+            object component = activator.CreateInstance(_componentType);
 
             foreach (var prop in _componentType.GetRuntimeProperties())
             {

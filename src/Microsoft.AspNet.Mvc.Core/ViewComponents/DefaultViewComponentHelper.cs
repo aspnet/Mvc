@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -26,23 +27,23 @@ namespace Microsoft.AspNet.Mvc
             _body = body;
         }
 
-        public string Invoke([NotNull] string name, params object[] args)
+        public HtmlString Invoke([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
 
             using (var writer = new StringWriter())
             {
                 InvokeCore(writer, componentType, args);
-                return writer.ToString();
+                return new HtmlString(writer.ToString());
             }
         }
 
-        public string Invoke([NotNull] Type componentType, params object[] args)
+        public HtmlString Invoke([NotNull] Type componentType, params object[] args)
         {
             using (var writer = new StringWriter())
             {
                 InvokeCore(writer, componentType, args);
-                return writer.ToString();
+                return new HtmlString(writer.ToString());
             }
         }
 
@@ -58,23 +59,23 @@ namespace Microsoft.AspNet.Mvc
             InvokeCore(_body, componentType, args);
         }
 
-        public async Task<string> InvokeAsync([NotNull] string name, params object[] args)
+        public async Task<HtmlString> InvokeAsync([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
 
             using (var writer = new StringWriter())
             {
                 await InvokeCoreAsync(writer, componentType, args);
-                return writer.ToString();
+                return new HtmlString(writer.ToString());
             }
         }
 
-        public async Task<string> InvokeAsync([NotNull] Type componentType, params object[] args)
+        public async Task<HtmlString> InvokeAsync([NotNull] Type componentType, params object[] args)
         {
             using (var writer = new StringWriter())
             {
                 await InvokeCoreAsync(writer, componentType, args);
-                return writer.ToString();
+                return new HtmlString(writer.ToString());
             }
         }
 
@@ -109,7 +110,7 @@ namespace Microsoft.AspNet.Mvc
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(componentType));
             }
 
-            var context = new ViewComponentInvokerContext(_viewContext, writer);
+            var context = new ComponentContext(componentType.GetTypeInfo(), _viewContext, writer);
             await invoker.InvokeAsync(context);
         }
 
@@ -122,7 +123,7 @@ namespace Microsoft.AspNet.Mvc
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(componentType));
             }
 
-            var context = new ViewComponentInvokerContext(_viewContext, writer);
+            var context = new ComponentContext(componentType.GetTypeInfo(), _viewContext, writer);
             invoker.Invoke(context);
         }
     }

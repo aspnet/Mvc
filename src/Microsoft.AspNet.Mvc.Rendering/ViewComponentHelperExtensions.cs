@@ -5,7 +5,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public static class ViewComponentHelperExtensions
     {
-        public static string Invoke<TComponent>([NotNull] this IViewComponentHelper helper, params object[] args)
+        public static HtmlString Invoke<TComponent>([NotNull] this IViewComponentHelper helper, params object[] args)
         {
             return helper.Invoke(typeof(TComponent), args);
         }
@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             helper.RenderInvoke(typeof(TComponent), args);
         }
 
-        public static async Task<string> InvokeAsync<TComponent>([NotNull] this IViewComponentHelper helper, params object[] args)
+        public static async Task<HtmlString> InvokeAsync<TComponent>([NotNull] this IViewComponentHelper helper, params object[] args)
         {
             return await helper.InvokeAsync(typeof(TComponent), args);
         }

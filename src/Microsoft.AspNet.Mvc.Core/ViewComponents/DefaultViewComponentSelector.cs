@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc
 
         public Type SelectComponent([NotNull] string componentName)
         {
-            var assemblies = _assemblyProvider.Assemblies;
+            var assemblies = _assemblyProvider.CandidateAssemblies;
             var types = assemblies.SelectMany(a => a.DefinedTypes);
 
             var components = 
