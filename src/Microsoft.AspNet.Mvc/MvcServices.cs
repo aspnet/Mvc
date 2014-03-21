@@ -69,11 +69,11 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IModelValidatorProvider, DataMemberModelValidatorProvider>();
 
             yield return
-                describe.Describe(
-                    typeof(INestedProviderManager<>),
-                    typeof(NestedProviderManager<>),
-                    implementationInstance: null,
-                    lifecycle: LifecycleKind.Transient);
+               describe.Describe(
+                   typeof(INestedProviderManager<>),
+                   typeof(NestedProviderManager<>),
+                   implementationInstance: null,
+                   lifecycle: LifecycleKind.Transient);
 
             yield return
                 describe.Describe(
