@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
                 context.HttpContext.Response.ContentType = "text/html";
                 using (var writer = new StreamWriter(context.HttpContext.Response.Body, Encoding.UTF8, 1024, leaveOpen: true))
                 {
-                    await view.RenderAsync(viewContext, writer);
+                    await view.RenderAsync(CreateViewContext(context, writer), writer);
                 }
             }
         }
@@ -58,8 +58,8 @@ namespace Microsoft.AspNet.Mvc
 
             var viewContext = new ViewContext(_serviceProvider, actionContext.HttpContext, actionContext.RouteValues)
             {
-                ViewData = ViewData,
                 Url = urlHelper,
+                ViewData = ViewData,
                 Writer = writer,
             };
 

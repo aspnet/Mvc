@@ -35,11 +35,11 @@ namespace Microsoft.AspNet.Mvc
             var childViewContext = new ViewContext(
                 componentContext.ViewContext.ServiceProvider,
                 componentContext.ViewContext.HttpContext,
-                componentContext.ViewContext.ViewEngineContext,
-                _viewData ?? componentContext.ViewContext.ViewData)
+                componentContext.ViewContext.ViewEngineContext)
             {
                 Component = componentContext.ViewContext.Component,
                 Url = componentContext.ViewContext.Url,
+                ViewData = _viewData ?? componentContext.ViewContext.ViewData,
                 Writer = componentContext.Writer,
             };
 
