@@ -6,7 +6,6 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultViewComponentInvokerFactory : IViewComponentInvokerFactory
     {
-
         private readonly INestedProviderManager<ViewComponentInvokerProviderContext> _providerManager;
 
         public DefaultViewComponentInvokerFactory(INestedProviderManager<ViewComponentInvokerProviderContext> providerManager)
