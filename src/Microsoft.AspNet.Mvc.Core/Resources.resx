@@ -127,7 +127,7 @@
     <value>The class ReflectedActionFilterEndPoint only supports ReflectedActionDescriptors.</value>
   </data>
   <data name="ViewComponent_AmbiguousTypeMatch" xml:space="preserve">
-    <value>The name view component name '{0}' matched multiple types: {1}</value>
+    <value>The view component name '{0}' matched multiple types: {1}</value>
   </data>
   <data name="ViewComponent_AsyncMethod_ShouldReturnTask" xml:space="preserve">
     <value>The async view component method '{0}' should be declared to return Task&lt;T&gt;.</value>

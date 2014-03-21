@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The name view component name '{0}' matched multiple types: {1}
+        /// The view component name '{0}' matched multiple types: {1}
         /// </summary>
         internal static string ViewComponent_AmbiguousTypeMatch
         {
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The name view component name '{0}' matched multiple types: {1}
+        /// The view component name '{0}' matched multiple types: {1}
         /// </summary>
         internal static string FormatViewComponent_AmbiguousTypeMatch(object p0, object p1)
         {
