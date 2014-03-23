@@ -24,8 +24,8 @@ namespace Microsoft.AspNet.Mvc
 
         public static async Task<object> ExecuteAsync(MethodInfo actionMethodInfo, object instance, IDictionary<string, object> actionArguments)
         {
-            var methodArguments = PrepareArguments(actionArguments, actionMethodInfo.GetParameters());
-            return await ExecuteAsync(actionMethodInfo, instance, methodArguments);
+            var orderedArguments = PrepareArguments(actionArguments, actionMethodInfo.GetParameters());
+            return await ExecuteAsync(actionMethodInfo, instance, orderedArguments);
         }
 
         public static async Task<object> ExecuteAsync(MethodInfo actionMethodInfo, object instance, object[] actionArguments)
