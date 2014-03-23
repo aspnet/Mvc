@@ -52,14 +52,13 @@ namespace Microsoft.AspNet.Mvc
 
         private JsonSerializer CreateJsonSerializer()
         {
-            JsonSerializer jsonSerializer = JsonSerializer.Create(SerializerSettings);
-
+            var jsonSerializer = JsonSerializer.Create(SerializerSettings);
             return jsonSerializer;
         }
 
         private JsonWriter CreateJsonWriter([NotNull] TextWriter writer)
         {
-            JsonWriter jsonWriter = new JsonTextWriter(writer);
+            var jsonWriter = new JsonTextWriter(writer);
             if (Indent)
             {
                 jsonWriter.Formatting = Formatting.Indented;
@@ -70,11 +69,11 @@ namespace Microsoft.AspNet.Mvc
 
         public void Execute([NotNull] ComponentContext componentContext)
         {
-            using (JsonWriter jsonWriter = CreateJsonWriter(componentContext.Writer))
+            using (var jsonWriter = CreateJsonWriter(componentContext.Writer))
             {
                 jsonWriter.CloseOutput = false;
 
-                JsonSerializer jsonSerializer = CreateJsonSerializer();
+                var jsonSerializer = CreateJsonSerializer();
                 jsonSerializer.Serialize(jsonWriter, _value);
 
                 jsonWriter.Flush();

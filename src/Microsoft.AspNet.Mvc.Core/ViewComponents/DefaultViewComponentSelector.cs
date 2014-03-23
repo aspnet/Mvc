@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
             }
             else
             {
-                var typeNames = String.Join(Environment.NewLine, matching.Select(t => t.Type.FullName));
+                var typeNames = string.Join(Environment.NewLine, matching.Select(t => t.Type.FullName));
                 throw new InvalidOperationException(Resources.FormatViewComponent_AmbiguousTypeMatch(componentName, typeNames));
             }
         }

@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc
                 return null;
             }
 
-            if (!method.IsGenericMethod || method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
+            if (!method.ReturnType.IsGenericType || method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
             {
                 throw new InvalidOperationException(
                     Resources.FormatViewComponent_AsyncMethod_ShouldReturnTask(AsyncMethodName));
@@ -140,7 +140,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (prop.Name == "ViewContext" && typeof(ViewContext).GetTypeInfo().IsAssignableFrom(prop.PropertyType.GetTypeInfo()))
                 {
-                    prop.SetValue(component, context.HttpContext);
+                    prop.SetValue(component, context);
                 }
                 else if (prop.Name == "ViewData" && typeof(ViewData).GetTypeInfo().IsAssignableFrom(prop.PropertyType.GetTypeInfo()))
                 {
