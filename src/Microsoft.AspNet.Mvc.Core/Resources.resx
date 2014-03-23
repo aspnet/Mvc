@@ -144,4 +144,10 @@
   <data name="ViewComponent_IViewComponentFactory_ReturnedNull" xml:space="preserve">
     <value>An invoker could not be created for the view component '{0}'.</value>
   </data>
+  <data name="ViewComponent_CannotFindMethod" xml:space="preserve">
+    <value>Could not find an '{0}' method matching the parameters.</value>
+  </data>
+  <data name="ViewComponent_CannotFindMethod_WithFallback" xml:space="preserve">
+    <value>Could not find an '{0}' or '{1}' method matching the parameters.</value>
+  </data>
 </root>

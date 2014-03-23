@@ -154,6 +154,38 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_IViewComponentFactory_ReturnedNull"), p0);
         }
 
+        /// <summary>
+        /// Could not find an '{0}' method matching the parameters.
+        /// </summary>
+        internal static string ViewComponent_CannotFindMethod
+        {
+            get { return GetString("ViewComponent_CannotFindMethod"); }
+        }
+
+        /// <summary>
+        /// Could not find an '{0}' method matching the parameters.
+        /// </summary>
+        internal static string FormatViewComponent_CannotFindMethod(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_CannotFindMethod"), p0);
+        }
+
+        /// <summary>
+        /// Could not find an '{0}' or '{1}' method matching the parameters.
+        /// </summary>
+        internal static string ViewComponent_CannotFindMethod_WithFallback
+        {
+            get { return GetString("ViewComponent_CannotFindMethod_WithFallback"); }
+        }
+
+        /// <summary>
+        /// Could not find an '{0}' or '{1}' method matching the parameters.
+        /// </summary>
+        internal static string FormatViewComponent_CannotFindMethod_WithFallback(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_CannotFindMethod_WithFallback"), p0, p1);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

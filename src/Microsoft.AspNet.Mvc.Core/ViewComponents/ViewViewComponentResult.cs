@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc
         private readonly string _viewName;
         private readonly ViewData _viewData;
 
-        public ViewViewComponentResult([NotNull] IViewEngine viewEngine, [NotNull] string viewName, [NotNull] ViewData viewData)
+        public ViewViewComponentResult([NotNull] IViewEngine viewEngine, [NotNull] string viewName, ViewData viewData)
         {
             _viewEngine = viewEngine;
             _viewName = viewName;
@@ -25,8 +25,6 @@ namespace Microsoft.AspNet.Mvc
 
         public void Execute([NotNull] ComponentContext componentContext)
         {
-            ExecuteAsync(componentContext).Wait();
-            return;
             throw new NotImplementedException("There's no support for syncronous views right now.");
         }
 
@@ -61,7 +59,7 @@ namespace Microsoft.AspNet.Mvc
                 //  Views/Home/Components/Cart/Default.cshtml
                 //  Areas/Blog/Views/Shared/Components/Cart/Default.cshtml
                 //
-                // This support a controller or area providing an override for component views.
+                // This supports a controller or area providing an override for component views.
                 qualifiedViewName = string.Format(
                     CultureInfo.InvariantCulture,
                     ViewPathFormat,

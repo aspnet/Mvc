@@ -30,12 +30,7 @@ namespace Microsoft.AspNet.Mvc
         public HtmlString Invoke([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
-
-            using (var writer = new StringWriter())
-            {
-                InvokeCore(writer, componentType, args);
-                return new HtmlString(writer.ToString());
-            }
+            return Invoke(componentType, args);
         }
 
         public HtmlString Invoke([NotNull] Type componentType, params object[] args)
@@ -50,7 +45,6 @@ namespace Microsoft.AspNet.Mvc
         public void RenderInvoke([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
-
             InvokeCore(_body, componentType, args);
         }
 
@@ -62,12 +56,7 @@ namespace Microsoft.AspNet.Mvc
         public async Task<HtmlString> InvokeAsync([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
-
-            using (var writer = new StringWriter())
-            {
-                await InvokeCoreAsync(writer, componentType, args);
-                return new HtmlString(writer.ToString());
-            }
+            return await InvokeAsync(componentType, args);
         }
 
         public async Task<HtmlString> InvokeAsync([NotNull] Type componentType, params object[] args)
@@ -101,9 +90,9 @@ namespace Microsoft.AspNet.Mvc
             return componentType;
         }
 
-        private async Task InvokeCoreAsync([NotNull] TextWriter writer, [NotNull] Type componentType, object[] arguments)
+        private async Task InvokeCoreAsync([NotNull] TextWriter writer, [NotNull] Type componentType, object[] args)
         {
-            var invoker = _invokerFactory.CreateInstance(componentType, arguments);
+            var invoker = _invokerFactory.CreateInstance(componentType, args);
             if (invoker == null)
             {
                 throw new InvalidOperationException(

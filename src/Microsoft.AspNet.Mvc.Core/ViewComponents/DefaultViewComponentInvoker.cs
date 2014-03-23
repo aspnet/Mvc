@@ -34,10 +34,7 @@ namespace Microsoft.AspNet.Mvc
             var method = FindSyncMethod();
             if (method == null)
             {
-                throw new InvalidOperationException(string.Format(
-                    CultureInfo.CurrentCulture,
-                    "Could not find an '{0}' method matching the parameters.",
-                    SyncMethodName));
+                throw new InvalidOperationException(Resources.FormatViewComponent_CannotFindMethod(SyncMethodName));
             }
 
             var result = InvokeSyncCore(method, context.ViewContext);
@@ -51,16 +48,13 @@ namespace Microsoft.AspNet.Mvc
             var asyncMethod = FindAsyncMethod();
             if (asyncMethod == null)
             {
-                // We support falling back to synchronous if there is no InvokeAsync method, in this case we'll still get
+                // We support falling back to synchronous if there is no InvokeAsync method, in this case we'll still
                 // execute the IViewResult asynchronously.
                 var syncMethod = FindSyncMethod();
                 if (syncMethod == null)
                 {
-                    throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture,
-                        "Could not find an '{0}' or '{1}' method matching the parameters.",
-                        SyncMethodName,
-                        AsyncMethodName));
+                    throw new InvalidOperationException(
+                        Resources.FormatViewComponent_CannotFindMethod_WithFallback(SyncMethodName, AsyncMethodName));
                 }
                 else
                 {
@@ -140,15 +134,15 @@ namespace Microsoft.AspNet.Mvc
         private object CreateComponent([NotNull] ViewContext context)
         {
             var activator = _serviceProvider.GetService<ITypeActivator>();
-            object component = activator.CreateInstance(_componentType);
+            object component = activator.CreateInstance(_serviceProvider, _componentType);
 
             foreach (var prop in _componentType.GetRuntimeProperties())
             {
-                if (prop.Name == "ViewContext" && typeof(ViewContext).GetTypeInfo().IsAssignableFrom(prop.PropertyType))
+                if (prop.Name == "ViewContext" && typeof(ViewContext).GetTypeInfo().IsAssignableFrom(prop.PropertyType.GetTypeInfo()))
                 {
                     prop.SetValue(component, context.HttpContext);
                 }
-                else if (prop.Name == "ViewData" && typeof(ViewData).GetTypeInfo().IsAssignableFrom(prop.PropertyType))
+                else if (prop.Name == "ViewData" && typeof(ViewData).GetTypeInfo().IsAssignableFrom(prop.PropertyType.GetTypeInfo()))
                 {
                     // Creating a new copy of the view data, so changes aren't visible in the calling view.
                     var viewData = new ViewData(context.ViewData);
@@ -222,7 +216,7 @@ namespace Microsoft.AspNet.Mvc
                 return new ContentViewComponentResult(htmlStringResult);
             }
 
-            // Currently not handling POCO cases
+            // TODO: Currently we're not handing POCO cases for view components. 
             throw new NotImplementedException("No support for POCO types here.");
         }
     }
