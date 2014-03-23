@@ -22,12 +22,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             ModelState = modelState;
             _data = new Dictionary<object, dynamic>();
             _metadataProvider = metadataProvider;
+            TemplateInfo = new TemplateInfo();
         }
 
         public ViewData([NotNull] ViewData source)
             : this(source.MetadataProvider)
         {
             _modelMetadata = source.ModelMetadata;
+
+            // TODO: Should this instead invoke a new TemplateInfo copy constructor?
+            TemplateInfo = source.TemplateInfo;
             
             foreach (var entry in source.ModelState)
             {
@@ -77,6 +81,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 _modelMetadata = value;
             }
         }
+
+        public TemplateInfo TemplateInfo { get; private set; }
 
         /// <summary>
         /// Provider for subclasses that need it to override <see cref="ModelMetadata"/>.
