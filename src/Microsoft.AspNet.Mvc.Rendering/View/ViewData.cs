@@ -55,8 +55,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             get
             {
                 dynamic result;
-
-                _data.TryGetValue(index, out result);
+                TryGetValue(index, out result);
 
                 return result;
             }
@@ -93,18 +92,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            result = _data[binder.Name];
+            result = this[binder.Name];
 
-            // We return true here because ViewDataDictionary returns null if the key is not
-            // in the dictionary, so we simply pass on the returned value.
+            // Indexer's result will be null when TryGetValue fails. Never return false; that confuses the runtime.
             return true;
         }
 
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            // This cast should always succeed.
-            dynamic v = value;
-            _data[binder.Name] = v;
+            this[binder.Name] = value;
             return true;
         }
 
@@ -115,7 +111,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 throw new ArgumentException("Invalid number of indexes");
             }
 
-            object index = indexes[0];
+            var index = indexes[0];
+
+            // This cast should always succeed.
             result = this[(string)index];
             return true;
         }
@@ -127,11 +125,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 throw new ArgumentException("Invalid number of indexes");
             }
 
-            object index = indexes[0];
+            var index = indexes[0];
 
             // This cast should always succeed.
             this[(string)index] = value;
             return true;
+        }
+
+        public bool TryGetValue(string key, out dynamic value)
+        {
+            return _data.TryGetValue(key, out value);
         }
 
         // This method will execute before the derived type's instance constructor executes. Derived types must
