@@ -10,6 +10,12 @@ namespace Microsoft.AspNet.Mvc
 
         public static string GetComponentName([NotNull] TypeInfo componentType)
         {
+            var attribute = componentType.GetCustomAttribute<ViewComponentAttribute>();
+            if (attribute != null && !string.IsNullOrEmpty(attribute.Name))
+            {
+                return attribute.Name;
+            }
+
             if (componentType.Name.EndsWith(ViewComponentSuffix, StringComparison.OrdinalIgnoreCase))
             {
                 return componentType.Name.Substring(0, componentType.Name.Length - ViewComponentSuffix.Length);

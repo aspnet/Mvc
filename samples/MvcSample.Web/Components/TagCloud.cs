@@ -6,6 +6,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace MvcSample.Web.Components
 {
+    [ViewComponent(Name="Tags")]
     public class TagCloud : ViewComponent
     {
         // Hipster lorum ipsum, generated with http://hipsum.co/
