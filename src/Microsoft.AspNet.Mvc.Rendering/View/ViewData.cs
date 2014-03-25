@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         // Remaining properties implement IDictionary<string, object> properties.
 
-        // Do not just pass through to _data: Iterator should not throw a KeyNotFoundException.
+        // Do not just pass through to _data: Indexer should not throw a KeyNotFoundException.
         public object this[string index]
         {
             get
