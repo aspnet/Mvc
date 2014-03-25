@@ -34,20 +34,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        public ViewData(ViewData source, TModel model)
-            : base(source, model)
-        {
-            var original = source as ViewData<TModel>;
-            if (original != null)
-            {
-                _defaultModelMetadata = original._defaultModelMetadata;
-            }
-            else
-            {
-                _defaultModelMetadata = MetadataProvider.GetMetadataForType(null, typeof(TModel));
-            }
-        }
-
         public new TModel Model
         {
             get { return (TModel)base.Model; }

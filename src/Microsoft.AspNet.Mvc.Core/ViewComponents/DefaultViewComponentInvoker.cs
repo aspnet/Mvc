@@ -78,8 +78,10 @@ namespace Microsoft.AspNet.Mvc
                 }
                 else if (prop.Name == "ViewData" && typeof(ViewData).GetTypeInfo().IsAssignableFrom(prop.PropertyType.GetTypeInfo()))
                 {
-                    // Creating a new copy of the view data, so changes aren't visible in the calling view.
+                    // We're flowing the viewbag across, but the concept of model doesn't really apply here
                     var viewData = new ViewData(context.ViewData);
+                    viewData.Model = null;
+
                     prop.SetValue(component, viewData);
                 }
             }

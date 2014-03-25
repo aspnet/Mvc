@@ -40,14 +40,10 @@ namespace Microsoft.AspNet.Mvc
 
         public IViewComponentResult View<TModel>(string viewName, TModel model)
         {
-            ViewData<TModel> viewData;
-            if (model == null)
+            var viewData = new ViewData<TModel>(ViewData);
+            if (model != null)
             {
-                viewData = new ViewData<TModel>(ViewData);
-            }
-            else
-            {
-                viewData = new ViewData<TModel>(ViewData, model);
+                viewData.Model = model;
             }
 
             return Result.View(viewName ?? "Default", viewData);

@@ -25,11 +25,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         public ViewData([NotNull] ViewData source)
-            : this(source, source.Model)
-        {
-        }
-
-        public ViewData([NotNull] ViewData source, object model)
             : this(source.MetadataProvider)
         {
             _modelMetadata = source.ModelMetadata;
@@ -44,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 _data.Add(entry.Key, entry.Value);
             }
 
-            SetModel(model);
+            SetModel(source.Model);
         }
 
         public object Model
