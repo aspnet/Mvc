@@ -7,7 +7,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     public class TemplateInfo
     {
         // Keep a collection of visited objects to prevent infinite recursion.
-        private HashSet<object> _visitedObjects = new HashSet<object>();
+        private HashSet<object> _visitedObjects;
 
         public TemplateInfo()
         {
