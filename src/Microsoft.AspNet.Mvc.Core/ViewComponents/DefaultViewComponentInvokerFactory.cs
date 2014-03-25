@@ -1,5 +1,5 @@
 ﻿
-using System;
+using System.Reflection;
 using Microsoft.AspNet.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc
             _providerManager = providerManager;
         }
 
-        public IViewComponentInvoker CreateInstance([NotNull] Type componentType, [NotNull] object[] args)
+        public IViewComponentInvoker CreateInstance([NotNull] TypeInfo componentType, [NotNull] object[] args)
         {
             var context = new ViewComponentInvokerProviderContext(componentType, args);
             _providerManager.Invoke(context);

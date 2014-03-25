@@ -14,10 +14,10 @@ namespace Microsoft.AspNet.Mvc
     public class DefaultViewComponentInvoker : IViewComponentInvoker
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly Type _componentType;
+        private readonly TypeInfo _componentType;
         private readonly object[] _args;
 
-        public DefaultViewComponentInvoker([NotNull] IServiceProvider serviceProvider, [NotNull] Type componentType, object[] args)
+        public DefaultViewComponentInvoker([NotNull] IServiceProvider serviceProvider, [NotNull] TypeInfo componentType, object[] args)
         {
             _serviceProvider = serviceProvider;
             _componentType = componentType;

@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.Core.ViewComponents
         public const string AsyncMethodName = "InvokeAsync";
         public const string SyncMethodName = "Invoke";
 
-        public static MethodInfo FindAsyncMethod([NotNull] Type componentType, [NotNull] object[] args)
+        public static MethodInfo FindAsyncMethod([NotNull] TypeInfo componentType, [NotNull] object[] args)
         {
             var method = GetMethod(componentType, args, AsyncMethodName);
             if (method == null)
@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Core.ViewComponents
             return method;
         }
 
-        public static MethodInfo FindSyncMethod([NotNull] Type componentType, [NotNull] object[] args)
+        public static MethodInfo FindSyncMethod([NotNull] TypeInfo componentType, [NotNull] object[] args)
         {
             var method = GetMethod(componentType, args, SyncMethodName);
             if (method == null)
@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.Core.ViewComponents
             return method;
         }
 
-        private static MethodInfo GetMethod([NotNull] Type componentType, [NotNull] object[] args, [NotNull] string methodName)
+        private static MethodInfo GetMethod([NotNull] TypeInfo componentType, [NotNull] object[] args, [NotNull] string methodName)
         {
             var argumentExpressions = new Expression[args.Length];
             for (var i = 0; i < args.Length; i++)

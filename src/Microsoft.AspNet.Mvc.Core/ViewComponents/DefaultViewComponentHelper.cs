@@ -92,7 +92,7 @@ namespace Microsoft.AspNet.Mvc
 
         private async Task InvokeCoreAsync([NotNull] TextWriter writer, [NotNull] Type componentType, object[] args)
         {
-            var invoker = _invokerFactory.CreateInstance(componentType, args);
+            var invoker = _invokerFactory.CreateInstance(componentType.GetTypeInfo(), args);
             if (invoker == null)
             {
                 throw new InvalidOperationException(
@@ -105,7 +105,7 @@ namespace Microsoft.AspNet.Mvc
 
         private void InvokeCore([NotNull] TextWriter writer, [NotNull] Type componentType, object[] arguments)
         {
-            var invoker = _invokerFactory.CreateInstance(componentType, arguments);
+            var invoker = _invokerFactory.CreateInstance(componentType.GetTypeInfo(), arguments);
             if (invoker == null)
             {
                 throw new InvalidOperationException(

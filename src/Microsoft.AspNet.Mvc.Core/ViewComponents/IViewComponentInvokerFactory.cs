@@ -1,10 +1,10 @@
 ﻿
-using System;
+using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
 {
     public interface IViewComponentInvokerFactory
     {
-        IViewComponentInvoker CreateInstance([NotNull] Type componentType, object[] args);
+        IViewComponentInvoker CreateInstance([NotNull] TypeInfo componentType, object[] args);
     }
 }
