@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.Core.ViewComponents
                 return null;
             }
 
-            if (!method.ReturnType.IsGenericType || method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
+            if (!method.ReturnType.GetTypeInfo().IsGenericType || method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
             {
                 throw new InvalidOperationException(
                     Resources.FormatViewComponent_AsyncMethod_ShouldReturnTask(AsyncMethodName));
@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.Core.ViewComponents
                 //
                 // Unfortunely the overload of Type.GetMethod that we would like to use is not present in CoreCLR. Item #160 in Jira
                 // tracks these issues.
-                var expression = Expression.Call(Expression.Constant(null, componentType), methodName, null, argumentExpressions);
+                var expression = Expression.Call(Expression.Constant(null, componentType.AsType()), methodName, null, argumentExpressions);
                 return expression.Method;
             }
             catch (InvalidOperationException)

@@ -68,9 +68,9 @@ namespace Microsoft.AspNet.Mvc
         private object CreateComponent([NotNull] ViewContext context)
         {
             var activator = _serviceProvider.GetService<ITypeActivator>();
-            object component = activator.CreateInstance(_serviceProvider, _componentType);
+            object component = activator.CreateInstance(_serviceProvider, _componentType.AsType());
 
-            foreach (var prop in _componentType.GetRuntimeProperties())
+            foreach (var prop in _componentType.AsType().GetRuntimeProperties())
             {
                 if (prop.Name == "ViewContext" && typeof(ViewContext).GetTypeInfo().IsAssignableFrom(prop.PropertyType.GetTypeInfo()))
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
                 }
             }
 
-            var method = _componentType.GetRuntimeMethods().FirstOrDefault(m => m.Name.Equals("Initialize", StringComparison.OrdinalIgnoreCase));
+            var method = _componentType.AsType().GetRuntimeMethods().FirstOrDefault(m => m.Name.Equals("Initialize", StringComparison.OrdinalIgnoreCase));
             if (method != null)
             {
                 var args = method.GetParameters()
