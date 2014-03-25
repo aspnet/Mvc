@@ -20,8 +20,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
         }
 
-        public ViewData(ViewData source)
-            : base(source)
+        /// <inheritdoc />
+        public ViewData([NotNull] ViewData source)
+            : this(source, source.Model)
+        {
+        }
+
+        /// <inheritdoc />
+        public ViewData([NotNull] ViewData source, object model)
+            : base(source, model)
         {
             var original = source as ViewData<TModel>;
             if (original != null)

@@ -16,11 +16,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        public dynamic ViewBag
-        {
-            get { return ViewData; }
-        }
-
         public ViewData<TModel> ViewData { get; private set; }
 
         public HtmlHelper<TModel> Html { get; set; }
