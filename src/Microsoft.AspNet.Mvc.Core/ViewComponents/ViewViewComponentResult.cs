@@ -23,22 +23,22 @@ namespace Microsoft.AspNet.Mvc
             _viewData = viewData;
         }
 
-        public void Execute([NotNull] ViewComponentContext viewComponentContext)
+        public void Execute([NotNull] ViewComponentContext context)
         {
             throw new NotImplementedException("There's no support for syncronous views right now.");
         }
 
-        public async Task ExecuteAsync([NotNull] ViewComponentContext viewComponentContext)
+        public async Task ExecuteAsync([NotNull] ViewComponentContext context)
         {
             var childViewContext = new ViewContext(
-                viewComponentContext.ViewContext.ServiceProvider,
-                viewComponentContext.ViewContext.HttpContext,
-                viewComponentContext.ViewContext.ViewEngineContext)
+                context.ViewContext.ServiceProvider,
+                context.ViewContext.HttpContext,
+                context.ViewContext.ViewEngineContext)
             {
-                Component = viewComponentContext.ViewContext.Component,
-                Url = viewComponentContext.ViewContext.Url,
-                ViewData = _viewData ?? viewComponentContext.ViewContext.ViewData,
-                Writer = viewComponentContext.Writer,
+                Component = context.ViewContext.Component,
+                Url = context.ViewContext.Url,
+                ViewData = _viewData ?? context.ViewContext.ViewData,
+                Writer = context.Writer,
             };
 
             string qualifiedViewName;
@@ -63,14 +63,14 @@ namespace Microsoft.AspNet.Mvc
                 qualifiedViewName = string.Format(
                     CultureInfo.InvariantCulture,
                     ViewPathFormat,
-                    ViewComponentConventions.GetComponentName(viewComponentContext.ComponentType),
+                    ViewComponentConventions.GetComponentName(context.ComponentType),
                     _viewName);
             }
 
-            var view = await FindView(viewComponentContext.ViewContext.ViewEngineContext, qualifiedViewName);
+            var view = await FindView(context.ViewContext.ViewEngineContext, qualifiedViewName);
             using (view as IDisposable)
             {
-                await view.RenderAsync(childViewContext, viewComponentContext.Writer);
+                await view.RenderAsync(childViewContext, context.Writer);
             }
         }
 

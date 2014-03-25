@@ -10,7 +10,6 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultViewComponentHelper : IViewComponentHelper
     {
-        private readonly TextWriter _body;
         private readonly IViewComponentInvokerFactory _invokerFactory;
         private readonly IViewComponentSelector _selector;
         private readonly ViewContext _viewContext;
@@ -18,13 +17,11 @@ namespace Microsoft.AspNet.Mvc
         public DefaultViewComponentHelper(
             [NotNull] IViewComponentSelector selector,
             [NotNull] IViewComponentInvokerFactory invokerFactory,
-            [NotNull] ViewContext viewContext,
-            [NotNull] TextWriter body)
+            [NotNull] ViewContext viewContext)
         {
             _selector = selector;
             _invokerFactory = invokerFactory;
             _viewContext = viewContext;
-            _body = body;
         }
 
         public HtmlString Invoke([NotNull] string name, params object[] args)
@@ -45,12 +42,12 @@ namespace Microsoft.AspNet.Mvc
         public void RenderInvoke([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
-            InvokeCore(_body, componentType, args);
+            InvokeCore(_viewContext.Writer, componentType, args);
         }
 
         public void RenderInvoke([NotNull] Type componentType, params object[] args)
         {
-            InvokeCore(_body, componentType, args);
+            InvokeCore(_viewContext.Writer, componentType, args);
         }
 
         public async Task<HtmlString> InvokeAsync([NotNull] string name, params object[] args)
@@ -71,12 +68,12 @@ namespace Microsoft.AspNet.Mvc
         public async Task RenderInvokeAsync([NotNull] string name, params object[] args)
         {
             var componentType = SelectComponent(name);
-            await InvokeCoreAsync(_body, componentType, args);
+            await InvokeCoreAsync(_viewContext.Writer, componentType, args);
         }
 
         public async Task RenderInvokeAsync([NotNull] Type componentType, params object[] args)
         {
-            await InvokeCoreAsync(_body, componentType, args);
+            await InvokeCoreAsync(_viewContext.Writer, componentType, args);
         }
 
         private Type SelectComponent([NotNull] string name)

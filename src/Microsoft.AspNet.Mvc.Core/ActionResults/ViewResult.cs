@@ -66,8 +66,7 @@ namespace Microsoft.AspNet.Mvc
             viewContext.Component = new DefaultViewComponentHelper(
                 _serviceProvider.GetService<IViewComponentSelector>(),
                 _serviceProvider.GetService<IViewComponentInvokerFactory>(),
-                viewContext,
-                writer);
+                viewContext);
 
             return viewContext;
         }
