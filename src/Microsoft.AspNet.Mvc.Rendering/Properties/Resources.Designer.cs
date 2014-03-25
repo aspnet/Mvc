@@ -43,6 +43,54 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
+        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
+        /// </summary>
+        internal static string ExpressionHelper_InvalidIndexerExpression
+        {
+            get { return GetString("ExpressionHelper_InvalidIndexerExpression"); }
+        }
+
+        /// <summary>
+        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
+        /// </summary>
+        internal static string FormatExpressionHelper_InvalidIndexerExpression(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ExpressionHelper_InvalidIndexerExpression"), p0, p1);
+        }
+
+        /// <summary>
+        /// viewContext.ViewData must not be null.
+        /// </summary>
+        internal static string HtmlHelper_ViewDataNull
+        {
+            get { return GetString("HtmlHelper_ViewDataNull"); }
+        }
+
+        /// <summary>
+        /// viewContext.ViewData must not be null.
+        /// </summary>
+        internal static string FormatHtmlHelper_ViewDataNull()
+        {
+            return GetString("HtmlHelper_ViewDataNull");
+        }
+
+        /// <summary>
+        /// viewContext.ViewData is of type '{0}', but this HtmlHelper requires ViewData of type '{1}'.
+        /// </summary>
+        internal static string HtmlHelper_ViewDataUnexpectedType
+        {
+            get { return GetString("HtmlHelper_ViewDataUnexpectedType"); }
+        }
+
+        /// <summary>
+        /// viewContext.ViewData is of type '{0}', but this HtmlHelper requires ViewData of type '{1}'.
+        /// </summary>
+        internal static string FormatHtmlHelper_ViewDataUnexpectedType(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_ViewDataUnexpectedType"), p0, p1);
+        }
+
+        /// <summary>
         /// The model item passed is null, but this ViewData instance requires a non-null model item of type '{0}'.
         /// </summary>
         internal static string ViewData_ModelCannotBeNull
