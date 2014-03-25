@@ -7,6 +7,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class ViewContext
     {
+        private DynamicViewData _viewBag;
+
         public ViewContext(IServiceProvider serviceProvider, HttpContext httpContext, IDictionary<string, object> viewEngineContext)
         {
             ServiceProvider = serviceProvider;
@@ -21,6 +23,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public IServiceProvider ServiceProvider { get; private set; }
 
         public IUrlHelper Url { get; set; }
+
+        public dynamic ViewBag
+        {
+            get
+            {
+                if (_viewBag == null)
+                {
+                    _viewBag = new DynamicViewData(() => ViewData);
+                }
+
+                return _viewBag;
+            }
+        }
 
         public ViewData ViewData { get; set; }
 

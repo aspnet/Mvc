@@ -6,6 +6,8 @@ namespace Microsoft.AspNet.Mvc
 {
     public class Controller
     {
+        private DynamicViewData _viewBag;
+
         public void Initialize(IActionResultHelper actionResultHelper)
         {
             Result = actionResultHelper;
@@ -37,7 +39,15 @@ namespace Microsoft.AspNet.Mvc
 
         public dynamic ViewBag
         {
-            get { return ViewData; }
+            get
+            {
+                if (_viewBag == null)
+                {
+                    _viewBag = new DynamicViewData(() => ViewData);
+                }
+
+                return _viewBag;
+            }
         }
 
         public IActionResult View()

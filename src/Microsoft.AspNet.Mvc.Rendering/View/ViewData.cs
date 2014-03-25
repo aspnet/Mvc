@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Dynamic;
 using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public class ViewData : DynamicObject
+    public class ViewData : IDictionary<string, object>
     {
-        private readonly Dictionary<object, dynamic> _data;
+        private readonly IDictionary<string, object> _data;
         private object _model;
         private ModelMetadata _modelMetadata;
         private IModelMetadataProvider _metadataProvider;
@@ -20,11 +20,23 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public ViewData([NotNull] IModelMetadataProvider metadataProvider, [NotNull] ModelStateDictionary modelState)
         {
             ModelState = modelState;
-            _data = new Dictionary<object, dynamic>();
+            _data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             _metadataProvider = metadataProvider;
         }
 
+        /// <summary>
+        /// <see cref="ViewData"/> copy constructor for use when model type does not change.
+        /// </summary>
         public ViewData([NotNull] ViewData source)
+            : this(source, source.Model)
+        {
+        }
+
+        /// <summary>
+        /// <see cref="ViewData"/> copy constructor for use when model type may change. This avoids exceptions a
+        /// derived class may throw when <see cref="SetModel()"/> is called.
+        /// </summary>
+        public ViewData([NotNull] ViewData source, object model)
             : this(source.MetadataProvider)
         {
             _modelMetadata = source.ModelMetadata;
@@ -39,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 _data.Add(entry.Key, entry.Value);
             }
 
-            SetModel(source.Model);
+            SetModel(model);
         }
 
         public object Model
@@ -49,22 +61,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         public ModelStateDictionary ModelState { get; private set; }
-
-        public dynamic this[string index]
-        {
-            get
-            {
-                dynamic result;
-
-                _data.TryGetValue(index, out result);
-
-                return result;
-            }
-            set
-            {
-                _data[index] = value;
-            }
-        }
 
         public virtual ModelMetadata ModelMetadata
         {
@@ -85,53 +81,42 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             get { return _metadataProvider; }
         }
-        
-        public Dictionary<object, dynamic>.Enumerator GetEnumerator()
-        {
-            return _data.GetEnumerator();
-        }
 
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
-        {
-            result = _data[binder.Name];
+        // Remaining properties implement IDictionary<string, object> properties.
 
-            // We return true here because ViewDataDictionary returns null if the key is not
-            // in the dictionary, so we simply pass on the returned value.
-            return true;
-        }
-
-        public override bool TrySetMember(SetMemberBinder binder, object value)
+        // Do not just pass through to _data: Indexer should not throw a KeyNotFoundException.
+        public object this[string index]
         {
-            // This cast should always succeed.
-            dynamic v = value;
-            _data[binder.Name] = v;
-            return true;
-        }
-
-        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
-        {
-            if (indexes == null || indexes.Length != 1)
+            get
             {
-                throw new ArgumentException("Invalid number of indexes");
+                object result;
+                _data.TryGetValue(index, out result);
+                return result;
             }
-
-            object index = indexes[0];
-            result = this[(string)index];
-            return true;
+            set
+            {
+                _data[index] = value;
+            }
         }
 
-        public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value)
+        public int Count
         {
-            if (indexes == null || indexes.Length != 1)
-            {
-                throw new ArgumentException("Invalid number of indexes");
-            }
+            get { return _data.Count; }
+        }
 
-            object index = indexes[0];
+        public bool IsReadOnly
+        {
+            get { return _data.IsReadOnly; }
+        }
 
-            // This cast should always succeed.
-            this[(string)index] = value;
-            return true;
+        public ICollection<string> Keys
+        {
+            get { return _data.Keys; }
+        }
+
+        public ICollection<object> Values
+        {
+            get { return _data.Values; }
         }
 
         // This method will execute before the derived type's instance constructor executes. Derived types must
@@ -150,6 +135,63 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 // Reset or override model metadata based on new value type.
                 _modelMetadata = _metadataProvider.GetMetadataForType(() => value, value.GetType());
             }
+        }
+
+        // Remaining methods implement IDictionary<string, object> methods.
+
+        public void Add(string key, object value)
+        {
+            _data.Add(key, value);
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return _data.ContainsKey(key);
+        }
+
+        public bool Remove(string key)
+        {
+            return _data.Remove(key);
+        }
+
+        public bool TryGetValue(string key, out object value)
+        {
+            return _data.TryGetValue(key, out value);
+        }
+
+        public void Add(KeyValuePair<string, object> item)
+        {
+            _data.Add(item);
+        }
+
+        public void Clear()
+        {
+            _data.Clear();
+        }
+
+        public bool Contains(KeyValuePair<string, object> item)
+        {
+            return _data.Contains(item);
+        }
+
+        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+        {
+            _data.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(KeyValuePair<string, object> item)
+        {
+            return _data.Remove(item);
+        }
+
+        IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
+        {
+            return _data.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _data.GetEnumerator();
         }
     }
 }
