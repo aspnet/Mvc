@@ -1,13 +1,12 @@
 ﻿
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc
 {
     public interface IViewComponentResult
     {
-        void Execute(TextWriter writer);
+        void Execute([NotNull] ViewComponentContext context);
 
-        Task ExecuteAsync(TextWriter writer);
+        Task ExecuteAsync([NotNull] ViewComponentContext context);
     }
 }

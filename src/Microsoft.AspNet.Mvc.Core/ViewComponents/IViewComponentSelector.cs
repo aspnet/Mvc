@@ -5,6 +5,6 @@ namespace Microsoft.AspNet.Mvc
 {
     public interface IViewComponentSelector
     {
-        Type SelectComponent(string componentName);
+        Type SelectComponent([NotNull] string componentName);
     }
 }

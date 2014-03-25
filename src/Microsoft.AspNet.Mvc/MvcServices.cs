@@ -81,6 +81,10 @@ namespace Microsoft.AspNet.Mvc
                     typeof(NestedProviderManagerAsync<>),
                     implementationInstance: null,
                     lifecycle: LifecycleKind.Transient);
+            yield return describe.Transient<IViewComponentSelector, DefaultViewComponentSelector>();
+            yield return describe.Transient<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>();
+            yield return describe.Transient<INestedProvider<ViewComponentInvokerProviderContext>, DefaultViewComponentInvokerProvider>();
+            yield return describe.Transient<IViewComponentResultHelper, DefaultViewComponentResultHelper>();
         }
     }
 }
