@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering.Expressions;
@@ -31,6 +32,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             base.Contextualize(viewContext);
+        }
+
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
+        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "Users cannot use anonymous methods with the LambdaExpression type")]
+        public HtmlString NameFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)
+        {
+            return Name(GetExpressionName(expression));
         }
 
         protected string GetExpressionName<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)
