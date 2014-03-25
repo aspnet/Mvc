@@ -82,8 +82,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             get { return _metadataProvider; }
         }
 
-        // Remaining properties implement IDictionary<string, object> properties.
-
+        #region IDictionary properties
         // Do not just pass through to _data: Indexer should not throw a KeyNotFoundException.
         public object this[string index]
         {
@@ -118,6 +117,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             get { return _data.Values; }
         }
+        #endregion
 
         // This method will execute before the derived type's instance constructor executes. Derived types must
         // be aware of this and should plan accordingly. For example, the logic in SetModel() should be simple
@@ -137,29 +137,28 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        // Remaining methods implement IDictionary<string, object> methods.
-
-        public void Add(string key, object value)
+        #region IDictionary methods
+        public void Add([NotNull] string key, object value)
         {
             _data.Add(key, value);
         }
 
-        public bool ContainsKey(string key)
+        public bool ContainsKey([NotNull] string key)
         {
             return _data.ContainsKey(key);
         }
 
-        public bool Remove(string key)
+        public bool Remove([NotNull] string key)
         {
             return _data.Remove(key);
         }
 
-        public bool TryGetValue(string key, out object value)
+        public bool TryGetValue([NotNull] string key, out object value)
         {
             return _data.TryGetValue(key, out value);
         }
 
-        public void Add(KeyValuePair<string, object> item)
+        public void Add([NotNull] KeyValuePair<string, object> item)
         {
             _data.Add(item);
         }
@@ -169,17 +168,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
             _data.Clear();
         }
 
-        public bool Contains(KeyValuePair<string, object> item)
+        public bool Contains([NotNull] KeyValuePair<string, object> item)
         {
             return _data.Contains(item);
         }
 
-        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+        public void CopyTo([NotNull] KeyValuePair<string, object>[] array, int arrayIndex)
         {
             _data.CopyTo(array, arrayIndex);
         }
 
-        public bool Remove(KeyValuePair<string, object> item)
+        public bool Remove([NotNull] KeyValuePair<string, object> item)
         {
             return _data.Remove(item);
         }
@@ -193,5 +192,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             return _data.GetEnumerator();
         }
+        #endregion
     }
 }

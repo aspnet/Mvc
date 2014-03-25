@@ -27,9 +27,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        // Implementing this function improves the debugging experience as it provides the debugger with the list of
-        // all properties currently defined on the object. In addition code such as that in Json.Net can better-handle
-        // (correctly serialize in that case) a DynamicObject that overrides this method.
+        // Implementing this function extends the ViewBag contract, supporting or improving some scenarios. For example
+        // having this method improves the debugging experience as it provides the debugger with the list of all
+        // properties currently defined on the object.
         public override IEnumerable<string> GetDynamicMemberNames()
         {
             return ViewData.Keys;
