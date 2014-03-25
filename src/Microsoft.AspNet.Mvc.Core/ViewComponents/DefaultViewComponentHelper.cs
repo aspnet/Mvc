@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.Mvc
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(componentType));
             }
 
-            var context = new ComponentContext(componentType.GetTypeInfo(), _viewContext, writer);
+            var context = new ViewComponentContext(componentType.GetTypeInfo(), _viewContext, writer);
             await invoker.InvokeAsync(context);
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(componentType));
             }
 
-            var context = new ComponentContext(componentType.GetTypeInfo(), _viewContext, writer);
+            var context = new ViewComponentContext(componentType.GetTypeInfo(), _viewContext, writer);
             invoker.Invoke(context);
         }
     }

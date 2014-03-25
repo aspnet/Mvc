@@ -21,10 +21,13 @@ namespace Microsoft.AspNet.Mvc
 
             var components = 
                 types
-                .Where(ViewComponentMetadata.IsComponent)
-                .Select(c => new {Name = ViewComponentMetadata.GetComponentName(c), Type = c.AsType()});
+                .Where(ViewComponentConventions.IsComponent)
+                .Select(c => new {Name = ViewComponentConventions.GetComponentName(c), Type = c.AsType()});
 
-            var matching = components.Where(c => string.Equals(c.Name, componentName, StringComparison.OrdinalIgnoreCase)).ToArray();
+            var matching = 
+                components
+                .Where(c => string.Equals(c.Name, componentName, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
 
             if (matching.Length == 0)
             {
@@ -37,7 +40,8 @@ namespace Microsoft.AspNet.Mvc
             else
             {
                 var typeNames = string.Join(Environment.NewLine, matching.Select(t => t.Type.FullName));
-                throw new InvalidOperationException(Resources.FormatViewComponent_AmbiguousTypeMatch(componentName, typeNames));
+                throw new InvalidOperationException(
+                    Resources.FormatViewComponent_AmbiguousTypeMatch(componentName, typeNames));
             }
         }
     }

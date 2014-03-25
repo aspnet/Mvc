@@ -1,60 +1,55 @@
 ﻿
 using System;
-using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Core.ViewComponents;
 using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class DefaultViewComponentInvoker : IViewComponentInvoker
     {
-        private const string AsyncMethodName = "InvokeAsync";
-        private const string SyncMethodName = "Invoke";
-
         private readonly IServiceProvider _serviceProvider;
         private readonly Type _componentType;
         private readonly object[] _args;
 
-        public DefaultViewComponentInvoker([NotNull] IServiceProvider serviceProvider, [NotNull] Type componentType, [NotNull] object[] args)
+        public DefaultViewComponentInvoker([NotNull] IServiceProvider serviceProvider, [NotNull] Type componentType, object[] args)
         {
             _serviceProvider = serviceProvider;
             _componentType = componentType;
-            _args = args;
+            _args = args ?? new object[0];
         }
 
-        public void Invoke([NotNull] ComponentContext context)
+        public void Invoke([NotNull] ViewComponentContext context)
         {
-            var method = FindSyncMethod();
+            var method = ViewComponentMethodSelector.FindSyncMethod(_componentType, _args);
             if (method == null)
             {
-                throw new InvalidOperationException(Resources.FormatViewComponent_CannotFindMethod(SyncMethodName));
+                throw new InvalidOperationException(Resources.FormatViewComponent_CannotFindMethod(ViewComponentMethodSelector.SyncMethodName));
             }
 
             var result = InvokeSyncCore(method, context.ViewContext);
             result.Execute(context);
         }
 
-        public async Task InvokeAsync([NotNull] ComponentContext context)
+        public async Task InvokeAsync([NotNull] ViewComponentContext context)
         {
             IViewComponentResult result;
 
-            var asyncMethod = FindAsyncMethod();
+            var asyncMethod = ViewComponentMethodSelector.FindAsyncMethod(_componentType, _args);
             if (asyncMethod == null)
             {
                 // We support falling back to synchronous if there is no InvokeAsync method, in this case we'll still
                 // execute the IViewResult asynchronously.
-                var syncMethod = FindSyncMethod();
+                var syncMethod = ViewComponentMethodSelector.FindSyncMethod(_componentType, _args);
                 if (syncMethod == null)
                 {
                     throw new InvalidOperationException(
-                        Resources.FormatViewComponent_CannotFindMethod_WithFallback(SyncMethodName, AsyncMethodName));
+                        Resources.FormatViewComponent_CannotFindMethod_WithFallback(ViewComponentMethodSelector.SyncMethodName, ViewComponentMethodSelector.AsyncMethodName));
                 }
                 else
                 {
@@ -68,67 +63,6 @@ namespace Microsoft.AspNet.Mvc
 
 
             await result.ExecuteAsync(context);
-        }
-
-        private MethodInfo FindAsyncMethod()
-        {
-            var method = GetMethod(AsyncMethodName);
-            if (method == null)
-            {
-                return null;
-            }
-
-            if (!method.ReturnType.IsGenericType || method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
-            {
-                throw new InvalidOperationException(
-                    Resources.FormatViewComponent_AsyncMethod_ShouldReturnTask(AsyncMethodName));
-            }
-
-            return method;
-        }
-
-        private MethodInfo FindSyncMethod()
-        {
-            var method = GetMethod(SyncMethodName);
-            if (method == null)
-            {
-                return null;
-            }
-
-            if (method.ReturnType == typeof(void))
-            {
-                throw new InvalidOperationException(Resources.FormatViewComponent_SyncMethod_ShouldReturnValue(SyncMethodName));
-            }
-
-            return method;
-        }
-
-        private MethodInfo GetMethod([NotNull] string methodName)
-        {
-            var argumentExpressions = new Expression[_args.Length];
-            for (var i = 0; i < _args.Length; i++)
-            {
-                argumentExpressions[i] = Expression.Constant(_args[i], _args[i].GetType());
-            }
-
-            try
-            {
-                // We're currently using this technique to make a call into a component method that looks like a regular method call.
-                //
-                // Ex: @Component.Invoke<Cart>("hello", 5) => cart.Invoke("hello", 5)
-                //
-                // This approach has some drawbacks, namely it doesn't account for default parameters, and more noticably, it throws
-                // if the method is not found.
-                //
-                // Unfortunely the overload of Type.GetMethod that we would like to use is not present in CoreCLR. Item #160 in Jira
-                // tracks these issues.
-                var expression = Expression.Call(Expression.Constant(null, _componentType), methodName, null, argumentExpressions);
-                return expression.Method;
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
         }
 
         private object CreateComponent([NotNull] ViewContext context)
@@ -216,7 +150,6 @@ namespace Microsoft.AspNet.Mvc
                 return new ContentViewComponentResult(htmlStringResult);
             }
 
-            // TODO: Currently we're not handing POCO cases for view components. 
             throw new NotImplementedException("No support for POCO types here.");
         }
     }

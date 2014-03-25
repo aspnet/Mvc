@@ -67,9 +67,9 @@ namespace Microsoft.AspNet.Mvc
             return jsonWriter;
         }
 
-        public void Execute([NotNull] ComponentContext componentContext)
+        public void Execute([NotNull] ViewComponentContext viewComponentContext)
         {
-            using (var jsonWriter = CreateJsonWriter(componentContext.Writer))
+            using (var jsonWriter = CreateJsonWriter(viewComponentContext.Writer))
             {
                 jsonWriter.CloseOutput = false;
 
@@ -80,9 +80,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public async Task ExecuteAsync([NotNull] ComponentContext componentContext)
+        public async Task ExecuteAsync([NotNull] ViewComponentContext viewComponentContext)
         {
-            Execute(componentContext);
+            Execute(viewComponentContext);
         }
     }
 }

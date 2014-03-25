@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 
@@ -10,6 +9,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ViewViewComponentResult : IViewComponentResult
     {
+        // {0} is the component name, {1} is the view name.
         private const string ViewPathFormat = "Components/{0}/{1}";
 
         private readonly IViewEngine _viewEngine;
@@ -23,22 +23,22 @@ namespace Microsoft.AspNet.Mvc
             _viewData = viewData;
         }
 
-        public void Execute([NotNull] ComponentContext componentContext)
+        public void Execute([NotNull] ViewComponentContext viewComponentContext)
         {
             throw new NotImplementedException("There's no support for syncronous views right now.");
         }
 
-        public async Task ExecuteAsync([NotNull] ComponentContext componentContext)
+        public async Task ExecuteAsync([NotNull] ViewComponentContext viewComponentContext)
         {
             var childViewContext = new ViewContext(
-                componentContext.ViewContext.ServiceProvider,
-                componentContext.ViewContext.HttpContext,
-                componentContext.ViewContext.ViewEngineContext)
+                viewComponentContext.ViewContext.ServiceProvider,
+                viewComponentContext.ViewContext.HttpContext,
+                viewComponentContext.ViewContext.ViewEngineContext)
             {
-                Component = componentContext.ViewContext.Component,
-                Url = componentContext.ViewContext.Url,
-                ViewData = _viewData ?? componentContext.ViewContext.ViewData,
-                Writer = componentContext.Writer,
+                Component = viewComponentContext.ViewContext.Component,
+                Url = viewComponentContext.ViewContext.Url,
+                ViewData = _viewData ?? viewComponentContext.ViewContext.ViewData,
+                Writer = viewComponentContext.Writer,
             };
 
             string qualifiedViewName;
@@ -63,14 +63,14 @@ namespace Microsoft.AspNet.Mvc
                 qualifiedViewName = string.Format(
                     CultureInfo.InvariantCulture,
                     ViewPathFormat,
-                    ViewComponentMetadata.GetComponentName(componentContext.ComponentType),
+                    ViewComponentConventions.GetComponentName(viewComponentContext.ComponentType),
                     _viewName);
             }
 
-            var view = await FindView(componentContext.ViewContext.ViewEngineContext, qualifiedViewName);
+            var view = await FindView(viewComponentContext.ViewContext.ViewEngineContext, qualifiedViewName);
             using (view as IDisposable)
             {
-                await view.RenderAsync(childViewContext, componentContext.Writer);
+                await view.RenderAsync(childViewContext, viewComponentContext.Writer);
             }
         }
 

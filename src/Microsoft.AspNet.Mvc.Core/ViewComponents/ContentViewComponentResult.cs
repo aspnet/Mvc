@@ -19,14 +19,14 @@ namespace Microsoft.AspNet.Mvc
             _encoded = encoded;
         }
 
-        public void Execute([NotNull] ComponentContext componentContext)
+        public void Execute([NotNull] ViewComponentContext viewComponentContext)
         {
-            componentContext.Writer.Write(_encoded.ToString());
+            viewComponentContext.Writer.Write(_encoded.ToString());
         }
 
-        public async Task ExecuteAsync([NotNull] ComponentContext componentContext)
+        public async Task ExecuteAsync([NotNull] ViewComponentContext viewComponentContext)
         {
-            await componentContext.Writer.WriteAsync(_encoded.ToString());
+            await viewComponentContext.Writer.WriteAsync(_encoded.ToString());
         }
     }
 }

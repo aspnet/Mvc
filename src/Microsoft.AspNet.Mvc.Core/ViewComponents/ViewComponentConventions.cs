@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public static class ViewComponentMetadata
+    public static class ViewComponentConventions
     {
         private const string ViewComponentSuffix = "ViewComponent";
 

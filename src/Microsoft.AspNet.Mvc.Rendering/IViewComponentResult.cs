@@ -6,7 +6,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public interface IViewComponentResult
     {
-        void Execute([NotNull] ComponentContext componentContext);
+        void Execute([NotNull] ViewComponentContext viewComponentContext);
 
-        Task ExecuteAsync([NotNull] ComponentContext componentContext);
+        Task ExecuteAsync([NotNull] ViewComponentContext viewComponentContext);
     }}

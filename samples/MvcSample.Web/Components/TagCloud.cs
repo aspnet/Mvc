@@ -9,7 +9,6 @@ namespace MvcSample.Web.Components
     [ViewComponent(Name="Tags")]
     public class TagCloud : ViewComponent
     {
-        // Hipster lorum ipsum, generated with http://hipsum.co/
         private readonly string[] Tags =
             ("Post-ironic iPhone +1 small-batch meggings occupy ennui Truffaut ethical try-hard gastropub" +
              "brunch High-Life Schlitz Photo booth scenester forage Cosby sweater food truck Truffaut" +

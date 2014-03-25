@@ -5,9 +5,9 @@ using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ComponentContext
+    public class ViewComponentContext
     {
-        public ComponentContext([NotNull] TypeInfo componentType, [NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
+        public ViewComponentContext([NotNull] TypeInfo componentType, [NotNull] ViewContext viewContext, [NotNull] TextWriter writer)
         {
             ComponentType = componentType;
             ViewContext = viewContext;

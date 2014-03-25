@@ -5,7 +5,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ViewComponentInvokerProviderContext
     {
-        public ViewComponentInvokerProviderContext([NotNull] Type componentType, [NotNull] object[] arguments)
+        public ViewComponentInvokerProviderContext([NotNull] Type componentType, object[] arguments)
         {
             ComponentType = componentType;
             Arguments = arguments;
