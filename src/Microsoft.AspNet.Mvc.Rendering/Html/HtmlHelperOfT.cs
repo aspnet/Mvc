@@ -13,21 +13,24 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public ViewData<TModel> ViewData
-        {
-            get
-            {
-                var viewData = ViewContext.ViewData as ViewData<TModel>;
-                if (viewData == null)
-                {
-                    // Rewrap ViewData on first use or if user has overwritten ViewContext.ViewData with an
-                    // incompatible ViewData or ViewData<T>.
-                    viewData = new ViewData<TModel>(ViewContext.ViewData);
-                    ViewContext.ViewData = viewData;
-                }
+        public ViewData<TModel> ViewData { get; private set; }
 
-                return null;
+        public override void Contextualize([NotNull] ViewContext viewContext)
+        {
+            if (viewContext.ViewData == null)
+            {
+                throw new ArgumentException(Resources.HtmlHelper_ViewDataNull);
             }
+
+            ViewData = viewContext.ViewData as ViewData<TModel>;
+            if (ViewData == null)
+            {
+                throw new ArgumentException(Resources.FormatHtmlHelper_ViewDataUnexpectedType(
+                    viewContext.ViewData.GetType().Name,
+                    typeof(ViewData<TModel>).Name));
+            }
+
+            base.Contextualize(viewContext);
         }
 
         protected string GetExpressionName<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)

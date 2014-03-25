@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return result;
         }
 
-        public virtual void Contextualize(ViewContext viewContext)
+        public virtual void Contextualize([NotNull] ViewContext viewContext)
         {
             ViewContext = viewContext;
         }

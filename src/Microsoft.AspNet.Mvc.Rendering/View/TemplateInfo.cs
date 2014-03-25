@@ -1,52 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    // TODO: Decide if this class needs a copy constructor for use in ViewData copy constructor.
     public class TemplateInfo
     {
-        private object _formattedModelValue = string.Empty;
-        private string _htmlFieldPrefix = string.Empty;
+        // Keep a collection of visited objects to prevent infinite recursion.
         private HashSet<object> _visitedObjects = new HashSet<object>();
 
-        public object FormattedModelValue
+        public TemplateInfo()
         {
-            get { return _formattedModelValue; }
-            set { _formattedModelValue = value; }
+            FormattedModelValue = string.Empty;
+            HtmlFieldPrefix = string.Empty;
+            _visitedObjects = new HashSet<object>();
         }
 
-        public string HtmlFieldPrefix
+        public TemplateInfo(TemplateInfo original)
         {
-            get { return _htmlFieldPrefix; }
-            set { _htmlFieldPrefix = value; }
+            FormattedModelValue = original.FormattedModelValue;
+            HtmlFieldPrefix = original.HtmlFieldPrefix;
+            _visitedObjects = new HashSet<object>(original._visitedObjects);
         }
+
+        public object FormattedModelValue { get; set; }
+
+        public string HtmlFieldPrefix { get; set; }
 
         public int TemplateDepth
         {
-            get { return VisitedObjects.Count; }
+            get { return _visitedObjects.Count; }
         }
 
-        // Keep a collection of visited objects to prevent infinite recursion.
-        internal HashSet<object> VisitedObjects
+        public bool AddVisited(object value)
         {
-            get { return _visitedObjects; }
-            set { _visitedObjects = value; }
+            return _visitedObjects.Add(value);
         }
 
         public string GetFullHtmlFieldName(string partialFieldName)
         {
             if (partialFieldName != null && partialFieldName.StartsWith("[", StringComparison.Ordinal))
             {
-                // See Codeplex #544 - the partialFieldName might represent an indexer access, in which case combining
+                // The partialFieldName might represent an indexer access, in which case combining
                 // with a 'dot' would be invalid.
                 return HtmlFieldPrefix + partialFieldName;
             }
             else
             {
-                // This uses "combine and trim" because either or both of these values might be empty
+                // This uses "combine and trim" because either or both of these values might be empty.
                 return (HtmlFieldPrefix + "." + (partialFieldName ?? string.Empty)).Trim('.');
             }
+        }
+
+        public bool Visited(ModelMetadata metadata)
+        {
+            return _visitedObjects.Contains(metadata.Model ?? metadata.ModelType);
         }
     }
 }

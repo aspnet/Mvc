@@ -126,6 +126,12 @@
   <data name="ExpressionHelper_InvalidIndexerExpression" xml:space="preserve">
     <value>The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.</value>
   </data>
+  <data name="HtmlHelper_ViewDataNull" xml:space="preserve">
+    <value>viewContext.ViewData must not be null.</value>
+  </data>
+  <data name="HtmlHelper_ViewDataUnexpectedType" xml:space="preserve">
+    <value>viewContext.ViewData is of type '{0}', but this HtmlHelper requires ViewData of type '{1}'.</value>
+  </data>
   <data name="ViewData_ModelCannotBeNull" xml:space="preserve">
     <value>The model item passed is null, but this ViewData instance requires a non-null model item of type '{0}'.</value>
   </data>

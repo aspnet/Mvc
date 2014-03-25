@@ -29,9 +29,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             : this(source.MetadataProvider)
         {
             _modelMetadata = source.ModelMetadata;
-
-            // TODO: Should this instead invoke a new TemplateInfo copy constructor?
-            TemplateInfo = source.TemplateInfo;
+            TemplateInfo = new TemplateInfo(source.TemplateInfo);
             
             foreach (var entry in source.ModelState)
             {
