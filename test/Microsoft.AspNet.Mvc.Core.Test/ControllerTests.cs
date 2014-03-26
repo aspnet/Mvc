@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.Mvc.Rendering;
+﻿using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core
@@ -8,10 +9,11 @@ namespace Microsoft.AspNet.Mvc.Core
         [Fact]
         public void SettingViewData_AlsoUpdatesViewBag()
         {
-            // Arrange (eventually passing null to these consturctors will throw)
+            // Arrange
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var controller = new Controller();
-            var originalViewData = controller.ViewData = new ViewDataDictionary<object>(metadataProvider: null);
-            var replacementViewData = new ViewDataDictionary<object>(metadataProvider: null);
+            var originalViewData = controller.ViewData = new ViewDataDictionary<object>(metadataProvider);
+            var replacementViewData = new ViewDataDictionary<object>(metadataProvider);
 
             // Act
             controller.ViewBag.Hello = "goodbye";
