@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc
 
         public IUrlHelper Url { get; set; }
 
-        public ViewData<object> ViewData { get; set; }
+        public ViewDataDictionary<object> ViewData { get; set; }
 
         public dynamic ViewBag
         {

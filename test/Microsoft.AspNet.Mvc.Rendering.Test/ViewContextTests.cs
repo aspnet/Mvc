@@ -8,9 +8,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void SettingViewData_AlsoUpdatesViewBag()
         {
             // Arrange (eventually passing null to these consturctors will throw)
-            var context = new ViewContext(null, null, null);
-            var originalViewData = context.ViewData = new ViewData(metadataProvider: null);
-            var replacementViewData = new ViewData(metadataProvider: null);
+            var context = new ViewContext(serviceProvider: null, httpContext: null, viewEngineContext: null);
+            var originalViewData = context.ViewData = new ViewDataDictionary(metadataProvider: null);
+            var replacementViewData = new ViewDataDictionary(metadataProvider: null);
 
             // Act
             context.ViewBag.Hello = "goodbye";
@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             Assert.Same(replacementViewData, context.ViewData);
             Assert.Null(context.ViewBag.Hello);
             Assert.Equal("property", context.ViewBag.Another);
+            Assert.Equal("property", context.ViewData["Another"]);
         }
     }
 }

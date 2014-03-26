@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        public ViewData ViewData { get; set; }
+        public ViewDataDictionary ViewData { get; set; }
 
         public IDictionary<string, object> ViewEngineContext { get; private set; }
 

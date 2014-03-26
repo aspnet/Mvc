@@ -6,18 +6,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class DynamicViewData : DynamicObject
     {
-        private readonly Func<ViewData> _viewDataFunc;
+        private readonly Func<ViewDataDictionary> _viewDataFunc;
 
-        public DynamicViewData([NotNull] Func<ViewData> viewDataFunc)
+        public DynamicViewData([NotNull] Func<ViewDataDictionary> viewDataFunc)
         {
             _viewDataFunc = viewDataFunc;
         }
 
-        private ViewData ViewData
+        private ViewDataDictionary ViewData
         {
             get
             {
-                ViewData viewData = _viewDataFunc();
+                ViewDataDictionary viewData = _viewDataFunc();
                 if (viewData == null)
                 {
                     throw new InvalidOperationException(Resources.DynamicViewData_ViewDataNull);
@@ -39,7 +39,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             result = ViewData[binder.Name];
 
-            // ViewData[key] will never throw a KeyNotFoundException. Similarly, return true so caller does not throw.
+            // ViewDataDictionary[key] will never throw a KeyNotFoundException.
+            // Similarly, return true so caller does not throw.
             return true;
         }
 
@@ -47,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             ViewData[binder.Name] = value;
 
-            // Can always add / update a ViewData value.
+            // Can always add / update a ViewDataDictionary value.
             return true;
         }
     }

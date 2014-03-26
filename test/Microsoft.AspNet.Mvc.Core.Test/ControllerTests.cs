@@ -3,15 +3,15 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core
 {
-    class ControllerTests
+    public class ControllerTests
     {
         [Fact]
         public void SettingViewData_AlsoUpdatesViewBag()
         {
             // Arrange (eventually passing null to these consturctors will throw)
             var controller = new Controller();
-            var originalViewData = controller.ViewData = new ViewData<object>(metadataProvider: null);
-            var replacementViewData = new ViewData<object>(metadataProvider: null);
+            var originalViewData = controller.ViewData = new ViewDataDictionary<object>(metadataProvider: null);
+            var replacementViewData = new ViewDataDictionary<object>(metadataProvider: null);
 
             // Act
             controller.ViewBag.Hello = "goodbye";
@@ -23,6 +23,7 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Same(replacementViewData, controller.ViewData);
             Assert.Null(controller.ViewBag.Hello);
             Assert.Equal("property", controller.ViewBag.Another);
+            Assert.Equal("property", controller.ViewData["Another"]);
         }
     }
 }

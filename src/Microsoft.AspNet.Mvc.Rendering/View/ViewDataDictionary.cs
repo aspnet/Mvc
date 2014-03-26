@@ -5,19 +5,20 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public class ViewData : IDictionary<string, object>
+    public class ViewDataDictionary : IDictionary<string, object>
     {
         private readonly IDictionary<string, object> _data;
         private object _model;
         private ModelMetadata _modelMetadata;
         private IModelMetadataProvider _metadataProvider;
 
-        public ViewData([NotNull] IModelMetadataProvider metadataProvider)
+        public ViewDataDictionary([NotNull] IModelMetadataProvider metadataProvider)
             : this(metadataProvider, new ModelStateDictionary())
         {
         }
 
-        public ViewData([NotNull] IModelMetadataProvider metadataProvider, [NotNull] ModelStateDictionary modelState)
+        public ViewDataDictionary([NotNull] IModelMetadataProvider metadataProvider,
+            [NotNull] ModelStateDictionary modelState)
         {
             ModelState = modelState;
             _data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -25,18 +26,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// <see cref="ViewData"/> copy constructor for use when model type does not change.
+        /// <see cref="ViewDataDictionary"/> copy constructor for use when model type does not change.
         /// </summary>
-        public ViewData([NotNull] ViewData source)
+        public ViewDataDictionary([NotNull] ViewDataDictionary source)
             : this(source, source.Model)
         {
         }
 
         /// <summary>
-        /// <see cref="ViewData"/> copy constructor for use when model type may change. This avoids exceptions a
-        /// derived class may throw when <see cref="SetModel()"/> is called.
+        /// <see cref="ViewDataDictionary"/> copy constructor for use when model type may change. This avoids
+        /// exceptions a derived class may throw when <see cref="SetModel()"/> is called.
         /// </summary>
-        public ViewData([NotNull] ViewData source, object model)
+        public ViewDataDictionary([NotNull] ViewDataDictionary source, object model)
             : this(source.MetadataProvider)
         {
             _modelMetadata = source.ModelMetadata;

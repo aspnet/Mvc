@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc
 
         public string ViewName {get; set; }
 
-        public ViewData ViewData { get; set; }
+        public ViewDataDictionary ViewData { get; set; }
 
         public async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
