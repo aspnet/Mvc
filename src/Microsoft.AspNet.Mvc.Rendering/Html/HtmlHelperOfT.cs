@@ -1,18 +1,33 @@
-﻿using Microsoft.AspNet.Abstractions;
+﻿using System;
+using Microsoft.AspNet.Abstractions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public class HtmlHelper<TModel> : HtmlHelper
+    public class HtmlHelper<TModel> : HtmlHelper, IHtmlHelper<TModel>
     {
-        public HtmlHelper([NotNull]HttpContext httpContext, ViewDataDictionary<TModel> viewData)
-            : base(httpContext, viewData)
+        public HtmlHelper()
+            : base()
         {
-            ViewData = viewData;
         }
 
-        public new ViewDataDictionary<TModel> ViewData
+        public new ViewDataDictionary<TModel> ViewData { get; private set;}
+
+        public override void Contextualize([NotNull] ViewContext viewContext)
         {
-            get; private set;
+            if (viewContext.ViewData == null)
+            {
+                throw new ArgumentException(Resources.HtmlHelper_ViewDataNull);
+            }
+
+            ViewData = ViewContext.ViewData as ViewDataDictionary<TModel>;
+            if (ViewData == null)
+            {
+                throw new ArgumentException(Resources.FormatHtmlHelper_ViewDataUnexpectedType(
+                    viewContext.ViewData.GetType().Name,
+                    typeof(ViewDataDictionary<TModel>).Name));
+            }
+
+            base.Contextualize(viewContext);
         }
     }
 }

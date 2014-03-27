@@ -43,6 +43,38 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
+        /// viewContext.ViewData must not be null.
+        /// </summary>
+        internal static string HtmlHelper_ViewDataNull
+        {
+            get { return GetString("HtmlHelper_ViewDataNull"); }
+        }
+
+        /// <summary>
+        /// viewContext.ViewData must not be null.
+        /// </summary>
+        internal static string FormatHtmlHelper_ViewDataNull()
+        {
+            return GetString("HtmlHelper_ViewDataNull");
+        }
+
+        /// <summary>
+        /// viewContext.ViewData is of type '{0}', but this HtmlHelper requires ViewData of type '{1}'.
+        /// </summary>
+        internal static string HtmlHelper_ViewDataUnexpectedType
+        {
+            get { return GetString("HtmlHelper_ViewDataUnexpectedType"); }
+        }
+
+        /// <summary>
+        /// viewContext.ViewData is of type '{0}', but this HtmlHelper requires ViewData of type '{1}'.
+        /// </summary>
+        internal static string FormatHtmlHelper_ViewDataUnexpectedType(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_ViewDataUnexpectedType"), p0, p1);
+        }
+
+        /// <summary>
         /// ViewData value must not be null.
         /// </summary>
         internal static string DynamicViewData_ViewDataNull
@@ -59,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// The model item passed is null, but this ViewData instance requires a non-null model item of type '{0}'.
+        /// The model item passed is null, but this ViewDataDictionary instance requires a non-null model item of type '{0}'.
         /// </summary>
         internal static string ViewData_ModelCannotBeNull
         {
@@ -67,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// The model item passed is null, but this ViewData instance requires a non-null model item of type '{0}'.
+        /// The model item passed is null, but this ViewDataDictionary instance requires a non-null model item of type '{0}'.
         /// </summary>
         internal static string FormatViewData_ModelCannotBeNull(object p0)
         {
@@ -75,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// The model item passed into the ViewData is of type '{0}', but this ViewData instance requires a model item of type '{1}'.
+        /// The model item passed into the ViewDataDictionary is of type '{0}', but this ViewDataDictionary instance requires a model item of type '{1}'.
         /// </summary>
         internal static string ViewData_WrongTModelType
         {
@@ -83,7 +115,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// The model item passed into the ViewData is of type '{0}', but this ViewData instance requires a model item of type '{1}'.
+        /// The model item passed into the ViewDataDictionary is of type '{0}', but this ViewDataDictionary instance requires a model item of type '{1}'.
         /// </summary>
         internal static string FormatViewData_WrongTModelType(object p0, object p1)
         {
