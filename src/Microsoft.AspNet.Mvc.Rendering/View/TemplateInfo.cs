@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
-namespace System.Web.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class TemplateInfo
     {
@@ -12,13 +12,13 @@ namespace System.Web.Mvc
 
         public object FormattedModelValue
         {
-            get { return _formattedModelValue ?? String.Empty; }
+            get { return _formattedModelValue ?? string.Empty; }
             set { _formattedModelValue = value; }
         }
 
         public string HtmlFieldPrefix
         {
-            get { return _htmlFieldPrefix ?? String.Empty; }
+            get { return _htmlFieldPrefix ?? string.Empty; }
             set { _htmlFieldPrefix = value; }
         }
 
@@ -41,23 +41,18 @@ namespace System.Web.Mvc
             set { _visitedObjects = value; }
         }
 
-        public string GetFullHtmlFieldId(string partialFieldName)
-        {
-            return HtmlHelper.GenerateIdFromName(GetFullHtmlFieldName(partialFieldName));
-        }
-
         public string GetFullHtmlFieldName(string partialFieldName)
         {
             if (partialFieldName != null && partialFieldName.StartsWith("[", StringComparison.Ordinal))
             {
-                // See Codeplex #544 - the partialFieldName might represent an indexer access, in which case combining
+                // The partialFieldName might represent an indexer access, in which case combining
                 // with a 'dot' would be invalid.
                 return HtmlFieldPrefix + partialFieldName;
             }
             else
             {
-                // This uses "combine and trim" because either or both of these values might be empty
-                return (HtmlFieldPrefix + "." + (partialFieldName ?? String.Empty)).Trim('.');
+                // This uses "combine and trim" because either or both of these values might be empty.
+                return (HtmlFieldPrefix + "." + (partialFieldName ?? string.Empty)).Trim('.');
             }
         }
 
