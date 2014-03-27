@@ -6,39 +6,35 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class TemplateInfo
     {
-        private string _htmlFieldPrefix;
-        private object _formattedModelValue;
+        // Keep a collection of visited objects to prevent infinite recursion.
         private HashSet<object> _visitedObjects;
 
-        public object FormattedModelValue
+        public TemplateInfo()
         {
-            get { return _formattedModelValue ?? string.Empty; }
-            set { _formattedModelValue = value; }
+            FormattedModelValue = string.Empty;
+            HtmlFieldPrefix = string.Empty;
+            _visitedObjects = new HashSet<object>();
         }
 
-        public string HtmlFieldPrefix
+        public TemplateInfo(TemplateInfo original)
         {
-            get { return _htmlFieldPrefix ?? string.Empty; }
-            set { _htmlFieldPrefix = value; }
+            FormattedModelValue = original.FormattedModelValue;
+            HtmlFieldPrefix = original.HtmlFieldPrefix;
+            _visitedObjects = new HashSet<object>(original._visitedObjects);
         }
+
+        public object FormattedModelValue { get; set; }
+
+        public string HtmlFieldPrefix { get; set; }
 
         public int TemplateDepth
         {
-            get { return VisitedObjects.Count; }
+            get { return _visitedObjects.Count; }
         }
 
-        // DDB #224750 - Keep a collection of visited objects to prevent infinite recursion
-        internal HashSet<object> VisitedObjects
+        public bool AddVisited(object value)
         {
-            get
-            {
-                if (_visitedObjects == null)
-                {
-                    _visitedObjects = new HashSet<object>();
-                }
-                return _visitedObjects;
-            }
-            set { _visitedObjects = value; }
+            return _visitedObjects.Add(value);
         }
 
         public string GetFullHtmlFieldName(string partialFieldName)
@@ -58,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public bool Visited(ModelMetadata metadata)
         {
-            return VisitedObjects.Contains(metadata.Model ?? metadata.ModelType);
+            return _visitedObjects.Contains(metadata.Model ?? metadata.ModelType);
         }
     }
 }
