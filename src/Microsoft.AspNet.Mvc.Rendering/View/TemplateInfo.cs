@@ -39,7 +39,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public string GetFullHtmlFieldName(string partialFieldName)
         {
-            if (partialFieldName != null && partialFieldName.StartsWith("[", StringComparison.Ordinal))
+            if (string.IsNullOrEmpty(partialFieldName))
+            {
+                return HtmlFieldPrefix;
+            }
+            else if (string.IsNullOrEmpty(HtmlFieldPrefix))
+            {
+                return partialFieldName;
+            }
+            else if (partialFieldName.StartsWith("[", StringComparison.Ordinal))
             {
                 // The partialFieldName might represent an indexer access, in which case combining
                 // with a 'dot' would be invalid.
@@ -47,8 +55,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
             else
             {
-                // This uses "combine and trim" because either or both of these values might be empty.
-                return (HtmlFieldPrefix + "." + (partialFieldName ?? string.Empty)).Trim('.');
+                return HtmlFieldPrefix + "." + partialFieldName;
             }
         }
 
