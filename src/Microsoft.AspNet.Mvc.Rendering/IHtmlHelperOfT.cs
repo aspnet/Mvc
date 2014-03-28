@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -48,6 +49,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="name">The name of the HTML element.</param>
         /// <returns>The ID of the HTML element.</returns>
         string GenerateIdFromName(string name);
+
+        /// <summary>
+        /// Gets the full HTML field name for the given expression <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">Name of an expression, relative to the current model.</param>
+        /// <returns>An <see cref="HtmlString"/> that represents HTML markup.</returns>
+        HtmlString Name(string name);
+
+        /// <summary>
+        /// Gets the full HTML field name for the given <paramref name="expression"/>.
+        /// </summary>
+        /// <typeparam name="TProperty">The <see cref="Type"/> the <paramref name="expression"/> returns.</typeparam>
+        /// <param name="expression">An expression, relative to the current model.</param>
+        /// <returns>An <see cref="HtmlString"/> that represents HTML markup.</returns>
+        HtmlString NameFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression);
 
         /// <summary>
         /// Wraps HTML markup in an <see cref="HtmlString"/>, which will enable HTML markup to be

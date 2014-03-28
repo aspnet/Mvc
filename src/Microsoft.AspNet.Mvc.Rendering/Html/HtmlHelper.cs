@@ -108,6 +108,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return TagBuilder.CreateSanitizedId(name, IdAttributeDotReplacement);
         }
 
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Naming", "CA1719:ParameterNamesShouldNotMatchMemberNames", MessageId = "1#", Justification = "This is a shipped API.")]
+        public virtual HtmlString Name(string name)
+        {
+            return new HtmlString(Encode(ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name)));
+        }
+
         /// <summary>
         /// Returns the HTTP method that handles form input (GET or POST) as a string.
         /// </summary>
