@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public interface INeedViewContext
+    public interface ICanHasViewContext
     {
         void Contextualize([NotNull] ViewContext viewContext);
     }

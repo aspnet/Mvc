@@ -10,6 +10,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
         }
 
+        /// <inheritdoc />
         public new ViewDataDictionary<TModel> ViewData { get; private set;}
 
         public override void Contextualize([NotNull] ViewContext viewContext)
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 throw new ArgumentException(Resources.HtmlHelper_ViewDataNull);
             }
 
-            ViewData = ViewContext.ViewData as ViewDataDictionary<TModel>;
+            ViewData = viewContext.ViewData as ViewDataDictionary<TModel>;
             if (ViewData == null)
             {
                 throw new ArgumentException(Resources.FormatHtmlHelper_ViewDataUnexpectedType(

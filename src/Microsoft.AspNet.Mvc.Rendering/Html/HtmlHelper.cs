@@ -9,9 +9,9 @@ using Microsoft.AspNet.Abstractions;
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
-    /// Default implementation of <see cref="IHtmlHelper">.
+    /// Default implementation of non-generic portions of <see cref="IHtmlHelper{T}">.
     /// </summary>
-    public class HtmlHelper : IHtmlHelper, INeedViewContext
+    public class HtmlHelper : ICanHasViewContext
     {
         public static readonly string ValidationInputCssClassName = "input-validation-error";
         public static readonly string ValidationInputValidCssClassName = "input-validation-valid";
@@ -29,15 +29,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             IdAttributeDotReplacement = "_";
         }
 
-        /// <inheritdoc />
         public string IdAttributeDotReplacement { get; set; }
 
         public HttpContext HttpContext { get; private set; }
 
-        /// <inheritdoc />
         public ViewContext ViewContext { get; private set; }
 
-        /// <inheritdoc />
         public dynamic ViewBag
         {
             get
@@ -46,7 +43,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        /// <inheritdoc />
         public ViewDataDictionary ViewData
         {
             get
@@ -95,21 +91,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
             ViewContext = viewContext;
         }
 
-        /// <inheritdoc />
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "For consistency, all helpers are instance methods.")]
         public string Encode(string value)
         {
             return (!string.IsNullOrEmpty(value)) ? WebUtility.HtmlEncode(value) : string.Empty;
         }
 
-        /// <inheritdoc />
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "For consistency, all helpers are instance methods.")]
         public string Encode(object value)
         {
             return value != null ? WebUtility.HtmlEncode(value.ToString()) : string.Empty;
         }
 
-        /// <inheritdoc />
         public string GenerateIdFromName([NotNull] string name)
         {
             return TagBuilder.CreateSanitizedId(name, IdAttributeDotReplacement);
@@ -152,14 +145,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        /// <inheritdoc />
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "For consistency, all helpers are instance methods.")]
         public HtmlString Raw(string value)
         {
             return new HtmlString(value);
         }
 
-        /// <inheritdoc />
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "For consistency, all helpers are instance methods.")]
         public HtmlString Raw(object value)
         {

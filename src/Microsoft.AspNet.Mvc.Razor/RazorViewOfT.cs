@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             Html = context.ServiceProvider.GetService<IHtmlHelper<TModel>>();
 
-            var contextable = Html as INeedViewContext;
+            var contextable = Html as ICanHasViewContext;
             if (contextable != null)
             {
                 contextable.Contextualize(context);
