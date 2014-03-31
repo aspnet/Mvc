@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -10,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public abstract class RazorView : IView
     {
-        public IViewComponentHelper Component 
+        public IViewComponentHelper Component
         {
             get { return Context == null ? null : Context.Component; }
         }
@@ -21,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected TextWriter Output { get; set; }
 
-        public IUrlHelper Url 
+        public IUrlHelper Url
         {
             get { return Context == null ? null : Context.Url; }
         }
@@ -36,8 +37,13 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private string BodyContent { get; set; }
 
+        private Dictionary<string, HelperResult> SectionWriters { get; set; }
+
+        private Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
+
         public virtual async Task RenderAsync([NotNull] ViewContext context)
         {
+            SectionWriters = new Dictionary<string, HelperResult>(StringComparer.OrdinalIgnoreCase);
             Context = context;
 
             var contentBuilder = new StringBuilder(1024);
@@ -82,6 +88,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(message);
             }
 
+            layoutView.PreviousSectionWriters = SectionWriters;
             layoutView.BodyContent = bodyContent;
             await layoutView.RenderAsync(context);
         }
@@ -236,6 +243,40 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(Resources.RenderBodyCannotBeCalled);
             }
             return new HtmlString(BodyContent);
+        }
+
+        public void DefineSection(string name, HelperResult action)
+        {
+            if (SectionWriters.ContainsKey(name))
+            {
+                throw new InvalidOperationException(Resources.FormatSectionAlreadyDefined(name));
+            }
+            SectionWriters[name] = action;
+        }
+
+        public HelperResult RenderSection([NotNull] string name)
+        {
+            return RenderSection(name, required: true);
+        }
+
+        public HelperResult RenderSection([NotNull] string name, bool required)
+        {
+            HelperResult action;
+            if (PreviousSectionWriters != null &&
+                PreviousSectionWriters.TryGetValue(name, out action))
+            {
+                return action;
+            }
+            else if (required)
+            {
+                // If the section is not found, and it is not optional, throw an error.
+                throw new InvalidOperationException(Resources.FormatSectionNotDefined(name));
+            }
+            else
+            {
+                // If the section is optional and not found, then don't do anything.
+                return null;
+            }
         }
     }
 }
