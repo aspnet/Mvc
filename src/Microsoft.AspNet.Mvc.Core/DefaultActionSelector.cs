@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -25,10 +26,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException("context");
             }
 
-            var actionDescriptorProviderContext = new ActionDescriptorProviderContext();
-            _actionDescriptorProvider.Invoke(actionDescriptorProviderContext);
-
-            var allDescriptors = actionDescriptorProviderContext.Results;
+            var allDescriptors = GetActions();
 
             var matching = allDescriptors.Where(ad => Match(ad, context)).ToList();
             if (matching.Count == 0)
@@ -112,6 +110,107 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return fewestOptionalParameters[0].Action;
+        }
+
+        public bool IsValidAction([NotNull] VirtualPathContext context)
+        {
+            // This process attempts to ensure that the route that's about to generate a link will generate a link
+            // to an existing action, and that it's an action that could be reached based on what the user intended*.
+            //
+            // We combine this set with the values that were generated from the current route (ProvidedValues) and
+            // check if it's one of the actions in the set.
+            //
+            // The purpose of this process is to avoid making certain routes too greedy. When a route uses a default
+            // value as a filter, it can generate links to actions it will never hit.
+            //
+            // We define "what the user intended" based on the combination of Values and AmbientValues. This set can
+            // be used to select a set of actions, anything in this is set is 'intended'. Note that there are
+            // false positives, but this doesn't have an impact on what we choose.
+            //
+            //
+            // False positives are the result of parameter invalidation. Consider the following:
+            //
+            // Route: {action}/{controller}
+            // Ambient values: { action = Index, controller = Home }
+            // Explicit values: { action = Blog }
+            // 
+            // Based on these values, we could select an action like { action = Blog, controller = Home } as 'intended'.
+            // However, our route cannot hit this action. The value for controller is invalidated by the route, and this
+            // route won't even try to generate a link.
+
+            if (context.ProvidedValues == null)
+            {
+                // We need the route's values to be able to double check our work.
+                return false;
+            }
+
+            var intendedActions = GetIntendedActions(context);
+            if (intendedActions.Count == 0)
+            {
+                return false;
+            }
+
+            var action =
+                intendedActions.Where(
+                    a => a.RouteConstraints == null || a.RouteConstraints.All(c => c.Accept(context.ProvidedValues)))
+                    .FirstOrDefault();
+
+            return action != null;
+        }
+
+        private List<ActionDescriptor> GetIntendedActions(VirtualPathContext context)
+        {
+            var actions = GetActions();
+
+            var intended = new List<ActionDescriptor>();
+            foreach (var action in actions)
+            {
+                if (action.RouteConstraints == null)
+                {
+                    intended.Add(action);
+                    continue;
+                }
+
+                bool isActionValid = true;
+                foreach (var constraint in action.RouteConstraints)
+                {
+                    if (constraint.Accept(context.Values))
+                    {
+                        // Explicit value is acceptable
+                    }
+                    else if (context.Values.ContainsKey(constraint.RouteKey))
+                    {
+                        // There's an explicitly provided value, but the action constraint doesn't match it.
+                        isActionValid = false;
+                        break;
+                    }
+                    else if (constraint.Accept(context.AmbientValues))
+                    {
+                        // Ambient value is acceptable, used as a fallback
+                    }
+                    else
+                    {
+                        // No possible match
+                        isActionValid = false;
+                        break;
+                    }
+                }
+
+                if (isActionValid)
+                {
+                    intended.Add(action);
+                }
+            }
+
+            return intended;
+        }
+
+        private List<ActionDescriptor> GetActions()
+        {
+            var actionDescriptorProviderContext = new ActionDescriptorProviderContext();
+            _actionDescriptorProvider.Invoke(actionDescriptorProviderContext);
+
+            return actionDescriptorProviderContext.Results;
         }
 
         private class ActionDescriptorCandidate
