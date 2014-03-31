@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Globalization;
+using System.Globalization;
+using System.Linq;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -14,12 +16,14 @@ namespace Microsoft.AspNet.Mvc
         private readonly HttpContext _httpContext;
         private readonly IRouter _router;
         private readonly IDictionary<string, object> _ambientValues;
+        private readonly IActionSelector _actionSelector;
 
-        public UrlHelper(IContextAccessor<ActionContext> contextAccessor)
+        public UrlHelper(IContextAccessor<ActionContext> contextAccessor, IActionSelector actionSelector)
         {
             _httpContext = contextAccessor.Value.HttpContext;
             _router = contextAccessor.Value.Router;
             _ambientValues = contextAccessor.Value.RouteValues;
+            _actionSelector = actionSelector;
         }
 
         public string Action(string action, string controller, object values, string protocol, string host, string fragment)
@@ -44,6 +48,25 @@ namespace Microsoft.AspNet.Mvc
                 valuesDictionary["controller"] = controller;
             }
 
+            var context = new VirtualPathContext(_httpContext, _ambientValues, valuesDictionary);
+            var actions = _actionSelector.GetCandidateActions(context);
+
+            var actionCandidate = actions.FirstOrDefault();
+            if (actionCandidate == null)
+            {
+                return null;
+            }
+
+            return GenerateUrl(protocol, host, path, fragment);
+            foreach (var constraint in actionCandidate.RouteConstraints)
+            {
+                if (constraint.KeyHandling == RouteKeyHandling.DenyKey &&
+                    _ambientValues.ContainsKey(constraint.RouteKey))
+                {
+                    valuesDictionary[constraint.RouteKey] = null;
+                }
+            }
+
             var path = GeneratePathFromRoute(valuesDictionary);
             if (path == null)
             {
@@ -66,9 +89,12 @@ namespace Microsoft.AspNet.Mvc
 
         private string GeneratePathFromRoute(IDictionary<string, object> values)
         {
-            var context = new VirtualPathContext(_httpContext, _ambientValues, values);
 
             var path = _router.GetVirtualPath(context);
+            if (path == null)
+            {
+                return null;
+            }
 
             // See Routing Issue#31
             if (path.Length > 0 && path[0] != '/')
@@ -76,7 +102,15 @@ namespace Microsoft.AspNet.Mvc
                 path = "/" + path;
             }
 
-            return _httpContext.Request.PathBase.Add(new PathString(path)).Value;
+            var fullPath = _httpContext.Request.PathBase.Add(new PathString(path)).Value;
+            if (fullPath.Length == 0)
+            {
+                return "/";
+            }
+            else
+            {
+                return fullPath;
+            }
         }
 
         public string Content([NotNull] string contentPath)
