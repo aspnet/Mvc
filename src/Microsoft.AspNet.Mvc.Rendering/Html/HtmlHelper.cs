@@ -131,10 +131,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        [SuppressMessage("Microsoft.Naming", "CA1719:ParameterNamesShouldNotMatchMemberNames", MessageId = "1#", Justification = "This is a shipped API.")]
+        [SuppressMessage("Microsoft.Naming", "CA1719:ParameterNamesShouldNotMatchMemberNames",
+            MessageId = "1#", Justification = "This is a shipped API.")]
         public virtual HtmlString Name(string name)
         {
-            return new HtmlString(Encode(ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name)));
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            return new HtmlString(Encode(fullName));
         }
 
         public async Task<HtmlString> PartialAsync([NotNull] string partialViewName, object model, ViewDataDictionary viewData)

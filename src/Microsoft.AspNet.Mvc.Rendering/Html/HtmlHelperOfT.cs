@@ -40,11 +40,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "Users cannot use anonymous methods with the LambdaExpression type")]
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures",
+            Justification = "This is an appropriate nesting of generic types")]
+        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters",
+            Justification = "Users cannot use anonymous methods with the LambdaExpression type")]
         public HtmlString NameFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)
         {
-            return Name(GetExpressionName(expression));
+            var expressionName = GetExpressionName(expression);
+            return Name(expressionName);
         }
 
         protected string GetExpressionName<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)
