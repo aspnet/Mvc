@@ -124,6 +124,45 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
         #endregion
 
+        public object Eval(string expression)
+        {
+            ViewDataInfo info = GetViewDataInfo(expression);
+            return (info != null) ? info.Value : null;
+        }
+
+        public string Eval(string expression, string format)
+        {
+            object value = Eval(expression);
+            return FormatValueInternal(value, format);
+        }
+
+        internal static string FormatValueInternal(object value, string format)
+        {
+            if (value == null)
+            {
+                return String.Empty;
+            }
+
+            if (String.IsNullOrEmpty(format))
+            {
+                return Convert.ToString(value, CultureInfo.CurrentCulture);
+            }
+            else
+            {
+                return String.Format(CultureInfo.CurrentCulture, format, value);
+            }
+        }
+
+        public ViewDataInfo GetViewDataInfo(string expression)
+        {
+            if (String.IsNullOrEmpty(expression))
+            {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "expression");
+            }
+
+            return ViewDataEvaluator.Eval(this, expression);
+        }
+
         // This method will execute before the derived type's instance constructor executes. Derived types must
         // be aware of this and should plan accordingly. For example, the logic in SetModel() should be simple
         // enough so as not to depend on the "this" pointer referencing a fully constructed object.
