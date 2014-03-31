@@ -1,46 +1,43 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
     public static class ViewDataEvaluator
     {
-        public static ViewDataInfo Eval(ViewDataDictionary vdd, string expression)
+        public static ViewDataInfo Eval([NotNull] ViewDataDictionary viewData, [NotNull] string expression)
         {
-            //Given an expression "foo.bar.baz" we look up the following (pseudocode):
-            //  this["foo.bar.baz.quux"]
-            //  this["foo.bar.baz"]["quux"]
-            //  this["foo.bar"]["baz.quux]
-            //  this["foo.bar"]["baz"]["quux"]
-            //  this["foo"]["bar.baz.quux"]
-            //  this["foo"]["bar.baz"]["quux"]
-            //  this["foo"]["bar"]["baz.quux"]
-            //  this["foo"]["bar"]["baz"]["quux"]
+            // Given an expression "one.two.three.four" we look up the following (pseudocode):
+            //  this["one.two.three.four"]
+            //  this["one.two.three"]["four"]
+            //  this["one.two"]["three.four]
+            //  this["one.two"]["three"]["four"]
+            //  this["one"]["two.three.four"]
+            //  this["one"]["two.three"]["four"]
+            //  this["one"]["two"]["three.four"]
+            //  this["one"]["two"]["three"]["four"]
 
-            ViewDataInfo evaluated = EvalComplexExpression(vdd, expression);
-            return evaluated;
+            return EvalComplexExpression(viewData, expression);
         }
 
         private static ViewDataInfo EvalComplexExpression(object indexableObject, string expression)
         {
-            foreach (ExpressionPair expressionPair in GetRightToLeftExpressions(expression))
+            foreach (var expressionPair in GetRightToLeftExpressions(expression))
             {
-                string subExpression = expressionPair.Left;
-                string postExpression = expressionPair.Right;
+                var subExpression = expressionPair.Left;
+                var postExpression = expressionPair.Right;
 
-                ViewDataInfo subTargetInfo = GetPropertyValue(indexableObject, subExpression);
+                var subTargetInfo = GetPropertyValue(indexableObject, subExpression);
                 if (subTargetInfo != null)
                 {
-                    if (String.IsNullOrEmpty(postExpression))
+                    if (string.IsNullOrEmpty(postExpression))
                     {
                         return subTargetInfo;
                     }
 
                     if (subTargetInfo.Value != null)
                     {
-                        ViewDataInfo potential = EvalComplexExpression(subTargetInfo.Value, postExpression);
+                        var potential = EvalComplexExpression(subTargetInfo.Value, postExpression);
                         if (potential != null)
                         {
                             return potential;
@@ -48,6 +45,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                     }
                 }
             }
+
             return null;
         }
 
@@ -57,12 +55,12 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             // given a complex expression. See the list above for an example of the result
             // of the enumeration.
 
-            yield return new ExpressionPair(expression, String.Empty);
+            yield return new ExpressionPair(expression, string.Empty);
 
-            int lastDot = expression.LastIndexOf('.');
+            var lastDot = expression.LastIndexOf('.');
 
-            string subExpression = expression;
-            string postExpression = String.Empty;
+            var subExpression = expression;
+            var postExpression = string.Empty;
 
             while (lastDot > -1)
             {
@@ -76,9 +74,9 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 
         private static ViewDataInfo GetIndexedPropertyValue(object indexableObject, string key)
         {
-            IDictionary<string, object> dict = indexableObject as IDictionary<string, object>;
+            var dict = indexableObject as IDictionary<string, object>;
             object value = null;
-            bool success = false;
+            var success = false;
 
             if (dict != null)
             {
@@ -86,20 +84,17 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             }
             else
             {
-                TryGetValueDelegate tgvDel = TypeHelpers.CreateTryGetValueDelegate(indexableObject.GetType());
-                if (tgvDel != null)
+                // Fall back to TryGetValue() calls for other Dictionary types.
+                var tryDelegate = TryGetValueProvider.CreateInstance(indexableObject.GetType());
+                if (tryDelegate != null)
                 {
-                    success = tgvDel(indexableObject, key, out value);
+                    success = tryDelegate(indexableObject, key, out value);
                 }
             }
 
             if (success)
             {
-                return new ViewDataInfo()
-                {
-                    Container = indexableObject,
-                    Value = value
-                };
+                return new ViewDataInfo(indexableObject, value);
             }
 
             return null;
@@ -110,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             // This method handles one "segment" of a complex property expression
 
             // First, we try to evaluate the property based on its indexer
-            ViewDataInfo value = GetIndexedPropertyValue(container, propertyName);
+            var value = GetIndexedPropertyValue(container, propertyName);
             if (value != null)
             {
                 return value;
@@ -120,10 +115,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 
             // If the container is a ViewDataDictionary then treat its Model property
             // as the container instead of the ViewDataDictionary itself.
-            ViewDataDictionary vdd = container as ViewDataDictionary;
-            if (vdd != null)
+            var viewData = container as ViewDataDictionary;
+            if (viewData != null)
             {
-                container = vdd.Model;
+                container = viewData.Model;
             }
 
             // If the container is null, we're out of options
@@ -132,18 +127,14 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 return null;
             }
 
-            // Second, we try to use PropertyDescriptors and treat the expression as a property name
-            PropertyDescriptor descriptor = TypeDescriptor.GetProperties(container).Find(propertyName, true);
-            if (descriptor == null)
+            // Finally try to use PropertyInfo and treat the expression as a property name
+            var propertyInfo = container.GetType().GetRuntimeProperty(propertyName);
+            if (propertyInfo == null)
             {
                 return null;
             }
 
-            return new ViewDataInfo(() => descriptor.GetValue(container))
-            {
-                Container = container,
-                PropertyDescriptor = descriptor
-            };
+            return new ViewDataInfo(container, propertyInfo, () => propertyInfo.GetValue(container));
         }
 
         private struct ExpressionPair

@@ -8,15 +8,19 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
     public static class TryGetValueProvider
     {
-        private static readonly Dictionary<Type, TryGetValueDelegate> _tryGetValueDelegateCache = new Dictionary<Type, TryGetValueDelegate>();
+        private static readonly Dictionary<Type, TryGetValueDelegate> _tryGetValueDelegateCache =
+            new Dictionary<Type, TryGetValueDelegate>();
         private static readonly ReaderWriterLockSlim _tryGetValueDelegateCacheLock = new ReaderWriterLockSlim();
 
-        private static readonly MethodInfo _strongTryGetValueImplInfo = typeof(TypeHelpers).GetMethod("StrongTryGetValueImpl", BindingFlags.NonPublic | BindingFlags.Static);
+        // Information about private static method declared below.
+        private static readonly MethodInfo _strongTryGetValueImplInfo =
+            typeof(TryGetValueProvider).GetTypeInfo().GetDeclaredMethod("StrongTryGetValueImpl");
 
-        public static TryGetValueDelegate CreateTryGetValueDelegate(Type targetType)
+        public static TryGetValueDelegate CreateInstance([NotNull] Type targetType)
         {
             TryGetValueDelegate result;
 
+            // Cache delegates since properties of model types are re-evaluated numerous times.
             _tryGetValueDelegateCacheLock.EnterReadLock();
             try
             {
@@ -30,23 +34,23 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 _tryGetValueDelegateCacheLock.ExitReadLock();
             }
 
-            Type dictionaryType = ExtractGenericInterface(targetType, typeof(IDictionary<,>));
+            var dictionaryType = targetType.ExtractGenericInterface(typeof(IDictionary<,>));
 
-            // just wrap a call to the underlying IDictionary<TKey, TValue>.TryGetValue() where string can be cast to TKey
+            // Just wrap a call to the underlying IDictionary<TKey, TValue>.TryGetValue() where string can be cast to TKey.
             if (dictionaryType != null)
             {
-                Type[] typeArguments = dictionaryType.GetGenericArguments();
-                Type keyType = typeArguments[0];
-                Type returnType = typeArguments[1];
+                var typeArguments = dictionaryType.GetGenericArguments();
+                var keyType = typeArguments[0];
+                var returnType = typeArguments[1];
 
                 if (keyType.IsAssignableFrom(typeof(string)))
                 {
-                    MethodInfo strongImplInfo = _strongTryGetValueImplInfo.MakeGenericMethod(keyType, returnType);
-                    result = (TryGetValueDelegate)Delegate.CreateDelegate(typeof(TryGetValueDelegate), strongImplInfo);
+                    var implementationMethod = _strongTryGetValueImplInfo.MakeGenericMethod(keyType, returnType);
+                    result = (TryGetValueDelegate)implementationMethod.CreateDelegate(typeof(TryGetValueDelegate));
                 }
             }
 
-            // wrap a call to the underlying IDictionary.Item()
+            // Wrap a call to the underlying IDictionary.Item().
             if (result == null && typeof(IDictionary).IsAssignableFrom(targetType))
             {
                 result = TryGetValueFromNonGenericDictionary;
@@ -67,21 +71,21 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 
         private static bool StrongTryGetValueImpl<TKey, TValue>(object dictionary, string key, out object value)
         {
-            IDictionary<TKey, TValue> strongDict = (IDictionary<TKey, TValue>)dictionary;
+            var strongDict = (IDictionary<TKey, TValue>)dictionary;
 
             TValue strongValue;
-            bool retVal = strongDict.TryGetValue((TKey)(object)key, out strongValue);
+            var success = strongDict.TryGetValue((TKey)(object)key, out strongValue);
             value = strongValue;
-            return retVal;
+            return success;
         }
 
         private static bool TryGetValueFromNonGenericDictionary(object dictionary, string key, out object value)
         {
-            IDictionary weakDict = (IDictionary)dictionary;
+            var weakDict = (IDictionary)dictionary;
 
-            bool containsKey = weakDict.Contains(key);
-            value = (containsKey) ? weakDict[key] : null;
-            return containsKey;
+            var success = weakDict.Contains(key);
+            value = success ? weakDict[key] : null;
+            return success;
         }
     }
 }
