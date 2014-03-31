@@ -132,6 +132,9 @@
   <data name="DynamicViewData_ViewDataNull" xml:space="preserve">
     <value>ViewData value must not be null.</value>
   </data>
+  <data name="ExpressionHelper_InvalidIndexerExpression" xml:space="preserve">
+    <value>The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.</value>
+  </data>
   <data name="HtmlHelper_NotContextualized" xml:space="preserve">
     <value>Must call 'Contextualize' method before using this HtmlHelper instance.</value>
   </data>
@@ -140,8 +143,5 @@
   </data>
   <data name="ViewData_WrongTModelType" xml:space="preserve">
     <value>The model item passed into the ViewDataDictionary is of type '{0}', but this ViewDataDictionary instance requires a model item of type '{1}'.</value>
-  </data>
-  <data name="ViewEngine_ViewNotFound" xml:space="preserve">
-    <value>The view '{0}' was not found. The following locations were searched:{1}.</value>
   </data>
 </root>

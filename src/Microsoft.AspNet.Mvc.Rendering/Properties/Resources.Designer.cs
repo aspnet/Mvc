@@ -91,6 +91,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
+        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
+        /// </summary>
+        internal static string ExpressionHelper_InvalidIndexerExpression
+        {
+            get { return GetString("ExpressionHelper_InvalidIndexerExpression"); }
+        }
+
+        /// <summary>
+        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
+        /// </summary>
+        internal static string FormatExpressionHelper_InvalidIndexerExpression(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ExpressionHelper_InvalidIndexerExpression"), p0, p1);
+        }
+
+        /// <summary>
         /// Must call 'Contextualize' method before using this HtmlHelper instance.
         /// </summary>
         internal static string HtmlHelper_NotContextualized
@@ -136,22 +152,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         internal static string FormatViewData_WrongTModelType(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ViewData_WrongTModelType"), p0, p1);
-        }
-
-        /// <summary>
-        /// The view '{0}' was not found. The following locations were searched:{1}.
-        /// </summary>
-        internal static string ViewEngine_ViewNotFound
-        {
-            get { return GetString("ViewEngine_ViewNotFound"); }
-        }
-
-        /// <summary>
-        /// The view '{0}' was not found. The following locations were searched:{1}.
-        /// </summary>
-        internal static string FormatViewEngine_ViewNotFound(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewEngine_ViewNotFound"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)
