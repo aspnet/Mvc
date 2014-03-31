@@ -9,23 +9,16 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
     public static class ExpressionMetadataProvider
     {
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
-        internal static ModelMetadata FromLambdaExpression<TParameter, TValue>(Expression<Func<TParameter, TValue>> expression,
-                                                                               ViewDataDictionary<TParameter> viewData,
-                                                                               ModelMetadataProvider metadataProvider)
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures",
+            Justification = "This is an appropriate nesting of generic types")]
+        public static ModelMetadata FromLambdaExpression<TParameter, TValue>(
+            [NotNull] Expression<Func<TParameter, TValue>> expression,
+            [NotNull] ViewDataDictionary<TParameter> viewData,
+            IModelMetadataProvider metadataProvider)
         {
-            if (expression == null)
-            {
-                throw new ArgumentNullException("expression");
-            }
-            if (viewData == null)
-            {
-                throw new ArgumentNullException("viewData");
-            }
-
             string propertyName = null;
             Type containerType = null;
-            bool legalExpression = false;
+            var legalExpression = false;
 
             // Need to verify the expression is valid; it needs to at least end in something
             // that we can convert to a meaningful string for model binding purposes
@@ -33,7 +26,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             switch (expression.Body.NodeType)
             {
                 case ExpressionType.ArrayIndex:
-                    // ArrayIndex always means a single-dimensional indexer; multi-dimensional indexer is a method call to Get()
+                    // ArrayIndex always means a single-dimensional indexer;
+                    // multi-dimensional indexer is a method call to Get().
                     legalExpression = true;
                     break;
 
@@ -44,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 
                 case ExpressionType.MemberAccess:
                     // Property/field access is always legal
-                    MemberExpression memberExpression = (MemberExpression)expression.Body;
+                    var memberExpression = (MemberExpression)expression.Body;
                     propertyName = memberExpression.Member is PropertyInfo ? memberExpression.Member.Name : null;
                     containerType = memberExpression.Expression.Type;
                     legalExpression = true;
@@ -57,10 +51,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 
             if (!legalExpression)
             {
-                throw new InvalidOperationException(MvcResources.TemplateHelpers_TemplateLimitations);
+                throw new InvalidOperationException(Resources.TemplateHelpers_TemplateLimitations);
             }
 
-            TParameter container = viewData.Model;
+            var container = viewData.Model;
             Func<object> modelAccessor = () =>
             {
                 try
@@ -73,83 +67,77 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 }
             };
 
-            return GetMetadataFromProvider(modelAccessor, typeof(TValue), propertyName, container, containerType, metadataProvider);
+            return GetMetadataFromProvider(modelAccessor, typeof(TValue), propertyName, containerType, metadataProvider);
         }
 
-        internal static ModelMetadata FromStringExpression(string expression, ViewDataDictionary viewData, ModelMetadataProvider metadataProvider)
+        public static ModelMetadata FromStringExpression([NotNull] string expression,
+            [NotNull] ViewDataDictionary viewData,
+            IModelMetadataProvider metadataProvider)
         {
-            if (expression == null)
-            {
-                throw new ArgumentNullException("expression");
-            }
-            if (viewData == null)
-            {
-                throw new ArgumentNullException("viewData");
-            }
             if (expression.Length == 0)
             {
                 // Empty string really means "model metadata for the current model"
                 return FromModel(viewData, metadataProvider);
             }
 
-            ViewDataInfo vdi = viewData.GetViewDataInfo(expression);
-            object container = null;
+            var viewDataInfo = ViewDataEvaluator.Eval(viewData, expression);
             Type containerType = null;
             Type modelType = null;
             Func<object> modelAccessor = null;
             string propertyName = null;
 
-            if (vdi != null)
+            if (viewDataInfo != null)
             {
-                if (vdi.Container != null)
+                if (viewDataInfo.Container != null)
                 {
-                    container = vdi.Container;
-                    containerType = vdi.Container.GetType();
+                    containerType = viewDataInfo.Container.GetType();
                 }
 
-                modelAccessor = () => vdi.Value;
+                modelAccessor = () => viewDataInfo.Value;
 
-                if (vdi.PropertyDescriptor != null)
+                if (viewDataInfo.PropertyInfo != null)
                 {
-                    propertyName = vdi.PropertyDescriptor.Name;
-                    modelType = vdi.PropertyDescriptor.PropertyType;
+                    propertyName = viewDataInfo.PropertyInfo.Name;
+                    modelType = viewDataInfo.PropertyInfo.PropertyType;
                 }
-                else if (vdi.Value != null)
+                else if (viewDataInfo.Value != null)
                 {
                     // We only need to delay accessing properties (for LINQ to SQL)
-                    modelType = vdi.Value.GetType();
+                    modelType = viewDataInfo.Value.GetType();
                 }
             }
             else if (viewData.ModelMetadata != null)
             {
                 //  Try getting a property from ModelMetadata if we couldn't find an answer in ViewData
-                ModelMetadata propertyMetadata = viewData.ModelMetadata.Properties.Where(p => p.PropertyName == expression).FirstOrDefault();
+                var propertyMetadata =
+                    viewData.ModelMetadata.Properties.Where(p => p.PropertyName == expression).FirstOrDefault();
                 if (propertyMetadata != null)
                 {
                     return propertyMetadata;
                 }
             }
 
-            return GetMetadataFromProvider(modelAccessor, modelType ?? typeof(string), propertyName, container, containerType, metadataProvider);
+            return GetMetadataFromProvider(modelAccessor, modelType ?? typeof(string), propertyName, containerType,
+                metadataProvider);
         }
 
-        private static ModelMetadata FromModel(ViewDataDictionary viewData, ModelMetadataProvider metadataProvider)
+        private static ModelMetadata FromModel([NotNull] ViewDataDictionary viewData,
+            IModelMetadataProvider metadataProvider)
         {
-            return viewData.ModelMetadata ?? GetMetadataFromProvider(null, typeof(string), null, null, null, metadataProvider);
+            return viewData.ModelMetadata ?? GetMetadataFromProvider(null, typeof(string), propertyName: null,
+                containerType: null, metadataProvider: metadataProvider);
         }
 
-        private static ModelMetadata GetMetadataFromProvider(Func<object> modelAccessor, Type modelType, string propertyName, object container, Type containerType, ModelMetadataProvider metadataProvider)
+        // An IModelMetadataProvider is not required unless this method is called. Therefore other methods in this
+        // class lack [NotNull] attributes for their corresponding parameter.
+        private static ModelMetadata GetMetadataFromProvider(Func<object> modelAccessor, Type modelType,
+            string propertyName, Type containerType, [NotNull] IModelMetadataProvider metadataProvider)
         {
-            metadataProvider = metadataProvider ?? ModelMetadataProviders.Current;
-            if (containerType != null && !String.IsNullOrEmpty(propertyName))
+            if (containerType != null && !string.IsNullOrEmpty(propertyName))
             {
-                ModelMetadata metadata = metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
-                if (metadata != null)
-                {
-                    metadata.Container = container;
-                }
-                return metadata;
+                return metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
             }
+
             return metadataProvider.GetMetadataForType(modelAccessor, modelType);
         }
     }

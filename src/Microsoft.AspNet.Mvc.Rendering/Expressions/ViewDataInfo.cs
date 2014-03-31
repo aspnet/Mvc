@@ -1,26 +1,37 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+﻿using System;
+using System.Reflection;
 
-using System.ComponentModel;
-
-namespace System.Web.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
     public class ViewDataInfo
     {
         private object _value;
         private Func<object> _valueAccessor;
 
-        public ViewDataInfo()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ViewDataInfo"/> class with info about a
+        /// <see cref="ViewDataDictionary"/> lookup which has already been evaluated.
+        /// </summary>
+        public ViewDataInfo(object container, object value)
         {
+            Container = container;
+            _value = value;
         }
 
-        public ViewDataInfo(Func<object> valueAccessor)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ViewDataInfo"/> class with info about a
+        /// <see cref="ViewDataDictionary"/> lookup which is evaluated when <see cref="Value"/> is read.
+        /// </summary>
+        public ViewDataInfo(object container, PropertyInfo propertyInfo, Func<object> valueAccessor)
         {
+            Container = container;
+            PropertyInfo = propertyInfo;
             _valueAccessor = valueAccessor;
         }
 
-        public object Container { get; set; }
+        public object Container { get; private set; }
 
-        public PropertyDescriptor PropertyDescriptor { get; set; }
+        public PropertyInfo PropertyInfo { get; private set; }
 
         public object Value
         {

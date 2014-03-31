@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering.Expressions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -133,10 +135,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public string Eval(string expression, string format)
         {
             object value = Eval(expression);
-            return FormatValueInternal(value, format);
+            return FormatValue(value, format);
         }
 
-        internal static string FormatValueInternal(object value, string format)
+        public static string FormatValue(object value, string format)
         {
             if (value == null)
             {
@@ -157,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             if (String.IsNullOrEmpty(expression))
             {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "expression");
+                throw new ArgumentException(Resources.ArgumentNullOrEmpty, "expression");
             }
 
             return ViewDataEvaluator.Eval(this, expression);
