@@ -354,6 +354,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object value, bool useViewData, bool isChecked, bool setId, bool isExplicitValue, string format,
             IDictionary<string, object> htmlAttributes)
         {
+            // Not valid to use TextBoxForModel() in a top-level view; would end up with an unnamed input elements.
+            // But we support the *ForModel() methods in any lower-level template, once HtmlFieldPrefix is non-empty.
             var fullName = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name);
             if (string.IsNullOrEmpty(fullName))
             {
@@ -363,16 +365,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var tagBuilder = new TagBuilder("input");
             tagBuilder.MergeAttributes(htmlAttributes);
             tagBuilder.MergeAttribute("type", GetInputTypeString(inputType));
-            tagBuilder.MergeAttribute("name", fullName, true);
+            tagBuilder.MergeAttribute("name", fullName, replaceExisting: true);
 
             var valueParameter = FormatValue(value, format);
             switch (inputType)
             {
                 default:
-                    var attemptedValue = (string)GetModelStateValue(fullName, typeof(string));
-                    tagBuilder.MergeAttribute("value",
-                        attemptedValue ?? ((useViewData) ? EvalString(fullName, format) : valueParameter),
-                        isExplicitValue);
+                    var attributeValue = (string)GetModelStateValue(fullName, typeof(string));
+                    if (attributeValue == null)
+                    {
+                        attributeValue = useViewData ? EvalString(fullName, format) : valueParameter;
+                    }
+
+                    tagBuilder.MergeAttribute("value", attributeValue, replaceExisting: isExplicitValue);
                     break;
             }
 
