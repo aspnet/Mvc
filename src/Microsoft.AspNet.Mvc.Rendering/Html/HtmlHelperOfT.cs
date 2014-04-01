@@ -73,5 +73,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             return metadata;
         }
+
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
+        public HtmlString ValueFor<TProperty>(Expression<Func<TModel, TProperty>> expression, string format)
+        {
+            var metadata = GetModelMetadata(expression);
+            return RenderValue(ExpressionHelper.GetExpressionText(expression), metadata.Model, format, useViewData: false);
+        }
     }
 }
