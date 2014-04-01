@@ -131,5 +131,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>New <see cref="HtmlString"/> containing the rendered HTML.</returns>
         HtmlString TextBoxFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression, string format,
             IDictionary<string, object> htmlAttributes);
+
+        HtmlString Value([NotNull] string name, string format);
+
+        HtmlString ValueFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression, string format);
     }
 }
