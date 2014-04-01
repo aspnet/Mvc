@@ -128,13 +128,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public object Eval(string expression)
         {
-            ViewDataInfo info = GetViewDataInfo(expression);
+            var info = GetViewDataInfo(expression);
             return (info != null) ? info.Value : null;
         }
 
         public string Eval(string expression, string format)
         {
-            object value = Eval(expression);
+            var value = Eval(expression);
             return FormatValue(value, format);
         }
 
@@ -142,22 +142,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             if (value == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
-            if (String.IsNullOrEmpty(format))
+            if (string.IsNullOrEmpty(format))
             {
                 return Convert.ToString(value, CultureInfo.CurrentCulture);
             }
             else
             {
-                return String.Format(CultureInfo.CurrentCulture, format, value);
+                return string.Format(CultureInfo.CurrentCulture, format, value);
             }
         }
 
         public ViewDataInfo GetViewDataInfo(string expression)
         {
-            if (String.IsNullOrEmpty(expression))
+            if (string.IsNullOrEmpty(expression))
             {
                 throw new ArgumentException(Resources.ArgumentNullOrEmpty, "expression");
             }
