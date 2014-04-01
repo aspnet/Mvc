@@ -329,7 +329,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 if (name.Length == 0)
                 {
                     // case 2(a): format the value from ModelMetadata for the current model
-                    var metadata = ExpressionMetadataProvider.FromStringExpression(string.Empty, ViewContext.ViewData, MetadataProvider);
+                    var metadata = ViewData.ModelMetadata;
                     resolvedValue = FormatValue(metadata.Model, format);
                 }
                 else
