@@ -296,7 +296,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <inheritdoc />
         public HtmlString TextBox(string name, object value, string format, IDictionary<string, object> htmlAttributes)
         {
-            return RenderTextBox(metadata: null, name: name, value: value, format: format,
+            return GenerateTextBox(metadata: null, name: name, value: value, format: format,
                 htmlAttributes: htmlAttributes);
         }
 
@@ -330,10 +330,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new Dictionary<string, object>();
         }
 
-        protected virtual HtmlString RenderTextBox(ModelMetadata metadata, string name, object value, string format,
+        protected virtual HtmlString GenerateTextBox(ModelMetadata metadata, string name, object value, string format,
             IDictionary<string, object> htmlAttributes)
         {
-            return RenderInput(InputType.Text,
+            return GenerateInput(InputType.Text,
                 metadata,
                 name,
                 value,
@@ -345,7 +345,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes: htmlAttributes);
         }
 
-        protected virtual HtmlString RenderInput(InputType inputType, ModelMetadata metadata, string name,
+        protected virtual HtmlString GenerateInput(InputType inputType, ModelMetadata metadata, string name,
             object value, bool useViewData, bool isChecked, bool setId, bool isExplicitValue, string format,
             IDictionary<string, object> htmlAttributes)
         {

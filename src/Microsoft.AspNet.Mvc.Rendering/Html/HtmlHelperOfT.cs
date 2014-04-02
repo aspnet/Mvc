@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string format, IDictionary<string, object> htmlAttributes)
         {
             var metadata = GetModelMetadata(expression);
-            return RenderTextBox(metadata, GetExpressionName(expression), metadata.Model, format, htmlAttributes);
+            return GenerateTextBox(metadata, GetExpressionName(expression), metadata.Model, format, htmlAttributes);
         }
 
         protected string GetExpressionName<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)
