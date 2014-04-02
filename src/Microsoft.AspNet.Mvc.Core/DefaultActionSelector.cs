@@ -123,10 +123,13 @@ namespace Microsoft.AspNet.Mvc
             // The purpose of this process is to avoid making certain routes too greedy. When a route uses a default
             // value as a filter, it can generate links to actions it will never hit.
             //
+            //
             // We define "what the user intended" based on the combination of Values and AmbientValues. This set can
             // be used to select a set of actions, anything in this is set is 'intended'. Note that there are
             // false positives, but this doesn't have an impact on what we choose.
             //
+            // To determine "intended" actions, we only consider RouteDataActionConstraints right now. There's some
+            // powerful scenarios that could be built with dynamic constraints if we choose to enable them. 
             //
             // False positives are the result of parameter invalidation. Consider the following:
             //
