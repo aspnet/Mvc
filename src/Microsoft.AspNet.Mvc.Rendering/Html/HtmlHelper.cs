@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -30,13 +31,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <summary>
         /// Initializes a new instance of the <see cref="HtmlHelper"/> class.
         /// </summary>
-        public HtmlHelper(IViewEngine viewEngine)
+        public HtmlHelper([NotNull] IViewEngine viewEngine, [NotNull] IModelMetadataProvider metadataProvider)
         {
             _viewEngine = viewEngine;
+            MetadataProvider = metadataProvider;
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = "_";
         }
+
+        public IModelMetadataProvider MetadataProvider { get; private set; }
 
         public string IdAttributeDotReplacement { get; set; }
 
@@ -75,20 +79,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        /// <summary>
-        /// Creates a dictionary of HTML attributes from the input object,
-        /// translating underscores to dashes.
-        /// <example>
-        /// new { data_name="value" } will translate to the entry { "data-name" , "value" }
-        /// in the resulting dictionary.
-        /// </example>
-        /// </summary>
-        /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
-        /// <returns>A dictionary that represents HTML attributes.</returns>
-        public static IDictionary<string, object> AnonymousObjectToHtmlAttributes(object htmlAttributes)
+        public static Dictionary<string, object> AnonymousObjectToDictionary(object obj)
         {
             Dictionary<string, object> result;
-            var valuesAsDictionary = htmlAttributes as IDictionary<string, object>;
+            var valuesAsDictionary = obj as IDictionary<string, object>;
             if (valuesAsDictionary != null)
             {
                 result = new Dictionary<string, object>(valuesAsDictionary, StringComparer.OrdinalIgnoreCase);
@@ -97,17 +91,34 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 result = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
-                if (htmlAttributes != null)
+                if (obj != null)
                 {
-                    foreach (var prop in htmlAttributes.GetType().GetRuntimeProperties())
+                    foreach (var prop in obj.GetType().GetRuntimeProperties())
                     {
-                        var value = prop.GetValue(htmlAttributes);
+                        var val = prop.GetValue(obj);
                         result.Add(prop.Name, value);
                     }
                 }
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Creates a dictionary of HTML attributes from the input object, 
+        /// translating underscores to dashes.
+        /// <example>
+        /// new { data_name="value" } will translate to the entry { "data-name" , "value" }
+        /// in the resulting dictionary.
+        /// </example>
+        /// </summary>
+        /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
+        /// <returns>A dictionary that represents HTML attributes.</returns>
+        public static Dictionary<string, object> AnonymousObjectToHtmlAttributes(object htmlAttributes)
+        {
+            // NOTE: This should be doing more than just returning a generic conversion from obj -> dict
+            // Once Github #80 has been completed this will do more than be a call through.
+            return AnonymousObjectToDictionary(htmlAttributes);
         }
 
         public virtual void Contextualize([NotNull] ViewContext viewContext)

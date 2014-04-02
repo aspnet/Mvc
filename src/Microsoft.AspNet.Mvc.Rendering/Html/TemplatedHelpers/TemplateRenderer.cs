@@ -29,11 +29,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public string Render()
         {
-            Dictionary<string, ActionCacheItem> actionCache = GetActionCache(html);
-            Dictionary<string, Func<HtmlHelper, string>> defaultActions = getDefaultActions(mode);
-            string modeViewPath = _modeViewPaths[mode];
+            var actionCache = ActionCacheProvider.GetActionCacheItem(_viewContext.HttpContext);
+            var defaultActions = GetDefaultActions();
+            string modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
 
-            foreach (string viewName in getViewNames(viewData.ModelMetadata, templateName, viewData.ModelMetadata.TemplateHint, viewData.ModelMetadata.DataTypeName))
+            foreach (string viewName in GetViewNames())
             {
                 string fullViewName = modeViewPath + "/" + viewName;
                 ActionCacheItem cacheItem;
@@ -42,57 +42,71 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 {
                     if (cacheItem != null)
                     {
-                        return cacheItem.Execute(html, viewData);
+                        // Forcing synchronous behavior so users don't have to await templates.
+                        return cacheItem.Execute(_viewContext, _viewData).Result;
                     }
                 }
                 else
                 {
-                    ViewEngineResult viewEngineResult = ViewEngines.Engines.FindPartialView(html.ViewContext, fullViewName);
+                    var viewEngine = _viewContext.ServiceProvider.GetService<IViewEngine>();
+                    // Forcing synchronous behavior so users don't have to await templates.
+                    var viewEngineResult = viewEngine.FindPartialView(_viewContext.ViewEngineContext, fullViewName).Result;
                     if (viewEngineResult.View != null)
                     {
                         actionCache[fullViewName] = new ActionCacheViewItem { ViewName = fullViewName };
 
-                        using (StringWriter writer = new StringWriter(CultureInfo.InvariantCulture))
+                        using (var writer = new StringWriter(CultureInfo.InvariantCulture))
                         {
-                            viewEngineResult.View.Render(new ViewContext(html.ViewContext, viewEngineResult.View, viewData, html.ViewContext.TempData, writer), writer);
+                            // Forcing synchronous behavior so users don't have to await templates.
+                            // TODO: Pass through TempData once implemented.
+                            viewEngineResult.View.RenderAsync(new ViewContext(_viewContext)
+                            {
+                                ViewData = _viewData,
+                                Writer = writer,
+                            }).Wait();
+
                             return writer.ToString();
                         }
                     }
 
-                    Func<HtmlHelper, string> defaultAction;
+                    Func<ViewContext, Task<string>> defaultAction;
                     if (defaultActions.TryGetValue(viewName, out defaultAction))
                     {
                         actionCache[fullViewName] = new ActionCacheCodeItem { Action = defaultAction };
-                        return defaultAction(MakeHtmlHelper(html, viewData));
+                        // Forcing synchronous behavior so users don't have to await templates.
+                        return defaultAction(_viewContext).Result;
                     }
 
                     actionCache[fullViewName] = null;
                 }
             }
 
-            throw new InvalidOperationException(
-                String.Format(
-                    CultureInfo.CurrentCulture,
-                    MvcResources.TemplateHelpers_NoTemplate,
-                    viewData.ModelMetadata.RealModelType.FullName));
+            throw new InvalidOperationException(Resources.FormatTemplateHelpers_NoTemplate(_viewData.ModelMetadata.GetRealModelType().FullName));
         }
 
         private Dictionary<string, Func<ViewContext, Task<string>>> GetDefaultActions()
         {
-            return mode == DataBoundControlMode.ReadOnly ? _defaultDisplayActions : _defaultEditorActions;
+            // TODO: Implement default templates
+            return new Dictionary<string, Func<ViewContext, Task<string>>>(StringComparer.OrdinalIgnoreCase);
         }
 
         private IEnumerable<string> GetViewNames()
         {
-            foreach (string templateHint in templateHints.Where(s => !String.IsNullOrEmpty(s)))
+            var metadata = _viewData.ModelMetadata;
+            var templateHints = new string[] {
+                _templateName, 
+                metadata.TemplateHint, 
+                metadata.DataTypeName
+            };
+
+            foreach (string templateHint in templateHints.Where(s => !string.IsNullOrEmpty(s)))
             {
                 yield return templateHint;
             }
 
             // We don't want to search for Nullable<T>, we want to search for T (which should handle both T and Nullable<T>)
-            Type fieldType = Nullable.GetUnderlyingType(metadata.RealModelType) ?? metadata.RealModelType;
+            var fieldType = Nullable.GetUnderlyingType(metadata.GetRealModelType()) ?? metadata.GetRealModelType();
 
-            // TODO: Make better string names for generic types
             yield return fieldType.Name;
 
             if (fieldType == typeof(string))

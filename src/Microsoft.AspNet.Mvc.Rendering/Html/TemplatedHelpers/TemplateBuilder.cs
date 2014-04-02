@@ -28,59 +28,56 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public string Build()
         {
-            // TODO: Convert Editor into Display if model.IsReadOnly is true? Need to be careful about this because
-            // the Model property on the ViewPage/ViewUserControl is get-only, so the type descriptor automatically
-            // decorates it with a [ReadOnly] attribute...
-
-            if (metadata.ConvertEmptyStringToNull && String.Empty.Equals(metadata.Model))
+            if (_metadata.ConvertEmptyStringToNull && string.Empty.Equals(_metadata.Model))
             {
-                metadata.Model = null;
+                _metadata.Model = null;
             }
 
-            object formattedModelValue = metadata.Model;
-            if (metadata.Model == null && mode == DataBoundControlMode.ReadOnly)
+            var formattedModelValue = _metadata.Model;
+            if (_metadata.Model == null && _readOnly)
             {
-                formattedModelValue = metadata.NullDisplayText;
+                formattedModelValue = _metadata.NullDisplayText;
             }
 
-            string formatString = mode == DataBoundControlMode.ReadOnly ? metadata.DisplayFormatString : metadata.EditFormatString;
-            if (metadata.Model != null && !String.IsNullOrEmpty(formatString))
+            var formatString = _readOnly ? _metadata.DisplayFormatString : _metadata.EditFormatString;
+
+            if (_metadata.Model != null && !string.IsNullOrEmpty(formatString))
             {
-                formattedModelValue = String.Format(CultureInfo.CurrentCulture, formatString, metadata.Model);
+                formattedModelValue = string.Format(CultureInfo.CurrentCulture, formatString, _metadata.Model);
             }
 
             // Normally this shouldn't happen, unless someone writes their own custom Object templates which
             // don't check to make sure that the object hasn't already been displayed
-            object visitedObjectsKey = metadata.Model ?? metadata.RealModelType;
-            if (html.ViewDataContainer.ViewData.TemplateInfo.VisitedObjects.Contains(visitedObjectsKey))
+            object visitedObjectsKey = _metadata.Model ?? _metadata.GetRealModelType();
+            if (_viewData.TemplateInfo.Visited(visitedObjectsKey))
             {
-                // DDB #224750
-                return String.Empty;
+                return string.Empty;
             }
 
-            ViewDataDictionary viewData = new ViewDataDictionary(html.ViewDataContainer.ViewData)
+            var viewData = new ViewDataDictionary(_viewData)
             {
-                Model = metadata.Model,
-                ModelMetadata = metadata,
-                TemplateInfo = new TemplateInfo
+                Model = _metadata.Model,
+                ModelMetadata = _metadata,
+                TemplateInfo = new TemplateInfo(_viewData.TemplateInfo)
                 {
                     FormattedModelValue = formattedModelValue,
-                    HtmlFieldPrefix = html.ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(htmlFieldName),
-                    VisitedObjects = new HashSet<object>(html.ViewContext.ViewData.TemplateInfo.VisitedObjects), // DDB #224750
+                    HtmlFieldPrefix = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName),
                 }
             };
 
-            if (additionalViewData != null)
+            if (_additionalViewData != null)
             {
-                foreach (KeyValuePair<string, object> kvp in TypeHelper.ObjectToDictionary(additionalViewData))
+                foreach (KeyValuePair<string, object> kvp in HtmlHelper.AnonymousObjectToDictionary(_additionalViewData))
                 {
                     viewData[kvp.Key] = kvp.Value;
                 }
             }
 
-            viewData.TemplateInfo.VisitedObjects.Add(visitedObjectsKey); // DDB #224750
+            viewData.TemplateInfo.AddVisited(visitedObjectsKey);
 
-            return executeTemplate(html, viewData, templateName, mode, GetViewNames, GetDefaultActions);
+            var templateRenderer = new TemplateRenderer(_viewContext, viewData, _templateName, _readOnly);
+
+            return templateRenderer.Render();
         }
 
 

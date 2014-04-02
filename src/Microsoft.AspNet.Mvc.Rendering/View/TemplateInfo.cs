@@ -63,5 +63,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             return _visitedObjects.Contains(metadata.Model ?? metadata.ModelType);
         }
+
+        public bool Visited(object value)
+        {
+            return _visitedObjects.Contains(value);
+        }
     }
 }

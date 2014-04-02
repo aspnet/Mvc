@@ -5,11 +5,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     internal class ActionCacheCodeItem : ActionCacheItem
     {
-        public Func<HtmlHelper, string> Action { get; set; }
+        public Func<ViewContext, Task<string>> Action { get; set; }
 
-        public override string Execute(HtmlHelper html, ViewDataDictionary viewData)
+        public override Task<string> Execute(ViewContext viewContext, ViewDataDictionary viewData)
         {
-            return Action(MakeHtmlHelper(html, viewData));
+            return Action(new ViewContext(viewContext)
+            {
+                ViewData = new ViewDataDictionary(viewData)
+            });
         }
     }
 }

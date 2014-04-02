@@ -4,6 +4,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     internal abstract class ActionCacheItem
     {
-        public abstract string Execute(HtmlHelper html, ViewDataDictionary viewData);
+        public abstract Task<string> Execute(ViewContext viewContext, ViewDataDictionary viewData);
     }
 }

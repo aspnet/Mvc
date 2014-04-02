@@ -46,7 +46,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             set { _convertEmptyStringToNull = value; }
         }
 
+        public virtual string DataTypeName { get; set; }
+
         public virtual string Description { get; set; }
+
+        public virtual string DisplayFormatString { get; set; }
+
+        public virtual string EditFormatString { get; set; }
 
         public virtual bool IsComplexType
         {
@@ -91,6 +97,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             get { return _modelType; }
         }
 
+        public virtual string NullDisplayText { get; set; }
+
         public virtual IEnumerable<ModelMetadata> Properties
         {
             get
@@ -133,6 +141,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
+        public virtual string TemplateHint { get; set; }
+
         internal EfficientTypePropertyKey<Type, string> CacheKey
         {
             get
@@ -154,6 +164,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public virtual string GetDisplayName()
         {
             return PropertyName ?? ModelType.Name;
+        }
+
+        public virtual Type GetRealModelType()
+        {
+            return RealModelType;
         }
 
         // TODO: Revive ModelValidators

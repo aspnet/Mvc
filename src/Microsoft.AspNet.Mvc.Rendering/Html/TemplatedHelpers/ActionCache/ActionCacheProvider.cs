@@ -9,19 +9,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
     {
         public static readonly string CacheItemId = Guid.NewGuid().ToString();
 
-        internal static Dictionary<string, ActionCacheItem> GetActionCache(HtmlHelper html)
+        public static Dictionary<string, ActionCacheItem> GetActionCacheItem(HttpContext httpContext)
         {
-            HttpContextBase context = html.ViewContext.HttpContext;
             Dictionary<string, ActionCacheItem> result;
 
-            if (!context.Items.Contains(CacheItemId))
+            if (!httpContext.Items.Any(obj => obj.Equals(CacheItemId)))
             {
-                result = new Dictionary<string, ActionCacheItem>();
-                context.Items[CacheItemId] = result;
+                result = new Dictionary<string, ActionCacheItem>(StringComparer.OrdinalIgnoreCase);
+                httpContext.Items[CacheItemId] = result;
             }
             else
             {
-                result = (Dictionary<string, ActionCacheItem>)context.Items[CacheItemId];
+                result = (Dictionary<string, ActionCacheItem>)httpContext.Items[CacheItemId];
             }
 
             return result;

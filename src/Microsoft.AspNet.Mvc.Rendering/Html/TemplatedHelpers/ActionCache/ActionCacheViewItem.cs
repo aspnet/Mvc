@@ -9,12 +9,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
     {
         public string ViewName { get; set; }
 
-        public override string Execute(HtmlHelper html, ViewDataDictionary viewData)
+        public override async Task<string> Execute(ViewContext viewContext, ViewDataDictionary viewData)
         {
-            ViewEngineResult viewEngineResult = ViewEngines.Engines.FindPartialView(html.ViewContext, ViewName);
-            using (StringWriter writer = new StringWriter(CultureInfo.InvariantCulture))
+            var viewEngine = viewContext.ServiceProvider.GetService<IViewEngine>();
+            var viewEngineResult = await viewEngine.FindPartialView(viewContext.ViewEngineContext, ViewName);
+
+            using (var writer = new StringWriter(CultureInfo.InvariantCulture))
             {
-                viewEngineResult.View.Render(new ViewContext(html.ViewContext, viewEngineResult.View, viewData, html.ViewContext.TempData, writer), writer);
+                // TODO: Pass through TempData
+                await viewEngineResult.View.RenderAsync(new ViewContext(viewContext)
+                {
+                    ViewData = viewData,
+                    Writer = writer,
+                });
+
                 return writer.ToString();
             }
         }
