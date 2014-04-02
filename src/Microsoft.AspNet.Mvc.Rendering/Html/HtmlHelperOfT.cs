@@ -64,7 +64,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
         protected ModelMetadata GetModelMetadata<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression)
         {
             var metadata = ExpressionMetadataProvider.FromLambdaExpression(expression, ViewData, MetadataProvider);
-            Contract.Assert(metadata != null);
+            if (metadata == null)
+            {
+                var expressionName = GetExpressionName(expression);
+                throw new InvalidOperationException(Resources.FormatHtmlHelper_NullModelMetadata(expressionName));
+            }
 
             return metadata;
         }

@@ -130,8 +130,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
-            Justification = "For consistency, all helpers are instance methods.")]
         public string FormatValue(object value, string format)
         {
             return ViewDataDictionary.FormatValue(value, format);
@@ -310,12 +308,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         protected object GetModelStateValue(string key, Type destinationType)
         {
             ModelState modelState;
-            if (ViewData.ModelState.TryGetValue(key, out modelState))
+            if (ViewData.ModelState.TryGetValue(key, out modelState) && modelState.Value != null)
             {
-                if (modelState.Value != null)
-                {
-                    return modelState.Value.ConvertTo(destinationType, culture: null);
-                }
+                return modelState.Value.ConvertTo(destinationType, culture: null);
             }
 
             return null;
