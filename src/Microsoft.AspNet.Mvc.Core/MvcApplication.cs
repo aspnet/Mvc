@@ -1,6 +1,8 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
@@ -20,8 +22,8 @@ namespace Microsoft.AspNet.Mvc
 
         public string GetVirtualPath([NotNull] VirtualPathContext context)
         {
-            // For now just allow any values to target this application.
-            context.IsBound = true;
+            var actionSelector = context.Context.RequestServices.GetService<IActionSelector>();
+            context.IsBound = actionSelector.IsValidAction(context);
             return null;
         }
 

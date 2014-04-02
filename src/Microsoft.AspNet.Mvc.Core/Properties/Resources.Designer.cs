@@ -201,7 +201,7 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_InvalidReturnValue"), p0, p1, p2);
         }
-        
+
         /// <summary>
         /// Replacing the action context is not supported.
         /// </summary>
@@ -232,6 +232,22 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatActionInvokerFactory_CouldNotCreateInvoker(object p0)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ActionInvokerFactory_CouldNotCreateInvoker"), p0);
+        }
+
+        /// <summary>
+        /// Property '{0}' must not be null.
+        /// </summary>
+        internal static string ArgumentPropertyNull
+        {
+            get { return GetString("ArgumentPropertyNull"); }
+        }
+
+        /// <summary>
+        /// Property '{0}' must not be null.
+        /// </summary>
+        internal static string FormatArgumentPropertyNull(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ArgumentPropertyNull"), p0);
         }
 
         private static string GetString(string name, params string[] formatterNames)

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -70,26 +72,14 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public bool Accept(RequestContext context)
+        public bool Accept([NotNull] IDictionary<string, object> routeValues)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException("context");
-            }
-
-            var routeValues = context.RouteValues;
-
-            if (routeValues == null)
-            {
-                throw new ArgumentException("Need route values", "context");
-            }
-
             switch (KeyHandling)
             {
                 case RouteKeyHandling.AcceptAlways:
                     return true;
                 case RouteKeyHandling.DenyKey:
-                    return !routeValues.ContainsKey(RouteKey);
+                    return !routeValues.ContainsKey(RouteKey) || routeValues[RouteKey] == null;
                 case RouteKeyHandling.CatchAll:
                     return routeValues.ContainsKey(RouteKey);
             }
@@ -105,6 +95,17 @@ namespace Microsoft.AspNet.Mvc
             {
                 return false;
             }
+        }
+
+        public bool Accept([NotNull] RequestContext context)
+        {
+            var routeValues = context.RouteValues;
+            if (routeValues == null)
+            {
+                throw new ArgumentException(Resources.FormatArgumentPropertyNull("RouteValues"), "context");
+            }
+
+            return Accept(routeValues);
         }   
     }
 }

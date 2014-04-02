@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -44,11 +45,20 @@ namespace Microsoft.AspNet.Mvc
         private string RouteCore(IDictionary<string, object> values)
         {
             var context = new VirtualPathContext(_httpContext, _ambientValues, values);
+            
             var path = _router.GetVirtualPath(context);
+            if (path == null)
+            {
+                return null;
+            }
 
-            // We need to add the host part in here, currently blocked on http abstractions support. 
-            // The intent is to use full URLs by default.
-            return _httpContext.Request.PathBase + path;
+            // HttpAbstractions #28 tracks centrallizing this.
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}://{1}/{2}",
+                _httpContext.Request.Scheme,
+                _httpContext.Request.Host,
+                _httpContext.Request.PathBase + path);
         }
     }
 }
