@@ -8,7 +8,7 @@ namespace MvcSample.Web.Areas.Travel.Controllers
     {
         public IActionResult Index()
         {
-            return Result.Content("This is the Flight/Home/Index action.");
+            return Result.Content("This is the Travel/Home/Index action.");
         }
     }
 }

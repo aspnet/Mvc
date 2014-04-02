@@ -159,4 +159,7 @@
   <data name="ActionInvokerFactory_CouldNotCreateInvoker" xml:space="preserve">
     <value>An action invoker could not be created for action '{0}'.</value>
   </data>
+  <data name="ArgumentPropertyNull" xml:space="preserve">
+    <value>Property '{0}' must not be null.</value>
+  </data>
 </root>

@@ -150,15 +150,15 @@ namespace Microsoft.AspNet.Mvc
                 return false;
             }
 
-            var action =
+            var actions =
                 intendedActions.Where(
-                    a => a.RouteConstraints == null || a.RouteConstraints.All(c => c.Accept(context.ProvidedValues)))
-                    .FirstOrDefault();
+                    action => action.RouteConstraints == null || 
+                    action.RouteConstraints.All(constraint => constraint.Accept(context.ProvidedValues)));
 
-            return action != null;
+            return actions.Any();
         }
 
-        private List<ActionDescriptor> GetIntendedActions(VirtualPathContext context)
+        protected virtual List<ActionDescriptor> GetIntendedActions([NotNull] VirtualPathContext context)
         {
             var actions = GetActions();
 
