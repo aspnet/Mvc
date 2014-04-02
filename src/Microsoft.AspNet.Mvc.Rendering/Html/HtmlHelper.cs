@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         public async Task<HtmlString> PartialAsync([NotNull] string partialViewName, object model,
-            ViewDataDictionary viewData)
+                                                   ViewDataDictionary viewData)
         {
             using (var writer = new StringWriter(CultureInfo.CurrentCulture))
             {

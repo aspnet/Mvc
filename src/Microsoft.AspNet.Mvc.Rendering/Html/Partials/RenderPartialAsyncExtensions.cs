@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public static Task RenderPartialAsync<T>(this IHtmlHelper<T> htmlHelper, [NotNull] string partialViewName)
         {
             return htmlHelper.RenderPartialAsync(partialViewName, htmlHelper.ViewData.Model,
-                viewData: htmlHelper.ViewData);
+                                                 viewData: htmlHelper.ViewData);
         }
 
         /// <summary>
