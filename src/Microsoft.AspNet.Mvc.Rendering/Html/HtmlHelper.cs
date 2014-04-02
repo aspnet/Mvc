@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering.Expressions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -150,6 +152,24 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public string GenerateIdFromName([NotNull] string name)
         {
             return TagBuilder.CreateSanitizedId(name, IdAttributeDotReplacement);
+        }
+
+        public virtual HtmlString Display(string expression,
+                                          string templateName,
+                                          string htmlFieldName,
+                                          object additionalViewData)
+        {
+            var templateBuilder = new TemplateBuilder(ViewContext,
+                                                      ViewData,
+                                                      ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider),
+                                                      htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                                                      templateName,
+                                                      readOnly: true,
+                                                      additionalViewData: additionalViewData);
+
+            var templateResult = templateBuilder.Build();
+
+            return new HtmlString(templateResult);
         }
 
         /// <inheritdoc />
