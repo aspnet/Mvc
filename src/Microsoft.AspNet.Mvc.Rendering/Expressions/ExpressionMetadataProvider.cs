@@ -9,8 +9,6 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
     public static class ExpressionMetadataProvider
     {
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures",
-            Justification = "This is an appropriate nesting of generic types")]
         public static ModelMetadata FromLambdaExpression<TParameter, TValue>(
             [NotNull] Expression<Func<TParameter, TValue>> expression,
             [NotNull] ViewDataDictionary<TParameter> viewData,
@@ -71,8 +69,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
         }
 
         public static ModelMetadata FromStringExpression([NotNull] string expression,
-            [NotNull] ViewDataDictionary viewData,
-            IModelMetadataProvider metadataProvider)
+                                                         [NotNull] ViewDataDictionary viewData,
+                                                         IModelMetadataProvider metadataProvider)
         {
             if (expression.Length == 0)
             {
@@ -122,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
         }
 
         private static ModelMetadata FromModel([NotNull] ViewDataDictionary viewData,
-            IModelMetadataProvider metadataProvider)
+                                               IModelMetadataProvider metadataProvider)
         {
             return viewData.ModelMetadata ?? GetMetadataFromProvider(null, typeof(string), propertyName: null,
                 containerType: null, metadataProvider: metadataProvider);
