@@ -9,6 +9,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class CollectionModelBinder<TElement> : IModelBinder
     {
+        public virtual int Order
+        {
+            get { return 40; }
+        }
+
         public virtual bool BindModel(ModelBindingContext bindingContext)
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext);

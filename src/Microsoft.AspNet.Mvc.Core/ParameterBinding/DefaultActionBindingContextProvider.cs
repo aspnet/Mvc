@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc
                                                    IEnumerable<IModelValidatorProvider> validatorProviders)
         {
             _modelMetadataProvider = modelMetadataProvider;
-            _modelBinders = modelBinders.OrderBy(binder => binder.GetType() == typeof(ComplexModelDtoModelBinder) ? 1 : 0);
+            _modelBinders = modelBinders;
             _valueProviderFactories = valueProviderFactories;
             _inputFormatterProvider = inputFormatterProvider;
             _validatorProviders = validatorProviders;

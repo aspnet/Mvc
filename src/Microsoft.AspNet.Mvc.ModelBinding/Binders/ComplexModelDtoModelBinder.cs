@@ -4,6 +4,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public sealed class ComplexModelDtoModelBinder : IModelBinder
     {
+        public int Order
+        {
+            get { return 30; }
+        }
+
         public bool BindModel(ModelBindingContext bindingContext)
         {
             if (bindingContext.ModelType == typeof(ComplexModelDto))

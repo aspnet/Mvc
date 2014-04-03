@@ -2,20 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Reflection;
-using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class GenericModelBinder : IModelBinder
     {
-        private readonly ITypeActivator _activator;
-        private readonly IServiceProvider _serviceProvider;
-
-        public GenericModelBinder(IServiceProvider serviceProvider, ITypeActivator activator)
+        public int Order
         {
-            _serviceProvider = serviceProvider;
-            _activator = activator;
+            get { return 30; }
         }
 
         public bool BindModel(ModelBindingContext bindingContext)
@@ -23,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Type binderType = ResolveBinderType(bindingContext.ModelType);
             if (binderType != null)
             {
-                var binder = (IModelBinder)_activator.CreateInstance(_serviceProvider, binderType);
+                var binder = (IModelBinder)Activator.CreateInstance(binderType);
                 return binder.BindModel(bindingContext);
             }
 

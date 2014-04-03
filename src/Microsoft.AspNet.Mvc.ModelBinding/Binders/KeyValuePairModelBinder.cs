@@ -5,6 +5,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public sealed class KeyValuePairModelBinder<TKey, TValue> : IModelBinder
     {
+        public int Order
+        {
+            get { return 40; }
+        }
         public bool BindModel(ModelBindingContext bindingContext)
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext, typeof(KeyValuePair<TKey, TValue>), allowNullModel: true);
