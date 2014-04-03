@@ -7,6 +7,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public interface IModelBinder
     {
+        int Order { get; }
+
         bool BindModel(ModelBindingContext bindingContext);
     }
 }

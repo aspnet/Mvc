@@ -10,6 +10,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class MutableObjectModelBinder : IModelBinder
     {
+        public int Order
+        {
+            get { return 100; }
+        }
+
         public virtual bool BindModel(ModelBindingContext bindingContext)
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext);

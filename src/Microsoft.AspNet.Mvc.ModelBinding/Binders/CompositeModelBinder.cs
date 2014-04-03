@@ -21,7 +21,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public CompositeModelBinder(params IModelBinder[] binders)
         {
-            Binders = binders;
+            Binders = binders.OrderBy(b => b.Order)
+                             .ToArray();
+        }
+
+        public int Order
+        {
+            get { return 0; }
         }
 
         private IModelBinder[] Binders { get; set; }

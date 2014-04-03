@@ -7,6 +7,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public sealed class TypeConverterModelBinder : IModelBinder
     {
+        public int Order
+        {
+            get { return 50; }
+        }
+
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The exception is recorded to be acted upon later.")]
         [SuppressMessage("Microsoft.Globalization", "CA1304:SpecifyCultureInfo", MessageId = "System.Web.Http.ValueProviders.ValueProviderResult.ConvertTo(System.Type)", Justification = "The ValueProviderResult already has the necessary context to perform a culture-aware conversion.")]
         public bool BindModel(ModelBindingContext bindingContext)

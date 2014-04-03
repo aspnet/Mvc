@@ -54,11 +54,11 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IValueProviderFactory, QueryStringValueProviderFactory>();
             yield return describe.Transient<IValueProviderFactory, FormValueProviderFactory>();
 
-            yield return describe.Transient<IModelBinder, TypeConverterModelBinder>();
             yield return describe.Transient<IModelBinder, TypeMatchModelBinder>();
             yield return describe.Transient<IModelBinder, GenericModelBinder>();
-            yield return describe.Transient<IModelBinder, MutableObjectModelBinder>();
             yield return describe.Transient<IModelBinder, ComplexModelDtoModelBinder>();
+            yield return describe.Transient<IModelBinder, TypeConverterModelBinder>();
+            yield return describe.Transient<IModelBinder, MutableObjectModelBinder>();
 
             yield return describe.Transient<IInputFormatter, JsonInputFormatter>();
             yield return describe.Transient<IInputFormatterProvider, TempInputFormatterProvider>();

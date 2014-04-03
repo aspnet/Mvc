@@ -5,6 +5,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public sealed class TypeMatchModelBinder : IModelBinder
     {
+        public int Order
+        {
+            get { return 10; }
+        }
+
         public bool BindModel(ModelBindingContext bindingContext)
         {
             ValueProviderResult valueProviderResult = GetCompatibleValueProviderResult(bindingContext);
