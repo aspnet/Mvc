@@ -351,7 +351,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Not valid to use TextBoxForModel() in a top-level view; would end up with an unnamed input elements.
             // But we support the *ForModel() methods in any lower-level template, once HtmlFieldPrefix is non-empty.
-            var fullName = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
             if (string.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(Resources.ArgumentNullOrEmpty, "name");
@@ -365,6 +365,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var valueParameter = FormatValue(value, format);
             switch (inputType)
             {
+                case InputType.Text:
                 default:
                     var attributeValue = (string)GetModelStateValue(fullName, typeof(string));
                     if (attributeValue == null)
@@ -383,12 +384,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // If there are any errors for a named field, we add the CSS attribute.
             ModelState modelState;
-            if (ViewContext.ViewData.ModelState.TryGetValue(fullName, out modelState))
+            if (ViewData.ModelState.TryGetValue(fullName, out modelState) && modelState.Errors.Count > 0)
             {
-                if (modelState.Errors.Count > 0)
-                {
-                    tagBuilder.AddCssClass(ValidationInputCssClassName);
-                }
+                tagBuilder.AddCssClass(ValidationInputCssClassName);
             }
 
             tagBuilder.MergeAttributes(GetValidationAttributes(name, metadata));
