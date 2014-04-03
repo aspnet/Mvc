@@ -121,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <returns>
         /// Gets TModel if ModelType is Nullable(TModel), ModelType otherwise.
         /// </returns>
-        internal Type RealModelType
+        public Type RealModelType
         {
             get
             {
@@ -164,11 +164,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public virtual string GetDisplayName()
         {
             return PropertyName ?? ModelType.Name;
-        }
-
-        public virtual Type GetRealModelType()
-        {
-            return RealModelType;
         }
 
         // TODO: Revive ModelValidators

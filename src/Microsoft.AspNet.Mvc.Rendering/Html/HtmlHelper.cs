@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 {
                     foreach (var prop in obj.GetType().GetRuntimeProperties())
                     {
-                        var val = prop.GetValue(obj);
+                        var value = prop.GetValue(obj);
                         result.Add(prop.Name, value);
                     }
                 }

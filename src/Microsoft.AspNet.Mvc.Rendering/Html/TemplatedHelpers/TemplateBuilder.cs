@@ -7,6 +7,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     internal class TemplateBuilder
     {
+        private IViewEngine _viewEngine;
         private ViewContext _viewContext;
         private ViewDataDictionary _viewData;
         private ModelMetadata _metadata;
@@ -15,8 +16,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private bool _readOnly;
         private object _additionalViewData;
 
-        public TemplateBuilder(ViewContext viewContext, ViewDataDictionary viewData, ModelMetadata metadata, string htmlFieldName, string templateName, bool readOnly, object additionalViewData)
+        public TemplateBuilder(IViewEngine viewEngine, ViewContext viewContext, ViewDataDictionary viewData, ModelMetadata metadata, string htmlFieldName, string templateName, bool readOnly, object additionalViewData)
         {
+            _viewEngine = viewEngine;
             _viewContext = viewContext;
             _viewData = viewData;
             _metadata = metadata;
@@ -48,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // Normally this shouldn't happen, unless someone writes their own custom Object templates which
             // don't check to make sure that the object hasn't already been displayed
-            object visitedObjectsKey = _metadata.Model ?? _metadata.GetRealModelType();
+            object visitedObjectsKey = _metadata.Model ?? _metadata.RealModelType;
             if (_viewData.TemplateInfo.Visited(visitedObjectsKey))
             {
                 return string.Empty;
@@ -75,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             viewData.TemplateInfo.AddVisited(visitedObjectsKey);
 
-            var templateRenderer = new TemplateRenderer(_viewContext, viewData, _templateName, _readOnly);
+            var templateRenderer = new TemplateRenderer(_viewEngine, _viewContext, viewData, _templateName, _readOnly);
 
             return templateRenderer.Render();
         }

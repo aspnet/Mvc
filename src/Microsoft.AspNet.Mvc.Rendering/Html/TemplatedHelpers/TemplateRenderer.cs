@@ -16,11 +16,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private ViewContext _viewContext;
         private ViewDataDictionary _viewData;
+        private IViewEngine _viewEngine;
         private string _templateName;
         private bool _readOnly;
 
-        public TemplateRenderer(ViewContext viewContext, ViewDataDictionary viewData, string templateName, bool readOnly)
+        public TemplateRenderer(IViewEngine viewEngine, ViewContext viewContext, ViewDataDictionary viewData, string templateName, bool readOnly)
         {
+            _viewEngine = viewEngine;
             _viewContext = viewContext;
             _viewData = viewData;
             _templateName = templateName;
@@ -29,59 +31,40 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public string Render()
         {
-            var actionCache = ActionCacheProvider.GetActionCacheItem(_viewContext.HttpContext);
             var defaultActions = GetDefaultActions();
             string modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
 
             foreach (string viewName in GetViewNames())
             {
                 string fullViewName = modeViewPath + "/" + viewName;
-                ActionCacheItem cacheItem;
 
-                if (actionCache.TryGetValue(fullViewName, out cacheItem))
+                // Forcing synchronous behavior so users don't have to await templates.
+                var viewEngineResult = _viewEngine.FindPartialView(_viewContext.ViewEngineContext, fullViewName).Result;
+                if (viewEngineResult.View != null)
                 {
-                    if (cacheItem != null)
+                    using (var writer = new StringWriter(CultureInfo.InvariantCulture))
                     {
                         // Forcing synchronous behavior so users don't have to await templates.
-                        return cacheItem.Execute(_viewContext, _viewData).Result;
+                        // TODO: Pass through TempData once implemented.
+                        viewEngineResult.View.RenderAsync(new ViewContext(_viewContext)
+                        {
+                            ViewData = _viewData,
+                            Writer = writer,
+                        }).Wait();
+
+                        return writer.ToString();
                     }
                 }
-                else
+
+                Func<ViewContext, Task<string>> defaultAction;
+                if (defaultActions.TryGetValue(viewName, out defaultAction))
                 {
-                    var viewEngine = _viewContext.ServiceProvider.GetService<IViewEngine>();
                     // Forcing synchronous behavior so users don't have to await templates.
-                    var viewEngineResult = viewEngine.FindPartialView(_viewContext.ViewEngineContext, fullViewName).Result;
-                    if (viewEngineResult.View != null)
-                    {
-                        actionCache[fullViewName] = new ActionCacheViewItem { ViewName = fullViewName };
-
-                        using (var writer = new StringWriter(CultureInfo.InvariantCulture))
-                        {
-                            // Forcing synchronous behavior so users don't have to await templates.
-                            // TODO: Pass through TempData once implemented.
-                            viewEngineResult.View.RenderAsync(new ViewContext(_viewContext)
-                            {
-                                ViewData = _viewData,
-                                Writer = writer,
-                            }).Wait();
-
-                            return writer.ToString();
-                        }
-                    }
-
-                    Func<ViewContext, Task<string>> defaultAction;
-                    if (defaultActions.TryGetValue(viewName, out defaultAction))
-                    {
-                        actionCache[fullViewName] = new ActionCacheCodeItem { Action = defaultAction };
-                        // Forcing synchronous behavior so users don't have to await templates.
-                        return defaultAction(_viewContext).Result;
-                    }
-
-                    actionCache[fullViewName] = null;
+                    return defaultAction(_viewContext).Result;
                 }
             }
 
-            throw new InvalidOperationException(Resources.FormatTemplateHelpers_NoTemplate(_viewData.ModelMetadata.GetRealModelType().FullName));
+            throw new InvalidOperationException(Resources.FormatTemplateHelpers_NoTemplate(_viewData.ModelMetadata.RealModelType.FullName));
         }
 
         private Dictionary<string, Func<ViewContext, Task<string>>> GetDefaultActions()
@@ -105,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             // We don't want to search for Nullable<T>, we want to search for T (which should handle both T and Nullable<T>)
-            var fieldType = Nullable.GetUnderlyingType(metadata.GetRealModelType()) ?? metadata.GetRealModelType();
+            var fieldType = Nullable.GetUnderlyingType(metadata.RealModelType) ?? metadata.RealModelType;
 
             yield return fieldType.Name;
 
