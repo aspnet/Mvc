@@ -1,9 +1,9 @@
-﻿namespace Microsoft.AspNet.Mvc.Rendering
+﻿namespace Microsoft.AspNet.Mvc
 {
     public interface IUrlHelper
     {
-        string Action(string action, string controller, object values);
+        string Action(string action, string controller, object values, string protocol, string host, string fragment);
 
-        string Route(object values);
+        string RouteUrl(object values, string protocol, string host, string fragment);
     }
 }
