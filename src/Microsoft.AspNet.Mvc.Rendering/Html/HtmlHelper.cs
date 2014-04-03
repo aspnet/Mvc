@@ -172,17 +172,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                              string htmlFieldName,
                                                              object additionalViewData)
         {
-            var templateBuilder = new TemplateBuilder(ViewContext,
-                                                      ViewData,
-                                                      ExpressionMetadataProvider.FromLambdaExpression(expression, (ViewDataDictionary<TModel>)ViewData, MetadataProvider),
-                                                      htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
-                                                      templateName,
-                                                      readOnly: true,
-                                                      additionalViewData: additionalViewData);
-
-            var templateResult = templateBuilder.Build();
-
-            return new HtmlString(templateResult);
+            return GenerateDisplayTemplate(ExpressionMetadataProvider.FromLambdaExpression(
+                                                expression,
+                                                (ViewDataDictionary<TModel>)ViewData,
+                                                MetadataProvider),
+                                           htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                                           templateName,
+                                           additionalViewData);
         }
 
         /// <inheritdoc />
