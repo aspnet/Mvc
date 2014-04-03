@@ -154,15 +154,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return TagBuilder.CreateSanitizedId(name, IdAttributeDotReplacement);
         }
 
-        public virtual HtmlString Display(string expression,
-                                          string templateName,
-                                          string htmlFieldName,
-                                          object additionalViewData)
+        protected virtual HtmlString GenerateDisplayTemplate(ModelMetadata metadata,
+                                                     string htmlFieldName,
+                                                     string templateName,
+                                                     object additionalViewData)
         {
-            var templateBuilder = new TemplateBuilder(ViewContext,
+            var templateBuilder = new TemplateBuilder(_viewEngine,
+                                                      ViewContext,
                                                       ViewData,
-                                                      ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider),
-                                                      htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                                                      metadata,
+                                                      templateName,
                                                       templateName,
                                                       readOnly: true,
                                                       additionalViewData: additionalViewData);
@@ -170,6 +171,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var templateResult = templateBuilder.Build();
 
             return new HtmlString(templateResult);
+        }
+
+        public virtual HtmlString Display(string expression,
+                                          string templateName,
+                                          string htmlFieldName,
+                                          object additionalViewData)
+        {
+            return GenerateDisplayTemplate(ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider),
+                                           htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                                           templateName,
+                                           additionalViewData);
         }
 
         /// <inheritdoc />
