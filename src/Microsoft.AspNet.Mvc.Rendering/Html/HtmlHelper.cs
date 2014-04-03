@@ -171,17 +171,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                   string htmlFieldName,
                                                   object additionalViewData)
         {
-            var templateBuilder = new TemplateBuilder(ViewContext,
-                                                      ViewData,
-                                                      ViewData.ModelMetadata,
-                                                      htmlFieldName,
-                                                      templateName,
-                                                      readOnly: true,
-                                                      additionalViewData: additionalViewData);
-
-            var templateResult = templateBuilder.Build();
-
-            return new HtmlString(templateResult);
+            return GenerateDisplayTemplate(ViewData.ModelMetadata,
+                                           htmlFieldName,
+                                           templateName,
+                                           additionalViewData);
         }
 
         /// <inheritdoc />
