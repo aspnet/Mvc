@@ -69,9 +69,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>The HTML markup for each property in the object that is represented by the expression.</returns>
         HtmlString DisplayFor<TValue>(Expression<Func<TModel, TValue>> expression,
-                                                     string templateName,
-                                                     string htmlFieldName,
-                                                     object additionalViewData);
+                                      string templateName,
+                                      string htmlFieldName,
+                                      object additionalViewData);
 
         /// <summary>
         /// Returns HTML markup for each property in the model, using the specified template, an HTML field ID, and additional 
