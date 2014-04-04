@@ -15,21 +15,19 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         public async Task DefineSection_ThrowsIfSectionIsAlreadyDefined()
         {
             // Arrange
-            Exception ex = null;
             var view = CreateView(v =>
             {
-                v.DefineSection("foo", new HelperResult(action: null));
-
-                ex = Assert.Throws<InvalidOperationException>(
-                        () => v.DefineSection("foo", new HelperResult(action: null)));
+                v.DefineSection("qux", new HelperResult(action: null));
+                v.DefineSection("qux", new HelperResult(action: null));
             });
             var viewContext = CreateViewContext(layoutView: null);
 
             // Act
-            await view.RenderAsync(viewContext);
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                                () => view.RenderAsync(viewContext));
 
             // Assert
-            Assert.Equal("Section 'foo' is already defined.", ex.Message);
+            Assert.Equal("Section 'qux' is already defined.", ex.Message);
         }
 
         [Fact]
@@ -46,6 +44,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var layoutView = CreateView(v =>
             {
                 actual = v.RenderSection("bar");
+                v.RenderBodyPublic();
             });
             var viewContext = CreateViewContext(layoutView);
 
@@ -61,7 +60,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         {
             // Arrange
             var expected = new HelperResult(action: null);
-            Exception ex = null;
             var view = CreateView(v =>
             {
                 v.DefineSection("baz", expected);
@@ -69,8 +67,121 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             });
             var layoutView = CreateView(v =>
             {
-                ex = Assert.Throws<InvalidOperationException>(
-                        () => v.RenderSection("bar"));
+                v.RenderSection("bar");
+            });
+            var viewContext = CreateViewContext(layoutView);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+
+            // Assert
+            Assert.Equal("Section 'bar' is not defined.", ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderSection_ThrowsIfSectionIsRenderedMoreThanOnce()
+        {
+            // Arrange
+            var expected = new HelperResult(action: null);
+            var view = CreateView(v =>
+            {
+                v.DefineSection("header", expected);
+                v.Layout = LayoutPath;
+            });
+            var layoutView = CreateView(v =>
+            {
+                v.RenderSection("header");
+                v.RenderSection("header");
+            });
+            var viewContext = CreateViewContext(layoutView);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+
+            // Assert
+            Assert.Equal("RenderSection has already been called for the section named 'header'.", ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderAsync_ThrowsIfDefinedSectionIsNotRendered()
+        {
+            // Arrange
+            var expected = new HelperResult(action: null);
+            var view = CreateView(v =>
+            {
+                v.DefineSection("header", expected);
+                v.DefineSection("footer", expected);
+                v.DefineSection("sectionA", expected);
+                v.Layout = LayoutPath;
+            });
+            var layoutView = CreateView(v =>
+            {
+                v.RenderSection("sectionA");
+                v.RenderBodyPublic();
+            });
+            var viewContext = CreateViewContext(layoutView);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+
+            // Assert
+            Assert.Equal("The following sections have been defined but have not been rendered: 'header, footer'.", ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderAsync_ThrowsIfRenderBodyIsNotCalledFromPage()
+        {
+            // Arrange
+            var expected = new HelperResult(action: null);
+            var view = CreateView(v =>
+            {
+                v.Layout = LayoutPath;
+            });
+            var layoutView = CreateView(v =>
+            {
+            });
+            var viewContext = CreateViewContext(layoutView);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+
+            // Assert
+            Assert.Equal("RenderBody must be called from a layout page.", ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderAsync_RendersSectionsAndBody()
+        {
+            // Arrange
+            var expected = @"Layout start
+Header section
+body content
+Footer section
+Layout end
+";
+            var view = CreateView(v =>
+            {
+                v.Layout = LayoutPath;
+                v.WriteLiteral("body content" + Environment.NewLine);
+
+                v.DefineSection("footer", new HelperResult(writer =>
+                {
+                    writer.WriteLine("Footer section");
+                }));
+
+                v.DefineSection("header", new HelperResult(writer =>
+                {
+                    writer.WriteLine("Header section");
+                }));
+            });
+            var layoutView = CreateView(v =>
+            {
+                v.WriteLiteral("Layout start" + Environment.NewLine);
+                v.Write(v.RenderSection("header"));
+                v.Write(v.RenderBodyPublic());
+                v.Write(v.RenderSection("footer"));
+                v.WriteLiteral("Layout end" + Environment.NewLine);
+
             });
             var viewContext = CreateViewContext(layoutView);
 
@@ -78,12 +189,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await view.RenderAsync(viewContext);
 
             // Assert
-            Assert.Equal("Section 'bar' is not defined.", ex.Message);
+            var actual = ((StringWriter)viewContext.Writer).ToString();
+            Assert.Equal(expected, actual);
         }
-        
-        public static RazorView CreateView(Action<RazorView> executeAction)
+
+        private static TestableRazorView CreateView(Action<TestableRazorView> executeAction)
         {
-            var view = new Mock<RazorView> { CallBase = true };
+            var view = new Mock<TestableRazorView> { CallBase = true };
             if (executeAction != null)
             {
                 view.Setup(v => v.ExecuteAsync())
@@ -106,6 +218,14 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             {
                 Writer = new StringWriter()
             };
+        }
+
+        public abstract class TestableRazorView : RazorView
+        {
+            public HtmlString RenderBodyPublic()
+            {
+                return base.RenderBody();
+            }
         }
     }
 }
