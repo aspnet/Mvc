@@ -71,11 +71,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;
             viewData.TemplateInfo.HtmlFieldPrefix = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName);
 
-            foreach(var visitedObject in _viewData.TemplateInfo.VisitedObjects)
-            {
-                viewData.TemplateInfo.AddVisited(visitedObject);
-            }
-
             if (_additionalViewData != null)
             {
                 foreach (KeyValuePair<string, object> kvp in HtmlHelper.ObjectToDictionary(_additionalViewData))
