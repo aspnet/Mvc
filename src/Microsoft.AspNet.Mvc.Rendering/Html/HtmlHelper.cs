@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering.Expressions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -152,6 +154,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return TagBuilder.CreateSanitizedId(name, IdAttributeDotReplacement);
         }
 
+        public HtmlString Display(string expression,
+                                          string templateName,
+                                          string htmlFieldName,
+                                          object additionalViewData)
+        {
+            var metadata = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
+
+            return GenerateDisplay(metadata,
+                                           htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                                           templateName,
+                                           additionalViewData);
+        }
+
         /// <inheritdoc />
         public virtual HtmlString Name(string name)
         {
@@ -173,6 +188,25 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public Task RenderPartialAsync([NotNull] string partialViewName, object model, ViewDataDictionary viewData)
         {
             return RenderPartialCoreAsync(partialViewName, model, viewData, ViewContext.Writer);
+        }
+
+        protected virtual HtmlString GenerateDisplay(ModelMetadata metadata,
+                                             string htmlFieldName,
+                                             string templateName,
+                                             object additionalViewData)
+        {
+            var templateBuilder = new TemplateBuilder(_viewEngine,
+                                                      ViewContext,
+                                                      ViewData,
+                                                      metadata,
+                                                      templateName,
+                                                      templateName,
+                                                      readOnly: true,
+                                                      additionalViewData: additionalViewData);
+
+            var templateResult = templateBuilder.Build();
+
+            return new HtmlString(templateResult);
         }
 
         protected virtual async Task RenderPartialCoreAsync([NotNull] string partialViewName,
