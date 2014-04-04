@@ -167,15 +167,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                            additionalViewData);
         }
 
-        public virtual HtmlString DisplayFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression,
+        public HtmlString DisplayFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression,
                                                              string templateName,
                                                              string htmlFieldName,
                                                              object additionalViewData)
         {
-            return GenerateDisplayTemplate(ExpressionMetadataProvider.FromLambdaExpression(
+            var metadata = ExpressionMetadataProvider.FromLambdaExpression(
                                                 expression,
-                                                (ViewDataDictionary<TModel>)ViewData,
-                                                MetadataProvider),
+                                                (ViewDataDictionary<TModel>)ViewData, MetadataProvider);
+
+            return GenerateDisplayTemplate(metadata,
                                            htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
                                            templateName,
                                            additionalViewData);

@@ -64,14 +64,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// the same name.
         /// </param>
         /// <param name="additionalViewData">
-        /// An anonymous object that can contain additional view data that will be merged into the 
+        /// An anonymous object or dictionary that can contain additional view data that will be merged into the 
         /// <see cref="ViewDataDictionary{TModel}"/> instance that is created for the template.
         /// </param>
         /// <returns>The HTML markup for each property in the object that is represented by the expression.</returns>
         HtmlString DisplayFor<TDisplayModel, TValue>(Expression<Func<TDisplayModel, TValue>> expression,
-                                              string templateName,
-                                              string htmlFieldName,
-                                              object additionalViewData);
+                                                     string templateName,
+                                                     string htmlFieldName,
+                                                     object additionalViewData);
 
         /// <summary>
         /// Converts the value of the specified object to an HTML-encoded string.
