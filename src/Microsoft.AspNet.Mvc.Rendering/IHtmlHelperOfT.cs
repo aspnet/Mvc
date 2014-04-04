@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <see cref="ViewDataDictionary{TModel}"/> instance that is created for the template.
         /// </param>
         /// <returns>The HTML markup for each property in the object that is represented by the expression.</returns>
-        HtmlString DisplayFor<TDisplayModel, TValue>(Expression<Func<TDisplayModel, TValue>> expression,
+        HtmlString DisplayFor<TValue>(Expression<Func<TModel, TValue>> expression,
                                                      string templateName,
                                                      string htmlFieldName,
                                                      object additionalViewData);

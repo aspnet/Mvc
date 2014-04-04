@@ -9,21 +9,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html, 
                                                             [NotNull] Expression<Func<TModel, TValue>> expression)
         {
-            return html.DisplayFor<TModel, TValue>(expression, templateName: null, htmlFieldName: null, additionalViewData: null);
+            return html.DisplayFor<TValue>(expression, templateName: null, htmlFieldName: null, additionalViewData: null);
         }
 
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression, 
                                                             object additionalViewData)
         {
-            return html.DisplayFor<TModel, TValue>(expression, templateName: null, htmlFieldName: null, additionalViewData: additionalViewData);
+            return html.DisplayFor<TValue>(expression, templateName: null, htmlFieldName: null, additionalViewData: additionalViewData);
         }
 
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression, 
                                                             string templateName)
         {
-            return html.DisplayFor<TModel, TValue>(expression, templateName, htmlFieldName: null, additionalViewData: null);
+            return html.DisplayFor<TValue>(expression, templateName, htmlFieldName: null, additionalViewData: null);
         }
 
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                             string templateName, 
                                                             object additionalViewData)
         {
-            return html.DisplayFor<TModel, TValue>(expression, templateName, htmlFieldName: null, additionalViewData: additionalViewData);
+            return html.DisplayFor<TValue>(expression, templateName, htmlFieldName: null, additionalViewData: additionalViewData);
         }
 
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                             string templateName, 
                                                             string htmlFieldName)
         {
-            return html.DisplayFor<TModel, TValue>(expression, templateName: templateName, htmlFieldName: htmlFieldName, additionalViewData: null);
+            return html.DisplayFor<TValue>(expression, templateName: templateName, htmlFieldName: htmlFieldName, additionalViewData: null);
         }
     }
 }

@@ -167,21 +167,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                            additionalViewData);
         }
 
-        public HtmlString DisplayFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression,
-                                                             string templateName,
-                                                             string htmlFieldName,
-                                                             object additionalViewData)
-        {
-            var metadata = ExpressionMetadataProvider.FromLambdaExpression(
-                                                expression,
-                                                (ViewDataDictionary<TModel>)ViewData, MetadataProvider);
-
-            return GenerateDisplayTemplate(metadata,
-                                           htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
-                                           templateName,
-                                           additionalViewData);
-        }
-
         /// <inheritdoc />
         public virtual HtmlString Name(string name)
         {
@@ -206,9 +191,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         protected virtual HtmlString GenerateDisplay(ModelMetadata metadata,
-                                             string htmlFieldName,
-                                             string templateName,
-                                             object additionalViewData)
+                                                     string htmlFieldName,
+                                                     string templateName,
+                                                     object additionalViewData)
         {
             var templateBuilder = new TemplateBuilder(_viewEngine,
                                                       ViewContext,
