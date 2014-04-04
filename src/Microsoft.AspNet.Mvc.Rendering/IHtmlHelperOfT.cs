@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// same name.
         /// </param>
         /// <param name="additionalViewData">
-        /// An anonymous object that can contain additional view data that will be merged into the 
+        /// An anonymous object or dictionary that can contain additional view data that will be merged into the 
         /// <see cref="ViewDataDictionary{TModel}"/> instance that is created for the template.
         /// </param>
         /// <returns>The HTML markup for each property in the model.</returns>

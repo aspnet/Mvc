@@ -167,7 +167,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                            additionalViewData);
         }
 
-        public virtual HtmlString DisplayForModel(string templateName,
+        public HtmlString DisplayForModel(string templateName,
                                                   string htmlFieldName,
                                                   object additionalViewData)
         {
