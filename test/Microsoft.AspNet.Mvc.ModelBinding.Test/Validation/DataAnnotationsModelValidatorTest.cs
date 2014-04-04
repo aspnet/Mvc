@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var attribute = new RequiredAttribute();
 
             // Act
-            var validator = new DataAnnotationsModelValidator(attribute);
+            var validator = new DataAnnotationsModelValidator(attribute, metadata);
 
             // Assert
             Assert.Same(attribute, validator.Attribute);
@@ -61,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                      })
                      .Returns(ValidationResult.Success)
                      .Verifiable();
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = _metadataProvider.GetMetadataForProperty(() => 15, typeof(string), "Length");
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Setup(a => a.IsValid(metadata.Model)).Returns(true);
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -96,7 +96,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = _metadataProvider.GetMetadataForProperty(() => 15, typeof(string), "Length");
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Setup(a => a.IsValid(metadata.Model)).Returns(false);
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(ValidationResult.Success);
-            DataAnnotationsModelValidator validator = new DataAnnotationsModelValidator(attribute.Object);
+            DataAnnotationsModelValidator validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -137,7 +137,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(new ValidationResult(errorMessage, memberNames: null));
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -159,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(new ValidationResult(errorMessage, new[] { "FirstName" }));
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -180,7 +180,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(new ValidationResult("Name error", new[] { "Name" }));
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, metadata);
             var validationContext = CreateValidationContext(metadata);
 
             // Act
@@ -199,9 +199,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = _metadataProvider.GetMetadataForProperty(() => 15, typeof(string), "Length");
 
             // Act & Assert
-            Assert.False(new DataAnnotationsModelValidator(new RangeAttribute(10, 20)).IsRequired);
-            Assert.True(new DataAnnotationsModelValidator(new RequiredAttribute()).IsRequired);
-            Assert.True(new DataAnnotationsModelValidator(new DerivedRequiredAttribute()).IsRequired);
+            Assert.False(new DataAnnotationsModelValidator(new RangeAttribute(10, 20), metadata).IsRequired);
+            Assert.True(new DataAnnotationsModelValidator(new RequiredAttribute(), metadata).IsRequired);
+            Assert.True(new DataAnnotationsModelValidator(new DerivedRequiredAttribute(), metadata).IsRequired);
         }
 
         private static ModelValidationContext CreateValidationContext(ModelMetadata metadata)

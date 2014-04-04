@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class DataAnnotationsModelValidatorProvider : AssociatedValidatorProvider
     {
         // A factory for validators based on ValidationAttribute
-        private delegate IModelValidator DataAnnotationsModelValidationFactory(ValidationAttribute attribute);
+        private delegate IModelValidator DataAnnotationsModelValidationFactory(ValidationAttribute attribute, ModelMetadata metadata);
 
         // A factory for validators based on IValidatableObject
         private delegate IModelValidator DataAnnotationsValidatableObjectAdapterFactory();
@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         // Factories for validation attributes
         private static DataAnnotationsModelValidationFactory DefaultAttributeFactory =
-            (attribute) => new DataAnnotationsModelValidator(attribute);
+            (attribute, metadata) => new DataAnnotationsModelValidator(attribute, metadata);
 
         private static Dictionary<Type, DataAnnotationsModelValidationFactory> AttributeFactories =
             new Dictionary<Type, DataAnnotationsModelValidationFactory>();
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     factory = DefaultAttributeFactory;
                 }
-                results.Add(factory(attribute));
+                results.Add(factory(attribute, metadata));
             }
 
 #if NET45

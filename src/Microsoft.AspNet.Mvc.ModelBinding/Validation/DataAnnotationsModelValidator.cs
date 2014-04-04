@@ -1,22 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class DataAnnotationsModelValidator : IModelValidator
     {
-        public DataAnnotationsModelValidator([NotNull] ValidationAttribute attribute)
+        public DataAnnotationsModelValidator([NotNull] ValidationAttribute attribute, [NotNull] ModelMetadata metadata)
         {
             Attribute = attribute;
+            Metadata = metadata;
         }
 
         public ValidationAttribute Attribute { get; private set; }
 
+        public ModelMetadata Metadata { get; set; }
+
         public bool IsRequired
         {
             get { return Attribute is RequiredAttribute; }
+        }
+
+        public IEnumerable<ModelClientValidationRule> GetClientValidationRules()
+        {
+            IEnumerable<ModelClientValidationRule> results = null;
+
+            var clientValidatable = Attribute as IClientValidatable;
+            if (clientValidatable != null)
+            {
+                results = clientValidatable.GetClientValidationRules(Metadata);
+            }
+
+            return results ?? Enumerable.Empty<ModelClientValidationRule>();
         }
 
         public IEnumerable<ModelValidationResult> Validate(ModelValidationContext validationContext)
