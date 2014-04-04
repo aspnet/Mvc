@@ -32,6 +32,35 @@ namespace Microsoft.AspNet.Mvc.Rendering
         ViewDataDictionary<TModel> ViewData { get; }
 
         /// <summary>
+        /// Writes an opening <form> tag to the response. When the user submits the form,
+        /// the request will be processed by an action method.
+        /// </summary>
+        /// <param name="actionName">The name of the action method.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">An object that contains the parameters for a route. The parameters are retrieved
+        /// through reflection by examining the properties of the object. This object is typically created using object
+        /// initializer syntax. Alternatively, an <see cref="IDictionary{string, object}"/> instance containing the
+        /// route parameters.</param>
+        /// <param name="method">The HTTP method for processing the form, either GET or POST.</param>
+        /// <param name="htmlAttributes">An object that contains the HTML attributes to set for the element.
+        /// Alternatively, an <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
+        /// </param>
+        /// <returns>An <see cref="MvcForm"/> instance which emits the closing {form} tag when disposed.</returns>
+        MvcForm BeginForm(string actionName, string controllerName, object routeValues, FormMethod method,
+                          object htmlAttributes);
+
+        /// <summary>
+        /// <para>
+        /// Renders the closing </form> tag to the response.
+        /// </para>
+        /// <para>
+        /// Overriding this method affects only direct calls. For most scenarios, override <see cref="GenerateForm"/>
+        /// to return an <see cref="MvcForm"/> subclass.
+        /// </para>
+        /// </summary>
+        void EndForm();
+
+        /// <summary>
         /// Converts the value of the specified object to an HTML-encoded string.
         /// </summary>
         /// <param name="value">The object to encode.</param>

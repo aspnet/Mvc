@@ -1,53 +1,49 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+﻿using System;
 
-using System.Diagnostics.CodeAnalysis;
-using System.Web.Mvc.Properties;
-
-namespace System.Web.Mvc.Html
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class MvcForm : IDisposable
     {
         private readonly ViewContext _viewContext;
         private bool _disposed;
 
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "httpResponse", Justification = "This method existed in MVC 1.0 and has been deprecated.")]
-        [Obsolete("This constructor is obsolete, because its functionality has been moved to MvcForm(ViewContext) now.", true /* error */)]
-        public MvcForm(HttpResponseBase httpResponse)
+        public MvcForm([NotNull] ViewContext viewContext)
         {
-            throw new InvalidOperationException(MvcResources.MvcForm_ConstructorObsolete);
-        }
-
-        public MvcForm(ViewContext viewContext)
-        {
-            if (viewContext == null)
-            {
-                throw new ArgumentNullException("viewContext");
-            }
-
             _viewContext = viewContext;
 
-            // push the new FormContext
+            // Push the new FormContext; GenerateEndForm() does the corresponding pop.
             _viewContext.FormContext = new FormContext();
         }
 
         public void Dispose()
         {
-            Dispose(true /* disposing */);
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        /// <summary>
+        /// Renders the closing </form> tag to the response.
+        /// </summary>
+        public void EndForm()
+        {
+            Dispose(disposing: true);
+        }
+
+        protected virtual void GenerateEndForm()
+        {
+            _viewContext.Writer.Write("</form>");
+
+            // TODO revive viewContext.OutputClientValidation(), this requires GetJsonValidationMetadata(), GitHub #163
+            _viewContext.FormContext = null;
+        }
+
+        private void Dispose(bool disposing)
         {
             if (!_disposed)
             {
                 _disposed = true;
-                FormExtensions.EndForm(_viewContext);
+                GenerateEndForm();
             }
-        }
-
-        public void EndForm()
-        {
-            Dispose(true);
         }
     }
 }
