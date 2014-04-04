@@ -19,12 +19,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
             typeof(PropertyHelper).GetTypeInfo().GetDeclaredMethod("CallPropertyGetterByReference");
 
 
-        private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache = new ConcurrentDictionary<Type, PropertyHelper[]>();
+        private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache = 
+            new ConcurrentDictionary<Type, PropertyHelper[]>();
 
         private readonly Func<object, object> _valueGetter;
 
         /// <summary>
-        /// Initializes a fast property helper. This constructor does not cache the helper.
+        /// Initializes a fast property helper. 
+        /// 
+        /// This constructor does not cache the helper. For caching, use GetProperties.
         /// </summary>
         public PropertyHelper(PropertyInfo property)
         {
@@ -42,7 +45,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// Creates and caches fast property helpers that expose getters for every public get property on the underlying type.
+        /// Creates and caches fast property helpers that expose getters for every public get property on the 
+        /// underlying type.
         /// </summary>
         /// <param name="instance">the instance to extract property accessors for.</param>
         /// <returns>a cached array of all public property getters from the underlying type of this instance.</returns>
@@ -56,7 +60,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </summary>
         /// <param name="propertyInfo">propertyInfo to extract the getter for.</param>
         /// <returns>a fast getter.</returns>
-        /// <remarks>This method is more memory efficient than a dynamically compiled lambda, and about the same speed.</remarks>
+        /// <remarks>
+        /// This method is more memory efficient than a dynamically compiled lambda, and about the 
+        /// same speed.
+        /// </remarks>
         public static Func<object, object> MakeFastPropertyGetter(PropertyInfo propertyInfo)
         {
             Contract.Assert(propertyInfo != null);
@@ -78,15 +85,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 // Create a delegate (ref TDeclaringType) -> TValue
                 var delegateType = typeof(ByRefFunc<,>).MakeGenericType(typeInput, typeOutput);
                 var propertyGetterAsFunc = getMethod.CreateDelegate(delegateType);
-                var callPropertyGetterClosedGenericMethod = CallPropertyGetterByReferenceOpenGenericMethod.MakeGenericMethod(typeInput, typeOutput);
-                callPropertyGetterDelegate = callPropertyGetterClosedGenericMethod.CreateDelegate(typeof(Func<object, object>), propertyGetterAsFunc);
+                var callPropertyGetterClosedGenericMethod = 
+                    CallPropertyGetterByReferenceOpenGenericMethod.MakeGenericMethod(typeInput, typeOutput);
+                callPropertyGetterDelegate = 
+                    callPropertyGetterClosedGenericMethod.CreateDelegate(typeof(Func<object, object>), propertyGetterAsFunc);
             }
             else
             {
                 // Create a delegate TDeclaringType -> TValue
                 var propertyGetterAsFunc = getMethod.CreateDelegate(typeof(Func<,>).MakeGenericType(typeInput, typeOutput));
-                var callPropertyGetterClosedGenericMethod = CallPropertyGetterOpenGenericMethod.MakeGenericMethod(typeInput, typeOutput);
-                callPropertyGetterDelegate = callPropertyGetterClosedGenericMethod.CreateDelegate(typeof(Func<object, object>), propertyGetterAsFunc);
+                var callPropertyGetterClosedGenericMethod = 
+                    CallPropertyGetterOpenGenericMethod.MakeGenericMethod(typeInput, typeOutput);
+                callPropertyGetterDelegate = 
+                    callPropertyGetterClosedGenericMethod.CreateDelegate(typeof(Func<object, object>), propertyGetterAsFunc);
             }
 
             return (Func<object, object>)callPropertyGetterDelegate;
@@ -104,7 +115,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         // Called via reflection
-        private static object CallPropertyGetterByReference<TDeclaringType, TValue>(ByRefFunc<TDeclaringType, TValue> getter, object @this)
+        private static object CallPropertyGetterByReference<TDeclaringType, TValue>(
+            ByRefFunc<TDeclaringType, TValue> getter, 
+            object @this)
         {
             var unboxed = (TDeclaringType)@this;
             return getter(ref unboxed);
