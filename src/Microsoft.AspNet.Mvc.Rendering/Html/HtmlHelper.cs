@@ -159,7 +159,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                           string htmlFieldName,
                                           object additionalViewData)
         {
-            return GenerateDisplayTemplate(ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider),
+            var metadata = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
+
+            return GenerateDisplayTemplate(metadata,
                                            htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
                                            templateName,
                                            additionalViewData);
