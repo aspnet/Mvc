@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -32,14 +33,23 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <summary>
         /// Initializes a new instance of the <see cref="HtmlHelper"/> class.
         /// </summary>
-        public HtmlHelper([NotNull] IViewEngine viewEngine, [NotNull] IModelMetadataProvider metadataProvider)
+        public HtmlHelper([NotNull] IViewEngine viewEngine, 
+                          [NotNull] IModelMetadataProvider metadataProvider, 
+                          [NotNull] IEnumerable<IModelValidatorProvider> validatorProviders)
         {
             _viewEngine = viewEngine;
             MetadataProvider = metadataProvider;
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = "_";
+
+            ClientValidationRuleFactory = (name, metadata) => validatorProviders
+                .SelectMany(vp => vp.GetValidators(metadata ?? 
+                                                   ExpressionMetadataProvider.FromStringExpression(name, ViewData, metadataProvider)))
+                .SelectMany(v => v.GetClientValidationRules());
         }
+
+        internal Func<string, ModelMetadata, IEnumerable<ModelClientValidationRule>> ClientValidationRuleFactory { get; set; }
 
         public string IdAttributeDotReplacement { get; set; }
 
@@ -332,8 +342,33 @@ namespace Microsoft.AspNet.Mvc.Rendering
         // then we can't render the attributes (we'd have no <form> to attach them to).
         protected IDictionary<string, object> GetValidationAttributes(string name, ModelMetadata metadata)
         {
-            // TODO: Add validation attributes to input helpers.
-            return new Dictionary<string, object>();
+            var results = new Dictionary<string, object>();
+
+            // The ordering of these 3 checks (and the early exits) is for performance reasons.
+            if (!ViewContext.UnobtrusiveJavaScriptEnabled)
+            {
+                return results;
+            }
+
+            var formContext = ViewContext.ClientValidationEnabled ? ViewContext.FormContext : null;
+            if (formContext == null)
+            {
+                return results;
+            }
+
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            if (formContext.RenderedField(fullName))
+            {
+                return results;
+            }
+
+            formContext.RenderedField(fullName, true);
+
+            var clientRules = ClientValidationRuleFactory(name, metadata);
+
+            UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules, results);
+
+            return results;
         }
 
         protected virtual HtmlString GenerateTextBox(ModelMetadata metadata, string name, object value, string format,

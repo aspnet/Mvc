@@ -6,6 +6,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         bool IsRequired { get; }
 
+        IEnumerable<ModelClientValidationRule> GetClientValidationRules();
+
         IEnumerable<ModelValidationResult> Validate(ModelValidationContext context);
     }
 }

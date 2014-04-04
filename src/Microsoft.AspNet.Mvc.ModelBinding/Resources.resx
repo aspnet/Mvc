@@ -156,6 +156,24 @@
   <data name="ModelBindingContext_ModelMetadataMustBeSet" xml:space="preserve">
     <value>The ModelMetadata property must be set before accessing this property.</value>
   </data>
+  <data name="UnobtrusiveJavascript_ValidationParameterCannotBeEmpty" xml:space="preserve">
+    <value>Validation parameter names in unobtrusive client validation rules cannot be empty. Client rule type: {0}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationParameterMustBeLegal" xml:space="preserve">
+    <value>Validation parameter names in unobtrusive client validation rules must start with a lowercase letter and consist of only lowercase letters or digits. Validation parameter name: {0}, client rule type: {1}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationTypeCannotBeEmpty" xml:space="preserve">
+    <value>Validation type names in unobtrusive client validation rules cannot be empty. Client rule type: {0}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationTypeMustBeLegal" xml:space="preserve">
+    <value>Validation type names in unobtrusive client validation rules must consist of only lowercase letters. Invalid name: "{0}", client rule type: {1}</value>
+  </data>
+  <data name="UnobtrusiveJavascript_ValidationTypeMustBeUnique" xml:space="preserve">
+    <value>Validation type names in unobtrusive client validation rules must be unique. The following validation type was seen more than once: {0}</value>
+  </data>
+  <data name="UrlAttribute_Invalid" xml:space="preserve">
+    <value>The {0} field is not a valid fully-qualified http, https, or ftp URL.</value>
+  </data>
   <data name="ValidatableObjectAdapter_IncompatibleType" xml:space="preserve">
     <value>The model object inside the metadata claimed to be compatible with '{0}', but was actually '{1}'.</value>
   </data>

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -18,6 +20,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         public bool IsRequired { get { return false; } }
+
+        [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "This method may perform non-trivial work.")]
+        public virtual IEnumerable<ModelClientValidationRule> GetClientValidationRules()
+        {
+            return Enumerable.Empty<ModelClientValidationRule>();
+        }
 
         public IEnumerable<ModelValidationResult> Validate(ModelValidationContext context)
         {
