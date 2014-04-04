@@ -16,7 +16,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private bool _readOnly;
         private object _additionalViewData;
 
-        public TemplateBuilder(IViewEngine viewEngine, ViewContext viewContext, ViewDataDictionary viewData, ModelMetadata metadata, string htmlFieldName, string templateName, bool readOnly, object additionalViewData)
+        public TemplateBuilder([NotNull] IViewEngine viewEngine, 
+                               [NotNull] ViewContext viewContext, 
+                               [NotNull] ViewDataDictionary viewData, 
+                               [NotNull] ModelMetadata metadata, 
+                               string htmlFieldName, 
+                               string templateName, 
+                               bool readOnly, 
+                               object additionalViewData)
         {
             _viewEngine = viewEngine;
             _viewContext = viewContext;
@@ -50,8 +57,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // Normally this shouldn't happen, unless someone writes their own custom Object templates which
             // don't check to make sure that the object hasn't already been displayed
-            object visitedObjectsKey = _metadata.Model ?? _metadata.RealModelType;
-            if (_viewData.TemplateInfo.Visited(visitedObjectsKey))
+            if (_viewData.TemplateInfo.Visited(_metadata))
             {
                 return string.Empty;
             }
@@ -59,22 +65,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var viewData = new ViewDataDictionary(_viewData)
             {
                 Model = _metadata.Model,
-                ModelMetadata = _metadata,
-                TemplateInfo = new TemplateInfo(_viewData.TemplateInfo)
-                {
-                    FormattedModelValue = formattedModelValue,
-                    HtmlFieldPrefix = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName),
-                }
+                ModelMetadata = _metadata
             };
+
+            viewData.TemplateInfo.FormattedModelValue = formattedModelValue;
+            viewData.TemplateInfo.HtmlFieldPrefix = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName);
+
+            foreach(var visitedObject in _viewData.TemplateInfo.VisitedObjects)
+            {
+                viewData.TemplateInfo.AddVisited(visitedObject);
+            }
 
             if (_additionalViewData != null)
             {
-                foreach (KeyValuePair<string, object> kvp in HtmlHelper.AnonymousObjectToDictionary(_additionalViewData))
+                foreach (KeyValuePair<string, object> kvp in HtmlHelper.ObjectToDictionary(_additionalViewData))
                 {
                     viewData[kvp.Key] = kvp.Value;
                 }
             }
 
+            object visitedObjectsKey = _metadata.Model ?? _metadata.RealModelType;
             viewData.TemplateInfo.AddVisited(visitedObjectsKey);
 
             var templateRenderer = new TemplateRenderer(_viewEngine, _viewContext, viewData, _templateName, _readOnly);

@@ -32,6 +32,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             get { return _visitedObjects.Count; }
         }
 
+        public IEnumerable<object> VisitedObjects 
+        { 
+            get
+            {
+                return _visitedObjects;
+            }
+        }
+
         public bool AddVisited(object value)
         {
             return _visitedObjects.Add(value);
@@ -62,11 +70,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public bool Visited(ModelMetadata metadata)
         {
             return _visitedObjects.Contains(metadata.Model ?? metadata.ModelType);
-        }
-
-        public bool Visited(object value)
-        {
-            return _visitedObjects.Contains(value);
         }
     }
 }

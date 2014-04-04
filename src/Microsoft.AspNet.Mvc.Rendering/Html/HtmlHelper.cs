@@ -79,9 +79,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        public static Dictionary<string, object> AnonymousObjectToDictionary(object obj)
+        /// <summary>
+        /// Creates a dictionary from an object, by adding each public instance property as a key with its associated 
+        /// value to the dictionary. It will expose public properties from derived types as well. This is typically used
+        /// with objects of an anonymous type.
+        /// </summary>
+        /// <example>
+        /// <c>new { property_name = "value" }</c> will translate to the entry <c>{ "property_name" , "value" }</c>
+        /// in the resulting dictionary.
+        /// </example>
+        /// <param name="obj">The object to be converted.</param>
+        /// <returns>The created dictionary of property names and property values.</returns>
+        public static IDictionary<string, object> ObjectToDictionary(object obj)
         {
-            Dictionary<string, object> result;
+            IDictionary<string, object> result;
             var valuesAsDictionary = obj as IDictionary<string, object>;
             if (valuesAsDictionary != null)
             {
@@ -114,11 +125,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </summary>
         /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
         /// <returns>A dictionary that represents HTML attributes.</returns>
-        public static Dictionary<string, object> AnonymousObjectToHtmlAttributes(object htmlAttributes)
+        public static IDictionary<string, object> AnonymousObjectToHtmlAttributes(object htmlAttributes)
         {
             // NOTE: This should be doing more than just returning a generic conversion from obj -> dict
-            // Once Github #80 has been completed this will do more than be a call through.
-            return AnonymousObjectToDictionary(htmlAttributes);
+            // Once GitHub #80 has been completed this will do more than be a call through.
+            return ObjectToDictionary(htmlAttributes);
         }
 
         public virtual void Contextualize([NotNull] ViewContext viewContext)

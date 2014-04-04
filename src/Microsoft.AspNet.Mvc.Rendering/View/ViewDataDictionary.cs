@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        public TemplateInfo TemplateInfo { get; set; }
+        public TemplateInfo TemplateInfo { get; private set; }
 
         /// <summary>
         /// Provider for subclasses that need it to override <see cref="ModelMetadata"/>.

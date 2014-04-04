@@ -20,7 +20,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private string _templateName;
         private bool _readOnly;
 
-        public TemplateRenderer(IViewEngine viewEngine, ViewContext viewContext, ViewDataDictionary viewData, string templateName, bool readOnly)
+        public TemplateRenderer([NotNull] IViewEngine viewEngine, 
+                                [NotNull] ViewContext viewContext,
+                                [NotNull] ViewDataDictionary viewData,
+                                string templateName, 
+                                bool readOnly)
         {
             _viewEngine = viewEngine;
             _viewContext = viewContext;
@@ -32,15 +36,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public string Render()
         {
             var defaultActions = GetDefaultActions();
-            string modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
+            var modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
 
             foreach (string viewName in GetViewNames())
             {
-                string fullViewName = modeViewPath + "/" + viewName;
+                var fullViewName = modeViewPath + "/" + viewName;
 
                 // Forcing synchronous behavior so users don't have to await templates.
                 var viewEngineResult = _viewEngine.FindPartialView(_viewContext.ViewEngineContext, fullViewName).Result;
-                if (viewEngineResult.View != null)
+                if (viewEngineResult.Success)
                 {
                     using (var writer = new StringWriter(CultureInfo.InvariantCulture))
                     {
@@ -56,21 +60,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     }
                 }
 
-                Func<ViewContext, Task<string>> defaultAction;
+                Func<IHtmlHelper<object>, Task<string>> defaultAction;
                 if (defaultActions.TryGetValue(viewName, out defaultAction))
                 {
-                    // Forcing synchronous behavior so users don't have to await templates.
-                    return defaultAction(_viewContext).Result;
+                    // Right now there's no IhtmlHelper<object> pass in or default templates so this will be
+                    // changed once a decision has been reached.
+                    return defaultAction(null).Result;
                 }
             }
 
             throw new InvalidOperationException(Resources.FormatTemplateHelpers_NoTemplate(_viewData.ModelMetadata.RealModelType.FullName));
         }
 
-        private Dictionary<string, Func<ViewContext, Task<string>>> GetDefaultActions()
+        private Dictionary<string, Func<IHtmlHelper<object>, Task<string>>> GetDefaultActions()
         {
             // TODO: Implement default templates
-            return new Dictionary<string, Func<ViewContext, Task<string>>>(StringComparer.OrdinalIgnoreCase);
+            return new Dictionary<string, Func<IHtmlHelper<object>, Task<string>>>(StringComparer.OrdinalIgnoreCase);
         }
 
         private IEnumerable<string> GetViewNames()
