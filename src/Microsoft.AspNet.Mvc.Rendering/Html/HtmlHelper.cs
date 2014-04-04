@@ -161,7 +161,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             var metadata = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
 
-            return GenerateDisplayTemplate(metadata,
+            return GenerateDisplay(metadata,
                                            htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
                                            templateName,
                                            additionalViewData);
@@ -190,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return RenderPartialCoreAsync(partialViewName, model, viewData, ViewContext.Writer);
         }
 
-        protected virtual HtmlString GenerateDisplayTemplate(ModelMetadata metadata,
+        protected virtual HtmlString GenerateDisplay(ModelMetadata metadata,
                                              string htmlFieldName,
                                              string templateName,
                                              object additionalViewData)
