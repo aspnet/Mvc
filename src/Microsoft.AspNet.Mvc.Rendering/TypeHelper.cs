@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -14,13 +11,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// This helper will cache accessors and types, and is intended when the anonymous object is accessed multiple
         /// times throughout the lifetime of the web application.
         /// </summary>
-        public static RouteValueDictionary ObjectToDictionary(object value)
+        public static IDictionary<string, object> ObjectToDictionary(object value)
         {
-            RouteValueDictionary dictionary = new RouteValueDictionary();
+            var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
             if (value != null)
             {
-                foreach (PropertyHelper helper in PropertyHelper.GetProperties(value))
+                foreach (var helper in PropertyHelper.GetProperties(value))
                 {
                     dictionary.Add(helper.Name, helper.GetValue(value));
                 }

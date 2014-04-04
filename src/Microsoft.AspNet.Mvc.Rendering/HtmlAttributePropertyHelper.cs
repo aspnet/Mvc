@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     internal class HtmlAttributePropertyHelper : PropertyHelper
     {
-        private static readonly ConcurrentDictionary<Type, PropertyHelper[]> _reflectionCache = new ConcurrentDictionary<Type, PropertyHelper[]>();
+        private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache = new ConcurrentDictionary<Type, PropertyHelper[]>();
 
         public static new PropertyHelper[] GetProperties(object instance)
         {
-            return GetProperties(instance, CreateInstance, _reflectionCache);
+            return GetProperties(instance, CreateInstance, ReflectionCache);
         }
 
         private static PropertyHelper CreateInstance(PropertyInfo property)

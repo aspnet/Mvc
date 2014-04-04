@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
+﻿using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Rendering.Test
 {
@@ -15,8 +10,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             // Arrange
             object dict = null;
 
-            IDictionary<string, object> dictValues = TypeHelper.ObjectToDictionary(dict);
+            // Act
+            var dictValues = TypeHelper.ObjectToDictionary(dict);
 
+            // Assert
             Assert.NotNull(dictValues);
             Assert.Equal(0, dictValues.Count);
         }
@@ -25,10 +22,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void ObjectToDictionaryWithPlainObjectTypeReturnsEmptyDictionary()
         {
             // Arrange
-            object dict = new object();
+            var dict = new object();
 
             // Act
-            IDictionary<string, object> dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(dict);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -39,10 +36,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void ObjectToDictionaryWithPrimitiveTypeLooksUpPublicProperties()
         {
             // Arrange
-            object dict = "test";
+            var dict = "test";
 
             // Act
-            IDictionary<string, object> dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(dict);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -54,10 +51,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void ObjectToDictionaryWithAnonymousTypeLooksUpProperties()
         {
             // Arrange
-            object dict = new { test = "value", other = 1 };
+            var dict = new { test = "value", other = 1 };
 
             // Act
-            IDictionary<string, object> dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(dict);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -70,10 +67,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void ObjectToDictionaryReturnsCaseInsensitiveDictionary()
         {
             // Arrange
-            object dict = new { TEST = "value", oThEr = 1 };
+            var dict = new { TEST = "value", oThEr = 1 };
 
             // Act
-            IDictionary<string, object> dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(dict);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -83,32 +80,31 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void AddAnonymousTypeObjectToDictionaryTest()
+        public void ObjectToDictionaryReturnsInheritedProperties()
         {
-            IDictionary<string, object> d = new Dictionary<string, object>();
-            d.Add("X", "Xvalue");
-            TypeHelper.AddAnonymousObjectToDictionary(d, new { A = "a", B = "b" });
-            Assert.Equal("Xvalue", d["X"]);
-            Assert.Equal("a", d["A"]);
-            Assert.Equal("b", d["B"]);
+            // Arrange
+            var value = new ThreeDPoint() {X = 5, Y = 10, Z = 17};
+
+            // Act
+            var dictValues = TypeHelper.ObjectToDictionary(value);
+
+            // Assert
+            Assert.NotNull(dictValues);
+            Assert.Equal(3, dictValues.Count);
+            Assert.Equal(5, dictValues["X"]);
+            Assert.Equal(10, dictValues["Y"]);
+            Assert.Equal(17, dictValues["Z"]);
         }
 
-        [Fact]
-        public void IsAnonymousTypeTest()
+        private class Point
         {
-            Assert.False(TypeHelper.IsAnonymousType(typeof(object)));
-            Assert.False(TypeHelper.IsAnonymousType(typeof(string)));
-            Assert.False(TypeHelper.IsAnonymousType(typeof(IDictionary<object, object>)));
-            Assert.True(TypeHelper.IsAnonymousType((new { A = "a", B = "b" }.GetType())));
-            var x = "x";
-            var y = "y";
-            Assert.True(TypeHelper.IsAnonymousType((new { x, y }.GetType())));
+            public int X { get; set; }
+            public int Y { get; set; }
         }
 
-        [Fact]
-        public void IsAnonymousTypeNullTest()
+        private class ThreeDPoint : Point
         {
-            Assert.ThrowsArgumentNull(() => TypeHelper.IsAnonymousType(null), "type");
+            public int Z { get; set; }
         }
     }
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Rendering.Test
@@ -45,10 +41,10 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         {
             // Arrange
             var anonymous = new { foo = 32 };
-            PropertyInfo property = anonymous.GetType().GetProperties().First();
+            var property = anonymous.GetType().GetProperties().First();
 
             // Act
-            PropertyHelper helper = new PropertyHelper(property);
+            var helper = new PropertyHelper(property);
 
             // Assert
             Assert.Equal("foo", helper.Name);
@@ -62,13 +58,13 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             var anonymous = new { foo = "bar" };
 
             // Act
-            PropertyHelper[] helpers1 = PropertyHelper.GetProperties(anonymous);
-            PropertyHelper[] helpers2 = PropertyHelper.GetProperties(anonymous);
+            var helpers1 = PropertyHelper.GetProperties(anonymous);
+            var helpers2 = PropertyHelper.GetProperties(anonymous);
 
             // Assert
             Assert.Equal(1, helpers1.Length);
-            Assert.ReferenceEquals(helpers1, helpers2);
-            Assert.ReferenceEquals(helpers1[0], helpers2[0]);
+            Assert.Same(helpers1, helpers2);
+            Assert.Same(helpers1[0], helpers2[0]);
         }
 
         [Fact]
@@ -78,7 +74,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             var anonymous = new { bar_baz2 = "foo" };
 
             // Act + Assert
-            PropertyHelper helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
+            var helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
             Assert.Equal("bar_baz2", helper.Name);
         }
 
@@ -96,7 +92,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             var anonymous = new PrivateProperties();
 
             // Act + Assert
-            PropertyHelper helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
+            var helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
             Assert.Equal("Prop1", helper.Name);
         }
 
@@ -113,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             var anonymous = new Static();
 
             // Act + Assert
-            PropertyHelper helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
+            var helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
             Assert.Equal("Prop5", helper.Name);
         }
 
@@ -130,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             var anonymous = new SetOnly();
 
             // Act + Assert
-            PropertyHelper helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
+            var helper = Assert.Single(PropertyHelper.GetProperties(anonymous));
             Assert.Equal("Prop6", helper.Name);
         }
 
@@ -150,8 +146,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
             anonymous.StringProp = "Five";
 
             // Act + Assert
-            PropertyHelper helper1 = Assert.Single(PropertyHelper.GetProperties(anonymous).Where(prop => prop.Name == "IntProp"));
-            PropertyHelper helper2 = Assert.Single(PropertyHelper.GetProperties(anonymous).Where(prop => prop.Name == "StringProp"));
+            var helper1 = Assert.Single(PropertyHelper.GetProperties(anonymous).Where(prop => prop.Name == "IntProp"));
+            var helper2 = Assert.Single(PropertyHelper.GetProperties(anonymous).Where(prop => prop.Name == "StringProp"));
             Assert.Equal(3, helper1.GetValue(anonymous));
             Assert.Equal("Five", helper2.GetValue(anonymous));
         }
@@ -188,17 +184,17 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void PropertyHelperForDerivedClass()
         {
             // Arrange
-            object derived = new DerivedClass { PropA = "propAValue", PropB = "propBValue" };
+            var derived = new DerivedClass { PropA = "propAValue", PropB = "propBValue" };
 
             // Act
-            PropertyHelper[] helpers = PropertyHelper.GetProperties(derived).ToArray();
+            var helpers = PropertyHelper.GetProperties(derived).ToArray();
 
             // Assert
             Assert.NotNull(helpers);
             Assert.Equal(2, helpers.Length);
 
-            PropertyHelper propAHelper = Assert.Single(helpers.Where(h => h.Name == "PropA"));
-            PropertyHelper propBHelper = Assert.Single(helpers.Where(h => h.Name == "PropB"));
+            var propAHelper = Assert.Single(helpers.Where(h => h.Name == "PropA"));
+            var propBHelper = Assert.Single(helpers.Where(h => h.Name == "PropB"));
 
             Assert.Equal("propAValue", propAHelper.GetValue(derived));
             Assert.Equal("propBValue", propBHelper.GetValue(derived));
@@ -208,17 +204,17 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void PropertyHelperForDerivedClassWithNew()
         {
             // Arrange
-            object derived = new DerivedClassWithNew { PropA = "propAValue" };
+            var derived = new DerivedClassWithNew { PropA = "propAValue" };
 
             // Act
-            PropertyHelper[] helpers = PropertyHelper.GetProperties(derived).ToArray();
+            var helpers = PropertyHelper.GetProperties(derived).ToArray();
 
             // Assert
             Assert.NotNull(helpers);
             Assert.Equal(2, helpers.Length);
 
-            PropertyHelper propAHelper = Assert.Single(helpers.Where(h => h.Name == "PropA"));
-            PropertyHelper propBHelper = Assert.Single(helpers.Where(h => h.Name == "PropB"));
+            var propAHelper = Assert.Single(helpers.Where(h => h.Name == "PropA"));
+            var propBHelper = Assert.Single(helpers.Where(h => h.Name == "PropB"));
 
             Assert.Equal("propAValue", propAHelper.GetValue(derived));
             Assert.Equal("Newed", propBHelper.GetValue(derived));
@@ -228,17 +224,17 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         public void PropertyHelperForDerivedWithVirtual()
         {
             // Arrange
-            object derived = new DerivedClassWithOverride { PropA = "propAValue", PropB = "propBValue" };
+            var derived = new DerivedClassWithOverride { PropA = "propAValue", PropB = "propBValue" };
 
             // Act
-            PropertyHelper[] helpers = PropertyHelper.GetProperties(derived).ToArray();
+            var helpers = PropertyHelper.GetProperties(derived).ToArray();
 
             // Assert
             Assert.NotNull(helpers);
             Assert.Equal(2, helpers.Length);
 
-            PropertyHelper propAHelper = Assert.Single(helpers.Where(h => h.Name == "PropA"));
-            PropertyHelper propBHelper = Assert.Single(helpers.Where(h => h.Name == "PropB"));
+            var propAHelper = Assert.Single(helpers.Where(h => h.Name == "PropA"));
+            var propBHelper = Assert.Single(helpers.Where(h => h.Name == "PropB"));
 
             Assert.Equal("Overriden", propAHelper.GetValue(derived));
             Assert.Equal("propBValue", propBHelper.GetValue(derived));
