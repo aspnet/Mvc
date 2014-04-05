@@ -155,16 +155,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         public HtmlString Display(string expression,
-                                          string templateName,
-                                          string htmlFieldName,
-                                          object additionalViewData)
+                                  string templateName,
+                                  string htmlFieldName,
+                                  object additionalViewData)
         {
             var metadata = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
 
             return GenerateDisplay(metadata,
-                                           htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
-                                           templateName,
-                                           additionalViewData);
+                                   htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                                   templateName,
+                                   additionalViewData);
+        }
+
+        public HtmlString DisplayForModel(string templateName,
+                                          string htmlFieldName,
+                                          object additionalViewData)
+        {
+            return GenerateDisplay(ViewData.ModelMetadata,
+                                   htmlFieldName,
+                                   templateName,
+                                   additionalViewData);
         }
 
         /// <inheritdoc />
