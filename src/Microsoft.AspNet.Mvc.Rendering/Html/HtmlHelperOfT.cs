@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
 
-        public HtmlString DisplayFor<TValue>(Expression<Func<TModel, TValue>> expression,
+        public HtmlString DisplayFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression,
                                              string templateName,
                                              string htmlFieldName,
                                              object additionalViewData)
