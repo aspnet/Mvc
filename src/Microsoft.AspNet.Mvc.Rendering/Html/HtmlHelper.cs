@@ -382,10 +382,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             tagBuilder.MergeAttribute("action", formAction);
 
             // method is an explicit parameter, so it takes precedence over the htmlAttributes.
-            tagBuilder.MergeAttribute("method", HtmlHelper.GetFormMethodString(method), true);
+            tagBuilder.MergeAttribute("method", HtmlHelper.GetFormMethodString(method), replaceExisting: true);
 
-            var traditionalJavascriptEnabled = ViewContext.ClientValidationEnabled
-                                               && ViewContext.UnobtrusiveJavaScriptEnabled;
+            var traditionalJavascriptEnabled = ViewContext.ClientValidationEnabled &&
+                                               ViewContext.UnobtrusiveJavaScriptEnabled;
             if (traditionalJavascriptEnabled)
             {
                 // TODO revive ViewContext.FormIdGenerator(), WebFx-199

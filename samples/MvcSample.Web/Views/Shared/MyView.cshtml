@@ -168,8 +168,7 @@
                 </tr>
             </table>
         }
-        @using (Html.BeginForm(method: FormMethod.Post, htmlAttributes: new { someAttribute = "some value", }))
-        {
+        @{ Html.BeginForm(method: FormMethod.Post, htmlAttributes: new { someAttribute = "some value", }); }
             <table>
                 <tr>
                     <td>
@@ -219,6 +218,6 @@
                     <td></td>
                 </tr>
             </table>
-        }
+        @{ Html.EndForm(); }
     </div>
 </div>
