@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public abstract class RazorView : IView
     {
+        private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private bool _renderedBody;
+
         public IViewComponentHelper Component
         {
             get { return Context == null ? null : Context.Component; }
@@ -59,6 +63,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     context.Writer = bodyWriter;
                     await ExecuteAsync();
+
+                    // Verify that RenderBody is called, or that RenderSection is called for all sections
+                    VerifyRenderedBodyOrSections();
                 }
                 finally
                 {
@@ -247,6 +254,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 throw new InvalidOperationException(Resources.RenderBodyCannotBeCalled);
             }
+            _renderedBody = true;
             return new HtmlString(BodyContent);
         }
 
@@ -266,10 +274,16 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public HelperResult RenderSection([NotNull] string name, bool required)
         {
+            if (_renderedSections.Contains(name))
+            {
+                throw new InvalidOperationException(Resources.FormatSectionAlreadyRendered(name));
+            }
+
             HelperResult action;
             if (PreviousSectionWriters != null &&
                 PreviousSectionWriters.TryGetValue(name, out action))
             {
+                _renderedSections.Add(name);
                 return action;
             }
             else if (required)
@@ -281,6 +295,24 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 // If the section is optional and not found, then don't do anything.
                 return null;
+            }
+        }
+
+        private void VerifyRenderedBodyOrSections()
+        {
+            if (BodyContent != null)
+            {
+                var sectionsNotRendered = PreviousSectionWriters.Keys.Except(_renderedSections, StringComparer.OrdinalIgnoreCase);
+                if (sectionsNotRendered.Any())
+                {
+                    var sectionNames = String.Join(", ", sectionsNotRendered);
+                    throw new InvalidOperationException(Resources.FormatSectionsNotRendered(sectionNames));
+                }
+                else if (!_renderedBody)
+                {
+                    // If a body was defined, then RenderBody should have been called.
+                    throw new InvalidOperationException(Resources.RenderBodyNotCalled);
+                }
             }
         }
     }
