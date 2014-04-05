@@ -191,9 +191,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         protected virtual HtmlString GenerateDisplay(ModelMetadata metadata,
-                                             string htmlFieldName,
-                                             string templateName,
-                                             object additionalViewData)
+                                                     string htmlFieldName,
+                                                     string templateName,
+                                                     object additionalViewData)
         {
             var templateBuilder = new TemplateBuilder(_viewEngine,
                                                       ViewContext,
