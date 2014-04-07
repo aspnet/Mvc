@@ -22,7 +22,31 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("GET")]
         [InlineData("PUT")]
         [InlineData("POST")]
-        public async Task HttpMethodAttribute_ActionDecoratedWithMultipleHttpMethodAttribute_ORsMultipleHttpMethods(string verb)
+        [InlineData("DELETE")]
+        public async Task HttpMethodAttribute_ActionWithMultipleHttpMethodAttributeViaAcceptVerbs_ORsMultipleHttpMethods(string verb)
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext(verb),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_RestOnly" },
+                                                { "action", "Patch" }
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            Assert.Equal("Patch", result.Name);
+        }
+
+        [Theory]
+        [InlineData("GET")]
+        [InlineData("PUT")]
+        [InlineData("POST")]
+        [InlineData("DELETE")]
+        public async Task HttpMethodAttribute_ActionWithMultipleHttpMethodAttributes_ORsMultipleHttpMethods(string verb)
         {
             // Arrange
             var requestContext = new RequestContext(
@@ -155,15 +179,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         private class HttpMethodAttributeTests_RestOnlyController
         {
             [HttpGet]
-            [AcceptVerbs("PUT", "POST")]
+            [HttpPut]
+            [HttpPost]
+            [HttpDelete]
             public void Put()
             {
             }
 
-            public void Delete()
-            {
-            }
-
+            [AcceptVerbs("PUT", "post", "GET", "delete")]
             public void Patch()
             {
             }
