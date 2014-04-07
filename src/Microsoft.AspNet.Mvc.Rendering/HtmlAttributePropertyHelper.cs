@@ -6,7 +6,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     internal class HtmlAttributePropertyHelper : PropertyHelper
     {
-        private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache = new ConcurrentDictionary<Type, PropertyHelper[]>();
+        private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache = 
+            new ConcurrentDictionary<Type, PropertyHelper[]>();
 
         public static new PropertyHelper[] GetProperties(object instance)
         {

@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Rendering.Test
+namespace Microsoft.AspNet.Mvc.Rendering
 {
-    class HtmlAttributePropertyHelperTest
+    public class HtmlAttributePropertyHelperTest
     {
         [Fact]
-        public void HtmlAttributePropertyHelperRenamesPropertyNames()
+        public void HtmlAttributePropertyHelper_RenamesPropertyNames()
         {
             // Arrange
             var anonymous = new { bar_baz = "foo" };
@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void HtmlAttributePropertyHelperReturnsNameCorrectly()
+        public void HtmlAttributePropertyHelper_ReturnsNameCorrectly()
         {
             // Arrange
             var anonymous = new { foo = "bar" };
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void HtmlAttributePropertyHelperReturnsValueCorrectly()
+        public void HtmlAttributePropertyHelper_ReturnsValueCorrectly()
         {
             // Arrange
             var anonymous = new { bar = "baz" };
@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void HtmlAttributePropertyHelperReturnsValueCorrectlyForValueTypes()
+        public void HtmlAttributePropertyHelper_ReturnsValueCorrectly_ForValueTypes()
         {
             // Arrange
             var anonymous = new { foo = 32 };
@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void HtmlAttributePropertyHelperReturnsCachedPropertyHelper()
+        public void HtmlAttributePropertyHelper_ReturnsCachedPropertyHelper()
         {
             // Arrange
             var anonymous = new { foo = "bar" };
@@ -82,7 +82,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void HtmlAttributeDoesNotShareCacheWithPropertyHelper()
+        public void HtmlAttributePropertyHelper_DoesNotShareCacheWithPropertyHelper()
         {
             // Arrange
             var anonymous = new { bar_baz1 = "foo" };

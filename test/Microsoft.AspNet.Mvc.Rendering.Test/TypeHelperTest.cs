@@ -1,17 +1,17 @@
 ﻿using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Rendering.Test
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class TypeHelperTest
     {
         [Fact]
-        public void ObjectToDictionaryWithNullObjectReturnsEmptyDictionary()
+        public void ObjectToDictionary_WithNullObject_ReturnsEmptyDictionary()
         {
             // Arrange
-            object dict = null;
+            object value = null;
 
             // Act
-            var dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(value);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -19,13 +19,13 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void ObjectToDictionaryWithPlainObjectTypeReturnsEmptyDictionary()
+        public void ObjectToDictionary_WithPlainObjectType_ReturnsEmptyDictionary()
         {
             // Arrange
-            var dict = new object();
+            var value = new object();
 
             // Act
-            var dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(value);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -33,13 +33,13 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void ObjectToDictionaryWithPrimitiveTypeLooksUpPublicProperties()
+        public void ObjectToDictionary_WithPrimitiveType_LooksUpPublicProperties()
         {
             // Arrange
-            var dict = "test";
+            var value = "test";
 
             // Act
-            var dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(value);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -48,13 +48,13 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void ObjectToDictionaryWithAnonymousTypeLooksUpProperties()
+        public void ObjectToDictionary_WithAnonymousType_LooksUpProperties()
         {
             // Arrange
-            var dict = new { test = "value", other = 1 };
+            var value = new { test = "value", other = 1 };
 
             // Act
-            var dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(value);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -64,13 +64,13 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void ObjectToDictionaryReturnsCaseInsensitiveDictionary()
+        public void ObjectToDictionary_ReturnsCaseInsensitiveDictionary()
         {
             // Arrange
-            var dict = new { TEST = "value", oThEr = 1 };
+            var value = new { TEST = "value", oThEr = 1 };
 
             // Act
-            var dictValues = TypeHelper.ObjectToDictionary(dict);
+            var dictValues = TypeHelper.ObjectToDictionary(value);
 
             // Assert
             Assert.NotNull(dictValues);
@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Test
         }
 
         [Fact]
-        public void ObjectToDictionaryReturnsInheritedProperties()
+        public void ObjectToDictionary_ReturnsInheritedProperties()
         {
             // Arrange
             var value = new ThreeDPoint() {X = 5, Y = 10, Z = 17};

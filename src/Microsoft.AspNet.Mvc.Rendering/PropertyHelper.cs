@@ -18,7 +18,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private static readonly MethodInfo CallPropertyGetterByReferenceOpenGenericMethod =
             typeof(PropertyHelper).GetTypeInfo().GetDeclaredMethod("CallPropertyGetterByReference");
 
-
         private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache = 
             new ConcurrentDictionary<Type, PropertyHelper[]>();
 
@@ -49,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// underlying type.
         /// </summary>
         /// <param name="instance">the instance to extract property accessors for.</param>
-        /// <returns>a cached array of all public property getters from the underlying type of this instance.</returns>
+        /// <returns>a cached array of all public property getters from the underlying type of target instance.</returns>
         public static PropertyHelper[] GetProperties(object instance)
         {
             return GetProperties(instance, CreateInstance, ReflectionCache);
@@ -74,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             Contract.Assert(getMethod.GetParameters().Length == 0);
 
             // Instance methods in the CLR can be turned into static methods where the first parameter
-            // is open over "this". This parameter is always passed by reference, so we have a code
+            // is open over "target". This parameter is always passed by reference, so we have a code
             // path for value types and a code path for reference types.
             var typeInput = getMethod.DeclaringType;
             var typeOutput = getMethod.ReturnType;
@@ -109,17 +108,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         // Called via reflection
-        private static object CallPropertyGetter<TDeclaringType, TValue>(Func<TDeclaringType, TValue> getter, object @this)
+        private static object CallPropertyGetter<TDeclaringType, TValue>(Func<TDeclaringType, TValue> getter, object target)
         {
-            return getter((TDeclaringType)@this);
+            return getter((TDeclaringType)target);
         }
 
         // Called via reflection
         private static object CallPropertyGetterByReference<TDeclaringType, TValue>(
             ByRefFunc<TDeclaringType, TValue> getter, 
-            object @this)
+            object target)
         {
-            var unboxed = (TDeclaringType)@this;
+            var unboxed = (TDeclaringType)target;
             return getter(ref unboxed);
         }
 
@@ -128,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             Func<PropertyInfo, PropertyHelper> createPropertyHelper,
             ConcurrentDictionary<Type, PropertyHelper[]> cache)
         {
-            // Using an array rather than IEnumerable, as this will be called on the hot path numerous times.
+            // Using an array rather than IEnumerable, as target will be called on the hot path numerous times.
             PropertyHelper[] helpers;
 
             var type = instance.GetType();
@@ -143,15 +142,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     prop.GetMethod.IsPublic &&
                     !prop.GetMethod.IsStatic);
 
-                var newHelpers = new List<PropertyHelper>();
-
-                foreach (var property in properties)
-                {
-                    var propertyHelper = createPropertyHelper(property);
-                    newHelpers.Add(propertyHelper);
-                }
-
-                helpers = newHelpers.ToArray();
+                helpers = properties.Select(p => createPropertyHelper(p)).ToArray();
                 cache.TryAdd(type, helpers);
             }
 
