@@ -57,7 +57,6 @@ namespace Microsoft.AspNet.Mvc
                 return null;
             }
 
-            return GenerateUrl(protocol, host, path, fragment);
             foreach (var constraint in actionCandidate.RouteConstraints)
             {
                 if (constraint.KeyHandling == RouteKeyHandling.DenyKey &&
@@ -89,7 +88,7 @@ namespace Microsoft.AspNet.Mvc
 
         private string GeneratePathFromRoute(IDictionary<string, object> values)
         {
-
+            var context = new VirtualPathContext(_httpContext, _ambientValues, values);
             var path = _router.GetVirtualPath(context);
             if (path == null)
             {

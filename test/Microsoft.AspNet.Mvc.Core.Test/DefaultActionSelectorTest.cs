@@ -53,7 +53,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var expected = GetActions(actions, area: "Admin", controller: "Home", action: "Index");
 
             var selector = CreateSelector(actions);
-            var context = CreateContext(new {controller = "Home", action = "Index" }, new {area = "Admin"});
+            var context = CreateContext(
+                new { controller = "Home", action = "Index" },
+                new { area = "Admin", controller = "Home", action = "Diagnostics" });
 
             // Act
             var candidates = selector.GetCandidateActions(context);
@@ -70,7 +72,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var expected = GetActions(actions, area: null, controller: "Home", action: "Edit");
 
             var selector = CreateSelector(actions);
-            var context = CreateContext(new { controller = "Home", action = "Edit" }, new { area = "Admin" });
+            var context = CreateContext(
+                new { controller = "Home", action = "Edit" }, 
+                new { area = "Admin", controller = "Home", action = "Diagnostics" });
 
             // Act
             var candidates = selector.GetCandidateActions(context);
@@ -87,7 +91,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var expected = GetActions(actions, area: null, controller: "Home", action: "Index");
 
             var selector = CreateSelector(actions);
-            var context = CreateContext(new { area = (string)null, controller = "Home", action = "Index" }, new { area = "Admin" });
+            var context = CreateContext(
+                new { area = (string)null, controller = "Home", action = "Index" }, 
+                new { area = "Admin", controller = "Home", action = "Diagnostics" });
 
             // Act
             var candidates = selector.GetCandidateActions(context);
@@ -104,7 +110,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var expected = GetActions(actions, area: null, controller: "Product", action: null);
 
             var selector = CreateSelector(actions);
-            var context = CreateContext(new { controller = "Product", action = (string)null }, new { controller = "Home", action = "Index" });
+            var context = CreateContext(
+                new { controller = "Product", action = (string)null }, 
+                new { controller = "Home", action = "Index" });
 
             // Act
             var candidates = selector.GetCandidateActions(context);
@@ -121,7 +129,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var expected = GetActions(actions, area: null, controller: "Product", action: null);
 
             var selector = CreateSelector(actions);
-            var context = CreateContext(new { controller = "Product" }, new { controller = "Home", action = "Index" });
+            var context = CreateContext(
+                new { controller = "Product" }, 
+                new { controller = "Home", action = "Index" });
 
             // Act
             var candidates = selector.GetCandidateActions(context);
@@ -138,7 +148,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var actions = GetActions();
 
             var selector = CreateSelector(actions);
-            var context = CreateContext(new { area = "Admin", controller = "Home", action = "Edit" }, new { area = "Admin" });
+            var context = CreateContext(
+                new { area = "Admin", controller = "Home", action = "Edit" }, 
+                new { area = "Admin", controller = "Home", action = "Index" });
 
             // Act
             var candidates = selector.GetCandidateActions(context);
@@ -224,19 +236,19 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return new DefaultActionSelector(actionProvider.Object, bindingProvider.Object);
         }
 
-        private static VirtualPathContext CreateContext(object values)
+        private static VirtualPathContext CreateContext(object routeValues)
         {
-            return CreateContext(values, ambientValues: null);
+            return CreateContext(routeValues, ambientValues: null);
         }
 
-        private static VirtualPathContext CreateContext(object values, object ambientValues)
+        private static VirtualPathContext CreateContext(object routeValues, object ambientValues)
         {
             var httpContext = new Mock<HttpContext>(MockBehavior.Strict);
 
             return new VirtualPathContext(
                 httpContext.Object,
                 new RouteValueDictionary(ambientValues),
-                new RouteValueDictionary(values));
+                new RouteValueDictionary(routeValues));
         }
 
         private static ActionDescriptor CreateAction(string area, string controller, string action)

@@ -115,7 +115,8 @@ namespace Microsoft.AspNet.Mvc
         }
 
         // This method attempts to ensure that the route that's about to generate a link will generate a link
-        // to an existing action.
+        // to an existing action. This method is called by a route (through MvcApplication) prior to generating
+        // any link - this gives WebFX a chance to 'veto' the values provided by a route.
         //
         // This method does not take httpmethod or dynamic action constraints into account.
         public virtual bool HasValidAction([NotNull] VirtualPathContext context)
@@ -128,12 +129,16 @@ namespace Microsoft.AspNet.Mvc
 
             var actions =
                 GetActions().Where(
-                    action => action.RouteConstraints == null ||
-                    action.RouteConstraints.All(constraint => constraint.Accept(context.ProvidedValues)));
+                    action => 
+                        action.RouteConstraints == null ||
+                        action.RouteConstraints.All(constraint => constraint.Accept(context.ProvidedValues)));
 
             return actions.Any();
         }
 
+        // This is called by the default UrlHelper as part of Action link generation. When a link is requested
+        // specifically for an Action, we manipulate the route data to ensure that the right link is generated.
+        // Read further for details.
         public virtual IEnumerable<ActionDescriptor> GetCandidateActions(VirtualPathContext context)
         {
             // This method attemptss to find a unique 'best' candidate set of actions from the provided route

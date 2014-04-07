@@ -84,7 +84,6 @@ namespace Microsoft.AspNet.Mvc
                     return routeValues.ContainsKey(RouteKey);
 
                 case RouteKeyHandling.DenyKey:
-
                     // Routing considers a null or empty string to also be the lack of a value
                     if (!routeValues.TryGetValue(RouteKey, out value) || value == null)
                     {
@@ -100,7 +99,6 @@ namespace Microsoft.AspNet.Mvc
                     return false;
 
                 case RouteKeyHandling.RequireKey:
-
                     if (routeValues.TryGetValue(RouteKey, out value))
                     {
                         return Comparer.Equals(value, RouteValue);
