@@ -136,9 +136,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GenerateForm(actionName, controllerName, routeValues, method, htmlAttributeDictionary);
         }
 
-        public virtual void EndForm()
+        public void EndForm()
         {
-            var mvcForm = new MvcForm(ViewContext);
+            var mvcForm = CreateForm();
             mvcForm.EndForm();
         }
 
@@ -325,6 +325,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GenerateValue(name, value: null, format: format, useViewData: true);
         }
 
+        /// <summary>
+        /// Override this method to return an <see cref="MvcForm"/> subclass. That subclass may change
+        /// <see cref="EndForm()"/> behavior.
+        /// </summary>
+        /// <returns>A new <see cref="MvcForm"/> instance.</returns>
+        protected virtual MvcForm CreateForm()
+        {
+            return new MvcForm(ViewContext);
+        }
+
         protected string EvalString(string key, string format)
         {
             return Convert.ToString(ViewData.Eval(key, format), CultureInfo.CurrentCulture);
@@ -385,7 +395,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             tagBuilder.MergeAttribute("method", HtmlHelper.GetFormMethodString(method), replaceExisting: true);
 
             var traditionalJavascriptEnabled = ViewContext.ClientValidationEnabled &&
-                                               ViewContext.UnobtrusiveJavaScriptEnabled;
+                                               !ViewContext.UnobtrusiveJavaScriptEnabled;
             if (traditionalJavascriptEnabled)
             {
                 // TODO revive ViewContext.FormIdGenerator(), WebFx-199
@@ -395,7 +405,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             ViewContext.Writer.Write(tagBuilder.ToString(TagRenderMode.StartTag));
-            var theForm = new MvcForm(ViewContext);
+            var theForm = CreateForm();
 
             if (traditionalJavascriptEnabled)
             {

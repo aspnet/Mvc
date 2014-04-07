@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             _viewContext.FormContext = null;
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)
             {

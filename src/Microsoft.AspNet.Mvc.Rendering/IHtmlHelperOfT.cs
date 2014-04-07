@@ -50,13 +50,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                           object htmlAttributes);
 
         /// <summary>
-        /// <para>
         /// Renders the closing </form> tag to the response.
-        /// </para>
-        /// <para>
-        /// Overriding this method affects only direct calls. For most scenarios, override <see cref="GenerateForm"/>
-        /// to return an <see cref="MvcForm"/> subclass.
-        /// </para>
         /// </summary>
         void EndForm();
 

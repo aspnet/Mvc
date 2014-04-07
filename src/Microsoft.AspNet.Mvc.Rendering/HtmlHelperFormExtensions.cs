@@ -5,7 +5,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     {
         public static MvcForm BeginForm<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper)
         {
-            // generates <form action="{current url}" method="post">...</form>
+            // Generates <form action="{current url}" method="post">.
             return htmlHelper.BeginForm(actionName: null, controllerName: null, routeValues: null,
                                         method: FormMethod.Post, htmlAttributes: null);
         }
