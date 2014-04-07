@@ -6,11 +6,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
     internal static class TypeHelper
     {
         /// <summary>
-        /// Given an object of anonymous type, add each property as a key and associated with its value to a dictionary.
-        ///
-        /// This helper will cache accessors and types, and is intended when the anonymous object is accessed multiple
-        /// times throughout the lifetime of the web application.
+        /// Given an object, adds each instance property with a public get method as a key and its 
+        /// associated value to a dictionary.
         /// </summary>
+        //
+        // The implementation of PropertyHelper will cache the property accessors per-type. This is
+        // faster when the the same type is used multiple times with ObjectToDictionary.
         public static IDictionary<string, object> ObjectToDictionary(object value)
         {
             var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
