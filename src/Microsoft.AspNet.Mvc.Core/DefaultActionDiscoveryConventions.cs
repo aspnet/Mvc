@@ -109,13 +109,13 @@ namespace Microsoft.AspNet.Mvc
 
         private ActionAttributes GetActionCustomAttributes(MethodInfo methodInfo)
         {
-            var attributeCache = methodInfo.GetCustomAttributes();
-            var actionNameAttrtibute = attributeCache.OfType<ActionNameAttribute>().FirstOrDefault();
-            var httpMethodConstraints = attributeCache.OfType<IActionHttpMethodProvider>();
+            var attributes = methodInfo.GetCustomAttributes();
+            var actionNameAttribute = attributes.OfType<ActionNameAttribute>().FirstOrDefault();
+            var httpMethodConstraints = attributes.OfType<IActionHttpMethodProvider>();
             return new ActionAttributes()
             {
                 HttpMethodProviderAttributes = httpMethodConstraints,
-                ActionNameAttribute = actionNameAttrtibute
+                ActionNameAttribute = actionNameAttribute
             };
         }
 
@@ -129,14 +129,12 @@ namespace Microsoft.AspNet.Mvc
                 yield break;
             }
 
-            var actionNameAttrtibute = actionAttributes.ActionNameAttribute;
-            var actionName = actionNameAttrtibute != null ? actionNameAttrtibute.Name : methodInfo.Name;
+            var actionNameAttribute = actionAttributes.ActionNameAttribute;
+            var actionName = actionNameAttribute != null ? actionNameAttribute.Name : methodInfo.Name;
 
-            var httpMethodConstraints = actionAttributes.HttpMethodProviderAttributes;
-            var httpMethods = httpMethodConstraints.SelectMany(x => x.HttpMethods).Distinct().ToArray();
+            var httpMethodProviders = actionAttributes.HttpMethodProviderAttributes;
+            var httpMethods = httpMethodProviders.SelectMany(x => x.HttpMethods).Distinct().ToArray();
 
-            // Any method which does not follow convention and does not have
-            // an explicit NoAction attribute is exposed as a method with action name.
             yield return new ActionInfo()
             {
                 HttpMethods = httpMethods,
