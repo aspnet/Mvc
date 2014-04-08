@@ -23,6 +23,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("PUT")]
         [InlineData("POST")]
         [InlineData("DELETE")]
+        [InlineData("PATCH")]
         public async Task HttpMethodAttribute_ActionWithMultipleHttpMethodAttributeViaAcceptVerbs_ORsMultipleHttpMethods(string verb)
         {
             // Arrange
@@ -46,6 +47,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("PUT")]
         [InlineData("POST")]
         [InlineData("DELETE")]
+        [InlineData("PATCH")]
         public async Task HttpMethodAttribute_ActionWithMultipleHttpMethodAttributes_ORsMultipleHttpMethods(string verb)
         {
             // Arrange
@@ -182,11 +184,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             [HttpPut]
             [HttpPost]
             [HttpDelete]
+            [HttpPatch]
             public void Put()
             {
             }
 
-            [AcceptVerbs("PUT", "post", "GET", "delete")]
+            [AcceptVerbs("PUT", "post", "GET", "delete", "pATcH")]
             public void Patch()
             {
             }
