@@ -211,7 +211,7 @@ namespace Microsoft.AspNet.Mvc
 
             public bool Any()
             {
-                return this.ActionNameAttribute != null || this.HttpMethodProviderAttributes.Any();
+                return ActionNameAttribute != null || HttpMethodProviderAttributes.Any();
             }
         }
     }

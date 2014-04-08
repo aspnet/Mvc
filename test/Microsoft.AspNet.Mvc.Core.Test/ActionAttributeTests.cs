@@ -88,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("POST")]
         [InlineData("DELETE")]
         [InlineData("PATCH")]
-        public async Task ActionNameAttribute_ActionGetsExposedViaActionName_OverridesConvention(string verb)
+        public async Task ActionNameAttribute_ActionGetsExposedViaActionName_UnreachableByConvention(string verb)
         {
             // Arrange
             var requestContext = new RequestContext(
