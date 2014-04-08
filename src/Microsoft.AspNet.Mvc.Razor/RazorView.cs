@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.DependencyInjection;
@@ -15,10 +17,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private bool _renderedBody;
 
-        public IViewComponentHelper Component
-        {
-            get { return Context == null ? null : Context.Component; }
-        }
+        public IViewComponentHelper Component { get; private set; }
 
         public ViewContext Context { get; set; }
 
@@ -26,10 +25,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected TextWriter Output { get; set; }
 
-        public IUrlHelper Url
-        {
-            get { return Context == null ? null : Context.Url; }
-        }
+        public IUrlHelper Url { get; private set; }
 
         public dynamic ViewBag
         {
@@ -49,6 +45,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             SectionWriters = new Dictionary<string, HelperResult>(StringComparer.OrdinalIgnoreCase);
             Context = context;
+
+            InitHelpers();
 
             var contentBuilder = new StringBuilder(1024);
             using (var bodyWriter = new StringWriter(contentBuilder))
@@ -81,6 +79,21 @@ namespace Microsoft.AspNet.Mvc.Razor
             else
             {
                 await context.Writer.WriteAsync(bodyContent);
+            }
+        }
+
+        private void InitHelpers()
+        {
+            Contract.Assert(Context != null);
+
+            Url = Context.ServiceProvider.GetService<IUrlHelper>();
+
+            Component = Context.ServiceProvider.GetService<IViewComponentHelper>();
+
+            var contextable = Component as ICanHasViewContext;
+            if (contextable != null)
+            {
+                contextable.Contextualize(Context);
             }
         }
 
