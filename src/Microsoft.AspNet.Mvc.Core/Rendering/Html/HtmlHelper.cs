@@ -276,15 +276,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             var newViewData = new ViewDataDictionary(baseViewData, model);
 
-            var newViewContext = new ViewContext(ViewContext)
+
+
+            var viewEngineResult = _viewEngine.FindPartialView(ViewContext.RouteValues, partialViewName);
+            var view = viewEngineResult.View;
+
+            using (view as IDisposable)
             {
-                ViewData = newViewData,
-                Writer = writer
-            };
-
-            var viewEngineResult = _viewEngine.FindPartialView(newViewContext.ViewEngineContext, partialViewName);
-
-            await viewEngineResult.View.RenderAsync(newViewContext);
+                var viewContext = new ViewContext(ViewContext, view, newViewData, writer);
+                await viewEngineResult.View.RenderAsync(viewContext);
+            }
         }
 
         public virtual HtmlString ValidationSummary(bool excludePropertyErrors, string message, IDictionary<string, object> htmlAttributes)
