@@ -32,8 +32,8 @@ namespace Microsoft.AspNet.Mvc
         /// Given an object, adds each instance property with a public get method as a key and its 
         /// associated value to a dictionary.
         /// 
-        /// If the object is already an <see cref="IDictionary{string, object}"/> instance, then it is
-        /// returned as-is.
+        /// If the object is already an <see cref="IDictionary{string, object}"/> instance, then a copy
+        /// is returned.
         /// </summary>
         //
         // The implementation of PropertyHelper will cache the property accessors per-type. This is
@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc
             var dictionary = value as IDictionary<string, object>;
             if (dictionary != null)
             {
-                return dictionary;
+                return new Dictionary<string, object>(dictionary, StringComparer.OrdinalIgnoreCase);
             }
 
             dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);

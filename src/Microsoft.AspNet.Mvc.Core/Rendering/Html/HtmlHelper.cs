@@ -138,7 +138,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var dictionary = htmlAttributes as IDictionary<string, object>;
             if (dictionary != null)
             {
-                return dictionary;
+                return new Dictionary<string, object>(dictionary, StringComparer.OrdinalIgnoreCase);
             }
 
             dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -166,11 +166,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             IDictionary<string, object> htmlAttributeDictionary = null;
             if (htmlAttributes != null)
             {
-                htmlAttributeDictionary = htmlAttributes as IDictionary<string, object>;
-                if (htmlAttributeDictionary == null)
-                {
-                    htmlAttributeDictionary = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
-                }
+                htmlAttributeDictionary = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             }
 
             return GenerateForm(actionName, controllerName, routeValues, method, htmlAttributeDictionary);

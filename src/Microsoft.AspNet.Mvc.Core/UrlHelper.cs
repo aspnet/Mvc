@@ -28,8 +28,7 @@ namespace Microsoft.AspNet.Mvc
 
         public string Action(string action, string controller, object values, string protocol, string host, string fragment)
         {
-            // Making a copy here because we're going to mutate it.
-            var valuesDictionary = new Dictionary<string, object>(TypeHelper.ObjectToDictionary(values), StringComparer.OrdinalIgnoreCase);
+            var valuesDictionary = TypeHelper.ObjectToDictionary(values);
 
             if (action != null)
             {
@@ -70,7 +69,7 @@ namespace Microsoft.AspNet.Mvc
 
         public string RouteUrl(object values, string protocol, string host, string fragment)
         {
-            var valuesDictionary = new Dictionary<string, object>(TypeHelper.ObjectToDictionary(values), StringComparer.OrdinalIgnoreCase);
+            var valuesDictionary = TypeHelper.ObjectToDictionary(values);
 
             var path = GeneratePathFromRoute(valuesDictionary);
             if (path == null)
