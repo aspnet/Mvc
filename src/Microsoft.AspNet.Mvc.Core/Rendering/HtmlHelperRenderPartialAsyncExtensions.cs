@@ -2,7 +2,7 @@
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public static class RenderPartialAsyncExtensions
+    public static class HtmlHelperRenderPartialAsyncExtensions
     {
         
         /// <summary>

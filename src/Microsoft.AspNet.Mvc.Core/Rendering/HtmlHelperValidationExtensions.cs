@@ -2,7 +2,7 @@
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public static class ValidationExtensions
+    public static class HtmlHelperValidationExtensions
     {
         public static HtmlString ValidationSummary<T>(this IHtmlHelper<T> htmlHelper)
         {
