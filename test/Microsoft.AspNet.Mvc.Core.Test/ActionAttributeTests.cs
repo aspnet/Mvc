@@ -187,6 +187,78 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(actionName, result.Name);
         }
 
+        [Fact]
+        public async Task RestActionAttribute_WithActionNameAttribute_IgnoresActionNameAttribute()
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext("DELETE"),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_RestActionAttribute" },
+                                                { "action", "CustomActionName" }
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            // The match doesnt use the action name, otherwise the result would be non null.
+            Assert.Equal(null, result);
+        }
+
+        [Theory]
+        [InlineData("PUT", "RpcMethod")]
+        [InlineData("POST", "RpcMethod")]
+        [InlineData("DELETE", "CustomActionName")]
+        [InlineData("GET", "Index")]
+        [InlineData("POST", "Index")]
+        [InlineData("PATCH", "PatchOrders")]
+        [InlineData("OPTIONS", "PatchOrders")]
+        [InlineData("HEAD", "PatchOrders")]
+        public async Task RestActionAttribute_UnreachableByActionName(string verb, string actionName)
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext(verb),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_RestActionAttribute" },
+                                                { "action", actionName }
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            Assert.Equal(null, result);
+        }
+
+        [Theory]
+        [InlineData("PUT", "RpcMethod")]
+        [InlineData("DELETE", "CustomActionName")]
+        [InlineData("GET", "Index")]
+        [InlineData("POST", "Index")]
+        [InlineData("PATCH", "PatchOrders")]
+        [InlineData("OPTIONS", "PatchOrders")]
+        [InlineData("HEAD", "PatchOrders")]
+        public async Task RestActionAttribute_ReachableByAllSupportedRestVerbs(string verb, string actionName)
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext(verb),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_RestActionAttribute" },
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            Assert.Equal(actionName, result.Name);
+        }
+
         private async Task<ActionDescriptor> InvokeActionSelector(RequestContext context)
         {
             return await InvokeActionSelector(context, _actionDiscoveryConventions);
@@ -241,7 +313,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         #region Controller Classes
 
-        private class NonActionController
+        private class NonActionController     
         {
             [NonAction]
             public void Put()
@@ -257,6 +329,40 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             [HttpGet]
             public void RPCMethodWithHttpGet()
             {
+            }
+        }
+
+        private class HttpMethodAttributeTests_RestActionAttributeController
+	{
+            // Can be reached by rest get and post.
+            // Please note that without an explicit AcceptVerb attribute, 
+            // all http verbs will be allowed for it 
+            // (i.e is even though this is the default method, since the user chose to override 
+            // this will no longer treated as the default method).
+            [RestAction]
+            [AcceptVerbs("Post","Get")]
+            public void Index()
+            {
+            }
+
+            [RestAction]
+            [AcceptVerbs("Patch","Options","Head")]
+            public void PatchOrders()
+            {
+            }
+
+            [RestAction]
+            [AcceptVerbs("Put")]
+            public void RpcMethod()
+            {
+            }
+
+            [RestAction]
+            [ActionName("CustomActionName")]
+            [AcceptVerbs("Delete")]
+            public void ActionWithActionName()
+            {
+                
             }
         }
 
