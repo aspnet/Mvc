@@ -2,7 +2,7 @@
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
-    public static class HtmlHelperPartialAsyncExtensions
+    public static class HtmlHelperPartialExtensions
     {
         /// <summary>
         /// Renders the partial view with the parent's view data and model to a string.
