@@ -145,7 +145,10 @@
             <table>
                 <tr>
                     <td>
-                        <label class="control-label col-md-2">Model.Name</label>
+                        @Html.Label(Model.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayName(Model.Name)
                     </td>
                     <td>
                         @Html.TextBox("Name")
@@ -153,7 +156,32 @@
                 </tr>
                 <tr>
                     <td>
-                        <label class="control-label col-md-2">Model.Address</label>
+                        @Html.Label(Model.Name, "Model.Name")
+                    </td>
+                    <td>
+                        @Html.DisplayName(Model.Name)
+                    </td>
+                    <td>
+                        @Html.TextBox("Name")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label(Model.Name, "Model.Name", htmlAttributes: new { @class = "form-control" })
+                    </td>
+                    <td>
+                        @Html.DisplayName(Model.Name)
+                    </td>
+                    <td>
+                        @Html.TextBox("Name")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model=> model.Address)
+                    </td>
+                    <td>
+                        @Html.DisplayNameFor(model =>model.Address)
                     </td>
                     <td>
                         @Html.TextBoxFor(m => m.Address, htmlAttributes: new { @class = "form-control" })
@@ -192,6 +220,41 @@
                 <tr>
                     <td>
                         <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
+                <tr>
+                    <td>
+                        @Html.LabelForModel("Model.GPA")
+                    </td>
+                    <td>
+                        @Html.DisplayNameForModel()
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(m => m.GPA, htmlAttributes: new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelForModel(htmlAttributes: new { @class = "form-control" })
+                    </td>
+                    <td>
+                        @Html.DisplayNameForModel()
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(m => m.Dependent.Age, htmlAttributes: new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelForModel("Model.Dependent.Name", htmlAttributes: new { @class = "form-control" })
+                    </td>
+                    <td>
+                        @Html.DisplayNameForModel()
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(m => m.Dependent.Name, htmlAttributes: new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                     </td>
                     <td></td>
                 </tr>
@@ -199,50 +262,50 @@
         }
         @{ Html.BeginForm(method: FormMethod.Post, htmlAttributes: new { someAttribute = "some value", }); }
             @Html.Hidden("Anon.Id")
-            <table>
-                <tr>
-                    <td>
-                        <label class="control-label col-md-2">Anon.Name</label>
-                    </td>
-                    <td>
-                        @Html.TextBox("Anon.Name")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label class="control-label col-md-2">Anon.Address.Street</label>
-                    </td>
-                    <td>
-                        @Html.TextBox("Anon.Address.Street", (object)ViewBag.Anon.Address.Street)
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label class="control-label col-md-2">Anon.Address.City</label>
-                    </td>
-                    <td>
-                        @Html.TextBox("Anon.Address.City", value: null, format: "{0} (3)")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label class="control-label col-md-2">Anon.Address.State</label>
-                    </td>
-                    <td>
-                        @Html.TextBox("Anon.Address.State", value: null, htmlAttributes: new { @class = "form-control" })
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label class="control-label col-md-2">Anon.Address.Country</label>
-                    </td>
-                    <td>
-                        @Html.TextBox("Anon.Address.Country", value: null, format: "{0} (4)",
+        <table>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Name</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Name")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.Street</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.Street", (object)ViewBag.Anon.Address.Street)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.City</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.City", value: null, format: "{0} (3)")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.State</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.State", value: null, htmlAttributes: new { @class = "form-control" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="control-label col-md-2">Anon.Address.Country</label>
+                </td>
+                <td>
+                    @Html.TextBox("Anon.Address.Country", value: null, format: "{0} (4)",
                                       htmlAttributes: new { @class = "form-control" })
-                    </td>
-                </tr>
-                <tr>
-                    <td>
+                </td>
+            </tr>
+            <tr>
+                <td>
                         <label class="control-label col-md-2">Password</label>
                     </td>
                     <td>
@@ -252,10 +315,10 @@
                 <tr>
                     <td>
                         <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
-                    </td>
-                    <td></td>
-                </tr>
-            </table>
+                </td>
+                <td></td>
+            </tr>
+        </table>
         @{ Html.EndForm(); }
     </div>
 </div>

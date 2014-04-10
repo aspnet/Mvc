@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -223,11 +224,38 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                    templateName,
                                    additionalViewData);
         }
+        
+        public HtmlString DisplayName(string expression)
+        {
+            return GetDisplayName(
+                            ExpressionMetadataProvider.FromStringExpression(
+                                                                    expression,
+                                                                    ViewData,
+                                                                    MetadataProvider),
+                            expression);
+        }
+
 
         public HtmlString Hidden(string name, object value, object htmlAttributes)
         {
             return GenerateHidden(metadata: null, name: name, value: value, useViewData: (value == null),
                 htmlAttributes: htmlAttributes);
+        }
+        
+
+        public HtmlString Label(string expression, string labelText, object htmlAttributes)
+        {
+            var modelMetadata = String.IsNullOrEmpty(expression)
+                                ? ViewData.ModelMetadata
+                                : ExpressionMetadataProvider.FromStringExpression(
+                                    expression,
+                                    ViewData,
+                                    MetadataProvider);
+            return LabelHelper(
+                            modelMetadata,
+                            expression,
+                            labelText,
+                            htmlAttributes);
         }
 
         public virtual HtmlString Name(string name)
@@ -873,6 +901,29 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(Encode(resolvedValue));
         }
 
+        protected virtual HtmlString GetDisplayName(ModelMetadata metadata, string htmlFieldName)
+        {
+            // We don't call ModelMetadata.GetDisplayName here because we want to fall back to the field name rather than the ModelType.
+            // This is similar to how the LabelHelpers get the text of a label.
+            string resolvedDisplayName = metadata.PropertyName ?? htmlFieldName.Split('.').Last();
+
+            return new HtmlString(Encode(resolvedDisplayName));
+        }
+
+        protected virtual HtmlString LabelHelper(ModelMetadata metadata, string htmlFieldName, string labelText = null, object htmlAttributes = null)
+        {
+            string resolvedLabelText = labelText ?? metadata.PropertyName ?? htmlFieldName.Split('.').Last();
+            if (String.IsNullOrEmpty(resolvedLabelText))
+            {
+                return HtmlString.Empty;
+            }
+
+            TagBuilder tag = new TagBuilder("label");
+            tag.Attributes.Add("for", TagBuilder.CreateSanitizedId(ViewData.TemplateInfo.GetFullHtmlFieldName(htmlFieldName), IdAttributeDotReplacement));
+            tag.SetInnerText(resolvedLabelText);
+            tag.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes), replaceExisting: true);
+            return tag.ToHtmlString(TagRenderMode.Normal);
+        }
         private static string GetInputTypeString(InputType inputType)
         {
             switch (inputType)
