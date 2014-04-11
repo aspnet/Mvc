@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.Mvc.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -135,9 +136,14 @@ namespace Microsoft.AspNet.Mvc
             var actionNameAttribute = actionAttributes.ActionNameAttribute;
             var actionName = actionNameAttribute != null ? actionNameAttribute.Name : methodInfo.Name;
 
-            // If there is a HttpMethodOnly attribute and an ActionName attribute,
-            // the action name attribute is ignored.
-            // i.e the Action is not reachable using the ActionName.
+            if (actionNameAttribute != null && actionAttributes.HttpMethodOnlyAttribute != null)
+            {
+                throw new InvalidOperationException(
+                            Resources.FormatActionNameAndHttpMethodOnly_CannotBeUsedTogether(
+                                                                            methodInfo.Name, 
+                                                                            methodInfo.DeclaringType));
+            }
+
             var requiresActionNameMatch = actionAttributes.HttpMethodOnlyAttribute == null;
             var httpMethodProviders = actionAttributes.HttpMethodProviderAttributes;
             var httpMethods = httpMethodProviders.SelectMany(x => x.HttpMethods).Distinct().ToArray();

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ActionNameAndHttpMethodOnly_CannotBeUsedTogether" xml:space="preserve">
+    <value>The method '{0}' on type '{1}' has both ActionName and MethodOnly attribute. These attributes are incompatible with each other, consider removing either of them.</value>
+  </data>
   <data name="ActionExecutor_WrappedTaskInstance" xml:space="preserve">
     <value>The method '{0}' on type '{1}' returned an instance of '{2}'. Make sure to call Unwrap on the returned value to avoid unobserved faulted Task.</value>
   </data>
