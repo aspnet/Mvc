@@ -204,7 +204,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             // The match doesnt use the action name, otherwise the result would be non null.
-            Assert.Equal(null, result);
+            Assert.Null(result);
         }
 
         [Theory]
@@ -334,35 +334,34 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         private class HttpMethodAttributeTests_RestActionAttributeController
 	{
-            // Can be reached by rest get and post.
+            // Can be reached by REST GET and POST.
             // Please note that without an explicit AcceptVerb attribute, 
             // all http verbs will be allowed for it 
-            // (i.e is even though this is the default method, since the user chose to override 
+            // (i.e. is even though this is the default method, since the user chose to override 
             // this will no longer treated as the default method).
-            [RestAction]
+            [HttpMethodOnly]
             [AcceptVerbs("Post","Get")]
             public void Index()
             {
             }
 
-            [RestAction]
+            [HttpMethodOnly]
             [AcceptVerbs("Patch","Options","Head")]
             public void PatchOrders()
             {
             }
 
-            [RestAction]
+            [HttpMethodOnly]
             [AcceptVerbs("Put")]
             public void RpcMethod()
             {
             }
 
-            [RestAction]
+            [HttpMethodOnly]
             [ActionName("CustomActionName")]
             [AcceptVerbs("Delete")]
             public void ActionWithActionName()
             {
-                
             }
         }
 

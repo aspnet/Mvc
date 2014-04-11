@@ -112,13 +112,13 @@ namespace Microsoft.AspNet.Mvc
         {
             var attributes = methodInfo.GetCustomAttributes();
             var actionNameAttribute = attributes.OfType<ActionNameAttribute>().FirstOrDefault();
-            var restActionAttribute = attributes.OfType<RestActionAttribute>().FirstOrDefault();
+            var httpMethodOnlyAttribute = attributes.OfType<HttpMethodOnlyAttribute>().FirstOrDefault();
             var httpMethodConstraints = attributes.OfType<IActionHttpMethodProvider>();
             return new ActionAttributes()
             {
                 HttpMethodProviderAttributes = httpMethodConstraints,
                 ActionNameAttribute = actionNameAttribute,
-                RestActionAttribute = restActionAttribute
+                HttpMethodOnlyAttribute = httpMethodOnlyAttribute
             };
         }
 
@@ -135,10 +135,10 @@ namespace Microsoft.AspNet.Mvc
             var actionNameAttribute = actionAttributes.ActionNameAttribute;
             var actionName = actionNameAttribute != null ? actionNameAttribute.Name : methodInfo.Name;
 
-            // If there is a RestAction attribute and an ActionName attribute,
+            // If there is a HttpMethodOnly attribute and an ActionName attribute,
             // the action name attribute is ignored.
             // i.e the Action is not reachable using the ActionName.
-            var requiresActionNameMatch = actionAttributes.RestActionAttribute == null;
+            var requiresActionNameMatch = actionAttributes.HttpMethodOnlyAttribute == null;
             var httpMethodProviders = actionAttributes.HttpMethodProviderAttributes;
             var httpMethods = httpMethodProviders.SelectMany(x => x.HttpMethods).Distinct().ToArray();
 
@@ -215,11 +215,11 @@ namespace Microsoft.AspNet.Mvc
         {
             public IEnumerable<IActionHttpMethodProvider> HttpMethodProviderAttributes { get; set; }
             public ActionNameAttribute ActionNameAttribute { get; set; }
-            public RestActionAttribute RestActionAttribute { get; set; }
+            public HttpMethodOnlyAttribute HttpMethodOnlyAttribute { get; set; }
 
             public bool Any()
             {
-                return ActionNameAttribute != null || RestActionAttribute !=null || HttpMethodProviderAttributes.Any();
+                return ActionNameAttribute != null || HttpMethodOnlyAttribute != null || HttpMethodProviderAttributes.Any();
             }
         }
     }

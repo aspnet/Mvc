@@ -3,7 +3,7 @@
 namespace Microsoft.AspNet.Mvc
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public sealed class RestActionAttribute : Attribute
+    public sealed class HttpMethodOnlyAttribute : Attribute
     {
     }
 }
