@@ -1,64 +1,60 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Web.UI;
+using Microsoft.AspNet.Mvc.Rendering.Expressions;
 
-namespace System.Web.Mvc
+namespace Microsoft.AspNet.Mvc.Rendering
 {
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Multi", Justification = "FxCop won't accept this in the custom dictionary, so we're suppressing it in source")]
-    [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix", Justification = "This is a shipped API")]
     public class MultiSelectList : IEnumerable<SelectListItem>
     {
         private IList<SelectListGroup> _groups;
 
-        public MultiSelectList(IEnumerable items)
+        public MultiSelectList([NotNull] IEnumerable items)
             : this(items, selectedValues: null)
         {
         }
 
-        public MultiSelectList(IEnumerable items, IEnumerable selectedValues)
+        public MultiSelectList([NotNull] IEnumerable items, IEnumerable selectedValues)
             : this(items, dataValueField: null, dataTextField: null, selectedValues: selectedValues)
         {
         }
 
-        public MultiSelectList(IEnumerable items, string dataValueField, string dataTextField)
+        public MultiSelectList([NotNull] IEnumerable items, string dataValueField, string dataTextField)
             : this(items, dataValueField, dataTextField, selectedValues: null)
         {
         }
 
-        public MultiSelectList(IEnumerable items, string dataValueField, string dataTextField, IEnumerable selectedValues)
+        public MultiSelectList(
+            [NotNull] IEnumerable items,
+            string dataValueField,
+            string dataTextField,
+            IEnumerable selectedValues)
             : this(items, dataValueField, dataTextField, selectedValues, dataGroupField: null)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the MultiSelectList class by using the items to include in the list, 
+        /// Initializes a new instance of the MultiSelectList class by using the items to include in the list,
         /// the data value field, the data text field, the selected values, and the data group field.
         /// </summary>
         /// <param name="items">The items used to build each <see cref="SelectListItem"/> of the list.</param>
-        /// <param name="dataValueField">The data value field. Used to match the Value property of the corresponding 
+        /// <param name="dataValueField">The data value field. Used to match the Value property of the corresponding
         /// <see cref="SelectListItem"/>.</param>
-        /// <param name="dataTextField">The data text field. Used to match the Text property of the corresponding 
+        /// <param name="dataTextField">The data text field. Used to match the Text property of the corresponding
         /// <see cref="SelectListItem"/>.</param>
-        /// <param name="selectedValues">The selected values field. Used to match the Selected property of the 
+        /// <param name="selectedValues">The selected values field. Used to match the Selected property of the
         /// corresponding <see cref="SelectListItem"/>.</param>
-        /// <param name="dataGroupField">The data group field. Used to match the Group property of the corresponding 
+        /// <param name="dataGroupField">The data group field. Used to match the Group property of the corresponding
         /// <see cref="SelectListItem"/>.</param>
-        public MultiSelectList(IEnumerable items,
-                               string dataValueField,
-                               string dataTextField,
-                               IEnumerable selectedValues,
-                               string dataGroupField)
+        public MultiSelectList(
+            [NotNull] IEnumerable items,
+            string dataValueField,
+            string dataTextField,
+            IEnumerable selectedValues,
+            string dataGroupField)
         {
-            if (items == null)
-            {
-                throw new ArgumentNullException("items");
-            }
-
             Items = items;
             DataValueField = dataValueField;
             DataTextField = dataTextField;
@@ -91,14 +87,14 @@ namespace System.Web.Mvc
 
         internal IList<SelectListItem> GetListItems()
         {
-            return (!String.IsNullOrEmpty(DataValueField))
-                       ? GetListItemsWithValueField()
-                       : GetListItemsWithoutValueField();
+            return (!string.IsNullOrEmpty(DataValueField)) ?
+                GetListItemsWithValueField() :
+                GetListItemsWithoutValueField();
         }
 
         private IList<SelectListItem> GetListItemsWithValueField()
         {
-            HashSet<string> selectedValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var selectedValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (SelectedValues != null)
             {
                 selectedValues.UnionWith(from object value in SelectedValues
@@ -119,7 +115,7 @@ namespace System.Web.Mvc
 
         private IList<SelectListItem> GetListItemsWithoutValueField()
         {
-            HashSet<object> selectedValues = new HashSet<object>();
+            var selectedValues = new HashSet<object>();
             if (SelectedValues != null)
             {
                 selectedValues.UnionWith(SelectedValues.Cast<object>());
@@ -137,11 +133,13 @@ namespace System.Web.Mvc
 
         private static string Eval(object container, string expression)
         {
-            object value = container;
-            if (!String.IsNullOrEmpty(expression))
+            var value = container;
+            if (!string.IsNullOrEmpty(expression))
             {
-                value = DataBinder.Eval(container, expression);
+                var viewDataInfo = ViewDataEvaluator.Eval(container, expression);
+                value = viewDataInfo.Value;
             }
+
             return Convert.ToString(value, CultureInfo.CurrentCulture);
         }
 
@@ -152,16 +150,15 @@ namespace System.Web.Mvc
                 return null;
             }
 
-            string groupName = Eval(container, DataGroupField);
-            if (String.IsNullOrEmpty(groupName))
+            var groupName = Eval(container, DataGroupField);
+            if (string.IsNullOrEmpty(groupName))
             {
                 return null;
             }
 
-            // We use StringComparison.CurrentCulture because the group name is used to display as the value of 
+            // We use StringComparison.CurrentCulture because the group name is used to display as the value of
             // optgroup HTML tag's label attribute.
-            SelectListGroup group = _groups.FirstOrDefault(
-                g => String.Equals(g.Name, groupName, StringComparison.CurrentCulture));
+            var group = _groups.FirstOrDefault(g => string.Equals(g.Name, groupName, StringComparison.CurrentCulture));
             if (group == null)
             {
                 group = new SelectListGroup() { Name = groupName };

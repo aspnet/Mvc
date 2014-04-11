@@ -1,6 +1,5 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
-namespace System.Web.Mvc
+﻿
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
     /// Represents the optgroup HTML element and its attributes.
@@ -10,7 +9,7 @@ namespace System.Web.Mvc
     public class SelectListGroup
     {
         /// <summary>
-        /// Gets or sets a value that indicates whether this <see cref="SelectListGroup"/> is disabled. 
+        /// Gets or sets a value that indicates whether this <see cref="SelectListGroup"/> is disabled.
         /// </summary>
         public bool Disabled { get; set; }
 
