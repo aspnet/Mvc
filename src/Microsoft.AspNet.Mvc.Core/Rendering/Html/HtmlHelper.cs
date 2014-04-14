@@ -225,7 +225,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                    additionalViewData);
         }
 
-        public HtmlString DropDownList(string name, IEnumerable<SelectListItem> selectList, string optionLabel, object htmlAttributes)
+        public HtmlString DropDownList(string name, IEnumerable<SelectListItem> selectList, string optionLabel,
+            object htmlAttributes)
         {
             return GenerateDropDown(
                 metadata: null,
@@ -745,7 +746,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string optionLabel, string name, IEnumerable<SelectListItem> selectList, bool allowMultiple,
             object htmlAttributes)
         {
-            string fullName = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
             if (string.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "name");
@@ -760,7 +761,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 usedViewData = true;
             }
 
-            object defaultValue = (allowMultiple) ?
+            var defaultValue = (allowMultiple) ?
                 GetModelStateValue(fullName, typeof(string[])) :
                 GetModelStateValue(fullName, typeof(string));
 
@@ -940,7 +941,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         protected virtual HtmlString GenerateValue(string name, object value, string format, bool useViewData)
         {
-            var fullName = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
             var attemptedValue = (string)GetModelStateValue(fullName, typeof(string));
 
             string resolvedValue;
