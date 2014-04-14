@@ -72,16 +72,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                    additionalViewData);
         }
 
-        public HtmlString DisplayNameFor<TValue>(Expression<Func<TModel, TValue>> expression)
+        public HtmlString DisplayNameFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression)
         {
             var metadata = GetModelMetadata(expression);
-            return GetDisplayName(metadata, ExpressionHelper.GetExpressionText(expression));
+            return GenerateDisplayName(metadata, ExpressionHelper.GetExpressionText(expression));
         }
 
-        public HtmlString LabelFor<TValue>(Expression<Func<TModel, TValue>> expression, string labelText, object htmlAttributes)
+        public HtmlString LabelFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression, string labelText, object htmlAttributes)
         {
             var metadata = GetModelMetadata(expression);
-            return LabelHelper(metadata, ExpressionHelper.GetExpressionText(expression), labelText, htmlAttributes);
+            return GenerateLabel(metadata, ExpressionHelper.GetExpressionText(expression), labelText, htmlAttributes);
         }
 
         /// <inheritdoc />

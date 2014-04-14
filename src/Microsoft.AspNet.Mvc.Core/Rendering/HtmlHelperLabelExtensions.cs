@@ -1,59 +1,66 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     public static class HtmlHelperLabelExtensions
     {
-        public static HtmlString Label<TModel>(this IHtmlHelper<TModel> html, string expression)
+        public static HtmlString Label<TModel>([NotNull] this IHtmlHelper<TModel> html, string expression)
         {
-            return Label(html,
+            return html.Label(
                          expression,
-                         labelText: null);
+                         labelText: null, 
+                         htmlAttributes: null);
         }
 
-        public static HtmlString Label<TModel>(this IHtmlHelper<TModel> html, string expression, string labelText)
+        public static HtmlString Label<TModel>([NotNull] this IHtmlHelper<TModel> html,
+                                               string expression,
+                                               string labelText)
         {
             return html.Label(expression, labelText, htmlAttributes: null);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
-        public static HtmlString LabelFor<TModel, TValue>(this IHtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
+        public static HtmlString LabelFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
+                                                          [NotNull] Expression<Func<TModel, TValue>> expression)
         {
-            return LabelFor<TModel, TValue>(html, expression, labelText: null);
+            return html.LabelFor<TValue>(expression, labelText: null, htmlAttributes: null);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
-        public static HtmlString LabelFor<TModel, TValue>(this IHtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression, string labelText)
+        public static HtmlString LabelFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html, 
+                                                          [NotNull] Expression<Func<TModel, TValue>> expression,
+                                                          string labelText)
         {
-            return html.LabelFor(expression, labelText, htmlAttributes: null);
+            return html.LabelFor<TValue>(expression, labelText, htmlAttributes: null);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an appropriate nesting of generic types")]
-        public static HtmlString LabelFor<TModel, TValue>(this IHtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression, object htmlAttributes)
+        public static HtmlString LabelFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
+                                                          [NotNull] Expression<Func<TModel, TValue>> expression,
+                                                          object htmlAttributes)
         {
-            return html.LabelFor(expression, labelText: null, htmlAttributes: htmlAttributes);
+            return html.LabelFor<TValue>(expression, labelText: null, htmlAttributes: htmlAttributes);
         }
 
-        public static HtmlString LabelForModel<TModel>(this IHtmlHelper<TModel> html)
+        public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html)
         {
             return LabelForModel(html, labelText: null);
         }
 
-        public static HtmlString LabelForModel<TModel>(this IHtmlHelper<TModel> html, string labelText)
+        public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html, string labelText)
         {
-            return html.Label(String.Empty, labelText, htmlAttributes: null);
+            return html.Label(string.Empty, labelText, htmlAttributes: null);
         }
 
-        public static HtmlString LabelForModel<TModel>(this IHtmlHelper<TModel> html, object htmlAttributes)
+        public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html, 
+                                                        object htmlAttributes)
         {
-            return html.Label(String.Empty, labelText: null, htmlAttributes: htmlAttributes);
+            return html.Label(string.Empty, labelText: null, htmlAttributes: htmlAttributes);
         }
 
-        public static HtmlString LabelForModel<TModel>(this IHtmlHelper<TModel> html, string labelText, object htmlAttributes)
+        public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html,
+                                                        string labelText, 
+                                                        object htmlAttributes)
         {
-            return html.Label(String.Empty, labelText, htmlAttributes);
+            return html.Label(string.Empty, labelText, htmlAttributes);
         }
     }
 }

@@ -227,12 +227,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         
         public HtmlString DisplayName(string expression)
         {
-            return GetDisplayName(
-                            ExpressionMetadataProvider.FromStringExpression(
-                                                                    expression,
-                                                                    ViewData,
-                                                                    MetadataProvider),
-                            expression);
+            var modelMetadata = string.IsNullOrEmpty(expression) ?
+                                           ViewData.ModelMetadata :
+                                           ExpressionMetadataProvider.FromStringExpression(
+                                                                               expression,
+                                                                               ViewData,
+                                                                               MetadataProvider);
+            return GenerateDisplayName(modelMetadata, expression);
         }
 
 
@@ -245,13 +246,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public HtmlString Label(string expression, string labelText, object htmlAttributes)
         {
-            var modelMetadata = String.IsNullOrEmpty(expression)
-                                ? ViewData.ModelMetadata
-                                : ExpressionMetadataProvider.FromStringExpression(
-                                    expression,
-                                    ViewData,
-                                    MetadataProvider);
-            return LabelHelper(
+            var modelMetadata = string.IsNullOrEmpty(expression)?
+                                            ViewData.ModelMetadata :
+                                            ExpressionMetadataProvider.FromStringExpression(
+                                                                                expression,
+                                                                                ViewData,
+                                                                                MetadataProvider);
+            return GenerateLabel(
                             modelMetadata,
                             expression,
                             labelText,
@@ -549,6 +550,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 format: null,
                 htmlAttributes: htmlAttributeDictionary);
         }
+        
+        protected virtual HtmlString GenerateDisplayName([NotNull] ModelMetadata metadata, string htmlFieldName)
+        {
+            // We don't call ModelMetadata.GetDisplayName here because we want to fall back to the field name rather than the ModelType.
+            // This is similar to how the GenerateLabel get the text of a label.
+            // TODO: This needs to be updated after ModelMetadata has a DisplayName property
+            var resolvedDisplayName = metadata.PropertyName;
+            if (resolvedDisplayName == null)
+            {
+                resolvedDisplayName = string.IsNullOrEmpty(htmlFieldName) ? string.Empty : htmlFieldName.Split('.').Last();
+            }
+            
+            return new HtmlString(Encode(resolvedDisplayName));
+        }
 
         /// <summary>
         /// Writes an opening <form> tag to the response. When the user submits the form,
@@ -630,6 +645,31 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 isExplicitValue: true,
                 format: null,
                 htmlAttributes: htmlAttributeDictionary);
+        }
+        
+        protected virtual HtmlString GenerateLabel([NotNull] ModelMetadata metadata, string htmlFieldName, string labelText, object htmlAttributes)
+        {
+            // TODO: This needs to be updated after ModelMetadata has a DisplayName property
+            string resolvedLabelText = labelText ?? metadata.PropertyName;
+            if (resolvedLabelText == null)
+            {
+                resolvedLabelText = string.IsNullOrEmpty(htmlFieldName) ? string.Empty : htmlFieldName.Split('.').Last();
+            }
+
+            if (string.IsNullOrEmpty(resolvedLabelText))
+            {
+                return HtmlString.Empty;
+            }
+
+            TagBuilder tag = new TagBuilder("label");
+            tag.Attributes.Add(
+                            "for",
+                            TagBuilder.CreateSanitizedId(
+                                        ViewData.TemplateInfo.GetFullHtmlFieldName(htmlFieldName),
+                                        IdAttributeDotReplacement));
+            tag.SetInnerText(resolvedLabelText);
+            tag.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes), replaceExisting: true);
+            return tag.ToHtmlString(TagRenderMode.Normal);
         }
 
         protected virtual HtmlString GenerateLink(
@@ -866,7 +906,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
         }
 
-
         protected virtual HtmlString GenerateValue(string name, object value, string format, bool useViewData)
         {
             var fullName = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(name);
@@ -901,29 +940,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(Encode(resolvedValue));
         }
 
-        protected virtual HtmlString GetDisplayName(ModelMetadata metadata, string htmlFieldName)
-        {
-            // We don't call ModelMetadata.GetDisplayName here because we want to fall back to the field name rather than the ModelType.
-            // This is similar to how the LabelHelpers get the text of a label.
-            string resolvedDisplayName = metadata.PropertyName ?? htmlFieldName.Split('.').Last();
-
-            return new HtmlString(Encode(resolvedDisplayName));
-        }
-
-        protected virtual HtmlString LabelHelper(ModelMetadata metadata, string htmlFieldName, string labelText = null, object htmlAttributes = null)
-        {
-            string resolvedLabelText = labelText ?? metadata.PropertyName ?? htmlFieldName.Split('.').Last();
-            if (String.IsNullOrEmpty(resolvedLabelText))
-            {
-                return HtmlString.Empty;
-            }
-
-            TagBuilder tag = new TagBuilder("label");
-            tag.Attributes.Add("for", TagBuilder.CreateSanitizedId(ViewData.TemplateInfo.GetFullHtmlFieldName(htmlFieldName), IdAttributeDotReplacement));
-            tag.SetInnerText(resolvedLabelText);
-            tag.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes), replaceExisting: true);
-            return tag.ToHtmlString(TagRenderMode.Normal);
-        }
         private static string GetInputTypeString(InputType inputType)
         {
             switch (inputType)

@@ -18,9 +18,9 @@
             display: none;
         }
 
-        #qux.foo {
-            color: red;
-        }
+            #qux.foo {
+                color: red;
+            }
     </style>
 }
 
@@ -40,7 +40,7 @@
     {
         return "Hello World";
     }
-    
+
     public Task RenderHelloWorldPartial(User model)
     {
         // Imagine this method was a super complex method that was used as a helper method.
@@ -55,13 +55,15 @@
 </div>
 <div class="row">
     <h3 title="@Model.Name" class="@nullValue">Hello @Model.Name! Happy @Model.Age birthday.</h3>
-    <h3 id ="qux">This value was retrieved asynchronously: @(await AsyncValueRetrieval())</h3>
+    <h3 id="qux">This value was retrieved asynchronously: @(await AsyncValueRetrieval())</h3>
     <h3>Partial Async: @await Html.PartialAsync("HelloWorldPartial", Model)</h3>
-    <h3>Render Partial Async (Custom model): @{ await RenderHelloWorldPartial(new User()
+    <h3>
+        Render Partial Async (Custom model): @{ await RenderHelloWorldPartial(new User()
                                                 {
                                                     Name="Bob"
-                                                }); 
-                                              }</h3>
+                                                });
+        }
+    </h3>
 
     <div class="col-md-4">
         <h2>Book a flight</h2>
@@ -87,7 +89,10 @@
         <table>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">ForModel</label>
+                    @Html.LabelForModel("ForModel")
+                </td>
+                <td>
+                    '@Html.DisplayNameForModel()'
                 </td>
                 <td>
                     '@Html.NameForModel()'
@@ -98,7 +103,10 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Name</label>
+                    @Html.Label("Name")
+                </td>
+                <td>
+                    '@Html.DisplayName("Name")'
                 </td>
                 <td>
                     '@Html.Name("Name")'
@@ -109,7 +117,10 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">m.Address</label>
+                    @Html.LabelFor(m => m.Address)
+                </td>
+                <td>
+                    '@Html.DisplayNameFor(m => m.Address)'
                 </td>
                 <td>
                     '@Html.NameFor(m => m.Address)'
@@ -120,7 +131,10 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Anon.Address.Street</label>
+                    @Html.Label("Anon.Address.Street")
+                </td>
+                <td>
+                    '@Html.DisplayName("Anon.Address.Street")'
                 </td>
                 <td>
                     '@Html.Name("Anon.Address.Street")'
@@ -145,10 +159,7 @@
             <table>
                 <tr>
                     <td>
-                        @Html.Label(Model.Name)
-                    </td>
-                    <td>
-                        @Html.DisplayName(Model.Name)
+                        @Html.Label("Name")
                     </td>
                     <td>
                         @Html.TextBox("Name")
@@ -156,32 +167,7 @@
                 </tr>
                 <tr>
                     <td>
-                        @Html.Label(Model.Name, "Model.Name")
-                    </td>
-                    <td>
-                        @Html.DisplayName(Model.Name)
-                    </td>
-                    <td>
-                        @Html.TextBox("Name")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @Html.Label(Model.Name, "Model.Name", htmlAttributes: new { @class = "form-control" })
-                    </td>
-                    <td>
-                        @Html.DisplayName(Model.Name)
-                    </td>
-                    <td>
-                        @Html.TextBox("Name")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @Html.LabelFor(model=> model.Address)
-                    </td>
-                    <td>
-                        @Html.DisplayNameFor(model =>model.Address)
+                        @Html.Label("Address")
                     </td>
                     <td>
                         @Html.TextBoxFor(m => m.Address, htmlAttributes: new { @class = "form-control" })
@@ -189,7 +175,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <label class="control-label col-md-2">Model.Alive</label>
+                        @Html.Label("Alive")
                     </td>
                     <td>
                         @Html.CheckBox("Alive")
@@ -200,7 +186,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <label class="control-label col-md-2">Model.Dependent.Alive</label>
+                        @Html.Label("Dependent.Alive")
                     </td>
                     <td>
                         @Html.CheckBoxFor(m => m.Dependent.Alive)
@@ -211,7 +197,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <label class="control-label col-md-2">Model.Password</label>
+                        @Html.Label("Password")
                     </td>
                     <td>
                         @Html.PasswordFor(m => m.Password, htmlAttributes: new { @class = "form-control" })
@@ -220,52 +206,17 @@
                 <tr>
                     <td>
                         <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
-                <tr>
-                    <td>
-                        @Html.LabelForModel("Model.GPA")
-                    </td>
-                    <td>
-                        @Html.DisplayNameForModel()
-                    </td>
-                    <td>
-                        @Html.TextBoxFor(m => m.GPA, htmlAttributes: new { @class = "form-control" })
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @Html.LabelForModel(htmlAttributes: new { @class = "form-control" })
-                    </td>
-                    <td>
-                        @Html.DisplayNameForModel()
-                    </td>
-                    <td>
-                        @Html.TextBoxFor(m => m.Dependent.Age, htmlAttributes: new { @class = "form-control" })
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @Html.LabelForModel("Model.Dependent.Name", htmlAttributes: new { @class = "form-control" })
-                    </td>
-                    <td>
-                        @Html.DisplayNameForModel()
-                    </td>
-                    <td>
-                        @Html.TextBoxFor(m => m.Dependent.Name, htmlAttributes: new { @class = "form-control" })
-                    </td>
-                </tr>
-                <tr>
-                    <td>
                     </td>
                     <td></td>
                 </tr>
             </table>
         }
         @{ Html.BeginForm(method: FormMethod.Post, htmlAttributes: new { someAttribute = "some value", }); }
-            @Html.Hidden("Anon.Id")
+        @Html.Hidden("Anon.Id")
         <table>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Anon.Name</label>
+                    @Html.Label("Anon.Name")
                 </td>
                 <td>
                     @Html.TextBox("Anon.Name")
@@ -273,7 +224,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Anon.Address.Street</label>
+                    @Html.Label("Anon.Address.Street")
                 </td>
                 <td>
                     @Html.TextBox("Anon.Address.Street", (object)ViewBag.Anon.Address.Street)
@@ -281,7 +232,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Anon.Address.City</label>
+                    @Html.Label("Anon.Address.City")
                 </td>
                 <td>
                     @Html.TextBox("Anon.Address.City", value: null, format: "{0} (3)")
@@ -289,7 +240,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Anon.Address.State</label>
+                    @Html.Label("Anon.Address.State")
                 </td>
                 <td>
                     @Html.TextBox("Anon.Address.State", value: null, htmlAttributes: new { @class = "form-control" })
@@ -297,7 +248,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Anon.Address.Country</label>
+                    @Html.Label("Anon.Address.Country")
                 </td>
                 <td>
                     @Html.TextBox("Anon.Address.Country", value: null, format: "{0} (4)",
@@ -306,15 +257,15 @@
             </tr>
             <tr>
                 <td>
-                        <label class="control-label col-md-2">Password</label>
-                    </td>
-                    <td>
-                        @Html.Password("Password", "some string")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
+                    @Html.Label("Password")
+                </td>
+                <td>
+                    @Html.Password("Password", "some string")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
                 </td>
                 <td></td>
             </tr>
@@ -328,7 +279,7 @@
         <table>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Display Name</label>
+                    @Html.Label("Name", "Display Name")
                 </td>
                 <td>
                     '@Html.Display("Name")'
@@ -336,7 +287,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Display Dependent.Name</label>
+                    @Html.Label("Dependent.Name", "Display Dependent.Name")
                 </td>
                 <td>
                     '@Html.Display("Dependent.Name")'
@@ -344,7 +295,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Display Alive</label>
+                    @Html.Label("Alive", "Display Alive")
                 </td>
                 <td>
                     '@Html.Display("Alive")'
@@ -352,7 +303,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Display Dependent.Alive</label>
+                    @Html.Label("Dependent.Alive", "Display Dependent.Alive")
                 </td>
                 <td>
                     '@Html.Display("Dependent.Alive")'
@@ -360,7 +311,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Display Age</label>
+                    @Html.Label("Age", "Display Age")
                 </td>
                 <td>
                     '@Html.Display("Age")'
@@ -368,7 +319,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">Display GPA</label>
+                    @Html.Label("GPA", "Display GPA")
                 </td>
                 <td>
                     '@Html.Display("GPA")'
@@ -380,7 +331,7 @@
         <table>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">DisplayFor Name</label>
+                    @Html.LabelFor(model => model.Name, "DisplayFor Name")
                 </td>
                 <td>
                     '@Html.DisplayFor(model => model.Name)'
@@ -388,7 +339,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">DisplayFor Dependent.Name</label>
+                    @Html.LabelFor(model => model.Name, "DisplayFor Dependent.Name")
                 </td>
                 <td>
                     '@Html.DisplayFor(model => model.Dependent.Name)'
@@ -396,7 +347,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">DisplayFor Alive</label>
+                    @Html.LabelFor(model => model.Alive, "DisplayFor Alive")
                 </td>
                 <td>
                     '@Html.DisplayFor(model => model.Alive)'
@@ -404,7 +355,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">DisplayFor Dependent.Alive</label>
+                    @Html.LabelFor(model => model.Dependent.Alive, "DisplayFor Dependent.Alive")
                 </td>
                 <td>
                     '@Html.DisplayFor(model => model.Dependent.Alive)'
@@ -412,7 +363,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">DisplayFor Age</label>
+                    @Html.LabelFor(model => model.Age, "DisplayFor Age")
                 </td>
                 <td>
                     '@Html.DisplayFor(model => model.Age)'
@@ -420,7 +371,7 @@
             </tr>
             <tr>
                 <td>
-                    <label class="control-label col-md-2">DisplayFor GPA</label>
+                    @Html.LabelFor(model => model.GPA, "DisplayFor GPA")
                 </td>
                 <td>
                     '@Html.DisplayFor(model => model.GPA)'
