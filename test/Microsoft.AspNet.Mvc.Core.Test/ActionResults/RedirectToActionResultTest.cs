@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Assert
             // Verifying if Redirect was called with the specific Url and parameter flag.
             // Thus we verify that the Url returned by UrlHelper is passed properly to
-            // Redirect method and that the method is called at-most once.
+            // Redirect method and that the method is called exactly once.
             httpResponse.Verify(r => r.Redirect(expectedUrl, expectedPermanentFlag), Times.Exactly(1));
         }
 
