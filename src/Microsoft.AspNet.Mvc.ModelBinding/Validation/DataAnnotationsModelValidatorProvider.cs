@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -19,78 +18,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class DataAnnotationsModelValidatorProvider : AssociatedValidatorProvider
     {
-        private readonly Dictionary<Type, DataAnnotationsValidatableObjectAdapterFactory> _validatableFactories =
-            new Dictionary<Type, DataAnnotationsValidatableObjectAdapterFactory>();
-
+        private static bool _addImplicitRequiredAttributeForValueTypes = true;
         private readonly Dictionary<Type, DataAnnotationsModelValidationFactory> _attributeFactories =
             BuildAttributeFactoriesDictionary();
 
-        private bool _addImplicitRequiredAttributeForValueTypes = true;
-
         // Factories for validation attributes
-        private DataAnnotationsModelValidationFactory _defaultAttributeFactory =
+        private static readonly DataAnnotationsModelValidationFactory _defaultAttributeFactory =
             (attribute) => new DataAnnotationsModelValidator(attribute);
 
         // Factories for IValidatableObject models
-        private DataAnnotationsValidatableObjectAdapterFactory _defaultValidatableFactory =
+        private static readonly DataAnnotationsValidatableObjectAdapterFactory _defaultValidatableFactory =
             () => new ValidatableObjectAdapter();
 
-        public bool AddImplicitRequiredAttributeForValueTypes
+        private static bool AddImplicitRequiredAttributeForValueTypes
         {
             get { return _addImplicitRequiredAttributeForValueTypes; }
             set { _addImplicitRequiredAttributeForValueTypes = value; }
-        }
-
-        public void RegisterAdapter([NotNull] Type attributeType,
-                                    [NotNull] Type adapterType)
-        {
-            if (!typeof(ValidationAttribute).IsAssignableFrom(attributeType))
-            {
-                throw new ArgumentException(
-                    Resources.FormatTypeMustDeriveFromType(attributeType.FullName, typeof(ValidationAttribute).FullName),
-                    "attributeType");
-            }
-
-            if (!typeof(IModelValidator).IsAssignableFrom(adapterType))
-            {
-                throw new ArgumentException(
-                    Resources.FormatTypeMustDeriveFromType(adapterType.FullName, typeof(IModelValidator).FullName),
-                    "adapterType");
-            }
-
-            var constructor = GetAttributeAdapterConstructor(attributeType, adapterType);
-            _attributeFactories[attributeType] = (attribute) => (IModelValidator)constructor.Invoke(new[] { attribute });
-        }
-
-        public void RegisterAdapterFactory([NotNull] Type attributeType,
-                                           [NotNull] DataAnnotationsModelValidationFactory factory)
-        {
-            if (!typeof(ValidationAttribute).IsAssignableFrom(attributeType))
-            {
-                throw new ArgumentException(
-                    Resources.FormatTypeMustDeriveFromType(attributeType.FullName, typeof(ValidationAttribute).FullName),
-                    "attributeType");
-            }
-
-            _attributeFactories[attributeType] = factory;
-        }
-
-        public void RegisterDefaultAdapter(Type adapterType)
-        {
-            if (!typeof(IModelValidator).IsAssignableFrom(adapterType))
-            {
-                throw new ArgumentException(
-                    Resources.FormatTypeMustDeriveFromType(adapterType.FullName, typeof(IModelValidator).FullName),
-                    "adapterType");
-            }
-
-            var constructor = GetAttributeAdapterConstructor(typeof(ValidationAttribute), adapterType);
-            _defaultAttributeFactory = (attribute) => (IModelValidator)constructor.Invoke(new[] { attribute });
-        }
-
-        public void RegisterDefaultAdapterFactory([NotNull] DataAnnotationsModelValidationFactory factory)
-        {
-            _defaultAttributeFactory = factory;
         }
 
         protected override IEnumerable<IModelValidator> GetValidators(ModelMetadata metadata, IEnumerable<Attribute> attributes)
@@ -111,12 +54,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Produce a validator if the type supports IValidatableObject
             if (typeof(IValidatableObject).IsAssignableFrom(metadata.ModelType))
             {
-                DataAnnotationsValidatableObjectAdapterFactory factory;
-                if (!_validatableFactories.TryGetValue(metadata.ModelType, out factory))
-                {
-                    factory = _defaultValidatableFactory;
-                }
-                results.Add(factory());
+                results.Add(_defaultValidatableFactory());
             }
 
             return results;
@@ -151,21 +89,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 dictionary,
                 attributeType,
                 (attribute) => new DataTypeAttributeAdapter((DataTypeAttribute)attribute, ruleName));
-        }
-
-        private static ConstructorInfo GetAttributeAdapterConstructor(Type attributeType, Type adapterType)
-        {
-            var constructor = adapterType.GetConstructor(new[] { attributeType });
-            if (constructor == null)
-            {
-                throw new ArgumentException(
-                    Resources.FormatDataAnnotationsModelValidatorProvider_ConstructorRequirements(
-                        adapterType.FullName,
-                        attributeType.FullName),
-                    "adapterType");
-            }
-
-            return constructor;
         }
     }
 }
