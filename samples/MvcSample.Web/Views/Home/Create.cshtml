@@ -50,6 +50,9 @@
                     <td>
                         @Html.TextBox("Name")
                     </td>
+                    <td>
+                        @Html.ValidationMessage("Name.Name", "Name is required", new { @style = "font-weight: bold" })
+                    </td>
                 </tr>
                 <tr>
                     <td>
