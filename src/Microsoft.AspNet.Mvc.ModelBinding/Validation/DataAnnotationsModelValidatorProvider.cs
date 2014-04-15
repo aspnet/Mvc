@@ -44,8 +44,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void RegisterAdapter([NotNull] Type attributeType,
                                     [NotNull] Type adapterType)
         {
-            EnsureTypeDerivesFrom(typeof(ValidationAttribute), attributeType);
-            EnsureTypeDerivesFrom(typeof(IModelValidator), adapterType);
+            if (!typeof(ValidationAttribute).IsAssignableFrom(attributeType))
+            {
+                throw new ArgumentException(
+                    Resources.FormatTypeMustDeriveFromType(attributeType.FullName, typeof(ValidationAttribute).FullName),
+                    "attributeType");
+            }
+
+            if (!typeof(IModelValidator).IsAssignableFrom(adapterType))
+            {
+                throw new ArgumentException(
+                    Resources.FormatTypeMustDeriveFromType(adapterType.FullName, typeof(IModelValidator).FullName),
+                    "adapterType");
+            }
+
             var constructor = GetAttributeAdapterConstructor(attributeType, adapterType);
             _attributeFactories[attributeType] = (attribute) => (IModelValidator)constructor.Invoke(new[] { attribute });
         }
@@ -53,15 +65,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void RegisterAdapterFactory([NotNull] Type attributeType,
                                            [NotNull] DataAnnotationsModelValidationFactory factory)
         {
-            EnsureTypeDerivesFrom(typeof(ValidationAttribute), attributeType);
+            if (!typeof(ValidationAttribute).IsAssignableFrom(attributeType))
+            {
+                throw new ArgumentException(
+                    Resources.FormatTypeMustDeriveFromType(attributeType.FullName, typeof(ValidationAttribute).FullName),
+                    "attributeType");
+            }
+
             _attributeFactories[attributeType] = factory;
         }
 
         public void RegisterDefaultAdapter(Type adapterType)
         {
-            EnsureTypeDerivesFrom(typeof(IModelValidator), adapterType);
-            ConstructorInfo constructor = GetAttributeAdapterConstructor(typeof(ValidationAttribute), adapterType);
+            if (!typeof(IModelValidator).IsAssignableFrom(adapterType))
+            {
+                throw new ArgumentException(
+                    Resources.FormatTypeMustDeriveFromType(adapterType.FullName, typeof(IModelValidator).FullName),
+                    "adapterType");
+            }
 
+            var constructor = GetAttributeAdapterConstructor(typeof(ValidationAttribute), adapterType);
             _defaultAttributeFactory = (attribute) => (IModelValidator)constructor.Invoke(new[] { attribute });
         }
 
@@ -111,12 +134,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         private static void AddValidationAttributeAdapter(Dictionary<Type, DataAnnotationsModelValidationFactory> dictionary,
-                                                          Type validataionAttributeType,
+                                                          Type validationAttributeType,
                                                           DataAnnotationsModelValidationFactory factory)
         {
-            if (validataionAttributeType != null)
+            if (validationAttributeType != null)
             {
-                dictionary.Add(validataionAttributeType, factory);
+                dictionary.Add(validationAttributeType, factory);
             }
         }
 
@@ -128,18 +151,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 dictionary,
                 attributeType,
                 (attribute) => new DataTypeAttributeAdapter((DataTypeAttribute)attribute, ruleName));
-        }
-
-        private static void EnsureTypeDerivesFrom(Type expectedType, Type type)
-        {
-            if (!expectedType.IsAssignableFrom(type))
-            {
-                throw new ArgumentException(
-                    Resources.FormatTypeMustDeriveFromType(
-                        type.FullName,
-                        expectedType.FullName),
-                    "attributeType");
-            }
         }
 
         private static ConstructorInfo GetAttributeAdapterConstructor(Type attributeType, Type adapterType)

@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class DataTypeAttributeAdapter : DataAnnotationsModelValidator
     {
-        public DataTypeAttributeAdapter([NotNull] DataTypeAttribute attribute,
+        public DataTypeAttributeAdapter(DataTypeAttribute attribute,
                                         [NotNull] string ruleName)
             : base(attribute)
         {
