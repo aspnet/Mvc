@@ -174,6 +174,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>The HTML markup for each property in the model.</returns>
         HtmlString DisplayForModel(string templateName, string htmlFieldName, object additionalViewData);
 
+        HtmlString DisplayName(string expression);
+
+        HtmlString DisplayNameFor<TValue>(Expression<Func<TModel, TValue>> expression);
+
         /// <summary>
         /// Returns a single-selection HTML {select} element using the specified name of the form field,
         /// list items, option label, and HTML attributes.
@@ -239,6 +243,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="name">The name of the HTML element.</param>
         /// <returns>The ID of the HTML element.</returns>
         string GenerateIdFromName(string name);
+
+        HtmlString Label(string expression, string labelText, object htmlAttributes);
+
+        HtmlString LabelFor<TValue>(Expression<Func<TModel, TValue>> expression,
+                                    string labelText,
+                                    object htmlAttributes);
 
         /// <summary>
         /// Render an input element of type "hidden".

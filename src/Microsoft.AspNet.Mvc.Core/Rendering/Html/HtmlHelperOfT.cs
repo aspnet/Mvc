@@ -82,6 +82,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                    additionalViewData);
         }
 
+        public HtmlString DisplayNameFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression)
+        {
+            var metadata = GetModelMetadata(expression);
+            return GenerateDisplayName(metadata, ExpressionHelper.GetExpressionText(expression));
+        }
+
+        public HtmlString LabelFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression, string labelText, object htmlAttributes)
+        {
+            var metadata = GetModelMetadata(expression);
+            return GenerateLabel(metadata, ExpressionHelper.GetExpressionText(expression), labelText, htmlAttributes);
+        }
+
         /// <inheritdoc />
         public HtmlString HiddenFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression,
             object htmlAttributes)
