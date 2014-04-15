@@ -72,16 +72,29 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                    additionalViewData);
         }
 
+        /// <inheritdoc />
         public HtmlString DisplayNameFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression)
         {
             var metadata = GetModelMetadata(expression);
             return GenerateDisplayName(metadata, ExpressionHelper.GetExpressionText(expression));
         }
 
-        public HtmlString LabelFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression, string labelText, object htmlAttributes)
+        /// <inheritdoc />
+        public HtmlString DisplayNameForInnerType<TInnerModel, TValue>(Expression<Func<TInnerModel, TValue>> expression)
         {
-            var metadata = GetModelMetadata(expression);
-            return GenerateLabel(metadata, ExpressionHelper.GetExpressionText(expression), labelText, htmlAttributes);
+            var metadata = ExpressionMetadataProvider.
+                                            FromLambdaExpression<TInnerModel, TValue>(
+                                                                                expression,
+                                                                                new ViewDataDictionary<TInnerModel>(
+                                                                                                    MetadataProvider),
+                                                                                MetadataProvider);
+            var expressionText = ExpressionHelper.GetExpressionText(expression);
+            if (metadata == null)
+            {
+                throw new InvalidOperationException(Resources.FormatHtmlHelper_NullModelMetadata(expressionText));
+            }
+
+            return GenerateDisplayName(metadata, expressionText);
         }
 
         /// <inheritdoc />
@@ -91,6 +104,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var metadata = GetModelMetadata(expression);
             return GenerateHidden(metadata, GetExpressionName(expression), metadata.Model, useViewData: false,
                 htmlAttributes: htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public HtmlString LabelFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression, string labelText, object htmlAttributes)
+        {
+            var metadata = GetModelMetadata(expression);
+            return GenerateLabel(metadata, ExpressionHelper.GetExpressionText(expression), labelText, htmlAttributes);
         }
 
         /// <inheritdoc />

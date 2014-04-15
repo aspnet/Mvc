@@ -9,7 +9,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             return html.Label(
                          expression,
-                         labelText: null, 
+                         labelText: null,
                          htmlAttributes: null);
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return html.LabelFor<TValue>(expression, labelText: null, htmlAttributes: null);
         }
 
-        public static HtmlString LabelFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html, 
+        public static HtmlString LabelFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                           [NotNull] Expression<Func<TModel, TValue>> expression,
                                                           string labelText)
         {
@@ -47,20 +47,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html, string labelText)
         {
-            return html.Label(string.Empty, labelText, htmlAttributes: null);
-        }
-
-        public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html, 
-                                                        object htmlAttributes)
-        {
-            return html.Label(string.Empty, labelText: null, htmlAttributes: htmlAttributes);
+            return html.Label(expression: string.Empty, labelText: labelText, htmlAttributes: null);
         }
 
         public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html,
-                                                        string labelText, 
                                                         object htmlAttributes)
         {
-            return html.Label(string.Empty, labelText, htmlAttributes);
+            return html.Label(expression: string.Empty, labelText: null, htmlAttributes: htmlAttributes);
+        }
+
+        public static HtmlString LabelForModel<TModel>([NotNull] this IHtmlHelper<TModel> html,
+                                                        string labelText,
+                                                        object htmlAttributes)
+        {
+            return html.Label(expression: string.Empty, labelText: labelText, htmlAttributes: htmlAttributes);
         }
     }
 }

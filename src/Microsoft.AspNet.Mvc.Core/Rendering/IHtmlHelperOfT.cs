@@ -175,9 +175,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>The HTML markup for each property in the model.</returns>
         HtmlString DisplayForModel(string templateName, string htmlFieldName, object additionalViewData);
 
+        /// <summary>
+        /// Gets the display name.
+        /// </summary>
+        /// <param name="expression">An expression that identifies the object that contains the display name.</param>
+        /// <returns>
+        /// The display name.
+        /// </returns>
         HtmlString DisplayName(string expression);
 
+        /// <summary>
+        /// Gets the display name for the model.
+        /// </summary>
+        /// <param name="expression">An expression that identifies the object that contains the display name.</param>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <returns>
+        /// The display name for the model.
+        /// </returns>
         HtmlString DisplayNameFor<TValue>(Expression<Func<TModel, TValue>> expression);
+
+        HtmlString DisplayNameForInnerType<TInnerModel, TValue>(Expression<Func<TInnerModel, TValue>> expression);
 
         /// <summary>
         /// Converts the value of the specified object to an HTML-encoded string.
@@ -207,13 +224,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="name">The name of the HTML element.</param>
         /// <returns>The ID of the HTML element.</returns>
         string GenerateIdFromName(string name);
-
-        HtmlString Label(string expression, string labelText, object htmlAttributes);
-
-        HtmlString LabelFor<TValue>(Expression<Func<TModel, TValue>> expression,
-                                    string labelText,
-                                    object htmlAttributes);
-
+        
         /// <summary>
         /// Render an input element of type "hidden".
         /// </summary>
@@ -242,6 +253,30 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>New <see cref="HtmlString"/> containing the rendered HTML.</returns>
         HtmlString HiddenFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression,
             object htmlAttributes);
+
+        /// <summary>
+        /// Returns an HTML label element and the property name of the property that is represented by the specified expression.
+        /// </summary>
+        /// <param name="expression">An expression that identifies the property to display.</param>
+        /// <param name="labelText">The label text.</param>
+        /// <param name="htmlAttributes">An object that contains the HTML attributes to set for the element.</param>
+        /// <returns>
+        /// An HTML label element and the property name of the property that is represented by the expression.
+        /// </returns>
+        HtmlString Label(string expression, string labelText, object htmlAttributes);
+
+        /// <summary>
+        /// Returns an HTML label element and the property name of the property that is represented by the specified expression.
+        /// </summary>
+        /// <param name="expression">An expression that identifies the property to display.</param>
+        /// <param name="htmlAttributes">An object that contains the HTML attributes to set for the element.</param>
+        /// <typeparam name="TValue">The type of the value.</typeparam> 
+        /// <returns>
+        /// An HTML label element and the property name of the property that is represented by the expression.
+        /// </returns>
+        HtmlString LabelFor<TValue>(Expression<Func<TModel, TValue>> expression,
+                                    string labelText,
+                                    object htmlAttributes);
 
         /// <summary>
         /// Gets the full HTML field name for the given expression <paramref name="name"/>.

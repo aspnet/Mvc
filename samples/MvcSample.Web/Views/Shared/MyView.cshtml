@@ -167,7 +167,7 @@
                 </tr>
                 <tr>
                     <td>
-                        @Html.Label("Address")
+                        @Html.LabelFor(m => m.Address, htmlAttributes: new { @class="control-label col-md-2" })
                     </td>
                     <td>
                         @Html.TextBoxFor(m => m.Address, htmlAttributes: new { @class = "form-control" })
@@ -186,7 +186,7 @@
                 </tr>
                 <tr>
                     <td>
-                        @Html.Label("Dependent.Alive")
+                        @Html.LabelFor(m => m.Dependent.Alive)
                     </td>
                     <td>
                         @Html.CheckBoxFor(m => m.Dependent.Alive)
@@ -197,7 +197,7 @@
                 </tr>
                 <tr>
                     <td>
-                        @Html.Label("Password")
+                        @Html.LabelFor(model => model.Password, htmlAttributes: new { @class="control-label col-md-2" })
                     </td>
                     <td>
                         @Html.PasswordFor(m => m.Password, htmlAttributes: new { @class = "form-control" })
@@ -212,64 +212,64 @@
             </table>
         }
         @{ Html.BeginForm(method: FormMethod.Post, htmlAttributes: new { someAttribute = "some value", }); }
-        @Html.Hidden("Anon.Id")
-        <table>
-            <tr>
-                <td>
-                    @Html.Label("Anon.Name")
-                </td>
-                <td>
-                    @Html.TextBox("Anon.Name")
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Html.Label("Anon.Address.Street")
-                </td>
-                <td>
-                    @Html.TextBox("Anon.Address.Street", (object)ViewBag.Anon.Address.Street)
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Html.Label("Anon.Address.City")
-                </td>
-                <td>
-                    @Html.TextBox("Anon.Address.City", value: null, format: "{0} (3)")
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Html.Label("Anon.Address.State")
-                </td>
-                <td>
-                    @Html.TextBox("Anon.Address.State", value: null, htmlAttributes: new { @class = "form-control" })
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Html.Label("Anon.Address.Country")
-                </td>
-                <td>
-                    @Html.TextBox("Anon.Address.Country", value: null, format: "{0} (4)",
-                                      htmlAttributes: new { @class = "form-control" })
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Html.Label("Password")
-                </td>
-                <td>
-                    @Html.Password("Password", "some string")
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
-                </td>
-                <td></td>
-            </tr>
-        </table>
+            @Html.Hidden("Anon.Id")
+            <table>
+                <tr>
+                    <td>
+                        @Html.Label("Anon.Name")
+                    </td>
+                    <td>
+                        @Html.TextBox("Anon.Name")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label("Anon.Address.Street")
+                    </td>
+                    <td>
+                        @Html.TextBox("Anon.Address.Street", (object)ViewBag.Anon.Address.Street)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label("Anon.Address.City")
+                    </td>
+                    <td>
+                        @Html.TextBox("Anon.Address.City", value: null, format: "{0} (3)")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label("Anon.Address.State")
+                    </td>
+                    <td>
+                        @Html.TextBox("Anon.Address.State", value: null, htmlAttributes: new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label("Anon.Address.Country")
+                    </td>
+                    <td>
+                        @Html.TextBox("Anon.Address.Country", value: null, format: "{0} (4)",
+                                          htmlAttributes: new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label("Password")
+                    </td>
+                    <td>
+                        @Html.Password("Password", "some string")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
         @{ Html.EndForm(); }
     </div>
 </div>
