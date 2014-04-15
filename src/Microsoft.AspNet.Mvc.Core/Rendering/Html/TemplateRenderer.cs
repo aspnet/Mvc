@@ -21,6 +21,25 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private string _templateName;
         private bool _readOnly;
 
+        private static readonly Dictionary<string, Func<IHtmlHelper<object>, Task<string>>> _defaultDisplayActions =
+            new Dictionary<string, Func<IHtmlHelper<object>, Task<string>>>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "EmailAddress", DefaultDisplayTemplates.EmailAddressTemplate },
+                { "HiddenInput", DefaultDisplayTemplates.HiddenInputTemplate },
+                { "Html", DefaultDisplayTemplates.HtmlTemplate },
+                { "Text", DefaultDisplayTemplates.StringTemplate },
+                { "Url", DefaultDisplayTemplates.UrlTemplate },
+                { "Collection", DefaultDisplayTemplates.CollectionTemplate },
+                { typeof(bool).Name, DefaultDisplayTemplates.BooleanTemplate },
+                { typeof(decimal).Name, DefaultDisplayTemplates.DecimalTemplate },
+                { typeof(string).Name, DefaultDisplayTemplates.StringTemplate },
+                { typeof(object).Name, DefaultDisplayTemplates.ObjectTemplate },
+            };
+
+        // TODO: Support Editor() and its default templates.
+        private static readonly Dictionary<string, Func<IHtmlHelper<object>, Task<string>>> _defaultEditorActions =
+            new Dictionary<string, Func<IHtmlHelper<object>, Task<string>>>(StringComparer.OrdinalIgnoreCase);
+
         public TemplateRenderer([NotNull] IViewEngine viewEngine, 
                                 [NotNull] ViewContext viewContext,
                                 [NotNull] ViewDataDictionary viewData,
@@ -75,8 +94,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private Dictionary<string, Func<IHtmlHelper<object>, Task<string>>> GetDefaultActions()
         {
-            // TODO: Implement default templates
-            return new Dictionary<string, Func<IHtmlHelper<object>, Task<string>>>(StringComparer.OrdinalIgnoreCase);
+            if (_readOnly)
+            {
+                return _defaultDisplayActions;
+            }
+            else
+            {
+                return _defaultEditorActions;
+            }
         }
 
         private IEnumerable<string> GetViewNames()
