@@ -70,8 +70,8 @@ namespace Microsoft.AspNet.Mvc.Filters
                         throw new InvalidOperationException("Type filter must implement IFilter");
                     }
 
-                    // TODO: Move activatorUtilities to come from the service provider.
-                    var typeFilter = ActivatorUtilities.CreateInstance(ServiceProvider, typeFilterSignature.ImplementationType) as IFilter;
+                    var activator = ServiceProvider.GetService<ITypeActivator>();
+                    var typeFilter = activator.CreateInstance(ServiceProvider, typeFilterSignature.ImplementationType) as IFilter;
 
                     ApplyFilterToContainer(typeFilter, filter);
                     filterItem.Filter = typeFilter;
