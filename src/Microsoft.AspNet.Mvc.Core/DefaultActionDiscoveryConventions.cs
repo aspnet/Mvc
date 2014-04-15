@@ -141,7 +141,9 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(
                             Resources.FormatActionNameAndHttpMethodOnly_CannotBeUsedTogether(
                                                                             methodInfo.Name, 
-                                                                            methodInfo.DeclaringType));
+                                                                            methodInfo.DeclaringType,
+                                                                            typeof(ActionNameAttribute).Name,
+                                                                            typeof(HttpMethodOnlyAttribute).Name));
             }
 
             var requiresActionNameMatch = actionAttributes.HttpMethodOnlyAttribute == null;
