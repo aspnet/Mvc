@@ -7,10 +7,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
     {
         public static HtmlString Label<TModel>([NotNull] this IHtmlHelper<TModel> html, string expression)
         {
-            return html.Label(
-                         expression,
-                         labelText: null,
-                         htmlAttributes: null);
+            return html.Label(expression,
+                             labelText: null,
+                             htmlAttributes: null);
         }
 
         public static HtmlString Label<TModel>([NotNull] this IHtmlHelper<TModel> html,

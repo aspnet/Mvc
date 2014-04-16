@@ -194,6 +194,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </returns>
         HtmlString DisplayNameFor<TValue>(Expression<Func<TModel, TValue>> expression);
 
+        /// <summary>
+        /// Gets the display name for the inner model if the current model represents a collection.
+        /// </summary>
+        /// <typeparam name="TInnerModel">The type of the inner model</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="expression">An expression that identifies the object that contains the display name.</param>
+        /// <returns>The display name for the inner model.</returns>
         HtmlString DisplayNameForInnerType<TInnerModel, TValue>(Expression<Func<TInnerModel, TValue>> expression);
 
         /// <summary>
@@ -224,7 +231,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="name">The name of the HTML element.</param>
         /// <returns>The ID of the HTML element.</returns>
         string GenerateIdFromName(string name);
-        
+
         /// <summary>
         /// Render an input element of type "hidden".
         /// </summary>
