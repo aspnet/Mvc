@@ -202,6 +202,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
         HtmlString ValidationMessage(string modelName, string message, object htmlAttributes);
 
         /// <summary>
+        /// Returns the validation message fpr the specified expression
+        /// </summary>
+        /// <param name="expression">An expression, relative to the current model.</param>
+        /// <param name="message">The message to be displayed if the specified field contains an error.</param>
+        /// <param name="htmlAttributes">Dictionary that contains the HTML attributes which should
+        /// be applied on the element</param>
+        /// <returns></returns>
+        HtmlString ValidationMessageFor<TProperty>(Expression<Func<TModel, TProperty>> expression, 
+                                                        string message, object htmlAttributes);
+
+        /// <summary>
         /// Returns the model value for the given expression <paramref name="expression"/>.
         /// </summary>
         /// <param name="expression">An expression, relative to the current model.</param>

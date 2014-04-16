@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -90,6 +92,31 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string modelName, string message, object htmlAttributes)
         {
             return htmlHelper.ValidationMessage(modelName, message, htmlAttributes);
+        }
+
+        public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+                                    [NotNull] Expression<Func<TModel, TProperty>> expression)
+        {
+            return ValidationMessageFor(htmlHelper, expression, message: null, htmlAttributes: null);
+        }
+
+        public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+                                    [NotNull] Expression<Func<TModel, TProperty>> expression, string message)
+        {
+            return ValidationMessageFor(htmlHelper, expression, message, htmlAttributes: null);
+        }
+
+        public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+                                    [NotNull] Expression<Func<TModel, TProperty>> expression, string message,
+                                    IDictionary<string, object> htmlAttributes)
+        {
+            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes);
+        }
+
+        public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+            [NotNull] Expression<Func<TModel, TProperty>> expression, string message, object htmlAttributes)
+        {
+            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes);
         }
     }
 }

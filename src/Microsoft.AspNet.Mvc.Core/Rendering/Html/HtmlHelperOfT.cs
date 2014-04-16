@@ -198,5 +198,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GenerateValue(ExpressionHelper.GetExpressionText(expression), metadata.Model, format,
                 useViewData: false);
         }
+
+        public HtmlString ValidationMessage(string modelName, string message, object htmlAttributes)
+        {
+            return GenerateValidationMessage(modelName, message, htmlAttributes);
+        }
+
+        public HtmlString ValidationMessageFor<TProperty>(Expression<Func<TModel, TProperty>> expression,
+                                                            string message, object htmlAttributes)
+        {
+            return GenerateValidationMessage(ExpressionHelper.GetExpressionText(expression), message, htmlAttributes);
+        }
     }
 }

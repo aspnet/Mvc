@@ -505,8 +505,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return divBuilder.ToHtmlString(TagRenderMode.Normal);
         }
 
-        public HtmlString ValidationMessage(string name, string message, object htmlAttributes)
+        public HtmlString GenerateValidationMessage(string expression, string message, object htmlAttributes)
         {
+            var name = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
             ModelState modelState;
             ViewData.ModelState.TryGetValue(name, out modelState);
 
@@ -516,7 +517,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 errors = modelState.Errors;
             }
 
-            bool hasError = errors != null && errors.Any();
+            var hasError = errors != null && errors.Any();
             if (!hasError && !ViewContext.UnobtrusiveJavaScriptEnabled)
             {
                 return null;
@@ -534,12 +535,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
                 if (ViewContext.UnobtrusiveJavaScriptEnabled)
                 {
-                    bool replaceValidationMessageContents = string.IsNullOrEmpty(message);
+                    var replaceValidationMessageContents = string.IsNullOrEmpty(message);
                     tagBuilder.MergeAttribute("data-valmsg-for", name);
                     tagBuilder.MergeAttribute("data-valmsg-replace",
                         replaceValidationMessageContents.ToString().ToLowerInvariant());
                 }
 
+                // TODO: (WebFX-217) Once WebFX-167 is fixed, modifying the field metadata to add the
+                // validation message + adding the client validation id in the field should
+                // be added here.
                 tagBuilder.AddCssClass(hasError ? ValidationMessageCssClassName : ValidationMessageValidCssClassName);
                 return tagBuilder.ToHtmlString(TagRenderMode.Normal);
             }
