@@ -363,6 +363,54 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
+        /// False
+        /// </summary>
+        internal static string Common_TriState_False
+        {
+            get { return GetString("Common_TriState_False"); }
+        }
+
+        /// <summary>
+        /// False
+        /// </summary>
+        internal static string FormatCommon_TriState_False()
+        {
+            return GetString("Common_TriState_False");
+        }
+
+        /// <summary>
+        /// Not Set
+        /// </summary>
+        internal static string Common_TriState_NotSet
+        {
+            get { return GetString("Common_TriState_NotSet"); }
+        }
+
+        /// <summary>
+        /// Not Set
+        /// </summary>
+        internal static string FormatCommon_TriState_NotSet()
+        {
+            return GetString("Common_TriState_NotSet");
+        }
+
+        /// <summary>
+        /// True
+        /// </summary>
+        internal static string Common_TriState_True
+        {
+            get { return GetString("Common_TriState_True"); }
+        }
+
+        /// <summary>
+        /// True
+        /// </summary>
+        internal static string FormatCommon_TriState_True()
+        {
+            return GetString("Common_TriState_True");
+        }
+
+        /// <summary>
         /// ViewData value must not be null.
         /// </summary>
         internal static string DynamicViewData_ViewDataNull
@@ -475,6 +523,22 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
+        /// The Collection template was used with an object of type '{0}', which does not implement System.IEnumerable.
+        /// </summary>
+        internal static string Templates_TypeMustImplementIEnumerable
+        {
+            get { return GetString("Templates_TypeMustImplementIEnumerable"); }
+        }
+
+        /// <summary>
+        /// The Collection template was used with an object of type '{0}', which does not implement System.IEnumerable.
+        /// </summary>
+        internal static string FormatTemplates_TypeMustImplementIEnumerable(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Templates_TypeMustImplementIEnumerable"), p0);
+        }
+
+        /// <summary>
         /// Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.
         /// </summary>
         internal static string TemplateHelpers_TemplateLimitations
@@ -559,7 +623,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var value = _resourceManager.GetString(name);
 
             System.Diagnostics.Debug.Assert(value != null);
-    
+
             if (formatterNames != null)
             {
                 for (var i = 0; i < formatterNames.Length; i++)

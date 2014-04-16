@@ -1,34 +1,34 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Web.Mvc.Properties;
-using System.Web.UI.WebControls;
+using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.Data.Entity;
 
-namespace System.Web.Mvc.Html
+namespace Microsoft.AspNet.Mvc.Rendering
 {
-    internal static class DefaultDisplayTemplates
+    public static class DefaultDisplayTemplates
     {
-        internal static string BooleanTemplate(HtmlHelper html)
+        public static string BooleanTemplate(IHtmlHelper<object> html)
         {
             bool? value = null;
-            if (html.ViewContext.ViewData.Model != null)
+            if (html.ViewData.Model != null)
             {
-                value = Convert.ToBoolean(html.ViewContext.ViewData.Model, CultureInfo.InvariantCulture);
+                value = Convert.ToBoolean(html.ViewData.Model, CultureInfo.InvariantCulture);
             }
 
-            return html.ViewContext.ViewData.ModelMetadata.IsNullableValueType
-                       ? BooleanTemplateDropDownList(value)
-                       : BooleanTemplateCheckbox(value ?? false);
+            return html.ViewData.ModelMetadata.IsNullableValueType ?
+                BooleanTemplateDropDownList(html, value) :
+                BooleanTemplateCheckbox(value ?? false);
         }
 
         private static string BooleanTemplateCheckbox(bool value)
         {
-            TagBuilder inputTag = new TagBuilder("input");
+            var inputTag = new TagBuilder("input");
             inputTag.AddCssClass("check-box");
             inputTag.Attributes["disabled"] = "disabled";
             inputTag.Attributes["type"] = "checkbox";
@@ -40,66 +40,91 @@ namespace System.Web.Mvc.Html
             return inputTag.ToString(TagRenderMode.SelfClosing);
         }
 
-        private static string BooleanTemplateDropDownList(bool? value)
+        private static string BooleanTemplateDropDownList(IHtmlHelper<object> html, bool? value)
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
 
-            TagBuilder selectTag = new TagBuilder("select");
+            var selectTag = new TagBuilder("select");
             selectTag.AddCssClass("list-box");
             selectTag.AddCssClass("tri-state");
             selectTag.Attributes["disabled"] = "disabled";
             builder.Append(selectTag.ToString(TagRenderMode.StartTag));
 
-            foreach (SelectListItem item in DefaultEditorTemplates.TriStateValues(value))
+            foreach (var item in TriStateValues(value))
             {
-                builder.Append(SelectExtensions.ListItemToOption(item));
+                var encodedText = html.Encode(item.Text);
+                var option = HtmlHelper.GenerateOption(item, encodedText);
+                builder.Append(option);
             }
 
             builder.Append(selectTag.ToString(TagRenderMode.EndTag));
             return builder.ToString();
         }
 
-        internal static string CollectionTemplate(HtmlHelper html)
+        // Will soon need to be shared with the default editor templates implementations.
+        internal static List<SelectListItem> TriStateValues(bool? value)
         {
-            return CollectionTemplate(html, TemplateHelpers.TemplateHelper);
+            return new List<SelectListItem>
+            {
+                new SelectListItem
+                {
+                    Text = Resources.Common_TriState_NotSet,
+                    Value = string.Empty,
+                    Selected = !value.HasValue
+                },
+                new SelectListItem
+                {
+                    Text = Resources.Common_TriState_True,
+                    Value = "true",
+                    Selected = (value == true),
+                },
+                new SelectListItem
+                {
+                    Text = Resources.Common_TriState_False,
+                    Value = "false",
+                    Selected = (value == false),
+                },
+            };
         }
 
-        internal static string CollectionTemplate(HtmlHelper html, TemplateHelpers.TemplateHelperDelegate templateHelper)
+        public static string CollectionTemplate(IHtmlHelper<object> html)
         {
-            object model = html.ViewContext.ViewData.ModelMetadata.Model;
+            var model = html.ViewData.ModelMetadata.Model;
             if (model == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
-            IEnumerable collection = model as IEnumerable;
+            var collection = model as IEnumerable;
             if (collection == null)
             {
                 throw new InvalidOperationException(
-                    String.Format(
-                        CultureInfo.CurrentCulture,
-                        MvcResources.Templates_TypeMustImplementIEnumerable,
-                        model.GetType().FullName));
+                    Resources.FormatTemplates_TypeMustImplementIEnumerable(model.GetType().FullName));
             }
 
-            Type typeInCollection = typeof(string);
-            Type genericEnumerableType = TypeHelpers.ExtractGenericInterface(collection.GetType(), typeof(IEnumerable<>));
+            var typeInCollection = typeof(string);
+            var genericEnumerableType = collection.GetType().ExtractGenericInterface(typeof(IEnumerable<>));
             if (genericEnumerableType != null)
             {
                 typeInCollection = genericEnumerableType.GetGenericArguments()[0];
             }
-            bool typeInCollectionIsNullableValueType = TypeHelpers.IsNullableValueType(typeInCollection);
 
-            string oldPrefix = html.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix;
+            var typeInCollectionIsNullableValueType = typeInCollection.IsNullableValueType();
+
+            var oldPrefix = html.ViewData.TemplateInfo.HtmlFieldPrefix;
 
             try
             {
-                html.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = String.Empty;
+                html.ViewData.TemplateInfo.HtmlFieldPrefix = string.Empty;
 
-                string fieldNameBase = oldPrefix;
-                StringBuilder result = new StringBuilder();
-                int index = 0;
+                var fieldNameBase = oldPrefix;
+                var result = new StringBuilder();
 
+                var serviceProvider = html.ViewContext.HttpContext.RequestServices;
+                var metadataProvider = serviceProvider.GetService<IModelMetadataProvider>();
+                var viewEngine = serviceProvider.GetService<IViewEngine>();
+
+                var index = 0;
                 foreach (object item in collection)
                 {
                     Type itemType = typeInCollection;
@@ -107,9 +132,21 @@ namespace System.Web.Mvc.Html
                     {
                         itemType = item.GetType();
                     }
-                    ModelMetadata metadata = ModelMetadataProviders.Current.GetMetadataForType(() => item, itemType);
-                    string fieldName = String.Format(CultureInfo.InvariantCulture, "{0}[{1}]", fieldNameBase, index++);
-                    string output = templateHelper(html, metadata, fieldName, null /* templateName */, DataBoundControlMode.ReadOnly, null /* additionalViewData */);
+
+                    var metadata = metadataProvider.GetMetadataForType(() => item, itemType);
+                    var fieldName = string.Format(CultureInfo.InvariantCulture, "{0}[{1}]", fieldNameBase, index++);
+
+                    var templateBuilder = new TemplateBuilder(
+                        viewEngine,
+                        html.ViewContext,
+                        html.ViewData,
+                        metadata,
+                        htmlFieldName: fieldName,
+                        templateName: null,
+                        readOnly: true,
+                        additionalViewData: null);
+
+                    var output = templateBuilder.Build();
                     result.Append(output);
                 }
 
@@ -117,83 +154,89 @@ namespace System.Web.Mvc.Html
             }
             finally
             {
-                html.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = oldPrefix;
+                html.ViewData.TemplateInfo.HtmlFieldPrefix = oldPrefix;
             }
         }
 
-        internal static string DecimalTemplate(HtmlHelper html)
+        public static string DecimalTemplate(IHtmlHelper<object> html)
         {
-            if (html.ViewContext.ViewData.TemplateInfo.FormattedModelValue == html.ViewContext.ViewData.ModelMetadata.Model)
+            if (html.ViewData.TemplateInfo.FormattedModelValue == html.ViewData.ModelMetadata.Model)
             {
-                html.ViewContext.ViewData.TemplateInfo.FormattedModelValue = String.Format(CultureInfo.CurrentCulture, "{0:0.00}", html.ViewContext.ViewData.ModelMetadata.Model);
+                html.ViewData.TemplateInfo.FormattedModelValue =
+                    string.Format(CultureInfo.CurrentCulture, "{0:0.00}", html.ViewData.ModelMetadata.Model);
             }
 
             return StringTemplate(html);
         }
 
-        internal static string EmailAddressTemplate(HtmlHelper html)
+        public static string EmailAddressTemplate(IHtmlHelper<object> html)
         {
-            return String.Format(CultureInfo.InvariantCulture,
+            return string.Format(CultureInfo.InvariantCulture,
                                  "<a href=\"mailto:{0}\">{1}</a>",
-                                 html.AttributeEncode(html.ViewContext.ViewData.Model),
-                                 html.Encode(html.ViewContext.ViewData.TemplateInfo.FormattedModelValue));
+                                 html.Encode(html.ViewData.Model),
+                                 html.Encode(html.ViewData.TemplateInfo.FormattedModelValue));
         }
 
-        internal static string HiddenInputTemplate(HtmlHelper html)
+        public static string HiddenInputTemplate(IHtmlHelper<object> html)
         {
-            if (html.ViewContext.ViewData.ModelMetadata.HideSurroundingHtml)
-            {
-                return String.Empty;
-            }
+            // TODO: add ModelMetadata.HideSurroundingHtml and use here (return string.Empty)
             return StringTemplate(html);
         }
 
-        internal static string HtmlTemplate(HtmlHelper html)
+        public static string HtmlTemplate(IHtmlHelper<object> html)
         {
-            return html.ViewContext.ViewData.TemplateInfo.FormattedModelValue.ToString();
+            return html.ViewData.TemplateInfo.FormattedModelValue.ToString();
         }
 
-        internal static string ObjectTemplate(HtmlHelper html)
+        public static string ObjectTemplate(IHtmlHelper<object> html)
         {
-            return ObjectTemplate(html, TemplateHelpers.TemplateHelper);
-        }
-
-        internal static string ObjectTemplate(HtmlHelper html, TemplateHelpers.TemplateHelperDelegate templateHelper)
-        {
-            ViewDataDictionary viewData = html.ViewContext.ViewData;
-            TemplateInfo templateInfo = viewData.TemplateInfo;
-            ModelMetadata modelMetadata = viewData.ModelMetadata;
-            StringBuilder builder = new StringBuilder();
+            var viewData = html.ViewData;
+            var templateInfo = viewData.TemplateInfo;
+            var modelMetadata = viewData.ModelMetadata;
+            var builder = new StringBuilder();
 
             if (modelMetadata.Model == null)
             {
-                // DDB #225237
                 return modelMetadata.NullDisplayText;
             }
 
             if (templateInfo.TemplateDepth > 1)
             {
-                // DDB #224751
-                return modelMetadata.SimpleDisplayText;
+                // TODO: add ModelMetadata.SimpleDisplayText and use here (return SimpleDisplayText)
+                return modelMetadata.Model.ToString();
             }
 
-            foreach (ModelMetadata propertyMetadata in modelMetadata.Properties.Where(pm => ShouldShow(pm, templateInfo)))
+            var serviceProvider = html.ViewContext.HttpContext.RequestServices;
+            var viewEngine = serviceProvider.GetService<IViewEngine>();
+
+            foreach (var propertyMetadata in modelMetadata.Properties.Where(pm => ShouldShow(pm, templateInfo)))
             {
-                if (!propertyMetadata.HideSurroundingHtml)
+                // TODO: add ModelMetadata.HideSurroundingHtml and use here (skip this block)
                 {
-                    string label = propertyMetadata.GetDisplayName();
-                    if (!String.IsNullOrEmpty(label))
+                    var label = propertyMetadata.GetDisplayName();
+                    if (!string.IsNullOrEmpty(label))
                     {
-                        builder.AppendFormat(CultureInfo.InvariantCulture, "<div class=\"display-label\">{0}</div>", label);
+                        builder.AppendFormat(CultureInfo.InvariantCulture, "<div class=\"display-label\">{0}</div>",
+                            label);
                         builder.AppendLine();
                     }
 
                     builder.Append("<div class=\"display-field\">");
                 }
 
-                builder.Append(templateHelper(html, propertyMetadata, propertyMetadata.PropertyName, null /* templateName */, DataBoundControlMode.ReadOnly, null /* additionalViewData */));
+                var templateBuilder = new TemplateBuilder(
+                    viewEngine,
+                    html.ViewContext,
+                    html.ViewData,
+                    propertyMetadata,
+                    htmlFieldName: propertyMetadata.PropertyName,
+                    templateName: null,
+                    readOnly: true,
+                    additionalViewData: null);
 
-                if (!propertyMetadata.HideSurroundingHtml)
+                builder.Append(templateBuilder.Build());
+
+                // TODO: add ModelMetadata.HideSurroundingHtml and use here (skip this block)
                 {
                     builder.AppendLine("</div>");
                 }
@@ -204,24 +247,24 @@ namespace System.Web.Mvc.Html
 
         private static bool ShouldShow(ModelMetadata metadata, TemplateInfo templateInfo)
         {
+            // TODO: add ModelMetadata.ShowForDisplay and include in this calculation (first)
             return
-                metadata.ShowForDisplay
-                && metadata.ModelType != typeof(EntityState)
-                && !metadata.IsComplexType
-                && !templateInfo.Visited(metadata);
+                metadata.ModelType != typeof(EntityState) &&
+                !metadata.IsComplexType &&
+                templateInfo.Visited(metadata);
         }
 
-        internal static string StringTemplate(HtmlHelper html)
+        public static string StringTemplate(IHtmlHelper<object> html)
         {
-            return html.Encode(html.ViewContext.ViewData.TemplateInfo.FormattedModelValue);
+            return html.Encode(html.ViewData.TemplateInfo.FormattedModelValue);
         }
 
-        internal static string UrlTemplate(HtmlHelper html)
+        public static string UrlTemplate(IHtmlHelper<object> html)
         {
-            return String.Format(CultureInfo.InvariantCulture,
+            return string.Format(CultureInfo.InvariantCulture,
                                  "<a href=\"{0}\">{1}</a>",
-                                 html.AttributeEncode(html.ViewContext.ViewData.Model),
-                                 html.Encode(html.ViewContext.ViewData.TemplateInfo.FormattedModelValue));
+                                 html.Encode(html.ViewData.Model),
+                                 html.Encode(html.ViewData.TemplateInfo.FormattedModelValue));
         }
     }
 }
