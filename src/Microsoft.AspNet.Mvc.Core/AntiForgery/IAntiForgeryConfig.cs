@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNet.Mvc.Filters;
-
-namespace Microsoft.AspNet.Mvc
+﻿namespace Microsoft.AspNet.Mvc
 {
     // Provides configuration information about the anti-forgery system.
     public interface IAntiForgeryConfig

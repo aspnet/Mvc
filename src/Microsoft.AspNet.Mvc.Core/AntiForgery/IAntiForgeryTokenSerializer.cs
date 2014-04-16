@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNet.Mvc.Filters;
-
-namespace Microsoft.AspNet.Mvc
+﻿namespace Microsoft.AspNet.Mvc
 {
     // Abstracts out the serialization process for an anti-forgery token
     internal interface IAntiForgeryTokenSerializer

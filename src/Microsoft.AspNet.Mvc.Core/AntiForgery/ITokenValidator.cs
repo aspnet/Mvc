@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNet.Abstractions;
-using System.Security.Principal;
+﻿using System.Security.Principal;
+using Microsoft.AspNet.Abstractions;
 
 namespace Microsoft.AspNet.Mvc
 {

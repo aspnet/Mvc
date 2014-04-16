@@ -1,10 +1,5 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
-using System;
+﻿
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
-using System.Security.Principal;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Security.DataProtection;
@@ -15,36 +10,31 @@ namespace Microsoft.AspNet.Mvc
     /// Provides access to the anti-forgery system, which provides protection against
     /// Cross-site Request Forgery (XSRF, also called CSRF) attacks.
     /// </summary>
-    public class AntiForgery
+    public sealed class AntiForgery
     {
-        private static readonly AntiForgeryWorker _worker = CreateSingletonAntiForgeryWorker();
-        private static readonly string _purpose =  "Microsoft.AspNet.Mvc.AntiXsrf.AntiForgeryToken.v1" ;
+        private static readonly string _purpose = "Microsoft.AspNet.Mvc.AntiXsrf.AntiForgeryToken.v1";
+        private readonly AntiForgeryWorker _worker;
 
-        private static AntiForgeryWorker CreateSingletonAntiForgeryWorker()
+        public AntiForgery(IAntiForgeryConfig config,
+            IClaimUidExtractor claimUidExtractor)
         {
-            // initialize the dependency chain
-            IAntiForgeryConfig config = new AntiForgeryConfigWrapper();
-
-            // TODO populate the IDataProtectionProvider using DI.
-            IDataProtectionProvider dataProtectionProvider = DataProtectionProvider.CreateNew();
-            IAntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer(dataProtectionProvider.CreateProtector(_purpose));
-            ITokenStore tokenStore = new AntiForgeryTokenStore(config, serializer);
-            IClaimUidExtractor claimUidExtractor = new DefaultClaimUidExtractor(config);
+            var serializer = new AntiForgeryTokenSerializer(DataProtectionProvider.CreateNew().CreateProtector(_purpose));
+            var tokenStore = new AntiForgeryTokenStore(config, serializer);
             var tokenProvider = new TokenValidator(config, claimUidExtractor);
-
-            return new AntiForgeryWorker(serializer, config, tokenStore, tokenProvider, tokenProvider);
+            _worker = new AntiForgeryWorker(serializer, config, tokenStore, tokenProvider, tokenProvider);
         }
 
         /// <summary>
         /// Generates an anti-forgery token for this request. This token can
         /// be validated by calling the Validate() method.
         /// </summary>
+        /// <param name="context">The http context associated with the current call.</param>
         /// <returns>An HTML string corresponding to an &lt;input type="hidden"&gt;
         /// element. This element should be put inside a &lt;form&gt;.</returns>
         /// <remarks>
         /// This method has a side effect: it may set a response cookie.
         /// </remarks>
-        public static HtmlString GetHtml(HttpContext context)
+        public HtmlString GetHtml(HttpContext context)
         {
             TagBuilder retVal = _worker.GetFormInputElement(context);
             return retVal.ToHtmlString(TagRenderMode.SelfClosing);
@@ -52,43 +42,34 @@ namespace Microsoft.AspNet.Mvc
 
         /// <summary>
         /// Generates an anti-forgery token pair (cookie and form token) for this request.
-        /// This method is similar to GetHtml(), but this method gives the caller control
+        /// This method is similar to GetHtml(HttpContext context), but this method gives the caller control
         /// over how to persist the returned values. To validate these tokens, call the
         /// appropriate overload of Validate.
         /// </summary>
+        /// <param name="context">The http context associated with the current call.</param>
         /// <param name="oldCookieToken">The anti-forgery token - if any - that already existed
         /// for this request. May be null. The anti-forgery system will try to reuse this cookie
         /// value when generating a matching form token.</param>
-        /// <param name="newCookieToken">Will contain a new cookie value if the old cookie token
-        /// was null or invalid. If this value is non-null when the method completes, the caller
-        /// must persist this value in the form of a response cookie, and the existing cookie value
-        /// should be discarded. If this value is null when the method completes, the existing
-        /// cookie value was valid and needn't be modified.</param>
-        /// <param name="formToken">The value that should be stored in the &lt;form&gt;. The caller
-        /// should take care not to accidentally swap the cookie and form tokens.</param>
-        /// <remarks>
-        /// Unlike the GetHtml() method, this method has no side effect. The caller
-        /// is responsible for setting the response cookie and injecting the returned
-        /// form token as appropriate.
         /// </remarks>
-        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#",
-            Justification = "Method is intended for advanced audiences.")]
-        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "2#",
-            Justification = "Method is intended for advanced audiences.")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static void GetTokens(HttpContext context, string oldCookieToken, out string newCookieToken, out string formToken)
+        public AntiForgeryTokenSet GetTokens(HttpContext context, string oldCookieToken)
         {
+            // Will contain a new cookie value if the old cookie token
+            // was null or invalid. If this value is non-null when the method completes, the caller
+            // must persist this value in the form of a response cookie, and the existing cookie value
+            // should be discarded. If this value is null when the method completes, the existing
+            // cookie value was valid and needn't be modified.
+            string newCookieToken;
+            string formToken;
             _worker.GetTokens(context, oldCookieToken, out newCookieToken, out formToken);
+            return new AntiForgeryTokenSet(formToken, newCookieToken);
         }
 
         /// <summary>
         /// Validates an anti-forgery token that was supplied for this request.
         /// The anti-forgery token may be generated by calling GetHtml().
         /// </summary>
-        /// <remarks>
-        /// Throws an HttpAntiForgeryException if validation fails.
-        /// </remarks>
-        public static void Validate(HttpContext context)
+        /// <param name="context">The http context associated with the current call.</param>
+        public void Validate(HttpContext context)
         {
             _worker.Validate(context);
         }
@@ -96,16 +77,18 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Validates an anti-forgery token pair that was generated by the GetTokens method.
         /// </summary>
+        /// <param name="context">The http context associated with the current call.</param>
         /// <param name="cookieToken">The token that was supplied in the request cookie.</param>
         /// <param name="formToken">The token that was supplied in the request form body.</param>
-        /// <remarks>
-        /// Throws an HttpAntiForgeryException if validation fails.
-        /// </remarks>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static void Validate(HttpContext context, string cookieToken, string formToken)
+        public void Validate(HttpContext context, string cookieToken, string formToken)
         {
             _worker.Validate(context, cookieToken, formToken);
         }
+
+        public void Validate(HttpContext context, AntiForgeryTokenSet antiforgeryTokenSet)
+        {
+            Validate(context, antiforgeryTokenSet.CookieToken, antiforgeryTokenSet.FormToken);
+        }
     }
 }
-

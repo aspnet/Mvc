@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Globalization;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Security.DataProtection;
 
 namespace Microsoft.AspNet.Mvc
@@ -15,7 +11,7 @@ namespace Microsoft.AspNet.Mvc
     // Represents a binary blob (token) that contains random data.
     // Useful for binary data inside a serialized stream.
     [DebuggerDisplay("{DebuggerString}")]
-    public sealed class BinaryBlob : IEquatable<BinaryBlob>
+    internal sealed class BinaryBlob : IEquatable<BinaryBlob>
     {
         private readonly byte[] _data;
 

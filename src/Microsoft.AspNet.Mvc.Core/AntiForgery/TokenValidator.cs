@@ -1,10 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Diagnostics.Contracts;
-using System.Globalization;
 using System.Security.Principal;
 using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -67,9 +65,8 @@ namespace Microsoft.AspNet.Mvc
                 && formToken.ClaimUid == null
                 && String.IsNullOrEmpty(formToken.AdditionalData))
             {
-                // TODO: Throw properException
                 // Application says user is authenticated, but we have no identifier for the user.
-                throw new InvalidOperationException("TokenValidator_AuthenticatedUserWithoutUsername");
+                throw new InvalidOperationException(Resources.FormatTokenValidator_AuthenticatedUserWithoutUsername(identity.GetType()));
             }
 
             return formToken;
@@ -86,27 +83,23 @@ namespace Microsoft.AspNet.Mvc
             // Were the tokens even present at all?
             if (sessionToken == null)
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateCookieMissingException(_config.CookieName);
+                throw new InvalidOperationException(Resources.FormatAntiForgeryToken_CookieMissing(_config.CookieName));
             }
             if (fieldToken == null)
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateFormFieldMissingException(_config.FormFieldName);
+                throw new InvalidOperationException(Resources.FormatAntiForgeryToken_FormFieldMissing(_config.FormFieldName));
             }
 
             // Do the tokens have the correct format?
             if (!sessionToken.IsSessionToken || fieldToken.IsSessionToken)
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateTokensSwappedException(_config.CookieName, _config.FormFieldName);
+                throw new InvalidOperationException(Resources.FormatAntiForgeryToken_TokensSwapped(_config.CookieName, _config.FormFieldName));
             }
 
             // Are the security tokens embedded in each incoming token identical?
             if (!Equals(sessionToken.SecurityToken, fieldToken.SecurityToken))
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateSecurityTokenMismatchException();
+                throw new InvalidOperationException(Resources.AntiForgeryToken_SecurityTokenMismatch);
             }
 
             // Is the incoming token meant for the current user?
@@ -115,7 +108,7 @@ namespace Microsoft.AspNet.Mvc
 
             if (identity != null && identity.IsAuthenticated)
             {
-                currentClaimUid = GetClaimUid( _claimUidExtractor.ExtractClaimUid(identity));
+                currentClaimUid = GetClaimUid(_claimUidExtractor.ExtractClaimUid(identity));
                 if (currentClaimUid == null)
                 {
                     currentUsername = identity.Name ?? String.Empty;
@@ -129,20 +122,17 @@ namespace Microsoft.AspNet.Mvc
 
             if (!String.Equals(fieldToken.Username, currentUsername, (useCaseSensitiveUsernameComparison) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateUsernameMismatchException(fieldToken.Username, currentUsername);
+                throw new InvalidOperationException(Resources.FormatAntiForgeryToken_UsernameMismatch(fieldToken.Username, currentUsername));
             }
             if (!Equals(fieldToken.ClaimUid, currentClaimUid))
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateClaimUidMismatchException();
+                throw new InvalidOperationException(Resources.AntiForgeryToken_ClaimUidMismatch);
             }
 
             // Is the AdditionalData valid?
             if (_config.AdditionalDataProvider != null && !_config.AdditionalDataProvider.ValidateAdditionalData(httpContext, fieldToken.AdditionalData))
             {
-                // TODO: Throw properException
-                //throw HttpAntiForgeryException.CreateAdditionalDataCheckFailedException();
+                throw new InvalidOperationException(Resources.AntiForgeryToken_AdditionalDataCheckFailed);
             }
         }
 

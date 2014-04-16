@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
-using System.Diagnostics.Contracts;
-using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.Mvc.Rendering;
+﻿
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Security.Principal;
+using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -30,7 +31,7 @@ namespace Microsoft.AspNet.Mvc
         {
             if (_config.RequireSSL && !httpContext.Request.IsSecure)
             {
-                throw new InvalidOperationException("AntiForgeryWorker_RequireSSL");
+                throw new InvalidOperationException(Resources.AntiForgeryWorker_RequireSSL);
             }
         }
 
@@ -59,10 +60,11 @@ namespace Microsoft.AspNet.Mvc
         {
             if (httpContext != null)
             {
-                var user = httpContext.User;
+                ClaimsPrincipal user = httpContext.User;
+             
                 if (user != null)
                 {
-                    return user.Identity;
+                   return user.Identity;
                 }
             }
 

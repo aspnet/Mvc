@@ -1,8 +1,5 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -16,7 +13,6 @@ namespace Microsoft.AspNet.Mvc
     {
         private const string NameIdentifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
 
-        private readonly ClaimsIdentityConverter _claimsIdentityConverter;
         private readonly IAntiForgeryConfig _config;
 
         public DefaultClaimUidExtractor(IAntiForgeryConfig config)
@@ -58,11 +54,11 @@ namespace Microsoft.AspNet.Mvc
             // configured so that each identity provider has a unique 'identityProvider'
             // claim.
             // By default, we look for 'nameIdentifier' claim.
-            Claim nameIdentifierClaim = claims.SingleOrDefault(claim => String.Equals(NameIdentifierClaimType, claim.ValueType, StringComparison.Ordinal));
+            Claim nameIdentifierClaim = claims.SingleOrDefault(claim => String.Equals(NameIdentifierClaimType, claim.Type, StringComparison.Ordinal));
             if (nameIdentifierClaim == null || String.IsNullOrEmpty(nameIdentifierClaim.Value))
             {
-                // TODO: Update the exception message.
-                throw new InvalidOperationException("DefaultClaimsNotPresent");
+                // TODO: The exception message would be decided based on the claim types we choose to expose.
+                throw new InvalidOperationException("Resources.ClaimUidExtractor_DefaultClaimsNotPresent");
             }
 
             return new string[]
@@ -72,11 +68,25 @@ namespace Microsoft.AspNet.Mvc
             };
         }
 
-     
         private static byte[] ComputeSHA256(IList<string> parameters)
         {
-            // TODO: find the right api to compute the hash.
-            throw new NotImplementedException();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    foreach (string parameter in parameters)
+                    {
+                        bw.Write(parameter); // also writes the length as a prefix; unambiguous
+                    }
+                    bw.Flush();
+
+                    using (SHA256 sha256 = SHA256.Create())
+                    {
+                        byte[] retVal = sha256.ComputeHash(ms.ToArray(), 0, checked((int)ms.Length));
+                        return retVal;
+                    }
+                }
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.Mvc.Filters;
 
 namespace Microsoft.AspNet.Mvc
 {

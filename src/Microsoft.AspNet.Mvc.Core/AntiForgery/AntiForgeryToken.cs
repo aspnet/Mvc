@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class AntiForgeryToken
+    internal sealed class AntiForgeryToken
     {
         internal const int SecurityTokenBitLength = 128;
         internal const int ClaimUidBitLength = 256;

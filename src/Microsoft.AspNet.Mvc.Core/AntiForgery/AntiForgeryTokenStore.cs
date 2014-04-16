@@ -1,5 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
-
+﻿
 using System;
 using Microsoft.AspNet.Abstractions;
 
@@ -31,7 +30,6 @@ namespace Microsoft.AspNet.Mvc
 
         public AntiForgeryToken GetFormToken(HttpContext httpContext)
         {
-            // TODO: Add proper exception handling.
             string value = httpContext.Request.GetFormAsync().Result[_config.FormFieldName];
             if (String.IsNullOrEmpty(value))
             {
