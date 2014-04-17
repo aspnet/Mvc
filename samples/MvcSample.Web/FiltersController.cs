@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Core.Filters;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Models;
 
@@ -34,6 +35,33 @@ namespace MvcSample.Web
         }
 
         public IActionResult Blocked(int age, string userName)
+        {
+            return Index(age, userName);
+        }
+
+        [Authorize("Permission", "CanViewPage")]
+        public IActionResult NotGrantedClaim(int age, string userName)
+        {
+            return Index(age, userName);
+        }
+
+        [Authorize(Users = "John")]
+        public IActionResult NotGrantedUser(int age, string userName)
+        {
+            return Index(age, userName);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public IActionResult NotGrantedRole(int age, string userName)
+        {
+            return Index(age, userName);
+        }
+
+        [FakeUser]
+        [Authorize("Permission", "CanViewPage", "CanViewAnything")]
+        [Authorize(Roles = "Administrator")]
+        [Authorize(Users = "John, Erik")]
+        public IActionResult AllGranted(int age, string userName)
         {
             return Index(age, userName);
         }
