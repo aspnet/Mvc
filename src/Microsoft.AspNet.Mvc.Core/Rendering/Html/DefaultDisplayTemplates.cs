@@ -42,12 +42,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private static string BooleanTemplateDropDownList(IHtmlHelper<object> html, bool? value)
         {
-            var builder = new StringBuilder();
-
             var selectTag = new TagBuilder("select");
             selectTag.AddCssClass("list-box");
             selectTag.AddCssClass("tri-state");
             selectTag.Attributes["disabled"] = "disabled";
+
+            var builder = new StringBuilder();
             builder.Append(selectTag.ToString(TagRenderMode.StartTag));
 
             foreach (var item in TriStateValues(value))
@@ -125,9 +125,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var viewEngine = serviceProvider.GetService<IViewEngine>();
 
                 var index = 0;
-                foreach (object item in collection)
+                foreach (var item in collection)
                 {
-                    Type itemType = typeInCollection;
+                    var itemType = typeInCollection;
                     if (item != null && !typeInCollectionIsNullableValueType)
                     {
                         itemType = item.GetType();
