@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNet.Abstractions;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.DependencyInjection.Fallback;
 using Microsoft.AspNet.Mvc;
@@ -11,12 +13,22 @@ namespace MvcSample.Web
     {
         public void Configuration(IBuilder builder)
         {
+            // This is a temporary change until we figure out a way to replace services already configured.
+            var services = CreateServices();
+            var serviceProvider = services.BuildServiceProvider(builder.ServiceProvider);
+            ConfigurationCore(builder, serviceProvider);
+        }
+
+        public ServiceCollection CreateServices()
+        {
             var services = new ServiceCollection();
             services.AddMvc();
             services.AddSingleton<PassThroughAttribute, PassThroughAttribute>();
+            return services;
+        }
 
-            var serviceProvider = services.BuildServiceProvider(builder.ServiceProvider);
-
+        public void ConfigurationCore(IBuilder builder, IServiceProvider serviceProvider)
+        {
             var routes = new RouteCollection()
             {
                 DefaultHandler = new MvcRouteHandler(),
