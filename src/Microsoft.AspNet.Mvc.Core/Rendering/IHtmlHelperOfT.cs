@@ -61,7 +61,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string fragment,
             object routeValues,
             object htmlAttributes);
-        
+
+        HtmlString AntiForgeryToken();
 
         /// <summary>
         /// Writes an opening <form> tag to the response. When the user submits the form,
