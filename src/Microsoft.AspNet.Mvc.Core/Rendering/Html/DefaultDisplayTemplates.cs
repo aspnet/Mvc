@@ -251,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return
                 metadata.ModelType != typeof(EntityState) &&
                 !metadata.IsComplexType &&
-                templateInfo.Visited(metadata);
+                !templateInfo.Visited(metadata);
         }
 
         public static string StringTemplate(IHtmlHelper<object> html)
