@@ -23,8 +23,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var metadata = validationContext.ModelMetadata;
             var memberName = metadata.PropertyName ?? metadata.ModelType.Name;
-            var instance = metadata.Model ?? validationContext.ContainerMetadata.Model;
-            var context = new ValidationContext(instance)
+            var context = new ValidationContext(metadata.Container ?? metadata.Model)
             {
                 DisplayName = metadata.GetDisplayName(),
                 MemberName = memberName
