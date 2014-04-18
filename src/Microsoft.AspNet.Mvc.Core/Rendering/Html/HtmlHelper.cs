@@ -505,48 +505,64 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return divBuilder.ToHtmlString(TagRenderMode.Normal);
         }
 
-        public HtmlString GenerateValidationMessage(string expression, string message, object htmlAttributes)
+        public HtmlString ValidationMessage(string modelName, string message, object htmlAttributes)
         {
-            var name = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
-            ModelState modelState;
-            ViewData.ModelState.TryGetValue(name, out modelState);
+            return GenerateValidationMessage(modelName, message, htmlAttributes);
+        }
 
-            ModelErrorCollection errors = null;
-            if (modelState != null)
-            {
-                errors = modelState.Errors;
-            }
+        protected virtual HtmlString GenerateValidationMessage(string expression, string message, object htmlAttributes)
+        {
+            var modelName = ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
+            var formContext = ViewContext.ClientValidationEnabled ? ViewContext.FormContext : null;
 
-            var hasError = errors != null && errors.Any();
-            if (!hasError && !ViewContext.UnobtrusiveJavaScriptEnabled)
+            if (!ViewData.ModelState.ContainsKey(modelName) && formContext == null)
             {
                 return null;
             }
-            else
-            {
-                string error = null;
-                if (hasError)
-                {
-                    error = message ?? errors.First().ErrorMessage;
-                }
 
-                var tagBuilder = new TagBuilder("span") { InnerHtml = Encode(error) };
-                tagBuilder.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes));
+            ModelState modelState;
+            ViewData.ModelState.TryGetValue(modelName, out modelState);
+
+            var modelErrors = (modelState == null) ? null : modelState.Errors;
+            var modelError = (((modelErrors == null) || (modelErrors.Count == 0)) ?
+                null : modelErrors.FirstOrDefault(m => !string.IsNullOrEmpty(m.ErrorMessage)) ?? modelErrors[0]);
+
+            if (modelError == null && formContext == null)
+            {
+                return null;
+            }
+
+            var builder = new TagBuilder("span");
+            builder.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes));
+            builder.AddCssClass((modelError != null) ? ValidationMessageCssClassName : 
+                ValidationMessageValidCssClassName);
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                builder.SetInnerText(message);
+            }
+            else if (modelError != null)
+            {
+                builder.SetInnerText(ValidationHelpers.GetUserErrorMessageOrDefault(modelError, modelState));
+            }
+
+            if (formContext != null)
+            {
+                var replaceValidationMessageContents = string.IsNullOrEmpty(message);
 
                 if (ViewContext.UnobtrusiveJavaScriptEnabled)
                 {
-                    var replaceValidationMessageContents = string.IsNullOrEmpty(message);
-                    tagBuilder.MergeAttribute("data-valmsg-for", name);
-                    tagBuilder.MergeAttribute("data-valmsg-replace",
+                    builder.MergeAttribute("data-valmsg-for", modelName);
+                    builder.MergeAttribute("data-valmsg-replace",
                         replaceValidationMessageContents.ToString().ToLowerInvariant());
                 }
 
                 // TODO: (WebFX-217) Once WebFX-167 is fixed, modifying the field metadata to add the
                 // validation message + adding the client validation id in the field should
                 // be added here.
-                tagBuilder.AddCssClass(hasError ? ValidationMessageCssClassName : ValidationMessageValidCssClassName);
-                return tagBuilder.ToHtmlString(TagRenderMode.Normal);
             }
+
+            return builder.ToHtmlString(TagRenderMode.Normal);
         }
 
         /// <summary>
