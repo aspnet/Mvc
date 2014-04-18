@@ -11,6 +11,22 @@ namespace Microsoft.AspNet.Mvc.Core
             = new ResourceManager("Microsoft.AspNet.Mvc.Core.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
+        /// The method '{0}' on type '{1}' cannot have both the '{2}' and '{3}' attributes. These attributes are incompatible with each other, consider removing either of them.
+        /// </summary>
+        internal static string ActionNameAndHttpMethodOnly_CannotBeUsedTogether
+        {
+            get { return GetString("ActionNameAndHttpMethodOnly_CannotBeUsedTogether"); }
+        }
+
+        /// <summary>
+        /// The method '{0}' on type '{1}' cannot have both the '{2}' and '{3}' attributes. These attributes are incompatible with each other, consider removing either of them.
+        /// </summary>
+        internal static string FormatActionNameAndHttpMethodOnly_CannotBeUsedTogether(object p0, object p1, object p2, object p3)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ActionNameAndHttpMethodOnly_CannotBeUsedTogether"), p0, p1, p2, p3);
+        }
+
+        /// <summary>
         /// The method '{0}' on type '{1}' returned an instance of '{2}'. Make sure to call Unwrap on the returned value to avoid unobserved faulted Task.
         /// </summary>
         internal static string ActionExecutor_WrappedTaskInstance

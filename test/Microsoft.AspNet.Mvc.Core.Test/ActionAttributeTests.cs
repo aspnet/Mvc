@@ -187,6 +187,78 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(actionName, result.Name);
         }
 
+        // TODO: This scenario will throw and hence fail all other tests.
+        // Add a separate assembly for these tests.
+        public async Task HttpMethodOnly_WithActionNameAttribute_IgnoresActionNameAttribute()
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext("DELETE"),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_HttpMethodOnly" },
+                                                { "action", "CustomActionName" }
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            // The match doesnt use the action name, otherwise the result would be non null.
+            Assert.Null(result);
+        }
+
+        [Theory]
+        [InlineData("PUT", "RpcMethod")]
+        [InlineData("POST", "RpcMethod")]
+        [InlineData("GET", "Index")]
+        [InlineData("POST", "Index")]
+        [InlineData("PATCH", "PatchOrders")]
+        [InlineData("OPTIONS", "PatchOrders")]
+        [InlineData("HEAD", "PatchOrders")]
+        public async Task HttpMethodOnly_UnreachableByActionName(string verb, string actionName)
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext(verb),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_HttpMethodOnly" },
+                                                { "action", actionName }
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            Assert.Equal(null, result);
+        }
+
+        [Theory]
+        [InlineData("PUT", "RpcMethod")]
+        [InlineData("DELETE", "ActionWithActionName")]
+        [InlineData("GET", "Index")]
+        [InlineData("POST", "Index")]
+        [InlineData("PATCH", "PatchOrders")]
+        [InlineData("OPTIONS", "PatchOrders")]
+        [InlineData("HEAD", "PatchOrders")]
+        public async Task HttpMethodOnly_ReachableByAllSupportedRestVerbs(string verb, string actionName)
+        {
+            // Arrange
+            var requestContext = new RequestContext(
+                                        GetHttpContext(verb),
+                                        new Dictionary<string, object>
+                                            {
+                                                { "controller", "HttpMethodAttributeTests_HttpMethodOnly" },
+                                            });
+
+            // Act
+            var result = await InvokeActionSelector(requestContext);
+
+            // Assert
+            Assert.Equal(actionName, result.Name);
+        }
+
         private async Task<ActionDescriptor> InvokeActionSelector(RequestContext context)
         {
             return await InvokeActionSelector(context, _actionDiscoveryConventions);
@@ -241,7 +313,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         #region Controller Classes
 
-        private class NonActionController
+        private class NonActionController     
+        private class HttpMethodAttributeTests_HttpMethodOnlyController
         {
             [NonAction]
             public void Put()
@@ -256,6 +329,38 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             [NonAction]
             [HttpGet]
             public void RPCMethodWithHttpGet()
+            {
+            }
+        }
+
+        private class HttpMethodAttributeTests_RestActionAttributeController
+	{
+            // Can be reached by REST GET and POST.
+            // Please note that without an explicit AcceptVerb attribute, 
+            // all http verbs will be allowed for it 
+            // (i.e. is even though this is the default method, since the user chose to override 
+            // this will no longer treated as the default method).
+            [HttpMethodOnly]
+            [AcceptVerbs("Post","Get")]
+            public void Index()
+            {
+            }
+
+            [HttpMethodOnly]
+            [AcceptVerbs("Patch","Options","Head")]
+            public void PatchOrders()
+            {
+            }
+
+            [HttpMethodOnly]
+            [AcceptVerbs("Put")]
+            public void RpcMethod()
+            {
+            }
+
+            [HttpMethodOnly]
+            [AcceptVerbs("Delete")]
+            public void ActionWithActionName()
             {
             }
         }

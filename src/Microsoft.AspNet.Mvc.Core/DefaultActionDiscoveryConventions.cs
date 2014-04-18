@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.Mvc.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -112,11 +113,13 @@ namespace Microsoft.AspNet.Mvc
         {
             var attributes = methodInfo.GetCustomAttributes();
             var actionNameAttribute = attributes.OfType<ActionNameAttribute>().FirstOrDefault();
+            var httpMethodOnlyAttribute = attributes.OfType<HttpMethodOnlyAttribute>().FirstOrDefault();
             var httpMethodConstraints = attributes.OfType<IActionHttpMethodProvider>();
             return new ActionAttributes()
             {
                 HttpMethodProviderAttributes = httpMethodConstraints,
-                ActionNameAttribute = actionNameAttribute
+                ActionNameAttribute = actionNameAttribute,
+                HttpMethodOnlyAttribute = httpMethodOnlyAttribute
             };
         }
 
@@ -133,6 +136,17 @@ namespace Microsoft.AspNet.Mvc
             var actionNameAttribute = actionAttributes.ActionNameAttribute;
             var actionName = actionNameAttribute != null ? actionNameAttribute.Name : methodInfo.Name;
 
+            if (actionNameAttribute != null && actionAttributes.HttpMethodOnlyAttribute != null)
+            {
+                throw new InvalidOperationException(
+                            Resources.FormatActionNameAndHttpMethodOnly_CannotBeUsedTogether(
+                                                                            methodInfo.Name, 
+                                                                            methodInfo.DeclaringType,
+                                                                            typeof(ActionNameAttribute).Name,
+                                                                            typeof(HttpMethodOnlyAttribute).Name));
+            }
+
+            var requiresActionNameMatch = actionAttributes.HttpMethodOnlyAttribute == null;
             var httpMethodProviders = actionAttributes.HttpMethodProviderAttributes;
             var httpMethods = httpMethodProviders.SelectMany(x => x.HttpMethods).Distinct().ToArray();
 
@@ -140,7 +154,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 HttpMethods = httpMethods,
                 ActionName = actionName,
-                RequireActionNameMatch = true
+                RequireActionNameMatch = requiresActionNameMatch
             };
         }
 
@@ -209,10 +223,11 @@ namespace Microsoft.AspNet.Mvc
         {
             public IEnumerable<IActionHttpMethodProvider> HttpMethodProviderAttributes { get; set; }
             public ActionNameAttribute ActionNameAttribute { get; set; }
+            public HttpMethodOnlyAttribute HttpMethodOnlyAttribute { get; set; }
 
             public bool Any()
             {
-                return ActionNameAttribute != null || HttpMethodProviderAttributes.Any();
+                return ActionNameAttribute != null || HttpMethodOnlyAttribute != null || HttpMethodProviderAttributes.Any();
             }
         }
     }

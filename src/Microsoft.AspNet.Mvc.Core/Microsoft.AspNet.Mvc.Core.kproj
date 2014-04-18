@@ -93,6 +93,7 @@
     <Compile Include="HttpDeleteAttribute.cs" />
     <Compile Include="HttpGetAttribute.cs" />
     <Compile Include="HttpMethodConstraint.cs" />
+    <Compile Include="HttpMethodOnlyAttribute.cs" />
     <Compile Include="HttpPatchAttribute.cs" />
     <Compile Include="HttpPostAttribute.cs" />
     <Compile Include="HttpPutAttribute.cs" />
