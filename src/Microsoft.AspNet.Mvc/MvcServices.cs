@@ -78,8 +78,8 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IViewComponentHelper, DefaultViewComponentHelper>();
 
             yield return describe.Singleton<IClaimUidExtractor, DefaultClaimUidExtractor>();
-            yield return describe.Singleton<IAntiForgeryConfig, AntiForgeryConfigWrapper>();
             yield return describe.Singleton<AntiForgery, AntiForgery>();
+            yield return describe.Singleton<IAntiForgeryAdditionalDataProvider, DefaultAntiForgeryAdditionalDataProvider>(); 
 
             yield return
                describe.Describe(

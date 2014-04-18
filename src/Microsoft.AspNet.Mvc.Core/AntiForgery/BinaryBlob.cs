@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Text;
 using Microsoft.AspNet.Security.DataProtection;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -94,6 +95,7 @@ namespace Microsoft.AspNet.Mvc
             return data;
         }
 
+        [MethodImplAttribute(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)] 
         private static bool AreByteArraysEqual(byte[] a, byte[] b)
         {
             if (a == null || b == null || a.Length != b.Length)

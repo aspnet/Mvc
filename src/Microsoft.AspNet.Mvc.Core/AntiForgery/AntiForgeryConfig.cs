@@ -1,7 +1,4 @@
-﻿
-using System.ComponentModel;
-
-namespace Microsoft.AspNet.Mvc
+﻿namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Provides programmatic configuration for the anti-forgery token system.
@@ -9,20 +6,8 @@ namespace Microsoft.AspNet.Mvc
     public static class AntiForgeryConfig
     {
         internal const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
-
+        private const string AntiForgeryCookieTokenName = "__RequestVerificationCookieToken";
         private static string _cookieName;
-        private static string _uniqueClaimTypeIdentifier;
-
-        /// <summary>
-        /// Specifies an object that can provide additional data to put into all
-        /// generated tokens and that can validate additional data in incoming
-        /// tokens.
-        /// </summary>
-        public static IAntiForgeryAdditionalDataProvider AdditionalDataProvider
-        {
-            get;
-            set;
-        }
 
         /// <summary>
         /// Specifies the name of the cookie that is used by the anti-forgery
@@ -71,28 +56,10 @@ namespace Microsoft.AspNet.Mvc
             set;
         }
 
-        /// <summary>
-        /// Specifies whether the anti-forgery system should skip checking
-        /// for conditions that might indicate misuse of the system. Please
-        /// use caution when setting this switch, as improper use could open
-        /// security holes in the application.
-        /// </summary>
-        /// <remarks>
-        /// Setting this switch will disable several checks, including:
-        /// - Identity.IsAuthenticated = true without Identity.Name being set
-        /// - special-casing claims-based identities
-        /// </remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static bool SuppressIdentityHeuristicChecks
-        {
-            get;
-            set;
-        }
-
-        // TODO: Replace the stub.
+        // TODO: Replace the stub. 
         private static string GetAntiForgeryCookieName()
         {
-            return AntiForgeryTokenFieldName;
+            return AntiForgeryCookieTokenName;
         }
     }
 }

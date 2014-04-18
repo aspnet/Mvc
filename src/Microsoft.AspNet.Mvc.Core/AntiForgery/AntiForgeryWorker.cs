@@ -7,6 +7,7 @@ using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -37,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
 
         private AntiForgeryToken DeserializeToken(string serializedToken)
         {
-            return (!String.IsNullOrEmpty(serializedToken))
+            return (!string.IsNullOrEmpty(serializedToken))
                 ? _serializer.Deserialize(serializedToken)
                 : null;
         }
@@ -56,7 +57,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private static IIdentity ExtractIdentity(HttpContext httpContext)
+        private static ClaimsIdentity ExtractIdentity(HttpContext httpContext)
         {
             if (httpContext != null)
             {
@@ -64,7 +65,9 @@ namespace Microsoft.AspNet.Mvc
              
                 if (user != null)
                 {
-                   return user.Identity;
+                    // We only support ClaimsIdentity.
+                    // Todo remove this once httpContext.User moves to ClaimsIdentity.
+                   return user.Identity as ClaimsIdentity;
                 }
             }
 
@@ -159,13 +162,13 @@ namespace Microsoft.AspNet.Mvc
         // [ ENTRY POINT ]
         // Given an HttpContext, validates that the anti-XSRF tokens contained
         // in the cookies & form are OK for this request.
-        public void Validate(HttpContext httpContext)
+        public async Task ValidateAsync(HttpContext httpContext)
         {
             CheckSSLConfig(httpContext);
 
             // Extract cookie & form tokens
             AntiForgeryToken cookieToken = _tokenStore.GetCookieToken(httpContext);
-            AntiForgeryToken formToken = _tokenStore.GetFormToken(httpContext);
+            AntiForgeryToken formToken = await _tokenStore.GetFormTokenAsync(httpContext);
 
             // Validate
             _validator.ValidateTokens(httpContext, ExtractIdentity(httpContext), cookieToken, formToken);

@@ -1,5 +1,6 @@
 ﻿using System.Security.Principal;
 using Microsoft.AspNet.Abstractions;
+using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -11,6 +12,6 @@ namespace Microsoft.AspNet.Mvc
 
         // Given a cookie token, generates a corresponding form token.
         // The incoming cookie token must be valid.
-        AntiForgeryToken GenerateFormToken(HttpContext httpContext, IIdentity identity, AntiForgeryToken cookieToken);
+        AntiForgeryToken GenerateFormToken(HttpContext httpContext, ClaimsIdentity identity, AntiForgeryToken cookieToken);
     }
 }

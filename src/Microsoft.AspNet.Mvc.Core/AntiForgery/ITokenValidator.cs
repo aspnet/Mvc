@@ -1,5 +1,6 @@
 ﻿using System.Security.Principal;
 using Microsoft.AspNet.Abstractions;
+using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -11,6 +12,6 @@ namespace Microsoft.AspNet.Mvc
         bool IsCookieTokenValid(AntiForgeryToken cookieToken);
 
         // Validates a (cookie, form) token pair.
-        void ValidateTokens(HttpContext httpContext, IIdentity identity, AntiForgeryToken cookieToken, AntiForgeryToken formToken);
+        void ValidateTokens(HttpContext httpContext, ClaimsIdentity identity, AntiForgeryToken cookieToken, AntiForgeryToken formToken);
     }
 }

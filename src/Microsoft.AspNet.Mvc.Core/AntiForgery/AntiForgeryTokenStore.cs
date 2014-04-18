@@ -1,6 +1,7 @@
 ﻿
 using System;
 using Microsoft.AspNet.Abstractions;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -28,10 +29,11 @@ namespace Microsoft.AspNet.Mvc
             return _serializer.Deserialize(cookie);
         }
 
-        public AntiForgeryToken GetFormToken(HttpContext httpContext)
+        public async Task<AntiForgeryToken> GetFormTokenAsync(HttpContext httpContext)
         {
-            string value = httpContext.Request.GetFormAsync().Result[_config.FormFieldName];
-            if (String.IsNullOrEmpty(value))
+            var form = await httpContext.Request.GetFormAsync();
+            string value = form[_config.FormFieldName];
+            if (string.IsNullOrEmpty(value))
             {
                 // did not exist
                 return null;
@@ -46,8 +48,7 @@ namespace Microsoft.AspNet.Mvc
             CookieOptions options = new CookieOptions() { HttpOnly = true };
 
             // Note: don't use "newCookie.Secure = _config.RequireSSL;" since the default
-            // value of newCookie.Secure is automatically populated from the <httpCookies>
-            // config element.
+            // value of newCookie.Secure is poulated out of band.
             if (_config.RequireSSL)
             {
                 options.Secure = true;

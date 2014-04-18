@@ -1,16 +1,7 @@
-﻿
-namespace Microsoft.AspNet.Mvc
+﻿namespace Microsoft.AspNet.Mvc
 {
     public sealed class AntiForgeryConfigWrapper : IAntiForgeryConfig
     {
-        public IAntiForgeryAdditionalDataProvider AdditionalDataProvider
-        {
-            get
-            {
-                return AntiForgeryConfig.AdditionalDataProvider;
-            }
-        }
-
         public string CookieName
         {
             get { return AntiForgeryConfig.CookieName; }
@@ -24,11 +15,6 @@ namespace Microsoft.AspNet.Mvc
         public bool RequireSSL
         {
             get { return AntiForgeryConfig.RequireSsl; }
-        }
-
-        public bool SuppressIdentityHeuristicChecks
-        {
-            get { return AntiForgeryConfig.SuppressIdentityHeuristicChecks; }
         }
 
         public bool SuppressXFrameOptionsHeader

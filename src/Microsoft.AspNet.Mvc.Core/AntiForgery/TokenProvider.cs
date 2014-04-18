@@ -3,18 +3,21 @@ using System.Diagnostics.Contracts;
 using System.Security.Principal;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
+using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal sealed class TokenValidator : ITokenValidator, ITokenGenerator
+    internal sealed class TokenProvider : ITokenValidator, ITokenGenerator
     {
         private readonly IClaimUidExtractor _claimUidExtractor;
         private readonly IAntiForgeryConfig _config;
+        private readonly IAntiForgeryAdditionalDataProvider _additionalDataProvider;
 
-        internal TokenValidator(IAntiForgeryConfig config, IClaimUidExtractor claimUidExtractor)
+        internal TokenProvider(IAntiForgeryConfig config, IClaimUidExtractor claimUidExtractor, IAntiForgeryAdditionalDataProvider additionalDataProvider)
         {
             _config = config;
             _claimUidExtractor = claimUidExtractor;
+            _additionalDataProvider = additionalDataProvider;
         }
 
         public AntiForgeryToken GenerateCookieToken()
@@ -26,7 +29,7 @@ namespace Microsoft.AspNet.Mvc
             };
         }
 
-        public AntiForgeryToken GenerateFormToken(HttpContext httpContext, IIdentity identity, AntiForgeryToken cookieToken)
+        public AntiForgeryToken GenerateFormToken(HttpContext httpContext, ClaimsIdentity identity, AntiForgeryToken cookieToken)
         {
             Contract.Assert(IsCookieTokenValid(cookieToken));
 
@@ -35,19 +38,11 @@ namespace Microsoft.AspNet.Mvc
                 SecurityToken = cookieToken.SecurityToken,
                 IsSessionToken = false
             };
-
-            bool requireAuthenticatedUserHeuristicChecks = false;
+            
             // populate Username and ClaimUid
             if (identity != null && identity.IsAuthenticated)
             {
-                if (!_config.SuppressIdentityHeuristicChecks)
-                {
-                    // If the user is authenticated and heuristic checks are not suppressed,
-                    // then Username, ClaimUid, or AdditionalData must be set.
-                    requireAuthenticatedUserHeuristicChecks = true;
-                }
-
-                formToken.ClaimUid = GetClaimUid(_claimUidExtractor.ExtractClaimUid(identity));
+                formToken.ClaimUid = GetClaimUidBlob(_claimUidExtractor.ExtractClaimUid(identity));
                 if (formToken.ClaimUid == null)
                 {
                     formToken.Username = identity.Name;
@@ -55,15 +50,14 @@ namespace Microsoft.AspNet.Mvc
             }
 
             // populate AdditionalData
-            if (_config.AdditionalDataProvider != null)
+            if (_additionalDataProvider != null)
             {
-                formToken.AdditionalData = _config.AdditionalDataProvider.GetAdditionalData(httpContext);
+                formToken.AdditionalData = _additionalDataProvider.GetAdditionalData(httpContext);
             }
 
-            if (requireAuthenticatedUserHeuristicChecks
-                && String.IsNullOrEmpty(formToken.Username)
+            if (string.IsNullOrEmpty(formToken.Username)
                 && formToken.ClaimUid == null
-                && String.IsNullOrEmpty(formToken.AdditionalData))
+                && string.IsNullOrEmpty(formToken.AdditionalData))
             {
                 // Application says user is authenticated, but we have no identifier for the user.
                 throw new InvalidOperationException(Resources.FormatTokenValidator_AuthenticatedUserWithoutUsername(identity.GetType()));
@@ -77,8 +71,7 @@ namespace Microsoft.AspNet.Mvc
             return (cookieToken != null && cookieToken.IsSessionToken);
         }
 
-        // TODO: Sweep the exceptions.
-        public void ValidateTokens(HttpContext httpContext, IIdentity identity, AntiForgeryToken sessionToken, AntiForgeryToken fieldToken)
+        public void ValidateTokens(HttpContext httpContext, ClaimsIdentity identity, AntiForgeryToken sessionToken, AntiForgeryToken fieldToken)
         {
             // Were the tokens even present at all?
             if (sessionToken == null)
@@ -103,15 +96,15 @@ namespace Microsoft.AspNet.Mvc
             }
 
             // Is the incoming token meant for the current user?
-            string currentUsername = String.Empty;
+            string currentUsername = string.Empty;
             BinaryBlob currentClaimUid = null;
 
             if (identity != null && identity.IsAuthenticated)
             {
-                currentClaimUid = GetClaimUid(_claimUidExtractor.ExtractClaimUid(identity));
+                currentClaimUid = GetClaimUidBlob(_claimUidExtractor.ExtractClaimUid(identity));
                 if (currentClaimUid == null)
                 {
-                    currentUsername = identity.Name ?? String.Empty;
+                    currentUsername = identity.Name ?? string.Empty;
                 }
             }
 
@@ -120,25 +113,32 @@ namespace Microsoft.AspNet.Mvc
             bool useCaseSensitiveUsernameComparison = currentUsername.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
                 || currentUsername.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 
-            if (!String.Equals(fieldToken.Username, currentUsername, (useCaseSensitiveUsernameComparison) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+            if (!String.Equals(fieldToken.Username,
+                                currentUsername,
+                                (useCaseSensitiveUsernameComparison) ?
+                                                 StringComparison.Ordinal : 
+                                                 StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException(Resources.FormatAntiForgeryToken_UsernameMismatch(fieldToken.Username, currentUsername));
+                throw new InvalidOperationException(Resources.
+                                                        FormatAntiForgeryToken_UsernameMismatch(fieldToken.Username,
+                                                                                               currentUsername));
             }
+
             if (!Equals(fieldToken.ClaimUid, currentClaimUid))
             {
                 throw new InvalidOperationException(Resources.AntiForgeryToken_ClaimUidMismatch);
             }
 
             // Is the AdditionalData valid?
-            if (_config.AdditionalDataProvider != null && !_config.AdditionalDataProvider.ValidateAdditionalData(httpContext, fieldToken.AdditionalData))
+            if (_additionalDataProvider != null && !_additionalDataProvider.ValidateAdditionalData(httpContext, fieldToken.AdditionalData))
             {
                 throw new InvalidOperationException(Resources.AntiForgeryToken_AdditionalDataCheckFailed);
             }
         }
 
-        private static BinaryBlob GetClaimUid(byte[] claimUidBytes)
+        private static BinaryBlob GetClaimUidBlob(string base64ClaimUid)
         {
-            return new BinaryBlob(256, claimUidBytes);
+            return new BinaryBlob(256, Convert.FromBase64String(base64ClaimUid));
         }
     }
 }

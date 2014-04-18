@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.Abstractions;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNet.Abstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -6,7 +7,7 @@ namespace Microsoft.AspNet.Mvc
     internal interface ITokenStore
     {
         AntiForgeryToken GetCookieToken(HttpContext httpContext);
-        AntiForgeryToken GetFormToken(HttpContext httpContext);
+        Task<AntiForgeryToken> GetFormTokenAsync(HttpContext httpContext);
         void SaveCookieToken(HttpContext httpContext, AntiForgeryToken token);
     }
 }
