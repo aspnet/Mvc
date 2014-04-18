@@ -7,7 +7,6 @@ using System.Text;
 using Microsoft.AspNet.DependencyInjection;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.Data.Entity;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -98,8 +97,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var collection = model as IEnumerable;
             if (collection == null)
             {
-                throw new InvalidOperationException(
-                    Resources.FormatTemplates_TypeMustImplementIEnumerable(model.GetType().FullName));
+                // Only way we could reach here is if user passed templateName: "Collection" to a Display() overload.
+                throw new InvalidOperationException(Resources.FormatTemplates_TypeMustImplementIEnumerable(
+                    "Collection", model.GetType().FullName, typeof(IEnumerable).FullName));
             }
 
             var typeInCollection = typeof(string);
@@ -171,10 +171,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static string EmailAddressTemplate(IHtmlHelper<object> html)
         {
-            return string.Format(CultureInfo.InvariantCulture,
-                                 "<a href=\"mailto:{0}\">{1}</a>",
-                                 html.Encode(html.ViewData.Model),
-                                 html.Encode(html.ViewData.TemplateInfo.FormattedModelValue));
+            var uriString = "mailto:" + ((html.ViewData.Model == null) ? string.Empty : html.ViewData.Model.ToString());
+            var linkedText = (html.ViewData.TemplateInfo.FormattedModelValue == null) ?
+                string.Empty :
+                html.ViewData.TemplateInfo.FormattedModelValue.ToString();
+
+            return HyperlinkTemplate(uriString, linkedText);
         }
 
         public static string HiddenInputTemplate(IHtmlHelper<object> html)
@@ -211,17 +213,23 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             foreach (var propertyMetadata in modelMetadata.Properties.Where(pm => ShouldShow(pm, templateInfo)))
             {
+                var divTag = new TagBuilder("div");
+
                 // TODO: add ModelMetadata.HideSurroundingHtml and use here (skip this block)
                 {
                     var label = propertyMetadata.GetDisplayName();
                     if (!string.IsNullOrEmpty(label))
                     {
-                        builder.AppendFormat(CultureInfo.InvariantCulture, "<div class=\"display-label\">{0}</div>",
-                            label);
-                        builder.AppendLine();
+                        divTag.SetInnerText(label);
+                        divTag.AddCssClass("display-label");
+                        builder.AppendLine(divTag.ToString(TagRenderMode.Normal));
+
+                        // Reset divTag for reuse.
+                        divTag.Attributes.Clear();
                     }
 
-                    builder.Append("<div class=\"display-field\">");
+                    divTag.AddCssClass("display-field");
+                    builder.Append(divTag.ToString(TagRenderMode.StartTag));
                 }
 
                 var templateBuilder = new TemplateBuilder(
@@ -238,7 +246,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
                 // TODO: add ModelMetadata.HideSurroundingHtml and use here (skip this block)
                 {
-                    builder.AppendLine("</div>");
+                    builder.AppendLine(divTag.ToString(TagRenderMode.EndTag));
                 }
             }
 
@@ -249,7 +257,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // TODO: add ModelMetadata.ShowForDisplay and include in this calculation (first)
             return
-                metadata.ModelType != typeof(EntityState) &&
                 !metadata.IsComplexType &&
                 !templateInfo.Visited(metadata);
         }
@@ -261,10 +268,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static string UrlTemplate(IHtmlHelper<object> html)
         {
-            return string.Format(CultureInfo.InvariantCulture,
-                                 "<a href=\"{0}\">{1}</a>",
-                                 html.Encode(html.ViewData.Model),
-                                 html.Encode(html.ViewData.TemplateInfo.FormattedModelValue));
+            var uriString = (html.ViewData.Model == null) ? string.Empty : html.ViewData.Model.ToString();
+            var linkedText = (html.ViewData.TemplateInfo.FormattedModelValue == null) ?
+                string.Empty :
+                html.ViewData.TemplateInfo.FormattedModelValue.ToString();
+
+            return HyperlinkTemplate(uriString, linkedText);
+        }
+
+        // Neither uriString nor linkedText need be encoded prior to calling this method.
+        private static string HyperlinkTemplate(string uriString, string linkedText)
+        {
+            var hyperlinkTag = new TagBuilder("a");
+            hyperlinkTag.MergeAttribute("href", uriString);
+            hyperlinkTag.SetInnerText(linkedText);
+
+            return hyperlinkTag.ToString(TagRenderMode.Normal);
         }
     }
 }

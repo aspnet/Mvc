@@ -214,7 +214,7 @@
     <value>The ViewData item that has the key '{0}' is of type '{1}' but must be of type '{2}'.</value>
   </data>
   <data name="Templates_TypeMustImplementIEnumerable" xml:space="preserve">
-    <value>The Collection template was used with an object of type '{0}', which does not implement System.IEnumerable.</value>
+    <value>The '{0}' template was used with an object of type '{1}', which does not implement '{2}'.</value>
   </data>
   <data name="TemplateHelpers_TemplateLimitations" xml:space="preserve">
     <value>Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.</value>

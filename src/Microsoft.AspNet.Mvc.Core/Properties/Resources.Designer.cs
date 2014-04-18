@@ -523,7 +523,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The Collection template was used with an object of type '{0}', which does not implement System.IEnumerable.
+        /// The '{0}' template was used with an object of type '{1}', which does not implement '{2}'.
         /// </summary>
         internal static string Templates_TypeMustImplementIEnumerable
         {
@@ -531,11 +531,11 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The Collection template was used with an object of type '{0}', which does not implement System.IEnumerable.
+        /// The '{0}' template was used with an object of type '{1}', which does not implement '{2}'.
         /// </summary>
-        internal static string FormatTemplates_TypeMustImplementIEnumerable(object p0)
+        internal static string FormatTemplates_TypeMustImplementIEnumerable(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("Templates_TypeMustImplementIEnumerable"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("Templates_TypeMustImplementIEnumerable"), p0, p1, p2);
         }
 
         /// <summary>

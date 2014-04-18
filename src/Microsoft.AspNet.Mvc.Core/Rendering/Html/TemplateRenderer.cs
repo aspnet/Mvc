@@ -29,10 +29,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 { typeof(object).Name, DefaultDisplayTemplates.ObjectTemplate },
             };
 
-        // TODO: Support Editor() and its default templates.
-        private static readonly Dictionary<string, Func<IHtmlHelper<object>, string>> _defaultEditorActions =
-            new Dictionary<string, Func<IHtmlHelper<object>, string>>(StringComparer.OrdinalIgnoreCase);
-
         private ViewContext _viewContext;
         private ViewDataDictionary<object> _viewData;
         private IViewEngine _viewEngine;
@@ -98,7 +94,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
             else
             {
-                return _defaultEditorActions;
+                // TODO: Support Editor() and its default templates.
+                // (No resource for this message because this line _must_ be very short-lived.)
+                throw new NotImplementedException("No default editor templates yet");
             }
         }
 
