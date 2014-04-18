@@ -6,7 +6,6 @@
     public static class AntiForgeryConfig
     {
         internal const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
-        private const string AntiForgeryCookieTokenName = "__RequestVerificationCookieToken";
         private static string _cookieName;
 
         /// <summary>
@@ -59,7 +58,7 @@
         // TODO: Replace the stub. 
         private static string GetAntiForgeryCookieName()
         {
-            return AntiForgeryCookieTokenName;
+            return AntiForgeryTokenFieldName;
         }
     }
 }

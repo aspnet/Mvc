@@ -13,7 +13,9 @@ namespace Microsoft.AspNet.Mvc
         private readonly IAntiForgeryConfig _config;
         private readonly IAntiForgeryAdditionalDataProvider _additionalDataProvider;
 
-        internal TokenProvider(IAntiForgeryConfig config, IClaimUidExtractor claimUidExtractor, IAntiForgeryAdditionalDataProvider additionalDataProvider)
+        internal TokenProvider(IAntiForgeryConfig config, 
+                               IClaimUidExtractor claimUidExtractor,
+                               IAntiForgeryAdditionalDataProvider additionalDataProvider)
         {
             _config = config;
             _claimUidExtractor = claimUidExtractor;
@@ -29,7 +31,9 @@ namespace Microsoft.AspNet.Mvc
             };
         }
 
-        public AntiForgeryToken GenerateFormToken(HttpContext httpContext, ClaimsIdentity identity, AntiForgeryToken cookieToken)
+        public AntiForgeryToken GenerateFormToken(HttpContext httpContext, 
+                                                  ClaimsIdentity identity,
+                                                  AntiForgeryToken cookieToken)
         {
             Contract.Assert(IsCookieTokenValid(cookieToken));
 
@@ -38,10 +42,13 @@ namespace Microsoft.AspNet.Mvc
                 SecurityToken = cookieToken.SecurityToken,
                 IsSessionToken = false
             };
-            
+
+            bool isIdentityAuthenticated = false;
+
             // populate Username and ClaimUid
             if (identity != null && identity.IsAuthenticated)
             {
+                isIdentityAuthenticated = true;
                 formToken.ClaimUid = GetClaimUidBlob(_claimUidExtractor.ExtractClaimUid(identity));
                 if (formToken.ClaimUid == null)
                 {
@@ -55,12 +62,15 @@ namespace Microsoft.AspNet.Mvc
                 formToken.AdditionalData = _additionalDataProvider.GetAdditionalData(httpContext);
             }
 
-            if (string.IsNullOrEmpty(formToken.Username)
+            if (isIdentityAuthenticated
+                && string.IsNullOrEmpty(formToken.Username)
                 && formToken.ClaimUid == null
                 && string.IsNullOrEmpty(formToken.AdditionalData))
             {
                 // Application says user is authenticated, but we have no identifier for the user.
-                throw new InvalidOperationException(Resources.FormatTokenValidator_AuthenticatedUserWithoutUsername(identity.GetType()));
+                throw new InvalidOperationException(
+                                        Resources.
+                                            FormatTokenValidator_AuthenticatedUserWithoutUsername(identity.GetType()));
             }
 
             return formToken;
@@ -138,6 +148,11 @@ namespace Microsoft.AspNet.Mvc
 
         private static BinaryBlob GetClaimUidBlob(string base64ClaimUid)
         {
+            if (base64ClaimUid == null)
+            {
+                return null;
+            }
+
             return new BinaryBlob(256, Convert.FromBase64String(base64ClaimUid));
         }
     }

@@ -2,12 +2,11 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
-using System.Security.Principal;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -19,7 +18,11 @@ namespace Microsoft.AspNet.Mvc
         private readonly ITokenValidator _validator;
         private readonly ITokenGenerator _generator;
 
-        internal AntiForgeryWorker(IAntiForgeryTokenSerializer serializer, IAntiForgeryConfig config, ITokenStore tokenStore, ITokenGenerator generator, ITokenValidator validator)
+        internal AntiForgeryWorker([NotNull] IAntiForgeryTokenSerializer serializer,
+                                   [NotNull] IAntiForgeryConfig config,
+                                   [NotNull] ITokenStore tokenStore,
+                                   [NotNull] ITokenGenerator generator,
+                                   [NotNull] ITokenValidator validator)
         {
             _serializer = serializer;
             _config = config;
@@ -62,12 +65,12 @@ namespace Microsoft.AspNet.Mvc
             if (httpContext != null)
             {
                 ClaimsPrincipal user = httpContext.User;
-             
+
                 if (user != null)
                 {
                     // We only support ClaimsIdentity.
                     // Todo remove this once httpContext.User moves to ClaimsIdentity.
-                   return user.Identity as ClaimsIdentity;
+                    return user.Identity as ClaimsIdentity;
                 }
             }
 
@@ -93,14 +96,14 @@ namespace Microsoft.AspNet.Mvc
         // value is the hidden input form element that should be rendered in
         // the <form>. This method has a side effect: it may set a response
         // cookie.
-        public TagBuilder GetFormInputElement(HttpContext httpContext)
+        public TagBuilder GetFormInputElement([NotNull] HttpContext httpContext)
         {
             CheckSSLConfig(httpContext);
 
-            AntiForgeryToken oldCookieToken = GetCookieTokenNoThrow(httpContext);
-            AntiForgeryToken newCookieToken, formToken;
-            GetTokens(httpContext, oldCookieToken, out newCookieToken, out formToken);
-
+            var oldCookieToken = GetCookieTokenNoThrow(httpContext);
+            var tokenSet = GetTokens(httpContext, oldCookieToken);
+            var newCookieToken = tokenSet.CookieToken;
+            var formToken = tokenSet.FormToken;
             if (newCookieToken != null)
             {
                 // If a new cookie was generated, persist it.
@@ -129,21 +132,21 @@ namespace Microsoft.AspNet.Mvc
         // 'new cookie value' out param is non-null, the caller *must* persist
         // the new value to cookie storage since the original value was null or
         // invalid. This method is side-effect free.
-        public void GetTokens(HttpContext httpContext, string serializedOldCookieToken, out string serializedNewCookieToken, out string serializedFormToken)
+        public AntiForgeryTokenSet GetTokens([NotNull] HttpContext httpContext, string serializedOldCookieToken)
         {
             CheckSSLConfig(httpContext);
-
             AntiForgeryToken oldCookieToken = DeserializeTokenNoThrow(serializedOldCookieToken);
             AntiForgeryToken newCookieToken, formToken;
-            GetTokens(httpContext, oldCookieToken, out newCookieToken, out formToken);
+            var tokenSet = GetTokens(httpContext, oldCookieToken);
 
-            serializedNewCookieToken = Serialize(newCookieToken);
-            serializedFormToken = Serialize(formToken);
+            var serializedNewCookieToken = Serialize(tokenSet.CookieToken);
+            var serializedFormToken = Serialize(tokenSet.FormToken);
+            return new AntiForgeryTokenSet(serializedFormToken, serializedNewCookieToken);
         }
 
-        private void GetTokens(HttpContext httpContext, AntiForgeryToken oldCookieToken, out AntiForgeryToken newCookieToken, out AntiForgeryToken formToken)
+        private AntiForgeryTokenSetInternal GetTokens(HttpContext httpContext, AntiForgeryToken oldCookieToken)
         {
-            newCookieToken = null;
+            AntiForgeryToken newCookieToken = null;
             if (!_validator.IsCookieTokenValid(oldCookieToken))
             {
                 // Need to make sure we're always operating with a good cookie token.
@@ -151,7 +154,17 @@ namespace Microsoft.AspNet.Mvc
             }
 
             Contract.Assert(_validator.IsCookieTokenValid(oldCookieToken));
-            formToken = _generator.GenerateFormToken(httpContext, ExtractIdentity(httpContext), oldCookieToken);
+
+            AntiForgeryToken formToken = _generator.
+                                            GenerateFormToken(httpContext,
+                                                    ExtractIdentity(httpContext),
+                                                    oldCookieToken);
+
+            return new AntiForgeryTokenSetInternal()
+                            {
+                                CookieToken = newCookieToken,
+                                FormToken = formToken
+                            };
         }
 
         private string Serialize(AntiForgeryToken token)
@@ -162,7 +175,7 @@ namespace Microsoft.AspNet.Mvc
         // [ ENTRY POINT ]
         // Given an HttpContext, validates that the anti-XSRF tokens contained
         // in the cookies & form are OK for this request.
-        public async Task ValidateAsync(HttpContext httpContext)
+        public async Task ValidateAsync([NotNull] HttpContext httpContext)
         {
             CheckSSLConfig(httpContext);
 
@@ -177,7 +190,7 @@ namespace Microsoft.AspNet.Mvc
         // [ ENTRY POINT ]
         // Given the serialized string representations of a cookie & form token,
         // validates that the pair is OK for this request.
-        public void Validate(HttpContext httpContext, string cookieToken, string formToken)
+        public void Validate([NotNull] HttpContext httpContext, string cookieToken, string formToken)
         {
             CheckSSLConfig(httpContext);
 
@@ -187,6 +200,13 @@ namespace Microsoft.AspNet.Mvc
 
             // Validate
             _validator.ValidateTokens(httpContext, ExtractIdentity(httpContext), deserializedCookieToken, deserializedFormToken);
+        }
+
+        private class AntiForgeryTokenSetInternal
+        {
+            public AntiForgeryToken FormToken { get; set; }
+
+            public AntiForgeryToken CookieToken { get; set; }
         }
     }
 }

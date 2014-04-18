@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc
         private readonly IDataProtector _cryptoSystem;
         private const byte TokenVersion = 0x01;
 
-        internal AntiForgeryTokenSerializer(IDataProtector cryptoSystem)
+        internal AntiForgeryTokenSerializer([NotNull] IDataProtector cryptoSystem)
         {
             _cryptoSystem = cryptoSystem;
         }

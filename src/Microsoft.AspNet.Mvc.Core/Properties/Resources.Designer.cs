@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.Core
             = new ResourceManager("Microsoft.AspNet.Mvc.Core.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
-        /// The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider setting the static property AntiForgeryConfig.AdditionalDataProvider to an instance of a type that can provide some form of unique identifier for the current user.
+        /// The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.
         /// </summary>
         internal static string TokenValidator_AuthenticatedUserWithoutUsername
         {
@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider setting the static property AntiForgeryConfig.AdditionalDataProvider to an instance of a type that can provide some form of unique identifier for the current user.
+        /// The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.
         /// </summary>
         internal static string FormatTokenValidator_AuthenticatedUserWithoutUsername(object p0)
         {

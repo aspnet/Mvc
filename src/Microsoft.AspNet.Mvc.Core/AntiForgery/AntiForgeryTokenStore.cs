@@ -11,7 +11,8 @@ namespace Microsoft.AspNet.Mvc
         private readonly IAntiForgeryConfig _config;
         private readonly IAntiForgeryTokenSerializer _serializer;
 
-        internal AntiForgeryTokenStore(IAntiForgeryConfig config, IAntiForgeryTokenSerializer serializer)
+        internal AntiForgeryTokenStore([NotNull] IAntiForgeryConfig config, 
+                                       [NotNull] IAntiForgeryTokenSerializer serializer)
         {
             _config = config;
             _serializer = serializer;

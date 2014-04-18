@@ -157,7 +157,7 @@
     <value>A claim of type '{0}' was not present on the provided ClaimsIdentity.</value>
   </data>
   <data name="TokenValidator_AuthenticatedUserWithoutUsername" xml:space="preserve">
-    <value>The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider setting the static property AntiForgeryConfig.AdditionalDataProvider to an instance of a type that can provide some form of unique identifier for the current user.</value>
+    <value>The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.</value>
   </data>
   <data name="ReflectedActionFilterEndPoint_UnexpectedActionDescriptor" xml:space="preserve">
     <value>The class ReflectedActionFilterEndPoint only supports ReflectedActionDescriptors.</value>
