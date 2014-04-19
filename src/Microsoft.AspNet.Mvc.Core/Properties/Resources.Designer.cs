@@ -555,7 +555,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then the it should not call the next filter by invoking {3}.
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
         /// </summary>
         internal static string AsyncActionFilter_InvalidShortCircuit
         {
@@ -563,7 +563,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then the it should not call the next filter by invoking {3}.
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
         /// </summary>
         internal static string FormatAsyncActionFilter_InvalidShortCircuit(object p0, object p1, object p2, object p3)
         {
@@ -571,7 +571,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// If an {0} cancels execution by setting the {1} property of {2} to 'true', then the it should not call the next filter by invoking {3}.
+        /// If an {0} cancels execution by setting the {1} property of {2} to 'true', then it cannot call the next filter by invoking {3}.
         /// </summary>
         internal static string AsyncResultFilter_InvalidShortCircuit
         {
@@ -579,7 +579,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// If an {0} cancels execution by setting the {1} property of {2} to 'true', then the it should not call the next filter by invoking {3}.
+        /// If an {0} cancels execution by setting the {1} property of {2} to 'true', then it cannot call the next filter by invoking {3}.
         /// </summary>
         internal static string FormatAsyncResultFilter_InvalidShortCircuit(object p0, object p1, object p2, object p3)
         {
