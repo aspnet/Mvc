@@ -413,10 +413,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(value == null ? null : value.ToString());
         }
 
-        /// <inheritdoc />
-        public HtmlString ValidationMessage(string modelName, string message, object htmlAttributes)
+        public HtmlString ValidationMessage(string expression, string message, object htmlAttributes)
         {
-            return GenerateValidationMessage(modelName, message, htmlAttributes);
+            return GenerateValidationMessage(expression, message, htmlAttributes);
         }
 
         public virtual HtmlString ValidationSummary(bool excludePropertyErrors, string message, IDictionary<string, object> htmlAttributes)
@@ -1132,7 +1131,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var builder = new TagBuilder("span");
             builder.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes));
 
-            // Only the style of the span is changed according to the errors
+            // Only the style of the span is changed according to the errors if message is null or empty.
+            // Otherwise the content and style is handled by the client-side validation.
             builder.AddCssClass((modelError != null) ?
                 ValidationMessageCssClassName :
                 ValidationMessageValidCssClassName);

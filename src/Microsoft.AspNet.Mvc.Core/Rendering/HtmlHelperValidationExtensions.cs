@@ -59,39 +59,39 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
-            string modelName)
+            string expression)
         {
-            return ValidationMessage(htmlHelper, modelName, message: null, htmlAttributes: null);
+            return htmlHelper.ValidationMessage(expression, message: null, htmlAttributes: null);
         }
 
         public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
-            string modelName, string message)
+            string expression, string message)
         {
-            return ValidationMessage(htmlHelper, modelName, message, htmlAttributes: null);
+            return htmlHelper.ValidationMessage(expression, message, htmlAttributes: null);
         }
 
         public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
-            string modelName, object htmlAttributes)
+            string expression, object htmlAttributes)
         {
-            return ValidationMessage(htmlHelper, modelName, message: null, htmlAttributes: htmlAttributes);
+            return htmlHelper.ValidationMessage(expression, message: null, htmlAttributes: htmlAttributes);
         }
 
         public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
-            string modelName, string message, object htmlAttributes)
+            string expression, string message, object htmlAttributes)
         {
-            return htmlHelper.ValidationMessage(modelName, message, htmlAttributes);
+            return htmlHelper.ValidationMessage(expression, message, htmlAttributes);
         }
 
         public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
             [NotNull] Expression<Func<TModel, TProperty>> expression)
         {
-            return ValidationMessageFor(htmlHelper, expression, message: null, htmlAttributes: null);
+            return htmlHelper.ValidationMessageFor(expression, message: null, htmlAttributes: null);
         }
 
         public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
             [NotNull] Expression<Func<TModel, TProperty>> expression, string message)
         {
-            return ValidationMessageFor(htmlHelper, expression, message, htmlAttributes: null);
+            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes: null);
         }
 
         public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
