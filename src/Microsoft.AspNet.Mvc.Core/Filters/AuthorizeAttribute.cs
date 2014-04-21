@@ -1,27 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.Security.Authorization;
 
 namespace Microsoft.AspNet.Mvc.Core.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
-        private string _roles;
-        private string _users;
-
-        protected Claim[] Claims;
+        private Claim[] _claims;
 
         public AuthorizeAttribute()
         {
-            Claims = new Claim[0];
+            _claims = new Claim[0];
         }
         
+        public AuthorizeAttribute(IEnumerable<Claim> claims) 
+        {
+            _claims = claims.ToArray();
+        }
+
         public AuthorizeAttribute(string type, string value)
         {
-            Claims = new [] { new Claim(type, value) };
+            _claims = new [] { new Claim(type, value) };
         }
 
         public AuthorizeAttribute(string type, string value, params string[] other)
@@ -29,49 +33,13 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
         {
             if (other.Length > 0)
             {
-                Claims = Claims.Concat(other.Select(c => new Claim(type, c))).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the authorized roles.
-        /// </summary>
-        /// <value>
-        /// The roles string.
-        /// </value>
-        /// <remarks>Multiple role names can be specified using the comma character as a separator.</remarks>
-        public string Roles
-        {
-            get { return _roles ?? String.Empty; }
-            set
-            {
-                _roles = value;
-                var roleValues = SplitString(value);
-                Claims = roleValues.Select(c => new Claim(System.Security.Claims.ClaimTypes.Role, c)).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the authorized users.
-        /// </summary>
-        /// <value>
-        /// The users string.
-        /// </value>
-        /// <remarks>Multiple role names can be specified using the comma character as a separator.</remarks>
-        public string Users
-        {
-            get { return _users ?? String.Empty; }
-            set
-            {
-                _users = value;
-                var userValues = SplitString(value);
-                Claims = userValues.Select(c => new Claim(System.Security.Claims.ClaimTypes.NameIdentifier, c)).ToArray();
+                _claims = _claims.Concat(other.Select(c => new Claim(type, c))).ToArray();
             }
         }
 
         public override async Task Invoke(AuthorizationFilterContext context, Func<Task> next)
         {
-            if (Claims == null || Claims.Length == 0)
+            if (_claims == null || _claims.Length == 0)
             {
                 throw new InvalidOperationException("Claims can't be empty");
             }
@@ -89,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
                     throw new InvalidOperationException("Permission service is not defined");
                 }
 
-                var hasClaims = await permissionService.CheckAsync(Claims, user);
+                var hasClaims = await permissionService.CheckAsync(_claims, user);
 
                 if (!hasClaims)
                 {
@@ -98,18 +66,6 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
             }
 
             await next();
-        }
-
-        private static IEnumerable<string> SplitString(string original)
-        {
-            if (String.IsNullOrWhiteSpace(original))
-            {
-                return new string[0];
-            }
-
-            return original.Split(',')
-                .Where(piece => !String.IsNullOrWhiteSpace(piece))
-                .ToArray();
         }
     }
 }
