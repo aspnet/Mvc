@@ -8,13 +8,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public static class UnobtrusiveValidationAttributesGenerator
     {
-        public static void GetValidationAttributes([NotNull] IEnumerable<ModelClientValidationRule> clientRules,
-            [NotNull] IDictionary<string, object> results)
+        public static IDictionary<string, object> GetValidationAttributes(
+            [NotNull] IEnumerable<ModelClientValidationRule> clientRules)
         {
+            IDictionary<string, object> results = null;
             var renderedRules = false;
 
             foreach (var rule in clientRules)
             {
+                if (results == null)
+                {
+                    results = new Dictionary<string, object>();
+                }
+
                 renderedRules = true;
                 var ruleName = "data-val-" + rule.ValidationType;
 
@@ -33,6 +39,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 results.Add("data-val", "true");
             }
+
+            return results;
         }
 
         private static void ValidateUnobtrusiveValidationRule(ModelClientValidationRule rule,

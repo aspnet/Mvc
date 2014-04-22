@@ -595,26 +595,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         // then we can't render the attributes (we'd have no <form> to attach them to).
         protected IDictionary<string, object> GetValidationAttributes(string name, ModelMetadata metadata)
         {
-            var results = new Dictionary<string, object>();
-
-            if (!ViewContext.UnobtrusiveJavaScriptEnabled ||
-                ViewContext.ClientValidationEnabled ||
-                ViewContext.FormContext == null)
+            var formContext = ViewContext.GetFormContextForClientValidation();
+            if (!ViewContext.UnobtrusiveJavaScriptEnabled || formContext == null)
             {
-                return results;
+                return null;
             }
-
-            var formContext = ViewContext.FormContext;
 
             var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
             if (formContext.RenderedField(fullName))
             {
-                return results;
+                return null;
             }
 
             formContext.RenderedField(fullName, true);
             var clientRules = GetClientValidationRules(name, metadata);
-            UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules, results);
+            var results = UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules);
             return results;
         }
 
@@ -1332,7 +1327,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             metadata = metadata ??
                 ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
             return actionBindingContext.ValidatorProviders
-                .SelectMany(vp => vp.GetValidators(metadata)).OfType<IClientModelValidator>()
+                .SelectMany(vp => vp.GetValidators(metadata))
+                    .OfType<IClientModelValidator>()
                 .SelectMany(v => v.GetClientValidationRules(new ClientModelValidationContext(metadata)));
         }
     }
