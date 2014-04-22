@@ -7,19 +7,16 @@ namespace Microsoft.AspNet.Mvc
         internal const int SecurityTokenBitLength = 128;
         internal const int ClaimUidBitLength = 256;
 
-        private string _additionalData;
+        private string _additionalData = string.Empty;
+        private string _username = string.Empty;
         private BinaryBlob _securityToken;
-        private string _username;
 
         public string AdditionalData
         {
-            get
-            {
-                return _additionalData ?? String.Empty;
-            }
+            get { return _additionalData; }
             set
             {
-                _additionalData = value;
+                _additionalData = value ?? string.Empty;
             }
         }
 
@@ -45,13 +42,10 @@ namespace Microsoft.AspNet.Mvc
 
         public string Username
         {
-            get
-            {
-                return _username ?? String.Empty;
-            }
+            get { return _username; }
             set
             {
-                _username = value;
+                _username = value ?? string.Empty;
             }
         }
     }

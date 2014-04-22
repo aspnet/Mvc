@@ -38,9 +38,7 @@ namespace Microsoft.AspNet.Mvc
                 // swallow all exceptions - homogenize error if something went wrong
             }
 
-            // TODO: Return proper exception here.
             // if we reached this point, something went wrong deserializing
-            //  throw HttpAntiForgeryException.CreateDeserializationFailedException();
             throw new InvalidOperationException(Resources.AntiForgeryToken_DeserializationFailed);
         }
 
@@ -128,8 +126,6 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        // TODO: This is temporary replacement for HttpServerUtility.UrlTokenEncode.
-        // This will be removed when webutils has this.
         private string UrlTokenEncode(byte[] input)
         {
             var base64String = Convert.ToBase64String(input);
@@ -161,8 +157,6 @@ namespace Microsoft.AspNet.Mvc
             return sb.ToString();
         }
 
-        // TODO: This is temporary replacement for HttpServerUtility.UrlTokenDecode.
-        // This will be removed when webutils has this.
         private byte[] UrlTokenDecode(string input)
         {
             var sb = new StringBuilder();
