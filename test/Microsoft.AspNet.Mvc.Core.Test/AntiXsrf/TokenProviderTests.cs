@@ -1,0 +1,489 @@
+﻿using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Security.DataProtection;
+using Moq;
+using System;
+using System.Security.Claims;
+using System.Security.Principal;
+using Xunit;
+
+namespace Microsoft.AspNet.Mvc.Core.Test
+{
+    public class TokenProviderTest
+    {
+        [Fact]
+        public void GenerateCookieToken()
+        {
+            // Arrange
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act
+            AntiForgeryToken retVal = tokenProvider.GenerateCookieToken();
+
+            // Assert
+            Assert.NotNull(retVal);
+        }
+
+        [Fact]
+        public void GenerateFormToken_AnonymousUser()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken() { IsSessionToken = true };
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            Mock<ClaimsIdentity> mockIdentity = new Mock<ClaimsIdentity>();
+            mockIdentity.Setup(o => o.IsAuthenticated).Returns(false);
+
+            IAntiForgeryConfig config = new MockAntiForgeryConfig();
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act
+            var fieldToken = tokenProvider.GenerateFormToken(httpContext, mockIdentity.Object, cookieToken);
+
+            // Assert
+            Assert.NotNull(fieldToken);
+            Assert.Equal(cookieToken.SecurityToken, fieldToken.SecurityToken);
+            Assert.False(fieldToken.IsSessionToken);
+            Assert.Equal("", fieldToken.Username);
+            Assert.Equal(null, fieldToken.ClaimUid);
+            Assert.Equal("", fieldToken.AdditionalData);
+        }
+
+        [Fact]
+        public void GenerateFormToken_AuthenticatedWithoutUsernameAndNoAdditionalData_NoAdditionalData()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken()
+            {
+                IsSessionToken = true
+            };
+
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new MyAuthenticatedIdentityWithoutUsername();
+            IAntiForgeryConfig config = new MockAntiForgeryConfig();
+            IClaimUidExtractor claimUidExtractor = new Mock<MockableClaimUidExtractor>().Object;
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: claimUidExtractor,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.GenerateFormToken(httpContext, identity, cookieToken));
+            Assert.Equal(@"The provided identity of type 'Microsoft.AspNet.Mvc.Core.Test.TokenProviderTest+MyAuthenticatedIdentityWithoutUsername' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.", ex.Message);
+        }
+
+        [Fact]
+        public void GenerateFormToken_AuthenticatedWithoutUsername_WithAdditionalData()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken() { IsSessionToken = true };
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new MyAuthenticatedIdentityWithoutUsername();
+
+            Mock<IAntiForgeryAdditionalDataProvider> mockAdditionalDataProvider = new Mock<IAntiForgeryAdditionalDataProvider>();
+            mockAdditionalDataProvider.Setup(o => o.GetAdditionalData(httpContext)).Returns("additional-data");
+
+            IAntiForgeryConfig config = new AntiForgeryConfigWrapper();
+            IClaimUidExtractor claimUidExtractor = new Mock<MockableClaimUidExtractor>().Object;
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: claimUidExtractor,
+                additionalDataProvider: mockAdditionalDataProvider.Object);
+
+            // Act
+            var fieldToken = tokenProvider.GenerateFormToken(httpContext, identity, cookieToken);
+
+            // Assert
+            Assert.NotNull(fieldToken);
+            Assert.Equal(cookieToken.SecurityToken, fieldToken.SecurityToken);
+            Assert.False(fieldToken.IsSessionToken);
+            Assert.Equal("", fieldToken.Username);
+            Assert.Equal(null, fieldToken.ClaimUid);
+            Assert.Equal("additional-data", fieldToken.AdditionalData);
+        }
+
+        [Fact]
+        public void GenerateFormToken_ClaimsBasedIdentity()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken() { IsSessionToken = true };
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity("some-identity");
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig();
+           
+            byte[] data = new byte[256 / 8];
+            CryptRand.FillBuffer(new ArraySegment<byte>(data));
+            var base64ClaimUId = Convert.ToBase64String(data);
+            var expectedClaimUid = new BinaryBlob(256, data);
+
+            Mock<MockableClaimUidExtractor> mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity)).Returns((object)base64ClaimUId);
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: mockClaimUidExtractor.Object,
+                additionalDataProvider: null);
+
+            // Act
+            var fieldToken = tokenProvider.GenerateFormToken(httpContext, identity, cookieToken);
+
+            // Assert
+            Assert.NotNull(fieldToken);
+            Assert.Equal(cookieToken.SecurityToken, fieldToken.SecurityToken);
+            Assert.False(fieldToken.IsSessionToken);
+            Assert.Equal("", fieldToken.Username);
+            Assert.Equal(expectedClaimUid, fieldToken.ClaimUid);
+            Assert.Equal("", fieldToken.AdditionalData);
+        }
+
+        [Fact]
+        public void GenerateFormToken_RegularUserWithUsername()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken() { IsSessionToken = true };
+
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            Mock<ClaimsIdentity> mockIdentity = new Mock<ClaimsIdentity>();
+            mockIdentity.Setup(o => o.IsAuthenticated).Returns(true);
+            mockIdentity.Setup(o => o.Name).Returns("my-username");
+
+            IAntiForgeryConfig config = new MockAntiForgeryConfig();
+            IClaimUidExtractor claimUidExtractor = new Mock<MockableClaimUidExtractor>().Object;
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: claimUidExtractor,
+                additionalDataProvider: null);
+
+            // Act
+            var fieldToken = tokenProvider.GenerateFormToken(httpContext, mockIdentity.Object, cookieToken);
+
+            // Assert
+            Assert.NotNull(fieldToken);
+            Assert.Equal(cookieToken.SecurityToken, fieldToken.SecurityToken);
+            Assert.False(fieldToken.IsSessionToken);
+            Assert.Equal("my-username", fieldToken.Username);
+            Assert.Equal(null, fieldToken.ClaimUid);
+            Assert.Equal("", fieldToken.AdditionalData);
+        }
+
+        [Fact]
+        public void IsCookieTokenValid_FieldToken_ReturnsFalse()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken()
+            {
+                IsSessionToken = false
+            };
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act
+            bool retVal = tokenProvider.IsCookieTokenValid(cookieToken);
+
+            // Assert
+            Assert.False(retVal);
+        }
+
+        [Fact]
+        public void IsCookieTokenValid_NullToken_ReturnsFalse()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = null;
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act
+            bool retVal = tokenProvider.IsCookieTokenValid(cookieToken);
+
+            // Assert
+            Assert.False(retVal);
+        }
+
+        [Fact]
+        public void IsCookieTokenValid_ValidToken_ReturnsTrue()
+        {
+            // Arrange
+            AntiForgeryToken cookieToken = new AntiForgeryToken()
+            {
+                IsSessionToken = true
+            };
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act
+            bool retVal = tokenProvider.IsCookieTokenValid(cookieToken);
+
+            // Assert
+            Assert.True(retVal);
+        }
+
+        [Fact]
+        public void ValidateTokens_SessionTokenMissing()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new Mock<ClaimsIdentity>().Object;
+            AntiForgeryToken sessionToken = null;
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { IsSessionToken = false };
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig()
+            {
+                CookieName = "my-cookie-name"
+            };
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken));
+            Assert.Equal(@"The required anti-forgery cookie ""my-cookie-name"" is not present.", ex.Message);
+        }
+
+        [Fact]
+        public void ValidateTokens_FieldTokenMissing()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new Mock<ClaimsIdentity>().Object;
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = null;
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig()
+            {
+                FormFieldName = "my-form-field-name"
+            };
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken));
+            Assert.Equal(@"The required anti-forgery form field ""my-form-field-name"" is not present.", ex.Message);
+        }
+
+        [Fact]
+        public void ValidateTokens_FieldAndSessionTokensSwapped()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new Mock<ClaimsIdentity>().Object;
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { IsSessionToken = false };
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig()
+            {
+                CookieName = "my-cookie-name",
+                FormFieldName = "my-form-field-name"
+            };
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex1 = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, fieldtoken, fieldtoken));
+            Assert.Equal(@"Validation of the provided anti-forgery token failed. The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.", ex1.Message);
+
+            var ex2 = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, sessionToken));
+            Assert.Equal(@"Validation of the provided anti-forgery token failed. The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.", ex2.Message);
+        }
+
+        [Fact]
+        public void ValidateTokens_FieldAndSessionTokensHaveDifferentSecurityKeys()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new Mock<ClaimsIdentity>().Object;
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { IsSessionToken = false };
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: null,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken));
+            Assert.Equal(@"The anti-forgery cookie token and form field token do not match.", ex.Message);
+        }
+
+        [Theory]
+        [InlineData("the-user", "the-other-user")]
+        [InlineData("http://example.com/uri-casing", "http://example.com/URI-casing")]
+        [InlineData("https://example.com/secure-uri-casing", "https://example.com/secure-URI-casing")]
+        public void ValidateTokens_UsernameMismatch(string identityUsername, string embeddedUsername)
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity(identityUsername);
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { SecurityToken = sessionToken.SecurityToken, Username = embeddedUsername, IsSessionToken = false };
+
+            Mock<MockableClaimUidExtractor> mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity)).Returns((object)null);
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: mockClaimUidExtractor.Object,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken));
+            Assert.Equal(@"The provided anti-forgery token was meant for user """ + embeddedUsername + @""", but the current user is """ + identityUsername + @""".", ex.Message);
+        }
+
+        [Fact]
+        public void ValidateTokens_ClaimUidMismatch()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity("the-user");
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { SecurityToken = sessionToken.SecurityToken, IsSessionToken = false, ClaimUid = new BinaryBlob(256) };
+
+            var differentToken = new BinaryBlob(256);
+            Mock<MockableClaimUidExtractor> mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity)).Returns(Convert.ToBase64String(differentToken.GetData()));
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: null,
+                claimUidExtractor: mockClaimUidExtractor.Object,
+                additionalDataProvider: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken));
+            Assert.Equal(@"The provided anti-forgery token was meant for a different claims-based user than the current user.", ex.Message);
+        }
+
+        [Fact]
+        public void ValidateTokens_AdditionalDataRejected()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity(String.Empty);
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { SecurityToken = sessionToken.SecurityToken, Username = String.Empty, IsSessionToken = false, AdditionalData = "some-additional-data" };
+
+            Mock<IAntiForgeryAdditionalDataProvider> mockAdditionalDataProvider = new Mock<IAntiForgeryAdditionalDataProvider>();
+            mockAdditionalDataProvider.Setup(o => o.ValidateAdditionalData(httpContext, "some-additional-data")).Returns(false);
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig();
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: null,
+                additionalDataProvider: mockAdditionalDataProvider.Object);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken));
+            Assert.Equal(@"The provided anti-forgery token failed a custom data check.", ex.Message);
+        }
+
+        [Fact]
+        public void ValidateTokens_Success_AnonymousUser()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity(String.Empty);
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { SecurityToken = sessionToken.SecurityToken, Username = String.Empty, IsSessionToken = false, AdditionalData = "some-additional-data" };
+
+            Mock<IAntiForgeryAdditionalDataProvider> mockAdditionalDataProvider = new Mock<IAntiForgeryAdditionalDataProvider>();
+            mockAdditionalDataProvider.Setup(o => o.ValidateAdditionalData(httpContext, "some-additional-data")).Returns(true);
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig();
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: null,
+                additionalDataProvider: mockAdditionalDataProvider.Object);
+
+            // Act
+            tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken);
+
+            // Assert
+            // Nothing to assert - if we got this far, success!
+        }
+
+        [Fact]
+        public void ValidateTokens_Success_AuthenticatedUserWithUsername()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity("the-user");
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { SecurityToken = sessionToken.SecurityToken, Username = "THE-USER", IsSessionToken = false, AdditionalData = "some-additional-data" };
+
+            Mock<IAntiForgeryAdditionalDataProvider> mockAdditionalDataProvider = new Mock<IAntiForgeryAdditionalDataProvider>();
+            mockAdditionalDataProvider.Setup(o => o.ValidateAdditionalData(httpContext, "some-additional-data")).Returns(true);
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig();
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: new Mock<MockableClaimUidExtractor>().Object,
+                additionalDataProvider:  mockAdditionalDataProvider.Object);
+
+            // Act
+            tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken);
+
+            // Assert
+            // Nothing to assert - if we got this far, success!
+        }
+
+        [Fact]
+        public void ValidateTokens_Success_ClaimsBasedUser()
+        {
+            // Arrange
+            HttpContext httpContext = new Mock<HttpContext>().Object;
+            ClaimsIdentity identity = new GenericIdentity("the-user");
+            AntiForgeryToken sessionToken = new AntiForgeryToken() { IsSessionToken = true };
+            AntiForgeryToken fieldtoken = new AntiForgeryToken() { SecurityToken = sessionToken.SecurityToken, IsSessionToken = false, ClaimUid = new BinaryBlob(256) };
+
+            Mock<MockableClaimUidExtractor> mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity)).Returns(Convert.ToBase64String(fieldtoken.ClaimUid.GetData()));
+
+            MockAntiForgeryConfig config = new MockAntiForgeryConfig();
+
+            TokenProvider tokenProvider = new TokenProvider(
+                config: config,
+                claimUidExtractor: mockClaimUidExtractor.Object,
+                additionalDataProvider: null);
+
+            // Act
+            tokenProvider.ValidateTokens(httpContext, identity, sessionToken, fieldtoken);
+
+            // Assert
+            // Nothing to assert - if we got this far, success!
+        }
+
+        private sealed class MyAuthenticatedIdentityWithoutUsername : ClaimsIdentity
+        {
+            public override bool IsAuthenticated
+            {
+                get { return true; }
+            }
+
+            public override string Name
+            {
+                get { return String.Empty; }
+            }
+        }
+    }
+}

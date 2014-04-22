@@ -17,12 +17,13 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using System.Diagnostics.Contracts;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -177,6 +178,7 @@ namespace Microsoft.AspNet.Mvc
 
             return new AntiForgeryTokenSetInternal()
                             {
+                                // Note : The new cookie would be null if the old cookie is valid.
                                 CookieToken = newCookieToken,
                                 FormToken = formToken
                             };
