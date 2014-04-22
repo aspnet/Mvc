@@ -8,7 +8,6 @@ using Microsoft.AspNet.Security.Authorization;
 
 namespace Microsoft.AspNet.Mvc.Core.Filters
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
         private Claim[] _claims;
@@ -18,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
             _claims = new Claim[0];
         }
         
-        public AuthorizeAttribute(IEnumerable<Claim> claims) 
+        public AuthorizeAttribute([NotNull]IEnumerable<Claim> claims) 
         {
             _claims = claims.ToArray();
         }
@@ -28,20 +27,20 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
             _claims = new [] { new Claim(type, value) };
         }
 
-        public AuthorizeAttribute(string type, string value, params string[] other)
+        public AuthorizeAttribute(string type, string value, params string[] otherValues)
             : this(type, value)
         {
-            if (other.Length > 0)
+            if (otherValues.Length > 0)
             {
-                _claims = _claims.Concat(other.Select(c => new Claim(type, c))).ToArray();
+                _claims = _claims.Concat(otherValues.Select(claim => new Claim(type, claim))).ToArray();
             }
         }
 
         public override async Task Invoke(AuthorizationFilterContext context, Func<Task> next)
         {
-            if (_claims == null || _claims.Length == 0)
+            if (_claims.Length == 0)
             {
-                throw new InvalidOperationException("Claims can't be empty");
+                throw new InvalidOperationException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
             }
 
             // there is no reason to check claims if the context has already failed
@@ -50,14 +49,14 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
                 var httpContext = context.ActionContext.HttpContext;
                 var user = httpContext.User;
 
-                var permissionService = httpContext.RequestServices.GetService<IAuthorizationService>();
+                var authorizationService = httpContext.RequestServices.GetService<IAuthorizationService>();
 
-                if (permissionService == null)
+                if (authorizationService == null)
                 {
-                    throw new InvalidOperationException("Permission service is not defined");
+                    throw new InvalidOperationException(Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
                 }
 
-                var hasClaims = await permissionService.CheckAsync(_claims, user);
+                var hasClaims = await authorizationService.CheckAsync(_claims, user);
 
                 if (!hasClaims)
                 {

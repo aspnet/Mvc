@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNet.Mvc.Core.Filters;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Core.Filters;
 using Microsoft.AspNet.Security.Authorization;
 using Moq;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
@@ -15,10 +16,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async void Invoke_ValidClaimShouldNotFail()
         {
             // Arrange
-            var authorizationService = new DefaultAuthorizationService();
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewPage");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc => 
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services => 
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             // Act
@@ -32,10 +33,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async void Invoke_SingleValidClaimShouldSucceed()
         {
             // Arrange
-            var authorizationService = new DefaultAuthorizationService();
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment", "CanViewPage");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc => 
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services => 
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             // Act
@@ -49,10 +50,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async void Invoke_InvalidClaimShouldFail()
         {
             // Arrange
-            var authorizationService = new DefaultAuthorizationService();
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc =>
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             // Act
@@ -66,10 +67,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async void Invoke_ValidClaimCallsNextFilter()
         {
             // Arrange
-            var authorizationService = new DefaultAuthorizationService();
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewPage");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc =>
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             bool nextIsCalled = false;
@@ -90,10 +91,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async void Invoke_InvalidClaimCallsNextFilter()
         {
             // Arrange
-            var authorizationService = new DefaultAuthorizationService();
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc =>
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             bool nextIsCalled = false;
@@ -114,10 +115,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async void Invoke_FailedContextStillCallsNextFilter()
         {
             // Arrange
-            var authorizationService = new DefaultAuthorizationService();
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc =>
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
             authorizationFilterContext.Fail();
 
@@ -149,8 +150,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 });
 
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(sc =>
-                sc.AddInstance<IAuthorizationService>(authorizationService)
+            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
                 );
             authorizationFilterContext.Fail();
 

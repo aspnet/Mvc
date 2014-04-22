@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.DependencyInjection;
-using Microsoft.AspNet.DependencyInjection.Fallback;
-using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.DependencyInjection.Fallback;
+using Moq;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
@@ -37,10 +37,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
 
             // AuthorizationFilterContext
-            var actionContext = new ActionContext(httpContext.Object,
-                null /* router */,
-                null /* routeValue */,
-                null /* actionDescriptor */);
+            var actionContext = new ActionContext(
+                httpContext: httpContext.Object,
+                router: null,
+                routeValues: null,
+                actionDescriptor: null
+                );
 
             var authorizationFilterContext = new AuthorizationFilterContext(
                 actionContext,
