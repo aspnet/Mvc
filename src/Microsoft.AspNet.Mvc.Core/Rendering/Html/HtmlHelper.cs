@@ -31,6 +31,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private readonly IUrlHelper _urlHelper;
         private readonly IViewEngine _viewEngine;
         private readonly AntiForgery _antiForgeryInstance;
+        private readonly IActionBindingContextProvider _actionBindingContextProvider;
 
         private ViewContext _viewContext;
 
@@ -48,6 +49,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             MetadataProvider = metadataProvider;
             _urlHelper = urlHelper;
             _antiForgeryInstance = antiForgeryInstance;
+            _actionBindingContextProvider = actionBindingContextProvider;
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = "_";
@@ -611,7 +613,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             formContext.RenderedField(fullName, true);
-            var clientRules = ClientValidationRuleFactory(name, metadata);
+            var clientRules = GetClientValidationRules(name, metadata);
             UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules, results);
             return results;
         }
@@ -1322,6 +1324,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             return newSelectList;
+        }
+
+        private IEnumerable<ModelClientValidationRule> GetClientValidationRules(string name, ModelMetadata metadata)
+        {
+            var actionBindingContext = _actionBindingContextProvider.GetActionBindingContextAsync(ViewContext).Result;
+            metadata = metadata ??
+                ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
+            return actionBindingContext.ValidatorProviders
+                .SelectMany(vp => vp.GetValidators(metadata)).OfType<IClientModelValidator>()
+                .SelectMany(v => v.GetClientValidationRules(new ClientModelValidationContext(metadata)));
         }
     }
 }
