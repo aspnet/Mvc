@@ -10,23 +10,21 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 {
     public class AuthorizeAttributeTests : AuthorizeAttributeTestsBase
     {
-        protected readonly Func<Task> noop = () => Task.FromResult(true);
-
         [Fact]
         public async void Invoke_ValidClaimShouldNotFail()
         {
             // Arrange
             var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewPage");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services => 
+            var authorizationContext = GetAuthorizationContext(services => 
                 services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, noop);
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.False(authorizationFilterContext.HasFailed);
+            Assert.False(authorizeAttribute.HasFailed);
         }
 
         [Fact]
@@ -35,15 +33,15 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment", "CanViewPage");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services => 
+            var authorizationContext = GetAuthorizationContext(services => 
                 services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, noop);
+            await authorizeAttribute.Invoke(authorizationContext, noop);
 
             // Assert
-            Assert.False(authorizationFilterContext.HasFailed);
+            Assert.False(authorizeAttribute.HasFailed);
         }
 
         [Fact]
@@ -52,88 +50,15 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+            var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance<IAuthorizationService>(authorizationService)
                 );
 
             // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, noop);
+            await authorizeAttribute.Invoke(authorizationContext, noop);
 
             // Assert
-            Assert.True(authorizationFilterContext.HasFailed);
-        }
-
-        [Fact]
-        public async void Invoke_ValidClaimCallsNextFilter()
-        {
-            // Arrange
-            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
-            var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewPage");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
-                services.AddInstance<IAuthorizationService>(authorizationService)
-                );
-
-            bool nextIsCalled = false;
-            Func<Task> next = () =>
-            {
-                nextIsCalled = true;
-                return Task.FromResult(true);
-            };
-
-            // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, next);
-
-            // Assert
-            Assert.True(nextIsCalled);
-        }
-
-        [Fact]
-        public async void Invoke_InvalidClaimCallsNextFilter()
-        {
-            // Arrange
-            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
-            var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
-                services.AddInstance<IAuthorizationService>(authorizationService)
-                );
-
-            bool nextIsCalled = false;
-            Func<Task> next = () =>
-            {
-                nextIsCalled = true;
-                return Task.FromResult(true);
-            };
-
-            // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, next);
-
-            // Assert
-            Assert.True(nextIsCalled);
-        }
-
-        [Fact]
-        public async void Invoke_FailedContextStillCallsNextFilter()
-        {
-            // Arrange
-            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
-            var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
-                services.AddInstance<IAuthorizationService>(authorizationService)
-                );
-            authorizationFilterContext.Fail();
-
-            bool nextIsCalled = false;
-            Func<Task> next = () =>
-            {
-                nextIsCalled = true;
-                return Task.FromResult(true);
-            };
-
-            // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, next);
-
-            // Assert
-            Assert.True(nextIsCalled);
+            Assert.True(authorizeAttribute.HasFailed);
         }
 
         [Fact]
@@ -150,13 +75,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 });
 
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
-            var authorizationFilterContext = GetAuthorizationFilterContext(services =>
+            var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance<IAuthorizationService>(authorizationService)
                 );
-            authorizationFilterContext.Fail();
+            
+            authorizeAttribute.Fail();
 
             // Act
-            await authorizeAttribute.Invoke(authorizationFilterContext, noop);
+            await authorizeAttribute.Invoke(authorizationContext, noop);
 
             // Assert
             Assert.False(authorizationServiceIsCalled);

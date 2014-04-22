@@ -9,6 +9,8 @@ namespace Microsoft.AspNet.Mvc
     {
         public int Order { get; set; }
 
+        protected bool HasFailed { get; set; }
+
         #pragma warning disable 1998
         public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
@@ -23,6 +25,12 @@ namespace Microsoft.AspNet.Mvc
         protected virtual bool HasAllowAnonymous([NotNull] AuthorizationContext context)
         {
             return context.Filters.Any(item => item is IAllowAnonymous);
+        }
+
+        protected virtual void Fail([NotNull] AuthorizationContext context)
+        {
+            context.Result = new HttpStatusCodeResult(401);
+            HasFailed = true;
         }
     }
 }

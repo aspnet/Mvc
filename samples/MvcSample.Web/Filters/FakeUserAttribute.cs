@@ -7,7 +7,7 @@ namespace MvcSample.Web
 {
     public class FakeUserAttribute : AuthorizationFilterAttribute
     {
-        public override async Task Invoke(AuthorizationFilterContext context, Func<Task> next)
+        public override void OnAuthorization([NotNull] AuthorizationContext context)
         {
             context.ActionContext.HttpContext.User = new ClaimsPrincipal(
                 new ClaimsIdentity(
@@ -16,8 +16,6 @@ namespace MvcSample.Web
                         new Claim(ClaimTypes.Role, "Administrator"), 
                         new Claim(ClaimTypes.NameIdentifier, "John")}, 
                         "Basic"));
-        
-            await next();
         }
     }
 }

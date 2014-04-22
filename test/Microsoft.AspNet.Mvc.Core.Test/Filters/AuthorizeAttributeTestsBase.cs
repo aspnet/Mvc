@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 {
     public class AuthorizeAttributeTestsBase
     {
-        protected AuthorizationFilterContext GetAuthorizationFilterContext(Action<ServiceCollection> registerServices)
+        protected AuthorizationContext GetAuthorizationContext(Action<ServiceCollection> registerServices)
         {
             var validUser = new ClaimsPrincipal(
                 new ClaimsIdentity(
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpContext.SetupGet(c => c.User).Returns(validUser);
             httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
 
-            // AuthorizationFilterContext
+            // AuthorizationContext
             var actionContext = new ActionContext(
                 httpContext: httpContext.Object,
                 router: null,
@@ -44,13 +44,18 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 actionDescriptor: null
                 );
 
-            var authorizationFilterContext = new AuthorizationFilterContext(
+            var authorizationContext = new AuthorizationContext(
                 actionContext,
                 new FilterItem[0]
             );
 
-            return authorizationFilterContext;
+            return authorizationContext;
         }
 
+        protected bool HasFailed(AuthorizationContext context) 
+        {
+            var statusCodeResult = context.Result as HttpStatusCodeResult;
+            return statusCodeResult != null && context.HttpContext.Response.StatusCode == 401;
+        }
     }
 }

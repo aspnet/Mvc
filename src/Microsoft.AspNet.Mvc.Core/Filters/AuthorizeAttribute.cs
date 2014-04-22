@@ -36,14 +36,14 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
             }
         }
 
-        public override async Task Invoke(AuthorizationFilterContext context, Func<Task> next)
+        #pragma warning disable 1998
+        public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
             if (_claims.Length == 0)
             {
                 throw new InvalidOperationException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
             }
-
-            // there is no reason to check claims if the context has already failed
+            
             if (!context.HasFailed)
             {
                 var httpContext = context.ActionContext.HttpContext;
@@ -60,11 +60,10 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
 
                 if (!hasClaims)
                 {
-                    context.Fail();
+                    base.Fail();
                 }
             }
-
-            await next();
         }
+        #pragma warning restore 1998
     }
 }
