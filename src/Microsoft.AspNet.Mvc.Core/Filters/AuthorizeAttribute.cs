@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
 {
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
-        private Claim[] _claims;
+        private readonly Claim[] _claims;
 
         public AuthorizeAttribute()
         {
@@ -20,6 +20,11 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
         public AuthorizeAttribute([NotNull]IEnumerable<Claim> claims) 
         {
             _claims = claims.ToArray();
+
+            if (_claims.Length == 0)
+            {
+                throw new ArgumentException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
+            }
         }
 
         public AuthorizeAttribute(string type, string value)
@@ -36,34 +41,30 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
             }
         }
 
-        #pragma warning disable 1998
         public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
-            if (_claims.Length == 0)
+            var httpContext = context.HttpContext;
+            var user = httpContext.User;
+
+            var authorizationService = httpContext.RequestServices.GetService<IAuthorizationService>();
+
+            if (authorizationService == null)
             {
-                throw new InvalidOperationException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
+                throw new InvalidOperationException(Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
             }
-            
-            if (!base.HasFailed)
+
+            var authorized = await authorizationService.AuthorizeAsync(_claims, user);
+
+            if (!authorized)
             {
-                var httpContext = context.HttpContext;
-                var user = httpContext.User;
-
-                var authorizationService = httpContext.RequestServices.GetService<IAuthorizationService>();
-
-                if (authorizationService == null)
-                {
-                    throw new InvalidOperationException(Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
-                }
-
-                var authorized = await authorizationService.AuthorizeAsync(_claims, user);
-
-                if (!authorized)
-                {
-                    base.Fail(context);
-                }
+                base.Fail(context);
             }
         }
-        #pragma warning restore 1998
+
+        public override void OnAuthorization([NotNull] AuthorizationContext context)
+        {
+            // The async filter will be called by the filter pipeline.
+            throw new NotImplementedException(Resources.AuthorizeAttribute_OnAuthorizationNotImplemented);
+        }
     }
 }

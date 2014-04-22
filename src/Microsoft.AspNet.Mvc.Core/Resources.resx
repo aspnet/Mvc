@@ -244,9 +244,12 @@
     <value>The view '{0}' was not found. The following locations were searched:{1}.</value>
   </data>
   <data name="AuthorizeAttribute_ClaimsCantBeEmpty" xml:space="preserve">
-    <value>Claims can't be empty.</value>
+    <value>The claims can't be empty.</value>
   </data>
   <data name="AuthorizeAttribute_AuthorizationServiceMustBeDefined" xml:space="preserve">
-    <value>Authorization service is not defined.</value>
+    <value>Unable to locate an implementation of IAuthorizationService.</value>
+  </data>
+  <data name="AuthorizeAttribute_OnAuthorizationNotImplemented" xml:space="preserve">
+    <value>Please use OnAuthorizationAsync instead.</value>
   </data>
 </root>

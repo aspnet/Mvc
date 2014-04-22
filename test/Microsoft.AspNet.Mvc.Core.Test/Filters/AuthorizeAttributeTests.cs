@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.False(authorizeAttribute.HasFailed);
+            Assert.Null(authorizationContext.Result);
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.False(authorizeAttribute.HasFailed);
+            Assert.Null(authorizationContext.Result);
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.True(authorizeAttribute.HasFailed);
+            Assert.NotNull(authorizationContext.Result);
         }
 
         [Fact]
@@ -66,7 +66,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             bool authorizationServiceIsCalled = false;
-            var authorizationService = new Mock<IAuthorizationService>()
+            var authorizationService = new Mock<IAuthorizationService>();
+            authorizationService
                 .Setup(x => x.AuthorizeAsync(null, null))
                 .Returns(() =>
                 {
@@ -76,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewComment");
             var authorizationContext = GetAuthorizationContext(services =>
-                services.AddInstance<IAuthorizationService>(authorizationService)
+                services.AddInstance<IAuthorizationService>(authorizationService.Object)
                 );
             
             authorizeAttribute.Fail(authorizationContext);

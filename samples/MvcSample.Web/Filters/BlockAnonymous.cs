@@ -8,6 +8,7 @@ namespace MvcSample.Web.Filters
         {
             if (!HasAllowAnonymous(context)) 
             {
+                var user = content.HttpContext.User;
                 var userIsAnonymous = 
                     user == null || 
                     user.Identity == null || 

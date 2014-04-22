@@ -683,7 +683,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Claims can't be empty.
+        /// The claims can't be empty.
         /// </summary>
         internal static string AuthorizeAttribute_ClaimsCantBeEmpty
         {
@@ -691,7 +691,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Claims can't be empty.
+        /// The claims can't be empty.
         /// </summary>
         internal static string FormatAuthorizeAttribute_ClaimsCantBeEmpty()
         {
@@ -699,7 +699,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Authorization service is not defined.
+        /// Unable to locate an implementation of IAuthorizationService.
         /// </summary>
         internal static string AuthorizeAttribute_AuthorizationServiceMustBeDefined
         {
@@ -707,11 +707,27 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Authorization service is not defined.
+        /// Unable to locate an implementation of IAuthorizationService.
         /// </summary>
         internal static string FormatAuthorizeAttribute_AuthorizationServiceMustBeDefined()
         {
             return GetString("AuthorizeAttribute_AuthorizationServiceMustBeDefined");
+        }
+
+        /// <summary>
+        /// Please use OnAuthorizationAsync instead.
+        /// </summary>
+        internal static string AuthorizeAttribute_OnAuthorizationNotImplemented
+        {
+            get { return GetString("AuthorizeAttribute_OnAuthorizationNotImplemented"); }
+        }
+
+        /// <summary>
+        /// Please use OnAuthorizationAsync instead.
+        /// </summary>
+        internal static string FormatAuthorizeAttribute_OnAuthorizationNotImplemented()
+        {
+            return GetString("AuthorizeAttribute_OnAuthorizationNotImplemented");
         }
 
         private static string GetString(string name, params string[] formatterNames)

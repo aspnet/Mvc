@@ -7,9 +7,9 @@ namespace MvcSample.Web
 {
     public class FakeUserAttribute : AuthorizationFilterAttribute
     {
-        public override void OnAuthorization([NotNull] AuthorizationContext context)
+        public override void OnAuthorization(AuthorizationContext context)
         {
-            context.ActionContext.HttpContext.User = new ClaimsPrincipal(
+            context.HttpContext.User = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     new Claim[] { 
                         new Claim("Permission", "CanViewPage"),
