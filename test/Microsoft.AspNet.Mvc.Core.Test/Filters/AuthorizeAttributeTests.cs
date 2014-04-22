@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 );
 
             // Act
-            await authorizeAttribute.Invoke(authorizationContext, noop);
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
             Assert.False(authorizeAttribute.HasFailed);
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 );
 
             // Act
-            await authorizeAttribute.Invoke(authorizationContext, noop);
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
             Assert.True(authorizeAttribute.HasFailed);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             bool authorizationServiceIsCalled = false;
             var authorizationService = new Mock<IAuthorizationService>()
-                .Setup(x => x.CheckAsync(null, null))
+                .Setup(x => x.AuthorizeAsync(null, null))
                 .Returns(() =>
                 {
                     authorizationServiceIsCalled = true;
@@ -79,10 +79,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 services.AddInstance<IAuthorizationService>(authorizationService)
                 );
             
-            authorizeAttribute.Fail();
+            authorizeAttribute.Fail(authorizationContext);
 
             // Act
-            await authorizeAttribute.Invoke(authorizationContext, noop);
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
             Assert.False(authorizationServiceIsCalled);

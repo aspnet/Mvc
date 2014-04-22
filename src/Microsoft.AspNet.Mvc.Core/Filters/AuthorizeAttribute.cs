@@ -44,9 +44,9 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
                 throw new InvalidOperationException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
             }
             
-            if (!context.HasFailed)
+            if (!base.HasFailed)
             {
-                var httpContext = context.ActionContext.HttpContext;
+                var httpContext = context.HttpContext;
                 var user = httpContext.User;
 
                 var authorizationService = httpContext.RequestServices.GetService<IAuthorizationService>();
@@ -56,11 +56,11 @@ namespace Microsoft.AspNet.Mvc.Core.Filters
                     throw new InvalidOperationException(Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
                 }
 
-                var hasClaims = await authorizationService.CheckAsync(_claims, user);
+                var authorized = await authorizationService.AuthorizeAsync(_claims, user);
 
-                if (!hasClaims)
+                if (!authorized)
                 {
-                    base.Fail();
+                    base.Fail(context);
                 }
             }
         }

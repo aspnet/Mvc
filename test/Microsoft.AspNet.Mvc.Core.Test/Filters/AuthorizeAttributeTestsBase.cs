@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
@@ -46,16 +47,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             var authorizationContext = new AuthorizationContext(
                 actionContext,
-                new FilterItem[0]
+                Enumerable.Empty<IFilter>().ToList()
             );
 
             return authorizationContext;
-        }
-
-        protected bool HasFailed(AuthorizationContext context) 
-        {
-            var statusCodeResult = context.Result as HttpStatusCodeResult;
-            return statusCodeResult != null && context.HttpContext.Response.StatusCode == 401;
         }
     }
 }

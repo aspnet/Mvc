@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc;
 
 namespace MvcSample.Web.Filters
 {
@@ -15,7 +15,7 @@ namespace MvcSample.Web.Filters
 
                 if(userIsAnonymous)
                 {
-                    context.Result = new HttpStatusCodeResult(401);
+                    base.Fail(context);
                 }
             }
         }

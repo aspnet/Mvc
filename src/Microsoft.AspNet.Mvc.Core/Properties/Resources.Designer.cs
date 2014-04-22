@@ -682,6 +682,38 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("ViewEngine_ViewNotFound"), p0, p1);
         }
 
+        /// <summary>
+        /// Claims can't be empty.
+        /// </summary>
+        internal static string AuthorizeAttribute_ClaimsCantBeEmpty
+        {
+            get { return GetString("AuthorizeAttribute_ClaimsCantBeEmpty"); }
+        }
+
+        /// <summary>
+        /// Claims can't be empty.
+        /// </summary>
+        internal static string FormatAuthorizeAttribute_ClaimsCantBeEmpty()
+        {
+            return GetString("AuthorizeAttribute_ClaimsCantBeEmpty");
+        }
+
+        /// <summary>
+        /// Authorization service is not defined.
+        /// </summary>
+        internal static string AuthorizeAttribute_AuthorizationServiceMustBeDefined
+        {
+            get { return GetString("AuthorizeAttribute_AuthorizationServiceMustBeDefined"); }
+        }
+
+        /// <summary>
+        /// Authorization service is not defined.
+        /// </summary>
+        internal static string FormatAuthorizeAttribute_AuthorizationServiceMustBeDefined()
+        {
+            return GetString("AuthorizeAttribute_AuthorizationServiceMustBeDefined");
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
