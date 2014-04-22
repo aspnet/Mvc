@@ -26,10 +26,8 @@
     <Compile Include="ActionResults\RedirectToActionResultTest.cs" />
     <Compile Include="ActionResults\RedirectToRouteResultTest.cs" />
     <Compile Include="ActionSelectionConventionTests.cs" />
-    <Compile Include="Authorization\AuthorizeAttributeUsersTests.cs" />
-    <Compile Include="Authorization\AuthorizeAttributeTests.cs" />
-    <Compile Include="Authorization\AuthorizeAttributeTestsBase.cs" />
-    <Compile Include="Authorization\DefaultAuthorizationServiceTests.cs" />
+    <Compile Include="Filters\AuthorizeAttributeTests.cs" />
+    <Compile Include="Filters\AuthorizeAttributeTestsBase.cs" />
     <Compile Include="ControllerTests.cs" />
     <Compile Include="DefaultActionSelectorTest.cs" />
     <Compile Include="DefaultControllerAssemblyProviderTests.cs" />
