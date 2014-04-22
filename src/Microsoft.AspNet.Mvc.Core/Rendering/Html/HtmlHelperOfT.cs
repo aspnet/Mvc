@@ -16,8 +16,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             [NotNull] IViewEngine viewEngine, 
             [NotNull] IModelMetadataProvider metadataProvider,
             [NotNull] IUrlHelper urlHelper,
-            [NotNull] AntiForgery antiForgeryInstance)
-             : base(viewEngine, metadataProvider, urlHelper, antiForgeryInstance)
+            [NotNull] AntiForgery antiForgeryInstance,
+            [NotNull] IEnumerable<IModelValidatorProvider> validatorProviders)
+             : base(viewEngine, metadataProvider, urlHelper, antiForgeryInstance, validatorProviders)
         {
         }
 

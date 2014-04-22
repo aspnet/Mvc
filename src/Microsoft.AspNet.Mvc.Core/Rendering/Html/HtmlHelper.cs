@@ -40,8 +40,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public HtmlHelper(
             [NotNull] IViewEngine viewEngine, 
             [NotNull] IModelMetadataProvider metadataProvider,
-            [NotNull] IUrlHelper urlHelper, 
-            [NotNull] AntiForgery antiForgeryInstance)
+            [NotNull] IUrlHelper urlHelper,             
+            [NotNull] AntiForgery antiForgeryInstance,
+            [NotNull] IEnumerable<IModelValidatorProvider> validatorProviders)
         {
             _viewEngine = viewEngine;
             MetadataProvider = metadataProvider;
@@ -50,10 +51,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = "_";
+
+            ClientValidationRuleFactory = (name, metadata) => validatorProviders
+                .SelectMany(vp => vp.GetValidators(metadata ??
+                    ExpressionMetadataProvider.FromStringExpression(name, ViewData, metadataProvider)))
+                    .OfType<IClientModelValidator>()
+                .SelectMany(v => v.GetClientValidationRules(new ClientModelValidationContext(metadata ??
+                    ExpressionMetadataProvider.FromStringExpression(name, ViewData, metadataProvider))));
         }
 
         /// <inheritdoc />
         public Html5DateRenderingMode Html5DateRenderingMode { get; set; }
+        
+        internal Func<string, ModelMetadata, IEnumerable<ModelClientValidationRule>>
+            ClientValidationRuleFactory { get; set; }
 
         /// <inheritdoc />
         public string IdAttributeDotReplacement { get; set; }
@@ -582,8 +593,27 @@ namespace Microsoft.AspNet.Mvc.Rendering
         // then we can't render the attributes (we'd have no <form> to attach them to).
         protected IDictionary<string, object> GetValidationAttributes(string name, ModelMetadata metadata)
         {
-            // TODO: Add validation attributes to input helpers.
-            return new Dictionary<string, object>();
+            var results = new Dictionary<string, object>();
+
+            if (!ViewContext.UnobtrusiveJavaScriptEnabled ||
+                ViewContext.ClientValidationEnabled ||
+                ViewContext.FormContext == null)
+            {
+                return results;
+            }
+
+            var formContext = ViewContext.FormContext;
+
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            if (formContext.RenderedField(fullName))
+            {
+                return results;
+            }
+
+            formContext.RenderedField(fullName, true);
+            var clientRules = ClientValidationRuleFactory(name, metadata);
+            UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules, results);
+            return results;
         }
 
         protected virtual HtmlString GenerateCheckBox(ModelMetadata metadata, string name, bool? isChecked,
