@@ -1098,7 +1098,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
         }
 
-        protected virtual HtmlString GenerateValidationMessage(string expression, string message, object htmlAttributes)
+        protected virtual HtmlString GenerateValidationMessage(string expression, string message,
+            object htmlAttributes)
         {
             var modelName = ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
             if (string.IsNullOrEmpty(modelName))
@@ -1114,12 +1115,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             ModelState modelState;
-            ViewData.ModelState.TryGetValue(modelName, out modelState);
+            var tryGetModelStateResult = ViewData.ModelState.TryGetValue(modelName, out modelState);
+            var modelErrors = tryGetModelStateResult ? null : modelState.Errors;
 
-            var modelErrors = (modelState == null) ? null : modelState.Errors;
-            var modelError = (((modelErrors == null) || (modelErrors.Count == 0)) ?
-                null :
-                modelErrors.FirstOrDefault(m => !string.IsNullOrEmpty(m.ErrorMessage)) ?? modelErrors[0]);
+            ModelError modelError = null;
+            if(modelErrors != null && modelErrors.Count != 0)
+            {
+                modelError = modelErrors.FirstOrDefault(m => !string.IsNullOrEmpty(m.ErrorMessage)) ?? modelErrors[0];
+            }
 
             if (modelError == null && formContext == null)
             {
@@ -1157,9 +1160,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         replaceValidationMessageContents.ToString().ToLowerInvariant());
                 }
 
-                // TODO: (WebFX-217) Once WebFX-167 is fixed, modifying the field metadata to add the
-                // validation message + adding the client validation id in the field should
-                // be added here.
+                // TODO: (WebFX-217) Add support for Unobtrusive JS disabled -
+                // Modify the field metadata to add the validation message,
+                // Add the client validation id in the field metadata
             }
 
             return builder.ToHtmlString(TagRenderMode.Normal);
