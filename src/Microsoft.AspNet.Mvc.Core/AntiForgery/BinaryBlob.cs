@@ -95,6 +95,8 @@ namespace Microsoft.AspNet.Mvc
             return data;
         }
 
+        // Need to mark it with NoInlining and NoOptimization attributes to ensure that the 
+        // operation runs in constant time.
         [MethodImplAttribute(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)] 
         private static bool AreByteArraysEqual(byte[] a, byte[] b)
         {
