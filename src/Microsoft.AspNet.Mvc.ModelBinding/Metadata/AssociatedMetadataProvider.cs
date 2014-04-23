@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 throw new ArgumentException(Resources.FormatCommon_PropertyNotFound(containerType, propertyName), "propertyName");
             }
 
-            return CreatePropertyMetadata(modelAccessor, propertyInfo);
+            return CreatePropertyMetadata(modelAccessor, propertyInfo, container: null);
         }
 
         public ModelMetadata GetMetadataForType(Func<object> modelAccessor, [NotNull] Type modelType)
@@ -63,16 +63,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     Func<object, object> propertyGetter = propertyInfo.ValueAccessor;
                     modelAccessor = () => propertyGetter(container);
                 }
-                yield return CreatePropertyMetadata(modelAccessor, propertyInfo);
+                yield return CreatePropertyMetadata(modelAccessor, propertyInfo, container);
             }
         }
 
-        private TModelMetadata CreatePropertyMetadata(Func<object> modelAccessor, PropertyInformation propertyInfo)
+        private TModelMetadata CreatePropertyMetadata(Func<object> modelAccessor, PropertyInformation propertyInfo, object container)
         {
             var metadata = CreateMetadataFromPrototype(propertyInfo.Prototype, modelAccessor);
-            if (propertyInfo.IsReadOnly)
+            if (metadata != null)
             {
-                metadata.IsReadOnly = true;
+                if (propertyInfo.IsReadOnly)
+                {
+                    metadata.IsReadOnly = true;
+                }
+                metadata.Container = container;
             }
             return metadata;
         }

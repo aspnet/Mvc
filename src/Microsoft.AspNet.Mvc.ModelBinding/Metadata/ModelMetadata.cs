@@ -40,6 +40,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             get { return _containerType; }
         }
 
+        public object Container { get; set; }
+
         public virtual bool ConvertEmptyStringToNull
         {
             get { return _convertEmptyStringToNull; }
