@@ -19,6 +19,7 @@ namespace Microsoft.AspNet.Mvc
 
         public AntiForgeryToken Deserialize(string serializedToken)
         {
+            Exception innerException = null;
             try
             {
                 using (MemoryStream stream = new MemoryStream(UrlTokenDecode(serializedToken)))
@@ -33,13 +34,14 @@ namespace Microsoft.AspNet.Mvc
                     }
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 // swallow all exceptions - homogenize error if something went wrong
+                innerException = ex;
             }
 
             // if we reached this point, something went wrong deserializing
-            throw new InvalidOperationException(Resources.AntiForgeryToken_DeserializationFailed);
+            throw new InvalidOperationException(Resources.AntiForgeryToken_DeserializationFailed, innerException);
         }
 
         /* The serialized format of the anti-XSRF token is as follows:
@@ -57,14 +59,14 @@ namespace Microsoft.AspNet.Mvc
         private static AntiForgeryToken DeserializeImpl(BinaryReader reader)
         {
             // we can only consume tokens of the same serialized version that we generate
-            byte embeddedVersion = reader.ReadByte();
+            var embeddedVersion = reader.ReadByte();
             if (embeddedVersion != TokenVersion)
             {
                 return null;
             }
 
-            AntiForgeryToken deserializedToken = new AntiForgeryToken();
-            byte[] securityTokenBytes = reader.ReadBytes(AntiForgeryToken.SecurityTokenBitLength / 8);
+            var deserializedToken = new AntiForgeryToken();
+            var securityTokenBytes = reader.ReadBytes(AntiForgeryToken.SecurityTokenBitLength / 8);
             deserializedToken.SecurityToken = new BinaryBlob(AntiForgeryToken.SecurityTokenBitLength, securityTokenBytes);
             deserializedToken.IsSessionToken = reader.ReadBoolean();
 
@@ -73,7 +75,7 @@ namespace Microsoft.AspNet.Mvc
                 bool isClaimsBased = reader.ReadBoolean();
                 if (isClaimsBased)
                 {
-                    byte[] claimUidBytes = reader.ReadBytes(AntiForgeryToken.ClaimUidBitLength / 8);
+                    var claimUidBytes = reader.ReadBytes(AntiForgeryToken.ClaimUidBitLength / 8);
                     deserializedToken.ClaimUid = new BinaryBlob(AntiForgeryToken.ClaimUidBitLength, claimUidBytes);
                 }
                 else
@@ -96,9 +98,9 @@ namespace Microsoft.AspNet.Mvc
 
         public string Serialize([NotNull] AntiForgeryToken token)
         {
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (var writer = new BinaryWriter(stream))
                 {
                     writer.Write(TokenVersion);
                     writer.Write(token.SecurityToken.GetData());

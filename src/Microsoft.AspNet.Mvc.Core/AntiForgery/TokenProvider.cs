@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc
         {
             Contract.Assert(IsCookieTokenValid(cookieToken));
 
-            AntiForgeryToken formToken = new AntiForgeryToken()
+            var formToken = new AntiForgeryToken()
             {
                 SecurityToken = cookieToken.SecurityToken,
                 IsSessionToken = false

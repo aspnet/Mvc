@@ -53,9 +53,9 @@ namespace Microsoft.AspNet.Mvc
 
         private static byte[] ComputeSHA256(IEnumerable<string> parameters)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
-                using (BinaryWriter bw = new BinaryWriter(ms))
+                using (var bw = new BinaryWriter(ms))
                 {
                     foreach (string parameter in parameters)
                     {
@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc
 
                     bw.Flush();
 
-                    using (SHA256 sha256 = SHA256.Create())
+                    using (var sha256 = SHA256.Create())
                     {
                         byte[] retVal = sha256.ComputeHash(ms.ToArray(), 0, checked((int)ms.Length));
                         return retVal;

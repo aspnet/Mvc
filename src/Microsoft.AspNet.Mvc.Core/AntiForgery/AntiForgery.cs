@@ -35,7 +35,8 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>An HTML string corresponding to an &lt;input type="hidden"&gt;
         /// element. This element should be put inside a &lt;form&gt;.</returns>
         /// <remarks>
-        /// This method has a side effect: A response cookie is set if there is no valid cookie associated with the request.
+        /// This method has a side effect: 
+        /// A response cookie is set if there is no valid cookie associated with the request.
         /// </remarks>
         public HtmlString GetHtml([NotNull] HttpContext context)
         {

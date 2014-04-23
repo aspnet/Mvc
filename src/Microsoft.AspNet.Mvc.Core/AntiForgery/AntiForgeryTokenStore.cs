@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc
         public void SaveCookieToken(HttpContext httpContext, AntiForgeryToken token)
         {
             string serializedToken = _serializer.Serialize(token);
-            CookieOptions options = new CookieOptions() { HttpOnly = true };
+            var options = new CookieOptions() { HttpOnly = true };
 
             // Note: don't use "newCookie.Secure = _config.RequireSSL;" since the default
             // value of newCookie.Secure is poulated out of band.

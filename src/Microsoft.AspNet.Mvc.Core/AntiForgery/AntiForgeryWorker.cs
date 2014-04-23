@@ -180,8 +180,8 @@ namespace Microsoft.AspNet.Mvc
             CheckSSLConfig(httpContext);
 
             // Extract cookie & form tokens
-            AntiForgeryToken cookieToken = _tokenStore.GetCookieToken(httpContext);
-            AntiForgeryToken formToken = await _tokenStore.GetFormTokenAsync(httpContext);
+            var cookieToken = _tokenStore.GetCookieToken(httpContext);
+            var formToken = await _tokenStore.GetFormTokenAsync(httpContext);
 
             // Validate
             _validator.ValidateTokens(httpContext, ExtractIdentity(httpContext), cookieToken, formToken);
@@ -195,8 +195,8 @@ namespace Microsoft.AspNet.Mvc
             CheckSSLConfig(httpContext);
 
             // Extract cookie & form tokens
-            AntiForgeryToken deserializedCookieToken = DeserializeToken(cookieToken);
-            AntiForgeryToken deserializedFormToken = DeserializeToken(formToken);
+            var deserializedCookieToken = DeserializeToken(cookieToken);
+            var deserializedFormToken = DeserializeToken(formToken);
 
             // Validate
             _validator.ValidateTokens(httpContext, ExtractIdentity(httpContext), deserializedCookieToken, deserializedFormToken);
