@@ -11,9 +11,9 @@ namespace Microsoft.AspNet.Mvc
 {
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
-        private readonly Claim[] _claims;
+        protected Claim[] _claims;
 
-        public AuthorizeAttribute()
+        protected AuthorizeAttribute()
         {
             _claims = new Claim[0];
         }
@@ -21,29 +21,29 @@ namespace Microsoft.AspNet.Mvc
         public AuthorizeAttribute([NotNull]IEnumerable<Claim> claims) 
         {
             _claims = claims.ToArray();
-
-            if (_claims.Length == 0)
-            {
-                throw new ArgumentException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
-            }
         }
 
-        public AuthorizeAttribute(string type, string value)
+        public AuthorizeAttribute(string claimType, string claimValue)
         {
-            _claims = new [] { new Claim(type, value) };
+            _claims = new [] { new Claim(claimType, claimValue) };
         }
 
-        public AuthorizeAttribute(string type, string value, params string[] otherValues)
-            : this(type, value)
+        public AuthorizeAttribute(string claimType, string claimValue, params string[] otherClaimValues)
+            : this(claimType, claimValue)
         {
-            if (otherValues.Length > 0)
+            if (otherClaimValues.Length > 0)
             {
-                _claims = _claims.Concat(otherValues.Select(claim => new Claim(type, claim))).ToArray();
+                _claims = _claims.Concat(otherClaimValues.Select(claim => new Claim(claimType, claim))).ToArray();
             }
         }
 
         public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
+            if (_claims.Length == 0)
+            {
+                throw new InvalidOperationException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
+            }
+
             var httpContext = context.HttpContext;
             var user = httpContext.User;
 
@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public override void OnAuthorization([NotNull] AuthorizationContext context)
+        public sealed override void OnAuthorization([NotNull] AuthorizationContext context)
         {
             // The async filter will be called by the filter pipeline.
             throw new NotImplementedException(Resources.AuthorizeAttribute_OnAuthorizationNotImplemented);
