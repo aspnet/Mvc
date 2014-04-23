@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc
     {
         protected Claim[] _claims;
 
-        protected AuthorizeAttribute()
+        public AuthorizeAttribute()
         {
             _claims = new Claim[0];
         }
@@ -39,26 +39,37 @@ namespace Microsoft.AspNet.Mvc
 
         public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
-            if (_claims.Length == 0)
-            {
-                throw new InvalidOperationException(Resources.AuthorizeAttribute_ClaimsCantBeEmpty);
-            }
-
             var httpContext = context.HttpContext;
             var user = httpContext.User;
 
-            var authorizationService = httpContext.RequestServices.GetService<IAuthorizationService>();
-
-            if (authorizationService == null)
+            // when no claims are specified, we just need to ensure the user is authenticated
+            if (_claims.Length == 0)
             {
-                throw new InvalidOperationException(Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
+                var userIsAnonymous = 
+                    user == null || 
+                    user.Identity == null || 
+                    !user.Identity.IsAuthenticated;
+
+                    if(userIsAnonymous)
+                    {
+                        base.Fail(context);
+                    }
             }
-
-            var authorized = await authorizationService.AuthorizeAsync(_claims, user);
-
-            if (!authorized)
+            else 
             {
-                base.Fail(context);
+                var authorizationService = httpContext.RequestServices.GetService<IAuthorizationService>();
+
+                if (authorizationService == null)
+                {
+                    throw new InvalidOperationException(Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
+                }
+
+                var authorized = await authorizationService.AuthorizeAsync(_claims, user);
+
+                if (!authorized)
+                {
+                    base.Fail(context);
+                }
             }
         }
 

@@ -28,6 +28,41 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
+        public async void Invoke_EmptyClaimsShouldRejectAnonymousUser()
+        {
+            // Arrange
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
+            var authorizeAttribute = new AuthorizeAttribute();
+            var authorizationContext = GetAuthorizationContext(services => 
+                services.AddInstance<IAuthorizationService>(authorizationService),
+                anonymous: true
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.NotNull(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async void Invoke_EmptyClaimsShouldAuthorizeAuthenticatedUser()
+        {
+            // Arrange
+            var authorizationService = new DefaultAuthorizationService(Enumerable.Empty<IAuthorizationPolicy>());
+            var authorizeAttribute = new AuthorizeAttribute();
+            var authorizationContext = GetAuthorizationContext(services => 
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.Null(authorizationContext.Result);
+        }
+
+        [Fact]
         public async void Invoke_SingleValidClaimShouldSucceed()
         {
             // Arrange

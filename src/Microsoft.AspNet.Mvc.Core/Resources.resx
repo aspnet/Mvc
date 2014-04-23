@@ -243,9 +243,6 @@
   <data name="ViewEngine_ViewNotFound" xml:space="preserve">
     <value>The view '{0}' was not found. The following locations were searched:{1}.</value>
   </data>
-  <data name="AuthorizeAttribute_ClaimsCantBeEmpty" xml:space="preserve">
-    <value>The claims can't be empty.</value>
-  </data>
   <data name="AuthorizeAttribute_AuthorizationServiceMustBeDefined" xml:space="preserve">
     <value>Unable to locate an implementation of IAuthorizationService.</value>
   </data>

@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 {
     public class AuthorizeAttributeTestsBase
     {
-        protected AuthorizationContext GetAuthorizationContext(Action<ServiceCollection> registerServices)
+        protected AuthorizationContext GetAuthorizationContext(Action<ServiceCollection> registerServices, bool anonymous = false)
         {
             var validUser = new ClaimsPrincipal(
                 new ClaimsIdentity(
@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // HttpContext
             var httpContext = new Mock<HttpContext>();
-            httpContext.SetupGet(c => c.User).Returns(validUser);
+            httpContext.SetupGet(c => c.User).Returns(anonymous ? null : validUser);
             httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
 
             // AuthorizationContext

@@ -683,22 +683,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The claims can't be empty.
-        /// </summary>
-        internal static string AuthorizeAttribute_ClaimsCantBeEmpty
-        {
-            get { return GetString("AuthorizeAttribute_ClaimsCantBeEmpty"); }
-        }
-
-        /// <summary>
-        /// The claims can't be empty.
-        /// </summary>
-        internal static string FormatAuthorizeAttribute_ClaimsCantBeEmpty()
-        {
-            return GetString("AuthorizeAttribute_ClaimsCantBeEmpty");
-        }
-
-        /// <summary>
         /// Unable to locate an implementation of IAuthorizationService.
         /// </summary>
         internal static string AuthorizeAttribute_AuthorizationServiceMustBeDefined
