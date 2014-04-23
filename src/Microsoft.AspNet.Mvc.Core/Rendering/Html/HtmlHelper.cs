@@ -609,8 +609,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             formContext.RenderedField(fullName, true);
             var clientRules = GetClientValidationRules(name, metadata);
-            var results = UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules);
-            return results;
+            return UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules);
         }
 
         protected virtual HtmlString GenerateCheckBox(ModelMetadata metadata, string name, bool? isChecked,
@@ -1328,7 +1327,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
             return actionBindingContext.ValidatorProviders
                 .SelectMany(vp => vp.GetValidators(metadata))
-                    .OfType<IClientModelValidator>()
+                .OfType<IClientModelValidator>()
                 .SelectMany(v => v.GetClientValidationRules(new ClientModelValidationContext(metadata)));
         }
     }

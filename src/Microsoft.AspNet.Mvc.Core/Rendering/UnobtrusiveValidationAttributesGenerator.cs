@@ -12,16 +12,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             [NotNull] IEnumerable<ModelClientValidationRule> clientRules)
         {
             IDictionary<string, object> results = null;
-            var renderedRules = false;
 
             foreach (var rule in clientRules)
             {
                 if (results == null)
                 {
-                    results = new Dictionary<string, object>();
+                    results = new Dictionary<string, object>(StringComparer.Ordinal);
                 }
 
-                renderedRules = true;
                 var ruleName = "data-val-" + rule.ValidationType;
 
                 ValidateUnobtrusiveValidationRule(rule, results, ruleName);
@@ -35,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 }
             }
 
-            if (renderedRules)
+            if (results != null)
             {
                 results.Add("data-val", "true");
             }
@@ -46,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private static void ValidateUnobtrusiveValidationRule(ModelClientValidationRule rule,
             IDictionary<string, object> resultsDictionary, string dictionaryKey)
         {
-            if (string.IsNullOrWhiteSpace(rule.ValidationType))
+            if (string.IsNullOrEmpty(rule.ValidationType))
             {
                 throw new InvalidOperationException(
                     Resources.FormatUnobtrusiveJavascript_ValidationTypeCannotBeEmpty(rule.GetType().FullName));
@@ -68,13 +66,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             foreach (var key in rule.ValidationParameters.Keys)
             {
-                if (string.IsNullOrWhiteSpace(key))
+                if (string.IsNullOrEmpty(key))
                 {
                     throw new InvalidOperationException(
                         Resources.FormatUnobtrusiveJavascript_ValidationParameterCannotBeEmpty(rule.GetType().FullName));
                 }
 
-                if (!char.IsLower(key.First()) || key.Any(c => !char.IsLower(c) && !char.IsDigit(c)))
+                if (!char.IsLower(key[0]) || key.Any(c => !char.IsLower(c) && !char.IsDigit(c)))
                 {
                     throw new InvalidOperationException(
                         Resources.FormatUnobtrusiveJavascript_ValidationParameterMustBeLegal(
