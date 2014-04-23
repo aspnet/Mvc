@@ -250,6 +250,6 @@
     <value>Unable to locate an implementation of IAuthorizationService.</value>
   </data>
   <data name="AuthorizeAttribute_OnAuthorizationNotImplemented" xml:space="preserve">
-    <value>Please use OnAuthorizationAsync instead.</value>
+    <value>OnAuthorization is not implemented by this filter, use OnAuthorizationAsync instead.</value>
   </data>
 </root>

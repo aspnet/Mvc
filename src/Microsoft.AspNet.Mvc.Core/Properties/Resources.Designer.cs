@@ -715,7 +715,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Please use OnAuthorizationAsync instead.
+        /// OnAuthorization is not implemented by this filter, use OnAuthorizationAsync instead.
         /// </summary>
         internal static string AuthorizeAttribute_OnAuthorizationNotImplemented
         {
@@ -723,7 +723,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Please use OnAuthorizationAsync instead.
+        /// OnAuthorization is not implemented by this filter, use OnAuthorizationAsync instead.
         /// </summary>
         internal static string FormatAuthorizeAttribute_OnAuthorizationNotImplemented()
         {

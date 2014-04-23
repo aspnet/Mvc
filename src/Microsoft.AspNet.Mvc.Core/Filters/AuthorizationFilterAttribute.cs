@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc
             return context.Filters.Any(item => item is IAllowAnonymous);
         }
 
-        public virtual void Fail([NotNull] AuthorizationContext context)
+        protected virtual void Fail([NotNull] AuthorizationContext context)
         {
             context.Result = new HttpStatusCodeResult(401);
         }

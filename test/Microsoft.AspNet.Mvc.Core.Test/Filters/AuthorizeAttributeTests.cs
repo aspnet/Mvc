@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Core.Filters;
+using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Security.Authorization;
 using Moq;
 using Xunit;
@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 services.AddInstance<IAuthorizationService>(authorizationService.Object)
                 );
             
-            authorizeAttribute.Fail(authorizationContext);
+            authorizationContext.Result = new HttpStatusCodeResult(401);
 
             // Act
             await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
