@@ -67,6 +67,13 @@ namespace Microsoft.AspNet.Mvc
             return GenerateUrl(protocol, host, path, fragment);
         }
 
+        public bool IsLocalUrl(string url)
+        {
+            return !string.IsNullOrEmpty(url) &&
+                   ((url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\'))) || // "/" or "/foo" but not "//" or "/\"
+                    (url.Length > 1 && url[0] == '~' && url[1] == '/')); // "~/" or "~/foo"
+        }
+
         public string RouteUrl(object values, string protocol, string host, string fragment)
         {
             var valuesDictionary = TypeHelper.ObjectToDictionary(values);
