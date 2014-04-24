@@ -6,6 +6,7 @@ namespace MvcSample.Web.Models
     {
         [Required]
         [MinLength(4)]
+        [DisplayFormat(ConvertEmptyStringToNull=true, NullDisplayText="Please enter name")]
         public string Name { get; set; }
         public string Address { get; set; }
         public int Age { get; set; }

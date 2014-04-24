@@ -69,6 +69,24 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>The display name for the inner model.</returns>
         HtmlString DisplayNameForInnerType<TInnerModel, TValue>(
             [NotNull] Expression<Func<TInnerModel, TValue>> expression);
+        /// Returns the HtmlString corresponding to the property in the model specified by the name.
+        /// </summary>
+        /// <param name="name">The string which identifies the object for which the HtmlString
+        /// should be returned.</param>
+        /// <returns>New <see cref="HtmlString"/> containing the display text. If the value is null,
+        /// then it returns the NullDisplayText.</returns>
+        HtmlString DisplayText(string name);
+
+        /// <summary>
+        /// Returns the HtmlString corresponding to the expression specified.
+        /// </summary>
+        /// <param name="expression">The expression identifies the object for which the HtmlString
+        /// should be returned.</param>
+        /// <returns>New <see cref="HtmlString"/> containing the display text. If the value is null,
+        /// then it returns the NullDisplayText.</returns>
+        HtmlString DisplayTextFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression);
+
+        /// <summary>
 
         /// <summary>
         /// Returns a single-selection HTML {select} element for the object that is represented
@@ -124,6 +142,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>New <see cref="HtmlString"/> containing the rendered HTML.</returns>
         HtmlString HiddenFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression,
             object htmlAttributes);
+
+        /// <summary>
+        /// Gets the Id of the given string.
+        /// </summary>
+        /// <param name="name">The string which identifies the object for which the Id should be returned.</param>
+        /// <returns>New <see cref="HtmlString"/> containing the Id.</returns>
+        HtmlString Id(string name);
+
+        /// <summary>
+        /// Gets the Id of the given expression.
+        /// </summary>
+        /// <param name="expression">The expression identifies the object for which the Id should be returned.</param>
+        /// <returns>New <see cref="HtmlString"/> containing the Id.</returns>
+        HtmlString IdFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression);
+
+        /// <summary>
+        /// Gets the Id for the model.
+        /// </summary>
+        /// <returns>New <see cref="HtmlString"/> containing the Id for the model.</returns>
+        HtmlString IdForModel();
 
         /// <summary>
         /// Returns an HTML label element and the property name of the property that is represented by the specified

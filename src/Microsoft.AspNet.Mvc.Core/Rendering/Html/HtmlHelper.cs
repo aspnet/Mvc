@@ -263,6 +263,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GenerateDisplayName(modelMetadata, expression);
         }
 
+        public HtmlString DisplayText(string name)
+        {
+            var metadata = string.IsNullOrEmpty(name) ?
+                ViewData.ModelMetadata :
+                ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
+
+            return GenerateDisplayText(metadata);
+        }
 
         /// <inheritdoc />
         public HtmlString DropDownList(string name, IEnumerable<SelectListItem> selectList, string optionLabel,
@@ -296,6 +304,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes: htmlAttributes);
         }
 
+        /// <inheritdoc />
+        public HtmlString Id(string name)
+        {
+            return GenerateId(name);
+        }
+	
+        /// <inheritdoc />
+        public HtmlString IdForModel()
+        {
+            return GenerateId(string.Empty);
+        }
+	
         /// <inheritdoc />
         public HtmlString Label(string expression, string labelText, object htmlAttributes)
         {
@@ -650,6 +670,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             return new HtmlString(Encode(resolvedDisplayName));
         }
+        
+        protected HtmlString GenerateDisplayText(ModelMetadata metadata)
+        {
+            return new HtmlString(metadata.SimpleDisplayText);
+        }
 
         protected HtmlString GenerateDropDown(ModelMetadata metadata, string expression,
             IEnumerable<SelectListItem> selectList, string optionLabel, object htmlAttributes)
@@ -756,6 +781,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 isExplicitValue: true,
                 format: null,
                 htmlAttributes: htmlAttributeDictionary);
+        }
+
+        protected HtmlString GenerateId(string expression)
+        {
+            return new HtmlString(Encode(ViewData.TemplateInfo.GetFullHtmlFieldName(expression)));
         }
 
         protected virtual HtmlString GenerateLabel([NotNull] ModelMetadata metadata, 

@@ -48,7 +48,7 @@
                         <label class="control-label col-md-2">Model.Name</label>
                     </td>
                     <td>
-                        @Html.TextBox("Name")
+                        @Html.TextBox(Html.Id("Name").ToString(), Html.DisplayTextFor(m => m.Name))
                     </td>
                 </tr>
                 <tr>
@@ -56,7 +56,7 @@
                         <label class="control-label col-md-2">Model.Address</label>
                     </td>
                     <td>
-                        @Html.DropDownList("Address", "Select an Address")
+                        @Html.DropDownList(Html.IdFor(model => model.Address).ToString(), "Select an Address")
                     </td>
                 </tr>
                 <tr>
