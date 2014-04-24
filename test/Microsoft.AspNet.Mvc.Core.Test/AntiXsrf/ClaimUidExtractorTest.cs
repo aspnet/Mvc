@@ -1,8 +1,6 @@
 ﻿using Moq;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Security.Claims;
 using Xunit;
 
@@ -30,7 +28,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             IClaimUidExtractor extractor = new DefaultClaimUidExtractor();
 
             var mockIdentity = new Mock<ClaimsIdentity>();
-            mockIdentity.Setup(o => o.IsAuthenticated).Returns(false);
+            mockIdentity.Setup(o => o.IsAuthenticated)
+                        .Returns(false);
 
             // Act
             var retVal = extractor.ExtractClaimUid(mockIdentity.Object);
@@ -44,7 +43,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var mockIdentity = new Mock<ClaimsIdentity>();
-            mockIdentity.Setup(o => o.IsAuthenticated).Returns(true);
+            mockIdentity.Setup(o => o.IsAuthenticated)
+                        .Returns(true);
 
             IClaimUidExtractor extractor = new DefaultClaimUidExtractor();
 
@@ -64,13 +64,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             identity.AddClaim(ClaimTypes.GivenName, "some");
             identity.AddClaim(ClaimTypes.Surname, "one");
             identity.AddClaim(ClaimTypes.NameIdentifier, String.Empty);
-         
 
             // Arrange
             var claimsIdentity = (ClaimsIdentity)identity;
 
-            // Act 
-            var identiferParameters = DefaultClaimUidExtractor.GetUniqueIdentifierParameters(claimsIdentity).ToArray();
+            // Act
+            var identiferParameters = DefaultClaimUidExtractor.GetUniqueIdentifierParameters(claimsIdentity)
+                                                              .ToArray();
             var claims = claimsIdentity.Claims.ToList();
             claims.Sort((a, b) => string.Compare(a.Type, b.Type, StringComparison.Ordinal));
 
@@ -95,7 +95,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var retVal = DefaultClaimUidExtractor.GetUniqueIdentifierParameters(identity);
 
             // Assert
-            Assert.Equal(new string[] {
+            Assert.Equal(new string[]
+            {
                 ClaimTypes.NameIdentifier,
                 "nameIdentifierValue",
             }, retVal);

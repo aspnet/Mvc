@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc.Core.Test

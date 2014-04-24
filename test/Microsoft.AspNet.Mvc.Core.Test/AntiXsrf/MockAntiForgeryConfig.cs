@@ -1,5 +1,4 @@
-﻿
-namespace Microsoft.AspNet.Mvc.Core.Test
+﻿namespace Microsoft.AspNet.Mvc.Core.Test
 {
     public sealed class MockAntiForgeryConfig : IAntiForgeryConfig
     {

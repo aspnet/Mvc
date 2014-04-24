@@ -1,5 +1,4 @@
-﻿
-namespace Microsoft.AspNet.Mvc.Core.Test
+﻿namespace Microsoft.AspNet.Mvc.Core.Test
 {
     // An IAntiForgeryTokenSerializer that can be passed to MoQ.
     public abstract class MockableAntiForgeryTokenSerializer : IAntiForgeryTokenSerializer

@@ -1,6 +1,4 @@
-﻿
-using System.Security.Claims;
-using System.Security.Principal;
+﻿using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {

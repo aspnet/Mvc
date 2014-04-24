@@ -1,11 +1,5 @@
-﻿using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Claims;
+﻿using System;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
@@ -15,8 +9,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Ctor_BitLength()
         {
             // Act
-            BinaryBlob blob = new BinaryBlob(bitLength: 64);
-            byte[] data = blob.GetData();
+            var blob = new BinaryBlob(bitLength: 64);
+            var data = blob.GetData();
 
             // Assert
             Assert.Equal(64, blob.BitLength);
@@ -38,8 +32,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Ctor_BitLength_ProducesDifferentValues()
         {
             // Act
-            BinaryBlob blobA = new BinaryBlob(bitLength: 64);
-            BinaryBlob blobB = new BinaryBlob(bitLength: 64);
+            var blobA = new BinaryBlob(bitLength: 64);
+            var blobB = new BinaryBlob(bitLength: 64);
 
             // Assert
             Assert.NotEqual(blobA.GetData(), blobB.GetData());
@@ -49,10 +43,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Ctor_Data()
         {
             // Arrange
-            byte[] expectedData = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            var expectedData = new byte[] { 0x01, 0x02, 0x03, 0x04 };
 
             // Act
-            BinaryBlob blob = new BinaryBlob(32, expectedData);
+            var blob = new BinaryBlob(32, expectedData);
 
             // Assert
             Assert.Equal(32, blob.BitLength);
@@ -117,13 +111,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetHashCodeTest()
         {
             // Arrange
-            byte[] blobData = new byte[] { 0x01, 0x02, 0x03, 0x04 };
-            int expectedHashCode = BitConverter.ToInt32(blobData, 0);
+            var blobData = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            var expectedHashCode = BitConverter.ToInt32(blobData, 0);
 
-            BinaryBlob blob = new BinaryBlob(32, blobData);
+            var blob = new BinaryBlob(32, blobData);
 
             // Act
-            int actualHashCode = blob.GetHashCode();
+            var actualHashCode = blob.GetHashCode();
 
             // Assert
             Assert.Equal(expectedHashCode, actualHashCode);

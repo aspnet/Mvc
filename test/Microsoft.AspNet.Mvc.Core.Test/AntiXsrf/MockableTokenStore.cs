@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNet.Abstractions;
+﻿using Microsoft.AspNet.Abstractions;
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
     // An ITokenStore that can be passed to MoQ

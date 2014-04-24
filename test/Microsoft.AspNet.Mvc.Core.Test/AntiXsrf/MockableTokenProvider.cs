@@ -1,7 +1,5 @@
-﻿
-using Microsoft.AspNet.Abstractions;
+﻿using Microsoft.AspNet.Abstractions;
 using System.Security.Claims;
-using System.Security.Principal;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {

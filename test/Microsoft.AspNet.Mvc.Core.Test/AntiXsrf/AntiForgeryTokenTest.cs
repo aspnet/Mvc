@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void AdditionalDataProperty()
         {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            var token = new AntiForgeryToken();
 
             // Act & assert - 1
             Assert.Equal("", token.AdditionalData);
@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void ClaimUidProperty()
         {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            var token = new AntiForgeryToken();
 
             // Act & assert - 1
             Assert.Null(token.ClaimUid);
@@ -45,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void IsSessionTokenProperty()
         {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            var token = new AntiForgeryToken();
 
             // Act & assert - 1
             Assert.False(token.IsSessionToken);
@@ -60,35 +60,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public void SecurityTokenProperty()
-        {
-            // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
-
-            // Act & assert - 1
-            BinaryBlob securityToken = token.SecurityToken;
-            Assert.NotNull(securityToken);
-            Assert.Equal(AntiForgeryToken.SecurityTokenBitLength, securityToken.BitLength);
-            Assert.Equal(securityToken, token.SecurityToken); // check that we're not making a new one each property call
-
-            // Act & assert - 2
-            securityToken = new BinaryBlob(64);
-            token.SecurityToken = securityToken;
-            Assert.Equal(securityToken, token.SecurityToken);
-
-            // Act & assert - 3
-            token.SecurityToken = null;
-            securityToken = token.SecurityToken;
-            Assert.NotNull(securityToken);
-            Assert.Equal(AntiForgeryToken.SecurityTokenBitLength, securityToken.BitLength);
-            Assert.Equal(securityToken, token.SecurityToken); // check that we're not making a new one each property call
-        }
-
-        [Fact]
         public void UsernameProperty()
         {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            var token = new AntiForgeryToken();
 
             // Act & assert - 1
             Assert.Equal("", token.Username);
@@ -100,6 +75,55 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Act & assert - 3
             token.Username = null;
             Assert.Equal("", token.Username);
+        }
+
+        [Fact]
+        public void SecurityTokenProperty_GetsAutopopulated()
+        {
+            // Arrange
+            var token = new AntiForgeryToken();
+
+            // Act
+            var securityToken = token.SecurityToken;
+
+            // Assert
+            Assert.NotNull(securityToken);
+            Assert.Equal(AntiForgeryToken.SecurityTokenBitLength, securityToken.BitLength);
+
+            // check that we're not making a new one each property call
+            Assert.Equal(securityToken, token.SecurityToken);
+        }
+
+        [Fact]
+        public void SecurityTokenProperty_PropertySetter_DoesNotUseDefaults()
+        {
+            // Arrange
+            var token = new AntiForgeryToken();
+
+            // Act
+            var securityToken = new BinaryBlob(64);
+            token.SecurityToken = securityToken;
+
+            // Assert
+            Assert.Equal(securityToken, token.SecurityToken);
+        }
+
+        [Fact]
+        public void SecurityTokenProperty_PropertySetter_DoesNotAllowNulls()
+        {
+            // Arrange
+            var token = new AntiForgeryToken();
+
+            // Act
+            token.SecurityToken = null;
+            var securityToken = token.SecurityToken;
+
+            // Assert
+            Assert.NotNull(securityToken);
+            Assert.Equal(AntiForgeryToken.SecurityTokenBitLength, securityToken.BitLength);
+
+            // check that we're not making a new one each property call
+            Assert.Equal(securityToken, token.SecurityToken);
         }
     }
 }
