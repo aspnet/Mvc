@@ -1,19 +1,23 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public sealed class KeyValuePairModelBinder<TKey, TValue> : IModelBinder
     {
-        public bool BindModel(ModelBindingContext bindingContext)
+        public async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext, typeof(KeyValuePair<TKey, TValue>), allowNullModel: true);
 
-            TKey key;
-            bool keyBindingSucceeded = TryBindStrongModel(bindingContext, "key", out key);
+            var keyResult = await TryBindStrongModel<TKey>(bindingContext, "key");
+            var keyBindingSucceeded = keyResult.Item1;
+            var key = keyResult.Item2;
 
-            TValue value;
-            bool valueBindingSucceeded = TryBindStrongModel(bindingContext, "value", out value);
+            var valueResult =  await TryBindStrongModel<TValue>(bindingContext, "value");
+            var valueBindingSucceeded = valueResult.Item1;
+            var value = valueResult.Item2;
 
             if (keyBindingSucceeded && valueBindingSucceeded)
             {
@@ -23,9 +27,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         // TODO: Make this internal
-        public bool TryBindStrongModel<TModel>(ModelBindingContext parentBindingContext,
-                                                string propertyName,
-                                                out TModel model)
+        public async Task<Tuple<bool, TModel>> TryBindStrongModel<TModel>(ModelBindingContext parentBindingContext,
+                                                                          string propertyName)
         {
             ModelBindingContext propertyBindingContext = new ModelBindingContext(parentBindingContext)
             {
@@ -33,16 +36,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelName = ModelBindingHelper.CreatePropertyModelName(parentBindingContext.ModelName, propertyName)
             };
 
-            if (propertyBindingContext.ModelBinder.BindModel(propertyBindingContext))
+            if (await propertyBindingContext.ModelBinder.BindModelAsync(propertyBindingContext))
             {
                 object untypedModel = propertyBindingContext.Model;
-                model = ModelBindingHelper.CastOrDefault<TModel>(untypedModel);
+                var model = ModelBindingHelper.CastOrDefault<TModel>(untypedModel);
                 parentBindingContext.ValidationNode.ChildNodes.Add(propertyBindingContext.ValidationNode);
-                return true;
+                return Tuple.Create(true, model);
             }
 
-            model = default(TModel);
-            return false;
+            return Tuple.Create(false, default(TModel));
         }
     }
 }
