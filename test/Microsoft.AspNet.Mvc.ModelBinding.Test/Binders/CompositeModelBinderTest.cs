@@ -1,6 +1,7 @@
 ﻿#if NET45
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -218,10 +219,56 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal("name", model.Friends[1].LastName);
         }
 
+        [Fact]
+        public async Task BindModel_WithDefaultValidators_ValidatesSubProperties()
+        {
+            // Arrange
+            var validatorProvider = new DataAnnotationsModelValidatorProvider();
+            var binder = CreateBinderWithDefaults();
+            var valueProvider = new SimpleHttpValueProvider
+            {
+                { "user.password", "password-val" },
+                { "user.confirmpassword", "not-password-val" },
+            };
+            var bindingContext = CreateBindingContext(binder, valueProvider, typeof(User), new[] { validatorProvider });
+            bindingContext.ModelName = "user";
+
+            // Act
+            var isBound = await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            var error = Assert.Single(bindingContext.ModelState["user.confirmpassword"].Errors);
+            Assert.Equal("'ConfirmPassword' and 'Password' do not match.", error.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task BindModel_WithDefaultValidators_ValidatesInstance()
+        {
+            // Arrange
+            var validatorProvider = new DataAnnotationsModelValidatorProvider();
+            var binder = CreateBinderWithDefaults();
+            var valueProvider = new SimpleHttpValueProvider
+            {
+                { "user.password", "password" },
+                { "user.confirmpassword", "password" },
+            };
+            var bindingContext = CreateBindingContext(binder, valueProvider, typeof(User), new[] { validatorProvider });
+            bindingContext.ModelName = "user";
+
+            // Act
+            var isBound = await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            var error = Assert.Single(bindingContext.ModelState["user"].Errors);
+            Assert.Equal("Password does not meet complexity requirements.", error.ErrorMessage);
+        }
+
         private static ModelBindingContext CreateBindingContext(IModelBinder binder,
                                                                 IValueProvider valueProvider,
-                                                                Type type)
+                                                                Type type,
+                                                                IEnumerable<IModelValidatorProvider> validatorProviders = null)
         {
+            validatorProviders = validatorProviders ?? Enumerable.Empty<IModelValidatorProvider>();
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var bindingContext = new ModelBindingContext
             {
@@ -231,7 +278,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = metadataProvider.GetMetadataForType(null, type),
                 ModelState = new ModelStateDictionary(),
                 ValueProvider = valueProvider,
-                ValidatorProviders = Enumerable.Empty<IModelValidatorProvider>()
+                ValidatorProviders = validatorProviders
             };
             return bindingContext;
         }
@@ -270,6 +317,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             public int Age { get; set; }
 
             public List<Person> Friends { get; set; }
+        }
+
+        private sealed class User : IValidatableObject
+        {
+            public string Password { get; set; }
+
+            [Compare("Password")]
+            public string ConfirmPassword { get; set; }
+
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (Password == "password")
+                {
+                    yield return new ValidationResult("Password does not meet complexity requirements.");
+                }
+            }
         }
     }
 }
