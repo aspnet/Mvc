@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         [Theory]
         [InlineData("/foo.html")]
-        [InlineData("/www.hackerz.com")]
+        [InlineData("/www.example.com")]
         [InlineData("/")]
         public void IsLocalUrl_AcceptsRootedUrls(string url)
         {
@@ -117,8 +117,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [Theory]
         [InlineData("http:/foo.html")]
         [InlineData("hTtP:foo.html")]
-        [InlineData("http:/www.hackerz.com")]
-        [InlineData("HtTpS:/www.hackerz.com")]
+        [InlineData("http:/www.example.com")]
+        [InlineData("HtTpS:/www.example.com")]
         public void IsLocalUrl_RejectValidButUnsafeRelativeUrls(string url)
         {
             // Arrange
@@ -176,10 +176,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Theory]
-        [InlineData("http://www.hackerz.com")]
-        [InlineData("https://www.hackerz.com")]
-        [InlineData("hTtP://www.hackerz.com")]
-        [InlineData("HtTpS://www.hackerz.com")]
+        [InlineData("http://www.example.com")]
+        [InlineData("https://www.example.com")]
+        [InlineData("hTtP://www.example.com")]
+        [InlineData("HtTpS://www.example.com")]
         public void IsLocalUrl_RejectsUrlsOnDifferentHost(string url)
         {
             // Arrange
@@ -193,12 +193,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Theory]
-        [InlineData("http://///www.hackerz.com/foo.html")]
-        [InlineData("https://///www.hackerz.com/foo.html")]
-        [InlineData("HtTpS://///www.hackerz.com/foo.html")]
-        [InlineData("http:///www.hackerz.com/foo.html")]
-        [InlineData("http:////www.hackerz.com/foo.html")]
-        [InlineData("http://///www.hackerz.com/foo.html")]
+        [InlineData("http://///www.example.com/foo.html")]
+        [InlineData("https://///www.example.com/foo.html")]
+        [InlineData("HtTpS://///www.example.com/foo.html")]
+        [InlineData("http:///www.example.com/foo.html")]
+        [InlineData("http:////www.example.com/foo.html")]
+        [InlineData("http://///www.example.com/foo.html")]
         public void IsLocalUrl_RejectsUrlsWithTooManySchemeSeparatorCharacters(string url)
         {
             // Arrange
@@ -212,12 +212,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Theory]
-        [InlineData("//www.hackerz.com")]
-        [InlineData("//www.hackerz.com?")]
-        [InlineData("//www.hackerz.com:80")]
-        [InlineData("//www.hackerz.com/foobar.html")]
-        [InlineData("///www.hackerz.com")]
-        [InlineData("//////www.hackerz.com")]
+        [InlineData("//www.example.com")]
+        [InlineData("//www.example.com?")]
+        [InlineData("//www.example.com:80")]
+        [InlineData("//www.example.com/foobar.html")]
+        [InlineData("///www.example.com")]
+        [InlineData("//////www.example.com")]
         public void IsLocalUrl_RejectsUrlsWithMissingSchemeName(string url)
         {
             // Arrange
@@ -231,8 +231,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Theory]
-        [InlineData("http:\\\\www.hackerz.com")]
-        [InlineData("http:\\\\www.hackerz.com\\")]
+        [InlineData("http:\\\\www.example.com")]
+        [InlineData("http:\\\\www.example.com\\")]
         [InlineData("/\\")]
         [InlineData("/\\foo")]
         public void IsLocalUrl_RejectsInvalidUrls(string url)
