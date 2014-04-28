@@ -524,6 +524,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
+        public virtual HtmlString TextArea(string name, string value, int rows, int columns, object htmlAttributes)
+        {
+            var metadata = ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
+            if (value != null)
+            {
+                metadata.Model = value;
+            }
+
+            return GenerateTextArea(metadata, name, rows, columns, htmlAttributes);
+        }
+
+        /// <inheritdoc />
         public HtmlString TextBox(string name, object value, string format, IDictionary<string, object> htmlAttributes)
         {
             return GenerateTextBox(metadata: null, name: name, value: value, format: format,
@@ -965,6 +977,67 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             tagBuilder.MergeAttributes(GetValidationAttributes(name, metadata));
+
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+        }
+
+        protected virtual HtmlString GenerateTextArea(ModelMetadata metadata, string name,
+            int rows, int columns, object htmlAttributes)
+        {
+            if (rows < 0)
+            {
+                throw new ArgumentOutOfRangeException("rows", Resources.HtmlHelper_TextAreaParameterOutOfRange);
+            }
+
+            if (columns < 0)
+            {
+                throw new ArgumentOutOfRangeException("columns", Resources.HtmlHelper_TextAreaParameterOutOfRange);
+            }
+
+            var fullName = ViewData.TemplateInfo.GetFullHtmlFieldName(name);
+            if (string.IsNullOrEmpty(fullName))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "name");
+            }
+
+            ModelState modelState;
+            ViewData.ModelState.TryGetValue(fullName, out modelState);
+
+            string value = string.Empty;
+            if (modelState != null && modelState.Value != null)
+            {
+                value = modelState.Value.AttemptedValue;
+            }
+            else if (metadata.Model != null)
+            {
+                value = metadata.Model.ToString();
+            }
+
+            var tagBuilder = new TagBuilder("textarea");
+            tagBuilder.GenerateId(fullName, IdAttributeDotReplacement);
+            tagBuilder.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes), true);
+            if (rows > 0)
+            {
+                tagBuilder.MergeAttribute("rows", rows.ToString(CultureInfo.InvariantCulture), true);
+            }
+
+            if (columns > 0)
+            {
+                tagBuilder.MergeAttribute("columns", columns.ToString(CultureInfo.InvariantCulture), true);
+            }
+
+            tagBuilder.MergeAttribute("name", fullName, true);
+            tagBuilder.MergeAttributes(GetValidationAttributes(name, metadata));
+
+            // If there are any errors for a named field, we add this CSS attribute.
+            if (modelState != null && modelState.Errors.Count > 0)
+            {
+                tagBuilder.AddCssClass(HtmlHelper.ValidationInputCssClassName);
+            }
+
+            // The first newline is always trimmed when a TextArea is rendered, so we add an extra one
+            // in case the value being rendered is something like "\r\nHello".
+            tagBuilder.InnerHtml = WebUtility.HtmlEncode(value);
 
             return tagBuilder.ToHtmlString(TagRenderMode.Normal);
         }
