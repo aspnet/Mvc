@@ -123,5 +123,22 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Assert
             Assert.False(authorizationServiceIsCalled);
         }
+
+        [Fact]
+        public async void Invoke_NullPoliciesShouldNotFail()
+        {
+            // Arrange
+            var authorizationService = new DefaultAuthorizationService(null);
+            var authorizeAttribute = new AuthorizeAttribute("Permission", "CanViewPage");
+            var authorizationContext = GetAuthorizationContext(services => 
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.Null(authorizationContext.Result);
+        }
     }
 }
