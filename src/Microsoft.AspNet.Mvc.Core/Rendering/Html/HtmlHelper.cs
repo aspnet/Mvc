@@ -413,6 +413,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(value == null ? null : value.ToString());
         }
 
+        /// <inheritdoc />
         public HtmlString ValidationMessage(string expression, string message, object htmlAttributes)
         {
             return GenerateValidationMessage(expression, message, htmlAttributes);
