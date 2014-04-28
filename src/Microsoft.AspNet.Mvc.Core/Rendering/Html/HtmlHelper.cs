@@ -309,13 +309,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             return GenerateId(name);
         }
-	
-        /// <inheritdoc />
-        public HtmlString IdForModel()
-        {
-            return GenerateId(string.Empty);
-        }
-	
+
         /// <inheritdoc />
         public HtmlString Label(string expression, string labelText, object htmlAttributes)
         {
@@ -671,7 +665,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(Encode(resolvedDisplayName));
         }
         
-        protected HtmlString GenerateDisplayText(ModelMetadata metadata)
+        protected virtual HtmlString GenerateDisplayText(ModelMetadata metadata)
         {
             return new HtmlString(metadata.SimpleDisplayText);
         }
@@ -783,7 +777,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes: htmlAttributeDictionary);
         }
 
-        protected HtmlString GenerateId(string expression)
+        protected virtual HtmlString GenerateId(string expression)
         {
             return new HtmlString(Encode(ViewData.TemplateInfo.GetFullHtmlFieldName(expression)));
         }

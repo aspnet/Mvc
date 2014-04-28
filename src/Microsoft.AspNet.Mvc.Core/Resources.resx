@@ -285,4 +285,10 @@
   <data name="AuthorizeAttribute_OnAuthorizationNotImplemented" xml:space="preserve">
     <value>OnAuthorization is not implemented by this filter, use OnAuthorizationAsync instead.</value>
   </data>
+  <data name="DataAnnotationsModelMetadataProvider_UnknownProperty" xml:space="preserve">
+    <value>{0} has a DisplayColumn attribute for {1}, but property {1} does not exist.</value>
+  </data>
+  <data name="DataAnnotationsModelMetadataProvider_UnreadableProperty" xml:space="preserve">
+    <value>{0} has a DisplayColumn attribute for {1}, but property {1} does not have a public getter.</value>
+  </data>
 </root>

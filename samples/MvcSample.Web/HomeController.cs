@@ -43,7 +43,7 @@ namespace MvcSample.Web
             ViewBag.Age = _ages;
             ViewBag.Gift = "the banana";
 
-            return View("Create", user);
+            return View("Create");
         }
 
         /// <summary>
@@ -96,6 +96,7 @@ namespace MvcSample.Web
                     Address = "Dependents address",
                     Alive = false,
                 },
+                About = "I am a software engineer"
             };
 
             return user;
