@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             [NotNull] IModelMetadataProvider metadataProvider,
             [NotNull] IUrlHelper urlHelper,             
             [NotNull] AntiForgery antiForgeryInstance,
-            [NotNull] IEnumerable<IModelValidatorProvider> validatorProviders)
+            [NotNull] IActionBindingContextProvider actionBindingContextProvider)
         {
             _viewEngine = viewEngine;
             MetadataProvider = metadataProvider;
@@ -53,20 +53,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = "_";
-
-            ClientValidationRuleFactory = (name, metadata) => validatorProviders
-                .SelectMany(vp => vp.GetValidators(metadata ??
-                    ExpressionMetadataProvider.FromStringExpression(name, ViewData, metadataProvider)))
-                    .OfType<IClientModelValidator>()
-                .SelectMany(v => v.GetClientValidationRules(new ClientModelValidationContext(metadata ??
-                    ExpressionMetadataProvider.FromStringExpression(name, ViewData, metadataProvider))));
         }
 
         /// <inheritdoc />
         public Html5DateRenderingMode Html5DateRenderingMode { get; set; }
-        
-        internal Func<string, ModelMetadata, IEnumerable<ModelClientValidationRule>>
-            ClientValidationRuleFactory { get; set; }
 
         /// <inheritdoc />
         public string IdAttributeDotReplacement { get; set; }
@@ -1327,8 +1317,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
             return actionBindingContext.ValidatorProviders
                 .SelectMany(vp => vp.GetValidators(metadata))
-                .OfType<IClientModelValidator>()
-                .SelectMany(v => v.GetClientValidationRules(new ClientModelValidationContext(metadata)));
+                    .OfType<IClientModelValidator>()
+                .SelectMany(v => v.GetClientValidationRules(
+                    new ClientModelValidationContext(metadata, MetadataProvider)));
         }
     }
 }
