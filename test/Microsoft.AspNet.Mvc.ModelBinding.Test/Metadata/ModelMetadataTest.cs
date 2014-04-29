@@ -26,7 +26,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal(typeof(Exception), metadata.ContainerType);
             Assert.True(metadata.ConvertEmptyStringToNull);
             Assert.Null(metadata.NullDisplayText);
-            Assert.Equal(metadata.SimpleDisplayText, "model");
             Assert.Null(metadata.Description);
             Assert.Equal("model", metadata.Model);
             Assert.Equal(typeof(string), metadata.ModelType);

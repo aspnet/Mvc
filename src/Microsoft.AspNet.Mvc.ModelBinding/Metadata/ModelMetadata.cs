@@ -150,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 if (_simpleDisplayText == null)
                 {
-                    _simpleDisplayText = ComputeSimpleDisplayText();
+                    _simpleDisplayText = GetSimpleDisplayText();
                 }
 
                 return _simpleDisplayText;
@@ -195,7 +195,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         //    return validatorProviders.SelectMany(provider => provider.GetValidators(this, validatorProviders));
         //}
 
-        protected virtual string ComputeSimpleDisplayText()
+        protected virtual string GetSimpleDisplayText()
         {
             if (Model == null)
             {

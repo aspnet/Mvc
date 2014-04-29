@@ -311,6 +311,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
+        public HtmlString IdForModel()
+        {
+            return GenerateId(string.Empty);
+        }
+
         public HtmlString Label(string expression, string labelText, object htmlAttributes)
         {
             var modelMetadata = string.IsNullOrEmpty(expression)?
@@ -665,7 +670,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(Encode(resolvedDisplayName));
         }
         
-        protected virtual HtmlString GenerateDisplayText(ModelMetadata metadata)
+        protected HtmlString GenerateDisplayText(ModelMetadata metadata)
         {
             return new HtmlString(metadata.SimpleDisplayText);
         }
@@ -777,7 +782,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes: htmlAttributeDictionary);
         }
 
-        protected virtual HtmlString GenerateId(string expression)
+        protected HtmlString GenerateId(string expression)
         {
             return new HtmlString(Encode(ViewData.TemplateInfo.GetFullHtmlFieldName(expression)));
         }
