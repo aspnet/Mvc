@@ -263,6 +263,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GenerateDisplayName(modelMetadata, expression);
         }
 
+        /// <inheritdoc />
         public HtmlString DisplayText(string name)
         {
             var metadata = string.IsNullOrEmpty(name) ?
