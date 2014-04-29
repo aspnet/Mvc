@@ -6,6 +6,7 @@ namespace MvcSample.Web.Models
     {
         [Required]
         [MinLength(4)]
+        [DisplayFormat(ConvertEmptyStringToNull=true, NullDisplayText="Please enter name")]
         public string Name { get; set; }
         public string Address { get; set; }
         public int Age { get; set; }
@@ -13,5 +14,7 @@ namespace MvcSample.Web.Models
         public User Dependent { get; set; }
         public bool Alive { get; set; }
         public string Password { get; set; }
+        [DisplayFormat(ConvertEmptyStringToNull = true, NullDisplayText = "Please enter a description")]
+        public string About { get; set; }
     }
 }
