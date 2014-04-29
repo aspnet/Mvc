@@ -6,25 +6,25 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public static class HtmlHelperValidationExtensions
     {
-        public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+        public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
             string expression)
         {
             return htmlHelper.ValidationMessage(expression, message: null, htmlAttributes: null);
         }
 
-        public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+        public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
             string expression, string message)
         {
             return htmlHelper.ValidationMessage(expression, message, htmlAttributes: null);
         }
 
-        public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+        public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
             string expression, object htmlAttributes)
         {
             return htmlHelper.ValidationMessage(expression, message: null, htmlAttributes: htmlAttributes);
         }
 
-        public static HtmlString ValidationMessage<TModel>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+        public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
             string expression, string message, object htmlAttributes)
         {
             return htmlHelper.ValidationMessage(expression, message, htmlAttributes);
