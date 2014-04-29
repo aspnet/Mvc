@@ -7,20 +7,27 @@ namespace Microsoft.AspNet.Mvc
 {
     public class RedirectToRouteResult : ActionResult
     {
-        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper, IDictionary<string, object> routeValues)
-            : this(urlHelper, routeValues, permanent: false)
+        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
+                                     string routeName,
+                                     IDictionary<string, object> routeValues)
+            : this(urlHelper, routeName, routeValues, permanent: false)
         {
         }
 
-        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper, 
-                                        IDictionary<string, object> routeValues, bool permanent)
+        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
+                                     string routeName,
+                                     IDictionary<string, object> routeValues,
+                                     bool permanent)
         {
             UrlHelper = urlHelper;
+            RouteName = routeName;
             RouteValues = routeValues;
             Permanent = permanent;
         }
 
         public IUrlHelper UrlHelper { get; private set; }
+
+        public string RouteName { get; private set; }
 
         public IDictionary<string, object> RouteValues { get; private set; }
 
