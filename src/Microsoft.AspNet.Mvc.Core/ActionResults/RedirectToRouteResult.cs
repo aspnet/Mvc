@@ -8,26 +8,26 @@ namespace Microsoft.AspNet.Mvc
     public class RedirectToRouteResult : ActionResult
     {
         public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
-                                     IDictionary<string, object> routeValues)
+                                     object routeValues)
             : this(urlHelper, routeName: null, routeValues: routeValues)
         {
         }
 
         public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
                                      string routeName,
-                                     IDictionary<string, object> routeValues)
+                                     object routeValues)
             : this(urlHelper, routeName, routeValues, permanent: false)
         {
         }
 
         public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
                                      string routeName,
-                                     IDictionary<string, object> routeValues,
+                                     object routeValues,
                                      bool permanent)
         {
             UrlHelper = urlHelper;
             RouteName = routeName;
-            RouteValues = routeValues;
+            RouteValues = TypeHelper.ObjectToDictionary(routeValues);
             Permanent = permanent;
         }
 

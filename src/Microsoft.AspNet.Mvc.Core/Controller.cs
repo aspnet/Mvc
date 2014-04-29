@@ -176,7 +176,7 @@ namespace Microsoft.AspNet.Mvc
 
         public RedirectToRouteResult RedirectToRoute(string routeName, object routeValues)
         {
-            return new RedirectToRouteResult(Url, routeName, TypeHelper.ObjectToDictionary(routeValues));
+            return new RedirectToRouteResult(Url, routeName, routeValues);
         }
 
         public RedirectToRouteResult RedirectToRoutePermanent(string routeName)
@@ -191,7 +191,7 @@ namespace Microsoft.AspNet.Mvc
 
         public RedirectToRouteResult RedirectToRoutePermanent(string routeName, object routeValues)
         {
-            return new RedirectToRouteResult(Url, routeName, TypeHelper.ObjectToDictionary(routeValues), permanent: true);
+            return new RedirectToRouteResult(Url, routeName, routeValues, permanent: true);
         }
     }
 }
