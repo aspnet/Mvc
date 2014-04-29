@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -58,6 +60,28 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return base.ComputeIsReadOnly();
         }
 
+        protected override string ComputeSimpleDisplayText()
+        {
+            if (Model != null)
+            {
+                if (PrototypeCache.DisplayColumn != null &&
+                    !string.IsNullOrEmpty(PrototypeCache.DisplayColumn.DisplayColumn))
+                {
+                    var displayColumnProperty = ModelType.GetTypeInfo().GetDeclaredProperty(
+                                                        PrototypeCache.DisplayColumn.DisplayColumn);
+                    ValidateDisplayColumnAttribute(PrototypeCache.DisplayColumn, displayColumnProperty, ModelType);
+
+                    object simpleDisplayTextValue = displayColumnProperty.GetValue(Model, null);
+                    if (simpleDisplayTextValue != null)
+                    {
+                        return simpleDisplayTextValue.ToString();
+                    }
+                }
+            }
+
+            return base.ComputeSimpleDisplayText();
+        }
+
         public override string GetDisplayName()
         {
             // DisplayAttribute doesn't require you to set a name, so this could be null. 
@@ -72,6 +96,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // If DisplayAttribute does not specify a name, we'll fall back to the property name.
             return base.GetDisplayName();
+        }
+
+        private static void ValidateDisplayColumnAttribute(DisplayColumnAttribute displayColumnAttribute,
+            PropertyInfo displayColumnProperty, Type modelType)
+        {
+            if (displayColumnProperty == null)
+            {
+                throw new InvalidOperationException(
+                        Resources.FormatDataAnnotationsModelMetadataProvider_UnknownProperty(
+                        modelType.FullName, displayColumnAttribute.DisplayColumn));
+            }
+            if (displayColumnProperty.GetGetMethod() == null)
+            {
+                throw new InvalidOperationException(
+                        Resources.FormatDataAnnotationsModelMetadataProvider_UnreadableProperty(
+                        modelType.FullName, displayColumnAttribute.DisplayColumn));
+            }
         }
     }
 }
