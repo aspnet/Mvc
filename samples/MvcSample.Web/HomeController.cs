@@ -43,7 +43,7 @@ namespace MvcSample.Web
             ViewBag.Age = _ages;
             ViewBag.Gift = "the banana";
 
-            return View("Create", user);
+            return View("Create");
         }
 
         /// <summary>

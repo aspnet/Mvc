@@ -74,7 +74,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="name">The string which identifies the object for which the HtmlString
         /// should be returned.</param>
         /// <returns>New <see cref="HtmlString"/> containing the display text. If the value is null,
-        /// then it returns the NullDisplayText.</returns>
+        /// then it returns the ModelMetadata.NullDisplayText.</returns>
         HtmlString DisplayText(string name);
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="expression">The expression identifies the object for which the HtmlString
         /// should be returned.</param>
         /// <returns>New <see cref="HtmlString"/> containing the display text. If the value is null,
-        /// then it returns the NullDisplayText.</returns>
+        /// then it returns the ModelMetadata.NullDisplayText.</returns>
         HtmlString DisplayTextFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression);
 
         /// <summary>
@@ -156,12 +156,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="expression">The expression identifies the object for which the Id should be returned.</param>
         /// <returns>New <see cref="HtmlString"/> containing the Id.</returns>
         HtmlString IdFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression);
-
-        /// <summary>
-        /// Gets the Id for the model.
-        /// </summary>
-        /// <returns>New <see cref="HtmlString"/> containing the Id for the model.</returns>
-        HtmlString IdForModel();
 
         /// <summary>
         /// Returns an HTML label element and the property name of the property that is represented by the specified

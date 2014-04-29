@@ -14,5 +14,7 @@ namespace MvcSample.Web.Models
         public User Dependent { get; set; }
         public bool Alive { get; set; }
         public string Password { get; set; }
+        [DisplayFormat(ConvertEmptyStringToNull = true, NullDisplayText = "Please enter a description")]
+        public string About { get; set; }
     }
 }
