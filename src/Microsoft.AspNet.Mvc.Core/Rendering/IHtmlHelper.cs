@@ -163,10 +163,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         /// Returns the HtmlString corresponding to the property in the model specified by the name.
         /// </summary>
-        /// <param name="name">The string which identifies the object for which the HtmlString
-        /// should be returned.</param>
-        /// <returns>New <see cref="HtmlString"/> containing the display text. If the value is null,
-        /// then it returns the ModelMetadata.NullDisplayText.</returns>
+        /// <param name="name">
+        /// The string which identifies the object for which the HtmlString should be returned.</param>
+        /// <returns>
+        /// New <see cref="HtmlString"/> containing the display text. If the value is null,
+        /// then it returns the ModelMetadata.NullDisplayText.
+        /// </returns>
         HtmlString DisplayText(string name);
 
         /// <summary>

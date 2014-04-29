@@ -73,10 +73,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <summary>
         /// Returns the HtmlString corresponding to the expression specified.
         /// </summary>
-        /// <param name="expression">The expression identifies the object for which the HtmlString
-        /// should be returned.</param>
-        /// <returns>New <see cref="HtmlString"/> containing the display text. If the value is null,
-        /// then it returns the ModelMetadata.NullDisplayText.</returns>
+        /// <param name="expression">
+        /// The expression identifies the object for which the HtmlString should be returned.
+        /// </param>
+        /// <returns>
+        /// New <see cref="HtmlString"/> containing the display text. If the value is null,
+        /// then it returns the ModelMetadata.NullDisplayText.
+        /// </returns>
         HtmlString DisplayTextFor<TValue>([NotNull] Expression<Func<TModel, TValue>> expression);
 
         /// <summary>

@@ -202,15 +202,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return NullDisplayText;
             }
 
-            var toStringResult = Convert.ToString(Model, CultureInfo.CurrentCulture);
-            if (toStringResult == null)
+            var stringResult = Convert.ToString(Model, CultureInfo.CurrentCulture);
+            if (stringResult == null)
             {
                 return string.Empty;
             }
 
-            if (!toStringResult.Equals(Model.GetType().FullName, StringComparison.Ordinal))
+            if (!stringResult.Equals(Model.GetType().FullName, StringComparison.Ordinal))
             {
-                return toStringResult;
+                return stringResult;
             }
 
             var firstProperty = Properties.FirstOrDefault();
