@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc
         public string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
         {
             var valuesDictionary = TypeHelper.ObjectToDictionary(values);
-            var path = GeneratePathFromRoute(valuesDictionary, routeName);
+            var path = GeneratePathFromRoute(routeName, valuesDictionary);
             if (path == null)
             {
                 return null;
@@ -91,10 +91,10 @@ namespace Microsoft.AspNet.Mvc
 
         private string GeneratePathFromRoute(IDictionary<string, object> values)
         {
-            return GeneratePathFromRoute(values, routeName: null);
+            return GeneratePathFromRoute(routeName: null, values: values);
         }
 
-        private string GeneratePathFromRoute(IDictionary<string, object> values, string routeName)
+        private string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
         {
             var context = new VirtualPathContext(_httpContext, _ambientValues, values, routeName);
             var path = _router.GetVirtualPath(context);

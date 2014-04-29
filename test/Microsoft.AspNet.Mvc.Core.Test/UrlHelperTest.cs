@@ -254,7 +254,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl(new RouteValueDictionary(new
+            var url = urlHelper.RouteUrl(values: new RouteValueDictionary(
+                                                                    new
                                                                     {
                                                                         Action = "newaction",
                                                                         Controller = "home2",
@@ -272,15 +273,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                         new RouteValueDictionary(new
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new RouteValueDictionary(
+                                                                    new
                                                                     {
                                                                         Action = "newaction",
                                                                         Controller = "home2",
                                                                         id = "someid"
                                                                     }),
-                                         "http",
-                                         string.Empty);
+                                         protocol: "http",
+                                         host: string.Empty);
 
             // Assert
             Assert.Equal("http://localhost/app/named/home2/newaction/someid", url);
@@ -293,16 +295,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                            new RouteValueDictionary(new
-                                                                        {
-                                                                            Action = "newaction",
-                                                                            Controller = "home2",
-                                                                            id = "someid"
-                                                                        }), 
-                                            string.Empty,
-                                            "foo.bar.com");
-                
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new RouteValueDictionary(
+                                                                    new
+                                                                    {
+                                                                        Action = "newaction",
+                                                                        Controller = "home2",
+                                                                        id = "someid"
+                                                                    }),
+                                         protocol: string.Empty,
+                                         host: "foo.bar.com");
 
             // Assert
             Assert.Equal("http://foo.bar.com/app/named/home2/newaction/someid", url);
@@ -315,16 +317,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                            new RouteValueDictionary(new
-                                                                        {
-                                                                            Action = "newaction",
-                                                                            Controller = "home2",
-                                                                            id = "someid"
-
-                                                                        }),
-                                            null,
-                                            "foo.bar.com");
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new RouteValueDictionary(
+                                                                    new
+                                                                    {
+                                                                        Action = "newaction",
+                                                                        Controller = "home2",
+                                                                        id = "someid"
+                                                                    }),
+                                         protocol: null,
+                                         host: "foo.bar.com");
 
             // Assert
             Assert.Equal("http://foo.bar.com/app/named/home2/newaction/someid", url);
@@ -337,15 +339,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                            new RouteValueDictionary(new
-                                                                        {
-                                                                            Action = "newaction",
-                                                                            Controller = "home2",
-                                                                            id = "someid"
-                                                                        }), 
-                                            null, 
-                                            null);
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new RouteValueDictionary(
+                                                                    new
+                                                                    {
+                                                                        Action = "newaction",
+                                                                        Controller = "home2",
+                                                                        id = "someid"
+                                                                    }),
+                                         protocol: null,
+                                         host: null);
 
             // Assert
             Assert.Equal("/app/named/home2/newaction/someid", url);
@@ -371,14 +374,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                            new
-                                            {
-                                                Action = "newaction",
-                                                Controller = "home2",
-                                                id = "someid"
-                                            },
-                                            "https");
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new
+                                                    {
+                                                        Action = "newaction",
+                                                        Controller = "home2",
+                                                        id = "someid"
+                                                    },
+                                         protocol: "https");
 
             // Assert
             Assert.Equal("https://localhost/app/named/home2/newaction/someid", url);
@@ -405,14 +408,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                            new RouteValueDictionary(
-                                                                new
-                                                                {
-                                                                    Action = "newaction",
-                                                                    Controller = "home2",
-                                                                    id = "someid"
-                                                                }));
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new RouteValueDictionary(
+                                                            new
+                                                            {
+                                                                Action = "newaction",
+                                                                Controller = "home2",
+                                                                id = "someid"
+                                                            }));
 
             // Assert
             Assert.Equal("/app/named/home2/newaction/someid", url);
@@ -425,11 +428,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             // Act
-            var url = urlHelper.RouteUrl("namedroute",
-                                            new
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new
                                             {
-                                                Action = "newaction", Controller = "home2", id = "someid" 
-            
+                                                Action = "newaction",
+                                                Controller = "home2",
+                                                id = "someid"
                                             });
 
             // Assert
@@ -524,7 +528,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 .Returns<VirtualPathContext>(rc => null);
             rt.DefaultHandler = target.Object;
 
-            rt.MapRoute(string.Empty, 
+            rt.MapRoute(string.Empty,
                         "{controller}/{action}/{id}",
                         new RouteValueDictionary(new { id = "defaultid" }));
             rt.MapRoute("namedroute",
@@ -532,7 +536,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                         new RouteValueDictionary(new { id = "defaultid" }));
 
             var mockHttpRoute = new Mock<IRouter>();
-            mockHttpRoute.Setup(mock => 
+            mockHttpRoute.Setup(mock =>
                                     mock.GetVirtualPath(It.Is<VirtualPathContext>(c => string.Equals(c.RouteName,
                                                                                                   mockRouteName)
                                                                                   )))
