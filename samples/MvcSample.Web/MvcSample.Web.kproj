@@ -21,6 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Areas\Travel\Views\Flight\Fly.cshtml" />
+    <Content Include="Areas\Travel\Views\Hotel\BookHotel.cshtml" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Project.json" />
     <Content Include="Views\Home\Create.cshtml" />
@@ -38,6 +39,7 @@
     <Content Include="web.Release.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Areas\Travel\Controllers\Hotel.cs" />
     <Compile Include="Areas\Travel\Controllers\Flight.cs" />
     <Compile Include="Areas\Travel\Controllers\HomeController.cs" />
     <Compile Include="Components\TagCloud.cs" />
