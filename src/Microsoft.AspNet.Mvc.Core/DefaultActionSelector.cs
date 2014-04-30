@@ -93,17 +93,30 @@ namespace Microsoft.AspNet.Mvc
                     }
                 }
 
+                if (action.DynamicConstraints != null && action.DynamicConstraints.Any() ||
+                    action.MethodConstraints != null && action.MethodConstraints.Any())
+                {
+                    candidate.HasNonRouteConstraints = true;
+                }
+
                 if (isApplicable)
                 {
                     applicableCandiates.Add(candidate);
                 }
             }
 
-            var mostParametersSatisfied = applicableCandiates.GroupBy(c => c.FoundParameters).OrderByDescending(g => g.Key).First();
-            if (mostParametersSatisfied == null)
+            if (applicableCandiates.Count == 0)
             {
                 return null;
             }
+
+            var bestByConstraints = 
+                applicableCandiates
+                .GroupBy(c => c.HasNonRouteConstraints ? 1 : 0)
+                .OrderByDescending(g => g.Key)
+                .First();
+
+            var mostParametersSatisfied = bestByConstraints.GroupBy(c => c.FoundParameters).OrderByDescending(g => g.Key).First();
 
             var fewestOptionalParameters = mostParametersSatisfied.GroupBy(c => c.FoundOptionalParameters).OrderBy(g => g.Key).First().ToArray();
             if (fewestOptionalParameters.Length > 1)
@@ -321,6 +334,9 @@ namespace Microsoft.AspNet.Mvc
         private class ActionDescriptorCandidate
         {
             public ActionDescriptor Action { get; set; }
+
+            // Actions with HTTP method constraints or dynamic constraints are better than those without.
+            public bool HasNonRouteConstraints { get; set; }
 
             public int FoundParameters { get; set; }
 
