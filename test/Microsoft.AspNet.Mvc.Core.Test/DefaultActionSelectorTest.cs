@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
 using Microsoft.AspNet.DependencyInjection;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
@@ -224,6 +225,146 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Same(action, actionWithConstraints);
         }
 
+        [Fact]
+        public async Task SelectAsync_NoActionFound_WhenParameterNotMatched()
+        {
+            // Arrange
+            var actionWithParameter = new ActionDescriptor()
+            {
+                Parameters = new List<ParameterDescriptor>()
+                {
+                    new ParameterDescriptor()
+                    {
+                        Name = "id",
+                        IsOptional = false,
+                        ParameterBindingInfo = new ParameterBindingInfo("id", typeof(int)),
+                    }
+                }
+            };
+
+            var actions = new ActionDescriptor[] { actionWithParameter };
+
+            var prefixes = new Dictionary<string, object>();
+
+            var selector = CreateSelector(actions, CreateBindingContextProvider(prefixes));
+            var context = new RequestContext(CreateHttpContext("Get"), new Dictionary<string, object>());
+
+            // Act
+            var action = await selector.SelectAsync(context);
+
+            // Assert
+            Assert.Null(action);
+        }
+
+        [Fact]
+        public async Task SelectAsync_ActionFound_WhenParameterMatched()
+        {
+            // Arrange
+            var actionWithParameter = new ActionDescriptor()
+            {
+                Parameters = new List<ParameterDescriptor>()
+                {
+                    new ParameterDescriptor()
+                    {
+                        Name = "id",
+                        IsOptional = false,
+                        ParameterBindingInfo = new ParameterBindingInfo("id", typeof(int)),
+                    }
+                }
+            };
+
+            var actions = new ActionDescriptor[] { actionWithParameter };
+
+            var prefixes = new Dictionary<string, object>()
+            {
+                { "id", 5 },
+            };
+
+            var selector = CreateSelector(actions, CreateBindingContextProvider(prefixes));
+            var context = new RequestContext(CreateHttpContext("Get"), new Dictionary<string, object>());
+
+            // Act
+            var action = await selector.SelectAsync(context);
+
+            // Assert
+            Assert.Same(action, actionWithParameter);
+        }
+
+        [Fact]
+        public async Task SelectAsync_PrefersActionWithParameter_WhenParameterMatched()
+        {
+            // Arrange
+            var actionWithParameter = new ActionDescriptor()
+            {
+                Parameters = new List<ParameterDescriptor>()
+                {
+                    new ParameterDescriptor()
+                    {
+                        Name = "id",
+                        IsOptional = false,
+                        ParameterBindingInfo = new ParameterBindingInfo("id", typeof(int)),
+                    }
+                }
+            };
+
+            var actionWithoutParameter = new ActionDescriptor()
+            {
+                Parameters = new List<ParameterDescriptor>(),
+            };
+
+            var actions = new ActionDescriptor[] { actionWithParameter, actionWithoutParameter };
+
+            var prefixes = new Dictionary<string, object>()
+            {
+                { "id", 5 },
+            };
+
+            var selector = CreateSelector(actions, CreateBindingContextProvider(prefixes));
+            var context = new RequestContext(CreateHttpContext("Get"), new Dictionary<string, object>());
+
+            // Act
+            var action = await selector.SelectAsync(context);
+
+            // Assert
+            Assert.Same(action, actionWithParameter);
+        }
+
+        [Fact]
+        public async Task SelectAsync_PrefersActionWithoutParameter_WhenParameterNotMatched()
+        {
+            // Arrange
+            var actionWithParameter = new ActionDescriptor()
+            {
+                Parameters = new List<ParameterDescriptor>()
+                {
+                    new ParameterDescriptor()
+                    {
+                        Name = "id",
+                        IsOptional = false,
+                        ParameterBindingInfo = new ParameterBindingInfo("id", typeof(int)),
+                    }
+                }
+            };
+
+            var actionWithoutParameter = new ActionDescriptor()
+            {
+                Parameters = new List<ParameterDescriptor>(),
+            };
+
+            var actions = new ActionDescriptor[] { actionWithParameter, actionWithoutParameter };
+
+            var prefixes = new Dictionary<string, object>();
+
+            var selector = CreateSelector(actions, CreateBindingContextProvider(prefixes));
+            var context = new RequestContext(CreateHttpContext("Get"), new Dictionary<string, object>());
+
+            // Act
+            var action = await selector.SelectAsync(context);
+
+            // Assert
+            Assert.Same(action, actionWithoutParameter);
+        }
+
         private static ActionDescriptor[] GetActions()
         {
             return new ActionDescriptor[]
@@ -255,19 +396,44 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 .Where(a => a.RouteConstraints.Any(c => c.RouteKey == "action" && c.Comparer.Equals(c.RouteValue, action)));
         }
 
+        private static IActionBindingContextProvider CreateBindingContextProvider(IDictionary<string, object> prefixes)
+        {
+            var valueProvider = new Mock<IValueProvider>(MockBehavior.Strict);
+            valueProvider
+                .Setup(vp => vp.ContainsPrefixAsync(It.IsAny<string>()))
+                .Returns<string>(prefix => Task.FromResult(prefixes.ContainsKey(prefix)));
+
+            var bindingContext = new ActionBindingContext(
+                context: null,
+                metadataProvider: null,
+                modelBinder: null,
+                valueProvider: valueProvider.Object,
+                inputFormatterProvider: null,
+                validatorProviders: null);
+
+            var bindingProvider = new Mock<IActionBindingContextProvider>(MockBehavior.Strict);
+            bindingProvider
+                .Setup(bp => bp.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
+                .Returns(() => Task.FromResult<ActionBindingContext>(bindingContext));
+
+            return bindingProvider.Object;
+        }
+
         private static DefaultActionSelector CreateSelector(IEnumerable<ActionDescriptor> actions)
+        {
+            return CreateSelector(actions, CreateBindingContextProvider(new Dictionary<string, object>()));
+        }
+
+        private static DefaultActionSelector CreateSelector(
+            IEnumerable<ActionDescriptor> actions, 
+            IActionBindingContextProvider bindingProvider)
         {
             var actionProvider = new Mock<INestedProviderManager<ActionDescriptorProviderContext>>(MockBehavior.Strict);
             actionProvider
                 .Setup(p => p.Invoke(It.IsAny<ActionDescriptorProviderContext>()))
                 .Callback<ActionDescriptorProviderContext>(c => c.Results.AddRange(actions));
 
-            var bindingProvider = new Mock<IActionBindingContextProvider>(MockBehavior.Strict);
-            bindingProvider
-                .Setup(bp => bp.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
-                .Returns(() => Task.FromResult<ActionBindingContext>(null));
-
-            return new DefaultActionSelector(actionProvider.Object, bindingProvider.Object);
+            return new DefaultActionSelector(actionProvider.Object, bindingProvider);
         }
 
         private static VirtualPathContext CreateContext(object routeValues)

@@ -35,10 +35,6 @@ namespace Microsoft.AspNet.Mvc
             {
                 return null;
             }
-            else if (matching.Count == 1)
-            {
-                return matching[0];
-            }
             else
             {
                 return await SelectBestCandidate(context, matching);
