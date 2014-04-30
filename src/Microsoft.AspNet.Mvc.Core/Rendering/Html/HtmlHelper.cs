@@ -1144,6 +1144,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return new HtmlString(Encode(resolvedValue));
         }
 
+        protected virtual IEnumerable<ModelClientValidationRule> GetClientValidationRules(string name, ModelMetadata metadata)
+        {
+            var actionBindingContext = _actionBindingContextProvider.GetActionBindingContextAsync(ViewContext).Result;
+            metadata = metadata ??
+                ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
+            return actionBindingContext.ValidatorProviders
+                .SelectMany(vp => vp.GetValidators(metadata))
+                .OfType<IClientModelValidator>()
+                .SelectMany(v => v.GetClientValidationRules(
+                    new ClientModelValidationContext(metadata, MetadataProvider)));
+        }
+
         private static string GetInputTypeString(InputType inputType)
         {
             switch (inputType)
@@ -1308,18 +1320,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             return newSelectList;
-        }
-
-        private IEnumerable<ModelClientValidationRule> GetClientValidationRules(string name, ModelMetadata metadata)
-        {
-            var actionBindingContext = _actionBindingContextProvider.GetActionBindingContextAsync(ViewContext).Result;
-            metadata = metadata ??
-                ExpressionMetadataProvider.FromStringExpression(name, ViewData, MetadataProvider);
-            return actionBindingContext.ValidatorProviders
-                .SelectMany(vp => vp.GetValidators(metadata))
-                    .OfType<IClientModelValidator>()
-                .SelectMany(v => v.GetClientValidationRules(
-                    new ClientModelValidationContext(metadata, MetadataProvider)));
         }
     }
 }

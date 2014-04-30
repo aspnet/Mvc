@@ -46,8 +46,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             if (string.IsNullOrEmpty(rule.ValidationType))
             {
-                throw new InvalidOperationException(
-                    Resources.FormatUnobtrusiveJavascript_ValidationTypeCannotBeEmpty(rule.GetType().FullName));
+                throw new ArgumentException(
+                    Resources.FormatUnobtrusiveJavascript_ValidationTypeCannotBeEmpty(rule.GetType().FullName), "rule");
             }
 
             if (resultsDictionary.ContainsKey(dictionaryKey))
