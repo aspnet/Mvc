@@ -18,14 +18,17 @@ namespace MvcSample.Web
             app.UseMvc(routes =>
             {
                 routes.MapRoute("areaRoute", "{area}/{controller}/{action}");
+                routes.MapRoute("travelAreaRoute", 
+                                "{area}/{controller}/{action}",
+                                new { area = "Travel" });
 
                 routes.MapRoute(
-                    "namedRoute",
+                    "controllerActionRoute",
                     "{controller}/{action}",
                     new { controller = "Home", action = "Index" });
 
                 routes.MapRoute(
-                    "controllerRoute",
+                    "controllerOnlyRoute",
                     "{controller}",
                     new { controller = "Home" });
             });
