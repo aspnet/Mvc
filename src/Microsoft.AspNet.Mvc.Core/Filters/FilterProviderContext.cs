@@ -21,14 +21,14 @@ namespace Microsoft.AspNet.Mvc
 {
     public class FilterProviderContext
     {
-        public FilterProviderContext(ActionDescriptor actionDescriptor, List<FilterItem> items)
+        public FilterProviderContext([NotNull] ActionContext actionContext, [NotNull] List<FilterItem> items)
         {
-            ActionDescriptor = actionDescriptor;
+            ActionContext = actionContext;
             Result = items;
         }
 
         // Input
-        public ActionDescriptor ActionDescriptor { get; set; }
+        public ActionContext ActionContext { get; set; }
 
         // Result
         public List<FilterItem> Result { get; set; }
