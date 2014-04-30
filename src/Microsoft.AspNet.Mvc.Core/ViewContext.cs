@@ -82,5 +82,10 @@ namespace Microsoft.AspNet.Mvc
         public ViewDataDictionary ViewData { get; set; }
 
         public TextWriter Writer { get; set; }
+
+        public FormContext GetFormContextForClientValidation()
+        {
+            return (ClientValidationEnabled) ? FormContext : null;
+        }
     }
 }
