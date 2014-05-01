@@ -17,17 +17,6 @@ namespace Microsoft.AspNet.Mvc
             "PATCH",
         };
 
-        private static readonly string[] _supportedHttpMethodsForDefaultMethod =
-        {
-            "GET",
-            "POST"
-        };
-
-        public virtual string DefaultMethodName
-        {
-            get { return "Index"; }
-        }
-
         public virtual bool IsController([NotNull] TypeInfo typeInfo)
         {
             if (!typeInfo.IsClass ||
@@ -69,11 +58,6 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return actionInfos;
-        }
-
-        protected virtual bool IsDefaultActionMethod([NotNull] MethodInfo methodInfo)
-        {
-            return String.Equals(methodInfo.Name, DefaultMethodName, StringComparison.OrdinalIgnoreCase);
         }
 
         protected virtual bool IsValidActionMethod(MethodInfo method)
@@ -159,40 +143,6 @@ namespace Microsoft.AspNet.Mvc
                         RequireActionNameMatch = false,
                     }
                 };
-            }
-
-            // For Default Method add an action Info with GET, POST Http Method constraints.
-            // Only constraints (out of GET and POST) for which there are no convention based actions available are added.
-            // If there are existing action infos with http constraints for GET and POST, this action info is not added for default method. 
-            if (IsDefaultActionMethod(methodInfo))
-            {
-                var existingHttpMethods = new HashSet<string>();
-                foreach (var declaredMethodInfo in controllerTypeInfo.DeclaredMethods)
-                {
-                    if (!IsValidActionMethod(declaredMethodInfo) || HasCustomAttributes(declaredMethodInfo))
-                    {
-                        continue;
-                    }
-
-                    httpMethods = GetSupportedHttpMethods(declaredMethodInfo);
-                    if (httpMethods != null)
-                    {
-                        existingHttpMethods.UnionWith(httpMethods);
-                    }
-                }
-                var undefinedHttpMethods = _supportedHttpMethodsForDefaultMethod.Except(
-                                                                                     existingHttpMethods,
-                                                                                     StringComparer.Ordinal)
-                                                                                .ToArray();
-                if (undefinedHttpMethods.Any())
-                {
-                    actionInfos.Add(new ActionInfo()
-                    {
-                        HttpMethods = undefinedHttpMethods,
-                        ActionName = methodInfo.Name,
-                        RequireActionNameMatch = false,
-                    });
-                }
             }
 
             actionInfos.Add(

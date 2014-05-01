@@ -89,27 +89,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Theory]
-        [InlineData("GET")]
-        [InlineData("POST")]
-        public async Task HttpMethodAttribute_DefaultMethod_IgnoresMethodsWithCustomAttributesAndInvalidMethods(string verb)
-        {
-            // Arrange
-            // Note no action name is passed, hence should return a null action descriptor.
-            var requestContext = new RequestContext(
-                                        GetHttpContext(verb),
-                                        new Dictionary<string, object>
-                                            {
-                                                { "controller", "HttpMethodAttributeTests_DefaultMethodValidation" },
-                                            });
-
-            // Act
-            var result = await InvokeActionSelector(requestContext);
-
-            // Assert
-            Assert.Equal("Index", result.Name);
-        }
-
-        [Theory]
         [InlineData("Put")]
         [InlineData("RPCMethod")]
         [InlineData("RPCMethodWithHttpGet")]
