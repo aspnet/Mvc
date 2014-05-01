@@ -8,19 +8,19 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public class RazorViewEngine : IViewEngine
     {
-        private static readonly string _viewExtension = ".cshtml";
+        private const string ViewExtension = ".cshtml";
 
         private static readonly string[] _viewLocationFormats =
         {
-            "/Views/{1}/{0}" + _viewExtension,
-            "/Views/Shared/{0}" + _viewExtension,
+            "/Views/{1}/{0}" + ViewExtension,
+            "/Views/Shared/{0}" + ViewExtension,
         };
 
         private static readonly string[] _areaViewLocationFormats =
         {
-            "/Areas/{2}/Views/{1}/{0}" + _viewExtension,
-            "/Areas/{2}/Views/Shared/{0}" + _viewExtension,
-            "/Views/Shared/{0}" + _viewExtension,
+            "/Areas/{2}/Views/{1}/{0}" + ViewExtension,
+            "/Areas/{2}/Views/Shared/{0}" + ViewExtension,
+            "/Views/Shared/{0}" + ViewExtension,
         };
 
         private readonly IVirtualPathViewFactory _virtualPathFactory;
@@ -55,7 +55,11 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             if (nameRepresentsPath)
             {
-                EnsureFullPathViewExtension(viewName);
+                if (!viewName.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        Resources.FormatViewMustEndInExtension(viewName, ViewExtension));
+                }
 
                 var view = _virtualPathFactory.CreateInstance(viewName);
                 return view != null ? ViewEngineResult.Found(viewName, view) :
@@ -77,15 +81,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 return ViewEngineResult.NotFound(viewName, potentialPaths);
-            }
-        }
-
-        private static void EnsureFullPathViewExtension(string viewName)
-        {
-            if(!viewName.EndsWith(_viewExtension))
-            {
-                throw new InvalidOperationException(
-                    Resources.FormatViewMustEndInExtension(viewName, _viewExtension));
             }
         }
 
