@@ -33,6 +33,7 @@
     <Compile Include="ActionResult.cs" />
     <Compile Include="ActionResultFactory.cs" />
     <Compile Include="ActionResultHelper.cs" />
+    <Compile Include="ActionResults\ChallengeResult.cs" />
     <Compile Include="ActionResults\ContentResult.cs" />
     <Compile Include="ActionResults\EmptyResult.cs" />
     <Compile Include="ActionResults\HttpStatusCodeResult.cs" />
