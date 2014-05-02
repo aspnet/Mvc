@@ -26,15 +26,7 @@ using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class Controller :
-        IActionFilter,
-        IAsyncActionFilter,
-        IAuthorizationFilter, 
-        IAsyncAuthorizationFilter, 
-        IExceptionFilter,
-        IAsyncExceptionFilter,
-        IResultFilter,
-        IAsyncResultFilter
+    public class Controller : IActionFilter, IAsyncActionFilter
     {
         private DynamicViewData _viewBag;
 
@@ -233,17 +225,15 @@ namespace Microsoft.AspNet.Mvc
             return new RedirectToRouteResult(Url, routeName, routeValues, permanent: true);
         }
 
-        #region Filter Method Empty Implementations
-
-        protected virtual void OnActionExecuting([NotNull] ActionExecutingContext context)
+        public virtual void OnActionExecuting([NotNull] ActionExecutingContext context)
         {
         }
 
-        protected virtual void OnActionExecuted([NotNull] ActionExecutedContext context)
+        public virtual void OnActionExecuted([NotNull] ActionExecutedContext context)
         {
         }
 
-        protected virtual async Task OnActionExecutionAsync([NotNull] ActionExecutingContext context, [NotNull] ActionExecutionDelegate next)
+        public virtual async Task OnActionExecutionAsync([NotNull] ActionExecutingContext context, [NotNull] ActionExecutionDelegate next)
         {
             OnActionExecuting(context);
             if (context.Result == null)
@@ -251,99 +241,5 @@ namespace Microsoft.AspNet.Mvc
                 OnActionExecuted(await next());
             }
         }
-
-        protected virtual void OnAuthorization([NotNull] AuthorizationContext context)
-        {
-        }
-
-        #pragma warning disable 1998
-        protected virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
-        {
-            OnAuthorization(context);
-        }
-        #pragma warning restore 1998
-
-        protected virtual void OnException([NotNull] ExceptionContext context)
-        {
-        }
-
-        #pragma warning disable 1998
-        protected virtual async Task OnExceptionAsync([NotNull] ExceptionContext context)
-        {
-        }
-        #pragma warning restore 1998
-
-        protected virtual void OnResultExecuting([NotNull] ResultExecutingContext context)
-        {
-        }
-
-        protected virtual void OnResultExecuted([NotNull] ResultExecutedContext context)
-        {
-        }
-
-        protected virtual async Task OnResultExecutionAsync([NotNull] ResultExecutingContext context, [NotNull] ResultExecutionDelegate next)
-        {
-            OnResultExecuting(context);
-            if (context.Result == null)
-            {
-                OnResultExecuted(await next());
-            }
-        }
-
-        #endregion
-
-        #region Filter Interface Explict Implementations
-
-        void IActionFilter.OnActionExecuting([NotNull] ActionExecutingContext context)
-        {
-            OnActionExecuting(context);
-        }
-
-        void IActionFilter.OnActionExecuted([NotNull] ActionExecutedContext context)
-        {
-            OnActionExecuted(context);
-        }
-
-        async Task IAsyncActionFilter.OnActionExecutionAsync([NotNull] ActionExecutingContext context, [NotNull]  ActionExecutionDelegate next)
-        {
-            await OnActionExecutionAsync(context, next);
-        }
-
-        void IAuthorizationFilter.OnAuthorization([NotNull] AuthorizationContext context)
-        {
-            OnAuthorization(context);
-        }
-
-        async Task IAsyncAuthorizationFilter.OnAuthorizationAsync([NotNull] AuthorizationContext context)
-        {
-            await OnAuthorizationAsync(context);
-        }
-
-        void IExceptionFilter.OnException([NotNull] ExceptionContext context)
-        {
-            OnException(context);
-        }
-
-        async Task IAsyncExceptionFilter.OnExceptionAsync([NotNull] ExceptionContext context)
-        {
-            await OnExceptionAsync(context);
-        }
-
-        void IResultFilter.OnResultExecuting([NotNull] ResultExecutingContext context)
-        {
-            OnResultExecuting(context);
-        }
-
-        void IResultFilter.OnResultExecuted([NotNull] ResultExecutedContext context)
-        {
-            OnResultExecuted(context);
-        }
-
-        async Task IAsyncResultFilter.OnResultExecutionAsync([NotNull] ResultExecutingContext context, [NotNull]  ResultExecutionDelegate next)
-        {
-            await OnResultExecutionAsync(context, next);
-        }
-
-        #endregion
     }
 }

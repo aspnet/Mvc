@@ -81,7 +81,7 @@ namespace MvcSample.Web
 
         protected override void OnActionExecuting(ActionExecutingContext context)
         {
-            ViewData["DidTheFilterRun?"] = "Totally!";
+            ViewData["DidTheFilterRun"] = "Totally!";
         }
     }
 }
