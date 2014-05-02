@@ -26,6 +26,9 @@
     <Compile Include="ActionResults\RedirectToActionResultTest.cs" />
     <Compile Include="ActionResults\RedirectToRouteResultTest.cs" />
     <Compile Include="ActionSelectionConventionTests.cs" />
+    <Compile Include="AntiXsrf\MockableAntiForgeryTokenSerializer.cs" />
+    <Compile Include="AntiXsrf\AntiForgeryTokenSerializerTest.cs" />
+    <Compile Include="AntiXsrf\ValidateAntiForgeryTokenAttributeTest.cs" />
     <Compile Include="Filters\AuthorizeAttributeTests.cs" />
     <Compile Include="Filters\AuthorizeAttributeTestsBase.cs" />
     <Compile Include="AntiXsrf\AntiForgeryTokenStoreTest.cs" />
@@ -33,14 +36,13 @@
     <Compile Include="AntiXsrf\AntiForgeryWorkerTests.cs" />
     <Compile Include="AntiXsrf\BinaryBlobTest.cs" />
     <Compile Include="AntiXsrf\ClaimUidExtractorTest.cs" />
-    <Compile Include="AntiXsrf\MockableAntiForgeryTokenSerializer.cs" />
     <Compile Include="AntiXsrf\MockableClaimUidExtractor.cs" />
     <Compile Include="AntiXsrf\MockableTokenStore.cs" />
     <Compile Include="AntiXsrf\MockableTokenProvider.cs" />
     <Compile Include="AntiXsrf\MockAntiForgeryConfig.cs" />
     <Compile Include="AntiXsrf\MockClaimsIdentity.cs" />
     <Compile Include="AntiXsrf\TokenProviderTests.cs" />
-	<Compile Include="ControllerTests.cs" />
+    <Compile Include="ControllerTests.cs" />
     <Compile Include="DefaultActionSelectorTest.cs" />
     <Compile Include="DefaultControllerAssemblyProviderTests.cs" />
     <Compile Include="DefaultControllerFactoryTest.cs" />

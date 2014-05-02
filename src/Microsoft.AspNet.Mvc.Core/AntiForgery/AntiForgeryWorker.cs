@@ -23,7 +23,6 @@ using Microsoft.AspNet.Http;
 using System.Diagnostics.Contracts;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
-using System.Security.Claims;
 
 namespace Microsoft.AspNet.Mvc
 {

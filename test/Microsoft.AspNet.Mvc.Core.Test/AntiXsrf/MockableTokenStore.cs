@@ -18,9 +18,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             SaveCookieToken(httpContext, (AntiForgeryToken)token);
         }
 
+        #pragma warning disable 1998
         async System.Threading.Tasks.Task<AntiForgeryToken> ITokenStore.GetFormTokenAsync(HttpContext httpContext)
         {
             return (AntiForgeryToken)GetFormToken(httpContext);
         }
+        #pragma warning restore 1998
     }
 }
