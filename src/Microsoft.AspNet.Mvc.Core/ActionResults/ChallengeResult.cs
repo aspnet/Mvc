@@ -6,9 +6,6 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ChallengeResult : ActionResult
     {
-        public IList<string> AuthenticationTypes;
-        public AuthenticationProperties Properties;
-
         public ChallengeResult()
             :this(new string[0])
         {
@@ -40,9 +37,13 @@ namespace Microsoft.AspNet.Mvc
             Properties = properties;
         }
 
+        public IList<string> AuthenticationTypes { get; set; }
+
+        public AuthenticationProperties Properties { get; set; }
+
         public override void ExecuteResult([NotNull] ActionContext context)
         {
-            HttpResponse response = context.HttpContext.Response;
+            var response = context.HttpContext.Response;
             response.Challenge(AuthenticationTypes, Properties);
         }
     }
