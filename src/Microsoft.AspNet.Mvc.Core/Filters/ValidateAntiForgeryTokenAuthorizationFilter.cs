@@ -2,21 +2,18 @@
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ValidateAntiForgeryTokenAuthorizationFilter : IAsyncAuthorizationFilter, IOrderedFilter
+    public class ValidateAntiForgeryTokenAuthorizationFilter : IAsyncAuthorizationFilter
     {
-        private AntiForgery _antiForgeryInstance;
-
-        public int Order { get; private set; }
-
-        public ValidateAntiForgeryTokenAuthorizationFilter([NotNull] AntiForgery antiForgeryInstance)
+        private AntiForgery _antiForgery;
+        
+        public ValidateAntiForgeryTokenAuthorizationFilter([NotNull] AntiForgery antiForgery)
         {
-            _antiForgeryInstance = antiForgeryInstance;
-            Order = -1;
+            _antiForgery = antiForgery;
         }
 
         public async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
-            await _antiForgeryInstance.ValidateAsync(context.HttpContext);
+            await _antiForgery.ValidateAsync(context.HttpContext);
         }
     }
 }

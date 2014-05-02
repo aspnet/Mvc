@@ -39,11 +39,11 @@ namespace Microsoft.AspNet.Mvc
             try
             {
                 var tokenBytes = UrlTokenDecode(serializedToken);
-                using (MemoryStream stream = new MemoryStream(_cryptoSystem.Unprotect(tokenBytes)))
+                using (var stream = new MemoryStream(_cryptoSystem.Unprotect(tokenBytes)))
                 {
-                    using (BinaryReader reader = new BinaryReader(stream))
+                    using (var reader = new BinaryReader(stream))
                     {
-                        AntiForgeryToken token = DeserializeImpl(reader);
+                        var token = DeserializeImpl(reader);
                         if (token != null)
                         {
                             return token;
