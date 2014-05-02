@@ -229,10 +229,5 @@ namespace Microsoft.AspNet.Mvc
                 OnActionExecuted(await next());
             }
         }
-
-        public ChallengeResult Challenge()
-        {
-            return new ChallengeResult();
-        }
     }
 }
