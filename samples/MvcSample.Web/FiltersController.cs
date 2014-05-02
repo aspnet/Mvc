@@ -78,5 +78,10 @@ namespace MvcSample.Web
         {
             throw new Exception(message);
         }
+
+        protected override void OnActionExecuting(ActionExecutingContext context)
+        {
+            ViewData["DidTheFilterRun?"] = "Totally!";
+        }
     }
 }
