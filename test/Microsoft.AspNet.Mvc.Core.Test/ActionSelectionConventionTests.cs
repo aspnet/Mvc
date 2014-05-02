@@ -38,26 +38,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [Theory]
         [InlineData("GET")]
         [InlineData("POST")]
-        public async Task ActionSelection_IndexSelectedByDefaultInAbsenceOfVerbOnlyMethod(string verb)
-        {
-            // Arrange
-            var requestContext = new RequestContext(
-                                        GetHttpContext(verb),
-                                        new Dictionary<string, object>
-                                            {
-                                                { "controller", "RpcOnly" }
-                                            });
-
-            // Act
-            var result = await InvokeActionSelector(requestContext);
-
-            // Assert
-            Assert.Equal("Index", result.Name);
-        }
-
-        [Theory]
-        [InlineData("GET")]
-        [InlineData("POST")]
         public async Task ActionSelection_PrefersVerbOnlyMethodOverIndex(string verb)
         {
             // Arrange
@@ -135,24 +115,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.Equal(verb, result.Name, StringComparer.OrdinalIgnoreCase);
-        }
-
-        [Fact]
-        public async Task ActionSelection_ChangeDefaultConventionPicksCustomMethodForPost_DefaultMethodIsSelectedForGet()
-        {
-            // Arrange
-            var requestContext = new RequestContext(
-                                        GetHttpContext("GET"),
-                                        new Dictionary<string, object>
-                                            {
-                                                { "controller", "RpcOnly" }
-                                            });
-
-            // Act
-            var result = await InvokeActionSelector(requestContext, new CustomActionConvention());
-
-            // Assert
-            Assert.Equal("INDEX", result.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
