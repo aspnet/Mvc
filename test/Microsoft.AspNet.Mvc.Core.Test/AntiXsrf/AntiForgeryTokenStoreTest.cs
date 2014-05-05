@@ -85,7 +85,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act & assert
             var ex = Assert.Throws<InvalidOperationException>(() => tokenStore.GetCookieToken(mockHttpContext));
-            Assert.Equal(expectedException, ex);
+            Assert.Same(expectedException, ex);
         }
 
         [Fact]
@@ -314,7 +314,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             public MockCookieCollection(Dictionary<string, string> dictionary)
             {
-                // TODO: Complete member initialization
                 this.dictionary = dictionary;
             }
 

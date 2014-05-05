@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Abstractions;
@@ -25,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 RequireSSL = true
             };
 
-            AntiForgeryWorker worker = new AntiForgeryWorker(
+            var worker = new AntiForgeryWorker(
                 config: config,
                 serializer: null,
                 tokenStore: null,
@@ -41,10 +42,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, but the current request is not an SSL request.",
                 ex.Message);
 
-            ex =
-                await
-                    Assert.ThrowsAsync<InvalidOperationException>(
-                        async () => await worker.ValidateAsync(mockHttpContext.Object));
+            ex = Assert.Throws<InvalidOperationException>(
+                         () =>  worker.Validate(mockHttpContext.Object, string.Empty, string.Empty));
             Assert.Equal(
                 @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, but the current request is not an SSL request.",
                 ex.Message);
@@ -541,35 +540,70 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
-
-            var cookieToken = new AntiForgeryToken();
-            var formToken = new AntiForgeryToken();
-
-            var mockTokenStore = new Mock<MockableTokenStore>();
-            mockTokenStore.Setup(o => o.GetCookieToken(mockHttpContext.Object))
-                          .Returns(cookieToken);
-            mockTokenStore.Setup(o => o.GetFormToken(mockHttpContext.Object))
-                          .Returns(formToken);
-
-            var mockValidator = new Mock<MockableTokenProvider>();
-            mockValidator.Setup(o => o.ValidateTokens(mockHttpContext.Object, identity, cookieToken, formToken))
-                         .Verifiable();
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: null,
-                tokenStore: mockTokenStore.Object,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            var httpContext = GetHttpContext(identity);
+            var worker = GetAntiForgeryWorker(httpContext, identity);
 
             // Act
             await worker.ValidateAsync(mockHttpContext.Object);
 
             // Assert
             mockValidator.Verify();
+        }
+
+        private AntiForgeryWorker GetAntiForgeryWorker(HttpContext httpContext, ClaimsIdentity identity)
+        {
+            var cookieToken = new AntiForgeryToken();
+            var formToken = new AntiForgeryToken();
+            var mockTokenStore = GetAntiForgeryTokenStore(httpContext, cookieToken, formToken);
+            var mockTokenProvider = GetTokenProvider(httpContext, identity, cookieToken, formToken);
+
+            return new AntiForgeryWorker(
+                config: new MockAntiForgeryConfig(),
+                serializer: null,
+                tokenStore: mockTokenStore,
+                generator: mockTokenProvider,
+                validator: mockTokenProvider);
+
+        }
+        private HttpContext GetHttpContext(GenericIdentity identity)
+        {
+            var mockHttpContext = new Mock<HttpContext>();
+            mockHttpContext.Setup(o => o.User)
+                           .Returns(new GenericPrincipal(identity, new string[0]));
+            return mockHttpContext.Object;
+        }
+
+        private MockableTokenStore GetAntiForgeryTokenStore(HttpContext context, AntiForgeryToken cookieToken, AntiForgeryToken formToken)
+        {
+            var mockTokenStore = new Mock<MockableTokenStore>();
+            mockTokenStore.Setup(o => o.GetCookieToken(context))
+                          .Returns(cookieToken);
+            mockTokenStore.Setup(o => o.GetFormToken(context))
+                          .Returns(formToken);
+            return mockTokenStore.Object;
+        }
+
+        private MockableTokenProvider GetTokenProvider(HttpContext httpContext, GenericIdentity identity, AntiForgeryToken cookieToken, AntiForgeryToken formToken, bool throwOnValidate = false)
+        {
+            var mockValidator = new Mock<MockableTokenProvider>();
+
+            if (throwOnValidate)
+            {
+                mockValidator.Setup(o => o.ValidateTokens(httpContext, identity, cookieToken, formToken))
+                             .Throws(new InvalidOperationException("my-message"));
+            }
+            else
+            {
+                mockValidator.Setup(o => o.ValidateTokens(httpContext, identity, cookieToken, formToken))
+                             .Verifiable();
+            }
+
+            return mockValidator.Object;
+        }
+
+        private class AntiForgeryWorkerTestSetup
+        {
+
         }
     }
 }

@@ -15,10 +15,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             IClaimUidExtractor extractor = new DefaultClaimUidExtractor();
 
             // Act
-            var retVal = extractor.ExtractClaimUid(null);
+            var claimUid = extractor.ExtractClaimUid(null);
 
             // Assert
-            Assert.Null(retVal);
+            Assert.Null(claimUid);
         }
 
         [Fact]
@@ -32,10 +32,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                         .Returns(false);
 
             // Act
-            var retVal = extractor.ExtractClaimUid(mockIdentity.Object);
+            var claimUid = extractor.ExtractClaimUid(mockIdentity.Object);
 
             // Assert
-            Assert.Null(retVal);
+            Assert.Null(claimUid);
         }
 
         [Fact]
@@ -49,11 +49,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             IClaimUidExtractor extractor = new DefaultClaimUidExtractor();
 
             // Act
-            var retVal = extractor.ExtractClaimUid(mockIdentity.Object);
+            var claimUid = extractor.ExtractClaimUid(mockIdentity.Object);
 
             // Assert
-            Assert.NotNull(retVal);
-            Assert.Equal("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=", retVal);
+            Assert.NotNull(claimUid);
+            Assert.Equal("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=", claimUid);
         }
 
         [Fact]
@@ -92,14 +92,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             identity.AddClaim(ClaimTypes.NameIdentifier, "nameIdentifierValue");
 
             // Act
-            var retVal = DefaultClaimUidExtractor.GetUniqueIdentifierParameters(identity);
+            var uniqueIdentifierParameters = DefaultClaimUidExtractor.GetUniqueIdentifierParameters(identity);
 
             // Assert
             Assert.Equal(new string[]
             {
                 ClaimTypes.NameIdentifier,
                 "nameIdentifierValue",
-            }, retVal);
+            }, uniqueIdentifierParameters);
         }
     }
 }

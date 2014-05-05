@@ -17,10 +17,10 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using System.Diagnostics.Contracts;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
 

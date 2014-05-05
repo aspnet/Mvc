@@ -79,7 +79,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 Assert.Throws<InvalidOperationException>(
                     () => tokenProvider.GenerateFormToken(httpContext, identity, cookieToken));
             Assert.Equal(
-                @"The provided identity of type 'Microsoft.AspNet.Mvc.Core.Test.TokenProviderTest+MyAuthenticatedIdentityWithoutUsername' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.",
+                "The provided identity of type "+
+                "'Microsoft.AspNet.Mvc.Core.Test.TokenProviderTest+MyAuthenticatedIdentityWithoutUsername'"+
+                "is marked IsAuthenticated = true but does not have a value for Name."+
+                "By default, the anti-forgery system requires that all authenticated identities have a unique Name." +
+                "If it is not possible to provide a unique Name for this identity, " +
+                "consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider" +
+                "or a custom type that can provide some form of unique identifier for the current user.",
                 ex.Message);
         }
 
@@ -319,14 +325,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 Assert.Throws<InvalidOperationException>(
                     () => tokenProvider.ValidateTokens(httpContext, identity, fieldtoken, fieldtoken));
             Assert.Equal(
-                @"Validation of the provided anti-forgery token failed. The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.",
+                @"Validation of the provided anti-forgery token failed. The cookie ""my-cookie-name"""+
+                @"and the form field ""my-form-field-name"" were swapped.",
                 ex1.Message);
 
             var ex2 =
                 Assert.Throws<InvalidOperationException>(
                     () => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, sessionToken));
             Assert.Equal(
-                @"Validation of the provided anti-forgery token failed. The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.",
+                @"Validation of the provided anti-forgery token failed." +
+                @"The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.",
                 ex2.Message);
         }
 
