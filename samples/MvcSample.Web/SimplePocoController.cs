@@ -15,13 +15,37 @@
 // See the Apache 2 License for the specific language governing
 // permissions and limitations under the License.
 
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.AspNet.Mvc;
+
 namespace MvcSample.Web
 {
-    public class SimplePocoController
+    public class SimplePocoController : IActionFilter
     {
+        private Stopwatch _timer;
+
         public string Index()
         {
             return "Hello world";
+        }
+
+        public void OnActionExecuting(ActionExecutingContext context)
+        {
+            _timer = Stopwatch.StartNew();
+        }
+
+        public void OnActionExecuted(ActionExecutedContext context)
+        {
+            var time = _timer.ElapsedMilliseconds;
+            if (time > 3000)
+            {
+                context.Result = new ContentResult()
+                {
+                    Content = string.Format(CultureInfo.CurrentCulture, "Elapsed time: {0} ms", time),
+                    ContentType = "text/plain",
+                };
+            }
         }
     }
 }
