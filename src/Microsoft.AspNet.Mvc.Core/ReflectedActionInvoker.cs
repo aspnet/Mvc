@@ -121,7 +121,7 @@ namespace Microsoft.AspNet.Mvc
 
             _filterProvider.Invoke(filterProviderContext);
 
-            return filterProviderContext.Result.Select(item => item.Filter).Where(filter => filter != null).ToArray();
+            return filterProviderContext.Results.Select(item => item.Filter).Where(filter => filter != null).ToArray();
         }
 
         private async Task InvokeActionExceptionFilters()

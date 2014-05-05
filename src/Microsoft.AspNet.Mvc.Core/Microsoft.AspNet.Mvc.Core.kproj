@@ -73,6 +73,7 @@
     <Compile Include="DefaultControllerFactory.cs" />
     <Compile Include="DefaultParameterDescriptorFactory.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="Filters\FilterItemOrderComparer.cs" />
     <Compile Include="Filters\TypeFilterAttribute.cs" />
     <Compile Include="Filters\ActionExecutedContext.cs" />
     <Compile Include="Filters\ActionExecutingContext.cs" />
@@ -109,7 +110,6 @@
     <Compile Include="Filters\ResultExecutionDelegate.cs" />
     <Compile Include="Filters\ResultFilterAttribute.cs" />
     <Compile Include="Filters\ServiceFilterAttribute.cs" />
-    <Compile Include="ControllerFilterProvider.cs" />
     <Compile Include="FormContext.cs" />
     <Compile Include="HttpDeleteAttribute.cs" />
     <Compile Include="HttpGetAttribute.cs" />
