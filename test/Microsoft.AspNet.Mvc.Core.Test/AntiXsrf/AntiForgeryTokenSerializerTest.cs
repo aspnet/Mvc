@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNet.Security.DataProtection;
-using Moq;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNet.Security.DataProtection;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
@@ -49,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act & assert
             var ex = Assert.Throws<InvalidOperationException>(() => _testSerializer.Deserialize(serializedToken));
-            Assert.Equal(@"The anti-forgery token could not be decrypted. If this application is hosted by a Web Farm or cluster, ensure that all machines are running the same version of ASP.NET Web Pages and that the <machineKey> configuration specifies explicit encryption and validation keys. AutoGenerate cannot be used in a cluster.", ex.Message);
+            Assert.Equal(@"The anti-forgery token could not be decrypted.", ex.Message);
             _dataProtector.Verify();
         }
 

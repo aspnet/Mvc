@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.PipelineCore.Collections;
-using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.PipelineCore.Collections;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNet.Abstractions;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using Microsoft.AspNet.Abstractions;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {

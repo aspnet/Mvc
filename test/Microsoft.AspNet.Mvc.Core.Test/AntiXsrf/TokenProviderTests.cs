@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.Security.DataProtection;
-using Moq;
-using System;
+﻿using System;
 using System.Security.Claims;
 using System.Security.Principal;
+using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Security.DataProtection;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test

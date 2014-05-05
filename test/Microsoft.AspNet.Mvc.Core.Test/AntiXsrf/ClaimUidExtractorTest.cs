@@ -1,7 +1,7 @@
-﻿using Moq;
-using System;
+﻿using System;
 using System.Linq;
 using System.Security.Claims;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
