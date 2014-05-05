@@ -42,7 +42,7 @@ namespace MvcSample.Web
             {
                 context.Result = new ContentResult()
                 {
-                    Context = string.Format(CultureInfo.CurrentCulture, "Elapsed time: {0} ms", time),
+                    Content = string.Format(CultureInfo.CurrentCulture, "Elapsed time: {0} ms", time),
                     ContentType = "text/plain",
                 };
             }
