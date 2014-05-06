@@ -4,7 +4,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ValidateAntiForgeryTokenAuthorizationFilter : IAsyncAuthorizationFilter
     {
-        private AntiForgery _antiForgery;
+        private readonly AntiForgery _antiForgery;
         
         public ValidateAntiForgeryTokenAuthorizationFilter([NotNull] AntiForgery antiForgery)
         {
