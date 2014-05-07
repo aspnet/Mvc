@@ -1,9 +1,24 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING
+// WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF
+// TITLE, FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABLITY OR
+// NON-INFRINGEMENT.
+// See the Apache 2 License for the specific language governing
+// permissions and limitations under the License.
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Http;
 using Moq;
 using Xunit;
 
@@ -74,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             var expectedException = new InvalidOperationException("some exception");
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
+            var mockSerializer = new Mock<IAntiForgeryTokenSerializer>();
             mockSerializer
                 .Setup(o => o.Deserialize("invalid-value"))
                 .Throws(expectedException);
@@ -100,10 +115,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 CookieName = _cookieName
             };
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
+            var mockSerializer = new Mock<IAntiForgeryTokenSerializer>();
             mockSerializer
                 .Setup(o => o.Deserialize("valid-value"))
-                .Returns((object)expectedToken);
+                .Returns(expectedToken);
 
             var tokenStore = new AntiForgeryTokenStore(
                 config: config,
@@ -166,7 +181,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             var expectedException = new InvalidOperationException("some exception");
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
+            var mockSerializer = new Mock<IAntiForgeryTokenSerializer>();
             mockSerializer.Setup(o => o.Deserialize("invalid-value"))
                           .Throws(expectedException);
 
@@ -203,9 +218,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 FormFieldName = "form-field-name"
             };
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
+            var mockSerializer = new Mock<IAntiForgeryTokenSerializer>();
             mockSerializer.Setup(o => o.Deserialize("valid-value"))
-                          .Returns((object)expectedToken);
+                          .Returns(expectedToken);
 
             var tokenStore = new AntiForgeryTokenStore(
                 config: config,
@@ -236,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Response.Cookies)
                            .Returns(cookies);
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
+            var mockSerializer = new Mock<IAntiForgeryTokenSerializer>();
             mockSerializer.Setup(o => o.Serialize(token))
                           .Returns("serialized-value");
 

@@ -1,4 +1,20 @@
-﻿
+﻿// Copyright (c) Microsoft Open Technologies, Inc.
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING
+// WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF
+// TITLE, FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABLITY OR
+// NON-INFRINGEMENT.
+// See the Apache 2 License for the specific language governing
+// permissions and limitations under the License.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -46,18 +62,19 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Deserialize_BadToken_Throws(string serializedToken)
         {
             // Arrange 
-            var _testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
+            var testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
 
             // Act & assert
-            var ex = Assert.Throws<InvalidOperationException>(() => _testSerializer.Deserialize(serializedToken));
+            var ex = Assert.Throws<InvalidOperationException>(() => testSerializer.Deserialize(serializedToken));
             Assert.Equal(@"The anti-forgery token could not be decrypted.", ex.Message);
-            _dataProtector.Verify();
         }
 
         [Fact]
         public void Serialize_FieldToken_WithClaimUid_TokenRoundTripSuccessful()
         {
             // Arrange
+            var testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
+
             //"01" // Version
             //+ "705EEDCC7D42F1D6B3B98A593625BB4C" // SecurityToken
             //+ "00" // IsSessionToken
@@ -65,7 +82,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             //+ "6F1648E97249AA58754036A67E248CF044F07ECFB0ED387556CE029A4F9A40E0" // ClaimUid
             //+ "05" // AdditionalData length header
             //+ "E282AC3437"; // AdditionalData ("€47") as UTF8
-            var _testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
             var token = new AntiForgeryToken()
             {
                 SecurityToken = _securityToken,
@@ -75,8 +91,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             // Act
-            var actualSerializedData = _testSerializer.Serialize(token);
-            var deserializedToken = _testSerializer.Deserialize(actualSerializedData);
+            var actualSerializedData = testSerializer.Serialize(token);
+            var deserializedToken = testSerializer.Deserialize(actualSerializedData);
 
             // Assert
             AssertTokensEqual(token, deserializedToken);
@@ -87,6 +103,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Serialize_FieldToken_WithUsername_TokenRoundTripSuccessful()
         {
             // Arrange
+            var testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
+
             //"01" // Version
             //+ "705EEDCC7D42F1D6B3B98A593625BB4C" // SecurityToken
             //+ "00" // IsSessionToken
@@ -95,7 +113,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             //+ "4AC3A972C3B46D65" // Username ("Jérôme") as UTF8
             //+ "05" // AdditionalData length header
             //+ "E282AC3437"; // AdditionalData ("€47") as UTF8
-            var _testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
             var token = new AntiForgeryToken()
             {
                 SecurityToken = _securityToken,
@@ -105,8 +122,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             // Act
-            var actualSerializedData = _testSerializer.Serialize(token);
-            var deserializedToken = _testSerializer.Deserialize(actualSerializedData);
+            var actualSerializedData = testSerializer.Serialize(token);
+            var deserializedToken = testSerializer.Deserialize(actualSerializedData);
             
             // Assert
             AssertTokensEqual(token, deserializedToken);
@@ -117,10 +134,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Serialize_SessionToken_TokenRoundTripSuccessful()
         {
             // Arrange
+            var testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
+            
             //"01" // Version
             //+ "705EEDCC7D42F1D6B3B98A593625BB4C" // SecurityToken
             //+ "01"; // IsSessionToken
-            var _testSerializer = new AntiForgeryTokenSerializer(_dataProtector.Object);
             var token = new AntiForgeryToken()
             {
                 SecurityToken = _securityToken,
@@ -128,14 +146,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             // Act
-            string actualSerializedData = _testSerializer.Serialize(token);
-            var deserializedToken = _testSerializer.Deserialize(actualSerializedData);
+            string actualSerializedData = testSerializer.Serialize(token);
+            var deserializedToken = testSerializer.Deserialize(actualSerializedData);
 
             // Assert
             AssertTokensEqual(token, deserializedToken);
             _dataProtector.Verify();
         }
-
+       
         private static Mock<IDataProtector> GetDataProtector()
         {
             var mockCryptoSystem = new Mock<IDataProtector>();

@@ -15,32 +15,6 @@
 // See the Apache 2 License for the specific language governing
 // permissions and limitations under the License.
 
-namespace Microsoft.AspNet.Mvc.Core.Test
-{
-    public sealed class MockAntiForgeryConfig : IAntiForgeryConfig
-    {
-        public string CookieName
-        {
-            get;
-            set;
-        }
+using System.Runtime.CompilerServices;
 
-        public string FormFieldName
-        {
-            get;
-            set;
-        }
-
-        public bool RequireSSL
-        {
-            get;
-            set;
-        }
-
-        public bool SuppressXFrameOptionsHeader
-        {
-            get;
-            set;
-        }
-    }
-}
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

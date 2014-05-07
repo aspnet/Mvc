@@ -17,30 +17,8 @@
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
-    public sealed class MockAntiForgeryConfig : IAntiForgeryConfig
+    // A TokenProvider that can be passed to MoQ
+    internal interface ITokenProvider : ITokenValidator, ITokenGenerator
     {
-        public string CookieName
-        {
-            get;
-            set;
-        }
-
-        public string FormFieldName
-        {
-            get;
-            set;
-        }
-
-        public bool RequireSSL
-        {
-            get;
-            set;
-        }
-
-        public bool SuppressXFrameOptionsHeader
-        {
-            get;
-            set;
-        }
     }
 }

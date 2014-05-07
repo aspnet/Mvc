@@ -1,7 +1,24 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING
+// WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF
+// TITLE, FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABLITY OR
+// NON-INFRINGEMENT.
+// See the Apache 2 License for the specific language governing
+// permissions and limitations under the License.
+
+using System;
 using System.Security.Claims;
 using System.Security.Principal;
-using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security.DataProtection;
 using Moq;
 using Xunit;
@@ -67,7 +84,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var httpContext = new Mock<HttpContext>().Object;
             ClaimsIdentity identity = new MyAuthenticatedIdentityWithoutUsername();
             IAntiForgeryConfig config = new MockAntiForgeryConfig();
-            IClaimUidExtractor claimUidExtractor = new Mock<MockableClaimUidExtractor>().Object;
+            IClaimUidExtractor claimUidExtractor = new Mock<IClaimUidExtractor>().Object;
 
             var tokenProvider = new TokenProvider(
                 config: config,
@@ -80,11 +97,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     () => tokenProvider.GenerateFormToken(httpContext, identity, cookieToken));
             Assert.Equal(
                 "The provided identity of type "+
-                "'Microsoft.AspNet.Mvc.Core.Test.TokenProviderTest+MyAuthenticatedIdentityWithoutUsername'"+
-                "is marked IsAuthenticated = true but does not have a value for Name."+
-                "By default, the anti-forgery system requires that all authenticated identities have a unique Name." +
+                "'Microsoft.AspNet.Mvc.Core.Test.TokenProviderTest+MyAuthenticatedIdentityWithoutUsername' "+
+                "is marked IsAuthenticated = true but does not have a value for Name. "+
+                "By default, the anti-forgery system requires that all authenticated identities have a unique Name. " +
                 "If it is not possible to provide a unique Name for this identity, " +
-                "consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider" +
+                "consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider " +
                 "or a custom type that can provide some form of unique identifier for the current user.",
                 ex.Message);
         }
@@ -102,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                       .Returns("additional-data");
 
             IAntiForgeryConfig config = new AntiForgeryConfigWrapper();
-            IClaimUidExtractor claimUidExtractor = new Mock<MockableClaimUidExtractor>().Object;
+            IClaimUidExtractor claimUidExtractor = new Mock<IClaimUidExtractor>().Object;
 
             var tokenProvider = new TokenProvider(
                 config: config,
@@ -136,9 +153,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var base64ClaimUId = Convert.ToBase64String(data);
             var expectedClaimUid = new BinaryBlob(256, data);
 
-            var mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            var mockClaimUidExtractor = new Mock<IClaimUidExtractor>();
             mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity))
-                                 .Returns((object)base64ClaimUId);
+                                 .Returns(base64ClaimUId);
 
             var tokenProvider = new TokenProvider(
                 config: config,
@@ -171,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                         .Returns("my-username");
 
             IAntiForgeryConfig config = new MockAntiForgeryConfig();
-            IClaimUidExtractor claimUidExtractor = new Mock<MockableClaimUidExtractor>().Object;
+            IClaimUidExtractor claimUidExtractor = new Mock<IClaimUidExtractor>().Object;
 
             var tokenProvider = new TokenProvider(
                 config: config,
@@ -325,15 +342,15 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 Assert.Throws<InvalidOperationException>(
                     () => tokenProvider.ValidateTokens(httpContext, identity, fieldtoken, fieldtoken));
             Assert.Equal(
-                @"Validation of the provided anti-forgery token failed. The cookie ""my-cookie-name"""+
-                @"and the form field ""my-form-field-name"" were swapped.",
+                "Validation of the provided anti-forgery token failed. "+
+                @"The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.",
                 ex1.Message);
 
             var ex2 =
                 Assert.Throws<InvalidOperationException>(
                     () => tokenProvider.ValidateTokens(httpContext, identity, sessionToken, sessionToken));
             Assert.Equal(
-                @"Validation of the provided anti-forgery token failed." +
+                "Validation of the provided anti-forgery token failed. " +
                 @"The cookie ""my-cookie-name"" and the form field ""my-form-field-name"" were swapped.",
                 ex2.Message);
         }
@@ -376,9 +393,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 IsSessionToken = false
             };
 
-            var mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            var mockClaimUidExtractor = new Mock<IClaimUidExtractor>();
             mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity))
-                                 .Returns((object)null);
+                                 .Returns((string)null);
 
             var tokenProvider = new TokenProvider(
                 config: null,
@@ -409,7 +426,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             var differentToken = new BinaryBlob(256);
-            var mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            var mockClaimUidExtractor = new Mock<IClaimUidExtractor>();
             mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity))
                                  .Returns(Convert.ToBase64String(differentToken.GetData()));
 
@@ -513,7 +530,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var config = new MockAntiForgeryConfig();
             var tokenProvider = new TokenProvider(
                 config: config,
-                claimUidExtractor: new Mock<MockableClaimUidExtractor>().Object,
+                claimUidExtractor: new Mock<IClaimUidExtractor>().Object,
                 additionalDataProvider: mockAdditionalDataProvider.Object);
 
             // Act
@@ -537,7 +554,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 ClaimUid = new BinaryBlob(256)
             };
 
-            var mockClaimUidExtractor = new Mock<MockableClaimUidExtractor>();
+            var mockClaimUidExtractor = new Mock<IClaimUidExtractor>();
             mockClaimUidExtractor.Setup(o => o.ExtractClaimUid(identity))
                                  .Returns(Convert.ToBase64String(fieldtoken.ClaimUid.GetData()));
 

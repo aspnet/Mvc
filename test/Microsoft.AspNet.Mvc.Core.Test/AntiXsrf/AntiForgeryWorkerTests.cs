@@ -1,9 +1,26 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING
+// WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF
+// TITLE, FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABLITY OR
+// NON-INFRINGEMENT.
+// See the Apache 2 License for the specific language governing
+// permissions and limitations under the License.
+
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Abstractions;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PipelineCore.Collections;
 using Moq;
@@ -13,8 +30,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 {
     public class AntiForgeryWorkerTest
     {
+
         [Fact]
-        public async Task ChecksSSL()
+        public async Task ChecksSSL_ValidateAsync_Throws()
         {
             // Arrange
             var mockHttpContext = new Mock<HttpContext>();
@@ -39,196 +57,167 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     Assert.ThrowsAsync<InvalidOperationException>(
                         async () => await worker.ValidateAsync(mockHttpContext.Object));
             Assert.Equal(
-                @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, but the current request is not an SSL request.",
-                ex.Message);
+             @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, " +
+             "but the current request is not an SSL request.",
+             ex.Message);
+        }
 
-            ex = Assert.Throws<InvalidOperationException>(
-                         () =>  worker.Validate(mockHttpContext.Object, string.Empty, string.Empty));
-            Assert.Equal(
-                @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, but the current request is not an SSL request.",
-                ex.Message);
+        [Fact]
+        public void ChecksSSL_Validate_Throws()
+        {
+            // Arrange
+            var mockHttpContext = new Mock<HttpContext>();
+            mockHttpContext.Setup(o => o.Request.IsSecure)
+                           .Returns(false);
 
-            ex = Assert.Throws<InvalidOperationException>(() => worker.GetFormInputElement(mockHttpContext.Object));
-            Assert.Equal(
-                @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, but the current request is not an SSL request.",
-                ex.Message);
+            var config = new MockAntiForgeryConfig()
+            {
+                RequireSSL = true
+            };
 
-            ex = Assert.Throws<InvalidOperationException>(() => worker.GetTokens(mockHttpContext.Object, "cookie-token"));
+            var worker = new AntiForgeryWorker(
+                config: config,
+                serializer: null,
+                tokenStore: null,
+                generator: null,
+                validator: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(
+                         () => worker.Validate(mockHttpContext.Object, cookieToken: null, formToken: null));
             Assert.Equal(
-                @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, but the current request is not an SSL request.",
+                @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, " +
+                "but the current request is not an SSL request.",
                 ex.Message);
         }
 
         [Fact]
-        public void GetFormInputElement_ExistingInvalidCookieToken()
+        public void ChecksSSL_GetFormInputElement_Throws()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
+            mockHttpContext.Setup(o => o.Request.IsSecure)
+                           .Returns(false);
 
-            var mockResponse = new Mock<HttpResponse>();
-            mockResponse.Setup(r => r.Headers)
-                        .Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
-            mockHttpContext.Setup(o => o.Response)
-                           .Returns(mockResponse.Object);
+            var config = new MockAntiForgeryConfig()
+            {
+                RequireSSL = true
+            };
 
-            var oldCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var newCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
+            var worker = new AntiForgeryWorker(
+                config: config,
+                serializer: null,
+                tokenStore: null,
+                generator: null,
+                validator: null);
 
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => worker.GetFormInputElement(mockHttpContext.Object));
+            Assert.Equal(
+             @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, " +
+             "but the current request is not an SSL request.",
+             ex.Message);
+        }
+
+        [Fact]
+        public void ChecksSSL_GetTokens_Throws()
+        {
+            // Arrange
+            var mockHttpContext = new Mock<HttpContext>();
+            mockHttpContext.Setup(o => o.Request.IsSecure)
+                           .Returns(false);
+
+            var config = new MockAntiForgeryConfig()
+            {
+                RequireSSL = true
+            };
+
+            var worker = new AntiForgeryWorker(
+                config: config,
+                serializer: null,
+                tokenStore: null,
+                generator: null,
+                validator: null);
+
+            // Act & assert
+            var ex = Assert.Throws<InvalidOperationException>(() => worker.GetTokens(mockHttpContext.Object, "cookie-token"));
+            Assert.Equal(
+             @"The anti-forgery system has the configuration value AntiForgeryConfig.RequireSsl = true, " +
+             "but the current request is not an SSL request.",
+             ex.Message);
+        }
+
+        [Fact]
+        public void GetFormInputElement_ExistingInvalidCookieToken_GeneratesANewCookieAndAnAntiForgeryToken()
+        {
+            // Arrange
             var config = new MockAntiForgeryConfig()
             {
                 FormFieldName = "form-field-name"
             };
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
-
-            var mockTokenStore = new Mock<MockableTokenStore>(MockBehavior.Strict);
-            mockTokenStore.Setup(o => o.GetCookieToken(mockHttpContext.Object))
-                          .Returns(oldCookieToken);
-            mockTokenStore.Setup(o => o.SaveCookieToken(mockHttpContext.Object, newCookieToken))
-                          .Verifiable();
-
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, newCookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(oldCookieToken))
-                         .Returns(false);
-            mockValidator.Setup(o => o.IsCookieTokenValid(newCookieToken))
-                         .Returns(true);
-            mockValidator.Setup(o => o.GenerateCookieToken())
-                         .Returns(newCookieToken);
-
-            var worker = new AntiForgeryWorker(
-                config: config,
-                serializer: mockSerializer.Object,
-                tokenStore: mockTokenStore.Object,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            // Make sure the existing cookie is invalid.
+            var context = GetAntiForgeryWorkerContext(config, isOldCookieValid: false);
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            var retVal = worker.GetFormInputElement(mockHttpContext.Object);
+            var inputElement = worker.GetFormInputElement(context.HttpContext.Object);
 
             // Assert
             Assert.Equal(@"<input name=""form-field-name"" type=""hidden"" value=""serialized-form-token"" />",
-                retVal.ToString(TagRenderMode.SelfClosing));
-            mockTokenStore.Verify();
+                inputElement.ToString(TagRenderMode.SelfClosing));
+            context.TokenStore.Verify();
         }
 
         [Fact]
         public void GetFormInputElement_ExistingInvalidCookieToken_SwallowsExceptions()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
-
-            var mockResponse = new Mock<HttpResponse>();
-            mockResponse.Setup(r => r.Headers)
-                        .Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
-            mockHttpContext.Setup(o => o.Response)
-                           .Returns(mockResponse.Object);
-
-            var oldCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var newCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
-
             var config = new MockAntiForgeryConfig()
             {
                 FormFieldName = "form-field-name"
             };
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
+            // Make sure the existing cookie is invalid.
+            var context = GetAntiForgeryWorkerContext(config, isOldCookieValid: false);
+            var worker = GetAntiForgeryWorker(context);
 
-            var mockTokenStore = new Mock<MockableTokenStore>(MockBehavior.Strict);
-            mockTokenStore.Setup(o => o.GetCookieToken(mockHttpContext.Object))
-                          .Throws(new Exception("should be swallowed"));
-            mockTokenStore.Setup(o => o.SaveCookieToken(mockHttpContext.Object, newCookieToken))
-                          .Verifiable();
+            // This will cause the cookieToken to be null.           
+            context.TokenStore.Setup(o => o.GetCookieToken(context.HttpContext.Object))
+                              .Throws(new Exception("should be swallowed"));
 
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, newCookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(null))
-                         .Returns(false);
-            mockValidator.Setup(o => o.IsCookieTokenValid(newCookieToken))
-                         .Returns(true);
-            mockValidator.Setup(o => o.GenerateCookieToken())
-                         .Returns(newCookieToken);
-
-            var worker = new AntiForgeryWorker(
-                config: config,
-                serializer: mockSerializer.Object,
-                tokenStore: mockTokenStore.Object,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            // Setup so that the null cookie token returned is treated as invalid.
+            context.TokenProvider.Setup(o => o.IsCookieTokenValid(null))
+                                 .Returns(false);
 
             // Act
-            var retVal = worker.GetFormInputElement(mockHttpContext.Object);
+            var inputElement = worker.GetFormInputElement(context.HttpContext.Object);
 
             // Assert
             Assert.Equal(@"<input name=""form-field-name"" type=""hidden"" value=""serialized-form-token"" />",
-                retVal.ToString(TagRenderMode.SelfClosing));
-            mockTokenStore.Verify();
+                inputElement.ToString(TagRenderMode.SelfClosing));
+            context.TokenStore.Verify();
         }
 
         [Fact]
-        public void GetFormInputElement_ExistingValidCookieToken()
+        public void GetFormInputElement_ExistingValidCookieToken_GeneratesAnAntiForgeryToken()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
-
-            var mockResponse = new Mock<HttpResponse>();
-            mockResponse.Setup(r => r.Headers)
-                        .Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
-            mockHttpContext.Setup(o => o.Response)
-                           .Returns(mockResponse.Object);
-
-            var cookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
-
             var config = new MockAntiForgeryConfig()
             {
                 FormFieldName = "form-field-name"
             };
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
-
-            var mockTokenStore = new Mock<MockableTokenStore>(MockBehavior.Strict);
-            mockTokenStore.Setup(o => o.GetCookieToken(mockHttpContext.Object))
-                          .Returns(cookieToken);
-
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, cookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(cookieToken))
-                         .Returns(true);
-
-            var worker = new AntiForgeryWorker(
-                config: config,
-                serializer: mockSerializer.Object,
-                tokenStore: mockTokenStore.Object,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            // Make sure the existing cookie is valid and use the same cookie for the mock Token Provider.
+            var context = GetAntiForgeryWorkerContext(config, useOldCookie: true, isOldCookieValid: true);
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            var retVal = worker.GetFormInputElement(mockHttpContext.Object);
+            var inputElement = worker.GetFormInputElement(context.HttpContext.Object);
 
             // Assert
             Assert.Equal(@"<input name=""form-field-name"" type=""hidden"" value=""serialized-form-token"" />",
-                retVal.ToString(TagRenderMode.SelfClosing));
+                inputElement.ToString(TagRenderMode.SelfClosing));
         }
 
         [Theory]
@@ -237,104 +226,33 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetFormInputElement_AddsXFrameOptionsHeader(bool suppressXFrameOptions, string expectedHeaderValue)
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
-
-            var headers = new HeaderDictionary(new Dictionary<string, string[]>());
-            var mockResponse = new Mock<HttpResponse>();
-            mockResponse.Setup(r => r.Headers)
-                        .Returns(headers);
-            mockHttpContext.Setup(o => o.Response)
-                           .Returns(mockResponse.Object);
-
-            var oldCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var newCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
-
             var config = new MockAntiForgeryConfig()
             {
-                FormFieldName = "form-field-name",
                 SuppressXFrameOptionsHeader = suppressXFrameOptions
             };
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
-
-            var mockTokenStore = new Mock<MockableTokenStore>(MockBehavior.Strict);
-            mockTokenStore.Setup(o => o.GetCookieToken(mockHttpContext.Object))
-                          .Returns(oldCookieToken);
-            mockTokenStore.Setup(o => o.SaveCookieToken(mockHttpContext.Object, newCookieToken))
-                          .Verifiable();
-
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, newCookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(oldCookieToken))
-                         .Returns(false);
-            mockValidator.Setup(o => o.IsCookieTokenValid(newCookieToken))
-                         .Returns(true);
-            mockValidator.Setup(o => o.GenerateCookieToken())
-                         .Returns(newCookieToken);
-
-            var worker = new AntiForgeryWorker(
-                config: config,
-                serializer: mockSerializer.Object,
-                tokenStore: mockTokenStore.Object,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
-            var context = mockHttpContext.Object;
+            // Genreate a new cookie.
+            var context = GetAntiForgeryWorkerContext(config, useOldCookie: false, isOldCookieValid: false);
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            var retVal = worker.GetFormInputElement(context);
+            var inputElement = worker.GetFormInputElement(context.HttpContext.Object);
 
             // Assert
-            string xFrameOptions = context.Response.Headers["X-Frame-Options"];
+            string xFrameOptions = context.HttpContext.Object.Response.Headers["X-Frame-Options"];
             Assert.Equal(expectedHeaderValue, xFrameOptions);
         }
 
         [Fact]
-        public void GetTokens_ExistingInvalidCookieToken()
+        public void GetTokens_ExistingInvalidCookieToken_GeneratesANewCookieTokenAndANewFormToken()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
-
-            var oldCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var newCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
-
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Deserialize("serialized-old-cookie-token"))
-                          .Returns(oldCookieToken);
-            mockSerializer.Setup(o => o.Serialize(newCookieToken))
-                          .Returns("serialized-new-cookie-token");
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
-
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, newCookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(oldCookieToken))
-                         .Returns(false);
-            mockValidator.Setup(o => o.IsCookieTokenValid(newCookieToken))
-                         .Returns(true);
-            mockValidator.Setup(o => o.GenerateCookieToken())
-                         .Returns(newCookieToken);
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: mockSerializer.Object,
-                tokenStore: null,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            // Genreate a new cookie.
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig(), useOldCookie: false, isOldCookieValid: false);
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            var tokenset = worker.GetTokens(mockHttpContext.Object, "serialized-old-cookie-token");
+            var tokenset = worker.GetTokens(context.HttpContext.Object, "serialized-old-cookie-token");
 
             // Assert
             Assert.Equal("serialized-new-cookie-token", tokenset.CookieToken);
@@ -345,42 +263,20 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetTokens_ExistingInvalidCookieToken_SwallowsExceptions()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
+            // Make sure the existing cookie is invalid.
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig(), useOldCookie: false, isOldCookieValid: false);
 
-            var oldCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var newCookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
+            // This will cause the cookieToken to be null.           
+            context.TokenSerializer.Setup(o => o.Deserialize("serialized-old-cookie-token"))
+                                   .Throws(new Exception("should be swallowed"));
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Deserialize("serialized-old-cookie-token"))
-                          .Throws(new Exception("should be swallowed"));
-            mockSerializer.Setup(o => o.Serialize(newCookieToken))
-                          .Returns("serialized-new-cookie-token");
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
-
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, newCookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(null))
-                         .Returns(false);
-            mockValidator.Setup(o => o.IsCookieTokenValid(newCookieToken))
-                         .Returns(true);
-            mockValidator.Setup(o => o.GenerateCookieToken())
-                         .Returns(newCookieToken);
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: mockSerializer.Object,
-                tokenStore: null,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            // Setup so that the null cookie token returned is treated as invalid.
+            context.TokenProvider.Setup(o => o.IsCookieTokenValid(null))
+                                 .Returns(false);
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            var tokenset = worker.GetTokens(mockHttpContext.Object, "serialized-old-cookie-token");
+            var tokenset = worker.GetTokens(context.HttpContext.Object, "serialized-old-cookie-token");
 
             // Assert
             Assert.Equal("serialized-new-cookie-token", tokenset.CookieToken);
@@ -388,38 +284,15 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public void GetTokens_ExistingValidCookieToken()
+        public void GetTokens_ExistingValidCookieToken_GeneratesANewFormToken()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
-
-            var cookieToken = new AntiForgeryToken() { IsSessionToken = true };
-            var formToken = new AntiForgeryToken();
-
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>(MockBehavior.Strict);
-            mockSerializer.Setup(o => o.Deserialize("serialized-old-cookie-token"))
-                          .Returns(cookieToken);
-            mockSerializer.Setup(o => o.Serialize(formToken))
-                          .Returns("serialized-form-token");
-
-            var mockValidator = new Mock<MockableTokenProvider>(MockBehavior.Strict);
-            mockValidator.Setup(o => o.GenerateFormToken(mockHttpContext.Object, identity, cookieToken))
-                         .Returns(formToken);
-            mockValidator.Setup(o => o.IsCookieTokenValid(cookieToken))
-                         .Returns(true);
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: mockSerializer.Object,
-                tokenStore: null,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig(), useOldCookie: true, isOldCookieValid: true);
+            context.TokenStore = null;
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            var tokenset = worker.GetTokens(mockHttpContext.Object, "serialized-old-cookie-token");
+            var tokenset = worker.GetTokens(context.HttpContext.Object, "serialized-old-cookie-token");
 
             // Assert
             Assert.Null(tokenset.CookieToken);
@@ -427,111 +300,76 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public void Validate_FromStrings_Failure()
+        public void Validate_FromInvalidStrings_Throws()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
 
-            var cookieToken = new AntiForgeryToken();
-            var formToken = new AntiForgeryToken();
+            context.TokenSerializer.Setup(o => o.Deserialize("cookie-token"))
+                                   .Returns(context.TestTokenSet.OldCookieToken);
+            context.TokenSerializer.Setup(o => o.Deserialize("form-token"))
+                                   .Returns(context.TestTokenSet.FormToken);
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
-            mockSerializer.Setup(o => o.Deserialize("cookie-token"))
-                          .Returns(cookieToken);
-            mockSerializer.Setup(o => o.Deserialize("form-token"))
-                          .Returns(formToken);
-
-            var mockValidator = new Mock<MockableTokenProvider>();
-            mockValidator.Setup(o => o.ValidateTokens(mockHttpContext.Object, identity, cookieToken, formToken))
-                         .Throws(new InvalidOperationException("my-message"));
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: mockSerializer.Object,
-                tokenStore: null,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            context.TokenProvider.Setup(o => o.ValidateTokens(
+                                                context.HttpContext.Object,
+                                                context.HttpContext.Object.User.Identity as ClaimsIdentity,
+                                                context.TestTokenSet.OldCookieToken, context.TestTokenSet.FormToken))
+                                 .Throws(new InvalidOperationException("my-message"));
+            context.TokenStore = null;
+            var worker = GetAntiForgeryWorker(context);
 
             // Act & assert
             var ex =
                 Assert.Throws<InvalidOperationException>(
-                    () => worker.Validate(mockHttpContext.Object, "cookie-token", "form-token"));
+                    () => worker.Validate(context.HttpContext.Object, "cookie-token", "form-token"));
             Assert.Equal("my-message", ex.Message);
         }
 
         [Fact]
-        public void Validate_FromStrings_Success()
+        public void Validate_FromValidStrings_TokensValidatedSuccessfully()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
 
-            var cookieToken = new AntiForgeryToken();
-            var formToken = new AntiForgeryToken();
+            context.TokenSerializer.Setup(o => o.Deserialize("cookie-token"))
+                                   .Returns(context.TestTokenSet.OldCookieToken);
+            context.TokenSerializer.Setup(o => o.Deserialize("form-token"))
+                                   .Returns(context.TestTokenSet.FormToken);
 
-            var mockSerializer = new Mock<MockableAntiForgeryTokenSerializer>();
-            mockSerializer.Setup(o => o.Deserialize("cookie-token"))
-                          .Returns(cookieToken);
-            mockSerializer.Setup(o => o.Deserialize("form-token"))
-                          .Returns(formToken);
-
-            var mockValidator = new Mock<MockableTokenProvider>();
-            mockValidator.Setup(o => o.ValidateTokens(mockHttpContext.Object, identity, cookieToken, formToken))
-                         .Verifiable();
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: mockSerializer.Object,
-                tokenStore: null,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            context.TokenProvider.Setup(o => o.ValidateTokens(
+                                                context.HttpContext.Object,
+                                                context.HttpContext.Object.User.Identity as ClaimsIdentity,
+                                                context.TestTokenSet.OldCookieToken, context.TestTokenSet.FormToken))
+                                 .Verifiable();
+            context.TokenStore = null;
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            worker.Validate(mockHttpContext.Object, "cookie-token", "form-token");
+            worker.Validate(context.HttpContext.Object, "cookie-token", "form-token");
 
             // Assert
-            mockValidator.Verify();
+            context.TokenProvider.Verify();
         }
 
         [Fact]
         public async Task Validate_FromStore_Failure()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.User)
-                           .Returns(new GenericPrincipal(identity, new string[0]));
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
 
-            var cookieToken = new AntiForgeryToken();
-            var formToken = new AntiForgeryToken();
-
-            var mockTokenStore = new Mock<MockableTokenStore>();
-            mockTokenStore.Setup(o => o.GetCookieToken(mockHttpContext.Object))
-                          .Returns(cookieToken);
-            mockTokenStore.Setup(o => o.GetFormToken(mockHttpContext.Object))
-                          .Returns(formToken);
-
-            var mockValidator = new Mock<MockableTokenProvider>();
-            mockValidator.Setup(o => o.ValidateTokens(mockHttpContext.Object, identity, cookieToken, formToken))
-                         .Throws(new InvalidOperationException("my-message"));
-
-            var worker = new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: null,
-                tokenStore: mockTokenStore.Object,
-                generator: mockValidator.Object,
-                validator: mockValidator.Object);
+            context.TokenProvider.Setup(o => o.ValidateTokens(
+                                                 context.HttpContext.Object,
+                                                 context.HttpContext.Object.User.Identity as ClaimsIdentity,
+                                                 context.TestTokenSet.OldCookieToken, context.TestTokenSet.FormToken))
+                                  .Throws(new InvalidOperationException("my-message"));
+            context.TokenSerializer = null;
+            var worker = GetAntiForgeryWorker(context);
 
             // Act & assert
             var ex =
                 await
                     Assert.ThrowsAsync<InvalidOperationException>(
-                        async () => await worker.ValidateAsync(mockHttpContext.Object));
+                        async () => await worker.ValidateAsync(context.HttpContext.Object));
             Assert.Equal("my-message", ex.Message);
         }
 
@@ -539,71 +377,163 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Validate_FromStore_Success()
         {
             // Arrange
-            var identity = new GenericIdentity("some-user");
-            var httpContext = GetHttpContext(identity);
-            var worker = GetAntiForgeryWorker(httpContext, identity);
+            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
+
+            context.TokenProvider.Setup(o => o.ValidateTokens(
+                                                 context.HttpContext.Object,
+                                                 context.HttpContext.Object.User.Identity as ClaimsIdentity,
+                                                 context.TestTokenSet.OldCookieToken, context.TestTokenSet.FormToken))
+                                .Verifiable();
+            context.TokenSerializer = null;
+            var worker = GetAntiForgeryWorker(context);
 
             // Act
-            await worker.ValidateAsync(mockHttpContext.Object);
+            await worker.ValidateAsync(context.HttpContext.Object);
 
             // Assert
-            mockValidator.Verify();
+            context.TokenProvider.Verify();
         }
 
-        private AntiForgeryWorker GetAntiForgeryWorker(HttpContext httpContext, ClaimsIdentity identity)
+        private AntiForgeryWorker GetAntiForgeryWorker(AntiForgeryWorkerContext context)
         {
-            var cookieToken = new AntiForgeryToken();
-            var formToken = new AntiForgeryToken();
-            var mockTokenStore = GetAntiForgeryTokenStore(httpContext, cookieToken, formToken);
-            var mockTokenProvider = GetTokenProvider(httpContext, identity, cookieToken, formToken);
-
             return new AntiForgeryWorker(
-                config: new MockAntiForgeryConfig(),
-                serializer: null,
-                tokenStore: mockTokenStore,
-                generator: mockTokenProvider,
-                validator: mockTokenProvider);
-
+                 config: context.Config,
+                 serializer: context.TokenSerializer != null ? context.TokenSerializer.Object : null,
+                 tokenStore: context.TokenStore != null ? context.TokenStore.Object : null,
+                 generator: context.TokenProvider != null ? context.TokenProvider.Object : null,
+                 validator: context.TokenProvider != null ? context.TokenProvider.Object : null);
         }
-        private HttpContext GetHttpContext(GenericIdentity identity)
+
+        private Mock<HttpContext> GetHttpContext(bool setupResponse = true)
         {
+            var identity = new GenericIdentity("some-user");
             var mockHttpContext = new Mock<HttpContext>();
+
             mockHttpContext.Setup(o => o.User)
                            .Returns(new GenericPrincipal(identity, new string[0]));
-            return mockHttpContext.Object;
+
+
+            if (setupResponse)
+            {
+                var mockResponse = new Mock<HttpResponse>();
+                mockResponse.Setup(r => r.Headers)
+                            .Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
+                mockHttpContext.Setup(o => o.Response)
+                               .Returns(mockResponse.Object);
+            }
+
+            return mockHttpContext;
         }
 
-        private MockableTokenStore GetAntiForgeryTokenStore(HttpContext context, AntiForgeryToken cookieToken, AntiForgeryToken formToken)
+        private Mock<ITokenProvider> GetTokenProvider(HttpContext context, TestTokenSet testTokenSet, bool useOldCookie, bool isOldCookieValid = true, bool isNewCookieValid = true)
         {
-            var mockTokenStore = new Mock<MockableTokenStore>();
+            var oldCookieToken = testTokenSet.OldCookieToken;
+            var newCookieToken = testTokenSet.NewCookieToken;
+            var formToken = testTokenSet.FormToken;
+            var mockValidator = new Mock<ITokenProvider>(MockBehavior.Strict);
+            mockValidator.Setup(o => o.GenerateFormToken(context, context.User.Identity as ClaimsIdentity, useOldCookie ? oldCookieToken : newCookieToken))
+                         .Returns(formToken);
+            mockValidator.Setup(o => o.IsCookieTokenValid(oldCookieToken))
+                         .Returns(isOldCookieValid);
+            mockValidator.Setup(o => o.IsCookieTokenValid(newCookieToken))
+                         .Returns(isNewCookieValid);
+
+            mockValidator.Setup(o => o.GenerateCookieToken())
+                         .Returns(useOldCookie ? oldCookieToken : newCookieToken);
+
+            return mockValidator;
+        }
+
+        private Mock<ITokenStore> GetTokenStore(HttpContext context, TestTokenSet testTokenSet, bool saveNewCookie = true)
+        {
+            var oldCookieToken = testTokenSet.OldCookieToken;
+            var formToken = testTokenSet.FormToken;
+            var mockTokenStore = new Mock<ITokenStore>(MockBehavior.Strict);
             mockTokenStore.Setup(o => o.GetCookieToken(context))
-                          .Returns(cookieToken);
-            mockTokenStore.Setup(o => o.GetFormToken(context))
-                          .Returns(formToken);
-            return mockTokenStore.Object;
-        }
+                          .Returns(oldCookieToken);
+            mockTokenStore.Setup(o => o.GetFormTokenAsync(context))
+                          .Returns(Task.FromResult(formToken));
 
-        private MockableTokenProvider GetTokenProvider(HttpContext httpContext, GenericIdentity identity, AntiForgeryToken cookieToken, AntiForgeryToken formToken, bool throwOnValidate = false)
-        {
-            var mockValidator = new Mock<MockableTokenProvider>();
-
-            if (throwOnValidate)
+            if (saveNewCookie)
             {
-                mockValidator.Setup(o => o.ValidateTokens(httpContext, identity, cookieToken, formToken))
-                             .Throws(new InvalidOperationException("my-message"));
-            }
-            else
-            {
-                mockValidator.Setup(o => o.ValidateTokens(httpContext, identity, cookieToken, formToken))
-                             .Verifiable();
+                var newCookieToken = testTokenSet.NewCookieToken;
+                mockTokenStore.Setup(o => o.SaveCookieToken(context, newCookieToken))
+                              .Verifiable();
             }
 
-            return mockValidator.Object;
+            return mockTokenStore;
         }
 
-        private class AntiForgeryWorkerTestSetup
+        private Mock<IAntiForgeryTokenSerializer> GetTokenSerializer(TestTokenSet testTokenSet)
         {
+            var oldCookieToken = testTokenSet.OldCookieToken;
+            var newCookieToken = testTokenSet.NewCookieToken;
+            var formToken = testTokenSet.FormToken;
+            var mockSerializer = new Mock<IAntiForgeryTokenSerializer>(MockBehavior.Strict);
+            mockSerializer.Setup(o => o.Serialize(formToken))
+                          .Returns("serialized-form-token");
+            mockSerializer.Setup(o => o.Deserialize("serialized-old-cookie-token"))
+                          .Returns(oldCookieToken);
+            mockSerializer.Setup(o => o.Serialize(newCookieToken))
+                          .Returns("serialized-new-cookie-token");
+            return mockSerializer;
+        }
 
+        private TestTokenSet GetTokenSet(bool isOldCookieTokenSessionToken = true, bool isNewCookieSessionToken = true)
+        {
+            return new TestTokenSet()
+            {
+                FormToken = new AntiForgeryToken() { IsSessionToken = false },
+                OldCookieToken = new AntiForgeryToken() { IsSessionToken = isOldCookieTokenSessionToken },
+                NewCookieToken = new AntiForgeryToken() { IsSessionToken = isNewCookieSessionToken },
+            };
+        }
+
+        private AntiForgeryWorkerContext GetAntiForgeryWorkerContext(MockAntiForgeryConfig config, bool useOldCookie = false, bool isOldCookieValid = true)
+        {
+            // Arrange
+            var mockHttpContext = GetHttpContext();
+            var testTokenSet = GetTokenSet(isOldCookieTokenSessionToken: true, isNewCookieSessionToken: true);
+
+            var mockSerializer = GetTokenSerializer(testTokenSet);
+
+            var mockTokenStore = GetTokenStore(mockHttpContext.Object, testTokenSet);
+            var mockTokenProvider = GetTokenProvider(mockHttpContext.Object, testTokenSet, useOldCookie: useOldCookie, isOldCookieValid: isOldCookieValid);
+
+            return new AntiForgeryWorkerContext()
+            {
+                Config = config,
+                HttpContext = mockHttpContext,
+                TokenProvider = mockTokenProvider,
+                TokenSerializer = mockSerializer,
+                TokenStore = mockTokenStore,
+                TestTokenSet = testTokenSet
+            };
+        }
+
+        private class TestTokenSet
+        {
+            public AntiForgeryToken FormToken { get; set; }
+            public string FormTokenString { get; set; }
+            public AntiForgeryToken OldCookieToken { get; set; }
+            public string OldCookieTokenString { get; set; }
+            public AntiForgeryToken NewCookieToken { get; set; }
+            public string NewCookieTokenString { get; set; }
+        }
+
+        private class AntiForgeryWorkerContext
+        {
+            public MockAntiForgeryConfig Config { get; set; }
+
+            public TestTokenSet TestTokenSet { get; set; }
+
+            public Mock<HttpContext> HttpContext { get; set; }
+
+            public Mock<ITokenProvider> TokenProvider { get; set; }
+
+            public Mock<ITokenStore> TokenStore { get; set; }
+
+            public Mock<IAntiForgeryTokenSerializer> TokenSerializer { get; set; }
         }
     }
 }
