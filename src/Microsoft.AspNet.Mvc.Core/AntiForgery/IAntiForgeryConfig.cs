@@ -7,15 +7,15 @@ namespace Microsoft.AspNet.Mvc
     public interface IAntiForgeryConfig
     {
         // Name of the cookie to use.
-        string CookieName { get; }
+        string CookieName { get; set; }
 
         // Name of the form field to use.
-        string FormFieldName { get; }
+        string FormFieldName { get; set; }
 
         // Whether SSL is mandatory for this request.
-        bool RequireSSL { get; }
+        bool RequireSSL { get; set; }
 
         // Skip X-FRAME-OPTIONS header.
-        bool SuppressXFrameOptionsHeader { get; }
+        bool SuppressXFrameOptionsHeader { get; set; }
     }
 }

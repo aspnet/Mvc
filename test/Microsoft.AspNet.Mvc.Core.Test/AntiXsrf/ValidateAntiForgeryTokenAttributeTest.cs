@@ -33,9 +33,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var claimExtractor = new Mock<IClaimUidExtractor>();
             var dataProtectionProvider = new Mock<IDataProtectionProvider>();
             var additionalDataProvider = new Mock<IAntiForgeryAdditionalDataProvider>();
+            var optionsAccessor = new Mock<IOptionsAccessor<MvcOptions>>();
+            optionsAccessor.SetupGet(o => o.Options.AntiForgeryConfig).Returns(new AntiForgeryConfig());
             return new AntiForgery(claimExtractor.Object,
                                    dataProtectionProvider.Object,
-                                   additionalDataProvider.Object);
+                                   additionalDataProvider.Object,
+                                   optionsAccessor.Object);
         }
     }
 }

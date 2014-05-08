@@ -104,7 +104,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockAdditionalDataProvider.Setup(o => o.GetAdditionalData(httpContext))
                                       .Returns("additional-data");
 
-            IAntiForgeryConfig config = new AntiForgeryConfigWrapper();
+            IAntiForgeryConfig config = new AntiForgeryConfig();
             IClaimUidExtractor claimUidExtractor = new Mock<IClaimUidExtractor>().Object;
 
             var tokenProvider = new TokenProvider(
