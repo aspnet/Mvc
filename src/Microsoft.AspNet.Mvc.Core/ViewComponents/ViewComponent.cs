@@ -35,9 +35,19 @@ namespace Microsoft.AspNet.Mvc
 
         public ViewDataDictionary ViewData { get; set; }
 
+        public IViewComponentResult Content(string content)
+        {
+            return Result.Content(content);
+        }
+
         public void Initialize(IViewComponentResultHelper result)
         {
             Result = result;
+        }
+
+        public IViewComponentResult Json(object value)
+        {
+            return Result.Json(value);
         }
 
         public IViewComponentResult View()
