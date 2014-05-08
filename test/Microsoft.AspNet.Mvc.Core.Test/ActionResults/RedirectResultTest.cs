@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [Theory]
         [InlineData("", "/Home/About", "/Home/About")]
         [InlineData("/myapproot", "/test", "/test")]
-        public void Execute_ReturnsContentPath_WhenItDoesNotStartWithToken(string appRoot,
+        public void Execute_ReturnsContentPath_WhenItDoesNotStartWithTilde(string appRoot,
                                                                            string contentPath,
                                                                            string expectedPath)
         {
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("/myapproot", "~/", "/myapproot/")]
         [InlineData("", "~/Home/About", "/Home/About")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
-        public void Execute_ReturnsAppRelativePath_WhenItStartsWithToken(string appRoot,
+        public void Execute_ReturnsAppRelativePath_WhenItStartsWithTilde(string appRoot,
                                                                          string contentPath,
                                                                          string expectedPath)
         {
@@ -81,20 +81,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpResponse.Verify();
         }
 
-        private ActionContext GetActionContext(HttpContext httpContext)
+        private static ActionContext GetActionContext(HttpContext httpContext)
         {
             return new ActionContext(httpContext,
                                     Mock.Of<IRouter>(),
                                     new Dictionary<string, object>(),
                                     new ActionDescriptor());
-        }
-
-        private static IUrlHelper GetMockUrlHelper(string inputValue, string expectedReturnValue)
-        {
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(o => o.Content(inputValue)).Returns(expectedReturnValue);
-            urlHelper.Setup(o => o.IsLocalUrl(It.IsAny<string>())).Returns(true);
-            return urlHelper.Object;
         }
 
         private static IServiceProvider GetServiceProvider(IUrlHelper urlHelper)
@@ -109,10 +101,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                      string expectedPath,
                                                      HttpResponse response)
         {
-            var urlHelper = GetMockUrlHelper(contentPath, expectedPath);
+            var httpContext = new Mock<HttpContext>();
+            var actionContext = GetActionContext(httpContext.Object);
+            var mockContentAccessor = new Mock<IContextAccessor<ActionContext>>();
+            mockContentAccessor.SetupGet(o => o.Value).Returns(actionContext);
+            var mockActionSelector = new Mock<IActionSelector>();
+            var urlHelper = new UrlHelper(mockContentAccessor.Object, mockActionSelector.Object);
             var serviceProvider = GetServiceProvider(urlHelper);
 
-            var httpContext = new Mock<HttpContext>();
             httpContext.Setup(o => o.Response)
                        .Returns(response);
             httpContext.SetupGet(o => o.RequestServices)
