@@ -29,6 +29,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MvcSample.Web", "samples\Mv
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.Mvc.Razor.Host", "src\Microsoft.AspNet.Mvc.Razor.Host\Microsoft.AspNet.Mvc.Razor.Host.kproj", "{520B3AA4-363A-497C-8C15-80423C5AFC85}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.Mvc.Razor.Host.Test", "test\Microsoft.AspNet.Mvc.Razor.Host.Test\Microsoft.AspNet.Mvc.Razor.Host.Test.kproj", "{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +141,16 @@ Global
 		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|x86.ActiveCfg = Release|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,5 +166,6 @@ Global
 		{A8AA326E-8EE8-4F11-B750-23028E0949D7} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{FBB2B86E-972B-4185-9FF2-62CAB5F8388F} = {DAAE4C74-D06F-4874-A166-33305D2643CE}
 		{520B3AA4-363A-497C-8C15-80423C5AFC85} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
+		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 	EndGlobalSection
 EndGlobal

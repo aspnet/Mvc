@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="__ToolsVersion__" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
@@ -28,6 +28,7 @@
     <Content Include="Project.json" />
     <Content Include="Views\Home\Create.cshtml" />
     <Content Include="Views\Home\EditorTemplates\IEnumerable`1.cshtml" />
+    <Content Include="Views\Home\InjectSample.cshtml" />
     <Content Include="Views\Home\Test.cshtml" />
     <Content Include="Views\Home\ValidationSummary.cshtml" />
     <Content Include="Views\Link\Details.cshtml" />
@@ -60,6 +61,7 @@
     <Compile Include="LinkController.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="OverloadController.cs" />
+    <Compile Include="Services\TestService.cs" />
     <Compile Include="SimplePocoController.cs" />
     <Compile Include="SimpleRest.cs" />
     <Compile Include="Startup.cs" />
