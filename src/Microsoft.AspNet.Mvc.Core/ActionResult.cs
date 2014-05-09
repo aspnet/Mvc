@@ -8,10 +8,11 @@ namespace Microsoft.AspNet.Mvc
 {
     public abstract class ActionResult : IActionResult
     {
-        public virtual Task ExecuteResultAsync(ActionContext context)
+        public virtual async Task ExecuteResultAsync(ActionContext context)
         {
             ExecuteResult(context);
-            return Task.FromResult(true);
+
+            await Task.FromResult(true);
         }
 
         public virtual void ExecuteResult(ActionContext context)
