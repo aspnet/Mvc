@@ -62,6 +62,8 @@
     <Compile Include="AntiForgery\ITokenValidator.cs" />
     <Compile Include="AntiForgery\TokenProvider.cs" />
     <Compile Include="Areas\AreaAttribute.cs" />
+    <Compile Include="Areas\AllAreas.cs" />
+    <Compile Include="Areas\ExistingRouteKeyConstraint.cs" />
     <Compile Include="Areas\ReflectedRouteConstraintsActionDescriptorProvider.cs" />
     <Compile Include="BodyParameterInfo.cs" />
     <Compile Include="Controller.cs" />

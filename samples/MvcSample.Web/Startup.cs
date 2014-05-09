@@ -15,7 +15,6 @@
 // See the Apache 2 License for the specific language governing
 // permissions and limitations under the License.
 
-using Microsoft.AspNet;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Routing;
@@ -37,8 +36,10 @@ namespace MvcSample.Web
 
             app.UseMvc(routes =>
             {
-                routes.MapRoute("areaRoute", "{area}/{controller}/{action}");
-
+                routes.MapRoute("areaRoute", "{area}/{controller}/{action}",
+                    defaults: null,
+                    constraints: new { e = new AllAreas() });
+                    
                 routes.MapRoute(
                     "controllerActionRoute",
                     "{controller}/{action}",
