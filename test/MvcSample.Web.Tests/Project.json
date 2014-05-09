@@ -1,0 +1,29 @@
+﻿{
+    "version": "0.1-alpha-*",
+    "dependencies": {
+        "Common": "",
+        "HtmlAgilityPack": "1.4.6",
+        "Microsoft.AspNet.Mvc": "",
+        "Microsoft.AspNet.TestHost": "0.1-alpha-*",
+        "MvcSample.Web": "",
+        "Xunit.KRunner": "0.1-alpha-*",
+        "xunit.abstractions": "2.0.0-aspnet-*",
+        "xunit.assert": "2.0.0-aspnet-*",
+        "xunit.core": "2.0.0-aspnet-*",
+        "xunit.execution": "2.0.0-aspnet-*"
+    },
+    "commands": {
+        "test": "Xunit.KRunner"
+    },
+    "configurations": {
+        "net45": { },
+        "k10": {
+            "dependencies": {
+                "System.Runtime": "4.0.20.0",
+                "System.Runtime.Extensions": "4.0.10.0",
+                "System.Reflection": "",
+                "System.Reflection.Extensions": "4.0.0.0"
+            }
+        }
+    }
+}

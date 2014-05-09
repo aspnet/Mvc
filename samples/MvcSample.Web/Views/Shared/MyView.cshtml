@@ -13,7 +13,7 @@
 }
 
 @section header {
-    <style type="text/css">
+    <style id="test-style-header" type="text/css">
         #qux {
             display: none;
         }
@@ -25,7 +25,7 @@
 }
 
 @section footer {
-    <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.0.min.js"></script>
+    <script id="test-script-footer" src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.0.min.js"></script>
     <script>
         $(function () {
             $("#qux").fadeIn(3000, function () {
@@ -88,16 +88,16 @@
     <div style="float: left; border: 5px solid blue; margin: 5px; padding: 7px;">
         <table>
             <tr>
-                <td>
+                <td id="test-labelfor">
                     @Html.LabelForModel("ForModel")
                 </td>
-                <td>
+                <td id="test-displayname">
                     '@Html.DisplayNameForModel()'
                 </td>
-                <td>
+                <td id="test-namefor">
                     '@Html.NameForModel()'
                 </td>
-                <td>
+                <td id="test-valuefor">
                     '@Html.ValueForModel()'
                 </td>
             </tr>
