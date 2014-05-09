@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.
 // All Rights Reserved
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,22 +15,12 @@
 // See the Apache 2 License for the specific language governing
 // permissions and limitations under the License.
 
-using System;
-
 namespace Microsoft.AspNet.Mvc
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class AreaAttribute : RouteConstraintAttribute
+    public class AllAreas : ExistingRouteKeyConstraint
     {
-        public static readonly string AreaKey = "area";
-
-        public AreaAttribute(string areaName)
-            : base(AreaKey, areaName, blockNonAttributedActions: true)
+        public AllAreas() : base(AreaAttribute.AreaKey)
         {
-            if (string.IsNullOrEmpty(areaName))
-            {
-                throw new ArgumentException("Area name must not be empty", "areaName");
-            }
         }
     }
 }
