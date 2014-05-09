@@ -8,11 +8,16 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// Provides programmatic configuration for the anti-forgery token system.
     /// </summary>
-    public sealed class AntiForgeryConfig : IAntiForgeryConfig
+    public sealed class AntiForgeryConfig
     {
         private const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
         private string _cookieName;
         private string _formFieldName = AntiForgeryTokenFieldName;
+
+        public AntiForgeryConfig()
+        {
+            _cookieName = GetAntiForgeryCookieName();
+        }
 
         /// <summary>
         /// Specifies the name of the cookie that is used by the anti-forgery
@@ -26,17 +31,15 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                if (_cookieName == null)
-                {
-                    _cookieName = GetAntiForgeryCookieName();
-                }
-
                 return _cookieName;
             }
 
             set
             {
-                _cookieName = value;
+                if (value != null)
+                {
+                    _cookieName = value;
+                }
             }
         }
 

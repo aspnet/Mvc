@@ -39,7 +39,6 @@
     <Compile Include="AntiXsrf\AntiForgeryWorkerTests.cs" />
     <Compile Include="AntiXsrf\BinaryBlobTest.cs" />
     <Compile Include="AntiXsrf\ClaimUidExtractorTest.cs" />
-    <Compile Include="AntiXsrf\MockAntiForgeryConfig.cs" />
     <Compile Include="AntiXsrf\MockClaimsIdentity.cs" />
     <Compile Include="AntiXsrf\TokenProviderTests.cs" />
     <Compile Include="ControllerTests.cs" />

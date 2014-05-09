@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Request.IsSecure)
                            .Returns(false);
 
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 RequireSSL = true
             };
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Request.IsSecure)
                            .Returns(false);
 
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 RequireSSL = true
             };
@@ -85,7 +85,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Request.IsSecure)
                            .Returns(false);
 
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 RequireSSL = true
             };
@@ -113,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Request.IsSecure)
                            .Returns(false);
 
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 RequireSSL = true
             };
@@ -137,7 +137,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetFormInputElement_ExistingInvalidCookieToken_GeneratesANewCookieAndAnAntiForgeryToken()
         {
             // Arrange
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 FormFieldName = "form-field-name"
             };
@@ -159,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetFormInputElement_ExistingInvalidCookieToken_SwallowsExceptions()
         {
             // Arrange
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 FormFieldName = "form-field-name"
             };
@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetFormInputElement_ExistingValidCookieToken_GeneratesAnAntiForgeryToken()
         {
             // Arrange
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 FormFieldName = "form-field-name"
             };
@@ -212,7 +212,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetFormInputElement_AddsXFrameOptionsHeader(bool suppressXFrameOptions, string expectedHeaderValue)
         {
             // Arrange
-            var config = new MockAntiForgeryConfig()
+            var config = new AntiForgeryConfig()
             {
                 SuppressXFrameOptionsHeader = suppressXFrameOptions
             };
@@ -234,7 +234,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             // Genreate a new cookie.
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig(), useOldCookie: false, isOldCookieValid: false);
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig(), useOldCookie: false, isOldCookieValid: false);
             var worker = GetAntiForgeryWorker(context);
 
             // Act
@@ -250,7 +250,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             // Make sure the existing cookie is invalid.
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig(), useOldCookie: false, isOldCookieValid: false);
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig(), useOldCookie: false, isOldCookieValid: false);
 
             // This will cause the cookieToken to be null.           
             context.TokenSerializer.Setup(o => o.Deserialize("serialized-old-cookie-token"))
@@ -273,7 +273,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void GetTokens_ExistingValidCookieToken_GeneratesANewFormToken()
         {
             // Arrange
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig(), useOldCookie: true, isOldCookieValid: true);
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig(), useOldCookie: true, isOldCookieValid: true);
             context.TokenStore = null;
             var worker = GetAntiForgeryWorker(context);
 
@@ -289,7 +289,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Validate_FromInvalidStrings_Throws()
         {
             // Arrange
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig());
 
             context.TokenSerializer.Setup(o => o.Deserialize("cookie-token"))
                                    .Returns(context.TestTokenSet.OldCookieToken);
@@ -315,7 +315,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void Validate_FromValidStrings_TokensValidatedSuccessfully()
         {
             // Arrange
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig());
 
             context.TokenSerializer.Setup(o => o.Deserialize("cookie-token"))
                                    .Returns(context.TestTokenSet.OldCookieToken);
@@ -341,7 +341,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Validate_FromStore_Failure()
         {
             // Arrange
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig());
 
             context.TokenProvider.Setup(o => o.ValidateTokens(
                                                  context.HttpContext.Object,
@@ -363,7 +363,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Validate_FromStore_Success()
         {
             // Arrange
-            var context = GetAntiForgeryWorkerContext(new MockAntiForgeryConfig());
+            var context = GetAntiForgeryWorkerContext(new AntiForgeryConfig());
 
             context.TokenProvider.Setup(o => o.ValidateTokens(
                                                  context.HttpContext.Object,
@@ -475,7 +475,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
         }
 
-        private AntiForgeryWorkerContext GetAntiForgeryWorkerContext(MockAntiForgeryConfig config, bool useOldCookie = false, bool isOldCookieValid = true)
+        private AntiForgeryWorkerContext GetAntiForgeryWorkerContext(AntiForgeryConfig config, bool useOldCookie = false, bool isOldCookieValid = true)
         {
             // Arrange
             var mockHttpContext = GetHttpContext();
@@ -509,7 +509,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         private class AntiForgeryWorkerContext
         {
-            public MockAntiForgeryConfig Config { get; set; }
+            public AntiForgeryConfig Config { get; set; }
 
             public TestTokenSet TestTokenSet { get; set; }
 

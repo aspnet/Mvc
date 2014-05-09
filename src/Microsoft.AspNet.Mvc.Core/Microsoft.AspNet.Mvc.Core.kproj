@@ -55,7 +55,6 @@
     <Compile Include="AntiForgery\DefaultClaimUidExtractor.cs" />
     <Compile Include="AntiForgery\DefaultAntiForgeryAdditionalDataProvider.cs" />
     <Compile Include="AntiForgery\IAntiForgeryAdditionalDataProvider.cs" />
-    <Compile Include="AntiForgery\IAntiForgeryConfig.cs" />
     <Compile Include="AntiForgery\IAntiForgeryTokenSerializer.cs" />
     <Compile Include="AntiForgery\IClaimUidExtractor.cs" />
     <Compile Include="AntiForgery\ITokenGenerator.cs" />

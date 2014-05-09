@@ -5,9 +5,9 @@ namespace Microsoft.AspNet.Mvc
 {
     public class MvcOptions
     {
-        private IAntiForgeryConfig _antiForgeryConfig = new AntiForgeryConfig();
+        private AntiForgeryConfig _antiForgeryConfig = new AntiForgeryConfig();
 
-        public virtual IAntiForgeryConfig AntiForgeryConfig
+        public virtual AntiForgeryConfig AntiForgeryConfig
         {
             get
             {

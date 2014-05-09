@@ -25,7 +25,6 @@ namespace Microsoft.AspNet.Mvc
         {
             var describe = new ServiceDescriber(configuration);
 
-            yield return describe.Singleton<IOptionsAccessor<MvcOptions>, OptionsAccessor<MvcOptions>>();
             yield return describe.Transient<IControllerFactory, DefaultControllerFactory>();
             yield return describe.Transient<IControllerDescriptorFactory, DefaultControllerDescriptorFactory>();
             yield return describe.Transient<IActionSelector, DefaultActionSelector>();
@@ -104,6 +103,13 @@ namespace Microsoft.AspNet.Mvc
                 describe.Describe(
                     typeof(IHtmlHelper<>),
                     typeof(HtmlHelper<>),
+                    implementationInstance: null,
+                    lifecycle: LifecycleKind.Transient);
+
+            yield return
+                describe.Describe(
+                    typeof(IOptionsAccessor<>),
+                    typeof(OptionsAccessor<>),
                     implementationInstance: null,
                     lifecycle: LifecycleKind.Transient);
         }
