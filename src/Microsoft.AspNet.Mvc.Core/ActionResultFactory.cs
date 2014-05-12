@@ -29,7 +29,9 @@ namespace Microsoft.AspNet.Mvc
             _result = result;
         }
 
-        public IActionResult CreateActionResult([NotNull] Type declaredReturnType, object actionReturnValue, ActionContext actionContext)
+        public IActionResult CreateActionResult([NotNull] Type declaredReturnType,
+                                                object actionReturnValue,
+                                                ActionContext actionContext)
         {
             // optimize common path
             var actionResult = actionReturnValue as IActionResult;
@@ -41,7 +43,8 @@ namespace Microsoft.AspNet.Mvc
 
             if (typeof(IActionResult).IsAssignableFrom(declaredReturnType) && actionReturnValue == null)
             {
-                throw new InvalidOperationException(Resources.FormatActionResult_ActionReturnValueCannotBeNull(declaredReturnType));
+                throw new InvalidOperationException(
+                    Resources.FormatActionResult_ActionReturnValueCannotBeNull(declaredReturnType));
             }
 
             if (declaredReturnType == typeof(void) || actionReturnValue == null)

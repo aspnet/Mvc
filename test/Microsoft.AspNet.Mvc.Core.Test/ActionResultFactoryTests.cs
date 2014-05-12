@@ -36,11 +36,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var actionContext = CreateActionContext();
             var actionResultMock = new Mock<IActionResult>();
 
-            // Act & Assert
-            Assert.Equal(actionResultMock.Object,
-                factory.CreateActionResult(actionResultMock.Object.GetType(),
-                    actionResultMock.Object,
-                    actionContext));
+            // Act
+            var result = factory.CreateActionResult(actionResultMock.Object.GetType(),
+                                                    actionResultMock.Object,
+                                                    actionContext);
+
+            // Assert
+            Assert.Equal(actionResultMock.Object, result);
         }
 
         [Fact]
@@ -67,9 +69,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var factory = new ActionResultFactory(CreateActionResultHelper());
             var actionContext = CreateActionContext();
 
+            // Act
+            var result = factory.CreateActionResult(typeof(void), null, actionContext).GetType();
+
             // Act & Assert
-            Assert.Equal(typeof(NoContentResult),
-                factory.CreateActionResult(typeof(void), null, actionContext).GetType());
+            Assert.Equal(typeof(NoContentResult), result);
         }
 
         [Fact]
