@@ -52,11 +52,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return null;
         }
 
-        public virtual IDictionary<string, string> GetKeysFromPrefix(string prefix)
+        public virtual async Task<IDictionary<string, string>> GetKeysFromPrefixAsync(string prefix)
         {
-            foreach (IValueProvider vp in this)
+            foreach (var vp in this)
             {
-                IDictionary<string, string> result = GetKeysFromPrefixFromProvider(vp, prefix);
+                var result = await GetKeysFromPrefixFromProvider(vp, prefix);
                 if (result != null && result.Count > 0)
                 {
                     return result;
@@ -65,10 +65,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        internal static IDictionary<string, string> GetKeysFromPrefixFromProvider(IValueProvider provider, string prefix)
+        private static Task<IDictionary<string, string>> GetKeysFromPrefixFromProvider(IValueProvider provider, 
+                                                                                       string prefix)
         {
-            IEnumerableValueProvider enumeratedProvider = provider as IEnumerableValueProvider;
-            return (enumeratedProvider != null) ? enumeratedProvider.GetKeysFromPrefix(prefix) : null;
+            var enumeratedProvider = provider as IEnumerableValueProvider;
+            return (enumeratedProvider != null) ? enumeratedProvider.GetKeysFromPrefixAsync(prefix) : null;
         }
 
         protected override void InsertItem(int index, [NotNull] IValueProvider item)
