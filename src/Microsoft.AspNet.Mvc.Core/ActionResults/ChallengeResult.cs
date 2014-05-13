@@ -1,18 +1,12 @@
 ﻿using System.Collections.Generic;
-using Microsoft.AspNet.Abstractions;
-using Microsoft.AspNet.Abstractions.Security;
+using Microsoft.AspNet.Http.Security;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class ChallengeResult : ActionResult
     {
         public ChallengeResult()
-            :this(new string[0])
-        {
-        }
-
-        public ChallengeResult(AuthenticationProperties properties)
-            : this(new string[0], properties)
+            :this(new string[] { })
         {
         }
 
@@ -21,13 +15,18 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public ChallengeResult(string authenticationType, AuthenticationProperties properties)
-            : this(new[] { authenticationType }, properties)
+        public ChallengeResult(IList<string> authenticationTypes)
+            : this(authenticationTypes, properties: null)
         {
         }
 
-        public ChallengeResult(IList<string> authenticationTypes)
-            : this(authenticationTypes, properties: null)
+        public ChallengeResult(AuthenticationProperties properties)
+            : this(new string[] { }, properties)
+        {
+        }
+
+        public ChallengeResult(string authenticationType, AuthenticationProperties properties)
+            : this(new[] { authenticationType }, properties)
         {
         }
 
