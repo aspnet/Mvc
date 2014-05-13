@@ -2,13 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Provides programmatic configuration for the anti-forgery token system.
     /// </summary>
-    public sealed class AntiForgeryConfig
+    public class AntiForgeryConfig
     {
         private const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
         private string _cookieName;
@@ -36,10 +37,12 @@ namespace Microsoft.AspNet.Mvc
 
             set
             {
-                if (value != null)
+                if (value == null)
                 {
-                    _cookieName = value;
+                    throw new ArgumentNullException("value", Resources.FormatPropertyCannotBeNull("CookieName"));
                 }
+
+                _cookieName = value;
             }
         }
 
@@ -55,10 +58,12 @@ namespace Microsoft.AspNet.Mvc
 
             set
             {
-                if (value != null)
+                if (value == null)
                 {
-                    _formFieldName = value;
+                    throw new ArgumentNullException("value", Resources.FormatPropertyCannotBeNull("FormFieldName"));
                 }
+
+                _formFieldName = value;
             }
         }
 
