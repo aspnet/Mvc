@@ -29,6 +29,8 @@ namespace Microsoft.AspNet.Mvc
             _formContext = _defaultFormContext;
             UnobtrusiveJavaScriptEnabled = true;
             ClientValidationEnabled = true;
+            ValidationSummaryMessageElement = "span";
+            ValidationMessageElement = "span";
         }
 
         public ViewContext(
@@ -41,6 +43,8 @@ namespace Microsoft.AspNet.Mvc
             _formContext = viewContext.FormContext;
             UnobtrusiveJavaScriptEnabled = viewContext.UnobtrusiveJavaScriptEnabled;
             ClientValidationEnabled = viewContext.ClientValidationEnabled;
+            ValidationSummaryMessageElement = viewContext.ValidationSummaryMessageElement;
+            ValidationMessageElement = viewContext.ValidationMessageElement;
 
             View = view;
             ViewData = viewData;
@@ -63,6 +67,10 @@ namespace Microsoft.AspNet.Mvc
         public bool UnobtrusiveJavaScriptEnabled { get; set; }
 
         public bool ClientValidationEnabled { get; set; }
+
+        public string ValidationSummaryMessageElement { get; set; }
+
+        public string ValidationMessageElement { get; set; }
 
         public dynamic ViewBag
         {

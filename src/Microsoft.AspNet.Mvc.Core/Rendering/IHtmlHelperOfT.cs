@@ -253,9 +253,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="htmlAttributes"> An object that contains the HTML attributes to set for the element.
         /// Alternatively, an /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
+        /// <param name="tag">The tag to be set for the wrapping HTML element of the message.</param>
         /// <returns>An <see cref="HtmlString"/> that contains the validation message</returns>
         HtmlString ValidationMessageFor<TProperty>([NotNull] Expression<Func<TModel, TProperty>> expression,
-            string message, object htmlAttributes);
+            string message,
+            object htmlAttributes,
+            string tag);
 
         /// <summary>
         /// Returns the model value for the given expression <paramref name="expression"/>.

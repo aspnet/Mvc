@@ -28,9 +28,28 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
-            string expression, string message, object htmlAttributes)
+            string expression,
+            string message,
+            string tag)
         {
-            return htmlHelper.ValidationMessage(expression, message, htmlAttributes);
+            return htmlHelper.ValidationMessage(expression, message, htmlAttributes: null, tag: tag);
+        }
+
+        public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
+            string expression,
+            string message,
+            object htmlAttributes)
+        {
+            return htmlHelper.ValidationMessage(expression, message, htmlAttributes, tag: null);
+        }
+
+        public static HtmlString ValidationMessage([NotNull] this IHtmlHelper htmlHelper,
+            string expression,
+            string message,
+            object htmlAttributes,
+            string tag)
+        {
+            return htmlHelper.ValidationMessage(expression, message, htmlAttributes, tag);
         }
 
         public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
@@ -48,7 +67,24 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
             [NotNull] Expression<Func<TModel, TProperty>> expression, string message, object htmlAttributes)
         {
-            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes);
+            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes, tag: null);
+        }
+
+        public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+            [NotNull] Expression<Func<TModel, TProperty>> expression,
+            string message,
+            string tag)
+        {
+            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes: null, tag: tag);
+        }
+
+        public static HtmlString ValidationMessageFor<TModel, TProperty>([NotNull] this IHtmlHelper<TModel> htmlHelper,
+            [NotNull] Expression<Func<TModel, TProperty>> expression,
+            string message,
+            object htmlAttributes,
+            string tag)
+        {
+            return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes, tag);
         }
 
         public static HtmlString ValidationSummary([NotNull] this IHtmlHelper htmlHelper)
@@ -65,6 +101,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             return ValidationSummary(htmlHelper, excludePropertyErrors: false, message: message,
                 htmlAttributes: (object)null);
+        }
+
+        public static HtmlString ValidationSummary([NotNull] this IHtmlHelper htmlHelper, string message, string tag)
+        {
+            return htmlHelper.ValidationSummary(excludePropertyErrors: false,
+                message: message,
+                htmlAttributes: (object)null,
+                tag: tag);
         }
 
         public static HtmlString ValidationSummary(
@@ -86,12 +130,64 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static HtmlString ValidationSummary(
             [NotNull] this IHtmlHelper htmlHelper,
+            string message,
+            object htmlAttributes,
+            string tag)
+        {
+            return ValidationSummary(htmlHelper,
+                excludePropertyErrors: false,
+                message: message,
+                htmlAttributes: HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes),
+                tag: tag);
+        }
+
+        public static HtmlString ValidationSummary(
+            [NotNull] this IHtmlHelper htmlHelper,
+            bool excludePropertyErrors,
+            string message,
+            string tag)
+        {
+            return htmlHelper.ValidationSummary(excludePropertyErrors, message,
+                htmlAttributes: null,
+                tag: tag);
+        }
+
+        public static HtmlString ValidationSummary(
+            [NotNull] this IHtmlHelper htmlHelper,
             bool excludePropertyErrors,
             string message,
             object htmlAttributes)
         {
-            return htmlHelper.ValidationSummary(excludePropertyErrors, message,
-                HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes));
+            return htmlHelper.ValidationSummary(excludePropertyErrors,
+                message,
+                HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes),
+                tag:  null);
+        }
+
+        public static HtmlString ValidationSummary(
+            [NotNull] this IHtmlHelper htmlHelper,
+            bool excludePropertyErrors,
+            string message,
+            object htmlAttributes,
+            string tag)
+        {
+            return htmlHelper.ValidationSummary(excludePropertyErrors,
+                message,
+                HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes),
+                tag);
+        }
+
+        public static HtmlString ValidationSummary(
+            [NotNull] this IHtmlHelper htmlHelper,
+            bool excludePropertyErrors,
+            string message,
+            IDictionary<string, object> htmlAttributes,
+            string tag)
+        {
+            return htmlHelper.ValidationSummary(excludePropertyErrors,
+                message,
+                htmlAttributes,
+                tag);
         }
 
         public static HtmlString ValidationSummary(
@@ -99,8 +195,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string message,
             IDictionary<string, object> htmlAttributes)
         {
-            return htmlHelper.ValidationSummary(excludePropertyErrors: false, message: message,
-                htmlAttributes: htmlAttributes);
+            return htmlHelper.ValidationSummary(excludePropertyErrors: false,
+                message: message,
+                htmlAttributes: htmlAttributes,
+                tag: null);
+        }
+
+        public static HtmlString ValidationSummary(
+            [NotNull] this IHtmlHelper htmlHelper,
+            string message,
+            IDictionary<string, object> htmlAttributes,
+            string tag)
+        {
+            return htmlHelper.ValidationSummary(excludePropertyErrors: false,
+                message: message,
+                htmlAttributes: htmlAttributes,
+                tag: tag);
         }
     }
 }

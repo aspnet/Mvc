@@ -443,13 +443,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
         
         /// <inheritdoc />
-        public HtmlString ValidationMessage(string expression, string message, object htmlAttributes)
+        public HtmlString ValidationMessage(string expression, string message, object htmlAttributes, string tag)
         {
-            return GenerateValidationMessage(expression, message, htmlAttributes);
+            return GenerateValidationMessage(expression, message, htmlAttributes, tag);
         }
 
         /// <inheritdoc />
-        public virtual HtmlString ValidationSummary(bool excludePropertyErrors, string message, IDictionary<string, object> htmlAttributes)
+        public virtual HtmlString ValidationSummary(bool excludePropertyErrors,
+            string message,
+            IDictionary<string, object> htmlAttributes,
+            string tag)
         {
             var formContext = ViewContext.ClientValidationEnabled ? ViewContext.FormContext : null;
 
@@ -467,7 +470,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string messageSpan;
             if (!string.IsNullOrEmpty(message))
             {
-                var spanTag = new TagBuilder("span");
+                if (string.IsNullOrEmpty(tag))
+                {
+                    tag = ViewContext.ValidationSummaryMessageElement;
+                }
+                var spanTag = new TagBuilder(tag);
                 spanTag.SetInnerText(message);
                 messageSpan = spanTag.ToString(TagRenderMode.Normal) + Environment.NewLine;
             }
@@ -1261,8 +1268,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
         }
 
-        protected virtual HtmlString GenerateValidationMessage(string expression, string message,
-            object htmlAttributes)
+        protected virtual HtmlString GenerateValidationMessage(string expression,
+            string message,
+            object htmlAttributes,
+            string tag)
         {
             var modelName = ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
             if (string.IsNullOrEmpty(modelName))
@@ -1294,7 +1303,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // Even if there are no model errors, we generate the span and add the validation message
             // if formContext is not null.
-            var builder = new TagBuilder("span");
+            if (string.IsNullOrEmpty(tag))
+            {
+                tag = ViewContext.ValidationMessageElement;
+            }
+            var builder = new TagBuilder(tag);
             builder.MergeAttributes(AnonymousObjectToHtmlAttributes(htmlAttributes));
 
             // Only the style of the span is changed according to the errors if message is null or empty.
