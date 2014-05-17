@@ -94,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             foreach (var attribute in Attributes)
             {
                 var key = attribute.Key;
-                if (string.Equals(key, "id", StringComparison.Ordinal) && string.IsNullOrEmpty(attribute.Value))
+                if (string.Equals(key, "id", StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(attribute.Value))
                 {
                     continue;
                 }
