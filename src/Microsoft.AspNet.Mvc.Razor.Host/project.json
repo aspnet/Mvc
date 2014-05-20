@@ -4,9 +4,9 @@
     "warningsAsErrors": true
   },
   "dependencies": {
-    "Common": "",
     "Microsoft.AspNet.Razor": "0.1-alpha-*"
   },
+  "code": "**\\*.cs;..\\Common\\*.cs",
   "configurations": {
     "net45": {
       "dependencies": {

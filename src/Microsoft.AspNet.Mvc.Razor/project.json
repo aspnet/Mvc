@@ -4,7 +4,6 @@
     "warningsAsErrors": false
   },
   "dependencies": {
-    "Common": "",
     "K.Roslyn" : "0.1-alpha-*",
     "Microsoft.AspNet.FileSystems": "0.1-alpha-*",
     "Microsoft.AspNet.Http": "0.1-alpha-*",
@@ -15,6 +14,7 @@
     "Microsoft.Framework.DependencyInjection": "0.1-alpha-*",
     "Microsoft.Framework.Runtime.Interfaces":  "0.1-alpha-*"
   },
+  "code": "**\\*.cs;..\\Common\\*.cs",
   "configurations": {
     "net45": {
       "dependencies": {
