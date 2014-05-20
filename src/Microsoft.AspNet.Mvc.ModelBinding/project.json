@@ -4,12 +4,12 @@
     "warningsAsErrors": true
   },
   "dependencies": {
-    "Common": "",
     "Microsoft.AspNet.Http": "0.1-alpha-*",
     "Microsoft.DataAnnotations": "0.1-alpha-*",
     "Microsoft.Framework.DependencyInjection": "0.1-alpha-*",
     "Newtonsoft.Json": "5.0.8"
   },
+  "code": "**\\*.cs;..\\Common\\*.cs",
   "configurations": {
     "net45": {
       "dependencies": {
