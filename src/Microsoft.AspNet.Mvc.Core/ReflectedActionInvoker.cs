@@ -305,8 +305,10 @@ namespace Microsoft.AspNet.Mvc
                         HttpContext = actionBindingContext.ActionContext.HttpContext,
                         FallbackToEmptyPrefix = true
                     };
-                    await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext);
-                    parameterValues[parameter.Name] = modelBindingContext.Model;
+                    if (await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext))
+                    {
+                        parameterValues[parameter.Name] = modelBindingContext.Model;
+                    }
                 }
             }
 
