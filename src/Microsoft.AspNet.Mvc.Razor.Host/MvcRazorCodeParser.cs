@@ -107,6 +107,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             var typeName = Span.GetContent().Value;
 
             var propertyStartLocation = CurrentLocation;
+            AcceptWhile(IsSpacingToken(includeNewLines: false, includeComments: true));
+
+            if (!hasTypeError && At(CSharpSymbolType.NewLine))
+            {
+                // Add an error for the property name only if we successfully read the type name
+                Context.OnError(propertyStartLocation,
+                                Resources.FormatMvcRazorCodeParser_InjectDirectivePropertyNameRequired(InjectKeyword));
+            }
 
             // Read until end of line. Span now contains 'MyApp.MyService MyServiceName'.
             AcceptUntil(CSharpSymbolType.NewLine);
@@ -121,13 +129,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                                .Value
                                .Substring(typeName.Length);
 
-            if (!hasTypeError)
-            {
-                // Add an error for the property name if we successfully read the type name
-                Context.OnError(propertyStartLocation,
-                                Resources.FormatMvcRazorCodeParser_InjectDirectivePropertyNameRequired(InjectKeyword));
-            }
-        
             Span.CodeGenerator = new InjectParameterGenerator(typeName.Trim(),
                                                               propertyName.Trim());
 

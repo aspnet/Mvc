@@ -9,19 +9,22 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public abstract class MvcCSharpCodeVisitor : CodeVisitor<CSharpCodeWriter>
     {
-        public MvcCSharpCodeVisitor(CSharpCodeWriter writer, CodeGeneratorContext context)
+        public MvcCSharpCodeVisitor([NotNull] CSharpCodeWriter writer, 
+                                    [NotNull] CodeGeneratorContext context)
             : base(writer, context)
         {
         }
 
         public override void Accept(Chunk chunk)
         {
-            var injectChunk = chunk as InjectChunk;
-            if (injectChunk != null)
+            if (chunk is InjectChunk)
             {
-                Visit(injectChunk);
+                Visit((InjectChunk)chunk);
             }
-            base.Accept(chunk);
+            else
+            {
+                base.Accept(chunk);
+            }
         }
 
         protected abstract void Visit(InjectChunk chunk);

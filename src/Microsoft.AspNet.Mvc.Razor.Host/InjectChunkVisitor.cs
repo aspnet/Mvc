@@ -12,7 +12,8 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly List<InjectChunk> _injectChunks = new List<InjectChunk>();
 
-        public InjectChunkVisitor(CSharpCodeWriter writer, CodeGeneratorContext context)
+        public InjectChunkVisitor([NotNull] CSharpCodeWriter writer,
+                                  [NotNull] CodeGeneratorContext context)
             : base(writer, context)
         {
         }
@@ -22,12 +23,17 @@ namespace Microsoft.AspNet.Mvc.Razor
             get { return _injectChunks; }
         }
 
-        protected override void Visit(InjectChunk chunk)
+        protected override void Visit([NotNull] InjectChunk chunk)
         {
-            Writer.WriteLine(string.Format(CultureInfo.InvariantCulture,
-                                           "public {0} {1} {{ get; private set; }}",
-                                            chunk.TypeName,
-                                            chunk.MemberName));
+            Writer.WriteLine("public");
+            var code = string.Format(CultureInfo.InvariantCulture,
+                                     "{0} {1}",
+                                     chunk.TypeName,
+                                     chunk.MemberName);
+
+            var csharpVisitor = new CSharpCodeVisitor(Writer, Context);
+            csharpVisitor.CreateExpressionCodeMapping(code, chunk);
+            Writer.WriteLine("{ get; }");
             _injectChunks.Add(chunk);
         }
     }

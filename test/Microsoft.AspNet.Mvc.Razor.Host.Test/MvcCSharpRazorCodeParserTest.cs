@@ -35,6 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var document = "@model    Foo";
             var factory = SpanFactory.CreateCsHtml();
+            var errors = new List<RazorError>();
             var expectedSpans = new Span[]
             {
                 factory.EmptyHtml(),
@@ -47,10 +48,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             };
 
             // Act
-            var spans = ParseDocument(document);
+            var spans = ParseDocument(document, errors);
 
             // Assert
-            Assert.Equal(expectedSpans, spans.ToArray());
+            Assert.Equal(expectedSpans, spans);
+            Assert.Empty(errors);
         }
 
         [Theory]
@@ -63,6 +65,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var documentContent = "@model " + modelName + Environment.NewLine + "Bar";
             var factory = SpanFactory.CreateCsHtml();
+            var errors = new List<RazorError>();
             var expectedSpans = new Span[]
             {
                 factory.EmptyHtml(),
@@ -77,10 +80,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             };
 
             // Act
-            var spans = ParseDocument(documentContent);
+            var spans = ParseDocument(documentContent, errors);
 
             // Assert
             Assert.Equal(expectedSpans, spans);
+            Assert.Empty(errors);
         }
 
         [Fact]
@@ -247,6 +251,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var documentContent = "@inject " + injectStatement;
             var factory = SpanFactory.CreateCsHtml();
+            var errors = new List<RazorError>();
             var expectedSpans = new Span[]
             {
                 factory.EmptyHtml(),
@@ -259,10 +264,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             };
 
             // Act
-            var spans = ParseDocument(documentContent);
+            var spans = ParseDocument(documentContent, errors);
 
             // Assert
             Assert.Equal(expectedSpans, spans);
+            Assert.Empty(errors);
         }
 
         [Theory]
@@ -275,6 +281,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var documentContent = "@inject " + injectStatement + Environment.NewLine + "Bar";
             var factory = SpanFactory.CreateCsHtml();
+            var errors = new List<RazorError>();
             var expectedSpans = new Span[]
             {
                 factory.EmptyHtml(),
@@ -289,10 +296,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             };
 
             // Act
-            var spans = ParseDocument(documentContent);
+            var spans = ParseDocument(documentContent, errors);
 
             // Assert
             Assert.Equal(expectedSpans, spans);
+            Assert.Empty(errors);
         }
 
         [Fact]
@@ -350,7 +358,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var expectedErrors = new[]
             {
                 new RazorError("A property name must be specified when using the 'inject' statement. " +
-                               "Format for a 'inject' statement is  '@inject <TypeName> <PropertyName>'.",
+                               "Format for a 'inject' statement is '@inject <Type Name> <Property Name>'.",
                                 new SourceLocation(20, 0, 20), 1)
             };
 
