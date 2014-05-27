@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc
 
         public ViewDataDictionary ViewData { get; set; }
 
-        public IViewComponentResult Content(string content)
+        public ContentViewComponentResult Content(string content)
         {
             return Result.Content(content);
         }
@@ -45,27 +45,27 @@ namespace Microsoft.AspNet.Mvc
             Result = result;
         }
 
-        public IViewComponentResult Json(object value)
+        public JsonViewComponentResult Json(object value)
         {
             return Result.Json(value);
         }
 
-        public IViewComponentResult View()
+        public ViewViewComponentResult View()
         {
             return View<object>(null, null);
         }
 
-        public IViewComponentResult View(string viewName)
+        public ViewViewComponentResult View(string viewName)
         {
             return View<object>(viewName, null);
         }
 
-        public IViewComponentResult View<TModel>(TModel model)
+        public ViewViewComponentResult View<TModel>(TModel model)
         {
             return View(null, model);
         }
 
-        public IViewComponentResult View<TModel>(string viewName, TModel model)
+        public ViewViewComponentResult View<TModel>(string viewName, TModel model)
         {
             var viewData = new ViewDataDictionary<TModel>(ViewData);
             if (model != null)

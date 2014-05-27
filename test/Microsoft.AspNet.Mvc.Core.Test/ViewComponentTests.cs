@@ -57,8 +57,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewComponent = new TestViewComponent();
-            var resultHelperMock = new Mock<IViewComponentResultHelper>();
-            var resultMock = new Mock<IViewComponentResult>();
+            var resultHelperMock = new Mock<DefaultViewComponentResultHelper>(It.IsAny<IViewEngine>());
+            var resultMock = new Mock<ContentViewComponentResult>("TestContent");
             resultHelperMock.Setup(r => r.Content(It.IsAny<string>()))
                             .Returns(resultMock.Object);
             viewComponent.Initialize(resultHelperMock.Object);
@@ -76,8 +76,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewComponent = new TestViewComponent();
-            var resultHelperMock = new Mock<IViewComponentResultHelper>();
-            var resultMock = new Mock<IViewComponentResult>();
+            var resultHelperMock = new Mock<DefaultViewComponentResultHelper>(It.IsAny<IViewEngine>());
+            var resultMock = new Mock<JsonViewComponentResult>(It.IsAny<object>());
             resultHelperMock.Setup(r => r.Json(It.IsAny<object>()))
                             .Returns(resultMock.Object);
             viewComponent.Initialize(resultHelperMock.Object);
@@ -99,8 +99,10 @@ namespace Microsoft.AspNet.Mvc
             {
                 ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
             };
-            var resultHelperMock = new Mock<IViewComponentResultHelper>();
-            var resultMock = new Mock<IViewComponentResult>();
+            var resultHelperMock = new Mock<DefaultViewComponentResultHelper>(It.IsAny<IViewEngine>());
+            var resultMock = new Mock<ViewViewComponentResult>(It.IsAny<IViewEngine>(),
+                                                               It.IsAny<string>(),
+                                                               It.IsAny<ViewDataDictionary>());
             resultHelperMock.Setup(r => r.View(It.IsAny<string>(), It.IsAny<ViewDataDictionary>()))
                             .Returns(resultMock.Object);
             viewComponent.Initialize(resultHelperMock.Object);
@@ -121,8 +123,10 @@ namespace Microsoft.AspNet.Mvc
             {
                 ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
             };
-            var resultHelperMock = new Mock<IViewComponentResultHelper>();
-            var resultMock = new Mock<IViewComponentResult>();
+            var resultHelperMock = new Mock<DefaultViewComponentResultHelper>(It.IsAny<IViewEngine>());
+            var resultMock = new Mock<ViewViewComponentResult>(It.IsAny<IViewEngine>(),
+                                                               It.IsAny<string>(),
+                                                               It.IsAny<ViewDataDictionary>());
             resultHelperMock.Setup(r => r.View(It.IsAny<string>(), It.IsAny<ViewDataDictionary>()))
                             .Returns(resultMock.Object);
             viewComponent.Initialize(resultHelperMock.Object);
@@ -143,8 +147,10 @@ namespace Microsoft.AspNet.Mvc
             {
                 ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
             };
-            var resultHelperMock = new Mock<IViewComponentResultHelper>();
-            var resultMock = new Mock<IViewComponentResult>();
+            var resultHelperMock = new Mock<DefaultViewComponentResultHelper>(It.IsAny<IViewEngine>());
+            var resultMock = new Mock<ViewViewComponentResult>(It.IsAny<IViewEngine>(),
+                                                               It.IsAny<string>(),
+                                                               It.IsAny<ViewDataDictionary>());
             resultHelperMock.Setup(r => r.View(It.IsAny<string>(), It.IsAny<ViewDataDictionary>()))
                             .Returns(resultMock.Object);
             viewComponent.Initialize(resultHelperMock.Object);
@@ -166,8 +172,10 @@ namespace Microsoft.AspNet.Mvc
             {
                 ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
             };
-            var resultHelperMock = new Mock<IViewComponentResultHelper>();
-            var resultMock = new Mock<IViewComponentResult>();
+            var resultHelperMock = new Mock<DefaultViewComponentResultHelper>(It.IsAny<IViewEngine>());
+            var resultMock = new Mock<ViewViewComponentResult>(It.IsAny<IViewEngine>(),
+                                                               It.IsAny<string>(),
+                                                               It.IsAny<ViewDataDictionary>());
             resultHelperMock.Setup(r => r.View(It.IsAny<string>(), It.IsAny<ViewDataDictionary>()))
                             .Returns(resultMock.Object);
             viewComponent.Initialize(resultHelperMock.Object);
