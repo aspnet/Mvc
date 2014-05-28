@@ -498,8 +498,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
-            Assert.Equal(1, modelStateDictionary.Count);
+            Assert.False(modelStateDictionary.IsValid);
 
             // Check ValueTypeRequired error.
             ModelState modelState;
@@ -534,8 +533,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             ModelStateDictionary modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
-            Assert.Equal(1, modelStateDictionary.Count);
+            Assert.False(modelStateDictionary.IsValid);
 
             // Check ValueTypeRequired error.
             ModelState modelState;
@@ -683,6 +681,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             var bindingContext = CreateContext(GetMetadataForObject(new Person()));
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "DateOfBirth");
+            propertyMetadata.IsRequired = false;
             var validationNode = new ModelValidationNode(propertyMetadata, "foo");
             var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
             var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
@@ -774,10 +773,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelState = new ModelStateDictionary(),
                 ModelMetadata = metadata,
                 ModelName = "theModel",
-                ValidatorProviders = new IModelValidatorProvider[] 
-                { 
-                    new DataAnnotationsModelValidatorProvider(), 
-                    new DataMemberModelValidatorProvider() 
+                ValidatorProviders = new IModelValidatorProvider[]
+                {
+                    new DataAnnotationsModelValidatorProvider(),
+                    new DataMemberModelValidatorProvider()
                 }
             };
         }

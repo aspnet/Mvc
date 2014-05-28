@@ -25,7 +25,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // A factory for validators based on IValidatableObject
         private delegate IModelValidator DataAnnotationsValidatableObjectAdapterFactory();
 
-        private static bool _addImplicitRequiredAttributeForValueTypes = true;
         private readonly Dictionary<Type, DataAnnotationsModelValidationFactory> _attributeFactories =
             BuildAttributeFactoriesDictionary();
 
@@ -37,20 +36,30 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private static readonly DataAnnotationsValidatableObjectAdapterFactory _defaultValidatableFactory =
             () => new ValidatableObjectAdapter();
 
+        public bool AddImplicitRequiredAttributeForValueTypes { get; set; }
+
         internal Dictionary<Type, DataAnnotationsModelValidationFactory> AttributeFactories
         {
             get { return _attributeFactories; }
         }
 
-        private static bool AddImplicitRequiredAttributeForValueTypes
+        public DataAnnotationsModelValidatorProvider()
         {
-            get { return _addImplicitRequiredAttributeForValueTypes; }
-            set { _addImplicitRequiredAttributeForValueTypes = value; }
+            AddImplicitRequiredAttributeForValueTypes = true;
         }
 
         protected override IEnumerable<IModelValidator> GetValidators(ModelMetadata metadata, IEnumerable<Attribute> attributes)
         {
             var results = new List<IModelValidator>();
+
+            // Add an implied [Required] attribute for any non-nullable value type,
+            // unless they've configured us not to do that.
+            if (AddImplicitRequiredAttributeForValueTypes &&
+                metadata.IsRequired &&
+                !attributes.Any(a => a is RequiredAttribute))
+            {
+                attributes = attributes.Concat(new[] { new RequiredAttribute() });
+            }
 
             // Produce a validator for each validation attribute we find
             foreach (var attribute in attributes.OfType<ValidationAttribute>())

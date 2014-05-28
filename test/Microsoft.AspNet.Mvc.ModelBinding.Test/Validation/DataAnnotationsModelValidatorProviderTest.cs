@@ -58,6 +58,90 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
+        [Fact]
+        public void GetValidators_ReturnsValidatorForIValidatableObject()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelValidatorProvider();
+            var mockValidatable = Mock.Of<IValidatableObject>();
+            var metadata = _metadataProvider.GetMetadataForType(() => null, mockValidatable.GetType());
+
+            // Act
+            var validators = provider.GetValidators(metadata);
+
+            // Assert
+            Assert.Single(validators);
+        }
+
+        [Fact]
+        public void GetValidators_DoesNotAddImplicitRequiredAttribute_ForReferenceTypes()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelValidatorProvider();
+            var mockValidatable = new Mock<IValidatableObject>();
+            var metadata = _metadataProvider.GetMetadataForType(() => null, typeof(string));
+
+            // Act
+            var validators = provider.GetValidators(metadata);
+
+            // Assert
+            Assert.Empty(validators);
+        }
+
+        [Fact]
+        public void GetValidators_AddsImplicitRequiredAttribute_ForNonNullableValueTypes()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelValidatorProvider();
+            var metadata = _metadataProvider.GetMetadataForProperty(() => null,
+                                                                    typeof(DummyRequiredAttributeHelperClass),
+                                                                    "WithoutAttribute");
+
+            // Act
+            var validators = provider.GetValidators(metadata);
+
+            // Assert
+            var validator = Assert.Single(validators);
+            Assert.IsType<RequiredAttributeAdapter>(validator);
+        }
+
+        [Fact]
+        public void GetValidators_DoesNotAddRequiredAttribute_ForNonNullableValueTypes_IfAttributeIsSpecifiedExplicitly()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelValidatorProvider();
+            var metadata = _metadataProvider.GetMetadataForProperty(() => null,
+                                                                    typeof(DummyRequiredAttributeHelperClass),
+                                                                    "WithAttribute");
+
+            // Act
+            var validators = provider.GetValidators(metadata);
+
+            // Assert
+            var validator = Assert.Single(validators);
+            var adapter = Assert.IsType<RequiredAttributeAdapter>(validator);
+            Assert.Equal("Custom Required Message", adapter.Attribute.ErrorMessage);
+        }
+
+        [Fact]
+        public void GetValidators_DoesNotAddRequiredAttribute_ForNonNullableValueTypes_IfFlagIsOff()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelValidatorProvider
+            {
+                AddImplicitRequiredAttributeForValueTypes = false
+            };
+            var metadata = _metadataProvider.GetMetadataForProperty(() => null,
+                                                                    typeof(DummyRequiredAttributeHelperClass),
+                                                                    "WithoutAttribute");
+
+            // Act
+            var validators = provider.GetValidators(metadata);
+
+            // Assert
+            Assert.Empty(validators);
+        }
+
         [Theory]
         [MemberData("DataAnnotationAdapters")]
         public void AdapterFactory_RegistersAdapters_ForDataAnnotationAttributes(ValidationAttribute attribute,
@@ -197,6 +281,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 get { return base.MyProperty; }
                 set { base.MyProperty = value; }
             }
+        }
+
+        private class DummyRequiredAttributeHelperClass
+        {
+            [Required(ErrorMessage = "Custom Required Message")]
+            public int WithAttribute { get; set; }
+
+            public int WithoutAttribute { get; set; }
         }
     }
 }
