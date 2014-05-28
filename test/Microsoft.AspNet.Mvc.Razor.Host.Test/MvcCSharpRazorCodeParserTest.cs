@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Razor.Generator;
+using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
 using Microsoft.AspNet.Razor.Text;
@@ -370,7 +371,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Equal(expectedErrors, errors);
         }
 
-        private static List<Span> ParseDocument(string documentContents, List<RazorError> errors = null)
+        private static List<Span> ParseDocument(string documentContents, 
+                                                List<RazorError> errors = null,
+                                                List<LineMapping> lineMappings = null)
         {
             errors = errors ?? new List<RazorError>();
             var markupParser = new HtmlMarkupParser();

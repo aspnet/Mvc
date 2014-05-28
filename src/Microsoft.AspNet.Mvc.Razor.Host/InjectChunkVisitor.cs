@@ -25,15 +25,26 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected override void Visit([NotNull] InjectChunk chunk)
         {
-            Writer.WriteLine("public");
-            var code = string.Format(CultureInfo.InvariantCulture,
+
+            if (Context.Host.DesignTimeMode)
+            {
+                Writer.WriteLine("public");
+                var code = string.Format(CultureInfo.InvariantCulture,
                                      "{0} {1}",
                                      chunk.TypeName,
                                      chunk.MemberName);
-
-            var csharpVisitor = new CSharpCodeVisitor(Writer, Context);
-            csharpVisitor.CreateExpressionCodeMapping(code, chunk);
-            Writer.WriteLine("{ get; }");
+                var csharpVisitor = new CSharpCodeVisitor(Writer, Context);
+                csharpVisitor.CreateExpressionCodeMapping(code, chunk);
+                Writer.WriteLine("{ get; private set; }");
+            }
+            else
+            {
+                Writer.Write("public ")
+                      .Write(chunk.TypeName)
+                      .Write(" ")
+                      .Write(chunk.MemberName)
+                      .WriteLine(" { get; private set; }");
+            }
             _injectChunks.Add(chunk);
         }
     }

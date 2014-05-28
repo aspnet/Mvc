@@ -3,6 +3,7 @@
   "compilationOptions": {
     "warningsAsErrors": false
   },
+  "resources": "TestFiles\\**",
   "dependencies": {
     "Microsoft.AspNet.Mvc.Razor.Host" : "",
     "xunit.assert": "2.0.0-aspnet-*",
