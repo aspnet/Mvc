@@ -105,13 +105,6 @@ namespace Microsoft.AspNet.Mvc
                     typeof(HtmlHelper<>),
                     implementationInstance: null,
                     lifecycle: LifecycleKind.Transient);
-
-            yield return
-                describe.Describe(
-                    typeof(IOptionsAccessor<>),
-                    typeof(OptionsAccessor<>),
-                    implementationInstance: null,
-                    lifecycle: LifecycleKind.Transient);
         }
     }
 }
