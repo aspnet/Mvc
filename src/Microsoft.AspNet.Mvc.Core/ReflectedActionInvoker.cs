@@ -17,7 +17,6 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly ActionContext _actionContext;
         private readonly ReflectedActionDescriptor _descriptor;
-        private readonly IActionResultFactory _actionResultFactory;
         private readonly IControllerFactory _controllerFactory;
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
@@ -37,14 +36,12 @@ namespace Microsoft.AspNet.Mvc
 
         public ReflectedActionInvoker([NotNull] ActionContext actionContext,
                                       [NotNull] ReflectedActionDescriptor descriptor,
-                                      [NotNull] IActionResultFactory actionResultFactory,
                                       [NotNull] IControllerFactory controllerFactory,
                                       [NotNull] IActionBindingContextProvider bindingContextProvider,
                                       [NotNull] INestedProviderManager<FilterProviderContext> filterProvider)
         {
             _actionContext = actionContext;
             _descriptor = descriptor;
-            _actionResultFactory = actionResultFactory;
             _controllerFactory = controllerFactory;
             _bindingProvider = bindingContextProvider;
             _filterProvider = filterProvider;
@@ -97,6 +94,31 @@ namespace Microsoft.AspNet.Mvc
                 // >> ResultFilters >> (Result)
                 await InvokeActionResultWithFilters(result);
             }
+        }
+
+        private static IActionResult CreateActionResult([NotNull] Type declaredReturnType, object actionReturnValue,
+            ActionContext actionContext)
+        {
+            // optimize common path
+            var actionResult = actionReturnValue as IActionResult;
+
+            if (actionResult != null)
+            {
+                return actionResult;
+            }
+
+            if (typeof(IActionResult).IsAssignableFrom(declaredReturnType) && actionReturnValue == null)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatActionResult_ActionReturnValueCannotBeNull(declaredReturnType));
+            }
+
+            if (declaredReturnType == typeof(void) || actionReturnValue == null)
+            {
+                return new NoContentResult();
+            }
+
+            return new ObjectContentResult(actionReturnValue);
         }
 
         private IFilter[] GetFilters()
@@ -372,7 +394,7 @@ namespace Microsoft.AspNet.Mvc
                 _actionExecutingContext.ActionArguments);
 
             var underlyingReturnType = TypeHelper.GetTaskInnerTypeOrNull(actionMethodInfo.ReturnType) ?? actionMethodInfo.ReturnType;
-            var actionResult = _actionResultFactory.CreateActionResult(
+            var actionResult = CreateActionResult(
                 underlyingReturnType,
                 actionReturnValue,
                 _actionContext);

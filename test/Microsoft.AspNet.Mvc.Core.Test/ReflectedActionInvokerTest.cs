@@ -1245,7 +1245,6 @@ namespace Microsoft.AspNet.Mvc
             var invoker = new ReflectedActionInvoker(
                 actionContext,
                 actionDescriptor,
-                actionResultFactory.Object,
                 controllerFactory.Object,
                 actionBindingContextProvider.Object,
                 filterProvider.Object);
