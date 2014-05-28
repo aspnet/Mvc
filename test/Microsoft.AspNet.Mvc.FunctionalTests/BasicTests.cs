@@ -57,7 +57,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var expectedContent = await _resourcesAssembly.ReadResourceAsStringAsync("BasicWebSite.Home.Index.html");
 
             // Act
-
             // The host is not important as everything runs in memory and tests are isolated from each other.
             var result = await client.GetAsync("http://localhost/");
             Assert.Equal(200, result.StatusCode);
@@ -66,6 +65,39 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(expectedContent, responseContent);
+        }
+
+        [Fact]
+        public async Task CanRender_SimpleViews()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.Handler;
+            var expectedContent = await _resourcesAssembly.ReadResourceAsStringAsync("BasicWebSite.Home.PlainView.html");
+
+            // Act
+            var result = await client.GetAsync("http://localhost/Home/PlainView");
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal(result.ContentType, "text/html; charset=utf-8");
+            var responseContent = await result.ReadBodyAsStringAsync();
+
+            // Assert
+            Assert.Equal(expectedContent, responseContent);
+        }
+
+        [Fact]
+        public async Task CanReturn_ResultsWithoutContent()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.Handler;
+
+            // Act
+            var result = await client.GetAsync("http://localhost/Home/NoContentResult");
+
+            // Assert
+            Assert.Equal(204, result.StatusCode);
+            Assert.Equal("", await result.ReadBodyAsStringAsync());
         }
 
         // Calculate the path relative to the current application base path.
