@@ -59,11 +59,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Act
             // The host is not important as everything runs in memory and tests are isolated from each other.
             var result = await client.GetAsync("http://localhost/");
-            Assert.Equal(200, result.StatusCode);
-            Assert.Equal(result.ContentType, "text/html; charset=utf-8");
+            // Guard
+            Assert.NotNull(result);
             var responseContent = await result.ReadBodyAsStringAsync();
 
             // Assert
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal(result.ContentType, "text/html; charset=utf-8");
             Assert.Equal(expectedContent, responseContent);
         }
 
@@ -77,11 +79,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var result = await client.GetAsync("http://localhost/Home/PlainView");
-            Assert.Equal(200, result.StatusCode);
-            Assert.Equal(result.ContentType, "text/html; charset=utf-8");
+            // Guard
+            Assert.NotNull(result);
             var responseContent = await result.ReadBodyAsStringAsync();
 
             // Assert
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal(result.ContentType, "text/html; charset=utf-8");
             Assert.Equal(expectedContent, responseContent);
         }
 
@@ -97,6 +101,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(204, result.StatusCode);
+            Assert.Null(result.ContentType);
+            Assert.Null(result.ContentLength);
             Assert.Equal("", await result.ReadBodyAsStringAsync());
         }
 
