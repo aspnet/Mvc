@@ -443,22 +443,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The '{0}' property cannot be null.
-        /// </summary>
-        internal static string PropertyCannotBeNull
-        {
-            get { return GetString("PropertyCannotBeNull"); }
-        }
-
-        /// <summary>
-        /// The '{0}' property cannot be null.
-        /// </summary>
-        internal static string FormatPropertyCannotBeNull(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("PropertyCannotBeNull"), p0);
-        }
-
-        /// <summary>
         /// The '{0}' property of '{1}' must not be null.
         /// </summary>
         internal static string PropertyOfTypeCannotBeNull

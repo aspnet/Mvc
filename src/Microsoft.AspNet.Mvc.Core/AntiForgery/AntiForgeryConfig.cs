@@ -39,7 +39,9 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value", Resources.FormatPropertyCannotBeNull("CookieName"));
+                    throw new ArgumentNullException("value",
+                                                    Resources.FormatPropertyOfTypeCannotBeNull(
+                                                                "CookieName", typeof(AntiForgeryConfig)));
                 }
 
                 _cookieName = value;
@@ -60,7 +62,9 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value", Resources.FormatPropertyCannotBeNull("FormFieldName"));
+                    throw new ArgumentNullException("value", 
+                                                    Resources.FormatPropertyOfTypeCannotBeNull(
+                                                                "FormFieldName", typeof(AntiForgeryConfig)));
                 }
 
                 _formFieldName = value;

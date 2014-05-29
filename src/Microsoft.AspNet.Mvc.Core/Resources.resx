@@ -198,9 +198,6 @@
   <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
     <value>The value cannot be null or empty.</value>
   </data>
-  <data name="PropertyCannotBeNull" xml:space="preserve">
-    <value>The '{0}' property cannot be null.</value>
-  </data>
   <data name="PropertyOfTypeCannotBeNull" xml:space="preserve">
     <value>The '{0}' property of '{1}' must not be null.</value>
   </data>

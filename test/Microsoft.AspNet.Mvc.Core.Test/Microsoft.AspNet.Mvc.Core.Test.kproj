@@ -29,6 +29,7 @@
     <Compile Include="ActionResults\RedirectToRouteResultTest.cs" />
     <Compile Include="ActionResults\RedirectResultTest.cs" />
     <Compile Include="ActionSelectionConventionTests.cs" />
+    <Compile Include="MvcOptionsTests.cs" />
     <Compile Include="AntiXsrf\AntiForgeryConfigTests.cs" />
     <Compile Include="AntiXsrf\AntiForgeryTokenSerializerTest.cs" />
     <Compile Include="AntiXsrf\ITokenProvider.cs" />
