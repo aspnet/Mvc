@@ -31,11 +31,13 @@ namespace Microsoft.AspNet.Mvc
 
         public override void ExecuteResult([NotNull] ActionContext context)
         {
-            var urlHelper = context.HttpContext.RequestServices.GetService<IUrlHelper>();
             var destinationUrl = Url;
+            var urlHelper = context.HttpContext
+                                   .RequestServices
+                                   .GetService<IUrlHelper>();
 
             // IsLocalUrl is called to handle  Urls starting with '~/'.
-            if (urlHelper.IsLocalUrl(Url))
+            if (urlHelper.IsLocalUrl(destinationUrl))
             {
                 destinationUrl = urlHelper.Content(Url);
             }
