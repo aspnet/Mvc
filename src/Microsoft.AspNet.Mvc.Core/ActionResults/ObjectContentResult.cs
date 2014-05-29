@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class ObjectContentResult : ActionResult
     {
@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.Core
             Value = value;
         }
 
-        public override Task ExecuteResultAsync(ActionContext context)
+        public override async Task ExecuteResultAsync(ActionContext context)
         {
             ActionResult result;
             var actionReturnString = Value as string;
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 result = new JsonResult(Value);
             }
 
-            return result.ExecuteResultAsync(context);
+            await result.ExecuteResultAsync(context);
         }
     }
 }

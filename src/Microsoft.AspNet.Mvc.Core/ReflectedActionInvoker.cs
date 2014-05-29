@@ -96,8 +96,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private static IActionResult CreateActionResult([NotNull] Type declaredReturnType, object actionReturnValue,
-            ActionContext actionContext)
+        private static IActionResult CreateActionResult([NotNull] Type declaredReturnType, object actionReturnValue)
         {
             // optimize common path
             var actionResult = actionReturnValue as IActionResult;
@@ -113,7 +112,7 @@ namespace Microsoft.AspNet.Mvc
                     Resources.FormatActionResult_ActionReturnValueCannotBeNull(declaredReturnType));
             }
 
-            if (declaredReturnType == typeof(void) || actionReturnValue == null)
+            if (declaredReturnType == typeof(void))
             {
                 return new NoContentResult();
             }
@@ -396,8 +395,7 @@ namespace Microsoft.AspNet.Mvc
             var underlyingReturnType = TypeHelper.GetTaskInnerTypeOrNull(actionMethodInfo.ReturnType) ?? actionMethodInfo.ReturnType;
             var actionResult = CreateActionResult(
                 underlyingReturnType,
-                actionReturnValue,
-                _actionContext);
+                actionReturnValue);
             return actionResult;
         }
 

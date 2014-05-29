@@ -1223,11 +1223,6 @@ namespace Microsoft.AspNet.Mvc
                 routeValues: null,
                 actionDescriptor: actionDescriptor);
 
-            var actionResultFactory = new Mock<IActionResultFactory>(MockBehavior.Strict);
-            actionResultFactory
-                .Setup(arf => arf.CreateActionResult(It.IsAny<Type>(), It.IsAny<object>(), It.IsAny<ActionContext>()))
-                .Returns<Type, object, ActionContext>((t, o, ac) => (IActionResult)o);
-
             var controllerFactory = new Mock<IControllerFactory>(MockBehavior.Strict);
             controllerFactory.Setup(c => c.CreateController(It.IsAny<ActionContext>())).Returns(this);
 

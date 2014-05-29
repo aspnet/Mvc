@@ -9,19 +9,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 {
     public class ObjectContentResultTests
     {
-	    [Fact]
-        public async void ObjectContentResult_Execute_CallsContentResult()
+        [Fact]
+        public async Task ObjectContentResult_Execute_CallsContentResult()
         {
             // Arrange
             var input = "testInput";
             var expectedContentType = "text/plain";
-            var actionContext = GetMockActionContext(input);
+            var actionContext = GetMockActionContext();
 
             var ocr = new ObjectContentResult(input);
 
@@ -31,12 +32,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Assert
             Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
             Assert.Equal(input, ocr.Value);
-            Assert.Equal(input, 
-                Encoding.UTF8.GetString((actionContext.HttpContext.Response.Body as MemoryStream).ToArray()));
         }
 
         [Fact]
-        public async void ObjectContentResult_Execute_CallsJsonResult()
+        public async Task ObjectContentResult_Execute_CallsJsonResult()
         {
             // Arrange
             var expectedContentType = "application/json";
@@ -56,28 +55,17 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Assert
             Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
             Assert.Equal(nonStringValue, ocr.Value);
-            Assert.Equal(
-                Encoding.UTF8.GetString((tempActionContext.HttpContext.Response.Body as MemoryStream).ToArray()),
-                Encoding.UTF8.GetString((actionContext.HttpContext.Response.Body as MemoryStream).ToArray()));
         }
 
-        private static ActionContext GetMockActionContext(string body = "SampleBody")
+        private static ActionContext GetMockActionContext()
         {
             var httpContext = new Mock<HttpContext>();
             var httpResponse = Mock.Of<HttpResponse>();
-            
-
-            var bytes = Encoding.UTF8.GetBytes(body);
-            var stream = new MemoryStream();
-            stream.Write(bytes, 0, bytes.Length);
-
-            httpResponse.Body = stream;
+            httpResponse.Body = new MemoryStream();
             httpContext.Setup(o => o.Response).Returns(httpResponse);
 
-            return new ActionContext(httpContext.Object,
-                                                  Mock.Of<IRouter>(),
-                                                  new Dictionary<string, object>(),
-                                                  new ActionDescriptor());
+            return new ActionContext(httpContext.Object, Mock.Of<IRouter>(), new Dictionary<string, object>(),
+                new ActionDescriptor());
         }
     }
 }
