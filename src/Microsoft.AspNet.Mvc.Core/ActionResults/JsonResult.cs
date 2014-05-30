@@ -11,7 +11,8 @@ namespace Microsoft.AspNet.Mvc
     public class JsonResult : ActionResult
     {
         private const int BufferSize = 1024;
-        private static readonly Encoding UTF8EncodingWithoutBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private static readonly Encoding UTF8EncodingWithoutBOM 
+            = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         private readonly object _returnValue;
 
         private JsonSerializerSettings _jsonSerializerSettings;

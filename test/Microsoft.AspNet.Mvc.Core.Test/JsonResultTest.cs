@@ -16,7 +16,8 @@ namespace Microsoft.AspNet.Mvc
 {
     public class JsonResultTest
     {
-        private static readonly byte[] _abcdUTF8Bytes = new byte[] { 123, 34, 102, 111, 111, 34, 58, 34, 97, 98, 99, 100, 34, 125 };
+        private static readonly byte[] _abcdUTF8Bytes 
+            = new byte[] { 123, 34, 102, 111, 111, 34, 58, 34, 97, 98, 99, 100, 34, 125 };
 
         [Fact]
         public async Task ExecuteResult_GeneratesResultsWithoutBOMByDefault()
