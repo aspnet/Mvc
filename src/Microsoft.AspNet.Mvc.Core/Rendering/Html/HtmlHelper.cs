@@ -467,20 +467,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 }
             }
 
-            string messageSpan;
+            string messageWithWrappingTag;
             if (!string.IsNullOrEmpty(message))
             {
                 if (string.IsNullOrEmpty(tag))
                 {
                     tag = ViewContext.ValidationSummaryMessageElement;
                 }
-                var spanTag = new TagBuilder(tag);
-                spanTag.SetInnerText(message);
-                messageSpan = spanTag.ToString(TagRenderMode.Normal) + Environment.NewLine;
+                var messageTag = new TagBuilder(tag);
+                messageTag.SetInnerText(message);
+                messageWithWrappingTag = messageTag.ToString(TagRenderMode.Normal) + Environment.NewLine;
             }
             else
             {
-                messageSpan = null;
+                messageWithWrappingTag = null;
             }
 
             var htmlSummary = new StringBuilder();
@@ -523,7 +523,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 divBuilder.AddCssClass(HtmlHelper.ValidationSummaryCssClassName);
             }
 
-            divBuilder.InnerHtml = messageSpan + unorderedList.ToString(TagRenderMode.Normal);
+            divBuilder.InnerHtml = messageWithWrappingTag + unorderedList.ToString(TagRenderMode.Normal);
 
             if (formContext != null)
             {
