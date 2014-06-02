@@ -13,7 +13,6 @@
   "configurations": {
     "net45": {
       "dependencies": {
-        "System.ComponentModel.DataAnnotations": "",
         "System.Runtime.Serialization": ""
       }
     },
