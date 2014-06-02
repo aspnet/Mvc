@@ -261,7 +261,7 @@ namespace Microsoft.AspNet.Mvc
             await InvokeActionMethodFilter();
         }
 
-        private async Task<IDictionary<string, object>> GetActionArguments(ModelStateDictionary modelState)
+        internal async Task<IDictionary<string, object>> GetActionArguments(ModelStateDictionary modelState)
         {
             var actionBindingContext = await _bindingProvider.GetActionBindingContextAsync(_actionContext);
             var parameters = _descriptor.Parameters;

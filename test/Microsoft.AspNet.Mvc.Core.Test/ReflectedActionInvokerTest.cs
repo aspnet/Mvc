@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Testing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
@@ -366,11 +367,11 @@ namespace Microsoft.AspNet.Mvc
             var actionFilter = new Mock<IActionFilter>(MockBehavior.Strict);
             var resultFilter = new Mock<IResultFilter>(MockBehavior.Strict);
 
-            var invoker = CreateInvoker(new IFilter[] 
-            { 
-                exceptionFilter.Object, 
-                authorizationFilter1.Object, 
-                authorizationFilter2.Object, 
+            var invoker = CreateInvoker(new IFilter[]
+            {
+                exceptionFilter.Object,
+                authorizationFilter1.Object,
+                authorizationFilter2.Object,
                 actionFilter.Object,
                 resultFilter.Object,
             });
@@ -652,7 +653,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Act & Assert
             await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
-                async () => await invoker.InvokeActionAsync(), 
+                async () => await invoker.InvokeActionAsync(),
                 message);
         }
 
@@ -666,7 +667,7 @@ namespace Microsoft.AspNet.Mvc
             filter.Setup(f => f.OnActionExecuting(It.IsAny<ActionExecutingContext>())).Verifiable();
             filter
                 .Setup(f => f.OnActionExecuted(It.IsAny<ActionExecutedContext>()))
-                .Callback<ActionExecutedContext>(c => 
+                .Callback<ActionExecutedContext>(c =>
                 {
                     context = c;
 
@@ -742,7 +743,7 @@ namespace Microsoft.AspNet.Mvc
             var filter1 = new Mock<IAsyncActionFilter>(MockBehavior.Strict);
             filter1
                 .Setup(f => f.OnActionExecutionAsync(It.IsAny<ActionExecutingContext>(), It.IsAny<ActionExecutionDelegate>()))
-                .Returns<ActionExecutingContext, ActionExecutionDelegate>(async (c, next) => 
+                .Returns<ActionExecutingContext, ActionExecutionDelegate>(async (c, next) =>
                 {
                     context = await next();
 
@@ -766,7 +767,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             filter1.Verify(
-                f => f.OnActionExecutionAsync(It.IsAny<ActionExecutingContext>(), It.IsAny<ActionExecutionDelegate>()), 
+                f => f.OnActionExecutionAsync(It.IsAny<ActionExecutingContext>(), It.IsAny<ActionExecutionDelegate>()),
                 Times.Once());
 
             filter2.Verify(f => f.OnActionExecuting(It.IsAny<ActionExecutingContext>()), Times.Once());
@@ -856,7 +857,7 @@ namespace Microsoft.AspNet.Mvc
                 f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()),
                 Times.Once());
         }
-        
+
         [Fact]
         public async Task InvokeAction_InvokesResultFilter_ShortCircuit()
         {
@@ -869,7 +870,7 @@ namespace Microsoft.AspNet.Mvc
                 .Setup(f => f.OnResultExecuted(It.IsAny<ResultExecutedContext>()))
                 .Callback<ResultExecutedContext>(c => context = c)
                 .Verifiable();
-            
+
             var filter2 = new Mock<IResultFilter>(MockBehavior.Strict);
             filter2
                 .Setup(f => f.OnResultExecuting(It.IsAny<ResultExecutingContext>()))
@@ -908,11 +909,11 @@ namespace Microsoft.AspNet.Mvc
             var filter2 = new Mock<IAsyncResultFilter>(MockBehavior.Strict);
             filter2
                 .Setup(f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()))
-                .Returns<ResultExecutingContext, ResultExecutionDelegate>((c, next) => 
-                { 
+                .Returns<ResultExecutingContext, ResultExecutionDelegate>((c, next) =>
+                {
                     // Not calling next here
-                    c.Cancel = true; 
-                    return Task.FromResult<object>(null); 
+                    c.Cancel = true;
+                    return Task.FromResult<object>(null);
                 })
                 .Verifiable();
 
@@ -992,7 +993,7 @@ namespace Microsoft.AspNet.Mvc
                 })
                 .Verifiable();
 
-            var message = 
+            var message =
                 "If an IAsyncResultFilter cancels execution by setting the Cancel property of " +
                 "ResultExecutingContext to 'true', then it cannot call the next filter by invoking " +
                 "ResultExecutionDelegate.";
@@ -1032,7 +1033,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             result.Verify(r => r.ExecuteResultAsync(It.IsAny<ActionContext>()), Times.Once());
-            
+
             filter.Verify(f => f.OnResultExecuting(It.IsAny<ResultExecutingContext>()), Times.Once());
             filter.Verify(f => f.OnResultExecuted(It.IsAny<ResultExecutedContext>()), Times.Once());
         }
@@ -1058,8 +1059,8 @@ namespace Microsoft.AspNet.Mvc
 
             filter
                 .Setup(f => f.OnResultExecuted(It.IsAny<ResultExecutedContext>()))
-                .Callback<ResultExecutedContext>(c => 
-                { 
+                .Callback<ResultExecutedContext>(c =>
+                {
                     context = c;
 
                     // Handle the exception
@@ -1077,7 +1078,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(exception, context.Exception);
 
             result.Verify(r => r.ExecuteResultAsync(It.IsAny<ActionContext>()), Times.Once());
-            
+
             filter.Verify(f => f.OnResultExecuting(It.IsAny<ResultExecutingContext>()), Times.Once());
             filter.Verify(f => f.OnResultExecuted(It.IsAny<ResultExecutedContext>()), Times.Once());
         }
@@ -1098,7 +1099,7 @@ namespace Microsoft.AspNet.Mvc
             var filter = new Mock<IAsyncResultFilter>(MockBehavior.Strict);
             filter
                 .Setup(f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()))
-                .Returns<ResultExecutingContext, ResultExecutionDelegate>(async (c, next) => 
+                .Returns<ResultExecutingContext, ResultExecutionDelegate>(async (c, next) =>
                 {
                     c.Result = result.Object;
 
@@ -1121,7 +1122,7 @@ namespace Microsoft.AspNet.Mvc
             result.Verify(r => r.ExecuteResultAsync(It.IsAny<ActionContext>()), Times.Once());
 
             filter.Verify(
-                f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()), 
+                f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()),
                 Times.Once());
         }
 
@@ -1205,7 +1206,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(exception, context.Exception);
 
             resultFilter1.Verify(
-                f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()), 
+                f => f.OnResultExecutionAsync(It.IsAny<ResultExecutingContext>(), It.IsAny<ResultExecutionDelegate>()),
                 Times.Once());
 
             resultFilter2.Verify(f => f.OnResultExecuting(It.IsAny<ResultExecutingContext>()), Times.Once());
@@ -1317,6 +1318,117 @@ namespace Microsoft.AspNet.Mvc
                 filterProvider.Object);
 
             return invoker;
+        }
+
+        [Fact]
+        public async Task GetActionArguments_DoesNotAddActionArgumentsToModelStateDictionary_IfBinderReturnsFalse()
+        {
+            // Arrange
+            Func<object, int> method = x => 1;
+            var actionDescriptor = new ReflectedActionDescriptor
+            {
+                MethodInfo = method.Method,
+                Parameters = new List<ParameterDescriptor>
+                            {
+                                new ParameterDescriptor
+                                {
+                                    Name = "foo",
+                                    ParameterBindingInfo = new ParameterBindingInfo("foo", typeof(object))
+                                }
+                            }
+            };
+            var binder = new Mock<IModelBinder>();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Returns(Task.FromResult(result: false));
+            var actionContext = new ActionContext(Mock.Of<HttpContext>(),
+                                                  router: null,
+                                                  routeValues: null,
+                                                  actionDescriptor: actionDescriptor);
+            var bindingContext = new ActionBindingContext(actionContext,
+                                                          Mock.Of<IModelMetadataProvider>(),
+                                                          binder.Object,
+                                                          Mock.Of<IValueProvider>(),
+                                                          Mock.Of<IInputFormatterProvider>(),
+                                                          Enumerable.Empty<IModelValidatorProvider>());
+
+            var actionBindingContextProvider = new Mock<IActionBindingContextProvider>();
+            actionBindingContextProvider.Setup(p => p.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
+                                        .Returns(Task.FromResult(bindingContext));
+
+            var invoker = new ReflectedActionInvoker(actionContext,
+                                                     actionDescriptor,
+                                                     Mock.Of<IActionResultFactory>(),
+                                                     Mock.Of<IControllerFactory>(),
+                                                     actionBindingContextProvider.Object,
+                                                     Mock.Of<INestedProviderManager<FilterProviderContext>>());
+
+            var modelStateDictionary = new ModelStateDictionary();
+
+            // Act
+            var result = await invoker.GetActionArguments(modelStateDictionary);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetActionArguments_AddsActionArgumentsToModelStateDictionary_IfBinderReturnsTrue()
+        {
+            // Arrange
+            Func<object, int> method = x => 1;
+            var actionDescriptor = new ReflectedActionDescriptor
+            {
+                MethodInfo = method.Method,
+                Parameters = new List<ParameterDescriptor>
+                            {
+                                new ParameterDescriptor
+                                {
+                                    Name = "foo",
+                                    ParameterBindingInfo = new ParameterBindingInfo("foo", typeof(object))
+                                }
+                            }
+            };
+            var value = "Hello world";
+            var binder = new Mock<IModelBinder>();
+            var metadataProvider = new EmptyModelMetadataProvider();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Callback((ModelBindingContext context) =>
+                  {
+                      context.ModelMetadata = metadataProvider.GetMetadataForType(modelAccessor: null,
+                                                                                  modelType: typeof(string));
+                      context.Model = value;
+                  })
+                  .Returns(Task.FromResult(result: true));
+            var actionContext = new ActionContext(Mock.Of<HttpContext>(),
+                                                  router: null,
+                                                  routeValues: null,
+                                                  actionDescriptor: actionDescriptor);
+            var bindingContext = new ActionBindingContext(actionContext,
+                                                          Mock.Of<IModelMetadataProvider>(),
+                                                          binder.Object,
+                                                          Mock.Of<IValueProvider>(),
+                                                          Mock.Of<IInputFormatterProvider>(),
+                                                          Enumerable.Empty<IModelValidatorProvider>());
+
+            var actionBindingContextProvider = new Mock<IActionBindingContextProvider>();
+            actionBindingContextProvider.Setup(p => p.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
+                                        .Returns(Task.FromResult(bindingContext));
+
+            var invoker = new ReflectedActionInvoker(actionContext,
+                                                     actionDescriptor,
+                                                     Mock.Of<IActionResultFactory>(),
+                                                     Mock.Of<IControllerFactory>(),
+                                                     actionBindingContextProvider.Object,
+                                                     Mock.Of<INestedProviderManager<FilterProviderContext>>());
+
+            var modelStateDictionary = new ModelStateDictionary();
+
+            // Act
+            var result = await invoker.GetActionArguments(modelStateDictionary);
+
+            // Assert
+            Assert.Equal(1, result.Count);
+            Assert.Equal(value, result["foo"]);
         }
 
         public JsonResult ActionMethod()
