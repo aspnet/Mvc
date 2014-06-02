@@ -11,6 +11,7 @@ using Microsoft.AspNet.Testing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
+using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -1188,6 +1189,57 @@ namespace Microsoft.AspNet.Mvc
                 Times.Once());
 
             resultFilter2.Verify(f => f.OnResultExecuting(It.IsAny<ResultExecutingContext>()), Times.Once());
+        }
+
+        [Fact]
+        public void CreateActionResult_ReturnsItself()
+        {
+            // Arrange
+            var mockActionResult = new Mock<IActionResult>();
+
+            // Assert
+            var result = ReflectedActionInvoker.CreateActionResult(
+                mockActionResult.Object.GetType(), mockActionResult.Object);
+
+            // Act
+            Assert.Equal(mockActionResult.Object, result);
+        }
+
+        [Fact]
+        [ReplaceCulture]
+        public void CreateActionResult_NullActionResultReturnValueThrows()
+        {
+            // Arrange, Act & Assert
+            ExceptionAssert.Throws<InvalidOperationException>(
+                () => ReflectedActionInvoker.CreateActionResult(typeof(IActionResult), null),
+                "Cannot return null from an action method with a return type of '"
+                    + typeof(IActionResult)
+                    + "'.");
+        }
+
+        [Fact]
+        public void CreateActionResult_NullValueReturnsNoContentResult()
+        {
+            // Arrange & Act
+            var result = ReflectedActionInvoker.CreateActionResult(typeof(void), null).GetType();
+
+            // Assert
+            Assert.Equal(typeof(NoContentResult), result);
+        }
+
+        [Fact]
+        public void CreateActionResult_StringValueReturnsObjectContentResult()
+        {
+            // Arrange
+            var input = "sample result";
+
+            // Act
+            var actualResult = ReflectedActionInvoker.CreateActionResult(input.GetType(), input)
+                as ObjectContentResult;
+            
+            // Assert
+            Assert.NotNull(actualResult);
+            Assert.Equal(input, actualResult.Value);
         }
 
         private ReflectedActionInvoker CreateInvoker(IFilter filter, bool actionThrows = false)

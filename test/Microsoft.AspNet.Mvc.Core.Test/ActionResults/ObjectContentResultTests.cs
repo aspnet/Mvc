@@ -2,11 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Routing;
 using Moq;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,53 +16,94 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
     public class ObjectContentResultTests
     {
         [Fact]
-        public async Task ObjectContentResult_Execute_CallsContentResult()
+        public void ObjectContentResult_Execute_CallsContentResult_AccessValue()
         {
             // Arrange
             var input = "testInput";
-            var expectedContentType = "text/plain";
             var actionContext = GetMockActionContext();
 
-            var ocr = new ObjectContentResult(input);
-
             // Act
-            await ocr.ExecuteResultAsync(actionContext);
+            var result = new ObjectContentResult(input);
 
             // Assert
-            Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
-            Assert.Equal(input, ocr.Value);
+            Assert.Equal(input, result.Value);
         }
 
         [Fact]
-        public async Task ObjectContentResult_Execute_CallsJsonResult()
+        public async Task ObjectContentResult_Execute_CallsContentResult_SetsContent()
+        {
+            // Arrange
+            var expectedContentType = "text/plain";
+            var input = "testInput";
+            var httpResponse = new Mock<HttpResponse>();
+            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
+            httpResponse.Object.Body = new MemoryStream();
+            var actionContext = GetMockActionContext(httpResponse.Object);
+
+            // Act
+            var result = new ObjectContentResult(input);
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+            // The following verifies the content correct Content was written to Body
+            httpResponse.Verify(o => o.WriteAsync(input), Times.Exactly(1));
+        }
+
+        [Fact]
+        public void ObjectContentResult_Execute_CallsJsonResult_AccessValue()
+        {
+            // Arrange
+            var nonStringValue = new { x1 = 10, y1 = "Hello" };
+            var actionContext = GetMockActionContext();
+
+            // Act
+            var result = new ObjectContentResult(nonStringValue);
+
+            // Assert
+            Assert.Equal(nonStringValue, result.Value);
+        }
+
+        [Fact]
+        public async Task ObjectContentResult_Execute_CallsJsonResult_SetsContent()
         {
             // Arrange
             var expectedContentType = "application/json";
-            var actionResultHelperMock = new Mock<IActionResultHelper>();
-            var nonStringValue = new Collection<object>();
-            var jsonResult = new JsonResult(nonStringValue);
-            actionResultHelperMock.Setup(a => a.Json(It.IsAny<object>())).Returns(jsonResult);
-            var actionContext = GetMockActionContext();
-            var tempActionContext = GetMockActionContext();
-
-            var ocr = new ObjectContentResult(nonStringValue);
-
-            // Act
-            await ocr.ExecuteResultAsync(actionContext);
-            await jsonResult.ExecuteResultAsync(tempActionContext);
-
-            // Assert
-            Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
-            Assert.Equal(nonStringValue, ocr.Value);
-        }
-
-        private static ActionContext GetMockActionContext()
-        {
-            var httpContext = new Mock<HttpContext>();
+            var nonStringValue = new { x1 = 10, y1 = "Hello" };
             var httpResponse = Mock.Of<HttpResponse>();
             httpResponse.Body = new MemoryStream();
-            httpContext.Setup(o => o.Response).Returns(httpResponse);
+            var actionContext = GetMockActionContext(httpResponse);
 
+            var tempStream = new MemoryStream();
+            using (var writer = new StreamWriter(tempStream, UTF8EncodingWithoutBOM.Encoding, 1024, leaveOpen: true))
+            {
+                var formatter = new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), false);
+                formatter.WriteObject(writer, nonStringValue);
+            }
+
+            // Act
+            var result = new ObjectContentResult(nonStringValue);
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            Assert.Equal(expectedContentType, httpResponse.ContentType);
+            Assert.Equal(GetStringFromStream(tempStream),
+                GetStringFromStream(actionContext.HttpContext.Response.Body as MemoryStream));
+        }
+
+        private static string GetStringFromStream(MemoryStream inputStream)
+        {
+            return Encoding.UTF8.GetString(inputStream.ToArray());
+        }
+
+        private static ActionContext GetMockActionContext(HttpResponse response = null)
+        {
+            var httpContext = new Mock<HttpContext>();
+            if (response != null)
+            {
+                httpContext.Setup(o => o.Response).Returns(response);
+            }
+            
             return new ActionContext(httpContext.Object, Mock.Of<IRouter>(), new Dictionary<string, object>(),
                 new ActionDescriptor());
         }

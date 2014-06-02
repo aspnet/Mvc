@@ -96,7 +96,8 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private static IActionResult CreateActionResult([NotNull] Type declaredReturnType, object actionReturnValue)
+        // Marking as internal for Unit Testing purposes.
+        internal static IActionResult CreateActionResult([NotNull] Type declaredReturnType, object actionReturnValue)
         {
             // optimize common path
             var actionResult = actionReturnValue as IActionResult;
@@ -106,7 +107,7 @@ namespace Microsoft.AspNet.Mvc
                 return actionResult;
             }
 
-            if (typeof(IActionResult).IsAssignableFrom(declaredReturnType) && actionReturnValue == null)
+            if (actionReturnValue == null && typeof(IActionResult).IsAssignableFrom(declaredReturnType))
             {
                 throw new InvalidOperationException(
                     Resources.FormatActionResult_ActionReturnValueCannotBeNull(declaredReturnType));
