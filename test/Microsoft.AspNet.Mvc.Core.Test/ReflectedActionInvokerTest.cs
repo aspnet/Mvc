@@ -11,7 +11,6 @@ using Microsoft.AspNet.Testing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
-using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -21,6 +20,27 @@ namespace Microsoft.AspNet.Mvc
         private readonly Exception _actionException = new TimeZoneNotFoundException();
 
         private readonly JsonResult _result = new JsonResult(new { message = "Hello, world!" });
+
+        private struct SampleStruct
+        {
+            public int x;
+        }
+
+        public static IEnumerable<object[]> CreateActionResultData
+        {
+            get
+            {
+                yield return new object[] { new { x1 = 10, y1 = "Hello" } };
+                yield return new object[] { 5 };
+                yield return new object[] { "sample input" };
+
+                SampleStruct test;
+                test.x = 10;
+                yield return new object[] { test };
+
+                yield return new object[] { new Task(() => Console.WriteLine("Test task")) };
+            }
+        }
 
         [Fact]
         public async Task InvokeAction_DoesNotInvokeExceptionFilter_WhenActionDoesNotThrow()
@@ -1192,7 +1212,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void CreateActionResult_ReturnsItself()
+        public void CreateActionResult_ReturnsSameActionResult()
         {
             // Arrange
             var mockActionResult = new Mock<IActionResult>();
@@ -1202,7 +1222,7 @@ namespace Microsoft.AspNet.Mvc
                 mockActionResult.Object.GetType(), mockActionResult.Object);
 
             // Act
-            Assert.Equal(mockActionResult.Object, result);
+            Assert.Same(mockActionResult.Object, result);
         }
 
         [Fact]
@@ -1217,23 +1237,23 @@ namespace Microsoft.AspNet.Mvc
                     + "'.");
         }
 
-        [Fact]
-        public void CreateActionResult_NullValueReturnsNoContentResult()
+        [Theory]
+        [InlineData(typeof(void), typeof(NoContentResult))]
+        [InlineData(typeof(string), typeof(ObjectContentResult))]
+        public void CreateActionResult_Types_ReturnsAppropriateResults(Type type, Type returnType)
         {
             // Arrange & Act
-            var result = ReflectedActionInvoker.CreateActionResult(typeof(void), null).GetType();
+            var result = ReflectedActionInvoker.CreateActionResult(type, null).GetType();
 
             // Assert
-            Assert.Equal(typeof(NoContentResult), result);
+            Assert.Equal(returnType, result);
         }
 
-        [Fact]
-        public void CreateActionResult_StringValueReturnsObjectContentResult()
+        [Theory]
+        [MemberData("CreateActionResultData")]
+        public void CreateActionResult_ReturnsObjectContentResult(object input)
         {
-            // Arrange
-            var input = "sample result";
-
-            // Act
+            // Arrange & Act
             var actualResult = ReflectedActionInvoker.CreateActionResult(input.GetType(), input)
                 as ObjectContentResult;
             

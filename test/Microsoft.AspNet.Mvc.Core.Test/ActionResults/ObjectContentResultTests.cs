@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Routing;
 using Moq;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
@@ -16,11 +15,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
     public class ObjectContentResultTests
     {
         [Fact]
-        public void ObjectContentResult_Execute_CallsContentResult_AccessValue()
+        public void ObjectContentResult_Create_CallsContentResult_InitializesValue()
         {
             // Arrange
             var input = "testInput";
-            var actionContext = GetMockActionContext();
+            var actionContext = CreateMockActionContext();
 
             // Act
             var result = new ObjectContentResult(input);
@@ -35,10 +34,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Arrange
             var expectedContentType = "text/plain";
             var input = "testInput";
+
             var httpResponse = new Mock<HttpResponse>();
             httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
             httpResponse.Object.Body = new MemoryStream();
-            var actionContext = GetMockActionContext(httpResponse.Object);
+
+            var actionContext = CreateMockActionContext(httpResponse.Object);
 
             // Act
             var result = new ObjectContentResult(input);
@@ -46,22 +47,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
             // Assert
             httpResponse.VerifySet(r => r.ContentType = expectedContentType);
-            // The following verifies the content correct Content was written to Body
+            // The following verifies the correct Content was written to Body
             httpResponse.Verify(o => o.WriteAsync(input), Times.Exactly(1));
-        }
-
-        [Fact]
-        public void ObjectContentResult_Execute_CallsJsonResult_AccessValue()
-        {
-            // Arrange
-            var nonStringValue = new { x1 = 10, y1 = "Hello" };
-            var actionContext = GetMockActionContext();
-
-            // Act
-            var result = new ObjectContentResult(nonStringValue);
-
-            // Assert
-            Assert.Equal(nonStringValue, result.Value);
         }
 
         [Fact]
@@ -72,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var nonStringValue = new { x1 = 10, y1 = "Hello" };
             var httpResponse = Mock.Of<HttpResponse>();
             httpResponse.Body = new MemoryStream();
-            var actionContext = GetMockActionContext(httpResponse);
+            var actionContext = CreateMockActionContext(httpResponse);
 
             var tempStream = new MemoryStream();
             using (var writer = new StreamWriter(tempStream, UTF8EncodingWithoutBOM.Encoding, 1024, leaveOpen: true))
@@ -87,16 +74,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
             // Assert
             Assert.Equal(expectedContentType, httpResponse.ContentType);
-            Assert.Equal(GetStringFromStream(tempStream),
-                GetStringFromStream(actionContext.HttpContext.Response.Body as MemoryStream));
+            Assert.Equal(tempStream.ToArray(), (actionContext.HttpContext.Response.Body as MemoryStream).ToArray());
         }
 
-        private static string GetStringFromStream(MemoryStream inputStream)
-        {
-            return Encoding.UTF8.GetString(inputStream.ToArray());
-        }
-
-        private static ActionContext GetMockActionContext(HttpResponse response = null)
+        private static ActionContext CreateMockActionContext(HttpResponse response = null)
         {
             var httpContext = new Mock<HttpContext>();
             if (response != null)
