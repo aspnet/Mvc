@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -14,7 +15,9 @@ namespace Microsoft.AspNet.Mvc
             _result = result;
         }
 
-        public IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue, ActionContext actionContext)
+        public IActionResult CreateActionResult([NotNull] Type declaredReturnType,
+                                                object actionReturnValue,
+                                                ActionContext actionContext)
         {
             // optimize common path
             var actionResult = actionReturnValue as IActionResult;
@@ -24,21 +27,10 @@ namespace Microsoft.AspNet.Mvc
                 return actionResult;
             }
 
-            if (declaredReturnType == null)
-            {
-                throw new InvalidOperationException("Declared type must be passed");
-            }
-
             if (typeof(IActionResult).IsAssignableFrom(declaredReturnType) && actionReturnValue == null)
             {
-                throw new InvalidOperationException("Cannot return null from an action method declaring IActionResult or HttpResponseMessage");
-            }
-
-            if (declaredReturnType.IsGenericParameter)
-            {
-                // This can happen if somebody declares an action method as:
-                // public T Get<T>() { }
-                throw new InvalidOperationException("HttpActionDescriptor_NoConverterForGenericParamterTypeExists");
+                throw new InvalidOperationException(
+                    Resources.FormatActionResult_ActionReturnValueCannotBeNull(declaredReturnType));
             }
 
             if (declaredReturnType == typeof(void) || actionReturnValue == null)
