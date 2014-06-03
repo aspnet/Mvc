@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -1431,6 +1432,69 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(value, result["foo"]);
         }
 
+        [Fact]
+        public async Task Invoke_UsesDefaultValuesIfNotBound()
+        {
+            // Arrange
+            var actionDescriptor = new ReflectedActionDescriptor
+            {
+                MethodInfo = typeof(TestController).GetTypeInfo()
+                                                               .DeclaredMethods
+                                                               .First(m => m.Name.Equals("ActionMethodWithDefaultValues", StringComparison.Ordinal)),
+                Parameters = new List<ParameterDescriptor>
+                            {
+                                new ParameterDescriptor
+                                {
+                                    Name = "value",
+                                    ParameterBindingInfo = new ParameterBindingInfo("value", typeof(int))
+                                }
+                            },
+                FilterDescriptors = new List<FilterDescriptor>()
+            };
+
+            var binder = new Mock<IModelBinder>();
+            var metadataProvider = new EmptyModelMetadataProvider();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Returns(Task.FromResult(result: false));
+            var context = new Mock<HttpContext>();
+            context.SetupGet(c => c.Items)
+                   .Returns(new Dictionary<object, object>());
+            var actionContext = new ActionContext(context.Object,
+                                                  router: null,
+                                                  routeValues: null,
+                                                  actionDescriptor: actionDescriptor);
+            var bindingContext = new ActionBindingContext(actionContext,
+                                                          Mock.Of<IModelMetadataProvider>(),
+                                                          binder.Object,
+                                                          Mock.Of<IValueProvider>(),
+                                                          Mock.Of<IInputFormatterProvider>(),
+                                                          Enumerable.Empty<IModelValidatorProvider>());
+
+            var actionBindingContextProvider = new Mock<IActionBindingContextProvider>();
+            actionBindingContextProvider.Setup(p => p.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
+                                        .Returns(Task.FromResult(bindingContext));
+            var controllerFactory = new Mock<IControllerFactory>();
+            controllerFactory.Setup(c => c.CreateController(It.IsAny<ActionContext>()))
+                             .Returns(new TestController());
+
+            var actionResultFactory = new Mock<IActionResultFactory>();
+            actionResultFactory
+                .Setup(f => f.CreateActionResult(It.IsAny<Type>(), It.IsAny<object>(), It.IsAny<ActionContext>()))
+                .Returns((Type t, object result, ActionContext ac) => (IActionResult)result);
+            var invoker = new ReflectedActionInvoker(actionContext,
+                                                     actionDescriptor,
+                                                     actionResultFactory.Object,
+                                                     controllerFactory.Object,
+                                                     actionBindingContextProvider.Object,
+                                                     Mock.Of<INestedProviderManager<FilterProviderContext>>());
+
+            // Act
+            await invoker.InvokeActionAsync();
+
+            // Assert
+            Assert.Equal(5, context.Object.Items["Result"]);
+        }
+
         public JsonResult ActionMethod()
         {
             return _result;
@@ -1439,6 +1503,25 @@ namespace Microsoft.AspNet.Mvc
         public JsonResult ThrowingActionMethod()
         {
             throw _actionException;
+        }
+
+        private sealed class TestController
+        {
+            public IActionResult ActionMethodWithDefaultValues(int value = 5)
+            {
+                return new TestActionResult { Value = value };
+            }
+        }
+
+        private sealed class TestActionResult : IActionResult
+        {
+            public int Value { get; set; }
+
+            public Task ExecuteResultAsync(ActionContext context)
+            {
+                context.HttpContext.Items["Result"] = Value;
+                return Task.FromResult(0);
+            }
         }
     }
 }
