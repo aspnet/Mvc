@@ -6,6 +6,7 @@ using Microsoft.Framework.DependencyInjection.Fallback;
 using Microsoft.AspNet.Security.DataProtection;
 using Moq;
 using Xunit;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
