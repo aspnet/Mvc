@@ -51,6 +51,12 @@ namespace Microsoft.AspNet.Mvc
             var controllers = types.Where(_conventions.IsController);
             var controllerDescriptors = controllers.Select(t => _controllerDescriptorFactory.CreateControllerDescriptor(t)).ToArray();
 
+            return GetDescriptors(controllerDescriptors);
+        }
+
+        // Set as internal for unit-testing specific controllers.
+        internal IEnumerable<ActionDescriptor> GetDescriptors(IEnumerable<ControllerDescriptor> controllerDescriptors)
+        {
             foreach (var cd in controllerDescriptors)
             {
                 var controllerAttributes = cd.ControllerTypeInfo.GetCustomAttributes(inherit: true).ToArray();
@@ -61,7 +67,7 @@ namespace Microsoft.AspNet.Mvc
                                         .OrderBy(d => d, FilterDescriptorOrderComparer.Comparer)
                                         .ToArray();
 
-                foreach (var methodInfo in cd.ControllerTypeInfo.DeclaredMethods)
+                foreach (var methodInfo in cd.ControllerTypeInfo.AsType().GetMethods())
                 {
                     var actionInfos = _conventions.GetActions(methodInfo, cd.ControllerTypeInfo);
                     if (actionInfos == null)
