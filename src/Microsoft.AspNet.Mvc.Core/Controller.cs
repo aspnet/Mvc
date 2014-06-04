@@ -15,10 +15,13 @@ namespace Microsoft.AspNet.Mvc
     public class Controller : IActionFilter, IAsyncActionFilter
     {
         private DynamicViewData _viewBag;
+        private IServiceProvider _serviceProvider;
+        private IViewEngine _viewEngine;
 
-        public void Initialize(IActionResultHelper actionResultHelper)
+        public void Initialize(IServiceProvider serviceProvider, IViewEngine viewEngine)
         {
-            Result = actionResultHelper;
+            _serviceProvider = serviceProvider;
+            _viewEngine = viewEngine;
         }
 
         public HttpContext Context
@@ -39,9 +42,8 @@ namespace Microsoft.AspNet.Mvc
 
         public ActionContext ActionContext { get; set; }
 
-        public IActionResultHelper Result { get; private set; }
-
         public IUrlHelper Url { get; set; }
+
         public IPrincipal User
         {
             get
@@ -94,7 +96,11 @@ namespace Microsoft.AspNet.Mvc
                 ViewData.Model = model;
             }
 
-            return Result.View(view, ViewData);
+            return new ViewResult(_serviceProvider, _viewEngine)
+            {
+                ViewName = view,
+                ViewData = ViewData,
+            };
         }
 
         public ContentResult Content(string content)
@@ -109,12 +115,27 @@ namespace Microsoft.AspNet.Mvc
 
         public ContentResult Content(string content, string contentType, Encoding contentEncoding)
         {
-            return Result.Content(content, contentType, contentEncoding);
+            var result = new ContentResult
+            {
+                Content = content,
+            };
+
+            if (contentType != null)
+            {
+                result.Content = contentType;
+            }
+
+            if (contentEncoding != null)
+            {
+                result.ContentEncoding = contentEncoding;
+            }
+
+            return result;
         }
 
         public JsonResult Json(object value)
         {
-            return Result.Json(value);
+            return new JsonResult(value);
         }
 
         public virtual RedirectResult Redirect(string url)

@@ -4,26 +4,9 @@ using MvcSample.Web.Models;
 
 namespace MvcSample.Web.RandomNameSpace
 {
-    public class Home2Controller
+    public class Home2Controller : Controller
     {
         private User _user = new User() { Name = "User Name", Address = "Home Address" };
-
-        public Home2Controller(IActionResultHelper actionResultHelper)
-        {
-            Result = actionResultHelper;
-        }
-
-        public IActionResultHelper Result { get; private set; }
-
-        public HttpContext Context
-        {
-            get
-            {
-                return ActionContext.HttpContext;
-            }
-        }
-
-        public ActionContext ActionContext { get; set; }
 
         public string Index()
         {
@@ -40,7 +23,7 @@ namespace MvcSample.Web.RandomNameSpace
 
         public ActionResult Hello()
         {
-            return Result.Content("Hello World", null, null);
+            return Content("Hello World", null, null);
         }
 
         public void Raw()
@@ -50,13 +33,13 @@ namespace MvcSample.Web.RandomNameSpace
 
         public ActionResult UserJson()
         {
-            var jsonResult = Result.Json(_user);
+            var jsonResult = Json(_user);
             jsonResult.Indent = false;
 
             return jsonResult;
         }
 
-        public User User()
+        public new User User()
         {
             return _user;
         }

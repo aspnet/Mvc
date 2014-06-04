@@ -3,46 +3,39 @@ using MvcSample.Web.Models;
 
 namespace MvcSample.Web
 {
-    public class OverloadController
+    public class OverloadController : Controller
     {
-        private readonly IActionResultHelper _result;
-
-        public OverloadController(IActionResultHelper result)
-        {
-            _result = result;
-        }
-
         // All results implement IActionResult so it can be safely returned.
-        public IActionResult Get()
+        public ContentResult Get()
         {
-            return _result.Content("Get()", null, null);
+            return Content("Get()", null, null);
         }
 
         public ActionResult Get(int id)
         {
-            return _result.Content("Get(id)", null, null);
+            return Content("Get(id)", null, null);
         }
 
         public ActionResult Get(int id, string name)
         {
-            return _result.Content("Get(id, name)", null, null);
+            return Content("Get(id, name)", null, null);
         }
 
         public ActionResult WithUser()
         {
-            return _result.Content("WithUser()", null, null);
+            return Content("WithUser()", null, null);
         }
 
         // Called for all posts regardless of values provided
         [HttpPost]
         public ActionResult WithUser(User user)
         {
-            return _result.Content("WithUser(User)", null, null);
+            return Content("WithUser(User)", null, null);
         }
 
         public ActionResult WithUser(int projectId, User user)
         {
-            return _result.Content("WithUser(int, User)", null, null);
+            return Content("WithUser(int, User)", null, null);
         }
     }
 }
