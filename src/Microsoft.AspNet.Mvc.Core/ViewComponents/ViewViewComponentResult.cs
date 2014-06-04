@@ -14,16 +14,15 @@ namespace Microsoft.AspNet.Mvc
     {
         // {0} is the component name, {1} is the view name.
         private const string ViewPathFormat = "Components/{0}/{1}";
+        private readonly IViewEngine _viewEngine;
 
         public ViewViewComponentResult([NotNull] IViewEngine viewEngine, [NotNull] string viewName,
             ViewDataDictionary viewData)
         {
-            ViewEngine = viewEngine;
+            _viewEngine = viewEngine;
             ViewName = viewName;
             ViewData = viewData;
         }
-
-        public IViewEngine ViewEngine { get; private set; }
 
         public string ViewName { get; private set; }
 
@@ -78,7 +77,7 @@ namespace Microsoft.AspNet.Mvc
 
         private IView FindView([NotNull] IDictionary<string, object> context, [NotNull] string viewName)
         {
-            var result = ViewEngine.FindView(context, viewName);
+            var result = _viewEngine.FindView(context, viewName);
             if (!result.Success)
             {
                 var locations = string.Empty;

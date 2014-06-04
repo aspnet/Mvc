@@ -11,6 +11,7 @@ namespace Microsoft.AspNet.Mvc
     {
         public ContentViewComponentResult([NotNull] string content)
         {
+            Content = content;
             EncodedContent = new HtmlString(WebUtility.HtmlEncode(content));
         }
 
@@ -18,6 +19,8 @@ namespace Microsoft.AspNet.Mvc
         {
             EncodedContent = encodedContent;
         }
+
+        public string Content { get; private set; }
 
         public HtmlString EncodedContent { get; private set; }
 

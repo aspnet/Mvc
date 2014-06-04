@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc
@@ -47,17 +49,20 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void ViewComponent_Content_SetsResultEncodedContent()
+        public void ViewComponent_Content_SetsResultContentAndEncodedContent()
         {
             // Arrange
             var viewComponent = new TestViewComponent();
+            var expectedContent = "TestContent&";
+            var expectedEncodedContent = new HtmlString(WebUtility.HtmlEncode(expectedContent));
 
             // Act
-            var actualResult = viewComponent.Content("TestContent");
+            var actualResult = viewComponent.Content(expectedContent);
 
             // Assert
-            Assert.Equal(typeof(ContentViewComponentResult), actualResult.GetType());
-            Assert.Same("TestContent", actualResult.EncodedContent.ToString());
+            Assert.IsType<ContentViewComponentResult>(actualResult);
+            Assert.Same(expectedContent, actualResult.Content);
+            Assert.Equal(expectedEncodedContent.ToString(), actualResult.EncodedContent.ToString());
         }
 
         [Fact]
@@ -71,7 +76,7 @@ namespace Microsoft.AspNet.Mvc
             var actualResult = viewComponent.Json(testValue);
 
             // Assert
-            Assert.Equal(typeof(JsonViewComponentResult), actualResult.GetType());
+            Assert.IsType<JsonViewComponentResult>(actualResult);
             Assert.Same(testValue, actualResult.Value);
         }
 
@@ -88,11 +93,11 @@ namespace Microsoft.AspNet.Mvc
             var actualResult = viewComponent.View();
 
             // Assert
-            Assert.Equal(typeof(ViewViewComponentResult), actualResult.GetType());
+            Assert.IsType<ViewViewComponentResult>(actualResult);
+            Assert.NotSame(viewComponent.ViewData, actualResult.ViewData);
             Assert.Equal(new ViewDataDictionary<object>(viewComponent.ViewData), actualResult.ViewData);
             Assert.Null(actualResult.ViewData.Model);
             Assert.Equal("Default", actualResult.ViewName);
-            Assert.Same(viewComponent.ViewEngine, actualResult.ViewEngine);
         }
 
         [Fact]
@@ -108,11 +113,12 @@ namespace Microsoft.AspNet.Mvc
             var actualResult = viewComponent.View("CustomViewName");
 
             // Assert
-            Assert.Equal(typeof(ViewViewComponentResult), actualResult.GetType());
-            Assert.Equal(typeof(ViewDataDictionary<object>), actualResult.ViewData.GetType());
+            Assert.IsType<ViewViewComponentResult>(actualResult);
+            Assert.IsType<ViewDataDictionary<object>>(actualResult.ViewData);
+            Assert.NotSame(viewComponent.ViewData, actualResult.ViewData);
+            Assert.Equal(new ViewDataDictionary<object>(viewComponent.ViewData), actualResult.ViewData);
             Assert.Null(actualResult.ViewData.Model);
             Assert.Equal("CustomViewName", actualResult.ViewName);
-            Assert.Same(viewComponent.ViewEngine, actualResult.ViewEngine);
         }
 
         [Fact]
@@ -129,11 +135,12 @@ namespace Microsoft.AspNet.Mvc
             var actualResult = viewComponent.View(model);
 
             // Assert
-            Assert.Equal(typeof(ViewViewComponentResult), actualResult.GetType());
-            Assert.Equal(typeof(ViewDataDictionary<object>), actualResult.ViewData.GetType());
+            Assert.IsType<ViewViewComponentResult>(actualResult);
+            Assert.IsType<ViewDataDictionary<object>>(actualResult.ViewData);
+            Assert.NotSame(viewComponent.ViewData, actualResult.ViewData);
+            Assert.Equal(new ViewDataDictionary<object>(viewComponent.ViewData), actualResult.ViewData);
             Assert.Same(model, actualResult.ViewData.Model);
             Assert.Equal("Default", actualResult.ViewName);
-            Assert.Same(viewComponent.ViewEngine, actualResult.ViewEngine);
         }
 
         [Fact]
@@ -150,11 +157,12 @@ namespace Microsoft.AspNet.Mvc
             var actualResult = viewComponent.View("CustomViewName", model);
 
             // Assert
-            Assert.Equal(typeof(ViewViewComponentResult), actualResult.GetType());
-            Assert.Equal(typeof(ViewDataDictionary<object>), actualResult.ViewData.GetType());
+            Assert.IsType<ViewViewComponentResult>(actualResult);
+            Assert.IsType<ViewDataDictionary<object>>(actualResult.ViewData);
+            Assert.NotSame(viewComponent.ViewData, actualResult.ViewData);
+            Assert.Equal(new ViewDataDictionary<object>(viewComponent.ViewData), actualResult.ViewData);
             Assert.Same(model, actualResult.ViewData.Model);
             Assert.Equal("CustomViewName", actualResult.ViewName);
-            Assert.Same(viewComponent.ViewEngine, actualResult.ViewEngine);
         }
 
         private class TestViewComponent : ViewComponent
