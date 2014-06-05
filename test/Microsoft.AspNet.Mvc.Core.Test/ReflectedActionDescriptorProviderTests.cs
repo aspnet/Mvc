@@ -15,13 +15,6 @@ namespace Microsoft.AspNet.Mvc
             new DefaultActionDiscoveryConventions();
         private IControllerDescriptorFactory _controllerDescriptorFactory = new DefaultControllerDescriptorFactory();
         private IParameterDescriptorFactory _parameterDescriptorFactory = new DefaultParameterDescriptorFactory();
-        private readonly IEnumerable<string> _validActionNamesFromDerivedController;
-
-        public ReflectedActionDescriptorProviderTests()
-        {
-            _validActionNamesFromDerivedController =
-                GetDescriptors(typeof(DerivedController).GetTypeInfo()).Select(a => a.Name);
-        }
 
         public static IEnumerable<string[]> MethodsFromObjectClass
         {
@@ -35,13 +28,11 @@ namespace Microsoft.AspNet.Mvc
         public void GetDescriptors_GetsDescriptorsForActionsInBaseAndDerivedController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.Equal(3, actionNames.Count());
-            Assert.True(actionNames.Contains("GetFromDerived"));
-            Assert.True(actionNames.Contains("GetFromBase"));
-            Assert.True(actionNames.Contains("NewMethod")); // Public method declared with keyword "new".
+            // "NewMethod" is a public method declared with keyword "new".
+            Assert.Equal(new[] { "GetFromDerived", "NewMethod", "GetFromBase" }, actionNames);
         }
 
         [Fact]
@@ -58,7 +49,7 @@ namespace Microsoft.AspNet.Mvc
         public void GetDescriptors_Ignores_PrivateMethod_FromUserDefinedController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
             Assert.False(actionNames.Contains("PrivateMethod"));
@@ -68,27 +59,27 @@ namespace Microsoft.AspNet.Mvc
         public void GetDescriptors_Ignores_Constructor_FromUserDefinedController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
             Assert.False(actionNames.Contains("DerivedController"));
         }
 
         [Fact]
-        public void GetDescriptors_Ignores_OperatorOverloadingMethod_FromUserDefinedController()
+        public void GetDescriptors_Ignores_OperatorOverloadingMethod_FromOperatorOverloadingController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionDescriptors = GetDescriptors(typeof(OperatorOverloadingController).GetTypeInfo()); 
 
             // Assert
-            Assert.False(actionNames.Contains("op_Addition"));
+            Assert.Empty(actionDescriptors);
         }
 
         [Fact]
         public void GetDescriptors_Ignores_GenericMethod_FromUserDefinedController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
             Assert.False(actionNames.Contains("GenericMethod"));
@@ -98,7 +89,7 @@ namespace Microsoft.AspNet.Mvc
         public void GetDescriptors_Ignores_StaticMethod_FromUserDefinedController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
             Assert.False(actionNames.Contains("StaticMethod"));
@@ -108,7 +99,7 @@ namespace Microsoft.AspNet.Mvc
         public void GetDescriptors_Ignores_OverridenNonActionMethod_FromDerivedController()
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
             Assert.False(actionNames.Contains("OverridenNonActionMethod"));
@@ -119,10 +110,15 @@ namespace Microsoft.AspNet.Mvc
         public void GetDescriptors_Ignores_MethodsFromObjectClass_FromUserDefinedController(string methodName)
         {
             // Arrange & Act
-            var actionNames = _validActionNamesFromDerivedController;
+            var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
             Assert.False(actionNames.Contains(methodName));
+        }
+
+        private IEnumerable<string> GetActionNamesFromDerivedController()
+        {
+            return GetDescriptors(typeof(DerivedController).GetTypeInfo()).Select(a => a.Name);
         }
 
         private IEnumerable<ReflectedActionDescriptor> GetDescriptors(TypeInfo controllerTypeInfo)
@@ -140,8 +136,6 @@ namespace Microsoft.AspNet.Mvc
                 .Select(t => _controllerDescriptorFactory.CreateControllerDescriptor(t));
             return provider.GetDescriptors(controllerDescriptors).Cast<ReflectedActionDescriptor>();
         }
-
-        #region Controller Classes
 
         private class DerivedController : BaseController
         {
@@ -161,13 +155,18 @@ namespace Microsoft.AspNet.Mvc
             public static void StaticMethod()
             { }
 
-            public static DerivedController operator +(DerivedController c1, DerivedController c2)
-            {
-                return new DerivedController();
-            }
-
             private void PrivateMethod()
             { }
+        }
+
+        private class OperatorOverloadingController : Controller
+        {
+            public static OperatorOverloadingController operator +(
+                OperatorOverloadingController c1,
+                OperatorOverloadingController c2)
+            {
+                return new OperatorOverloadingController();
+            }
         }
 
         private class BaseController : Controller
@@ -188,7 +187,5 @@ namespace Microsoft.AspNet.Mvc
                 return base.Redirect(url + "#RedirectOverride");
             }
         }
-
-        #endregion Controller Classes
     }
 }
