@@ -3,39 +3,49 @@ using MvcSample.Web.Models;
 
 namespace MvcSample.Web
 {
-    public class OverloadController : Controller
+    public class OverloadController
     {
         // All results implement IActionResult so it can be safely returned.
-        public ContentResult Get()
+        public IActionResult Get()
         {
-            return Content("Get()", null, null);
+            return Content("Get()");
         }
 
         public ActionResult Get(int id)
         {
-            return Content("Get(id)", null, null);
+            return Content("Get(id)");
         }
 
         public ActionResult Get(int id, string name)
         {
-            return Content("Get(id, name)", null, null);
+            return Content("Get(id, name)");
         }
 
         public ActionResult WithUser()
         {
-            return Content("WithUser()", null, null);
+            return Content("WithUser()");
         }
 
         // Called for all posts regardless of values provided
         [HttpPost]
         public ActionResult WithUser(User user)
         {
-            return Content("WithUser(User)", null, null);
+            return Content("WithUser(User)");
         }
 
         public ActionResult WithUser(int projectId, User user)
         {
-            return Content("WithUser(int, User)", null, null);
+            return Content("WithUser(int, User)");
+        }
+
+        private ContentResult Content(string content)
+        {
+            var result = new ContentResult
+            {
+                Content = content,
+            };
+
+            return result;
         }
     }
 }
