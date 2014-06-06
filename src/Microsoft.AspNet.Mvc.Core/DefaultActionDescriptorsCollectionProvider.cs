@@ -6,16 +6,27 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// Default implementation for ActionDescriptors.
+    /// This implementation caches the results at first call, and is not responsible for updates.
+    /// </summary>
     public class DefaultActionDescriptorsCollectionProvider : IActionDescriptorsCollectionProvider
     {
         private IServiceProvider _serviceProvider;
         private ActionDescriptorsCollection _collection;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultActionDescriptorsCollectionProvider" /> class.
+        /// </summary>
+        /// <param name="serviceProvider">The application IServiceProvider.</param>
         public DefaultActionDescriptorsCollectionProvider(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Returns a cached collection of <see cref="ActionDescriptor" />.
+        /// </summary>
         public ActionDescriptorsCollection ActionDescriptors 
         {
             get
