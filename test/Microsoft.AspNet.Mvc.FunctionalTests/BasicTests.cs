@@ -68,6 +68,37 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedContent, responseContent);
         }
 
+        [Fact]
+        public async Task ActionDescriptors_CreatedOncePerRequest()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.Handler;
+
+            // The K runtime compiles every file under compiler/resources as a resource at runtime with the same name
+            // as the file name, in order to update a baseline you just need to change the file in that folder.
+            var expectedContent = "1";
+
+            // Call the server 3 times, and make sure the return value remains the same.
+            var results = new string[3];
+
+            // Act
+
+            // The host is not important as everything runs in memory and tests are isolated from each other.
+
+            for (int i = 0; i < 3; i++)
+            {
+                var result = await client.GetAsync("http://localhost/Home/CountActionDescriptorInvocations");
+                Assert.Equal(200, result.StatusCode);
+                results[i] = await result.ReadBodyAsStringAsync();
+            }
+
+            // Assert
+            Assert.Equal(expectedContent, results[0]);
+            Assert.Equal(expectedContent, results[1]);
+            Assert.Equal(expectedContent, results[2]);
+        }
+
         // Calculate the path relative to the current application base path.
         private static string CalculateApplicationBasePath(IApplicationEnvironment appEnvironment)
         {
