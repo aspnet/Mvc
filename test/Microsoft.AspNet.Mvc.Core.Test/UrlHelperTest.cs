@@ -536,7 +536,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             rt.DefaultHandler = target.Object;
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(o => o.GetService(typeof(IInlineConstraintResolver)))
-                               .Returns(new DefaultInlineConstraintResolver());
+                               .Returns(null);
             rt.ServiceProvider = serviceProviderMock.Object;
             rt.MapRoute(string.Empty,
                         "{controller}/{action}/{id}",
