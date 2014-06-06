@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultActionDescriptorsCollectionProvider : IActionDescriptorsCollectionProvider
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         private ActionDescriptorsCollection _collection;
 
         /// <summary>

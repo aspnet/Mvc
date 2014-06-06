@@ -12,7 +12,7 @@ namespace BasicWebSite
         {
             get
             {
-                long callCount = Interlocked.Read(ref _callCount);
+                var callCount = Interlocked.Read(ref _callCount);
 
                 return callCount;
             }
