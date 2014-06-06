@@ -12,13 +12,23 @@ namespace Microsoft.Framework.DependencyInjection
         public static IServiceCollection AddMvc(this IServiceCollection services)
         {
             services.Add(RoutingServices.GetDefaultServices());
+            AddMvcRouteOptions(services);
             return services.Add(MvcServices.GetDefaultServices());
         }
 
         public static IServiceCollection AddMvc(this IServiceCollection services, IConfiguration configuration)
         {
             services.Add(RoutingServices.GetDefaultServices());
+            AddMvcRouteOptions(services);
             return services.Add(MvcServices.GetDefaultServices(configuration));
+        }
+
+        private static void AddMvcRouteOptions(IServiceCollection services)
+        {
+            services.SetupOptions<RouteOptions>(routeOptions =>
+                                                    routeOptions.ConstraintMap
+                                                         .Add("exist",
+                                                              typeof(RouteDataConstraintsContainsKeyConstraint)));
         }
     }
 }

@@ -53,6 +53,7 @@
     <Compile Include="Rendering\HtmlAttributePropertyHelperTest.cs" />
     <Compile Include="Rendering\ViewContextTests.cs" />
     <Compile Include="Rendering\ViewDataOfTTest.cs" />
+    <Compile Include="RouteKeyExistsConstraintTests.cs" />
     <Compile Include="TestController.cs" />
     <Compile Include="TypeHelperTest.cs" />
     <Compile Include="UrlHelperTest.cs" />
