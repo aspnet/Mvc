@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Act
             for (int i = 0; i < 3; i++)
             {
-                var result = await client.GetAsync("http://localhost/MonitorController/CountActionDescriptorInvocations");
+                var result = await client.GetAsync("http://localhost/Monitor/CountActionDescriptorInvocations");
                 Assert.Equal(200, result.StatusCode);
                 results[i] = await result.ReadBodyAsStringAsync();
             }
