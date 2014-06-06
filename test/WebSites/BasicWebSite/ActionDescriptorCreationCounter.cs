@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNet.Mvc;
-using System;
+﻿using System;
 using System.Threading;
+using Microsoft.AspNet.Mvc;
 
 namespace BasicWebSite
 {
@@ -17,8 +17,6 @@ namespace BasicWebSite
                 return callCount;
             }
         }
-
-        public static string CallStacks;
 
         public int Order
         {

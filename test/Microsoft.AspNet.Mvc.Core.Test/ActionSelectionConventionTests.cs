@@ -3,16 +3,16 @@
 
 #if NET45
 
-using Microsoft.AspNet.Http;
-using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.NestedProviders;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Http;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.NestedProviders;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test

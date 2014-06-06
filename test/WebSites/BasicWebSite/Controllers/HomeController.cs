@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNet.Mvc;
+﻿using System.Globalization;
+using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.DependencyInjection;
-using System.Globalization;
 
 namespace BasicWebSite.Controllers
 {
