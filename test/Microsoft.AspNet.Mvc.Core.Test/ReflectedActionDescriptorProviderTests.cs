@@ -16,16 +16,8 @@ namespace Microsoft.AspNet.Mvc
         private IControllerDescriptorFactory _controllerDescriptorFactory = new DefaultControllerDescriptorFactory();
         private IParameterDescriptorFactory _parameterDescriptorFactory = new DefaultParameterDescriptorFactory();
 
-        public static IEnumerable<string[]> MethodsFromObjectClass
-        {
-            get
-            {
-                return typeof(object).GetMethods().Select(m => new string[] { m.Name });
-            }
-        }
-
         [Fact]
-        public void GetDescriptors_GetsDescriptorsForActionsInBaseAndDerivedController()
+        public void GetDescriptors_GetsDescriptorsOnlyForValidActionsInBaseAndDerivedController()
         {
             // Arrange & Act
             var actionNames = GetActionNamesFromDerivedController();
@@ -86,16 +78,6 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void GetDescriptors_Ignores_StaticMethod_FromUserDefinedController()
-        {
-            // Arrange & Act
-            var actionNames = GetActionNamesFromDerivedController();
-
-            // Assert
-            Assert.False(actionNames.Contains("StaticMethod"));
-        }
-
-        [Fact]
         public void GetDescriptors_Ignores_OverridenNonActionMethod_FromDerivedController()
         {
             // Arrange & Act
@@ -105,15 +87,17 @@ namespace Microsoft.AspNet.Mvc
             Assert.False(actionNames.Contains("OverridenNonActionMethod"));
         }
 
-        [Theory]
-        [MemberData("MethodsFromObjectClass")]
-        public void GetDescriptors_Ignores_MethodsFromObjectClass_FromUserDefinedController(string methodName)
+        [Fact]
+        public void GetDescriptors_Ignores_MethodsFromObjectClass_FromUserDefinedController()
         {
-            // Arrange & Act
+            // Arrange
+            var methodsFromObjectClass = typeof(object).GetMethods().Select(m => m.Name);
+
+            // Act
             var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.False(actionNames.Contains(methodName));
+            Assert.Empty(methodsFromObjectClass.Intersect(actionNames));
         }
 
         private IEnumerable<string> GetActionNamesFromDerivedController()
@@ -140,23 +124,25 @@ namespace Microsoft.AspNet.Mvc
         private class DerivedController : BaseController
         {
             public void GetFromDerived() // Valid action method.
-            { }
+            {
+            }
 
             [HttpGet]
             public override void OverridenNonActionMethod()
-            { }
+            {
+            }
 
             public new void NewMethod() // Valid action method.
-            { }
+            {
+            }
 
             public void GenericMethod<T>()
-            { }
-
-            public static void StaticMethod()
-            { }
+            {
+            }
 
             private void PrivateMethod()
-            { }
+            {
+            }
         }
 
         private class OperatorOverloadingController : Controller
@@ -172,15 +158,18 @@ namespace Microsoft.AspNet.Mvc
         private class BaseController : Controller
         {
             public void GetFromBase() // Valid action method.
-            { }
+            {
+            }
 
             [NonAction]
             public virtual void OverridenNonActionMethod()
-            { }
+            {
+            }
 
             [NonAction]
             public virtual void NewMethod()
-            { }
+            {
+            }
 
             public override RedirectResult Redirect(string url)
             {

@@ -83,7 +83,6 @@ namespace Microsoft.AspNet.Mvc
         {
             return
                 method.IsPublic &&
-                !method.IsStatic &&
                 !method.IsAbstract &&
                 !method.IsConstructor &&
                 !method.IsGenericMethod &&

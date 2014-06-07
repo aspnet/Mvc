@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
             return GetDescriptors(controllerDescriptors);
         }
 
-        // Set as internal for unit-testing specific controllers.
+        // Internal for unit testing.
         internal IEnumerable<ActionDescriptor> GetDescriptors(IEnumerable<ControllerDescriptor> controllerDescriptors)
         {
             foreach (var cd in controllerDescriptors)
