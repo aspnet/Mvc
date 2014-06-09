@@ -5,6 +5,7 @@
     },
     "dependencies": {
         "BasicWebSite": "",
+        "InlineConstraintsWebSite": "",
         "Microsoft.AspNet.TestHost": "0.1-alpha-*",
         "Microsoft.Framework.Runtime.Interfaces": "0.1-alpha-*",
         "xunit.abstractions": "2.0.0-aspnet-*",

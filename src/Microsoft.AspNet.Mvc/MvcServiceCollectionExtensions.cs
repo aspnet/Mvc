@@ -27,8 +27,8 @@ namespace Microsoft.Framework.DependencyInjection
         {
             services.SetupOptions<RouteOptions>(routeOptions =>
                                                     routeOptions.ConstraintMap
-                                                         .Add("exist",
-                                                              typeof(RouteDataConstraintsContainsKeyConstraint)));
+                                                         .Add("exists",
+                                                              typeof(KnownRouteValueConstraint)));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Routing.Tests
 {
     public class RouteKeyExistsConstraintTests
     {
-        private readonly IRouteConstraint _constraint = new RouteDataConstraintsContainsKeyConstraint();
+        private readonly IRouteConstraint _constraint = new KnownRouteValueConstraint();
 
         [Theory]
         [InlineData("area")]
@@ -63,6 +63,55 @@ namespace Microsoft.AspNet.Routing.Tests
             Assert.True(match);
         }
 
+        [Theory]
+        [InlineData("area")]
+        [InlineData("controller")]
+        [InlineData("action")]
+        [InlineData("randomKey")]
+        public void RouteValue_DoesNotExists_MatchFails(string keyName)
+        {
+            // Arrange
+            var actionDescriptor = CreateActionDescriptor("testArea",
+                                                          "testController",
+                                                          "testAction");
+            actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint("randomKey", "testRandom"));
+            var httpContext = GetHttpContext(actionDescriptor);
+            var route = (new Mock<IRouter>()).Object;
+            var values = new Dictionary<string, object>()
+                         {
+                            { "area", "invalidTestArea" },
+                            { "controller", "invalidTestController" },
+                            { "action", "invalidTestAction" },
+                            { "randomKey", "invalidTestRandom" }
+                         };
+
+            // Act
+            var match = _constraint.Match(httpContext, route, keyName, values, RouteDirection.IncomingRequest);
+
+            // Assert
+            Assert.False(match);
+        }
+
+        [Fact]
+        public void RouteValue_IsAnObject_MatchFails()
+        {
+            var actionDescriptor = CreateActionDescriptor("testArea",
+                                                          controller: null,
+                                                          action: null);
+            var httpContext = GetHttpContext(actionDescriptor);
+            var route = (new Mock<IRouter>()).Object;
+            var values = new Dictionary<string, object>()
+                         {
+                            { "area", 12 },
+                         };
+
+            // Act
+            var match = _constraint.Match(httpContext, route, "area", values, RouteDirection.IncomingRequest);
+
+            // Assert
+            Assert.False(match);
+        }
+
         private static HttpContext GetHttpContext(ActionDescriptor actionDescriptor)
         {
             var actionProvider = new Mock<INestedProviderManager<ActionDescriptorProviderContext>>(
@@ -76,6 +125,9 @@ namespace Microsoft.AspNet.Routing.Tests
             context.Setup(o => o.ApplicationServices
                                 .GetService(typeof(INestedProviderManager<ActionDescriptorProviderContext>)))
                    .Returns(actionProvider.Object);
+            context.Setup(o => o.ApplicationServices
+                               .GetService(typeof(IActionDescriptorsCollectionProvider)))
+                    .Returns(new DefaultActionDescriptorsCollectionProvider(context.Object.ApplicationServices));
             return context.Object;
         }
 
