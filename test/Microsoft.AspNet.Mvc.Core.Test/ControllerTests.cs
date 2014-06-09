@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Routing;
@@ -246,6 +247,147 @@ namespace Microsoft.AspNet.Mvc.Core
             // Assert
             Assert.True(resultPermanent.Permanent);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultPermanent.RouteValues);
+        }
+
+        [Fact]
+        public void Controller_View_WithoutParameter_SetsResultNullViewNameAndNullViewDataModel()
+        {
+            // Arrange
+            var controller = new Controller()
+            {
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
+            };
+
+            // Act
+            var actualViewResult = controller.View();
+
+            // Assert
+            Assert.IsType<ViewResult>(actualViewResult);
+            Assert.Null(actualViewResult.ViewName);
+            Assert.Same(controller.ViewData, actualViewResult.ViewData);
+            Assert.Null(actualViewResult.ViewData.Model);
+        }
+
+        [Fact]
+        public void Controller_View_WithParameterViewName_SetsResultViewNameAndNullViewDataModel()
+        {
+            // Arrange
+            var controller = new Controller()
+            {
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
+            };
+
+            // Act
+            var actualViewResult = controller.View("CustomViewName");
+
+            // Assert
+            Assert.IsType<ViewResult>(actualViewResult);
+            Assert.Equal("CustomViewName", actualViewResult.ViewName);
+            Assert.Same(controller.ViewData, actualViewResult.ViewData);
+            Assert.Null(actualViewResult.ViewData.Model);
+        }
+
+        [Fact]
+        public void Controller_View_WithParameterViewModel_SetsResultNullViewNameAndViewDataModel()
+        {
+            // Arrange
+            var controller = new Controller()
+            {
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
+            };
+            var model = new object();
+
+            // Act
+            var actualViewResult = controller.View(model);
+
+            // Assert
+            Assert.IsType<ViewResult>(actualViewResult);
+            Assert.Null(actualViewResult.ViewName);
+            Assert.Same(controller.ViewData, actualViewResult.ViewData);
+            Assert.Same(model, actualViewResult.ViewData.Model);
+        }
+
+        [Fact]
+        public void Controller_View_WithParameterViewNameAndViewModel_SetsResultViewNameAndViewDataModel()
+        {
+            // Arrange
+            var controller = new Controller()
+            {
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider()),
+            };
+            var model = new object();
+
+            // Act
+            var actualViewResult = controller.View("CustomViewName", model);
+
+            // Assert
+            Assert.IsType<ViewResult>(actualViewResult);
+            Assert.Equal("CustomViewName", actualViewResult.ViewName);
+            Assert.Same(controller.ViewData, actualViewResult.ViewData);
+            Assert.Same(model, actualViewResult.ViewData.Model);
+        }
+
+        [Fact]
+        public void Controller_Content_WithParameterContentString_SetsResultContent()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            // Act
+            var actualContentResult = controller.Content("TestContent");
+
+            // Assert
+            Assert.IsType<ContentResult>(actualContentResult);
+            Assert.Equal("TestContent", actualContentResult.Content);
+            Assert.Null(actualContentResult.ContentEncoding);
+            Assert.Null(actualContentResult.ContentType);
+        }
+
+        [Fact]
+        public void Controller_Content_WithParameterContentStringAndContentType_SetsResultContentAndContentType()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            // Act
+            var actualContentResult = controller.Content("TestContent", "text/plain");
+
+            // Assert
+            Assert.IsType<ContentResult>(actualContentResult);
+            Assert.Equal("TestContent", actualContentResult.Content);
+            Assert.Null(actualContentResult.ContentEncoding);
+            Assert.Equal("text/plain", actualContentResult.ContentType);
+        }
+
+        [Fact]
+        public void Controller_Content_WithParameterContentAndTypeAndEncoding_SetsResultContentAndTypeAndEncoding()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            // Act
+            var actualContentResult = controller.Content("TestContent", "text/plain", Encoding.UTF8);
+
+            // Assert
+            Assert.IsType<ContentResult>(actualContentResult);
+            Assert.Equal("TestContent", actualContentResult.Content);
+            Assert.Same(Encoding.UTF8, actualContentResult.ContentEncoding);
+            Assert.Equal("text/plain", actualContentResult.ContentType);
+        }
+
+        [Fact]
+        public void Controller_Json_WithParameterValue_SetsResultReturnValue()
+        {
+            // Arrange
+            var controller = new Controller();
+            var value = new object();
+
+            // Act
+            var actualJsonResult = controller.Json(value);
+
+            // Assert
+            Assert.IsType<JsonResult>(actualJsonResult);
+            Assert.Same(value, actualJsonResult.ReturnValue);
         }
 
         public static IEnumerable<object[]> RedirectTestData

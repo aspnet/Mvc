@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.Mvc
 
             if (contentType != null)
             {
-                result.Content = contentType;
+                result.ContentType = contentType;
             }
 
             if (contentEncoding != null)
