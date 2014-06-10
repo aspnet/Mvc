@@ -376,18 +376,18 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void Controller_Json_WithParameterValue_SetsResultReturnValue()
+        public void Controller_Json_WithParameterValue_SetsResultData()
         {
             // Arrange
             var controller = new Controller();
-            var value = new object();
+            var data = new object();
 
             // Act
-            var actualJsonResult = controller.Json(value);
+            var actualJsonResult = controller.Json(data);
 
             // Assert
             Assert.IsType<JsonResult>(actualJsonResult);
-            Assert.Same(value, actualJsonResult.ReturnValue);
+            Assert.Same(data, actualJsonResult.Data);
         }
 
         public static IEnumerable<object[]> RedirectTestData

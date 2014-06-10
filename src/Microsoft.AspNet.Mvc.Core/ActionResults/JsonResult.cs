@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc
         private JsonSerializerSettings _jsonSerializerSettings;
         private Encoding _encoding = UTF8EncodingWithoutBOM.Encoding;
 
-        public JsonResult([NotNull] object returnValue)
+        public JsonResult([NotNull] object data)
         {
-            ReturnValue = returnValue;
+            Data = data;
             _jsonSerializerSettings = JsonOutputFormatter.CreateDefaultSettings();
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public object ReturnValue { get; private set; }
+        public object Data { get; private set; }
 
         public override void ExecuteResult([NotNull] ActionContext context)
         {
@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.Mvc
             using (var writer = new StreamWriter(writeStream, Encoding, BufferSize, leaveOpen: true))
             {
                 var formatter = new JsonOutputFormatter(SerializerSettings, Indent);
-                formatter.WriteObject(writer, ReturnValue);
+                formatter.WriteObject(writer, Data);
             }
         }
     }
