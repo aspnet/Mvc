@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
@@ -34,8 +33,6 @@ namespace Microsoft.AspNet.Mvc
                 _serviceProvider,
                 actionDescriptor.ControllerDescriptor.ControllerTypeInfo.AsType());
 
-            InitializeController(controller, actionContext);
-
             return controller;
         }
 
@@ -47,21 +44,6 @@ namespace Microsoft.AspNet.Mvc
             {
                 disposableController.Dispose();
             }
-        }
-
-        private void InitializeController(object controller, ActionContext actionContext)
-        {
-            Injector.InjectProperty(controller, "ActionContext", actionContext);
-
-            var viewData = new ViewDataDictionary(
-                _serviceProvider.GetService<IModelMetadataProvider>(),
-                actionContext.ModelState);
-            Injector.InjectProperty(controller, "ViewData", viewData);
-
-            var urlHelper = _serviceProvider.GetService<IUrlHelper>();
-            Injector.InjectProperty(controller, "Url", urlHelper);
-
-            Injector.CallInitializer(controller, _serviceProvider);
         }
     }
 }

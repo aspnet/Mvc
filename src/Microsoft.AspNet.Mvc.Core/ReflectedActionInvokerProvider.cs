@@ -10,15 +10,18 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IControllerFactory _controllerFactory;
+        private readonly IControllerActivator _controllerActivator;
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
 
         public ReflectedActionInvokerProvider(IControllerFactory controllerFactory,
+                                              IControllerActivator controllerActivator,
                                               IActionBindingContextProvider bindingProvider,
                                               INestedProviderManager<FilterProviderContext> filterProvider,
                                               IServiceProvider serviceProvider)
         {
             _controllerFactory = controllerFactory;
+            _controllerActivator = controllerActivator;
             _bindingProvider = bindingProvider;
             _filterProvider = filterProvider;
             _serviceProvider = serviceProvider;
@@ -39,6 +42,7 @@ namespace Microsoft.AspNet.Mvc
                                     context.ActionContext,
                                     actionDescriptor,
                                     _controllerFactory,
+                                    _controllerActivator,
                                     _bindingProvider,
                                     _filterProvider);
             }

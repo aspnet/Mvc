@@ -18,6 +18,7 @@ namespace Microsoft.AspNet.Mvc
         private readonly ActionContext _actionContext;
         private readonly ReflectedActionDescriptor _descriptor;
         private readonly IControllerFactory _controllerFactory;
+        private readonly IControllerActivator _controllerActivator;
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
 
@@ -37,12 +38,14 @@ namespace Microsoft.AspNet.Mvc
         public ReflectedActionInvoker([NotNull] ActionContext actionContext,
                                       [NotNull] ReflectedActionDescriptor descriptor,
                                       [NotNull] IControllerFactory controllerFactory,
+                                      [NotNull] IControllerActivator controllerActivator,
                                       [NotNull] IActionBindingContextProvider bindingContextProvider,
                                       [NotNull] INestedProviderManager<FilterProviderContext> filterProvider)
         {
             _actionContext = actionContext;
             _descriptor = descriptor;
             _controllerFactory = controllerFactory;
+            _controllerActivator = controllerActivator;
             _bindingProvider = bindingContextProvider;
             _filterProvider = filterProvider;
 
@@ -58,7 +61,19 @@ namespace Microsoft.AspNet.Mvc
         public async Task InvokeActionAsync()
         {
             _actionContext.Controller = _controllerFactory.CreateController(_actionContext);
+            try
+            {
+                _controllerActivator.Activate(_actionContext);
+                await InvokeActionAsyncCore();
+            }
+            finally
+            {
+                _controllerFactory.ReleaseController(_actionContext.Controller);
+            }
+        }
 
+        private async Task InvokeActionAsyncCore()
+        {
             _filters = GetFilters();
             _cursor = new FilterCursor(_filters);
 
@@ -275,7 +290,7 @@ namespace Microsoft.AspNet.Mvc
                 {
                     var parameterType = parameter.BodyParameterInfo.ParameterType;
                     var modelMetadata = metadataProvider.GetMetadataForType(
-                        modelAccessor: null, 
+                        modelAccessor: null,
                         modelType: parameterType);
                     var providerContext = new InputFormatterProviderContext(
                         actionBindingContext.ActionContext.HttpContext,
@@ -295,7 +310,7 @@ namespace Microsoft.AspNet.Mvc
                 {
                     var parameterType = parameter.ParameterBindingInfo.ParameterType;
                     var modelMetadata = metadataProvider.GetMetadataForType(
-                        modelAccessor: null, 
+                        modelAccessor: null,
                         modelType: parameterType);
 
                     var modelBindingContext = new ModelBindingContext
@@ -400,8 +415,8 @@ namespace Microsoft.AspNet.Mvc
                 _actionContext.Controller,
                 _actionExecutingContext.ActionArguments);
 
-            var underlyingReturnType = 
-                TypeHelper.GetTaskInnerTypeOrNull(actionMethodInfo.ReturnType) ?? 
+            var underlyingReturnType =
+                TypeHelper.GetTaskInnerTypeOrNull(actionMethodInfo.ReturnType) ??
                 actionMethodInfo.ReturnType;
 
             var actionResult = CreateActionResult(
@@ -459,8 +474,8 @@ namespace Microsoft.AspNet.Mvc
                     {
                         // Short-circuited by not calling next
                         _resultExecutedContext = new ResultExecutedContext(
-                            _resultExecutingContext, 
-                            _filters, 
+                            _resultExecutingContext,
+                            _filters,
                             _resultExecutingContext.Result)
                         {
                             Canceled = true,
@@ -470,8 +485,8 @@ namespace Microsoft.AspNet.Mvc
                     {
                         // Short-circuited by setting Cancel == true
                         _resultExecutedContext = new ResultExecutedContext(
-                            _resultExecutingContext, 
-                            _filters, 
+                            _resultExecutingContext,
+                            _filters,
                             _resultExecutingContext.Result)
                         {
                             Canceled = true,
@@ -486,8 +501,8 @@ namespace Microsoft.AspNet.Mvc
                     {
                         // Short-circuited by setting Cancel == true
                         _resultExecutedContext = new ResultExecutedContext(
-                            _resultExecutingContext, 
-                            _filters, 
+                            _resultExecutingContext,
+                            _filters,
                             _resultExecutingContext.Result)
                         {
                             Canceled = true,
@@ -504,16 +519,16 @@ namespace Microsoft.AspNet.Mvc
 
                     Contract.Assert(_resultExecutedContext == null);
                     _resultExecutedContext = new ResultExecutedContext(
-                        _resultExecutingContext, 
-                        _filters, 
+                        _resultExecutingContext,
+                        _filters,
                         _resultExecutingContext.Result);
                 }
             }
             catch (Exception exception)
             {
                 _resultExecutedContext = new ResultExecutedContext(
-                    _resultExecutingContext, 
-                    _filters, 
+                    _resultExecutingContext,
+                    _filters,
                     _resultExecutingContext.Result)
                 {
                     ExceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception)

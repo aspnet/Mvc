@@ -18,13 +18,6 @@ namespace Microsoft.AspNet.Mvc
         private IServiceProvider _serviceProvider;
         private IViewEngine _viewEngine;
 
-        [NonAction]
-        public void Initialize(IServiceProvider serviceProvider, IViewEngine viewEngine)
-        {
-            _serviceProvider = serviceProvider;
-            _viewEngine = viewEngine;
-        }
-
         public HttpContext Context
         {
             get
@@ -41,8 +34,12 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        [Activate]
         public ActionContext ActionContext { get; set; }
 
+
+
+        [Activate]
         public IUrlHelper Url { get; set; }
 
         public IPrincipal User
@@ -58,6 +55,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        [Activate]
         public ViewDataDictionary ViewData { get; set; }
 
         public dynamic ViewBag
