@@ -29,6 +29,10 @@ namespace Microsoft.AspNet.Builder
                 ServiceProvider = app.ApplicationServices
             };
 
+            routes.Routes.Add(AttributeRouting.CreateAttributeRoute(
+                routes.DefaultHandler, 
+                app.ApplicationServices));
+
             configureRoutes(routes);
 
             return app.UseRouter(routes.Build());

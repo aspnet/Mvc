@@ -19,6 +19,12 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
 
             Filters = Attributes.OfType<IFilter>().ToList();
 
+            var routeTemplateAttribute = Attributes.OfType<IRouteTemplateProvider>().FirstOrDefault();
+            if (routeTemplateAttribute != null)
+            {
+                RouteTemplate = routeTemplateAttribute.Template;
+            }
+
             HttpMethods = new List<string>();
             Parameters = new List<ReflectedParameterModel>();
         }
@@ -36,5 +42,7 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
         public bool IsActionNameMatchRequired { get; set; }
 
         public List<ReflectedParameterModel> Parameters { get; private set; }
+
+        public string RouteTemplate { get; set; }
     }
 }

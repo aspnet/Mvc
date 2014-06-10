@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -11,6 +10,11 @@ namespace Microsoft.AspNet.Mvc
         public virtual string Name { get; set; }
 
         public List<RouteDataActionConstraint> RouteConstraints { get; set; }
+
+        /// <summary>
+        /// The <see cref="RouteInfo"/>. May be null if the action has not attribute routes.
+        /// </summary>
+        public RouteInfo RouteInfo { get; set; }
 
         public List<HttpMethodConstraint> MethodConstraints { get; set; }
 

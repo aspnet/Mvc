@@ -23,6 +23,12 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
             Filters = Attributes.OfType<IFilter>().ToList();
             RouteConstraints = Attributes.OfType<RouteConstraintAttribute>().ToList();
 
+            var routeTemplateAttribute = Attributes.OfType<IRouteTemplateProvider>().FirstOrDefault();
+            if (routeTemplateAttribute != null)
+            {
+                RouteTemplate = routeTemplateAttribute.Template;
+            }
+
             ControllerName = controllerType.Name.EndsWith("Controller", StringComparison.Ordinal)
                         ? controllerType.Name.Substring(0, controllerType.Name.Length - "Controller".Length)
                         : controllerType.Name;
@@ -39,5 +45,7 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
         public List<IFilter> Filters { get; private set; }
 
         public List<RouteConstraintAttribute> RouteConstraints { get; private set; }
+
+        public string RouteTemplate { get; set; }
     }
 }
