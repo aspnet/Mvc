@@ -66,18 +66,18 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void ViewComponent_Json_SetsResultValue()
+        public void ViewComponent_Json_SetsResultData()
         {
             // Arrange
             var viewComponent = new TestViewComponent();
-            var testValue = new object();
+            var testData = new object();
 
             // Act
-            var actualResult = viewComponent.Json(testValue);
+            var actualResult = viewComponent.Json(testData);
 
             // Assert
             Assert.IsType<JsonViewComponentResult>(actualResult);
-            Assert.Same(testValue, actualResult.Value);
+            Assert.Same(testData, actualResult.Data);
         }
 
         [Fact]
@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.NotSame(viewComponent.ViewData, actualResult.ViewData);
             Assert.Equal(new ViewDataDictionary<object>(viewComponent.ViewData), actualResult.ViewData);
             Assert.Null(actualResult.ViewData.Model);
-            Assert.Equal("Default", actualResult.ViewName);
+            Assert.Null(actualResult.ViewName);
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.NotSame(viewComponent.ViewData, actualResult.ViewData);
             Assert.Equal(new ViewDataDictionary<object>(viewComponent.ViewData), actualResult.ViewData);
             Assert.Same(model, actualResult.ViewData.Model);
-            Assert.Equal("Default", actualResult.ViewName);
+            Assert.Null(actualResult.ViewName);
         }
 
         [Fact]

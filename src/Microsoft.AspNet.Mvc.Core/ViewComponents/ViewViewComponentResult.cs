@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc
         private const string ViewPathFormat = "Components/{0}/{1}";
         private readonly IViewEngine _viewEngine;
 
-        public ViewViewComponentResult([NotNull] IViewEngine viewEngine, [NotNull] string viewName,
+        public ViewViewComponentResult([NotNull] IViewEngine viewEngine, string viewName,
             ViewDataDictionary viewData)
         {
             _viewEngine = viewEngine;
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
         public async Task ExecuteAsync([NotNull] ViewComponentContext context)
         {
             string qualifiedViewName;
-            if (ViewName.Length > 0 && ViewName[0] == '/')
+            if (ViewName != null && ViewName.Length > 0 && ViewName[0] == '/')
             {
                 // View name that was passed in is already a rooted path, the view engine will handle this.
                 qualifiedViewName = ViewName;
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc
                     CultureInfo.InvariantCulture,
                     ViewPathFormat,
                     ViewComponentConventions.GetComponentName(context.ComponentType),
-                    ViewName);
+                    ViewName ?? "Default");
             }
 
             var view = FindView(context.ViewContext.RouteData.Values, qualifiedViewName);

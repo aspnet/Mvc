@@ -11,13 +11,13 @@ namespace Microsoft.AspNet.Mvc
     {
         private JsonSerializerSettings _jsonSerializerSettings;
 
-        public JsonViewComponentResult([NotNull] object value)
+        public JsonViewComponentResult([NotNull] object data)
         {
-            Value = value;
+            Data = data;
             _jsonSerializerSettings = JsonOutputFormatter.CreateDefaultSettings();
         }
 
-        public object Value { get; private set; }
+        public object Data { get; private set; }
 
         public JsonSerializerSettings SerializerSettings
         {
@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc
         public void Execute([NotNull] ViewComponentContext context)
         {
             var formatter = new JsonOutputFormatter(SerializerSettings, Indent);
-            formatter.WriteObject(context.Writer, Value);
+            formatter.WriteObject(context.Writer, Data);
         }
 
         #pragma warning disable 1998

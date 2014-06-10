@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc
                 viewData.Model = model;
             }
 
-            return new ViewViewComponentResult(_viewEngine, viewName ?? "Default", viewData);
+            return new ViewViewComponentResult(_viewEngine, viewName, viewData);
         }
     }
 }

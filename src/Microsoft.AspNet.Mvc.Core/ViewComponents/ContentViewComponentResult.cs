@@ -18,6 +18,7 @@ namespace Microsoft.AspNet.Mvc
         public ContentViewComponentResult([NotNull] HtmlString encodedContent)
         {
             EncodedContent = encodedContent;
+            Content = WebUtility.HtmlDecode(encodedContent.ToString());
         }
 
         public string Content { get; private set; }
