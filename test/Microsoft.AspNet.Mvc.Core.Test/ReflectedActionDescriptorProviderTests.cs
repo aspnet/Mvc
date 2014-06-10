@@ -105,7 +105,7 @@ namespace Microsoft.AspNet.Mvc
             return GetDescriptors(typeof(DerivedController).GetTypeInfo()).Select(a => a.Name);
         }
 
-        private IEnumerable<ReflectedActionDescriptor> GetDescriptors(TypeInfo controllerTypeInfo)
+        private IEnumerable<ActionDescriptor> GetDescriptors(TypeInfo controllerTypeInfo)
         {
             var provider = new ReflectedActionDescriptorProvider(null,
                 _actionDiscoveryConventions,
@@ -118,7 +118,7 @@ namespace Microsoft.AspNet.Mvc
             };
             var controllerDescriptors = testControllers
                 .Select(t => _controllerDescriptorFactory.CreateControllerDescriptor(t));
-            return provider.GetDescriptors(controllerDescriptors).Cast<ReflectedActionDescriptor>();
+            return provider.GetDescriptors(controllerDescriptors);
         }
 
         private class DerivedController : BaseController
