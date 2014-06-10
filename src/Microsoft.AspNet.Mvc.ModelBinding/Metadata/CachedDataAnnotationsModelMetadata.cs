@@ -62,20 +62,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         protected override string ComputeSimpleDisplayText()
         {
-            if (Model != null)
-            {
-                if (PrototypeCache.DisplayColumn != null &&
+            if (Model != null && PrototypeCache.DisplayColumn != null &&
                     !string.IsNullOrEmpty(PrototypeCache.DisplayColumn.DisplayColumn))
-                {
-                    var displayColumnProperty = ModelType.GetTypeInfo().GetDeclaredProperty(
-                                                        PrototypeCache.DisplayColumn.DisplayColumn);
-                    ValidateDisplayColumnAttribute(PrototypeCache.DisplayColumn, displayColumnProperty, ModelType);
+            {
+                var displayColumnProperty = ModelType.GetTypeInfo().GetDeclaredProperty(
+                                                    PrototypeCache.DisplayColumn.DisplayColumn);
+                ValidateDisplayColumnAttribute(PrototypeCache.DisplayColumn, displayColumnProperty, ModelType);
 
-                    object simpleDisplayTextValue = displayColumnProperty.GetValue(Model, null);
-                    if (simpleDisplayTextValue != null)
-                    {
-                        return simpleDisplayTextValue.ToString();
-                    }
+                var simpleDisplayTextValue = displayColumnProperty.GetValue(Model, null);
+                if (simpleDisplayTextValue != null)
+                {
+                    return simpleDisplayTextValue.ToString();
                 }
             }
 
