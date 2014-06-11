@@ -8,13 +8,13 @@ namespace Microsoft.AspNet.Mvc
 {
     public class MvcOptions
     {
-        private AntiForgeryConfig _antiForgeryConfig = new AntiForgeryConfig();
+        private AntiForgeryOptions _antiForgeryOptions = new AntiForgeryOptions();
 
-        public virtual AntiForgeryConfig AntiForgeryConfig
+        public AntiForgeryOptions AntiForgeryOptions
         {
             get
             {
-                return _antiForgeryConfig;
+                return _antiForgeryOptions;
             }
 
             set
@@ -22,11 +22,11 @@ namespace Microsoft.AspNet.Mvc
                 if (value == null)
                 {
                     throw new ArgumentNullException("value", 
-                                                    Resources.FormatPropertyOfTypeCannotBeNull("AntiForgeryConfig",
+                                                    Resources.FormatPropertyOfTypeCannotBeNull("AntiForgeryOptions",
                                                                                                typeof(MvcOptions)));
                 }
 
-                _antiForgeryConfig = value;
+                _antiForgeryOptions = value;
             }
         }
     }

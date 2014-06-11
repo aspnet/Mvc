@@ -9,14 +9,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
     public class MvcOptionsTests
     {
         [Fact]
-        public void AntiForgeryConfig_SettingNullValue_Throws()
+        public void AntiForgeryOptions_SettingNullValue_Throws()
         {
             // Arrange
             var options = new MvcOptions();
 
             // Act & Assert
-            var ex = Assert.Throws<ArgumentNullException>(() => options.AntiForgeryConfig = null);
-            Assert.Equal("The 'AntiForgeryConfig' property of 'Microsoft.AspNet.Mvc.MvcOptions' must not be null." + 
+            var ex = Assert.Throws<ArgumentNullException>(() => options.AntiForgeryOptions = null);
+            Assert.Equal("The 'AntiForgeryOptions' property of 'Microsoft.AspNet.Mvc.MvcOptions' must not be null." + 
                          "\r\nParameter name: value", ex.Message);
         }
     }

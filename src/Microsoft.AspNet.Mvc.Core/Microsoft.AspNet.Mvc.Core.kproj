@@ -45,7 +45,7 @@
     <Compile Include="ActionResults\RedirectToRouteResult.cs" />
     <Compile Include="ActionResults\ViewResult.cs" />
     <Compile Include="AntiForgery\AntiForgery.cs" />
-    <Compile Include="AntiForgery\AntiForgeryConfig.cs" />
+    <Compile Include="AntiForgery\AntiForgeryOptions.cs" />
     <Compile Include="AntiForgery\AntiForgeryToken.cs" />
     <Compile Include="AntiForgery\AntiForgeryTokenSerializer.cs" />
     <Compile Include="AntiForgery\AntiForgeryTokenSet.cs" />

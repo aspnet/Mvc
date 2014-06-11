@@ -9,13 +9,13 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// Provides programmatic configuration for the anti-forgery token system.
     /// </summary>
-    public class AntiForgeryConfig
+    public class AntiForgeryOptions
     {
         private const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
         private string _cookieName;
         private string _formFieldName = AntiForgeryTokenFieldName;
 
-        public AntiForgeryConfig()
+        public AntiForgeryOptions()
         {
             _cookieName = GetAntiForgeryCookieName();
         }
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc
                 {
                     throw new ArgumentNullException("value",
                                                     Resources.FormatPropertyOfTypeCannotBeNull(
-                                                                "CookieName", typeof(AntiForgeryConfig)));
+                                                                "CookieName", typeof(AntiForgeryOptions)));
                 }
 
                 _cookieName = value;
@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc
                 {
                     throw new ArgumentNullException("value", 
                                                     Resources.FormatPropertyOfTypeCannotBeNull(
-                                                                "FormFieldName", typeof(AntiForgeryConfig)));
+                                                                "FormFieldName", typeof(AntiForgeryOptions)));
                 }
 
                 _formFieldName = value;

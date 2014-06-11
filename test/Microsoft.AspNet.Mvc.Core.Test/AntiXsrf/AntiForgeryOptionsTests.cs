@@ -6,17 +6,17 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
-    public class AntiForgeryConfigTests
+    public class AntiForgeryOptionsTests
     {
         [Fact]
         public void CookieName_SettingNullValue_Throws()
         {
             // Arrange
-            var config = new AntiForgeryConfig();
+            var options = new AntiForgeryOptions();
 
             // Act & Assert
-            var ex = Assert.Throws<ArgumentNullException>(() => config.CookieName = null);
-            Assert.Equal("The 'CookieName' property of 'Microsoft.AspNet.Mvc.AntiForgeryConfig' must not be null." + 
+            var ex = Assert.Throws<ArgumentNullException>(() => options.CookieName = null);
+            Assert.Equal("The 'CookieName' property of 'Microsoft.AspNet.Mvc.AntiForgeryOptions' must not be null." + 
                          "\r\nParameter name: value", ex.Message);
         }
 
@@ -24,11 +24,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void FormFieldName_SettingNullValue_Throws()
         {
             // Arrange
-            var config = new AntiForgeryConfig();
+            var options = new AntiForgeryOptions();
 
             // Act & Assert
-            var ex = Assert.Throws<ArgumentNullException>(() => config.FormFieldName = null);
-            Assert.Equal("The 'FormFieldName' property of 'Microsoft.AspNet.Mvc.AntiForgeryConfig' must not be null." +
+            var ex = Assert.Throws<ArgumentNullException>(() => options.FormFieldName = null);
+            Assert.Equal("The 'FormFieldName' property of 'Microsoft.AspNet.Mvc.AntiForgeryOptions' must not be null." +
                          "\r\nParameter name: value", ex.Message);
         }
     }
