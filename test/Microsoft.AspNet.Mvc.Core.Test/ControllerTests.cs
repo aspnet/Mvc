@@ -3,14 +3,18 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
+#if NET45
+using Moq;
+#endif
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc.Test
 {
     public class ControllerTests
     {
@@ -426,5 +430,26 @@ namespace Microsoft.AspNet.Mvc.Core
                     };
             }
         }
+
+        #region Filter Implementations
+
+        // These tests share code with the ActionFilterAttribute tests because the various filter
+        // implementations need to behave the same way.
+
+        [Fact]
+        public async Task Controller_ActionFilter_SettingResult_ShortCircuits()
+        {
+            await ActionFilterAttributeTests.ActionFilter_SettingResult_ShortCircuits(
+                new Mock<Controller>());
+        }
+
+        [Fact]
+        public async Task Controller_ActionFilter_CallsBothMethods()
+        {
+            await ActionFilterAttributeTests.ActionFilter_CallsBothMethods(
+                new Mock<Controller>());
+        }
+
+        #endregion
     }
 }
