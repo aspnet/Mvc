@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 
@@ -12,22 +15,33 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultControllerActivator : IControllerActivator
     {
+        private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _propertyLookup
+            = new ConcurrentDictionary<Type, List<PropertyInfo>>();
+
         public void Activate([NotNull] ActionContext context)
         {
             if (context.Controller == null)
             {
-                throw new InvalidOperationException("A controller instance must be specified by the ActionContext for Activate to be invoked.");
+                throw new InvalidOperationException(Resources.ControllerActivator_ControllerRequired);
             }
 
-            var controllerType = context.Controller.GetType().GetTypeInfo();
-            var propertiesToActivate = controllerType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                                     .Where(p => p.IsDefined(typeof(ActivateAttribute)) &&
-                                                                 p.GetSetMethod() != null);
 
-            foreach (var property in propertiesToActivate)
+            var propertiesToActivate = _propertyLookup.GetOrAdd(
+                                            context.Controller.GetType(),
+                                            GetPropertiesToActivate);
+
+            for (var i = 0; i < propertiesToActivate.Count; i++)
             {
-                ActivateProperty(context, property);
+                ActivateProperty(context, propertiesToActivate[i]);
             }
+        }
+
+        private static List<PropertyInfo> GetPropertiesToActivate(Type controllerType)
+        {
+            return controllerType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                 .Where(p => p.IsDefined(typeof(ActivateAttribute)) &&
+                                             p.GetSetMethod() != null)
+                                 .ToList();
         }
 
         private static void ActivateProperty(ActionContext context, PropertyInfo property)

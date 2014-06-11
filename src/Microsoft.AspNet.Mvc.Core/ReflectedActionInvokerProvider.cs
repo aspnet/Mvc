@@ -9,22 +9,22 @@ namespace Microsoft.AspNet.Mvc
     public class ReflectedActionInvokerProvider : IActionInvokerProvider
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly IControllerFactory _controllerFactory;
+        private readonly ITypeActivator _typeActivator;
         private readonly IControllerActivator _controllerActivator;
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
 
-        public ReflectedActionInvokerProvider(IControllerFactory controllerFactory,
-                                              IControllerActivator controllerActivator,
+        public ReflectedActionInvokerProvider(IControllerActivator controllerActivator,
                                               IActionBindingContextProvider bindingProvider,
                                               INestedProviderManager<FilterProviderContext> filterProvider,
-                                              IServiceProvider serviceProvider)
+                                              IServiceProvider serviceProvider,
+                                              ITypeActivator typeActivator)
         {
-            _controllerFactory = controllerFactory;
             _controllerActivator = controllerActivator;
             _bindingProvider = bindingProvider;
             _filterProvider = filterProvider;
             _serviceProvider = serviceProvider;
+            _typeActivator = typeActivator;
         }
 
         public int Order
@@ -41,7 +41,8 @@ namespace Microsoft.AspNet.Mvc
                 context.Result = new ReflectedActionInvoker(
                                     context.ActionContext,
                                     actionDescriptor,
-                                    _controllerFactory,
+                                    _serviceProvider,
+                                    _typeActivator,
                                     _controllerActivator,
                                     _bindingProvider,
                                     _filterProvider);

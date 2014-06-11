@@ -15,8 +15,6 @@ namespace Microsoft.AspNet.Mvc
     public class Controller : IActionFilter, IAsyncActionFilter
     {
         private DynamicViewData _viewBag;
-        private IServiceProvider _serviceProvider;
-        private IViewEngine _viewEngine;
 
         public HttpContext Context
         {
@@ -36,8 +34,6 @@ namespace Microsoft.AspNet.Mvc
 
         [Activate]
         public ActionContext ActionContext { get; set; }
-
-
 
         [Activate]
         public IUrlHelper Url { get; set; }
@@ -99,7 +95,7 @@ namespace Microsoft.AspNet.Mvc
                 ViewData.Model = model;
             }
 
-            return new ViewResult(_serviceProvider, _viewEngine)
+            return new ViewResult()
             {
                 ViewName = view,
                 ViewData = ViewData,

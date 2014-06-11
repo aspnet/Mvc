@@ -192,9 +192,6 @@
   <data name="ActionInvokerFactory_CouldNotCreateInvoker" xml:space="preserve">
     <value>An action invoker could not be created for action '{0}'.</value>
   </data>
-  <data name="DefaultControllerFactory_ActionDescriptorMustBeReflected" xml:space="preserve">
-    <value>The action descriptor must be of type '{0}'.</value>
-  </data>
   <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
     <value>The value cannot be null or empty.</value>
   </data>
@@ -305,5 +302,8 @@
   </data>
   <data name="ActionResult_ActionReturnValueCannotBeNull" xml:space="preserve">
     <value>Cannot return null from an action method with a return type of '{0}'.</value>
+  </data>
+  <data name="ControllerActivator_ControllerRequired" xml:space="preserve">
+    <value>A controller instance must be specified by the ActionContext for Activate to be invoked.</value>
   </data>
 </root>

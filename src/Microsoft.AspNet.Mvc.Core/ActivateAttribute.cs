@@ -7,7 +7,7 @@ namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Specifies that a property or parameter value should be initialized via the dependency injection
-    /// container.
+    /// container for activated types.
     /// </summary>
     public sealed class ActivateAttribute : Attribute
     {
