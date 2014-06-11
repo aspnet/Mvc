@@ -261,6 +261,70 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultPermanent.RouteValues);
         }
 
+        [Fact]
+        public void RedirectToRoute_Temporary_Returns_SameRouteName()
+        {
+            // Arrange
+            var controller = new Controller();
+            var routeName = "CustomRouteName";
+
+            // Act
+            var resultTemporary = controller.RedirectToRoute(routeName);
+
+            // Assert
+            Assert.False(resultTemporary.Permanent);
+            Assert.Same(routeName, resultTemporary.RouteName);
+        }
+
+        [Fact]
+        public void RedirectToRoute_Permanent_Returns_SameRouteName()
+        {
+            // Arrange
+            var controller = new Controller();
+            var routeName = "CustomRouteName";
+
+            // Act
+            var resultPermanent = controller.RedirectToRoutePermanent(routeName);
+
+            // Assert
+            Assert.True(resultPermanent.Permanent);
+            Assert.Same(routeName, resultPermanent.RouteName);
+        }
+
+        [Theory]
+        [MemberData("RedirectTestData")]
+        public void RedirectToRoute_Temporary_Returns_SameRouteNameAndEqualRouteValues(object routeValues)
+        {
+            // Arrange
+            var controller = new Controller();
+            var routeName = "CustomRouteName";
+
+            // Act
+            var resultTemporary = controller.RedirectToRoute(routeName, routeValues);
+
+            // Assert
+            Assert.False(resultTemporary.Permanent);
+            Assert.Same(routeName, resultTemporary.RouteName);
+            Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultTemporary.RouteValues);
+        }
+
+        [Theory]
+        [MemberData("RedirectTestData")]
+        public void RedirectToRoute_Permanent_Returns_SameRouteNameAndEqualRouteValues(object routeValues)
+        {
+            // Arrange
+            var controller = new Controller();
+            var routeName = "CustomRouteName";
+
+            // Act
+            var resultPermanent = controller.RedirectToRoutePermanent(routeName, routeValues);
+
+            // Assert
+            Assert.True(resultPermanent.Permanent);
+            Assert.Same(routeName, resultPermanent.RouteName);
+            Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultPermanent.RouteValues);
+        }
+
         [Theory]
         [MemberData("PublicNormalMethodsFromController")]
         public void NonActionAttribute_IsOnEveryPublicNormalMethodFromController(MethodInfo method)
