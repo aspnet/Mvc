@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public static class TestHelper
     {
-        public static IServiceProvider GetTestServiceProvider(string applicationWebSiteName)
+        public static IServiceProvider CreateServices(string applicationWebSiteName)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             IApplicationEnvironment appEnvironment = originalProvider.GetService<IApplicationEnvironment>();

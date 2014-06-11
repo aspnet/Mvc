@@ -37,6 +37,7 @@
     <Compile Include="TestControllerAssemblyProvider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\config.json" />
     <Content Include="project.json" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />

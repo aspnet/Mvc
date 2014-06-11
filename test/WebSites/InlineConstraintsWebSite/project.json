@@ -1,7 +1,8 @@
 ﻿{
     "dependencies": {
         "Helios": "0.1-alpha-*",
-        "Microsoft.AspNet.Mvc": ""
+        "Microsoft.AspNet.Mvc": "",
+        "Microsoft.Framework.ConfigurationModel.Json": "0.1-alpha-*"
     },
     "configurations": {
         "net45": { },

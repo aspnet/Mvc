@@ -338,19 +338,12 @@ namespace Microsoft.AspNet.Mvc
             if (descriptors == null)
             {
                 throw new InvalidOperationException(
-                    Resources.FormatPropertyOfTypeCannotBeNull(_actionDescriptorsCollectionProvider.GetType(),
-                                                               "ActionDescriptors"));
+                    Resources.FormatPropertyOfTypeCannotBeNull("ActionDescriptors",
+                                                               _actionDescriptorsCollectionProvider.GetType()
+                                                              ));
             }
 
-            var items = descriptors.Items;
-
-            if (items == null)
-            {
-                throw new InvalidOperationException(
-                    Resources.FormatPropertyOfTypeCannotBeNull(descriptors.GetType(), "Items"));
-            }
-
-            return items;
+            return descriptors.Items;
         }
 
         private class ActionDescriptorCandidate

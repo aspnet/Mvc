@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         public BasicTests()
         {
-            _provider = TestHelper.GetTestServiceProvider("BasicWebSite");
+            _provider = TestHelper.CreateServices("BasicWebSite");
         }
 
         [InlineData("http://localhost/")]

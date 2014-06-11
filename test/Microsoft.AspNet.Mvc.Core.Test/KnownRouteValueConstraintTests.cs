@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #if NET45
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
@@ -11,16 +12,20 @@ using Xunit;
 
 namespace Microsoft.AspNet.Routing.Tests
 {
-    public class RouteKeyExistsConstraintTests
+    public class KnownRouteValueConstraintTests
     {
         private readonly IRouteConstraint _constraint = new KnownRouteValueConstraint();
 
         [Theory]
-        [InlineData("area")]
-        [InlineData("controller")]
-        [InlineData("action")]
-        [InlineData("randomKey")]
-        public void RouteKey_DoesNotExist_MatchFails(string keyName)
+        [InlineData("area", RouteDirection.IncomingRequest)]
+        [InlineData("controller", RouteDirection.IncomingRequest)]
+        [InlineData("action", RouteDirection.IncomingRequest)]
+        [InlineData("randomKey", RouteDirection.IncomingRequest)]
+        [InlineData("area", RouteDirection.UrlGeneration)]
+        [InlineData("controller", RouteDirection.UrlGeneration)]
+        [InlineData("action", RouteDirection.UrlGeneration)]
+        [InlineData("randomKey", RouteDirection.UrlGeneration)]
+        public void RouteKey_DoesNotExist_MatchFails(string keyName, RouteDirection direction)
         {
             // Arrange
             var values = new Dictionary<string, object>();
@@ -28,18 +33,22 @@ namespace Microsoft.AspNet.Routing.Tests
             var route = (new Mock<IRouter>()).Object;
             
             // Act
-            var match = _constraint.Match(httpContext, route, keyName, values, RouteDirection.IncomingRequest);
+            var match = _constraint.Match(httpContext, route, keyName, values, direction);
 
             // Assert
             Assert.False(match);
         }
 
         [Theory]
-        [InlineData("area")]
-        [InlineData("controller")]
-        [InlineData("action")]
-        [InlineData("randomKey")]
-        public void RouteKey_Exists_MatchSucceeds(string keyName)
+        [InlineData("area", RouteDirection.IncomingRequest)]
+        [InlineData("controller", RouteDirection.IncomingRequest)]
+        [InlineData("action", RouteDirection.IncomingRequest)]
+        [InlineData("randomKey", RouteDirection.IncomingRequest)]
+        [InlineData("area", RouteDirection.UrlGeneration)]
+        [InlineData("controller", RouteDirection.UrlGeneration)]
+        [InlineData("action", RouteDirection.UrlGeneration)]
+        [InlineData("randomKey", RouteDirection.UrlGeneration)]
+        public void RouteKey_Exists_MatchSucceeds(string keyName, RouteDirection direction)
         {
             // Arrange
             var actionDescriptor = CreateActionDescriptor("testArea",
@@ -57,18 +66,22 @@ namespace Microsoft.AspNet.Routing.Tests
                          };
 
             // Act
-            var match = _constraint.Match(httpContext, route, keyName, values, RouteDirection.IncomingRequest);
+            var match = _constraint.Match(httpContext, route, keyName, values, direction);
 
             // Assert
             Assert.True(match);
         }
 
         [Theory]
-        [InlineData("area")]
-        [InlineData("controller")]
-        [InlineData("action")]
-        [InlineData("randomKey")]
-        public void RouteValue_DoesNotExists_MatchFails(string keyName)
+        [InlineData("area", RouteDirection.IncomingRequest)]
+        [InlineData("controller", RouteDirection.IncomingRequest)]
+        [InlineData("action", RouteDirection.IncomingRequest)]
+        [InlineData("randomKey", RouteDirection.IncomingRequest)]
+        [InlineData("area", RouteDirection.UrlGeneration)]
+        [InlineData("controller", RouteDirection.UrlGeneration)]
+        [InlineData("action", RouteDirection.UrlGeneration)]
+        [InlineData("randomKey", RouteDirection.UrlGeneration)]
+        public void RouteValue_DoesNotExists_MatchFails(string keyName, RouteDirection direction)
         {
             // Arrange
             var actionDescriptor = CreateActionDescriptor("testArea",
@@ -86,14 +99,16 @@ namespace Microsoft.AspNet.Routing.Tests
                          };
 
             // Act
-            var match = _constraint.Match(httpContext, route, keyName, values, RouteDirection.IncomingRequest);
+            var match = _constraint.Match(httpContext, route, keyName, values, direction);
 
             // Assert
             Assert.False(match);
         }
 
-        [Fact]
-        public void RouteValue_IsAnObject_MatchFails()
+        [Theory]
+        [InlineData(RouteDirection.IncomingRequest)]
+        [InlineData(RouteDirection.UrlGeneration)]
+        public void RouteValue_IsNotAString_MatchFails(RouteDirection direction)
         {
             var actionDescriptor = CreateActionDescriptor("testArea",
                                                           controller: null,
@@ -106,10 +121,32 @@ namespace Microsoft.AspNet.Routing.Tests
                          };
 
             // Act
-            var match = _constraint.Match(httpContext, route, "area", values, RouteDirection.IncomingRequest);
+            var match = _constraint.Match(httpContext, route, "area", values, direction);
 
             // Assert
             Assert.False(match);
+        }
+
+        [Theory]
+        [InlineData(RouteDirection.IncomingRequest)]
+        [InlineData(RouteDirection.UrlGeneration)]
+        public void ActionDescriptorsCollection_SettingNullValue_Throws(RouteDirection direction)
+        {
+            // Arrange
+            var httpContext = new Mock<HttpContext>();
+            httpContext.Setup(o => o.ApplicationServices
+                                  .GetService(typeof(IActionDescriptorsCollectionProvider)))
+                       .Returns(new Mock<IActionDescriptorsCollectionProvider>().Object);
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(
+                                    () => _constraint.Match(httpContext.Object,
+                                                            null,
+                                                            "area",
+                                                            new Dictionary<string, object>{ { "area", "area" } },
+                                                            direction));
+            Assert.Equal("The 'ActionDescriptors' property of "+
+                         "'Castle.Proxies.IActionDescriptorsCollectionProviderProxy' must not be null.",
+                         ex.Message);
         }
 
         private static HttpContext GetHttpContext(ActionDescriptor actionDescriptor)
@@ -127,7 +164,7 @@ namespace Microsoft.AspNet.Routing.Tests
                    .Returns(actionProvider.Object);
             context.Setup(o => o.ApplicationServices
                                .GetService(typeof(IActionDescriptorsCollectionProvider)))
-                    .Returns(new DefaultActionDescriptorsCollectionProvider(context.Object.ApplicationServices));
+                   .Returns(new DefaultActionDescriptorsCollectionProvider(context.Object.ApplicationServices));
             return context.Object;
         }
 

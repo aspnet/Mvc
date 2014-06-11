@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 
@@ -40,16 +41,14 @@ namespace Microsoft.AspNet.Mvc
             return false;
         }
 
-        private IEnumerable<string> GetAndCacheAllMatchingValues(string routeKey, HttpContext httpContext)
+        private string[] GetAndCacheAllMatchingValues(string routeKey, HttpContext httpContext)
         {
-            var provider = httpContext.ApplicationServices
-                                      .GetService<IActionDescriptorsCollectionProvider>();
-
-            var actionDescriptors = provider.ActionDescriptors;
+            var actionDescriptors = GetAndValidateActionDescriptorsCollection(httpContext);
             var version = actionDescriptors.Version;
+            var valuesCollection = _cachedValuesCollection;
 
-            if (_cachedValuesCollection == null ||
-                version != _cachedValuesCollection.Version)
+            if (valuesCollection == null ||
+                version != valuesCollection.Version)
             {
                 var routeValueCollection = actionDescriptors
                                             .Items
@@ -58,17 +57,36 @@ namespace Microsoft.AspNet.Mvc
                                                                             c.KeyHandling == RouteKeyHandling.RequireKey))
                                             .Where(rc => rc != null)
                                             .Select(rc => rc.RouteValue)
-                                            .Distinct();
+                                            .Distinct()
+                                            .ToArray();
 
-                _cachedValuesCollection = new RouteValuesCollection(version, routeValueCollection);
+                valuesCollection = new RouteValuesCollection(version, routeValueCollection);
+                _cachedValuesCollection = valuesCollection;
             }
 
             return _cachedValuesCollection.Items;
         }
 
+        private static ActionDescriptorsCollection GetAndValidateActionDescriptorsCollection(HttpContext httpContext)
+        {
+            var provider = httpContext.ApplicationServices
+                                      .GetService<IActionDescriptorsCollectionProvider>();
+            var descriptors = provider.ActionDescriptors;
+
+            if (descriptors == null)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatPropertyOfTypeCannotBeNull("ActionDescriptors",
+                                                               provider.GetType()
+                                                              ));
+            }
+
+            return descriptors;
+        }
+
         private class RouteValuesCollection
         {
-            public RouteValuesCollection(int version, IEnumerable<string> items)
+            public RouteValuesCollection(int version, string[] items)
             {
                 Version = version;
                 Items = items;
@@ -76,12 +94,7 @@ namespace Microsoft.AspNet.Mvc
 
             public int Version { get; private set; }
 
-            public IEnumerable<string> Items
-            {
-                get;
-
-                private set;
-            }
+            public string[] Items { get; private set; }
         }
     }
 }

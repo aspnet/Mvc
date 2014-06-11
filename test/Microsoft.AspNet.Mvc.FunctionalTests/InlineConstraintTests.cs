@@ -9,6 +9,7 @@ using InlineConstraints;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
 using Microsoft.Framework.Runtime;
@@ -20,18 +21,34 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     public class InlineConstraintTests
     {
         private readonly IServiceProvider _provider;
-        private readonly Startup _app = new Startup();
-
+        private readonly Action<IBuilder> _app = new Startup().Configure;
+        private readonly string _jsonConfigFilePath;
+        private readonly Configuration _config = new Configuration();
         public InlineConstraintTests()
         {
-            _provider = TestHelper.GetTestServiceProvider("InlineConstraintsWebSite");
+            _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
+
+            // TODO: Hardcoding the config file path for now. Update it to read it from args.
+            _jsonConfigFilePath = @"config\InlineConstraintTestsConfig.json";
+            _config.AddJsonFile(_jsonConfigFilePath);
+
+            Environment.SetEnvironmentVariable("AppConfigPath", _jsonConfigFilePath);
         }
 
         [Fact]
         public async Task RoutingToANonExistantArea_WithExistConstraint_RoutesToCorrectAction()
         {
             // Arrange
-            var server = TestServer.Create(_provider, (appBuilder)=>_app.Configure(appBuilder));
+            var source = new JsonConfigurationSource(_jsonConfigFilePath);
+
+            // Add the exists inline constraint.
+            _config.Set("TemplateCollection:areaRoute:TemplateValue",
+                        @"{area:exists}/{controller=Home}/{action=Index}");
+            _config.Set("TemplateCollection:actionAsMethod:TemplateValue",
+                        @"{controller=Home}/{action=Index}");
+            _config.Commit();
+
+            var server = TestServer.Create(_provider, _app);
             var client = server.Handler;
 
             // Act
@@ -47,17 +64,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RoutingToANonExistantArea_WithoutExistConstraint_RoutesToIncorrectAction()
         {
             // Arrange
-            _app.RouteCollectionProvider = (routes =>
-            {
-                routes.MapRoute("areaRoute",
-                                "{area}/{controller}/{action}",
-                                new { controller = "Home", action = "Index" });
+            _config.Set("TemplateCollection:areaRoute:TemplateValue",
+                        @"{area}/{controller=Home}/{action=Index}");
+            _config.Set("TemplateCollection:actionAsMethod:TemplateValue",
+                        @"{controller=Home}/{action=Index}");
 
-                routes.MapRoute("actionAsMethod", "{controller}/{action}",
-                    defaults: new { controller = "Home", action = "Index" });
-            });
+            _config.Commit();
 
-            var server = TestServer.Create(_provider, _app.Configure);
+            var server = TestServer.Create(_provider, _app);
             var client = server.Handler;
 
             // Act & Assert

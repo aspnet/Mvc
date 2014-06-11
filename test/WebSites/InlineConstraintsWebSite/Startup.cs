@@ -1,18 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Runtime;
 
 namespace InlineConstraints
 {
     public class Startup
     {
-        public Startup()
-        {
-            RouteCollectionProvider = AddDefaultRoutes;
-        }
-
         public Action<IRouteBuilder> RouteCollectionProvider { get; set; }
         public void Configure(IBuilder app)
         {
@@ -27,18 +26,46 @@ namespace InlineConstraints
                 services.AddTransient<IControllerAssemblyProvider, TestControllerAssemblyProvider>();
             });
 
+            var config = new Configuration();
+            config.AddEnvironmentVariables();
+
+            string appConfigPath;
+            if (config.TryGet("AppConfigPath", out appConfigPath))
+            {
+                config.AddJsonFile(appConfigPath);
+            }
+            else
+            {
+                var basePath = app.ApplicationServices.GetService<IApplicationEnvironment>().ApplicationBasePath;
+                config.AddJsonFile(Path.Combine(basePath, @"App_Data\config.json"));
+            }
+
             // Add MVC to the request pipeline
-            app.UseMvc(RouteCollectionProvider);
+            app.UseMvc(routes=> {
+                foreach (var item in GetDataFromConfig(config))
+                {
+                    routes.MapRoute(item.RouteName, item.RouteTemplateValue);
+                }
+            });
         }
 
-        private void AddDefaultRoutes(IRouteBuilder routes)
+        private IEnumerable<RouteConfigData> GetDataFromConfig(IConfiguration config)
         {
-            routes.MapRoute("areaRoute",
-                             "{area:exists}/{controller}/{action}",
-                             new { controller = "Home", action = "Index" });
+            foreach (var template in config.GetSubKey("TemplateCollection").GetSubKeys())
+            {
+                yield return 
+                    new RouteConfigData()
+                    {
+                        RouteName = template.Key,
+                        RouteTemplateValue = template.Value.Get("TemplateValue")
+                    };
+            }
+        }
 
-            routes.MapRoute("ActionAsMethod", "{controller}/{action}",
-                defaults: new { controller = "Home", action = "Index" });
+      private class RouteConfigData
+        {
+            public string RouteName { get; set; }
+            public string RouteTemplateValue { get; set; }
         }
     }
 }

@@ -26,11 +26,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="compiler\resources\BasicWebSite.Home.Index.html" />
+    <Content Include="config\InlineConstraintTestsConfig.json" />
     <Content Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestHelper.cs" />
     <Compile Include="InlineConstraintTests.cs" />
+    <Compile Include="TestHelper.cs" />
     <Compile Include="BasicTests.cs" />
     <Compile Include="HttpResponseHelpers.cs" />
     <Compile Include="ResourceHelpers.cs" />

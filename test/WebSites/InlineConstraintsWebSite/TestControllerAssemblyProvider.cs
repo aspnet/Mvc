@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
 
 namespace InlineConstraints
 {
@@ -14,7 +10,7 @@ namespace InlineConstraints
         {
             get
             {
-                return new[] { Assembly.GetExecutingAssembly() };
+                return new[] { typeof(TestControllerAssemblyProvider).GetTypeInfo().Assembly };
             }
         }
     }
