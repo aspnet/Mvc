@@ -433,7 +433,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
         // These tests share code with the ActionFilterAttribute tests because the various filter
         // implementations need to behave the same way.
-
+#if NET45
         [Fact]
         public async Task Controller_ActionFilter_SettingResult_ShortCircuits()
         {
@@ -447,5 +447,6 @@ namespace Microsoft.AspNet.Mvc.Test
             await ActionFilterAttributeTests.ActionFilter_Calls_OnActionExecuted(
                 new Mock<Controller>());
         }
+#endif
     }
 }
