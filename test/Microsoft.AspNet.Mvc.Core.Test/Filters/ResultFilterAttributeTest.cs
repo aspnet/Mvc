@@ -8,14 +8,14 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Test
 {
-    // These tests share code with the ActionFilterAttribute tests because the I{Async}ResultFilter
+    // These tests share code with the ActionFilterAttribute tests because the IAsyncResultFilter
     // implementations need to behave the same way.
     public class ResultFilterAttributeTest
     {
         [Fact]
-        public async Task ResultFilterAttribute_ResultFilter_CallsBothMethods()
+        public async Task ResultFilterAttribute_ResultFilter_Calls_OnResultExecuted()
         {
-            await ActionFilterAttributeTests.ResultFilter_CallsBothMethods(
+            await ActionFilterAttributeTests.ResultFilter_Calls_OnResultExecuted(
                 new Mock<ResultFilterAttribute>());
         }
 

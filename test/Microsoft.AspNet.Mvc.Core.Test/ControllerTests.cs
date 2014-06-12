@@ -431,8 +431,6 @@ namespace Microsoft.AspNet.Mvc.Test
             }
         }
 
-        #region Filter Implementations
-
         // These tests share code with the ActionFilterAttribute tests because the various filter
         // implementations need to behave the same way.
 
@@ -444,12 +442,10 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public async Task Controller_ActionFilter_CallsBothMethods()
+        public async Task Controller_ActionFilter_Calls_OnActionExecuted()
         {
-            await ActionFilterAttributeTests.ActionFilter_CallsBothMethods(
+            await ActionFilterAttributeTests.ActionFilter_Calls_OnActionExecuted(
                 new Mock<Controller>());
         }
-
-        #endregion
     }
 }

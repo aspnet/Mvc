@@ -20,13 +20,13 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public async Task ActionAttributeFilter_ActionFilter_CallsBothMethods()
+        public async Task ActionAttributeFilter_ActionFilter_Calls_OnActionExecuted()
         {
-            await ActionFilter_CallsBothMethods(new Mock<ActionFilterAttribute>());
+            await ActionFilter_Calls_OnActionExecuted(new Mock<ActionFilterAttribute>());
         }
 
         // This is used as a 'common' test method for ActionFilterAttribute and Controller
-        public static async Task ActionFilter_CallsBothMethods(Mock mock)
+        public static async Task ActionFilter_Calls_OnActionExecuted(Mock mock)
         {
             // Arrange
             mock.As<IAsyncActionFilter>()
@@ -91,9 +91,9 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public async Task ActionAttributeFilter_ResultFilter_CallsBothMethods()
+        public async Task ActionAttributeFilter_ResultFilter_Calls_OnResultExecuted()
         {
-            await ResultFilter_CallsBothMethods(new Mock<ActionFilterAttribute>());
+            await ResultFilter_Calls_OnResultExecuted(new Mock<ActionFilterAttribute>());
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         // This is used as a 'common' test method for ActionFilterAttribute and ResultFilterAttribute
-        public static async Task ResultFilter_CallsBothMethods(Mock mock)
+        public static async Task ResultFilter_Calls_OnResultExecuted(Mock mock)
         {
             // Arrange
             mock.As<IAsyncResultFilter>()
