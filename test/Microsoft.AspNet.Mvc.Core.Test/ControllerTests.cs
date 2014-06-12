@@ -48,37 +48,41 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void Redirect_Temporary_SetsSameUrl()
+        public void Redirect_WithParameterUrl_SetsRedirectResultSameUrl()
         {
             // Arrange
             var controller = new Controller();
+            var url = "/test/url";
 
             // Act
-            var result = controller.Redirect("sample\\url");
+            var result = controller.Redirect(url);
 
             // Assert
+            Assert.IsType<RedirectResult>(result);
             Assert.False(result.Permanent);
-            Assert.Equal("sample\\url", result.Url);
+            Assert.Same(url, result.Url);
         }
 
         [Fact]
-        public void Redirect_Permanent_SetsSameUrl()
+        public void RedirectPermanent_WithParameterUrl_SetsRedirectResultPermanentAndSameUrl()
         {
             // Arrange
             var controller = new Controller();
+            var url = "/test/url";
 
             // Act
-            var result = controller.RedirectPermanent("sample\\url");
+            var result = controller.RedirectPermanent(url);
 
             // Assert
+            Assert.IsType<RedirectResult>(result);
             Assert.True(result.Permanent);
-            Assert.Equal("sample\\url", result.Url);
+            Assert.Same(url, result.Url);
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void Redirect_NullOrEmptyUrl_Throws(string url)
+        public void Redirect_WithParameter_NullOrEmptyUrl_Throws(string url)
         {
             // Arrange
             var controller = new Controller();
@@ -91,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Core
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void RedirectPermanent_NullOrEmptyUrl_Throws(string url)
+        public void RedirectPermanent_WithParameter_NullOrEmptyUrl_Throws(string url)
         {
             // Arrange
             var controller = new Controller();
@@ -102,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void RedirectToAction_Temporary_Returns_SameAction()
+        public void RedirectToAction_WithParameterActionName_SetsResultActionName()
         {
             // Arrange
             var controller = new Controller();
@@ -111,12 +115,13 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToAction("SampleAction");
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Equal("SampleAction", resultTemporary.ActionName);
         }
 
         [Fact]
-        public void RedirectToAction_Permanent_Returns_SameAction()
+        public void RedirectToActionPermanent_WithParameterActionName_SetsResultActionNameAndPermanent()
         {
             // Arrange
             var controller = new Controller();
@@ -125,6 +130,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultPermanent = controller.RedirectToActionPermanent("SampleAction");
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Equal("SampleAction", resultPermanent.ActionName);
         }
@@ -133,7 +139,7 @@ namespace Microsoft.AspNet.Mvc.Core
         [InlineData("")]
         [InlineData(null)]
         [InlineData("SampleController")]
-        public void RedirectToAction_Temporary_Returns_SameController(string controllerName)
+        public void RedirectToAction_WithParameterActionAndControllerName_SetsEqualNames(string controllerName)
         {
             // Arrange
             var controller = new Controller();
@@ -142,6 +148,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToAction("SampleAction", controllerName);
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Equal("SampleAction", resultTemporary.ActionName);
             Assert.Equal(controllerName, resultTemporary.ControllerName);
@@ -151,7 +158,8 @@ namespace Microsoft.AspNet.Mvc.Core
         [InlineData("")]
         [InlineData(null)]
         [InlineData("SampleController")]
-        public void RedirectToAction_Permanent_Returns_SameController(string controllerName)
+        public void RedirectToActionPermanent_WithParameterActionAndControllerName_SetsEqualNames(
+            string controllerName)
         {
             // Arrange
             var controller = new Controller();
@@ -160,6 +168,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultPermanent = controller.RedirectToActionPermanent("SampleAction", controllerName);
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Equal("SampleAction", resultPermanent.ActionName);
             Assert.Equal(controllerName, resultPermanent.ControllerName);
@@ -167,7 +176,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToAction_Temporary_Returns_SameActionControllerAndRouteValues(object routeValues)
+        public void RedirectToAction_WithParameterActionControllerRouteValues_SetsResultProperties(object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -176,6 +185,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToAction("SampleAction", "SampleController", routeValues);
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Equal("SampleAction", resultTemporary.ActionName);
             Assert.Equal("SampleController", resultTemporary.ControllerName);
@@ -184,15 +194,20 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToAction_Permanent_Returns_SameActionControllerAndRouteValues(object routeValues)
+        public void RedirectToActionPermanent_WithParameterActionControllerRouteValues_SetsResultProperties(
+            object routeValues)
         {
             // Arrange
             var controller = new Controller();
 
             // Act
-            var resultPermanent = controller.RedirectToActionPermanent("SampleAction", "SampleController", routeValues);
+            var resultPermanent = controller.RedirectToActionPermanent(
+                "SampleAction",
+                "SampleController",
+                routeValues);
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Equal("SampleAction", resultPermanent.ActionName);
             Assert.Equal("SampleController", resultPermanent.ControllerName);
@@ -201,7 +216,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToAction_Temporary_Returns_SameActionAndRouteValues(object routeValues)
+        public void RedirectToAction_WithParameterActionAndRouteValues_SetsResultProperties(object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -210,6 +225,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToAction(actionName: null, routeValues: routeValues);
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Null(resultTemporary.ActionName);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultTemporary.RouteValues);
@@ -217,7 +233,8 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToAction_Permanent_Returns_SameActionAndRouteValues(object routeValues)
+        public void RedirectToActionPermanent_WithParameterActionAndRouteValues_SetsResultProperties(
+            object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -226,6 +243,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultPermanent = controller.RedirectToActionPermanent(null, routeValues);
 
             // Assert
+            Assert.IsType<RedirectToActionResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Null(resultPermanent.ActionName);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultPermanent.RouteValues);
@@ -233,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToRoute_Temporary_Returns_SameRouteValues(object routeValues)
+        public void RedirectToRoute_WithParameterRouteValues_SetsResultEqualRouteValues(object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -242,13 +260,15 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToRoute(routeValues);
 
             // Assert
+            Assert.IsType<RedirectToRouteResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultTemporary.RouteValues);
         }
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToRoute_Permanent_Returns_SameRouteValues(object routeValues)
+        public void RedirectToRoutePermanent_WithParameterRouteValues_SetsResultEqualRouteValuesAndPermanent(
+            object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -257,12 +277,13 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultPermanent = controller.RedirectToRoutePermanent(routeValues);
 
             // Assert
+            Assert.IsType<RedirectToRouteResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultPermanent.RouteValues);
         }
 
         [Fact]
-        public void RedirectToRoute_Temporary_Returns_SameRouteName()
+        public void RedirectToRoute_WithParameterRouteName_SetsResultSameRouteName()
         {
             // Arrange
             var controller = new Controller();
@@ -272,12 +293,13 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToRoute(routeName);
 
             // Assert
+            Assert.IsType<RedirectToRouteResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Same(routeName, resultTemporary.RouteName);
         }
 
         [Fact]
-        public void RedirectToRoute_Permanent_Returns_SameRouteName()
+        public void RedirectToRoutePermanent_WithParameterRouteName_SetsResultSameRouteNameAndPermanent()
         {
             // Arrange
             var controller = new Controller();
@@ -287,13 +309,15 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultPermanent = controller.RedirectToRoutePermanent(routeName);
 
             // Assert
+            Assert.IsType<RedirectToRouteResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Same(routeName, resultPermanent.RouteName);
         }
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToRoute_Temporary_Returns_SameRouteNameAndEqualRouteValues(object routeValues)
+        public void RedirectToRoute_WithParameterRouteNameAndRouteValues_SetsResultSameRouteNameAndRouteValues(
+            object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -303,6 +327,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultTemporary = controller.RedirectToRoute(routeName, routeValues);
 
             // Assert
+            Assert.IsType<RedirectToRouteResult>(resultTemporary);
             Assert.False(resultTemporary.Permanent);
             Assert.Same(routeName, resultTemporary.RouteName);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultTemporary.RouteValues);
@@ -310,7 +335,8 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData("RedirectTestData")]
-        public void RedirectToRoute_Permanent_Returns_SameRouteNameAndEqualRouteValues(object routeValues)
+        public void RedirectToRoutePermanent_WithParameterRouteNameAndRouteValues_SetsResultProperties(
+            object routeValues)
         {
             // Arrange
             var controller = new Controller();
@@ -320,6 +346,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var resultPermanent = controller.RedirectToRoutePermanent(routeName, routeValues);
 
             // Assert
+            Assert.IsType<RedirectToRouteResult>(resultPermanent);
             Assert.True(resultPermanent.Permanent);
             Assert.Same(routeName, resultPermanent.RouteName);
             Assert.Equal(TypeHelper.ObjectToDictionary(routeValues), resultPermanent.RouteValues);
@@ -479,14 +506,17 @@ namespace Microsoft.AspNet.Mvc.Core
             get
             {
                 yield return new object[] { null };
-                yield return
-                    new object[] {
-                        new Dictionary<string, string>() { { "hello", "world" } }
+                yield return new object[]
+                    {
+                        new Dictionary<string, string>() { { "hello", "world" } },
                     };
-                yield return
-                    new object[] {
-                        new RouteValueDictionary(new Dictionary<string, string>() { 
-                                                        { "test", "case" }, { "sample", "route" } })
+                yield return new object[]
+                    {
+                        new RouteValueDictionary(new Dictionary<string, string>()
+                            {
+                                { "test", "case" },
+                                { "sample", "route" },
+                            }),
                     };
             }
         }

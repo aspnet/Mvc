@@ -18,11 +18,6 @@ namespace Microsoft.AspNet.Mvc
         private IServiceProvider _serviceProvider;
         private IViewEngine _viewEngine;
 
-        /// <summary>
-        /// Initializes required services for the controller.
-        /// </summary>
-        /// <param name="serviceProvider">The <see cref="IServiceProvider"/>.</param>
-        /// <param name="viewEngine">The <see cref="IViewEngine"/>.</param>
         [NonAction]
         public virtual void Initialize(IServiceProvider serviceProvider, IViewEngine viewEngine)
         {
