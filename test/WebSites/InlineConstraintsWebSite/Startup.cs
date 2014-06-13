@@ -62,7 +62,7 @@ namespace InlineConstraints
             }
         }
 
-      private class RouteConfigData
+        private class RouteConfigData
         {
             public string RouteName { get; set; }
             public string RouteTemplateValue { get; set; }

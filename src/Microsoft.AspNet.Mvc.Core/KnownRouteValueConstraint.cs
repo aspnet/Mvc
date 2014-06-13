@@ -53,8 +53,9 @@ namespace Microsoft.AspNet.Mvc
                 var routeValueCollection = actionDescriptors
                                             .Items
                                             .Select(ad => ad.RouteConstraints
-                                                            .FirstOrDefault(c => c.RouteKey == routeKey &&
-                                                                            c.KeyHandling == RouteKeyHandling.RequireKey))
+                                                            .FirstOrDefault(
+                                                                c => c.RouteKey == routeKey &&
+                                                                c.KeyHandling == RouteKeyHandling.RequireKey))
                                             .Where(rc => rc != null)
                                             .Select(rc => rc.RouteValue)
                                             .Distinct()
