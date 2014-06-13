@@ -43,19 +43,7 @@ namespace Microsoft.AspNet.Mvc
             for (var i = 0; i < propertiesToActivate.Length; i++)
             {
                 var activateInfo = propertiesToActivate[i];
-                var value = activateInfo.ValueAccessor(context);
-
-                if (controllerTypeInfo.IsValueType)
-                {
-                    // The fast property setter does not work with value types - casting it from object type to 
-                    // TDeclaringType creates a new value type and we end up setting the property value on this new
-                    // instance. We'll use the slow reflection code path to activate value types.
-                    activateInfo.PropertyInfo.SetValue(instance, value);
-                }
-                else
-                {
-                    activateInfo.FastPropertySetter(instance, value);
-                }
+                activateInfo.Activate(instance, context);
             }
 
             context.Controller = instance;
@@ -104,26 +92,42 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return new ActivateInfo(property,
-                                    valueAccessor,
-                                    PropertyHelper.MakeFastPropertySetter(property));
+                                    valueAccessor);
         }
 
         private sealed class ActivateInfo
         {
+            private readonly PropertyInfo _propertyInfo;
+            private readonly Func<ActionContext, object> _valueAccessor;
+            private readonly Action<object, object> _fastPropertySetter;
+
             public ActivateInfo(PropertyInfo propertyInfo,
-                                Func<ActionContext, object> valueAccessor,
-                                Action<object, object> fastPropertySetter)
+                                Func<ActionContext, object> valueAccessor)
             {
-                PropertyInfo = propertyInfo;
-                ValueAccessor = valueAccessor;
-                FastPropertySetter = fastPropertySetter;
+                _propertyInfo = propertyInfo;
+                _valueAccessor = valueAccessor;
+
+                // The fast property setter does not work with value types - casting it from object type to 
+                // TDeclaringType creates a new value type and we end up setting the property value on this new
+                // instance. We'll use the slow reflection code path to activate value types.
+                if (!propertyInfo.DeclaringType.GetTypeInfo().IsValueType)
+                {
+                    _fastPropertySetter = PropertyHelper.MakeFastPropertySetter(propertyInfo);
+                }
             }
 
-            public PropertyInfo PropertyInfo { get; private set; }
-
-            public Func<ActionContext, object> ValueAccessor { get; private set; }
-
-            public Action<object, object> FastPropertySetter { get; private set; }
+            public void Activate(object instance, ActionContext context)
+            {
+                var value = _valueAccessor(context);
+                if (_fastPropertySetter != null)
+                {
+                    _fastPropertySetter(instance, value);
+                }
+                else
+                {
+                    _propertyInfo.SetValue(instance, value);
+                }
+            }
         }
     }
 }

@@ -24,7 +24,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(Mock.Of<IServiceProvider>());
             var routeContext = new RouteContext(httpContext.Object);
-            var type = new TestController();
             var controller = new TestController();
             var context = new ActionContext(routeContext, new ActionDescriptor())
             {
@@ -53,7 +52,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(service.Object);
             var routeContext = new RouteContext(httpContext.Object);
-            var type = new TestController();
             var controller = new TestController();
             var context = new ActionContext(routeContext, new ActionDescriptor())
             {
@@ -81,7 +79,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(service.Object);
             var routeContext = new RouteContext(httpContext.Object);
-            var type = new TestController();
             var controller = new TestController();
             var context = new ActionContext(routeContext, new ActionDescriptor())
             {
@@ -97,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public void Activate_IgnorePropertiesTahatAreNotDecoratedWithActivateAttribute()
+        public void Activate_IgnoresPropertiesThatAreNotDecoratedWithActivateAttribute()
         {
             // Arrange
             var httpContext = new Mock<HttpContext>();
@@ -106,7 +103,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(Mock.Of<IServiceProvider>());
             var routeContext = new RouteContext(httpContext.Object);
-            var type = new TestController();
             var controller = new TestController();
             var context = new ActionContext(routeContext, new ActionDescriptor())
             {
@@ -119,6 +115,29 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.Null(controller.Response);
+        }
+
+        [Fact]
+        public void Activate_SetsPropertiesForValueTypes()
+        {
+            // Arrange
+            var response = Mock.Of<HttpResponse>();
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(c => c.Response)
+                       .Returns(response);
+            var routeContext = new RouteContext(httpContext.Object);
+            var context = new ActionContext(routeContext, new ActionDescriptor())
+            {
+                Controller = new TestValueTypeController()
+            };
+            var activator = new DefaultControllerActivator();
+
+            // Act
+            activator.Activate(context);
+
+            // Assert
+            var controller = (TestValueTypeController)context.Controller;
+            Assert.Same(response, controller.Response);
         }
 
         public class TestController
@@ -138,6 +157,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             [Activate]
             public IUrlHelper Helper { get; set; }
 
+            public HttpResponse Response { get; set; }
+        }
+
+        public struct TestValueTypeController
+        {
+            [Activate]
             public HttpResponse Response { get; set; }
         }
     }
