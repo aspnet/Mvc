@@ -36,6 +36,12 @@ namespace Microsoft.AspNet.Mvc
         public ActionContext ActionContext { get; set; }
 
         [Activate]
+        public IServiceProvider ServiceProvider { get; set; }
+
+        [Activate]
+        public IViewEngine ViewEngine { get; set; }
+
+        [Activate]
         public IUrlHelper Url { get; set; }
 
         public IPrincipal User
@@ -95,7 +101,7 @@ namespace Microsoft.AspNet.Mvc
                 ViewData.Model = model;
             }
 
-            return new ViewResult()
+            return new ViewResult(ServiceProvider, ViewEngine)
             {
                 ViewName = view,
                 ViewData = ViewData,

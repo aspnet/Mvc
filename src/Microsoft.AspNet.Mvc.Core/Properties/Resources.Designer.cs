@@ -1003,7 +1003,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A controller instance must be specified by the ActionContext for Activate to be invoked.
+        /// ActionContext.Controller must have a non-null value for Activate to be invoked.
         /// </summary>
         internal static string ControllerActivator_ControllerRequired
         {
@@ -1011,11 +1011,27 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A controller instance must be specified by the ActionContext for Activate to be invoked.
+        /// ActionContext.Controller must have a non-null value for Activate to be invoked.
         /// </summary>
         internal static string FormatControllerActivator_ControllerRequired()
         {
             return GetString("ControllerActivator_ControllerRequired");
+        }
+
+        /// <summary>
+        /// The action descriptor must be of type '{0}'.
+        /// </summary>
+        internal static string DefaultControllerFactory_ActionDescriptorMustBeReflected
+        {
+            get { return GetString("DefaultControllerFactory_ActionDescriptorMustBeReflected"); }
+        }
+
+        /// <summary>
+        /// The action descriptor must be of type '{0}'.
+        /// </summary>
+        internal static string FormatDefaultControllerFactory_ActionDescriptorMustBeReflected(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("DefaultControllerFactory_ActionDescriptorMustBeReflected"), p0);
         }
 
         private static string GetString(string name, params string[] formatterNames)

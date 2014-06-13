@@ -71,6 +71,7 @@
     <Compile Include="DefaultActionSelector.cs" />
     <Compile Include="DefaultControllerAssemblyProvider.cs" />
     <Compile Include="DefaultControllerDescriptorFactory.cs" />
+    <Compile Include="DefaultControllerFactory.cs" />
     <Compile Include="DefaultParameterDescriptorFactory.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Filters\FilterItemOrderComparer.cs" />
@@ -132,6 +133,7 @@
     <Compile Include="IControllerAssemblyProvider.cs" />
     <Compile Include="IControllerDescriptorFactory.cs" />
     <Compile Include="DefaultControllerActivator.cs" />
+    <Compile Include="IControllerFactory.cs" />
     <Compile Include="Injector.cs" />
     <Compile Include="Internal\PropertyHelper.cs" />
     <Compile Include="Internal\TypeHelper.cs" />

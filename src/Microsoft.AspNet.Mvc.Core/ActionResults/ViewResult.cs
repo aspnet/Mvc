@@ -2,26 +2,24 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class ViewResult : ActionResult
     {
         private const int BufferSize = 1024;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IViewEngine _viewEngine;
 
-        public ViewResult()
+        public ViewResult([NotNull] IServiceProvider serviceProvider, [NotNull] IViewEngine viewEngine)
         {
-        }
-
-        public ViewResult([NotNull] IViewEngine viewEngine)
-        {
+            _serviceProvider = serviceProvider;
             _viewEngine = viewEngine;
         }
 
@@ -32,7 +30,7 @@ namespace Microsoft.AspNet.Mvc
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
             var viewName = ViewName ?? context.ActionDescriptor.Name;
-            var view = FindView(context, viewName);
+            var view = FindView(context.RouteData.Values, viewName);
 
             using (view as IDisposable)
             {
@@ -58,13 +56,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private IView FindView([NotNull] ActionContext context, [NotNull] string viewName)
+        private IView FindView([NotNull] IDictionary<string, object> context, [NotNull] string viewName)
         {
-            var viewEngine = _viewEngine ?? context.HttpContext
-                                                   .RequestServices
-                                                   .GetService<IViewEngine>();
-
-            var result = viewEngine.FindView(context.RouteData.Values, viewName);
+            var result = _viewEngine.FindView(context, viewName);
             if (!result.Success)
             {
                 var locations = string.Empty;

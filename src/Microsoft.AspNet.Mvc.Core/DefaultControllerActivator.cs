@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -15,8 +16,15 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultControllerActivator : IControllerActivator
     {
-        private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _propertyLookup
-            = new ConcurrentDictionary<Type, List<PropertyInfo>>();
+        private static readonly Dictionary<Type, Func<ActionContext, object>> _valueAccessorLookup
+            = CreateValueAccessorLookup();
+        private static readonly Func<Type, ActivateInfo[]> _getPropertiesToActivate =
+            GetPropertiesToActivate;
+        private static readonly Func<PropertyInfo, ActivateInfo> _createActivateInfo =
+            CreateActivateInfo;
+
+        private readonly ConcurrentDictionary<Type, ActivateInfo[]> _injectActions
+            = new ConcurrentDictionary<Type, ActivateInfo[]>();
 
         public void Activate([NotNull] ActionContext context)
         {
@@ -25,57 +33,97 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.ControllerActivator_ControllerRequired);
             }
 
+            var controllerType = context.Controller.GetType();
+            var controllerTypeInfo = controllerType.GetTypeInfo();
+            var propertiesToActivate = _injectActions.GetOrAdd(controllerType,
+                                                               _getPropertiesToActivate);
 
-            var propertiesToActivate = _propertyLookup.GetOrAdd(
-                                            context.Controller.GetType(),
-                                            GetPropertiesToActivate);
-
-            for (var i = 0; i < propertiesToActivate.Count; i++)
+            // Get a boxed version of the instance in the event we're dealing with a value type.
+            var instance = RuntimeHelpers.GetObjectValue(context.Controller);
+            for (var i = 0; i < propertiesToActivate.Length; i++)
             {
-                ActivateProperty(context, propertiesToActivate[i]);
+                var activateInfo = propertiesToActivate[i];
+                var value = activateInfo.ValueAccessor(context);
+
+                if (controllerTypeInfo.IsValueType)
+                {
+                    // The fast property setter does not work with value types - casting it from object type to 
+                    // TDeclaringType creates a new value type and we end up setting the property value on this new
+                    // instance. We'll use the slow reflection code path to activate value types.
+                    activateInfo.PropertyInfo.SetValue(instance, value);
+                }
+                else
+                {
+                    activateInfo.FastPropertySetter(instance, value);
+                }
             }
+
+            context.Controller = instance;
         }
 
-        private static List<PropertyInfo> GetPropertiesToActivate(Type controllerType)
+        private static Dictionary<Type, Func<ActionContext, object>> CreateValueAccessorLookup()
+        {
+            return new Dictionary<Type, Func<ActionContext, object>>
+            {
+                { typeof(ActionContext), (context) => context },
+                { typeof(HttpContext), (context) => context.HttpContext },
+                { typeof(HttpRequest), (context) => context.HttpContext.Request },
+                { typeof(HttpResponse), (context) => context.HttpContext.Response },
+                {
+                    typeof(ViewDataDictionary),
+                    (context) =>
+                    {
+                        var serviceProvider = context.HttpContext.RequestServices;
+                        return new ViewDataDictionary(
+                            serviceProvider.GetService<IModelMetadataProvider>(),
+                            context.ModelState);
+                    }
+                }
+            };
+        }
+
+        private static ActivateInfo[] GetPropertiesToActivate(Type controllerType)
         {
             return controllerType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                 .Where(p => p.IsDefined(typeof(ActivateAttribute)) &&
-                                             p.GetSetMethod() != null)
-                                 .ToList();
+                                 .Where(property => property.IsDefined(typeof(ActivateAttribute)) &&
+                                                    property.GetSetMethod() != null)
+                                 .Select(_createActivateInfo)
+                                 .ToArray();
         }
 
-        private static void ActivateProperty(ActionContext context, PropertyInfo property)
+        private static ActivateInfo CreateActivateInfo(PropertyInfo property)
         {
-            var serviceProvider = context.HttpContext.RequestServices;
+            Func<ActionContext, object> valueAccessor;
+            if (!_valueAccessorLookup.TryGetValue(property.PropertyType, out valueAccessor))
+            {
+                valueAccessor = (actionContext) =>
+                {
+                    var serviceProvider = actionContext.HttpContext.RequestServices;
+                    return serviceProvider.GetService(property.PropertyType);
+                };
+            }
 
-            if (typeof(ActionContext).IsAssignableFrom(property.PropertyType))
+            return new ActivateInfo(property,
+                                    valueAccessor,
+                                    PropertyHelper.MakeFastPropertySetter(property));
+        }
+
+        private sealed class ActivateInfo
+        {
+            public ActivateInfo(PropertyInfo propertyInfo,
+                                Func<ActionContext, object> valueAccessor,
+                                Action<object, object> fastPropertySetter)
             {
-                property.SetValue(context.Controller, context);
+                PropertyInfo = propertyInfo;
+                ValueAccessor = valueAccessor;
+                FastPropertySetter = fastPropertySetter;
             }
-            else if (typeof(HttpContext).IsAssignableFrom(property.PropertyType))
-            {
-                property.SetValue(context.Controller, context.HttpContext);
-            }
-            else if (typeof(HttpRequest).IsAssignableFrom(property.PropertyType))
-            {
-                property.SetValue(context.Controller, context.HttpContext.Request);
-            }
-            else if (typeof(HttpResponse).IsAssignableFrom(property.PropertyType))
-            {
-                property.SetValue(context.Controller, context.HttpContext.Response);
-            }
-            else if (typeof(ViewDataDictionary).IsAssignableFrom(property.PropertyType))
-            {
-                var viewData = new ViewDataDictionary(
-                    serviceProvider.GetService<IModelMetadataProvider>(),
-                    context.ModelState);
-                property.SetValue(context.Controller, viewData);
-            }
-            else
-            {
-                var value = serviceProvider.GetService(property.PropertyType);
-                property.SetValue(context.Controller, value);
-            }
+
+            public PropertyInfo PropertyInfo { get; private set; }
+
+            public Func<ActionContext, object> ValueAccessor { get; private set; }
+
+            public Action<object, object> FastPropertySetter { get; private set; }
         }
     }
 }

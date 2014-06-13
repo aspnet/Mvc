@@ -17,9 +17,7 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly ActionContext _actionContext;
         private readonly ReflectedActionDescriptor _descriptor;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ITypeActivator _typeActivator;
-        private readonly IControllerActivator _controllerActivator;
+        private readonly IControllerFactory _controllerFactory;
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
 
@@ -38,17 +36,13 @@ namespace Microsoft.AspNet.Mvc
 
         public ReflectedActionInvoker([NotNull] ActionContext actionContext,
                                       [NotNull] ReflectedActionDescriptor descriptor,
-                                      [NotNull] IServiceProvider serviceProvider,
-                                      [NotNull] ITypeActivator typeActivator,
-                                      [NotNull] IControllerActivator controllerActivator,
+                                      [NotNull] IControllerFactory controllerFactory,
                                       [NotNull] IActionBindingContextProvider bindingContextProvider,
                                       [NotNull] INestedProviderManager<FilterProviderContext> filterProvider)
         {
             _actionContext = actionContext;
             _descriptor = descriptor;
-            _serviceProvider = serviceProvider;
-            _typeActivator = typeActivator;
-            _controllerActivator = controllerActivator;
+            _controllerFactory = controllerFactory;
             _bindingProvider = bindingContextProvider;
             _filterProvider = filterProvider;
 
@@ -63,13 +57,15 @@ namespace Microsoft.AspNet.Mvc
 
         public async Task InvokeActionAsync()
         {
-            var controllerType = _descriptor.ControllerDescriptor.ControllerTypeInfo.AsType();
-            var controller = _typeActivator.CreateInstance(_serviceProvider, controllerType);
-            using (controller as IDisposable)
+            var controller = _controllerFactory.CreateController(_actionContext);
+            try
             {
                 _actionContext.Controller = controller;
-                _controllerActivator.Activate(_actionContext);
                 await InvokeActionAsyncCore();
+            }
+            finally
+            {
+                _controllerFactory.ReleaseController(controller);
             }
         }
 

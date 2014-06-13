@@ -304,6 +304,9 @@
     <value>Cannot return null from an action method with a return type of '{0}'.</value>
   </data>
   <data name="ControllerActivator_ControllerRequired" xml:space="preserve">
-    <value>A controller instance must be specified by the ActionContext for Activate to be invoked.</value>
+    <value>ActionContext.Controller must have a non-null value for Activate to be invoked.</value>
+  </data>
+  <data name="DefaultControllerFactory_ActionDescriptorMustBeReflected" xml:space="preserve">
+    <value>The action descriptor must be of type '{0}'.</value>
   </data>
 </root>
