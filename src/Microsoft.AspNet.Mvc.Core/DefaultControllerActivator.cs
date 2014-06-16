@@ -4,11 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 
@@ -16,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultControllerActivator : IControllerActivator
     {
-        private static readonly Dictionary<Type, Func<ActionContext, object>> _valueAccessorLookup
+        private static readonly ReadOnlyDictionary<Type, Func<ActionContext, object>> _valueAccessorLookup
             = CreateValueAccessorLookup();
         private static readonly Func<Type, ActivateInfo[]> _getPropertiesToActivate =
             GetPropertiesToActivate;
@@ -26,32 +25,23 @@ namespace Microsoft.AspNet.Mvc
         private readonly ConcurrentDictionary<Type, ActivateInfo[]> _injectActions
             = new ConcurrentDictionary<Type, ActivateInfo[]>();
 
-        public void Activate([NotNull] ActionContext context)
+        public void Activate([NotNull] object controller, [NotNull] ActionContext context)
         {
-            if (context.Controller == null)
-            {
-                throw new InvalidOperationException(Resources.ControllerActivator_ControllerRequired);
-            }
-
-            var controllerType = context.Controller.GetType();
+            var controllerType = controller.GetType();
             var controllerTypeInfo = controllerType.GetTypeInfo();
             var propertiesToActivate = _injectActions.GetOrAdd(controllerType,
                                                                _getPropertiesToActivate);
 
-            // Get a boxed version of the instance in the event we're dealing with a value type.
-            var instance = RuntimeHelpers.GetObjectValue(context.Controller);
             for (var i = 0; i < propertiesToActivate.Length; i++)
             {
                 var activateInfo = propertiesToActivate[i];
-                activateInfo.Activate(instance, context);
+                activateInfo.Activate(controller, context);
             }
-
-            context.Controller = instance;
         }
 
-        private static Dictionary<Type, Func<ActionContext, object>> CreateValueAccessorLookup()
+        private static ReadOnlyDictionary<Type, Func<ActionContext, object>> CreateValueAccessorLookup()
         {
-            return new Dictionary<Type, Func<ActionContext, object>>
+            var dictionary = new Dictionary<Type, Func<ActionContext, object>>
             {
                 { typeof(ActionContext), (context) => context },
                 { typeof(HttpContext), (context) => context.HttpContext },
@@ -68,13 +58,15 @@ namespace Microsoft.AspNet.Mvc
                     }
                 }
             };
+            return new ReadOnlyDictionary<Type, Func<ActionContext, object>>(dictionary);
         }
 
         private static ActivateInfo[] GetPropertiesToActivate(Type controllerType)
         {
-            return controllerType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            return controllerType.GetProperties(bindingFlags)
                                  .Where(property => property.IsDefined(typeof(ActivateAttribute)) &&
-                                                    property.GetSetMethod() != null)
+                                                    property.GetSetMethod(nonPublic: true) != null)
                                  .Select(_createActivateInfo)
                                  .ToArray();
         }
@@ -107,9 +99,7 @@ namespace Microsoft.AspNet.Mvc
                 _propertyInfo = propertyInfo;
                 _valueAccessor = valueAccessor;
 
-                // The fast property setter does not work with value types - casting it from object type to 
-                // TDeclaringType creates a new value type and we end up setting the property value on this new
-                // instance. We'll use the slow reflection code path to activate value types.
+                // The fast property setter throws if the declaring type is a value type.
                 if (!propertyInfo.DeclaringType.GetTypeInfo().IsValueType)
                 {
                     _fastPropertySetter = PropertyHelper.MakeFastPropertySetter(propertyInfo);
@@ -122,10 +112,6 @@ namespace Microsoft.AspNet.Mvc
                 if (_fastPropertySetter != null)
                 {
                     _fastPropertySetter(instance, value);
-                }
-                else
-                {
-                    _propertyInfo.SetValue(instance, value);
                 }
             }
         }

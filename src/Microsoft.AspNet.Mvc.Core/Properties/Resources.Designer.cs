@@ -1003,22 +1003,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// ActionContext.Controller must have a non-null value for Activate to be invoked.
-        /// </summary>
-        internal static string ControllerActivator_ControllerRequired
-        {
-            get { return GetString("ControllerActivator_ControllerRequired"); }
-        }
-
-        /// <summary>
-        /// ActionContext.Controller must have a non-null value for Activate to be invoked.
-        /// </summary>
-        internal static string FormatControllerActivator_ControllerRequired()
-        {
-            return GetString("ControllerActivator_ControllerRequired");
-        }
-
-        /// <summary>
         /// The action descriptor must be of type '{0}'.
         /// </summary>
         internal static string DefaultControllerFactory_ActionDescriptorMustBeReflected

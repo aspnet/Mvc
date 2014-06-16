@@ -32,12 +32,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var activator = new DefaultControllerActivator();
 
             // Act
-            activator.Activate(context);
+            activator.Activate(controller, context);
 
             // Assert
             Assert.Same(context, controller.ActionContext);
             Assert.Same(httpContext.Object, controller.HttpContext);
-            Assert.Same(httpRequest, controller.Request);
+            Assert.Same(httpRequest, controller.GetHttpRequest());
         }
 
         [Fact]
@@ -60,10 +60,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var activator = new DefaultControllerActivator();
 
             // Act
-            activator.Activate(context);
+            activator.Activate(controller, context);
 
             // Assert
-            Assert.NotNull(controller.ViewData);
+            Assert.NotNull(controller.GetViewData());
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var activator = new DefaultControllerActivator();
 
             // Act
-            activator.Activate(context);
+            activator.Activate(controller, context);
 
             // Assert
             Assert.Same(urlHelper, controller.Helper);
@@ -111,33 +111,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var activator = new DefaultControllerActivator();
 
             // Act
-            activator.Activate(context);
+            activator.Activate(controller, context);
 
             // Assert
             Assert.Null(controller.Response);
-        }
-
-        [Fact]
-        public void Activate_SetsPropertiesForValueTypes()
-        {
-            // Arrange
-            var response = Mock.Of<HttpResponse>();
-            var httpContext = new Mock<HttpContext>();
-            httpContext.SetupGet(c => c.Response)
-                       .Returns(response);
-            var routeContext = new RouteContext(httpContext.Object);
-            var context = new ActionContext(routeContext, new ActionDescriptor())
-            {
-                Controller = new TestValueTypeController()
-            };
-            var activator = new DefaultControllerActivator();
-
-            // Act
-            activator.Activate(context);
-
-            // Assert
-            var controller = (TestValueTypeController)context.Controller;
-            Assert.Same(response, controller.Response);
         }
 
         public class TestController
@@ -149,21 +126,25 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             public HttpContext HttpContext { get; set; }
 
             [Activate]
-            public HttpRequest Request { get; set; }
+            protected HttpRequest Request { get; set; }
 
             [Activate]
-            public ViewDataDictionary ViewData { get; set; }
+            private ViewDataDictionary ViewData { get; set; }
 
             [Activate]
             public IUrlHelper Helper { get; set; }
 
             public HttpResponse Response { get; set; }
-        }
 
-        public struct TestValueTypeController
-        {
-            [Activate]
-            public HttpResponse Response { get; set; }
+            public ViewDataDictionary GetViewData()
+            {
+                return ViewData;
+            }
+
+            public HttpRequest GetHttpRequest()
+            {
+                return Request;
+            }
         }
     }
 }

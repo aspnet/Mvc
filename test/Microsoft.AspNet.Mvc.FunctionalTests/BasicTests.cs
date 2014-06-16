@@ -130,6 +130,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedContent, results[2]);
         }
 
+        [Fact]
+        public async Task ControllerThatCannotBeActivated_ThrowsWhenAttemptedToBeInvoked()
+        {
+            // Arrange
+            var expectedMessage = "TODO: No service for type 'BasicWebSite.CannotBeActivatedController+FakeType' " +
+                                   "has been registered.";
+            var server = TestServer.Create(_provider, _app);
+            var client = server.Handler;
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(() => client.GetAsync("http://localhost/CannotBeActivated/Index"));
+            Assert.Equal(expectedMessage, ex.Message);
+        }
+
         // Calculate the path relative to the current application base path.
         private static string CalculateApplicationBasePath(IApplicationEnvironment appEnvironment)
         {

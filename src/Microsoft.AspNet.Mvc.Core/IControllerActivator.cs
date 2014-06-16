@@ -5,6 +5,6 @@ namespace Microsoft.AspNet.Mvc
 {
     public interface IControllerActivator
     {
-        void Activate(ActionContext context);
+        void Activate(object controller, ActionContext context);
     }
 }
