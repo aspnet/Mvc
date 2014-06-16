@@ -110,6 +110,26 @@ namespace Microsoft.AspNet.Mvc
             Assert.DoesNotContain("StaticMethod", actionNames);
         }
 
+        [Fact]
+        public void GetDescriptors_Ignores_ProtectedStaticMethod_FromUserDefinedController()
+        {
+            // Arrange & Act
+            var actionNames = GetActionNamesFromDerivedController();
+
+            // Assert
+            Assert.DoesNotContain("ProtectedStaticMethod", actionNames);
+        }
+
+        [Fact]
+        public void GetDescriptors_Ignores_PrivateStaticMethod_FromUserDefinedController()
+        {
+            // Arrange & Act
+            var actionNames = GetActionNamesFromDerivedController();
+
+            // Assert
+            Assert.DoesNotContain("PrivateStaticMethod", actionNames);
+        }
+
         private IEnumerable<string> GetActionNamesFromDerivedController()
         {
             return GetDescriptors(typeof(DerivedController).GetTypeInfo()).Select(a => a.Name);
@@ -155,6 +175,14 @@ namespace Microsoft.AspNet.Mvc
             }
 
             public static void StaticMethod()
+            {
+            }
+
+            protected static void ProtectedStaticMethod()
+            {
+            }
+
+            private static void PrivateStaticMethod()
             {
             }
         }
