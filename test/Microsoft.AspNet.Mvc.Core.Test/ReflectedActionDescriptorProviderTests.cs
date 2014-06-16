@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNames = GetDescriptors(typeof(BaseController).GetTypeInfo()).Select(a => a.Name);
 
             // Assert
-            Assert.False(actionNames.Contains("Redirect"));
+            Assert.DoesNotContain("Redirect", actionNames);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.False(actionNames.Contains("PrivateMethod"));
+            Assert.DoesNotContain("PrivateMethod", actionNames);
         }
 
         [Fact]
@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.False(actionNames.Contains("DerivedController"));
+            Assert.DoesNotContain("DerivedController", actionNames);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.False(actionNames.Contains("GenericMethod"));
+            Assert.DoesNotContain("GenericMethod", actionNames);
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.False(actionNames.Contains("OverridenNonActionMethod"));
+            Assert.DoesNotContain("OverridenNonActionMethod", actionNames);
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNames = GetActionNamesFromDerivedController();
 
             // Assert
-            Assert.False(actionNames.Contains("StaticMethod"));
+            Assert.DoesNotContain("StaticMethod", actionNames);
         }
 
         private IEnumerable<string> GetActionNamesFromDerivedController()

@@ -82,7 +82,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Determines whether the method is a valid action.
         /// </summary>
-        /// <param name="method">Information about the method.</param>
+        /// <param name="method">The <see cref="MethodInfo"/>.</param>
         /// <returns>true if the method is a valid action. Otherwise, false.</returns>
         protected virtual bool IsValidActionMethod(MethodInfo method)
         {
