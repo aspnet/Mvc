@@ -306,4 +306,7 @@
   <data name="DefaultControllerFactory_ActionDescriptorMustBeReflected" xml:space="preserve">
     <value>The action descriptor must be of type '{0}'.</value>
   </data>
+  <data name="ValueTypesCannotBeActivated" xml:space="preserve">
+    <value>Value types cannot be activated by '{0}'.</value>
+  </data>
 </root>

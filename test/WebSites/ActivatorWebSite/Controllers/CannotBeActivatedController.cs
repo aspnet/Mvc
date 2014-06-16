@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace BasicWebSite
+namespace ActivatorWebSite
 {
     public class CannotBeActivatedController
     {

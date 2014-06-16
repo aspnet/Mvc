@@ -29,7 +29,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ActionDescriptorCreationCounter.cs" />
-    <Compile Include="Controllers\CannotBeActivatedController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MonitorController.cs" />
     <Compile Include="Startup.cs" />
