@@ -100,6 +100,16 @@ namespace Microsoft.AspNet.Mvc
             Assert.Empty(methodsFromObjectClass.Intersect(actionNames));
         }
 
+        [Fact]
+        public void GetDescriptors_Ignores_StaticMethod_FromUserDefinedController()
+        {
+            // Arrange & Act
+            var actionNames = GetActionNamesFromDerivedController();
+
+            // Assert
+            Assert.False(actionNames.Contains("StaticMethod"));
+        }
+
         private IEnumerable<string> GetActionNamesFromDerivedController()
         {
             return GetDescriptors(typeof(DerivedController).GetTypeInfo()).Select(a => a.Name);
@@ -141,6 +151,10 @@ namespace Microsoft.AspNet.Mvc
             }
 
             private void PrivateMethod()
+            {
+            }
+
+            public static void StaticMethod()
             {
             }
         }
