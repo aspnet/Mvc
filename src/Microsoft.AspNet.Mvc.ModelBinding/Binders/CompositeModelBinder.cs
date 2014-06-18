@@ -1,33 +1,45 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// This class is an <see cref="IModelBinder"/> that delegates to one of a collection of
-    /// <see cref="IModelBinder"/> instances.
+    /// Represents an <see cref="IModelBinder"/> that delegates to one of a collection of <see cref="IModelBinder"/> 
+    /// instances.
     /// </summary>
     /// <remarks>
     /// If no binder is available and the <see cref="ModelBindingContext"/> allows it,
     /// this class tries to find a binder using an empty prefix.
     /// </remarks>
-    public class CompositeModelBinder : IModelBinder
+    public class CompositeModelBinder : ICompositeModelBinder
     {
-        public CompositeModelBinder([NotNull] IEnumerable<IModelBinder> binders)
-            : this(binders.ToArray())
+        private readonly IModelBindersProvider _modelBindersProvider;
+        private IModelBinder[] _binders;
+
+        /// <summary>
+        /// Initializes a new instance of the CompositeModelBinder class.
+        /// </summary>
+        /// <param name="modelBindersProvider">Provides a collection of <see cref="IModelBinder"/> instances.</param>
+        public CompositeModelBinder(IModelBindersProvider modelBindersProvider)
         {
+            _modelBindersProvider = modelBindersProvider;
         }
 
-        public CompositeModelBinder(params IModelBinder[] binders)
+        private IModelBinder[] Binders
         {
-            Binders = binders;
+            get
+            {
+                if (_binders == null)
+                {
+                    _binders = _modelBindersProvider.ModelBinders
+                                                    .ToArray();
+                }
+                return _binders;
+            }
         }
-
-        private IModelBinder[] Binders { get; set; }
 
         public virtual async Task<bool> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {

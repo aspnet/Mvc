@@ -33,7 +33,9 @@
     <Compile Include="Binders\CompositeModelBinder.cs" />
     <Compile Include="Binders\DictionaryModelBinder.cs" />
     <Compile Include="Binders\GenericModelBinder.cs" />
+    <Compile Include="Binders\ICompositeModelBinder.cs" />
     <Compile Include="Binders\IModelBinder.cs" />
+    <Compile Include="Binders\IModelBindersProvider.cs" />
     <Compile Include="Binders\KeyValuePairModelBinder.cs" />
     <Compile Include="Binders\MutableObjectModelBinder.cs" />
     <Compile Include="Binders\TypeConverterModelBinder.cs" />
@@ -60,6 +62,8 @@
     <Compile Include="Metadata\DataAnnotationsModelMetadataProvider.cs" />
     <Compile Include="Metadata\EmptyModelMetadataProvider.cs" />
     <Compile Include="Metadata\IModelMetadataProvider.cs" />
+    <Compile Include="Metadata\ModelBinderDescriptor.cs" />
+    <Compile Include="Metadata\ModelBinderDescriptorCollection.cs" />
     <Compile Include="Metadata\ModelMetadata.cs" />
     <Compile Include="ModelBindingContext.cs" />
     <Compile Include="ModelError.cs" />
