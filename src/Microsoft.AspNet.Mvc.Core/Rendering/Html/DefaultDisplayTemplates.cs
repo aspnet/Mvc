@@ -260,8 +260,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private static bool ShouldShow(ModelMetadata metadata, TemplateInfo templateInfo)
         {
-            // TODO: add ModelMetadata.ShowForDisplay and include in this calculation (first)
             return
+                metadata.ShowForDisplay &&
                 !metadata.IsComplexType &&
                 !templateInfo.Visited(metadata);
         }
