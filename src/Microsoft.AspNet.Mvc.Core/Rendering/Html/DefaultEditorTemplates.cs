@@ -210,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             if (templateInfo.TemplateDepth > 1)
             {
-                return modelMetadata.SimpleDisplayText;
+                return modelMetadata.Model == null ? modelMetadata.NullDisplayText : modelMetadata.SimpleDisplayText;
             }
 
             var serviceProvider = html.ViewContext.HttpContext.RequestServices;
