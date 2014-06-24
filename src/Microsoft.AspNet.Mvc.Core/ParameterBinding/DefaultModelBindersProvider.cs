@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc
     /// <inheritdoc />
     public class DefaultModelBindersProvider : IModelBindersProvider
     {
-        private readonly ModelBinderDescriptorCollection _descriptors;
+        private readonly List<ModelBinderDescriptor> _descriptors;
         private readonly ITypeActivator _typeActivator;
         private readonly IServiceProvider _serviceProvider;
 
@@ -38,16 +38,19 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return _descriptors.Select(descriptor =>
+                var binders = new List<IModelBinder>();
+                foreach (var descriptor in _descriptors)
                 {
-                    if (descriptor.ModelBinder != null)
+                    var binder = descriptor.ModelBinder;
+                    if (binder == null)
                     {
-                        return descriptor.ModelBinder;
+                        binder = (IModelBinder)_typeActivator.CreateInstance(_serviceProvider, 
+                                                                             descriptor.ModelBinderType);
                     }
 
-                    return (IModelBinder)_typeActivator.CreateInstance(_serviceProvider, descriptor.ModelBinderType);
-                })
-                .ToList();
+                    binders.Add(binder);
+                }
+                return binders;
             }
         }
     }

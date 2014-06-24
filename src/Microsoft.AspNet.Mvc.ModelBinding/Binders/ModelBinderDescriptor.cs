@@ -41,7 +41,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public Type ModelBinderType
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -49,7 +50,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public IModelBinder ModelBinder
         {
-            get; private set;
+            get;
+            private set;
         }
     }
 }

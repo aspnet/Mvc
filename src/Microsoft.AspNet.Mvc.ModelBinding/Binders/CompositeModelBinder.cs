@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class CompositeModelBinder : ICompositeModelBinder
     {
         private readonly IModelBindersProvider _modelBindersProvider;
-        private IModelBinder[] _binders;
+        private IReadOnlyList<IModelBinder> _binders;
 
         /// <summary>
         /// Initializes a new instance of the CompositeModelBinder class.
@@ -28,14 +28,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _modelBindersProvider = modelBindersProvider;
         }
 
-        private IModelBinder[] Binders
+        /// <inheritdoc />
+        public IReadOnlyList<IModelBinder> ModelBinders
         {
             get
             {
                 if (_binders == null)
                 {
-                    _binders = _modelBindersProvider.ModelBinders
-                                                    .ToArray();
+                    _binders = _modelBindersProvider.ModelBinders;
                 }
                 return _binders;
             }
@@ -98,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Protects against stack overflow for deeply nested model binding
             // RuntimeHelpers.EnsureSufficientExecutionStack();
 
-            foreach (var binder in Binders)
+            foreach (var binder in ModelBinders)
             {
                 if (await binder.BindModelAsync(bindingContext))
                 {

@@ -3,12 +3,13 @@
 
 #if NET45
 using System;
+using System.Collections.Generic;
 using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public class ModelBinderDescriptorCollectionTest
+    public class ModelBinderDescriptorExtensionTest
     {
         [Theory]
         [InlineData(-1)]
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void Insert_WithType_ThrowsIfIndexIsOutOfBounds(int index)
         {
             // Arrange
-            var collection = new ModelBinderDescriptorCollection
+            var collection = new List<ModelBinderDescriptor>
             {
                 new ModelBinderDescriptor(Mock.Of<IModelBinder>()),
                 new ModelBinderDescriptor(Mock.Of<IModelBinder>())
@@ -32,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void Insert_WithInstance_ThrowsIfIndexIsOutOfBounds(int index)
         {
             // Arrange
-            var collection = new ModelBinderDescriptorCollection
+            var collection = new List<ModelBinderDescriptor>
             {
                 new ModelBinderDescriptor(Mock.Of<IModelBinder>()),
                 new ModelBinderDescriptor(Mock.Of<IModelBinder>())
@@ -51,7 +52,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binder2 = Mock.Of<IModelBinder>();
             var type1 = typeof(TypeMatchModelBinder);
             var type2 = typeof(TypeConverterModelBinder);
-            var collection = new ModelBinderDescriptorCollection();
+            var collection = new List<ModelBinderDescriptor>();
 
             // Act
             collection.Add(binder1);

@@ -11,20 +11,19 @@ namespace Microsoft.AspNet.Mvc
 {
     public class MvcOptions
     {
-        private readonly ModelBinderDescriptorCollection _binderDescriptors = new ModelBinderDescriptorCollection
-        {
-            new ModelBinderDescriptor(new TypeConverterModelBinder()),
-            new ModelBinderDescriptor(new TypeMatchModelBinder()),
-            new ModelBinderDescriptor(typeof(GenericModelBinder)),
-            new ModelBinderDescriptor(new MutableObjectModelBinder()),
-            new ModelBinderDescriptor(new ComplexModelDtoModelBinder()),
-        };
-
         private AntiForgeryOptions _antiForgeryOptions = new AntiForgeryOptions();
 
         public MvcOptions()
         {
             ApplicationModelConventions = new List<IReflectedApplicationModelConvention>();
+            ModelBinders = new List<ModelBinderDescriptor>
+            {
+                new ModelBinderDescriptor(new TypeConverterModelBinder()),
+                new ModelBinderDescriptor(new TypeMatchModelBinder()),
+                new ModelBinderDescriptor(typeof(GenericModelBinder)),
+                new ModelBinderDescriptor(new MutableObjectModelBinder()),
+                new ModelBinderDescriptor(new ComplexModelDtoModelBinder()),
+            };
         }
 
         public AntiForgeryOptions AntiForgeryOptions
@@ -38,7 +37,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value", 
+                    throw new ArgumentNullException("value",
                                                     Resources.FormatPropertyOfTypeCannotBeNull("AntiForgeryOptions",
                                                                                                typeof(MvcOptions)));
                 }
@@ -47,10 +46,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public ModelBinderDescriptorCollection ModelBinders
-        {
-            get { return _binderDescriptors; }
-        }
+        public List<ModelBinderDescriptor> ModelBinders { get; private set; }
 
         public List<IReflectedApplicationModelConvention> ApplicationModelConventions { get; private set; }
     }

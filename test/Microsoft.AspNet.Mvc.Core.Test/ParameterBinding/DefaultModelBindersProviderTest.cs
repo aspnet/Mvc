@@ -17,9 +17,10 @@ namespace Microsoft.AspNet.Mvc.Core
         public void DefaultModelBindersProvider_ProvidesInstancesOfModelBinders()
         {
             // Arrange
+            var binder = new TypeMatchModelBinder();
             var options = new MvcOptions();
             options.ModelBinders.Clear();
-            options.ModelBinders.Add(new TypeMatchModelBinder());
+            options.ModelBinders.Add(binder);
             options.ModelBinders.Add(typeof(GenericModelBinder));
             var optionsAccessor = new Mock<IOptionsAccessor<MvcOptions>>();
             optionsAccessor.SetupGet(o => o.Options)
@@ -37,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Assert
             Assert.Equal(2, binders.Count);
-            Assert.IsType<TypeMatchModelBinder>(binders[0]);
+            Assert.Same(binder, binders[0]);
             Assert.IsType<GenericModelBinder>(binders[1]);
         }
     }
