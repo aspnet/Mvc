@@ -18,7 +18,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private readonly string _propertyName;
         private EfficientTypePropertyKey<Type, string> _cacheKey;
 
-        private bool _convertEmptyStringToNull = true;
+        // Backing fields for virtual properties with default values.
+        private bool _convertEmptyStringToNull;
+        private bool _isRequired;
+
         private object _model;
         private Func<object> _modelAccessor;
         private int _order = DefaultOrder;
@@ -40,7 +43,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _modelAccessor = modelAccessor;
             _modelType = modelType;
             _propertyName = propertyName;
-            IsRequired = !modelType.AllowsNullValue();
+
+            _convertEmptyStringToNull = true;
+            _isRequired = !modelType.AllowsNullValue();
         }
 
         public Type ContainerType
@@ -60,6 +65,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public virtual string DisplayFormatString { get; set; }
 
+        public virtual string DisplayName { get; set; }
+
         public virtual string EditFormatString { get; set; }
 
         public virtual bool IsComplexType
@@ -74,7 +81,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public virtual bool IsReadOnly { get; set; }
 
-        public virtual bool IsRequired { get; set; }
+        public virtual bool IsRequired
+        {
+            get { return _isRequired; }
+            set { _isRequired = value; }
+        }
 
         public virtual int Order
         {
@@ -203,9 +214,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        public virtual string GetDisplayName()
+        public string GetDisplayName()
         {
-            return PropertyName ?? ModelType.Name;
+            return DisplayName ?? PropertyName ?? ModelType.Name;
         }
 
         protected virtual string ComputeSimpleDisplayText()
