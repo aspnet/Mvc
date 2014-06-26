@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Net;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using MvcSample.Web.Models;
@@ -6,8 +8,12 @@ namespace MvcSample.Web.RandomNameSpace
 {
     public class Home2Controller
     {
-        private User _user = new User() { Name = "User Name", Address = "Home Address" };
-
+        private readonly List<User> _users = new List<User>
+        {
+            new User { Name = "Test" }
+        };
+        private readonly User _user = new User() { Name = "User Name", Address = "Home Address" };
+        
         [Activate]
         public HttpResponse Response
         {
@@ -53,6 +59,18 @@ namespace MvcSample.Web.RandomNameSpace
         public User User()
         {
             return _user;
+        }
+
+        public ObjectContetResult<User> Mutate(string name)
+        {
+            var user = _users.Find(u => string.Equals(u.Name, name, System.StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+            {
+                return HttpStatusCode.NotFound;
+            }
+
+            user.Age++;
+            return user;
         }
     }
 }
