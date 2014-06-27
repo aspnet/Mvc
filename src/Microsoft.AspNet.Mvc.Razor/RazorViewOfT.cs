@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -21,9 +20,13 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public ViewDataDictionary<TModel> ViewData { get; private set; }
 
-        public IHtmlHelper<TModel> Html { get; set; }
-
         public override Task RenderAsync([NotNull] ViewContext context)
+        {
+            Activate(context);
+            return base.RenderAsync(context);
+        }
+
+        private void Activate(ViewContext context)
         {
             ViewData = context.ViewData as ViewDataDictionary<TModel>;
             if (ViewData == null)
@@ -34,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
                 else
                 {
-                    var metadataProvider = context.HttpContext.RequestServices.GetService<IModelMetadataProvider>();
+                    var metadataProvider = GetService<IModelMetadataProvider>(context);
                     ViewData = new ViewDataDictionary<TModel>(metadataProvider);
                 }
 
@@ -42,20 +45,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                 context.ViewData = ViewData;
             }
 
-            InitHelpers(context);
-
-            return base.RenderAsync(context);
+            var viewActivator = GetService<IRazorViewActivator>(context);
+            viewActivator.Activate(this, context);
         }
 
-        private void InitHelpers(ViewContext context)
+        private static TService GetService<TService>(ViewContext context)
         {
-            Html = context.HttpContext.RequestServices.GetService<IHtmlHelper<TModel>>();
-
-            var contextable = Html as ICanHasViewContext;
-            if (contextable != null)
-            {
-                contextable.Contextualize(context);
-            }
+            return context.HttpContext.RequestServices.GetService<TService>();
         }
     }
 }

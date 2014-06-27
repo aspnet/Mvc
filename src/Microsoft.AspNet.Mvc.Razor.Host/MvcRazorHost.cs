@@ -24,6 +24,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             "Microsoft.AspNet.Mvc.Rendering"
         };
 
+        private readonly MvcRazorHostOptions _hostOptions;
+
         // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>. 
         // This field holds the type name without the generic decoration (MyBaseType)
         private readonly string _baseType;
@@ -36,8 +38,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         public MvcRazorHost(string baseType)
             : base(new CSharpRazorCodeLanguage())
         {
+            // TODO: this needs to flow from the application rather than being initialized here.
+            _hostOptions = new MvcRazorHostOptions();
             _baseType = baseType;
-            DefaultBaseClass = baseType + "<dynamic>";
+            DefaultBaseClass = baseType + '<' + _hostOptions.DefaultModel + '>';
             GeneratedClassContext = new GeneratedClassContext(
                 executeMethodName: "ExecuteAsync",
                 writeMethodName: "Write",
@@ -73,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public override CodeBuilder DecorateCodeBuilder(CodeBuilder incomingBuilder, CodeGeneratorContext context)
         {
-            return new MvcCSharpCodeBuilder(context);
+            return new MvcCSharpCodeBuilder(context, _hostOptions);
         }
     }
 }

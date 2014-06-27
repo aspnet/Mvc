@@ -11,11 +11,14 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class InjectChunkVisitor : MvcCSharpCodeVisitor
     {
         private readonly List<InjectChunk> _injectChunks = new List<InjectChunk>();
+        private readonly string _activateAttributeName;
 
         public InjectChunkVisitor([NotNull] CSharpCodeWriter writer,
-                                  [NotNull] CodeGeneratorContext context)
+                                  [NotNull] CodeGeneratorContext context,
+                                  string activateAttributeName)
             : base(writer, context)
         {
+            _activateAttributeName = activateAttributeName;
         }
 
         public List<InjectChunk> InjectChunks
@@ -25,6 +28,13 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected override void Visit([NotNull] InjectChunk chunk)
         {
+            if (!string.IsNullOrEmpty(_activateAttributeName))
+            {
+                Writer.Write("[")
+                      .Write(_activateAttributeName)
+                      .WriteLine("]");
+            }
+
             if (Context.Host.DesignTimeMode)
             {
                 Writer.WriteLine("public");
