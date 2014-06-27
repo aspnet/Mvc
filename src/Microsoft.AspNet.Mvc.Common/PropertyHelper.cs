@@ -198,6 +198,9 @@ namespace Microsoft.AspNet.Mvc
             Func<PropertyInfo, PropertyHelper> createPropertyHelper,
             ConcurrentDictionary<Type, PropertyHelper[]> cache)
         {
+            // Unwrap nullable types
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
             // Using an array rather than IEnumerable, as target will be called on the hot path numerous times.
             PropertyHelper[] helpers;
 
