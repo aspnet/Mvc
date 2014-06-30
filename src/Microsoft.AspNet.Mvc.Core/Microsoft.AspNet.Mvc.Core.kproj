@@ -27,6 +27,7 @@
     <Compile Include="ActionDescriptor.cs" />
     <Compile Include="ActionDescriptorProviderContext.cs" />
     <Compile Include="ActionDescriptorsCollection.cs" />
+    <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
     <Compile Include="ReflectedActionDescriptor.cs" />
     <Compile Include="ReflectedActionDescriptorProvider.cs" />
     <Compile Include="ReflectedModelBuilder\IReflectedApplicationModelConvention.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="ReflectedActionInvoker.cs" />
     <Compile Include="ReflectedActionInvokerProvider.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModel.cs" />
+    <Compile Include="Rendering\DefaultViewEnginesProvider.cs" />
     <Compile Include="Rendering\DynamicViewData.cs" />
     <Compile Include="Rendering\Expressions\CachedExpressionCompiler.cs" />
     <Compile Include="Rendering\Expressions\ExpressionHelper.cs" />
@@ -196,12 +198,14 @@
     <Compile Include="Rendering\IHtmlHelperOfT.cs" />
     <Compile Include="Rendering\IView.cs" />
     <Compile Include="Rendering\IViewEngine.cs" />
+    <Compile Include="Rendering\IViewEnginesProvider.cs" />
     <Compile Include="Rendering\MultiSelectList.cs" />
     <Compile Include="Rendering\MvcForm.cs" />
     <Compile Include="Rendering\SelectList.cs" />
     <Compile Include="Rendering\SelectListGroup.cs" />
     <Compile Include="Rendering\SelectListItem.cs" />
     <Compile Include="Rendering\UnobtrusiveValidationAttributesGenerator.cs" />
+    <Compile Include="Rendering\ViewEngineDescriptor.cs" />
     <Compile Include="Rendering\ViewEngineResult.cs" />
     <Compile Include="RouteAttribute.cs" />
     <Compile Include="RouteConstraintAttribute.cs" />
