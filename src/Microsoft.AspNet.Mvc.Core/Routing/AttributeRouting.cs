@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         /// <summary>
         /// Creates an attribute route using the provided services and provided target router.
         /// </summary>
-        /// <param name="target">The router to invoke when an route entry matches.</param>
+        /// <param name="target">The router to invoke when a route entry matches.</param>
         /// <param name="services">The application services.</param>
         /// <returns>An attribute route.</returns>
         public static IRouter CreateAttributeMegaRoute([NotNull] IRouter target, [NotNull] IServiceProvider services)
