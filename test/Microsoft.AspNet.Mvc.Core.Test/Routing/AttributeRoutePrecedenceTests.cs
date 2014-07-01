@@ -9,7 +9,7 @@ using Moq;
 using System;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Routing
 {
     public class AttributeRoutePrecedenceTests
     {

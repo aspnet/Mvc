@@ -22,8 +22,8 @@ namespace RoutingWebSite
         }
 
         public IActionResult Edit(int postId)
-	    {
+        {
             return _generator.Generate("/Blog/Edit/" + postId);
-	    }
+        }
     }
 }

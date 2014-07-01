@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using Microsoft.AspNet.Routing.Template;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Routing
 {
     /// <summary>
     /// Computes precedence for an attribute route template.
@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc
             // and 4 results in a combined precedence of 2.14 (decimal).
             var precedence = 0m;
 
-            for (int i = 0; i < template.Segments.Count; i++)
+            for (var i = 0; i < template.Segments.Count; i++)
             {
                 var segment = template.Segments[i];
 

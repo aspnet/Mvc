@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Routing
 {
     /// <summary>
     /// An <see cref="IRouter"/> implementation for attribute routing.

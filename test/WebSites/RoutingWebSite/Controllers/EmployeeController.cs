@@ -13,7 +13,6 @@ namespace RoutingWebSite
         public EmployeeController(TestResponseGenerator generator)
         {
             _generator = generator;
-
         }
 
         public IActionResult List()

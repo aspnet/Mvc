@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Routing.Template;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Routing
 {
     /// <summary>
     /// Used to build an <see cref="AttributeRoute"/>. Represents an individual route that will be aggregated

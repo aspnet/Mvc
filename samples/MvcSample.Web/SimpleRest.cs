@@ -6,7 +6,7 @@ namespace MvcSample.Web
     public class SimpleRest : Controller
     {
         [HttpGet]
-        public string Get()
+        public string ThisIsAGetMethod()
         {
             return "Get method";
         }

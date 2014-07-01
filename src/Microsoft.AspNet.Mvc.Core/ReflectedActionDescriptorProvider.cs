@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 #endif
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
 using Microsoft.Framework.OptionsModel;

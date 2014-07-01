@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Builder
@@ -29,7 +30,7 @@ namespace Microsoft.AspNet.Builder
                 ServiceProvider = app.ApplicationServices
             };
 
-            routes.Routes.Add(AttributeRouting.CreateAttributeRoute(
+            routes.Routes.Add(AttributeRouting.CreateAttributeMegaRoute(
                 routes.DefaultHandler, 
                 app.ApplicationServices));
 
