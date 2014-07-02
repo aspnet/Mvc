@@ -16,10 +16,15 @@
     "Newtonsoft.Json": "5.0.8"
   },
   "configurations": {
-    "net45": {},
+    "net45": {
+      "dependencies": {
+        "System.Xml": ""
+      }
+    },
     "k10": {
       "dependencies": {
         "Microsoft.CSharp": "4.0.0.0",
+        "System.Runtime.Serialization.Xml": "4.0.0.0",
         "System.Collections": "4.0.0.0",
         "System.Collections.Concurrent": "4.0.0.0",
         "System.ComponentModel": "4.0.0.0",
@@ -45,7 +50,9 @@
         "System.Security.Principal": "4.0.0.0",
         "System.Text.Encoding": "4.0.20.0",
         "System.Threading": "4.0.0.0",
-        "System.Threading.Tasks": "4.0.10.0"
+        "System.Threading.Tasks": "4.0.10.0",
+        "System.Xml.ReaderWriter": "4.0.0.0",
+        "System.Xml.XmlSerializer": "4.0.0.0"
       }
     }
   }
