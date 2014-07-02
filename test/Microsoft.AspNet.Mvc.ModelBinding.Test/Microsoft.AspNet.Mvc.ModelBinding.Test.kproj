@@ -34,7 +34,9 @@
     <Compile Include="Binders\ModelBindingContextTest.cs" />
     <Compile Include="Binders\MutableObjectModelBinderTest.cs" />
     <Compile Include="Binders\TypeConverterModelBinderTest.cs" />
+    <Compile Include="Formatters\DataContractSerializerInputFormatterTests.cs" />
     <Compile Include="Formatters\JsonInputFormatterTest.cs" />
+    <Compile Include="Formatters\XmlSerializerInputFormatterTests.cs" />
     <Compile Include="Internal\TypeExtensionTests.cs" />
     <Compile Include="Metadata\AssociatedMetadataProviderTest.cs" />
     <Compile Include="Metadata\CachedDataAnnotationsModelMetadataProviderTest.cs" />
