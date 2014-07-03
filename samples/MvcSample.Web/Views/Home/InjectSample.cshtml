@@ -2,6 +2,13 @@
 @inject MvcSample.Web.Services.ITestService MyService
 @inject ITestService MyService2
 
+<br />
+<br />
+<br />
+
+
 @MyService.GetFoo()
 @MyService2.GetFoo()
-
+<p>
+    This is provided via injection in _ViewStart: <strong>@MyHelper.SomeString()</strong>
+</p>

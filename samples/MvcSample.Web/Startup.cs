@@ -35,7 +35,8 @@ namespace MvcSample.Web
                 services.AddMvc();
                 services.AddSingleton<PassThroughAttribute>();
                 services.AddSingleton<UserNameService>();
-                services.AddTransient<ITestService, TestService>();                
+                services.AddTransient<ITestService, TestService>();
+                services.AddScoped<InjectedHelper, InjectedHelper>();
                 services.Add(OptionsServices.GetDefaultServices());
 
                 // Create the autofac container 

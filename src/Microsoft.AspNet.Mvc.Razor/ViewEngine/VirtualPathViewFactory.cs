@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNet.FileSystems;
-using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Runtime;
 
@@ -28,13 +27,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             _serviceProvider = serviceProvider;
         }
 
-        public IView CreateInstance([NotNull] string virtualPath)
+        public RazorView CreateInstance([NotNull] string virtualPath)
         {
             IFileInfo fileInfo;
             if (_fileSystem.TryGetFileInfo(virtualPath, out fileInfo))
             {
                 var result = _compilationService.Compile(fileInfo);
-                return (IView)_activator.CreateInstance(_serviceProvider, result.CompiledType);
+                return (RazorView)_activator.CreateInstance(_serviceProvider, result.CompiledType);
             }
 
             return null;
