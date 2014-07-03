@@ -41,19 +41,20 @@ namespace Microsoft.AspNet.Mvc.Routing
             var inlineConstraintResolver = services.GetService<IInlineConstraintResolver>();
 
             var entries = new List<AttributeRouteEntry>();
-            foreach (var entry in routeTemplatesByGroup)
+            foreach (var template in routeTemplatesByGroup)
             {
-                var routeToken = entry.Key;
+                var routeGroupKey = template.Key;
+                var routeInfo = template.Value;
 
                 entries.Add(new AttributeRouteEntry()
                 {
-                    Precedence = entry.Value.Precedence,
+                    Precedence = routeInfo.Precedence,
                     Route = new TemplateRoute(
                         target,
-                        entry.Value.TemplateText,
+                        routeInfo.TemplateText,
                         defaults: new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                         {
-                            { RouteGroupKey, routeToken },
+                            { RouteGroupKey, routeGroupKey },
                         },
                         constraints: null,
                         inlineConstraintResolver: inlineConstraintResolver),
