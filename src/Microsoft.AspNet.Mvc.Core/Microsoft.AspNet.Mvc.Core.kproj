@@ -214,7 +214,6 @@
     <Compile Include="Routing\AttributeRouteTemplate.cs" />
     <Compile Include="Routing\AttributeRouting.cs" />
     <Compile Include="Routing\IRouteTemplateProvider.cs" />
-    <Compile Include="Routing\RouteInfo.cs" />
     <Compile Include="TemplateInfo.cs" />
     <Compile Include="UrlHelper.cs" />
     <Compile Include="UrlHelperExtensions.cs" />

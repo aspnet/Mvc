@@ -213,9 +213,10 @@ namespace Microsoft.AspNet.Mvc
                         {
                             // An attribute routed action will ignore conventional routed constraints.
                             actionDescriptor.RouteConstraints.Clear();
-                            
-                            var template = TemplateParser.Parse(templateText, _constraintResolver);
 
+                            // TODO #738 - this currently has parity with what we did in MVC5 for the action
+                            // route values. This needs to be reconsidered as part of #738.
+                            var template = TemplateParser.Parse(templateText, _constraintResolver);
                             if (template.Parameters.Any(
                                 p => p.IsParameter &&
                                 string.Equals(p.Name, "action", StringComparison.OrdinalIgnoreCase)))
@@ -230,13 +231,7 @@ namespace Microsoft.AspNet.Mvc
                                 AttributeRouting.RouteGroupKey,
                                 routeGroup));
 
-                            actionDescriptor.RouteInfo = new RouteInfo()
-                            {
-                                Precedence = AttributeRoutePrecedence.Compute(template),
-                                Template = template,
-                                TemplateText = templateText,
-                                RouteGroup = routeGroup,
-                            };
+                            actionDescriptor.RouteTemplate = templateText;
                         }
                     }
 

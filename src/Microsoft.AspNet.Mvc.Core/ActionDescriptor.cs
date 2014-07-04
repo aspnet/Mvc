@@ -13,9 +13,9 @@ namespace Microsoft.AspNet.Mvc
         public List<RouteDataActionConstraint> RouteConstraints { get; set; }
 
         /// <summary>
-        /// The <see cref="RouteInfo"/>. May be null if the action has no attribute routes.
+        /// The route template May be null if the action has no attribute routes.
         /// </summary>
-        public RouteInfo RouteInfo { get; set; }
+        public string RouteTemplate { get; set; }
 
         public List<HttpMethodConstraint> MethodConstraints { get; set; }
 

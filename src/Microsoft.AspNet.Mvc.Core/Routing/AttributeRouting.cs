@@ -28,33 +28,29 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // We're creating one AttributeRouteEntry per group, so we need to identify the distinct set of
             // groups. It's guaranteed that all members of the group have the same template and precedence,
-            // so we only need to hang on to a single instance of 'action.RouteInfo' per-group.
-            var routeTemplatesByGroup = new Dictionary<string, RouteInfo>(StringComparer.OrdinalIgnoreCase);
-            foreach (var action in actions.Where(a => a.RouteInfo != null))
-            {
-                if (!routeTemplatesByGroup.ContainsKey(action.RouteInfo.RouteGroup))
-                {
-                    routeTemplatesByGroup.Add(action.RouteInfo.RouteGroup, action.RouteInfo);
-                }
-            }
+            // so we only need to hang on to a single instance of the template.
+            var routeTemplatesByGroup = GroupTemplatesByGroupId(actions);
 
             var inlineConstraintResolver = services.GetService<IInlineConstraintResolver>();
 
             var entries = new List<AttributeRouteEntry>();
-            foreach (var template in routeTemplatesByGroup)
+            foreach (var routeGroup in routeTemplatesByGroup)
             {
-                var routeGroupKey = template.Key;
-                var routeInfo = template.Value;
+                var routeGroupId = routeGroup.Key;
+                var template = routeGroup.Value;
+
+                var parsedTemplate = TemplateParser.Parse(template, inlineConstraintResolver);
+                var precedence = AttributeRoutePrecedence.Compute(parsedTemplate);
 
                 entries.Add(new AttributeRouteEntry()
                 {
-                    Precedence = routeInfo.Precedence,
+                    Precedence = precedence,
                     Route = new TemplateRoute(
                         target,
-                        routeInfo.TemplateText,
+                        template,
                         defaults: new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                         {
-                            { RouteGroupKey, routeGroupKey },
+                            { RouteGroupKey, routeGroupId },
                         },
                         constraints: null,
                         inlineConstraintResolver: inlineConstraintResolver),
@@ -70,6 +66,32 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             var actionDescriptorsCollection = actionDescriptorProvider.ActionDescriptors;
             return actionDescriptorsCollection.Items;
+        }
+
+        private static Dictionary<string, string> GroupTemplatesByGroupId(IReadOnlyList<ActionDescriptor> actions)
+        {
+            var routeTemplatesByGroup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var action in actions.Where(a => a.RouteTemplate != null))
+            {
+                var constraint = action.RouteConstraints
+                    .Where(c => c.RouteKey == AttributeRouting.RouteGroupKey)
+                    .FirstOrDefault();
+                if (constraint == null ||
+                    constraint.KeyHandling != RouteKeyHandling.RequireKey ||
+                    constraint.RouteValue == null)
+                {
+                    // This is unlikely to happen by default, but could happen through extensibility. Just ignore it.
+                    continue;
+                }
+
+                var routeGroup = constraint.RouteValue;
+                if (!routeTemplatesByGroup.ContainsKey(routeGroup))
+                {
+                    routeTemplatesByGroup.Add(routeGroup, action.RouteTemplate);
+                }
+            }
+
+            return routeTemplatesByGroup;
         }
     }
 }
