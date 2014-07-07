@@ -3,31 +3,40 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using System.Xml;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Summary description for FormattingUtilities
+    /// Contains methods which are used by input formatters.
     /// </summary>
-    internal static class FormattingUtilities
+    public static class FormattingUtilities
     {
-        internal const int DefaultMinDepth = 1;
-        internal const int DefaultMaxDepth = 32;
-        internal static XmlDictionaryReaderQuotas GetDefaultReaderQuotas()
+        public static readonly int DefaultMinDepth = 1;
+        public static readonly int DefaultMaxDepth = 32;
+
+        /// <summary>
+        /// Gets the default Reader Quotas for XmlReader.
+        /// </summary>
+        /// <returns>XmlReaderQuotas with default values</returns>
+        public static XmlDictionaryReaderQuotas GetDefaultReaderQuotas()
         {
+#if NET45
             return new XmlDictionaryReaderQuotas()
             {
                 MaxArrayLength = Int32.MaxValue,
                 MaxBytesPerRead = Int32.MaxValue,
-                MaxDepth = FormattingUtilities.DefaultMaxDepth,
+                MaxDepth = DefaultMaxDepth,
                 MaxNameTableCharCount = Int32.MaxValue,
                 MaxStringContentLength = Int32.MaxValue
             };
+#else
+            return XmlDictionaryReaderQuotas.Max;
+#endif
         }
 
+        /// Internal because ContentTypeHeaderValue is internal.
         internal static Encoding SelectCharacterEncoding(IList<Encoding> supportedEncodings,
             ContentTypeHeaderValue contentType, Type callerType)
         {

@@ -9,18 +9,20 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Stream that delegates to inner stream.
+    /// Stream that delegates to an inner stream.
+    /// This Stream is present so that the inner stream is not closed
+    /// even when Close() or Dispose() is called.
     /// </summary>
-    internal class DelegatingStream : Stream
+    public class DelegatingStream : Stream
     {
         private Stream _innerStream;
 
-        internal DelegatingStream(Stream innerStream)
+        /// <summary>
+        /// Initializes a new object of DelegatingStream
+        /// </summary>
+        /// <param name="innerStream">The stream on which should not be closed</param>
+        public DelegatingStream([NotNull] Stream innerStream)
         {
-            if (innerStream == null)
-            {
-                throw new ArgumentNullException("innerStream");
-            }
             _innerStream = innerStream;
         }
 
@@ -86,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             return _innerStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
-#if NETFX_CORE
+#if NET45
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
             return _innerStream.BeginRead(buffer, offset, count, callback, state);
@@ -132,7 +134,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             return _innerStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
-#if NETFX_CORE
+#if NET45
         public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
             return _innerStream.BeginWrite(buffer, offset, count, callback, state);
@@ -148,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             _innerStream.WriteByte(value);
         }
-#if NETFX_CORE
+#if NET45
         public override void Close()
         {
         }
