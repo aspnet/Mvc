@@ -12,6 +12,9 @@ using System.Xml;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
+    /// <summary>
+    /// Deserialize input using DataContractSerializer
+    /// </summary>
     public class DataContractSerializerInputFormatter : IInputFormatter
     {
         private IList<Encoding> _supportedEncodings;
@@ -28,8 +31,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             _supportedEncodings = new List<Encoding>
             {
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                new UnicodeEncoding(bigEndian: false, byteOrderMark: true, throwOnInvalidBytes: true)
+                Encodings.UTF8EncodingWithoutBOM,
+                Encodings.UnicodeEncodingWithBOM
             };
         }
 
@@ -63,11 +66,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public async Task ReadAsync(InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
-            if (request.ContentLength == 0)
+            if (!request.ContentLength.HasValue || request.ContentLength == 0)
             {
-                var modelType = context.Metadata.ModelType;
-                context.Model = modelType.GetTypeInfo().IsValueType ? Activator.CreateInstance(modelType) :
-                                                                      null;
+                context.Model = GetDefaultValueForType(context.Metadata.ModelType);
                 return;
             }
 
@@ -86,16 +87,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                  [NotNull] Encoding effectiveEncoding)
         {
             return XmlDictionaryReader.CreateTextReader(
-                new DelegatingStream(readStream), effectiveEncoding, _readerQuotas, null);
+                readStream, effectiveEncoding, _readerQuotas, onClose: null);
         }
 
         /// <summary>
         /// Called during deserialization to get the <see cref="XmlObjectSerializer"/>.
         /// </summary>
-        /// <returns>The <see cref="XmlObjectSerializer"/> used during serialization and deserialization.</returns>
-        public virtual XmlObjectSerializer CreateXmlSerializer(Type type)
+        /// <returns>The <see cref="XmlObjectSerializer"/> used during deserialization.</returns>
+        public virtual XmlObjectSerializer CreateDataContractSerializer(Type type)
         {
             return new DataContractSerializer(type);
+        }
+
+        private object GetDefaultValueForType(Type modelType)
+        {
+            return modelType.GetTypeInfo().IsValueType ? Activator.CreateInstance(modelType) :
+                                                                      null;
         }
 
         private Task<object> ReadInternal(InputFormatterContext context, Encoding effectiveEncoding)
@@ -103,9 +110,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var type = context.Metadata.ModelType;
             var request = context.HttpContext.Request;
 
-            using (var xmlReader = CreateXmlReader(request.Body, effectiveEncoding))
+            using (var xmlReader = CreateXmlReader(new DelegatingStream(request.Body), effectiveEncoding))
             {
-                var xmlSerializer = CreateXmlSerializer(type);
+                var xmlSerializer = CreateDataContractSerializer(type);
                 return Task.FromResult(xmlSerializer.ReadObject(xmlReader));
             }
         }
