@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var describe = new ServiceDescriber(configuration);
 
-            yield return describe.Instance<IOptionsSetup<MvcOptions>>(new MvcOptionsSetup());
+            yield return describe.Transient<IOptionsSetup<MvcOptions>, MvcOptionsSetup>();
 
             yield return describe.Transient<IControllerFactory, DefaultControllerFactory>();
             yield return describe.Singleton<IControllerActivator, DefaultControllerActivator>();
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc
 
             yield return describe.Transient<ICompilationService, RoslynCompilationService>();
 
-            yield return describe.Singleton<IViewEnginesProvider, DefaultViewEnginesProvider>();
+            yield return describe.Singleton<IViewEngineProvider, DefaultViewEngineProvider>();
             yield return describe.Scoped<ICompositeViewEngine, CompositeViewEngine>();
             yield return describe.Transient<IRazorCompilationService, RazorCompilationService>();
             yield return describe.Transient<IVirtualPathViewFactory, VirtualPathViewFactory>();

@@ -9,14 +9,13 @@ using Microsoft.Framework.OptionsModel;
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <inheritdoc />
-    public class DefaultViewEnginesProvider : IViewEnginesProvider
+    public class DefaultViewEngineProvider : IViewEngineProvider
     {
         private readonly IList<ViewEngineDescriptor> _descriptors;
         private readonly ITypeActivator _typeActivator;
         private readonly IServiceProvider _serviceProvider;
-        private List<IViewEngine> _viewEngines;
 
-        public DefaultViewEnginesProvider(
+        public DefaultViewEngineProvider(
             ITypeActivator typeActivator,
             IServiceProvider serviceProvider,
             IOptionsAccessor<MvcOptions> options)
@@ -31,22 +30,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             get
             {
-                if (_viewEngines == null)
+                var viewEngines = new List<IViewEngine>(_descriptors.Count);
+                foreach (var descriptor in _descriptors)
                 {
-                    _viewEngines = new List<IViewEngine>(_descriptors.Count);
-                    foreach (var descriptor in _descriptors)
+                    var viewEngine = descriptor.ViewEngine;
+                    if (viewEngine == null)
                     {
-                        var viewEngine = descriptor.ViewEngine;
-                        if (viewEngine == null)
-                        {
-                            viewEngine = (IViewEngine)_typeActivator.CreateInstance(_serviceProvider, descriptor.ViewEngineType);
-                        }
-
-                        _viewEngines.Add(viewEngine);
+                        viewEngine = (IViewEngine)_typeActivator.CreateInstance(_serviceProvider,
+                                                                                descriptor.ViewEngineType);
                     }
-                }
 
-                return _viewEngines;
+                    viewEngines.Add(viewEngine);
+                }
+                
+                return viewEngines;
             }
         }
     }

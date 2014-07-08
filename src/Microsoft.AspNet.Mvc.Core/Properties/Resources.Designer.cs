@@ -1037,17 +1037,17 @@ namespace Microsoft.AspNet.Mvc.Core
         /// <summary>
         /// The type '{0}' must derive from '{1}'.
         /// </summary>
-        internal static string TypeMustImplementType
+        internal static string TypeMustDeriveFromType
         {
-            get { return GetString("TypeMustImplementType"); }
+            get { return GetString("TypeMustDeriveFromType"); }
         }
 
         /// <summary>
         /// The type '{0}' must derive from '{1}'.
         /// </summary>
-        internal static string FormatTypeMustImplementType(object p0, object p1)
+        internal static string FormatTypeMustDeriveFromType(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TypeMustImplementType"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("TypeMustDeriveFromType"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// <summary>
     /// Provides an activated collection of <see cref="IViewEngine"/> instances.
     /// </summary>
-    public interface IViewEnginesProvider
+    public interface IViewEngineProvider
     {
         /// <summary>
         /// Gets a collection of activated IViewEngine instances.

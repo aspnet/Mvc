@@ -10,29 +10,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// <inheritdoc />
     public class CompositeViewEngine : ICompositeViewEngine
     {
-        private readonly IViewEnginesProvider _viewEnginesProvider;
-        private IReadOnlyList<IViewEngine> _viewEngines;
-
-        public CompositeViewEngine(IViewEnginesProvider viewEnginesProvider)
+        public CompositeViewEngine(IViewEngineProvider viewEngineProvider)
         {
-            _viewEnginesProvider = viewEnginesProvider;
+            ViewEngines = viewEngineProvider.ViewEngines;
         }
 
         /// <summary>
         /// Gets the list of ViewEngines the CompositeViewEngine delegates to.
         /// </summary>
-        public IReadOnlyList<IViewEngine> ViewEngines
-        {
-            get
-            {
-                if (_viewEngines == null)
-                {
-                    _viewEngines = _viewEnginesProvider.ViewEngines;
-                }
-
-                return _viewEngines;
-            }
-        }
+        public IReadOnlyList<IViewEngine> ViewEngines { get; private set; }
 
         /// <inheritdoc />
         public ViewEngineResult FindPartialView([NotNull] IDictionary<string, object> context,

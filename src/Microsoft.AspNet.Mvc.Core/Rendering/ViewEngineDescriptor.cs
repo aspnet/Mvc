@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var viewEngineType = typeof(IViewEngine);
             if (!viewEngineType.IsAssignableFrom(type))
             {
-                var message = Resources.FormatTypeMustImplementType(type.FullName, viewEngineType.FullName);
+                var message = Resources.FormatTypeMustDeriveFromType(type.FullName, viewEngineType.FullName);
                 throw new ArgumentException(message, "type");
             }
 

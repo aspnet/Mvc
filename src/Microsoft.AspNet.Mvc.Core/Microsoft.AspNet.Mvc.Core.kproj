@@ -159,7 +159,7 @@
     <Compile Include="ReflectedActionInvokerProvider.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModel.cs" />
     <Compile Include="Rendering\CompositeViewEngine.cs" />
-    <Compile Include="Rendering\DefaultViewEnginesProvider.cs" />
+    <Compile Include="Rendering\DefaultViewEngineProvider.cs" />
     <Compile Include="Rendering\DynamicViewData.cs" />
     <Compile Include="Rendering\Expressions\CachedExpressionCompiler.cs" />
     <Compile Include="Rendering\Expressions\ExpressionHelper.cs" />
@@ -200,7 +200,7 @@
     <Compile Include="Rendering\IHtmlHelperOfT.cs" />
     <Compile Include="Rendering\IView.cs" />
     <Compile Include="Rendering\IViewEngine.cs" />
-    <Compile Include="Rendering\IViewEnginesProvider.cs" />
+    <Compile Include="Rendering\IViewEngineProvider.cs" />
     <Compile Include="Rendering\MultiSelectList.cs" />
     <Compile Include="Rendering\MvcForm.cs" />
     <Compile Include="Rendering\SelectList.cs" />
