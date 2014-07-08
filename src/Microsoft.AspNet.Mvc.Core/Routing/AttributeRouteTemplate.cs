@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.AspNet.Mvc.Routing
 {
     /// <summary>
@@ -31,25 +33,28 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // If the right part starts with "~/" or "/" we don't
             // take into account the left part.
-            if (right.StartsWith("~/") || right.StartsWith("/"))
+            if (right.StartsWith("~/", StringComparison.OrdinalIgnoreCase) ||
+                right.StartsWith("/", StringComparison.OrdinalIgnoreCase))
             {
                 return right.TrimStart('~').Trim('/');
             }
 
-            // Neither is null, the left part might start with "~/" or "/"
+            // Neither is null, the left part might start with "~/" or "/",
+            // the right part might end with "/".
             var trimmedLeft = left.TrimStart('~').Trim('/');
+            var trimmedRight = right.TrimEnd('/');
 
             if (trimmedLeft == string.Empty)
             {
                 return right;
             }
-            else if (right == string.Empty)
+            else if (trimmedRight == string.Empty)
             {
                 return trimmedLeft;
             }
 
             // Both templates contain some text.
-            return trimmedLeft + '/' + right;
+            return trimmedLeft + '/' + trimmedRight;
         }
     }
 }

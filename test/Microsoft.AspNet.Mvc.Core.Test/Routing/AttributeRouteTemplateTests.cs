@@ -18,13 +18,13 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("", "/", "")]
         [InlineData("/", "/", "")]
         [InlineData("/", "/", "")]
-        [InlineData("~/",null, "")]
+        [InlineData("~/", null, "")]
         [InlineData("~/", "", "")]
         [InlineData("~/", "/", "")]
         [InlineData("~/", "~/", "")]
-        [InlineData(null,"~/", "")]
-        [InlineData("","~/", "")]
-        [InlineData("/","~/", "")]
+        [InlineData(null, "~/", "")]
+        [InlineData("", "~/", "")]
+        [InlineData("/", "~/", "")]
         public void Combine_EmptyTemplates(string left, string right, string expected)
         {
             // Arrange & Act
@@ -47,6 +47,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("~/home", "/", "")]
         [InlineData(null, "~/home", "home")]
         [InlineData("", "~/home", "home")]
+        [InlineData("", "~/home/", "home")]
         [InlineData("/", "~/home", "home")]
         public void Combine_OneTemplateHasValue(string left, string right, string expected)
         {
@@ -60,8 +61,10 @@ namespace Microsoft.AspNet.Mvc.Routing
         [Theory]
         [InlineData("home", "About", "home/About")]
         [InlineData("home/", "/About", "About")]
+        [InlineData("home/", "/About/", "About")]
         [InlineData("/home/{action}", "{id}", "home/{action}/{id}")]
         [InlineData("home", "~/index", "index")]
+        [InlineData("home", "~/index/", "index")]
         public void Combine_BothTemplatesHasValue(string left, string right, string expected)
         {
             // Arrange & Act
