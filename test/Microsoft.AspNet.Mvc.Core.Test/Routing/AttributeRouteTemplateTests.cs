@@ -41,6 +41,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("/home/", "~/", "")]
         [InlineData(null, "GetEmployees", "GetEmployees")]
         [InlineData("/", "GetEmployees", "GetEmployees")]
+        [InlineData("~/", "Blog/Index/", "Blog/Index")]
         [InlineData("", "/GetEmployees/{id}/", "GetEmployees/{id}")]
         [InlineData("~/home", null, "home")]
         [InlineData("~/home", "", "home")]

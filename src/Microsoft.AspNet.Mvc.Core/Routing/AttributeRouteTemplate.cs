@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             if (trimmedLeft == string.Empty)
             {
-                return right;
+                return trimmedRight;
             }
             else if (trimmedRight == string.Empty)
             {
