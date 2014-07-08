@@ -283,6 +283,31 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 result.RouteValues);
         }
 
+        [Fact]
+        public async Task AttributeRoutedAction_ActionLevelRouteWithTildeSlash_OverridesControllerLevelRoute()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Manager/5");
+            Assert.Equal(200, response.StatusCode);
+
+            // Assert
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            // Assert
+            Assert.Contains("/Manager/5", result.ExpectedUrls);
+            Assert.Equal("Employee", result.Controller);
+            Assert.Equal("GetManager", result.Action);
+
+            Assert.Contains(
+                new KeyValuePair<string, object>("id", "5"),
+                result.RouteValues);
+        }
+
         // See TestResponseGenerator in RoutingWebSite for the code that generates this data.
         private class RoutingResult
         {

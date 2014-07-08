@@ -22,28 +22,34 @@ namespace Microsoft.AspNet.Mvc.Routing
             }
             else if (left == null)
             {
-                return right.Trim('/');
+                return right.TrimStart('~').Trim('/');
             }
             else if (right == null)
             {
-                return left.Trim('/');
+                return left.TrimStart('~').Trim('/');
             }
 
-            // Neither is null
-            var trimmedLeft = left.Trim('/');
-            var trimmedRight = right.Trim('/');
+            // If the right part starts with "~/" or "/" we don't
+            // take into account the left part.
+            if (right.StartsWith("~/") || right.StartsWith("/"))
+            {
+                return right.TrimStart('~').Trim('/');
+            }
+
+            // Neither is null, the left part might start with "~/" or "/"
+            var trimmedLeft = left.TrimStart('~').Trim('/');
 
             if (trimmedLeft == string.Empty)
             {
-                return trimmedRight;
+                return right;
             }
-            else if (trimmedRight == string.Empty)
+            else if (right == string.Empty)
             {
                 return trimmedLeft;
             }
 
             // Both templates contain some text.
-            return trimmedLeft + '/' + trimmedRight;
+            return trimmedLeft + '/' + right;
         }
     }
 }
