@@ -10,7 +10,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// <inheritdoc />
     public class CompositeViewEngine : ICompositeViewEngine
     {
-
         private readonly IViewEnginesProvider _viewEnginesProvider;
         private IReadOnlyList<IViewEngine> _viewEngines;
 
@@ -39,25 +38,25 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public ViewEngineResult FindPartialView([NotNull] IDictionary<string, object> context,
                                                 [NotNull] string partialViewName)
         {
-            return FindView(engine => engine.FindPartialView(context, partialViewName),
-                            partialViewName);
+            return FindView(context, partialViewName, partial: true);
         }
 
         /// <inheritdoc />
         public ViewEngineResult FindView([NotNull] IDictionary<string, object> context,
                                          [NotNull] string viewName)
         {
-            return FindView(engine => engine.FindView(context, viewName),
-                            viewName);
+            return FindView(context, viewName, partial: false);
         }
 
-        private ViewEngineResult FindView(Func<IViewEngine, ViewEngineResult> lookup,
-                                          string viewName)
+        private ViewEngineResult FindView(IDictionary<string, object> context,
+                                          string viewName,
+                                          bool partial)
         {
             var searchedLocations = Enumerable.Empty<string>();
             foreach (var engine in ViewEngines)
             {
-                var result = lookup(engine);
+                var result = partial ? engine.FindPartialView(context, viewName) :
+                                       engine.FindView(context, viewName);
 
                 if (result.Success)
                 {
