@@ -16,10 +16,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         public MvcRazorHostOptions()
         {
             DefaultModel = "dynamic";
-            ActivateAttributeName = "Microsoft.AspNet.Mvc.Activate";
-            DefaultInjectedProperties = new List<InjectChunk>()
+            ActivateAttributeName = "Microsoft.AspNet.Mvc.ActivateAttribute";
+            DefaultInjectedProperties = new List<InjectDescriptor>()
             {
-                new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<TModel>", "Html")
+                new InjectDescriptor("Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<TModel>", "Html")
             };
         }
 
@@ -38,6 +38,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the list of properties that are injected by default.
         /// </summary>
-        public List<InjectChunk> DefaultInjectedProperties { get; private set; }
+        public IList<InjectDescriptor> DefaultInjectedProperties { get; private set; }
     }
 }

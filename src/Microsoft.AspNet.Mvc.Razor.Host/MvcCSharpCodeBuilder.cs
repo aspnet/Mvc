@@ -64,37 +64,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var injectVisitor = new InjectChunkVisitor(writer, Context, _hostOptions.ActivateAttributeName);
             injectVisitor.Accept(Context.CodeTreeBuilder.CodeTree.Chunks);
 
-            GenerateDefaultInjectProperties(writer, injectVisitor.InjectChunks);
-
             writer.WriteLine();
             writer.WriteLineHiddenDirective();
-        }
-
-        private void GenerateDefaultInjectProperties(CSharpCodeWriter writer,
-                                                     List<InjectChunk> injectChunks)
-        {
-            // Generate inject properties that haven't been injected by the user.
-            var injectedProperties = new HashSet<string>(injectChunks.Select(c => c.MemberName), 
-                                                         StringComparer.Ordinal);
-
-            var defaultPropertiesToGenerate = _hostOptions.DefaultInjectedProperties
-                                                          .Where(c => !injectedProperties.Contains(c.MemberName));
-
-            var visitor = new InjectChunkVisitor(writer, 
-                                                 Context, 
-                                                 _hostOptions.ActivateAttributeName);
-            foreach (var chunk in defaultPropertiesToGenerate)
-            {
-                // Inject IHtmlHelper<TModel> as IHtmlHelper<ActualModel>
-                var typeName = chunk.TypeName.Replace("<TModel>", '<' + Model + '>');
-
-                var updatedChunk = new InjectChunk(typeName, chunk.MemberName)
-                {
-                    Start = chunk.Start,
-                    Association = chunk.Association
-                };
-                visitor.Accept(updatedChunk);
-            }
         }
     }
 }

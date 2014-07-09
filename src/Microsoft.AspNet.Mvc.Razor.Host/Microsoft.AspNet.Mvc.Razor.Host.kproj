@@ -24,6 +24,7 @@
     <Compile Include="IMvcRazorHost.cs" />
     <Compile Include="InjectChunk.cs" />
     <Compile Include="InjectChunkVisitor.cs" />
+    <Compile Include="InjectDescriptor.cs" />
     <Compile Include="InjectParameterGenerator.cs" />
     <Compile Include="ModelChunk.cs" />
     <Compile Include="ModelChunkVisitor.cs" />

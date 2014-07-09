@@ -35,7 +35,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                       .WriteLine("]");
             }
 
-            if (Context.Host.DesignTimeMode)
+            // In the event this is a default chunk, it is not associated with a Span.
+            // Generating mappings for these chunks fail.
+            if (Context.Host.DesignTimeMode && chunk.Association != null)
             {
                 Writer.WriteLine("public");
                 var code = string.Format(CultureInfo.InvariantCulture,

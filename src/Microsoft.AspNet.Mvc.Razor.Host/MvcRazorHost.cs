@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
@@ -77,7 +79,34 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public override CodeBuilder DecorateCodeBuilder(CodeBuilder incomingBuilder, CodeGeneratorContext context)
         {
+            UpdateCodeBuilder(context);
             return new MvcCSharpCodeBuilder(context, _hostOptions);
+        }
+
+        private void UpdateCodeBuilder(CodeGeneratorContext context)
+        {
+            var currentChunks = context.CodeTreeBuilder.CodeTree.Chunks;
+            var existingInjects = new HashSet<string>(currentChunks.OfType<InjectChunk>()
+                                                                   .Select(c => c.MemberName),
+                                                      StringComparer.OrdinalIgnoreCase);
+
+            var modelChunk = currentChunks.OfType<ModelChunk>()
+                                          .FirstOrDefault();
+            var model = _hostOptions.DefaultModel;
+            if (modelChunk != null)
+            {
+                model = modelChunk.ModelType;
+            }
+            model = '<' + model + '>';
+
+            // Locate properties by name that haven't already been injected in to the View.
+            var propertiesToAdd = _hostOptions.DefaultInjectedProperties
+                                              .Where(c => !existingInjects.Contains(c.MemberName));
+            foreach (var property in propertiesToAdd)
+            {
+                var memberName = property.MemberName.Replace("<TModel>", model);
+                currentChunks.Add(new InjectChunk(property.TypeName, memberName));
+            }
         }
     }
 }

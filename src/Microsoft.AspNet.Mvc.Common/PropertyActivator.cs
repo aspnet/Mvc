@@ -26,13 +26,12 @@ namespace Microsoft.AspNet.Mvc
         {
             var value = _valueAccessor(context);
             _fastPropertySetter(view, value);
-
             return value;
         }
 
         /// <summary>
         /// Returns a list of properties on a type that are decorated with
-        /// the specified acivateAttributeType and have setters.
+        /// the specified activateAttributeType and have setters.
         /// </summary>
         public static PropertyActivator<TContext>[] GetPropertiesToActivate(
             Type type,
