@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc
         // This is necessary to enable calling await on the returned task.
         // i.e we need to write the following var result = await (Task<ActualType>)mInfo.Invoke.
         // Returning Task<object> enables us to await on the result.
-        private static async Task<object> CoerceResultToTaskAsync(
+        private static Task<object> CoerceResultToTaskAsync(
             object result, 
             Type returnType, 
             string methodName, 
@@ -74,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
                 if (returnType == typeof(Task))
                 {
                     ThrowIfWrappedTaskInstance(resultAsTask.GetType(), methodName, declaringType);
-                    return await CastToObject(resultAsTask);
+                    return CastToObject(resultAsTask);
                 }
 
                 var taskValueType = TypeHelper.GetTaskInnerTypeOrNull(returnType);
@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
                     // constructs: return (Task<object>)Convert<T>((Task<T>)result)
                     var genericMethodInfo = _convertOfTMethod.MakeGenericMethod(taskValueType);
                     var convertedResult = (Task<object>)genericMethodInfo.Invoke(null, new object[] { result });
-                    return await convertedResult;
+                    return convertedResult;
                 }
 
                 // This will be the case for:
@@ -96,7 +96,10 @@ namespace Microsoft.AspNet.Mvc
             }
             else
             {
-                return result;
+                var taskCompletionSource = new TaskCompletionSource<object>();
+                taskCompletionSource.SetResult(result);
+
+                return taskCompletionSource.Task;
             }
         }
 
