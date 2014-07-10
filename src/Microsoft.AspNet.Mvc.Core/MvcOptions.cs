@@ -19,6 +19,7 @@ namespace Microsoft.AspNet.Mvc
             ApplicationModelConventions = new List<IReflectedApplicationModelConvention>();
             ModelBinders = new List<ModelBinderDescriptor>();
             ViewEngines = new List<ViewEngineDescriptor>();
+            ValueProviderFactories = new List<IValueProviderFactory>();
         }
 
         public AntiForgeryOptions AntiForgeryOptions
@@ -47,6 +48,11 @@ namespace Microsoft.AspNet.Mvc
         /// Gets a list of descriptors that represent <see cref="IViewEngine"/> used by this application.
         /// </summary>
         public List<ViewEngineDescriptor> ViewEngines { get; private set; }
+
+        /// <summary>
+        /// Gets a list of <see cref="IValueProviderFactory"/> used by this application.
+        /// </summary>
+        public List<IValueProviderFactory> ValueProviderFactories { get; private set; }
 
         public List<IReflectedApplicationModelConvention> ApplicationModelConventions { get; private set; }
     }
