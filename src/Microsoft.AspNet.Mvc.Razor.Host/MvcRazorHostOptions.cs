@@ -8,9 +8,6 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <summary>
     /// Represents configuration options for the Razor Host
     /// </summary>
-    /// <remarks>
-    /// TODO: These values need to flow from the application options.
-    /// </remarks>
     public class MvcRazorHostOptions
     {
         public MvcRazorHostOptions()

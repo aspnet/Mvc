@@ -41,6 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             : base(new CSharpRazorCodeLanguage())
         {
             // TODO: this needs to flow from the application rather than being initialized here.
+            // Tracked by #774
             _hostOptions = new MvcRazorHostOptions();
             _baseType = baseType;
             DefaultBaseClass = baseType + '<' + _hostOptions.DefaultModel + '>';
@@ -88,10 +89,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             var currentChunks = context.CodeTreeBuilder.CodeTree.Chunks;
             var existingInjects = new HashSet<string>(currentChunks.OfType<InjectChunk>()
                                                                    .Select(c => c.MemberName),
-                                                      StringComparer.OrdinalIgnoreCase);
+                                                      StringComparer.Ordinal);
 
             var modelChunk = currentChunks.OfType<ModelChunk>()
-                                          .FirstOrDefault();
+                                          .LastOrDefault();
             var model = _hostOptions.DefaultModel;
             if (modelChunk != null)
             {
