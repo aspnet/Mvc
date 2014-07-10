@@ -19,8 +19,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         private IList<Encoding> _supportedEncodings;
         private IList<string> _supportedMediaTypes;
-        private XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultReaderQuotas();
+        private XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
 
+        /// <summary>
+        /// Initializes a new instance of DataContractSerializerInputFormatter
+        /// </summary>
         public DataContractSerializerInputFormatter()
         {
             _supportedMediaTypes = new List<string>
@@ -36,16 +39,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
         }
 
+        /// <summary>
+        /// Returns the list of supported encodings.
+        /// </summary>
         public IList<Encoding> SupportedEncodings
         {
             get { return _supportedEncodings; }
         }
 
+        /// <summary>
+        /// Returns the list of supported Media Types.
+        /// </summary>
         public IList<string> SupportedMediaTypes
         {
             get { return _supportedMediaTypes; }
         }
 
+        /// <summary>
+        /// Indicates the acceptable input XML depth.
+        /// </summary>
         public int MaxDepth
         {
             get
@@ -63,31 +75,32 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
+        /// <summary>
+        /// Reads the input XML.
+        /// </summary>
+        /// <param name="context">The input formatter context which contains the body to be read.</param>
+        /// <returns>Task which reads the input.</returns>
         public async Task ReadAsync(InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
-            if (!request.ContentLength.HasValue || request.ContentLength == 0)
+            if (request.ContentLength == 0)
             {
                 context.Model = GetDefaultValueForType(context.Metadata.ModelType);
                 return;
             }
 
-            var effectiveEncoding = FormattingUtilities.SelectCharacterEncoding(
-                _supportedEncodings, request.GetContentType(), typeof(DataContractSerializerInputFormatter));
-            context.Model = await ReadInternal(context, effectiveEncoding);
+            context.Model = await ReadInternal(context);
         }
 
         /// <summary>
         /// Called during deserialization to get the <see cref="XmlReader"/>.
         /// </summary>
         /// <param name="readStream">The <see cref="Stream"/> from which to read.</param>
-        /// <param name="effectiveEncoding">The <see cref="Encoding"/> to use when reading.</param>
         /// <returns>The <see cref="XmlReader"/> used during deserialization.</returns>
-        public virtual XmlReader CreateXmlReader([NotNull] Stream readStream,
-                                                 [NotNull] Encoding effectiveEncoding)
+        public virtual XmlReader CreateXmlReader([NotNull] Stream readStream)
         {
             return XmlDictionaryReader.CreateTextReader(
-                readStream, effectiveEncoding, _readerQuotas, onClose: null);
+                readStream, _readerQuotas);
         }
 
         /// <summary>
@@ -105,12 +118,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                                       null;
         }
 
-        private Task<object> ReadInternal(InputFormatterContext context, Encoding effectiveEncoding)
+        private Task<object> ReadInternal(InputFormatterContext context)
         {
             var type = context.Metadata.ModelType;
             var request = context.HttpContext.Request;
 
-            using (var xmlReader = CreateXmlReader(new DelegatingStream(request.Body), effectiveEncoding))
+            using (var xmlReader = CreateXmlReader(new DelegatingStream(request.Body)))
             {
                 var xmlSerializer = CreateDataContractSerializer(type);
                 return Task.FromResult(xmlSerializer.ReadObject(xmlReader));

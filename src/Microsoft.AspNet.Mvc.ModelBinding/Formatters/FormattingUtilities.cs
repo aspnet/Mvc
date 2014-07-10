@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets the default Reader Quotas for XmlReader.
         /// </summary>
         /// <returns>XmlReaderQuotas with default values</returns>
-        public static XmlDictionaryReaderQuotas GetDefaultReaderQuotas()
+        public static XmlDictionaryReaderQuotas GetDefaultXmlReaderQuotas()
         {
 #if NET45
             return new XmlDictionaryReaderQuotas()
