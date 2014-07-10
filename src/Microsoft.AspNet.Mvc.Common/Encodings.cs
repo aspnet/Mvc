@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal class Encodings
+    internal static class Encodings
     {
         /// <summary>
         /// Returns UTF8 Encoding without BOM and throws on invalid bytes

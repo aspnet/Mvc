@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.AspNet.Mvc.Core;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.Mvc
