@@ -18,43 +18,40 @@ namespace Microsoft.AspNet.Mvc.Routing
         /// <returns>A combined template.</returns>
         public static string Combine(string left, string right)
         {
+            var result = CombineCore(left, right);
+            return result == null ? null : result.TrimStart('~').Trim('/');
+        }
+
+        private static string CombineCore(string left, string right)
+        {
             if (left == null && right == null)
             {
                 return null;
             }
             else if (left == null)
             {
-                return right.TrimStart('~').Trim('/');
+                return right;
             }
             else if (right == null)
             {
-                return left.TrimStart('~').Trim('/');
+                return left;
             }
 
-            // If the right part starts with "~/" or "/" we don't
-            // take into account the left part.
             if (right.StartsWith("~/", StringComparison.OrdinalIgnoreCase) ||
-                right.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+                right.StartsWith("/", StringComparison.OrdinalIgnoreCase) ||
+                left.Equals("~/", StringComparison.OrdinalIgnoreCase) ||
+                left.Equals("/", StringComparison.OrdinalIgnoreCase))
             {
-                return right.TrimStart('~').Trim('/');
+                return right;
             }
 
-            // Neither is null, the left part might start with "~/" or "/",
-            // the right part might end with "/".
-            var trimmedLeft = left.TrimStart('~').Trim('/');
-            var trimmedRight = right.TrimEnd('/');
-
-            if (trimmedLeft == string.Empty)
+            if (left.EndsWith("/", StringComparison.OrdinalIgnoreCase))
             {
-                return trimmedRight;
-            }
-            else if (trimmedRight == string.Empty)
-            {
-                return trimmedLeft;
+                return left + right;
             }
 
             // Both templates contain some text.
-            return trimmedLeft + '/' + trimmedRight;
+            return left + '/' + right;
         }
     }
 }
