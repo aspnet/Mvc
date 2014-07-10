@@ -74,5 +74,29 @@ namespace Microsoft.AspNet.Mvc.Routing
             // Assert
             Assert.Equal(expected, combined);
         }
+
+        [Theory]
+        [InlineData("~~/", null, "~~")]
+        [InlineData("~~/", "", "~~")]
+        [InlineData("~~/", "//", "//")]
+        [InlineData("~~/", "~~/", "~~/~~")]
+        [InlineData("~~/", "home", "~~/home")]
+        [InlineData("~~/", "home/", "~~/home")]
+        [InlineData("//", null, "//")]
+        [InlineData("//", "", "//")]
+        [InlineData("//", "//", "//")]
+        [InlineData("//", "~~/", "/~~")]
+        [InlineData("//", "home", "/home")]
+        [InlineData("//", "home/", "/home")]
+        [InlineData("////", null, "//")]
+        [InlineData("~~//", null, "~~/")]
+        public void Combine_InvalidTemplates(string left, string right, string expected)
+        {
+            // Arrange & Act
+            var combined = AttributeRouteTemplate.Combine(left, right);
+
+            // Assert
+            Assert.Equal(expected, combined);
+        }
     }
 }

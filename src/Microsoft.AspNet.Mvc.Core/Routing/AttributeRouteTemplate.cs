@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public static string Combine(string left, string right)
         {
             var result = CombineCore(left, right);
-            return result == null ? null : result.TrimStart('~').Trim('/');
+            return CleanTemplate(result);
         }
 
         private static string CombineCore(string left, string right)
@@ -52,6 +52,46 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // Both templates contain some text.
             return left + '/' + right;
+        }
+
+        private static string CleanTemplate(string result)
+        {
+            if (result == null)
+            {
+                return null;
+            }
+
+            // This is an invalid combined template, so we don't want to
+            // accidentally clean it and produce a valid template. For that
+            // reason we ignore the clean up process for it.
+            if (result.Equals("//", StringComparison.OrdinalIgnoreCase))
+            {
+                return result;
+            }
+
+            var startIndex = 0;
+            if (result.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+            {
+                startIndex = 1;
+            }
+            else if (result.StartsWith("~/", StringComparison.OrdinalIgnoreCase))
+            {
+                startIndex = 2;
+            }
+
+            // We are in the case where the string is "/" or "~/"
+            if (startIndex == result.Length)
+            {
+                return "";
+            }
+
+            var subStringLength = result.Length - startIndex;
+            if(result.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            {
+                subStringLength--;
+            }
+
+            return result.Substring(startIndex, subStringLength);
         }
     }
 }
