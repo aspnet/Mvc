@@ -1050,6 +1050,22 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("TypeMustDeriveFromType"), p0, p1);
         }
 
+        /// <summary>
+        /// No encoding found for media type formatter '{0}'. There must be at least one supported encoding registered in order for the media type formatter to read or write content.
+        /// </summary>
+        internal static string MediaTypeFormatterNoEncoding
+        {
+            get { return GetString("MediaTypeFormatterNoEncoding"); }
+        }
+
+        /// <summary>
+        /// No encoding found for media type formatter '{0}'. There must be at least one supported encoding registered in order for the media type formatter to read or write content.
+        /// </summary>
+        internal static string FormatMediaTypeFormatterNoEncoding(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("MediaTypeFormatterNoEncoding"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
