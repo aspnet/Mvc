@@ -123,7 +123,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ValidatorProviders = oldBindingContext.ValidatorProviders,
                 MetadataProvider = oldBindingContext.MetadataProvider,
                 ModelBinder = oldBindingContext.ModelBinder,
-                HttpContext = oldBindingContext.HttpContext
             };
 
             // validation is expensive to create, so copy it over if we can
