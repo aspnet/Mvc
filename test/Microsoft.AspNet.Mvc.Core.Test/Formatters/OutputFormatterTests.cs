@@ -33,7 +33,10 @@ namespace Microsoft.AspNet.Mvc.Test
                 throw new NotImplementedException();
             }
 
-            public override Task WriteAsync(object value, Type declaredType, HttpContext context, CancellationToken cancellationToken)
+            public override Task WriteAsync(object value,
+                                            Type declaredType,
+                                            HttpContext context,
+                                            CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }

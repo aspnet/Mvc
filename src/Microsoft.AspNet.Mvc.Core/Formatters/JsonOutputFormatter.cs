@@ -83,13 +83,20 @@ namespace Microsoft.AspNet.Mvc
 
         public override Task WriteAsync(object value,
                                         Type declaredType,
-                                        HttpContext context,
+                                        HttpResponse response,
                                         CancellationToken cancellationToken)
         {
+            if(cancellationToken.IsCancellationRequested)
+            {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                taskCompletionSource.SetCanceled();
+                return taskCompletionSource.Task;
+            }
+
             // The content type including the encoding should have been written already. 
             // In case it was not present, a default will be selected. 
-            var selectedEncoding = SelectCharacterEncoding(MediaTypeHeaderValue.Parse(context.Response.ContentType));
-            using (var writer = new StreamWriter(context.Response.Body, selectedEncoding))
+            var selectedEncoding = SelectCharacterEncoding(MediaTypeHeaderValue.Parse(response.ContentType));
+            using (var writer = new StreamWriter(response.Body, selectedEncoding))
             {
                 using (var jsonWriter = CreateJsonWriter(writer))
                 {
