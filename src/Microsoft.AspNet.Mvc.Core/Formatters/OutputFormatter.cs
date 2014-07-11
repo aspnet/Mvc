@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,15 +18,34 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public abstract class OutputFormatter
     {
+        /// <summary>
+        /// Gets the mutable collection of character encodings supported by
+        /// this <see cref="OutputFormatter"/> instance. The encodings are
+        /// used when writing the data.
+        /// </summary>
         public List<Encoding> SupportedEncodings { get; private set; }
+
+        /// <summary>
+        /// Gets the mutable collection of <see cref="MediaTypeHeaderValue"/> elements supported by
+        /// this <see cref="OutputFormatter"/> instance.
+        /// </summary>
         public List<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OutputFormatter"/> class.
+        /// </summary>
         protected OutputFormatter()
         {
             SupportedEncodings = new List<Encoding>();
             SupportedMediaTypes = new List<MediaTypeHeaderValue>();
         }
 
+        /// <summary>
+        /// Determines the best <see cref="Encoding"/> amongst the supported encodings
+        /// for reading or writing an HTTP entity body based on the provided <paramref name="contentTypeHeader"/>.
+        /// </summary>
+        /// <param name="contentTypeHeader">The content type header provided as part of the request or response.</param>
+        /// <returns>The <see cref="Encoding"/> to use when reading the request or writing the response.</returns>
         public virtual Encoding SelectCharacterEncoding(MediaTypeHeaderValue contentTypeHeader)
         {
             // Performance-sensitive
@@ -33,17 +53,13 @@ namespace Microsoft.AspNet.Mvc
             if (contentTypeHeader != null)
             {
                 // Find encoding based on content type charset parameter
-                string charset = contentTypeHeader.Charset;
+                var charset = contentTypeHeader.Charset;
                 if (!String.IsNullOrWhiteSpace(charset))
                 {
-                    foreach (var supportedEncoding in SupportedEncodings)
-                    {
-                        if (charset.Equals(supportedEncoding.WebName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            encoding = supportedEncoding;
-                            break;
-                        }
-                    }
+                    encoding = SupportedEncodings.FirstOrDefault(
+                                                    supportedEncoding => 
+                                                        charset.Equals(supportedEncoding.WebName, 
+                                                                       StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -59,20 +75,38 @@ namespace Microsoft.AspNet.Mvc
 
             if (encoding == null)
             {
-                // No supported encoding was found so there is no way for us to start reading or writing.
+                // No supported encoding was found so there is no way for us to start writing.
                 throw new InvalidOperationException(Resources.FormatMediaTypeFormatterNoEncoding(GetType().Name));
             }
 
             return encoding;
         }
 
+        /// <summary>
+        /// Determines whether this <see cref="OutputFormatter"/> can serialize
+        /// an object of the specified type.
+        /// </summary>
+        /// <param name="result">ObjectResult which represents the result of the action.</param>
+        /// <param name="declaredType">The compile time type of the returned value.</param>
+        /// <param name="context">The http context associated with the call.</param>
+        /// <returns>True if this <see cref="OutputFormatter"/> is able to serialize the object
+        /// represent by <paramref name="result"/>. False otherwise.</returns>
         public abstract bool CanWriteResult(ObjectResult result,
                                             Type declaredType,
                                             HttpContext context);
 
+        /// <summary>
+        /// Writes given <paramref name="value"/> to the HttpResponse <paramref name="response"/> body stream. 
+        /// </summary>
+        /// <param name="value">The object value to write.</param>
+        /// <param name="declaredType">The compile time type of the object.</param>
+        /// <param name="response">The <see cref="HttpResponse"/> which should be written to.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Task"/> that serializes the given <paramref name="value"/> 
+        /// of the given <paramref name="type"/> to the given <paramref name="response"/>.</returns>
         public abstract Task WriteAsync(object value,
                                         Type declaredType,
-                                        HttpContext context,
+                                        HttpResponse response,
                                         CancellationToken cancellationToken);
     }
 }
