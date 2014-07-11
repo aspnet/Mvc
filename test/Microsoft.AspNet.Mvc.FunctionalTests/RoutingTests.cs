@@ -259,16 +259,65 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("List", result.Action);
         }
 
-        // There's an [HttpGet] with its own template on the action here.
-        [Fact]
-        public async Task AttributeRoutedAction_ControllerLevelRoute_CombinedWithActionRoute_IsReachable()
+        // There's no [HttpGet] on the action here.
+        [Theory]
+        [InlineData("PUT")]
+        [InlineData("PATCH")]
+        public async Task AttributeRoutedAction_ControllerLevelRoute_WithAcceptVerbs_IsReachable(string verb)
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.Handler;
 
             // Act
-            var response = await client.GetAsync("http://localhost/api/Employee/5/Boss");
+            var response = await client.SendAsync(verb, "http://localhost/api/Employee");
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            // Assert
+            Assert.Contains("/api/Employee", result.ExpectedUrls);
+            Assert.Equal("Employee", result.Controller);
+            Assert.Equal("UpdateEmployee", result.Action);
+        }
+
+        [Fact]
+        public async Task AttributeRoutedAction_WithCustomHttpAttributes_IsReachable()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.SendAsync("MERGE", "http://localhost/api/Employee/5");
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            // Assert
+            Assert.Contains("/api/Employee/5", result.ExpectedUrls);
+            Assert.Equal("Employee", result.Controller);
+            Assert.Equal("MergeEmployee", result.Action);
+        }
+
+        // There's an [HttpGet] with its own template on the action here.
+        [Theory]
+        [InlineData("GET", "GetBoss")]
+        [InlineData("DELETE", "DeleteBoss")]
+        public async Task AttributeRoutedAction_ControllerLevelRoute_CombinedWithActionRoute_IsReachable(string url, string action)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.SendAsync(url, "http://localhost/api/Employee/5/Boss");
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -278,7 +327,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Contains("/api/Employee/5/Boss", result.ExpectedUrls);
             Assert.Equal("Employee", result.Controller);
-            Assert.Equal("GetBoss", result.Action);
+            Assert.Equal(action, result.Action);
 
             Assert.Contains(
                 new KeyValuePair<string, object>("id", "5"),

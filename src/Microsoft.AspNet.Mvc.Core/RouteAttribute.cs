@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -23,5 +25,29 @@ namespace Microsoft.AspNet.Mvc
 
         /// <inheritdoc />
         public string Template { get; private set; }
+
+        /// <inheritdoc />
+        public virtual string Name { get; set; }
+
+        /// <inheritdoc />
+        public virtual int? Order { get; set; }
+
+        /// <inheritdoc />
+        public virtual IDictionary<string, IRouteConstraint> Constraints
+        {
+            get { return null; }
+        }
+
+        /// <inheritdoc />
+        public virtual IDictionary<string, object> Defaults
+        {
+            get { return null; }
+        }
+
+        /// <inheritdoc />
+        public virtual IDictionary<string, object> DataTokens
+        {
+            get { return null; }
+        }
     }
 }

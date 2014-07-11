@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNet.Mvc;
-using System;
+﻿using System;
+using Microsoft.AspNet.Mvc;
 
 namespace RoutingWebSite
 {
@@ -20,6 +20,18 @@ namespace RoutingWebSite
             return _generator.Generate("/api/Employee");
         }
 
+        [AcceptVerbs("PUT", "PATCH")]
+        public IActionResult UpdateEmployee()
+        {
+            return _generator.Generate("/api/Employee");
+        }
+
+        [HttpMerge("{id}")]
+        public IActionResult MergeEmployee(int id)
+        {
+            return _generator.Generate("/api/Employee/" + id);
+        }
+
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -36,6 +48,12 @@ namespace RoutingWebSite
         public IActionResult GetManager(int id)
         {
             return _generator.Generate("/Manager/" + id);
+        }
+        
+        [HttpDelete("{id}/Boss")]
+        public IActionResult DeleteBoss(int id)
+        {
+            return _generator.Generate("/api/Employee/" + id + "/Boss");
         }
     }
 }
