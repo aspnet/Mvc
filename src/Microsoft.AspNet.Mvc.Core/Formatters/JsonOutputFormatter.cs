@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,15 +19,11 @@ namespace Microsoft.AspNet.Mvc
         private readonly bool _indent;
 
         public JsonOutputFormatter([NotNull] JsonSerializerSettings settings, bool indent)
-            : base()
         {
             _settings = settings;
             _indent = indent;
-            SupportedEncodings.Add(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false,
-                                                    throwOnInvalidBytes: true));
-            SupportedEncodings.Add(new UnicodeEncoding(bigEndian: false,
-                                                       byteOrderMark: true,
-                                                       throwOnInvalidBytes: true));
+            SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
+            SupportedEncodings.Add(Encodings.UnicodeEncodingWithBOM);
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/json"));
         }
@@ -57,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private JsonWriter CreateJsonWriter([NotNull] TextWriter writer)
+        private JsonWriter CreateJsonWriter(TextWriter writer)
         {
             var jsonWriter = new JsonTextWriter(writer);
             if (_indent)
@@ -76,24 +73,20 @@ namespace Microsoft.AspNet.Mvc
             return jsonSerializer;
         }
 
-        public override bool CanWriteResult(ObjectResult result, Type declaredType, HttpContext context)
+        public override bool CanWriteResult(FormatterContext context, MediaTypeHeaderValue contentType)
         {
-            return true;
+            return SupportedMediaTypes.Any(supportedMediaType => 
+                                            contentType.RawValue.Equals(supportedMediaType.RawValue,
+                                                                        StringComparison.OrdinalIgnoreCase));
         }
 
-        public override Task WriteAsync(object value,
-                                        Type declaredType,
-                                        HttpResponse response,
+        public override Task WriteAsync(FormatterContext context,
                                         CancellationToken cancellationToken)
         {
-            if(cancellationToken.IsCancellationRequested)
-            {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                taskCompletionSource.SetCanceled();
-                return taskCompletionSource.Task;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+            var response = context.HttpContext.Response;
 
-            // The content type including the encoding should have been written already. 
+            // The content type including the encoding should have been set already. 
             // In case it was not present, a default will be selected. 
             var selectedEncoding = SelectCharacterEncoding(MediaTypeHeaderValue.Parse(response.ContentType));
             using (var writer = new StreamWriter(response.Body, selectedEncoding))
@@ -101,7 +94,7 @@ namespace Microsoft.AspNet.Mvc
                 using (var jsonWriter = CreateJsonWriter(writer))
                 {
                     var jsonSerializer = CreateJsonSerializer();
-                    jsonSerializer.Serialize(jsonWriter, value);
+                    jsonSerializer.Serialize(jsonWriter, context.ObjectResult.Value);
 
                     // We're explicitly calling flush here to simplify the debugging experience because the
                     // underlying TextWriter might be long-lived. If this method ends up being called repeatedly

@@ -86,27 +86,19 @@ namespace Microsoft.AspNet.Mvc
         /// Determines whether this <see cref="OutputFormatter"/> can serialize
         /// an object of the specified type.
         /// </summary>
-        /// <param name="result">ObjectResult which represents the result of the action.</param>
-        /// <param name="declaredType">The compile time type of the returned value.</param>
-        /// <param name="context">The http context associated with the call.</param>
+        /// <param name="context">The formatter context associated with the call</param>
+        /// <param name="contentType">The desired contentType on the response.</param>
         /// <returns>True if this <see cref="OutputFormatter"/> is able to serialize the object
-        /// represent by <paramref name="result"/>. False otherwise.</returns>
-        public abstract bool CanWriteResult(ObjectResult result,
-                                            Type declaredType,
-                                            HttpContext context);
+        /// represent by <paramref name="context"/>'s ObjectResult and supports the passed in 
+        /// <paramref name="contentType"/>. 
+        /// False otherwise.</returns>
+        public abstract bool CanWriteResult(FormatterContext context, MediaTypeHeaderValue contentType);
 
         /// <summary>
         /// Writes given <paramref name="value"/> to the HttpResponse <paramref name="response"/> body stream. 
         /// </summary>
-        /// <param name="value">The object value to write.</param>
-        /// <param name="declaredType">The compile time type of the object.</param>
-        /// <param name="response">The <see cref="HttpResponse"/> which should be written to.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A <see cref="Task"/> that serializes the given <paramref name="value"/> 
-        /// of the given <paramref name="type"/> to the given <paramref name="response"/>.</returns>
-        public abstract Task WriteAsync(object value,
-                                        Type declaredType,
-                                        HttpResponse response,
-                                        CancellationToken cancellationToken);
+        /// <returns>A Task that serializes the value to the <paramref name="context"/>'s response message.</returns>
+        public abstract Task WriteAsync(FormatterContext context, CancellationToken cancellationToken);
     }
 }
