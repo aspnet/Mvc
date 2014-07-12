@@ -32,8 +32,8 @@
     <Compile Include="ExpiringFileInfoCache.cs" />
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />
+    <Compile Include="Formatters\JsonOutputFormatter.cs" />
     <Compile Include="Formatters\OutputFormatter.cs" />
-    <Compile Include="JsonOutputFormatter.cs" />
     <Compile Include="ReflectedActionDescriptor.cs" />
     <Compile Include="ReflectedActionDescriptorProvider.cs" />
     <Compile Include="ReflectedModelBuilder\IReflectedApplicationModelConvention.cs" />
