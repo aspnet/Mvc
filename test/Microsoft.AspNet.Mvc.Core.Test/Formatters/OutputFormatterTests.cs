@@ -28,15 +28,12 @@ namespace Microsoft.AspNet.Mvc.Test
 
         private class TestFormatter : OutputFormatter
         {
-            public override bool CanWriteResult(ObjectResult result, Type declaredType, HttpContext context)
+            public override bool CanWriteResult(FormatterContext context, MediaTypeHeaderValue contentType)
             {
                 throw new NotImplementedException();
             }
 
-            public override Task WriteAsync(object value,
-                                            Type declaredType,
-                                            HttpContext context,
-                                            CancellationToken cancellationToken)
+            public override Task WriteAsync(FormatterContext context, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }
