@@ -31,6 +31,8 @@
     <Compile Include="ActionDescriptorsCollection.cs" />
     <Compile Include="ActionResults\HttpNotFoundResult.cs" />
     <Compile Include="Formatters\TextPlainFormatter.cs" />
+    <Compile Include="Internal\DecisionTree\DecisionCriterionValue.cs" />
+    <Compile Include="Internal\DecisionTree\DecisionCriterionValueEqualityComparer.cs" />
     <Compile Include="Logging\AttributeRouteRouteAsyncValues.cs" />
     <Compile Include="Logging\LoggerExtensions.cs" />
     <Compile Include="Logging\MvcRouteHandlerRouteAsyncValues.cs" />
@@ -60,6 +62,17 @@
     <Compile Include="OptionDescriptors\ViewEngineDescriptor.cs" />
     <Compile Include="OptionDescriptors\ViewEngineDescriptorExtensions.cs" />
     <Compile Include="ParameterBinding\ModelBindingHelper.cs" />
+    <Compile Include="Internal\DecisionTree\DecisionTreeBuilder.cs" />
+    <Compile Include="Internal\DecisionTree\DecisionCriterion.cs" />
+    <Compile Include="Internal\DecisionTree\DecisionTreeNode.cs" />
+    <Compile Include="Internal\DecisionTree\IClassifier.cs" />
+    <Compile Include="Internal\DecisionTree\ItemDescriptor.cs" />
+    <Compile Include="ReflectedActionDescriptor.cs" />
+    <Compile Include="ReflectedActionDescriptorProvider.cs" />
+    <Compile Include="ReflectedModelBuilder\IReflectedApplicationModelConvention.cs" />
+    <Compile Include="ReflectedModelBuilder\ReflectedActionModel.cs" />
+    <Compile Include="ReflectedModelBuilder\ReflectedControllerModel.cs" />
+    <Compile Include="ReflectedModelBuilder\ReflectedApplicationModel.cs" />
     <Compile Include="ActionInvokerFactory.cs" />
     <Compile Include="ActionInvokerProviderContext.cs" />
     <Compile Include="ActionMethodSelectorAttribute.cs" />
@@ -246,6 +259,8 @@
     <Compile Include="RouteConstraintAttribute.cs" />
     <Compile Include="RouteDataActionConstraint.cs" />
     <Compile Include="RouteKeyHandling.cs" />
+    <Compile Include="Routing\ActionSelectorDecisionTree.cs" />
+    <Compile Include="Routing\ActionSelectorDecisionTreeProvider.cs" />
     <Compile Include="Routing\AttributeRoute.cs" />
     <Compile Include="Routing\AttributeRouteLinkGenerationEntry.cs" />
     <Compile Include="Routing\AttributeRouteMatchingEntry.cs" />
@@ -253,6 +268,7 @@
     <Compile Include="Routing\AttributeRouteTemplate.cs" />
     <Compile Include="Routing\AttributeRouting.cs" />
     <Compile Include="Routing\IRouteTemplateProvider.cs" />
+    <Compile Include="Routing\RouteValueEqualityComparer.cs" />
     <Compile Include="TemplateInfo.cs" />
     <Compile Include="UrlHelper.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
