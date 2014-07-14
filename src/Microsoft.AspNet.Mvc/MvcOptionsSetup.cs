@@ -33,9 +33,9 @@ namespace Microsoft.AspNet.Mvc
             options.ModelBinders.Add(new ComplexModelDtoModelBinder());
 
             // Set up ValueProviders
-            options.ValueProviderFactories.Add(new RouteValueValueProviderFactory());
+            options.ValueProviderFactories.Add(new RouteValueValueProviderFactory());            
             options.ValueProviderFactories.Add(new QueryStringValueProviderFactory());
-            options.ValueProviderFactories.Add(new FormValueProviderFactory());
+            options.ValueProviderFactories.Add(new FormValueProviderFactory());	
         }
     }
 }
