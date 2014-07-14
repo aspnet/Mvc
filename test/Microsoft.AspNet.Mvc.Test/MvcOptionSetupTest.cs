@@ -42,5 +42,20 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(typeof(MutableObjectModelBinder), mvcOptions.ModelBinders[3].ModelBinderType);
             Assert.Equal(typeof(ComplexModelDtoModelBinder), mvcOptions.ModelBinders[4].ModelBinderType);
         }
+
+        [Fact]
+        public void Setup_SetsUpOutputFormatters()
+        {
+            // Arrange
+            var mvcOptions = new MvcOptions();
+            var setup = new MvcOptionsSetup();
+
+            // Act
+            setup.Setup(mvcOptions);
+
+            // Assert
+            Assert.Equal(1, mvcOptions.OutputFormatters.Count);
+            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[0]);
+        }
     }
 }

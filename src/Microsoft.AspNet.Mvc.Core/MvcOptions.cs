@@ -41,6 +41,8 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        public List<OutputFormatter> OutputFormatters { get; private set; }
+
         public List<ModelBinderDescriptor> ModelBinders { get; private set; }
 
         /// <summary>
