@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -20,6 +21,11 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private bool _renderedBody;
+
+        public RazorView()
+        {
+            SectionWriters = new Dictionary<string, HelperResult>(StringComparer.OrdinalIgnoreCase);
+        }
 
         public IViewComponentHelper Component { get; private set; }
 
@@ -38,7 +44,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public ViewContext ViewContext { get; set; }
 
-        public string Layout { get; set; }
+        public virtual string Layout { get; set; }
+
+        public bool RunViewStartPages { get; set; }
 
         protected TextWriter Output { get; set; }
 
@@ -65,6 +73,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
+        public string Path { get; set; }
+
         private string BodyContent { get; set; }
 
         private Dictionary<string, HelperResult> SectionWriters { get; set; }
@@ -73,32 +83,28 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public virtual async Task RenderAsync([NotNull] ViewContext context)
         {
-            SectionWriters = new Dictionary<string, HelperResult>(StringComparer.OrdinalIgnoreCase);
-            ViewContext = context;
-
-            InitHelpers();
-
+            // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
+            // and ViewComponents to reference it.
+            var oldWriter = context.Writer;
             var contentBuilder = new StringBuilder(1024);
-            using (var bodyWriter = new StringWriter(contentBuilder))
+
+            try
             {
-                Output = bodyWriter;
-
-                // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
-                // and ViewComponents to reference it.
-                var oldWriter = context.Writer;
-
-                try
+                using (var bodyWriter = new StringWriter(contentBuilder))
                 {
+                    Output = bodyWriter;
                     context.Writer = bodyWriter;
-                    await ExecuteAsync();
+
+                    var entryPoint = CreateViewExecutionHierarchy(context);
+                    await entryPoint.RenderViewAsync(context);
 
                     // Verify that RenderBody is called, or that RenderSection is called for all sections
                     VerifyRenderedBodyOrSections();
                 }
-                finally
-                {
-                    context.Writer = oldWriter;
-                }
+            }
+            finally
+            {
+                context.Writer = oldWriter;
             }
 
             var bodyContent = contentBuilder.ToString();
@@ -110,6 +116,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 await context.Writer.WriteAsync(bodyContent);
             }
+        }
+
+        public virtual async Task RenderViewAsync(ViewContext context)
+        {
+            ViewContext = context;
+            InitHelpers();
+            await ExecuteAsync();
         }
 
         private void InitHelpers()
@@ -131,7 +144,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private async Task RenderLayoutAsync(ViewContext context, string bodyContent)
         {
             var virtualPathFactory = context.HttpContext.RequestServices.GetService<IVirtualPathViewFactory>();
-            var layoutView = (RazorView)virtualPathFactory.CreateInstance(Layout);
+            var layoutView = virtualPathFactory.CreateInstance(Layout);
 
             if (layoutView == null)
             {
@@ -371,6 +384,41 @@ namespace Microsoft.AspNet.Mvc.Razor
                     throw new InvalidOperationException(Resources.FormatRenderBodyNotCalled("RenderBody"));
                 }
             }
+        }
+
+        private RazorView CreateViewExecutionHierarchy(ViewContext context)
+        {
+            if (!RunViewStartPages)
+            {
+                return this;
+            }
+
+            var appEnv = context.HttpContext.RequestServices.GetService<IApplicationEnvironment>();
+            var viewStartProvider = new ViewStartProvider(appEnv.ApplicationBasePath);
+            var virtualPathFactory = context.HttpContext.RequestServices.GetService<IVirtualPathViewFactory>();
+            var viewStartLocations = viewStartProvider.GetViewStartLocations(Path);
+            var viewStartInstances = new List<ViewStart>();
+
+            ViewStart previous = null;
+            foreach (var location in viewStartLocations)
+            {
+                var viewStart = (ViewStart)virtualPathFactory.CreateInstance(location);
+                viewStart.Output = Output;
+                if (previous != null)
+                {
+                    previous.Next = viewStart;
+                }
+                previous = viewStart;
+                viewStartInstances.Add(viewStart);
+            }
+
+            if (previous != null)
+            {
+                previous.Next = this;
+                return previous;
+            }
+
+            return this;
         }
     }
 }

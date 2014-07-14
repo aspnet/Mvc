@@ -26,6 +26,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             _environment = environment;
             _baseCompilationService = compilationService;
             _razorHost = razorHost;
+            // TODO: Flow this in via DI once we change MvcRazorHost to use options
+            _razorHost.ViewStartProvider = new ViewStartProvider(environment.ApplicationBasePath);
             _appRoot = EnsureTrailingSlash(environment.ApplicationBasePath);
         }
 

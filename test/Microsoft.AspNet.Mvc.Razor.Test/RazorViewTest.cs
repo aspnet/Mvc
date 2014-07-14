@@ -294,7 +294,7 @@ Layout end
         private static ViewContext CreateViewContext(IView layoutView)
         {
             var viewFactory = new Mock<IVirtualPathViewFactory>();
-            viewFactory.Setup(v => v.CreateInstance(LayoutPath))
+            viewFactory.Setup(v => v.CreateRazorView(LayoutPath))
                        .Returns(layoutView);
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(f => f.GetService(typeof(IVirtualPathViewFactory)))

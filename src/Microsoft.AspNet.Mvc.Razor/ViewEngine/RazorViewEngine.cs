@@ -41,18 +41,19 @@ namespace Microsoft.AspNet.Mvc.Razor
         public ViewEngineResult FindView([NotNull] IDictionary<string, object> context,
                                          [NotNull] string viewName)
         {
-            var viewEngineResult = CreateViewEngineResult(context, viewName);
+            var viewEngineResult = CreateViewEngineResult(context, viewName, runViewStartPages: true);
             return viewEngineResult;
         }
 
         public ViewEngineResult FindPartialView([NotNull] IDictionary<string, object> context,
                                                 [NotNull] string partialViewName)
         {
-            return FindView(context, partialViewName);
+            return CreateViewEngineResult(context, partialViewName, runViewStartPages: false);
         }
 
         private ViewEngineResult CreateViewEngineResult([NotNull] IDictionary<string, object> context,
-                                                        [NotNull] string viewName)
+                                                        [NotNull] string viewName,
+                                                        bool runViewStartPages)
         {
             var nameRepresentsPath = IsSpecificPath(viewName);
 
@@ -65,8 +66,16 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 var view = _virtualPathFactory.CreateInstance(viewName);
-                return view != null ? ViewEngineResult.Found(viewName, view) :
-                                      ViewEngineResult.NotFound(viewName, new[] { viewName });
+                if (view != null)
+                {
+                    view.RunViewStartPages = runViewStartPages;
+                    view.Path = viewName;
+                    return ViewEngineResult.Found(viewName, view);
+                }
+                else
+                {
+                    return ViewEngineResult.NotFound(viewName, new[] { viewName });
+                }
             }
             else
             {
@@ -79,6 +88,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                     var view = _virtualPathFactory.CreateInstance(path);
                     if (view != null)
                     {
+                        view.RunViewStartPages = runViewStartPages;
+                        view.Path = path;
                         return ViewEngineResult.Found(viewName, view);
                     }
                 }

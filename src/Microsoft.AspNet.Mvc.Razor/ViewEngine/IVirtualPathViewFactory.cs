@@ -7,6 +7,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public interface IVirtualPathViewFactory
     {
-        IView CreateInstance(string virtualPath);
+        RazorView CreateInstance(string virtualPath);
     }
 }

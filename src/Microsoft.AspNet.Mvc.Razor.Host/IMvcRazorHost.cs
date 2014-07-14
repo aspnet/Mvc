@@ -8,6 +8,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public interface IMvcRazorHost
     {
+        // Temporary workaround until we can flow options into MvcRazorHost
+        IViewStartProvider ViewStartProvider { get; set; }
+
         GeneratorResults GenerateCode(string rootRelativePath, Stream inputStream);
     }
 }

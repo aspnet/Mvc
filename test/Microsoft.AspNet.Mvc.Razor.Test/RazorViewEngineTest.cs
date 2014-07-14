@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         private IViewEngine CreateSearchLocationViewEngineTester()
         {
             var virtualPathFactory = new Mock<IVirtualPathViewFactory>();
-            virtualPathFactory.Setup(vpf => vpf.CreateInstance(It.IsAny<string>())).Returns<IView>(null);
+            virtualPathFactory.Setup(vpf => vpf.CreateRazorView(It.IsAny<string>())).Returns<IView>(null);
 
             var viewEngine = new RazorViewEngine(virtualPathFactory.Object);
 
