@@ -73,13 +73,6 @@ namespace Microsoft.AspNet.Mvc
             return jsonSerializer;
         }
 
-        public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
-        {
-            return SupportedMediaTypes.Any(supportedMediaType => 
-                                            contentType.RawValue.Equals(supportedMediaType.RawValue,
-                                                                        StringComparison.OrdinalIgnoreCase));
-        }
-
         public override Task WriteAsync(OutputFormatterContext context,
                                         CancellationToken cancellationToken)
         {
@@ -89,7 +82,7 @@ namespace Microsoft.AspNet.Mvc
             // The content type including the encoding should have been set already. 
             // In case it was not present, a default will be selected. 
             var selectedEncoding = SelectCharacterEncoding(MediaTypeHeaderValue.Parse(response.ContentType));
-            using (var writer = new StreamWriter(response.Body, selectedEncoding))
+            using (var writer = new StreamWriter(response.Body, selectedEncoding, 1024, leaveOpen: true))
             {
                 using (var jsonWriter = CreateJsonWriter(writer))
                 {

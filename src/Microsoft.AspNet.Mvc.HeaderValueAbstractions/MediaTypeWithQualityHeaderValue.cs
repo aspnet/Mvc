@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             }
 
             var mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(mediaTypeString);
-            if(mediaTypeHeaderValue == null)
+            if (mediaTypeHeaderValue == null)
             {
                 return null;
             }
@@ -46,6 +46,5 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                     AcceptParameters = acceptParameters
                 };
         } 
-       
     }
 }

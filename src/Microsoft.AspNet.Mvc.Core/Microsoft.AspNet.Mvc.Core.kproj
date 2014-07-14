@@ -33,7 +33,11 @@
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />
     <Compile Include="Formatters\OutputFormatterContext.cs" />
+    <Compile Include="Formatters\HeaderParsingHelpers.cs" />
     <Compile Include="Formatters\JsonOutputFormatter.cs" />
+    <Compile Include="Formatters\MediaTypeHeaderValueExtensions.cs" />
+    <Compile Include="Formatters\MediaTypeHeaderValueRange.cs" />
+    <Compile Include="Formatters\MediaTypeWithQualityHeaderValueComparer.cs" />
     <Compile Include="Formatters\OutputFormatter.cs" />
     <Compile Include="Formatters\OutputFormatterDescriptor.cs" />
     <Compile Include="OutputFormatterDescriptorExtensions.cs" />

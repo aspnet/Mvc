@@ -44,7 +44,8 @@ namespace Microsoft.AspNet.Mvc
         /// Determines the best <see cref="Encoding"/> amongst the supported encodings
         /// for reading or writing an HTTP entity body based on the provided <paramref name="contentTypeHeader"/>.
         /// </summary>
-        /// <param name="contentTypeHeader">The content type header provided as part of the request or response.</param>
+        /// <param name="contentTypeHeader">The content type header provided as part of the request or response.
+        /// </param>
         /// <returns>The <see cref="Encoding"/> to use when reading the request or writing the response.</returns>
         public virtual Encoding SelectCharacterEncoding(MediaTypeHeaderValue contentTypeHeader)
         {
@@ -87,11 +88,28 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="context">The formatter context associated with the call</param>
         /// <param name="contentType">The desired contentType on the response.</param>
+        /// <remarks>
+        /// Subclasses can override this method to determine if the given content can be handled by this formatter.
+        ///  Subclasses should call the base implementation.
+        /// </remarks>
         /// <returns>True if this <see cref="OutputFormatter"/> is able to serialize the object
         /// represent by <paramref name="context"/>'s ObjectResult and supports the passed in 
         /// <paramref name="contentType"/>. 
         /// False otherwise.</returns>
-        public abstract bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType);
+        public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        {
+            // Since supportedMedia Type is going to be more specific check if supportedMediaType is a subset
+            // of the content type which is typically what we get on acceptHeader.
+            var mediaType = SupportedMediaTypes
+                                .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
+            if (mediaType != null)
+            {
+                context.SelectedContentType = mediaType;
+                return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Writes given <paramref name="value"/> to the HttpResponse <paramref name="response"/> body stream. 

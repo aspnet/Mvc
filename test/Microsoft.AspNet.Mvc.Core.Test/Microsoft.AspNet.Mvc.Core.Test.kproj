@@ -36,6 +36,7 @@
     <Compile Include="Formatters\OutputFormatterDescriptorExtensionTest.cs" />
     <Compile Include="Formatters\OutputFormatterDescriptorTest.cs" />
     <Compile Include="Formatters\OutputFormatterTests.cs" />
+    <Compile Include="MediaTypeWithQualityHeaderValueTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedActionModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedControllerModelTests.cs" />

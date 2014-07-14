@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -13,5 +14,10 @@ namespace Microsoft.AspNet.Mvc
         public Type DeclaredType { get; set; }
 
         public HttpContext HttpContext { get; set; }
+
+        /// <summary>
+        /// The selected content type is only available after a formatter has been selected.
+        /// </summary>
+        public MediaTypeHeaderValue SelectedContentType { get; set; }
     }
 }

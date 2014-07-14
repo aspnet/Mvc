@@ -19,14 +19,14 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
 
         public static MediaTypeHeaderValue Parse(string input)
         {
-            if(string.IsNullOrEmpty(input))
+            if (string.IsNullOrEmpty(input))
             {
                 return null;
             }
 
             var inputArray = input.Split(new[] { ';' }, 2);
             var mediaTypeParts = inputArray[0].Split('/');
-            if(mediaTypeParts.Length != 2)
+            if (mediaTypeParts.Length != 2)
             {
                 return null;
             }
