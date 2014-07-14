@@ -309,7 +309,6 @@ namespace Microsoft.AspNet.Mvc
                         ValueProvider = actionBindingContext.ValueProvider,
                         ValidatorProviders = actionBindingContext.ValidatorProviders,
                         MetadataProvider = metadataProvider,
-                        HttpContext = actionBindingContext.ActionContext.HttpContext,
                         FallbackToEmptyPrefix = true
                     };
                     if (await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext))

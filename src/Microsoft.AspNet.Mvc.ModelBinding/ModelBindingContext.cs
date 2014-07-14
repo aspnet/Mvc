@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Http;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -30,7 +29,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 MetadataProvider = bindingContext.MetadataProvider;
                 ModelBinder = bindingContext.ModelBinder;
                 ValidatorProviders = bindingContext.ValidatorProviders;
-                HttpContext = bindingContext.HttpContext;
             }
         }
 
@@ -86,8 +84,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         public bool FallbackToEmptyPrefix { get; set; }
-
-        public HttpContext HttpContext { get; set; }
 
         public IValueProvider ValueProvider
         {
