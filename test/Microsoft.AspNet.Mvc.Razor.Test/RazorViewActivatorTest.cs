@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -20,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_ActivatesAndContextualizesPropertiesOnViews()
         {
             // Arrange
-            var activator = new RazorViewActivator();
+            var activator = new RazorViewActivator(Mock.Of<ITypeActivator>());
             var instance = new TestView();
 
             var myService = new MyService();
@@ -39,6 +40,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                                               instance,
                                               new ViewDataDictionary(Mock.Of<IModelMetadataProvider>()),
                                               TextWriter.Null);
+
             // Act
             activator.Activate(instance, viewContext);
 
@@ -49,6 +51,103 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Null(instance.MyService2);
         }
 
+        [Fact]
+        public void Activate_ThrowsIfTheViewDoesNotDeriveFromRazorViewOfT()
+        {
+            // Arrange
+            var activator = new RazorViewActivator(Mock.Of<ITypeActivator>());
+            var instance = new DoesNotDeriveFromRazorViewOfT();
+
+            var myService = new MyService();
+            var helper = Mock.Of<IHtmlHelper<object>>();
+            var serviceProvider = new Mock<IServiceProvider>();
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(c => c.RequestServices)
+                       .Returns(serviceProvider.Object);
+            var routeContext = new RouteContext(httpContext.Object);
+            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+            var viewContext = new ViewContext(actionContext,
+                                              instance,
+                                              new ViewDataDictionary(Mock.Of<IModelMetadataProvider>()),
+                                              TextWriter.Null);
+
+            // Act and Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => activator.Activate(instance, viewContext));
+            var message = string.Format(CultureInfo.InvariantCulture,
+                                        "View of type '{0}' cannot be activated by '{1}'.",
+                                        instance.GetType().FullName,
+                                        typeof(RazorViewActivator).FullName);
+
+            Assert.Equal(message, ex.Message);
+        }
+
+        [Fact]
+        public void Activate_InstantiatesNewViewDataDictionaryType_IfTheTypeDoesNotMatch()
+        {
+            // Arrange
+            var typeActivator = new TypeActivator();
+            var activator = new RazorViewActivator(typeActivator);
+            var instance = new TestView();
+
+            var myService = new MyService();
+            var helper = Mock.Of<IHtmlHelper<object>>();
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(MyService)))
+                           .Returns(myService);
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
+                           .Returns(helper);
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(c => c.RequestServices)
+                       .Returns(serviceProvider.Object);
+            var routeContext = new RouteContext(httpContext.Object);
+            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+            var viewData = new ViewDataDictionary(Mock.Of<IModelMetadataProvider>())
+            {
+                Model = new MyModel()
+            };
+            var viewContext = new ViewContext(actionContext,
+                                              instance,
+                                              viewData,
+                                              TextWriter.Null);
+
+            // Act and Assert
+            activator.Activate(instance, viewContext);
+            Assert.IsType<ViewDataDictionary<MyModel>>(viewContext.ViewData);
+        }
+
+        [Fact]
+        public void Activate_UsesPassedInViewDataDictionaryInstance_IfPassedInTypeMatches()
+        {
+            // Arrange
+            var typeActivator = new TypeActivator();
+            var activator = new RazorViewActivator(typeActivator);
+            var instance = new TestView();
+            var myService = new MyService();
+            var helper = Mock.Of<IHtmlHelper<object>>();
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(MyService)))
+                           .Returns(myService);
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
+                           .Returns(helper);
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(c => c.RequestServices)
+                       .Returns(serviceProvider.Object);
+            var routeContext = new RouteContext(httpContext.Object);
+            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+            var viewData = new ViewDataDictionary<MyModel>(Mock.Of<IModelMetadataProvider>())
+            {
+                Model = new MyModel()
+            };
+            var viewContext = new ViewContext(actionContext,
+                                              instance,
+                                              viewData,
+                                              TextWriter.Null);
+
+            // Act and Assert
+            activator.Activate(instance, viewContext);
+            Assert.Same(viewData, viewContext.ViewData);
+        }
+
         private abstract class TestViewBase<TModel> : RazorView<TModel>
         {
             [Activate]
@@ -57,11 +156,23 @@ namespace Microsoft.AspNet.Mvc.Razor
             public MyService MyService2 { get; set; }
         }
 
-        private class TestView : TestViewBase<int>
+        private class TestView : TestViewBase<MyModel>
         {
             [Activate]
             internal IHtmlHelper<object> Html { get; private set; }
 
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private abstract class DoesNotDeriveFromRazorViewOfTBase<TModel> : RazorView
+        {
+        }
+
+        private class DoesNotDeriveFromRazorViewOfT : DoesNotDeriveFromRazorViewOfTBase<MyModel>
+        {
             public override Task ExecuteAsync()
             {
                 throw new NotImplementedException();
@@ -76,6 +187,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 ViewContext = viewContext;
             }
+        }
+
+        private class MyModel
+        {
         }
     }
 }

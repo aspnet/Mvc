@@ -66,24 +66,31 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private ViewActivationInfo CreateViewActivationInfo(Type type)
         {
-            var typeInfo = type.GetTypeInfo();
             Type viewDataType;
-            if (!typeInfo.IsGenericType || typeInfo.GenericTypeArguments.Length != 1)
+            var razorViewOfTType = type.GetTypeInfo();
+            while (!razorViewOfTType.IsGenericType ||
+                   razorViewOfTType.GetGenericTypeDefinition() != typeof(RazorView<>))
             {
-                // Ensure that the view is of the type RazorView<TModel>. 
-                var message = Resources.FormatViewCannotBeActivated(type.FullName, GetType().FullName);
-                throw new InvalidOperationException(message);
+                var baseType = razorViewOfTType.BaseType;
+
+                if (baseType == typeof(object))
+                {
+                    var message = Resources.FormatViewCannotBeActivated(type.FullName, GetType().FullName);
+                    throw new InvalidOperationException(message);
+                }
+
+                razorViewOfTType = baseType.GetTypeInfo();
             }
 
-            var modelType = typeInfo.GenericTypeArguments[0];
+            var modelType = razorViewOfTType.GenericTypeArguments[0];
             viewDataType = typeof(ViewDataDictionary<>).MakeGenericType(modelType);
 
             return new ViewActivationInfo
             {
                 ViewDataDictionaryType = viewDataType,
                 PropertyActivators = PropertyActivator<ViewContext>.GetPropertiesToActivate(type,
-                                                                       typeof(ActivateAttribute),
-                                                                       CreateActivateInfo)
+                                                                                            typeof(ActivateAttribute),
+                                                                                            CreateActivateInfo)
             };
         }
 
