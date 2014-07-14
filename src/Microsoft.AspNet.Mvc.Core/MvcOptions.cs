@@ -13,6 +13,7 @@ namespace Microsoft.AspNet.Mvc
     public class MvcOptions
     {
         private AntiForgeryOptions _antiForgeryOptions = new AntiForgeryOptions();
+        private RazorViewEngineOptions _viewEngineOptions = new RazorViewEngineOptions();
 
         public MvcOptions()
         {
@@ -38,6 +39,26 @@ namespace Microsoft.AspNet.Mvc
                 }
 
                 _antiForgeryOptions = value;
+            }
+        }
+
+        public RazorViewEngineOptions ViewEngineOptions
+        {
+            get
+            {
+                return _viewEngineOptions;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value",
+                                                    Resources.FormatPropertyOfTypeCannotBeNull("ViewEngineOptions",
+                                                                                               typeof(MvcOptions)));
+                }
+
+                _viewEngineOptions = value;
             }
         }
 

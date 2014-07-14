@@ -18,6 +18,13 @@
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="myfile.cshtml" />
+    <Content Include="myfile1.cshtml" />
+    <Content Include="myfile2.cshtml" />
+    <Content Include="myfile3.cshtml" />
+    <Content Include="myfile4.cshtml" />
+    <Content Include="myfile5.cshtml" />
+    <Content Include="myfile6.cshtml" />
     <Content Include="project.json" />
   </ItemGroup>
   <ItemGroup>
@@ -30,6 +37,7 @@
     <Compile Include="ActionResults\RedirectResultTest.cs" />
     <Compile Include="ActionSelectionConventionTests.cs" />
     <Compile Include="AntiXsrf\AntiForgeryOptionsTests.cs" />
+    <Compile Include="ExpiringFileInfoCacheTest.cs" />
     <Compile Include="Extensions\ViewEngineDscriptorExtensionsTest.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedActionModelTests.cs" />
