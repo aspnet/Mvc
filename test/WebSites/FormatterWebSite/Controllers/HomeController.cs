@@ -7,15 +7,10 @@ namespace FormatterWebSite.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
-
         [HttpPost]
         public IActionResult Index([FromBody]DummyClass dummyObject)
         {
-            return Content(dummyObject.sampleInt.ToString());
+            return Content(dummyObject.SampleInt.ToString());
         }
     }
 }

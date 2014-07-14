@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc
         public static readonly Encoding UTF8EncodingWithoutBOM
             = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        public static readonly Encoding UnicodeEncodingWithBOM
+        public static readonly Encoding UTF16EncodingWithBOM
             = new UnicodeEncoding(bigEndian: false, byteOrderMark: true, throwOnInvalidBytes: true);
     }
 }

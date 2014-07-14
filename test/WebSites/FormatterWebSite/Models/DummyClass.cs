@@ -5,6 +5,6 @@ namespace FormatterWebSite
 {
     public class DummyClass
     {
-        public int sampleInt;
+        public int SampleInt { get; set; }
     }
 }

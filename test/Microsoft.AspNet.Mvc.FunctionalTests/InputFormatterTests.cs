@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.Handler;
             var sampleInputInt = 10;
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<DummyClass><sampleInt>" + sampleInputInt.ToString() + "</sampleInt></DummyClass>";
+                "<DummyClass><SampleInt>" + sampleInputInt.ToString() + "</SampleInt></DummyClass>";
 
             // Act
             var response = await client.PostAsync("http://localhost/Home/Index", input, "application/xml");

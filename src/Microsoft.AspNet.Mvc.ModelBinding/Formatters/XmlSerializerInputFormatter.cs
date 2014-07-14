@@ -17,9 +17,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class XmlSerializerInputFormatter : IInputFormatter
     {
-        private IList<Encoding> _supportedEncodings;
-        private IList<string> _supportedMediaTypes;
-        private XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
+        private readonly IList<Encoding> _supportedEncodings;
+        private readonly IList<string> _supportedMediaTypes;
+        private readonly XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
 
         /// <summary>
         /// Initializes a new instance of XmlSerializerInputFormatter.
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _supportedEncodings = new List<Encoding>
             {
                 Encodings.UTF8EncodingWithoutBOM,
-                Encodings.UnicodeEncodingWithBOM
+                Encodings.UTF16EncodingWithBOM
             };
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="readStream">The <see cref="Stream"/> from which to read.</param>
         /// <returns>The <see cref="XmlReader"/> used during deserialization.</returns>
-        public virtual XmlReader CreateXmlReader([NotNull] Stream readStream)
+        protected virtual XmlReader CreateXmlReader([NotNull] Stream readStream)
         {
             return XmlDictionaryReader.CreateTextReader(
                 readStream, _readerQuotas);
@@ -107,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Called during deserialization to get the <see cref="XmlSerializer"/>.
         /// </summary>
         /// <returns>The <see cref="XmlSerializer"/> used during serialization and deserialization.</returns>
-        public virtual XmlSerializer CreateXmlSerializer(Type type)
+        protected virtual XmlSerializer CreateXmlSerializer(Type type)
         {
             return new XmlSerializer(type);
         }

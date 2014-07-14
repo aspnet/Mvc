@@ -12,7 +12,7 @@ using Microsoft.AspNet.Http;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding.Test
+namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class DataContractSerializerInputFormatterTests
     {
@@ -20,26 +20,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public class DummyClass
         {
             [DataMember]
-            public int sampleInt;
+            public int SampleInt { get; set; }
         }
 
         [DataContract(Name = "TestLevelOne", Namespace = "")]
         public class TestLevelOne
         {
             [DataMember]
-            public int sampleInt;
+            public int SampleInt { get; set; }
             [DataMember]
             public string sampleString;
-            public DateTime date;
+            public DateTime SampleDate { get; set; }
         }
 
         [DataContract(Name = "TestLevelTwo", Namespace = "")]
         public class TestLevelTwo
         {
             [DataMember]
-            public string sampleString;
+            public string SampleString { get; set; }
             [DataMember]
-            public TestLevelOne testOne;
+            public TestLevelOne TestOne { get; set; }
         }
 
         [Fact]
@@ -65,14 +65,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task XmlFormatterReadsSimpleTypes()
+        public async Task DataContractSerializerFormatterReadsSimpleTypes()
         {
             // Arrange
             var expectedInt = 10;
             var expectedString = "TestString";
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                                "<TestLevelOne><sampleInt>" + expectedInt + "</sampleInt>" +
+                                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
                                 "<sampleString>" + expectedString + "</sampleString></TestLevelOne>";
 
             var formatter = new DataContractSerializerInputFormatter();
@@ -87,12 +87,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.IsType<TestLevelOne>(context.Model);
 
             var model = context.Model as TestLevelOne;
-            Assert.Equal(expectedInt, model.sampleInt);
+            Assert.Equal(expectedInt, model.SampleInt);
             Assert.Equal(expectedString, model.sampleString);
         }
 
         [Fact]
-        public async Task XmlFormatterReadsComplexTypes()
+        public async Task DataContractSerializerFormatterReadsComplexTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -100,9 +100,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var expectedLevelTwoString = "102";
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelTwo><sampleString>" + expectedLevelTwoString + "</sampleString>" +
-                        "<testOne><sampleInt>" + expectedInt + "</sampleInt>" +
-                        "<sampleString>" + expectedString + "</sampleString></testOne></TestLevelTwo>";
+                        "<TestLevelTwo><SampleString>" + expectedLevelTwoString + "</SampleString>" +
+                        "<TestOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                        "<sampleString>" + expectedString + "</sampleString></TestOne></TestLevelTwo>";
 
             var formatter = new DataContractSerializerInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(input);
@@ -116,19 +116,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.IsType<TestLevelTwo>(context.Model);
 
             var model = context.Model as TestLevelTwo;
-            Assert.Equal(expectedLevelTwoString, model.sampleString);
-            Assert.Equal(expectedInt, model.testOne.sampleInt);
-            Assert.Equal(expectedString, model.testOne.sampleString);
+            Assert.Equal(expectedLevelTwoString, model.SampleString);
+            Assert.Equal(expectedInt, model.TestOne.SampleInt);
+            Assert.Equal(expectedString, model.TestOne.sampleString);
         }
 
         [Fact]
-        public async Task XmlFormatterReadsWhenMaxDepthIsModified()
+        public async Task DataContractSerializerFormatterReadsWhenMaxDepthIsModified()
         {
             // Arrange
             var expectedInt = 10;
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<DummyClass><sampleInt>" + expectedInt + "</sampleInt></DummyClass>";
+                "<DummyClass><SampleInt>" + expectedInt + "</SampleInt></DummyClass>";
             var formatter = new DataContractSerializerInputFormatter();
             formatter.MaxDepth = 10;
             var contentBytes = Encoding.UTF8.GetBytes(input);
@@ -142,17 +142,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.NotNull(context.Model);
             Assert.IsType<DummyClass>(context.Model);
             var model = context.Model as DummyClass;
-            Assert.Equal(expectedInt, model.sampleInt);
+            Assert.Equal(expectedInt, model.SampleInt);
         }
 
         [Fact]
-        public async Task XmlFormatterThrowsOnExceededMaxDepth()
+        public async Task DataContractSerializerFormatterThrowsOnExceededMaxDepth()
         {
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelTwo><sampleString>test</sampleString>" +
-                        "<testOne><sampleInt>10</sampleInt>" +
-                        "<sampleString>test</sampleString></testOne></TestLevelTwo>";
+                        "<TestLevelTwo><SampleString>test</SampleString>" +
+                        "<TestOne><SampleInt>10</SampleInt>" +
+                        "<sampleString>test</sampleString></TestOne></TestLevelTwo>";
             var formatter = new DataContractSerializerInputFormatter();
             formatter.MaxDepth = 1;
             var contentBytes = Encoding.UTF8.GetBytes(input);
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public void DataContractSerializerThrowsWhenMaxDepthIsBelowOne()
+        public void DataContractSerializerFormatterThrowsWhenMaxDepthIsBelowOne()
         {
             // Arrange
             var formatter = new XmlSerializerInputFormatter();
@@ -177,7 +177,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<DummyClass><sampleInt>10</sampleInt></DummyClass>";
+                "<DummyClass><SampleInt>10</SampleInt></DummyClass>";
             var formatter = new DataContractSerializerInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
@@ -188,6 +188,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Assert
             Assert.NotNull(context.Model);
             Assert.True(context.HttpContext.Request.Body.CanRead);
+        }
+
+        [Theory]
+        [InlineData("1ûî0")]
+        [InlineData("ï»¿Test")]
+        public async Task DataContractSerializerFormatterThrowsOnInvalidCharacters(string sampleString)
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine +
+                "<TestLevelTwo><SampleString>" + sampleString + "</SampleString></TestLevelTwo>";
+            var formatter = new XmlSerializerInputFormatter();
+            var contentBytes = Encoding.UTF8.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
+
+            // Act
+            await Assert.ThrowsAsync(typeof(InvalidOperationException), async () => await formatter.ReadAsync(context));
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
