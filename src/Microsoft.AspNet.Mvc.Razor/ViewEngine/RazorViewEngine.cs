@@ -9,6 +9,9 @@ using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
+    /// <summary>
+    /// Represents a view engine that is used to render a Web page that uses the Razor syntax.
+    /// </summary>
     public class RazorViewEngine : IViewEngine
     {
         private const string ViewExtension = ".cshtml";
@@ -28,31 +31,41 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private readonly IVirtualPathViewFactory _virtualPathFactory;
 
+        /// <summary>
+        /// Initializes a new instance of the RazorViewEngine class.
+        /// </summary>
+        /// <param name="virtualPathFactory">The view factory used for instantiating Razor views.</param>
         public RazorViewEngine(IVirtualPathViewFactory virtualPathFactory)
         {
             _virtualPathFactory = virtualPathFactory;
         }
 
+        /// <summary>
+        /// Gets the formats used for view locations.
+        /// The mapping of format tokens to route values are as follows:
+        /// {0} - Controller Name, {1} - Action name, {2} - Area name.
+        /// </summary>
         public IEnumerable<string> ViewLocationFormats
         {
             get { return _viewLocationFormats; }
         }
 
-        public ViewEngineResult FindView([NotNull] IDictionary<string, object> context,
+        /// <inheritdoc />
+        public ViewEngineResult FindView([NotNull] ActionContext context,
                                          [NotNull] string viewName)
         {
             var viewEngineResult = CreateViewEngineResult(context, viewName);
             return viewEngineResult;
         }
 
-        public ViewEngineResult FindPartialView([NotNull] IDictionary<string, object> context,
+        /// <inheritdoc />
+        public ViewEngineResult FindPartialView([NotNull] ActionContext context,
                                                 [NotNull] string partialViewName)
         {
             return FindView(context, partialViewName);
         }
 
-        private ViewEngineResult CreateViewEngineResult([NotNull] IDictionary<string, object> context,
-                                                        [NotNull] string viewName)
+        private ViewEngineResult CreateViewEngineResult(ActionContext context, string viewName)
         {
             var nameRepresentsPath = IsSpecificPath(viewName);
 
@@ -70,8 +83,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
             else
             {
-                var controllerName = context.GetValueOrDefault<string>("controller");
-                var areaName = context.GetValueOrDefault<string>("area");
+                var routeValues = context.RouteData.Values;
+                var controllerName = routeValues.GetValueOrDefault<string>("controller");
+                var areaName = routeValues.GetValueOrDefault<string>("area");
                 var potentialPaths = GetViewSearchPaths(viewName, controllerName, areaName);
 
                 foreach (var path in potentialPaths)
