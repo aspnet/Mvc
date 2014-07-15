@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Test
 {
-    public class ActionSelectionConventionTests
+    public class DefaultActionDiscoveryConventionsActionSelectionTests
     {
         private DefaultActionDiscoveryConventions _actionDiscoveryConventions = new DefaultActionDiscoveryConventions();
         private IEnumerable<Assembly> _controllerAssemblies = new[] { Assembly.GetExecutingAssembly() };
@@ -216,96 +216,6 @@ namespace Microsoft.AspNet.Mvc.Test
                 return null;
             }
         }
-
-        #region Controller Classes
-
-        private class MixedRpcAndRestController
-        {
-            public void Index()
-            {
-            }
-
-            public void Get()
-            {
-            }
-
-            public void Post()
-            { }
-
-            public void GetSomething()
-            { }
-
-            // This will be treated as an RPC method.
-            public void Head()
-            {
-            }
-
-            // This will be treated as an RPC method.
-            public void Options()
-            {
-            }
-        }
-
-        private class RestOnlyController
-        {
-            public void Get()
-            {
-            }
-
-            public void Put()
-            {
-            }
-
-            public void Post()
-            {
-            }
-
-            public void Delete()
-            {
-            }
-
-            public void Patch()
-            {
-            }
-        }
-
-        private class RpcOnlyController
-        {
-            public void Index()
-            {
-            }
-
-            public void GetSomething()
-            {
-            }
-
-            public void PutSomething()
-            {
-            }
-
-            public void PostSomething()
-            {
-            }
-
-            public void DeleteSomething()
-            {
-            }
-
-            public void PatchSomething()
-            {
-            }
-        }
-
-        private class AmbiguousController
-        {
-            public void Index(int i)
-            { }
-
-            public void Index(string s)
-            { }
-        }
-
-        #endregion Controller Classes
     }
 }
 
