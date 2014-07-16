@@ -73,7 +73,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.Equal(1, mvcOptions.OutputFormatters.Count);
-            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[0]);
+            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[0].OutputFormatterType);
         }
     }
 }
