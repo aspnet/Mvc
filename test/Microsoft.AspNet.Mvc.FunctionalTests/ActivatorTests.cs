@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var server = TestServer.Create(_provider, _app);
             var client = server.Handler;
-            var expected = "<label for=\"Hello\">Hello</label>";
+            var expected = "<label for=\"Hello\">Hello</label> world!";
 
             // Act
             var result = await client.GetAsync("http://localhost/View/ConsumeDefaultProperties");
@@ -97,7 +97,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var server = TestServer.Create(_provider, _app);
             var client = server.Handler;
-            var expected = "/content/scripts/test.js";
+            var expected = 
+@"/content/scripts/test.js
+/View/ConsumeDefaultProperties";
 
             // Act
             var result = await client.GetAsync("http://localhost/View/ConsumeServicesFromBaseType");
