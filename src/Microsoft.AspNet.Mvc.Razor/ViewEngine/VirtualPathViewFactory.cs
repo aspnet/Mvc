@@ -13,12 +13,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IRazorCompilationService _compilationService;
         private readonly ITypeActivator _activator;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IExpiringFileInfoCache _fileInfoCache;
+        private readonly IFileInfoCache _fileInfoCache;
 
         public VirtualPathViewFactory(IRazorCompilationService compilationService,
                                       ITypeActivator typeActivator,
                                       IServiceProvider serviceProvider,
-                                      IExpiringFileInfoCache fileInfoCache)
+                                      IFileInfoCache fileInfoCache)
         {
             _compilationService = compilationService;
             _activator = typeActivator;

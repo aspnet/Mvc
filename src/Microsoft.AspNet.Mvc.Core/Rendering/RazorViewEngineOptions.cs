@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.AspNet.Mvc.Core
 {
     /// <summary>
-    /// Options to control the view engine behavior.
+    /// Provides programmatic configuration for the default <see cref="Microsoft.AspNet.Mvc.Rendering.IViewEngine"/>.
     /// </summary>
     public class RazorViewEngineOptions
     {

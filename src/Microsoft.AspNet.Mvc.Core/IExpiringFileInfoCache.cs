@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc.Core
     /// <summary>
     /// Provides cached access to file infos.
     /// </summary>
-    public interface IExpiringFileInfoCache
+    public interface IFileInfoCache
     {
         /// <summary>
         /// Returns a cached <see cref="IFileInfo" /> for a given path.

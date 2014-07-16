@@ -10,9 +10,9 @@ using Microsoft.Framework.Runtime;
 namespace Microsoft.AspNet.Mvc.Core
 {
     /// <summary>
-    /// A default implementation for the <see cref="IExpiringFileInfoCache" interface./>
+    /// A default implementation for the <see cref="IFileInfoCache" interface./>
     /// </summary>
-    public class ExpiringFileInfoCache : IExpiringFileInfoCache
+    public class ExpiringFileInfoCache : IFileInfoCache
     {
         private readonly ConcurrentDictionary<string, ExpiringFileInfo> _fileInfoCache =
             new ConcurrentDictionary<string, ExpiringFileInfo>(StringComparer.Ordinal);

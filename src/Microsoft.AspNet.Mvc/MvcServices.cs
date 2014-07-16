@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Singleton<IRazorViewActivator, RazorViewActivator>();
             // Virtual path view factory needs to stay scoped so views can get get scoped services.
             yield return describe.Scoped<IVirtualPathViewFactory, VirtualPathViewFactory>();
-            yield return describe.Singleton<IExpiringFileInfoCache, ExpiringFileInfoCache>();
+            yield return describe.Singleton<IFileInfoCache, ExpiringFileInfoCache>();
 
             yield return describe.Transient<INestedProvider<ActionDescriptorProviderContext>,
                                             ReflectedActionDescriptorProvider>();

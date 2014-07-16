@@ -371,7 +371,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     return _underlyingFileSystem;
                 }
             }
-
         }
 
         public class DummyFileSystem : IFileSystem

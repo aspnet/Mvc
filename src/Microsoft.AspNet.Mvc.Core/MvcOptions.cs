@@ -10,6 +10,9 @@ using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// Provides programmatic configuration for the MVC framework.
+    /// </summary>
     public class MvcOptions
     {
         private AntiForgeryOptions _antiForgeryOptions = new AntiForgeryOptions();
@@ -22,6 +25,9 @@ namespace Microsoft.AspNet.Mvc
             ViewEngines = new List<ViewEngineDescriptor>();
         }
 
+        /// <summary>
+        /// Provides programmatic configuration for the anti-forgery token system.
+        /// </summary>
         public AntiForgeryOptions AntiForgeryOptions
         {
             get
@@ -42,6 +48,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        /// <summary>
+        /// Provides programmatic configuration for the default <see cref="IViewEngine" />.
+        /// </summary>
         public RazorViewEngineOptions ViewEngineOptions
         {
             get
@@ -62,6 +71,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        /// <summary>
+        /// Get a list of the <see cref="ModelBinderDescriptor" /> used by the <see cref="CompositeModelBinder" />.
+        /// </summary>
         public List<ModelBinderDescriptor> ModelBinders { get; private set; }
 
         /// <summary>
