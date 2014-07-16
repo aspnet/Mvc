@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             cache.UnderlyingFileSystem.AddFile(fileInfo);
         }
 
-        public void Sleep(ControllableExpiringFileInfoCache cache, int offsetMilliSecconds)
+        public void Sleep(ControllableExpiringFileInfoCache cache, int offsetMilliseconds)
         {
             cache.Sleep(offsetMilliSecconds);
         }
@@ -297,6 +297,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(FileName, fileInfo1.Name);
         }
 
+        [Fact]
         public void GettingFileInfoReturnsSameDataWithMaxExpiration()
         {
             // Arrange

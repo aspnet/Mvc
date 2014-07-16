@@ -16,8 +16,8 @@ namespace Microsoft.AspNet.Mvc.Core
         /// Controls the <see cref="ExpiringFileInfoCache" /> caching behavior.
         /// </summary>
         /// <remarks>
-        /// <see cref="TimeSpan"/> of <see cref="TimeSpan.Zero" or less, means no caching./>
-        /// <see cref="TimeSpan"/> of <see cref="TimeSpan.MaxValue" means indefinite caching./>
+        /// <see cref="TimeSpan"/> of <see cref="TimeSpan.Zero"/> or less, means no caching.
+        /// <see cref="TimeSpan"/> of <see cref="TimeSpan.MaxValue"/> means indefinite caching.
         /// </remarks>
         public TimeSpan ExpirationBeforeCheckingFilesOnDisk
         {
