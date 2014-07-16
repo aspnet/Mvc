@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.Core
     public interface IExpiringFileInfoCache
     {
         /// <summary>
-        /// Returns a cached <see cref="IFileInfo" for a given path./>
+        /// Returns a cached <see cref="IFileInfo" /> for a given path.
         /// </summary>
         /// <param name="virtualPath">The virtual path.</param>
         /// <returns></returns>

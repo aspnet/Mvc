@@ -18,13 +18,6 @@
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="myfile.cshtml" />
-    <Content Include="myfile1.cshtml" />
-    <Content Include="myfile2.cshtml" />
-    <Content Include="myfile3.cshtml" />
-    <Content Include="myfile4.cshtml" />
-    <Content Include="myfile5.cshtml" />
-    <Content Include="myfile6.cshtml" />
     <Content Include="project.json" />
   </ItemGroup>
   <ItemGroup>
