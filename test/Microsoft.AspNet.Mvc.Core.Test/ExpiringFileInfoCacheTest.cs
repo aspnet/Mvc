@@ -68,14 +68,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         public void Sleep(ControllableExpiringFileInfoCache cache, int offsetMilliseconds)
         {
-            cache.Sleep(offsetMilliSecconds);
+            cache.Sleep(offsetMilliseconds);
         }
 
-        public void Sleep(IOptionsAccessor<MvcOptions> accessor, ControllableExpiringFileInfoCache cache, int offsetMilliSecconds)
+        public void Sleep(IOptionsAccessor<MvcOptions> accessor, ControllableExpiringFileInfoCache cache, int offsetMilliSeconds)
         {
             var baseMilliSeconds = (int)accessor.Options.ViewEngineOptions.ExpirationBeforeCheckingFilesOnDisk.TotalMilliseconds;
 
-            cache.Sleep(baseMilliSeconds + offsetMilliSecconds);
+            cache.Sleep(baseMilliSeconds + offsetMilliSeconds);
         }
 
         public void SetExpiration(IOptionsAccessor<MvcOptions> accessor, TimeSpan expiration)

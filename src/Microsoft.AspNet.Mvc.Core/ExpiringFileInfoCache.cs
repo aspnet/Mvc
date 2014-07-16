@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 expiringFileInfo = new ExpiringFileInfo()
                 {
                     FileInfo = fileInfo,
-                    ValidUntil = utcNow.Add(_offset),
+                    ValidUntil = _offset == TimeSpan.MaxValue ? DateTime.MaxValue : utcNow.Add(_offset),
                 };
 
                 _fileInfoCache.AddOrUpdate(virtualPath, expiringFileInfo, (a, b) => expiringFileInfo);
