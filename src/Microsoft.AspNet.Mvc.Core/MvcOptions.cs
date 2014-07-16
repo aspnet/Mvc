@@ -19,6 +19,7 @@ namespace Microsoft.AspNet.Mvc
             ApplicationModelConventions = new List<IReflectedApplicationModelConvention>();
             ModelBinders = new List<ModelBinderDescriptor>();
             ViewEngines = new List<ViewEngineDescriptor>();
+            OutputFormatters = new List<OutputFormatterDescriptor>();
         }
 
         public AntiForgeryOptions AntiForgeryOptions
@@ -41,7 +42,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public List<OutputFormatter> OutputFormatters { get; private set; }
+        public List<OutputFormatterDescriptor> OutputFormatters { get; private set; }
 
         public List<ModelBinderDescriptor> ModelBinders { get; private set; }
 
