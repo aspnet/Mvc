@@ -31,6 +31,7 @@
     <Compile Include="ActionSelectionConventionTests.cs" />
     <Compile Include="AntiXsrf\AntiForgeryOptionsTests.cs" />
     <Compile Include="Extensions\ViewEngineDscriptorExtensionsTest.cs" />
+    <Compile Include="ParameterBinding\ModelBindingHelperTest.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedActionModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedControllerModelTests.cs" />
