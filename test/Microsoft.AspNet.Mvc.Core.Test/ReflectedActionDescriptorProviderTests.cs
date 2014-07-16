@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
+using Microsoft.AspNet.Mvc.Test.TestControllers;
 
 namespace Microsoft.AspNet.Mvc.Test
 {
@@ -332,125 +332,6 @@ namespace Microsoft.AspNet.Mvc.Test
                 null);
             
             return provider.GetDescriptors();
-        }
-
-        private class DerivedController : BaseController
-        {
-            public void GetFromDerived() // Valid action method.
-            {
-            }
-
-            [HttpGet]
-            public override void OverridenNonActionMethod()
-            {
-            }
-
-            public new void NewMethod() // Valid action method.
-            {
-            }
-
-            public void GenericMethod<T>()
-            {
-            }
-
-            private void PrivateMethod()
-            {
-            }
-
-            public static void StaticMethod()
-            {
-            }
-
-            protected static void ProtectedStaticMethod()
-            {
-            }
-
-            private static void PrivateStaticMethod()
-            {
-            }
-        }
-
-        private class OperatorOverloadingController : Controller
-        {
-            public static OperatorOverloadingController operator +(
-                OperatorOverloadingController c1,
-                OperatorOverloadingController c2)
-            {
-                return new OperatorOverloadingController();
-            }
-        }
-
-        private class BaseController : Controller
-        {
-            public void GetFromBase() // Valid action method.
-            {
-            }
-
-            [NonAction]
-            public virtual void OverridenNonActionMethod()
-            {
-            }
-
-            [NonAction]
-            public virtual void NewMethod()
-            {
-            }
-
-            public override RedirectResult Redirect(string url)
-            {
-                return base.Redirect(url + "#RedirectOverride");
-            }
-        }
-
-        [MyFilter(2)]
-        private class FiltersController
-        {
-            [MyFilter(3)]
-            public void FilterAction()
-            {
-            }
-        }
-
-        private class MyFilterAttribute : Attribute, IFilter
-        {
-            public MyFilterAttribute(int value)
-            {
-                Value = value;
-            }
-
-            public int Value { get; private set; }
-        }
-
-        private class HttpMethodController
-        {
-            [HttpPost]
-            public void OnlyPost()
-            {
-            }
-        }
-
-        [MyRouteConstraintAttribute(blockNonAttributedActions: true)]
-        private class BlockNonAttributedActionsController
-        {
-            public void Edit()
-            {
-            }
-        }
-
-        [MyRouteConstraintAttribute(blockNonAttributedActions: false)]
-        private class DontBlockNonAttributedActionsController
-        {
-            public void Create()
-            {
-            }
-        }
-
-        private class MyRouteConstraintAttribute : RouteConstraintAttribute
-        {
-            public MyRouteConstraintAttribute(bool blockNonAttributedActions)
-                : base("key", "value", blockNonAttributedActions)
-            {
-            }
         }
     }
 }
