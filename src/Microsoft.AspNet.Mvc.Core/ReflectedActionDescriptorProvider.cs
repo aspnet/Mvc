@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 #if K10
 using System.Reflection;
 #endif
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.Routing.Template;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc
@@ -112,10 +112,9 @@ namespace Microsoft.AspNet.Mvc
 
         public List<ReflectedActionDescriptor> Build(ReflectedApplicationModel model)
         {
-            var routeGroupsByTemplate = GetRouteGroupsByTemplate(model);
-
             var actions = new List<ReflectedActionDescriptor>();
 
+            var routeGroupsByTemplate = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var removalConstraints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var controller in model.Controllers)
@@ -136,7 +135,7 @@ namespace Microsoft.AspNet.Mvc
                             ParameterBindingInfo = isFromBody
                                 ? null
                                 : new ParameterBindingInfo(
-                                    parameter.ParameterName, 
+                                    parameter.ParameterName,
                                     parameter.ParameterInfo.ParameterType),
 
                             BodyParameterInfo = isFromBody
@@ -201,56 +200,51 @@ namespace Microsoft.AspNet.Mvc
                         }
                     }
 
-                    if (routeGroupsByTemplate.Any())
+                    var templateText = AttributeRouteTemplate.Combine(
+                            controller.RouteTemplate,
+                            action.RouteTemplate);
+
+                    if (templateText != null)
                     {
-                        var templateText = AttributeRouteTemplate.Combine(
-                                controller.RouteTemplate,
-                                action.RouteTemplate);
-
-                        if (templateText == null)
+                        // An attribute routed action will ignore conventional routed constraints. We still
+                        // want to provide these values as ambient values.
+                        foreach (var constraint in actionDescriptor.RouteConstraints)
                         {
-                            // A conventional routed action can't match any route group.
-                            actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                                AttributeRouting.RouteGroupKey,
-                                RouteKeyHandling.DenyKey));
+                            actionDescriptor.RouteValueDefaults.Add(constraint.RouteKey, constraint.RouteValue);
                         }
-                        else
+
+
+                        // Perform token replacement of route values we know about.
+                        foreach (var kvp in actionDescriptor.RouteValueDefaults)
                         {
-                            // An attribute routed action will ignore conventional routed constraints. We still
-                            // want to provide these values as ambient values.
-                            foreach (var constraint in actionDescriptor.RouteConstraints)
-                            {
-                                actionDescriptor.RouteValueDefaults.Add(constraint.RouteKey, constraint.RouteValue);
-                            }
+                            // There is no-case-insensitive string.Replace
+                            var replacementToken = Regex.Escape("[" + kvp.Key + "]");
+                            var replacementValue = Regex.Escape(Convert.ToString(kvp.Value));
 
-                            // TODO #738 - this currently has parity with what we did in MVC5 when a template uses 
-                            // parameters like 'area', 'controller', and 'action. This needs to be changed as 
-                            // part of #738.
-                            //
-                            // For instance, consider actions mapped with api/Blog/{action}. The value of {action} 
-                            // needs to passed to action selection to choose the right action.
-                            var template = TemplateParser.Parse(templateText, _constraintResolver);
-
-                            var routeConstraints = new List<RouteDataActionConstraint>();
-                            foreach (var constraint in actionDescriptor.RouteConstraints)
-                            {
-                                if (template.Parameters.Any(
-                                    p => p.IsParameter &&
-                                    string.Equals(p.Name, constraint.RouteKey, StringComparison.OrdinalIgnoreCase)))
-                                {
-                                    routeConstraints.Add(constraint);
-                                }
-                            }
-
-                            var routeGroup = routeGroupsByTemplate[templateText];
-                            routeConstraints.Add(new RouteDataActionConstraint(
-                                AttributeRouting.RouteGroupKey,
-                                routeGroup));
-
-                            actionDescriptor.RouteConstraints = routeConstraints;
-
-                            actionDescriptor.AttributeRouteTemplate = templateText;
+                            templateText = Regex.Replace(
+                                templateText,
+                                replacementToken,
+                                replacementValue,
+                                RegexOptions.IgnoreCase);
                         }
+
+                        actionDescriptor.AttributeRouteTemplate = templateText;
+
+                        // An attribute routed action is matched by its 'route group' which identifies all equivalent
+                        // actions.
+                        string routeGroup;
+                        if (!routeGroupsByTemplate.TryGetValue(templateText, out routeGroup))
+                        {
+                            routeGroup = GetRouteGroup(templateText);
+                            routeGroupsByTemplate.Add(templateText, routeGroup);
+                        }
+
+                        var routeConstraints = new List<RouteDataActionConstraint>();
+                        routeConstraints.Add(new RouteDataActionConstraint(
+                            AttributeRouting.RouteGroupKey,
+                            routeGroup));
+
+                        actionDescriptor.RouteConstraints = routeConstraints;
                     }
 
                     actionDescriptor.FilterDescriptors =
@@ -270,6 +264,15 @@ namespace Microsoft.AspNet.Mvc
                 {
                     if (actionDescriptor.AttributeRouteTemplate == null)
                     {
+                        // Any any attribute routes are in use, then non-attribute-routed ADs can't be selected
+                        // when a route group returned by the route.
+                        if (routeGroupsByTemplate.Any())
+                        {
+                            actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
+                                AttributeRouting.RouteGroupKey,
+                                RouteKeyHandling.DenyKey));
+                        }
+
                         if (!HasConstraint(actionDescriptor.RouteConstraints, key))
                         {
                             actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
@@ -295,24 +298,10 @@ namespace Microsoft.AspNet.Mvc
             return actions;
         }
 
-        // Groups the set of all attribute routing templates and returns mapping of [template -> group].
-        private static Dictionary<string, string> GetRouteGroupsByTemplate(ReflectedApplicationModel model)
+        // Returns a unique, stable key per-route-template (OrdinalIgnoreCase)
+        private static string GetRouteGroup(string template)
         {
-            var groupsByTemplate = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var controller in model.Controllers)
-            {
-                foreach (var action in controller.Actions)
-                {
-                    var template = AttributeRouteTemplate.Combine(controller.RouteTemplate, action.RouteTemplate);
-                    if (template != null && !groupsByTemplate.ContainsKey(template))
-                    {
-                        groupsByTemplate.Add(template, "__route__" + template);
-                    }
-                }
-            }
-
-            return groupsByTemplate;
+            return ("__route__" + template).ToUpperInvariant();
         }
     }
 }

@@ -1066,6 +1066,53 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("OutputFormatterNoEncoding"), p0);
         }
 
+        /// The following errors occurred with attribute routing information:{0}{0}{1}
+        /// </summary>
+        internal static string AttributeRoute_AggregateErrorMessage
+        {
+            get { return GetString("AttributeRoute_AggregateErrorMessage"); }
+        }
+
+        /// <summary>
+        /// The following errors occurred with attribute routing information:{0}{0}{1}
+        /// </summary>
+        internal static string FormatAttributeRoute_AggregateErrorMessage(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_AggregateErrorMessage"), p0, p1);
+        }
+
+        /// <summary>
+        /// The attribute route '{0}' cannot contain a parameter named '{{{1}}}'. Use '[{1}]` in the route template to insert the value '{2}'.
+        /// </summary>
+        internal static string AttributeRoute_CannotContainParameter
+        {
+            get { return GetString("AttributeRoute_CannotContainParameter"); }
+        }
+
+        /// <summary>
+        /// The attribute route '{0}' cannot contain a parameter named '{{{1}}}'. Use '[{1}]` in the route template to insert the value '{2}'.
+        /// </summary>
+        internal static string FormatAttributeRoute_CannotContainParameter(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_CannotContainParameter"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// For action: '{0}'{1}Error: {2}
+        /// </summary>
+        internal static string AttributeRoute_IndividualErrorMessage
+        {
+            get { return GetString("AttributeRoute_IndividualErrorMessage"); }
+        }
+
+        /// <summary>
+        /// For action: '{0}'{1}Error: {2}
+        /// </summary>
+        internal static string FormatAttributeRoute_IndividualErrorMessage(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_IndividualErrorMessage"), p0, p1, p2);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

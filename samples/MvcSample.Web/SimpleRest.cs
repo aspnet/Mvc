@@ -11,7 +11,7 @@ namespace MvcSample.Web
             return "Get method";
         }
 
-        [HttpGet("OtherThing")]
+        [HttpGet("[action]")]
         public string GetOtherThing()
         {
             return "Get other thing";
