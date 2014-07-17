@@ -7,8 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNet.HeaderValueAbstractions;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.Mvc
@@ -73,14 +73,14 @@ namespace Microsoft.AspNet.Mvc
             return jsonSerializer;
         }
 
-        public override bool CanWriteResult(FormatterContext context, MediaTypeHeaderValue contentType)
+        public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
             return SupportedMediaTypes.Any(supportedMediaType => 
                                             contentType.RawValue.Equals(supportedMediaType.RawValue,
                                                                         StringComparison.OrdinalIgnoreCase));
         }
 
-        public override Task WriteAsync(FormatterContext context,
+        public override Task WriteAsync(OutputFormatterContext context,
                                         CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

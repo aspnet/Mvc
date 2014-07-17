@@ -6,7 +6,7 @@ using Microsoft.AspNet.Http;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class FormatterContext
+    public class OutputFormatterContext
     {
         public ObjectResult ObjectResult { get; set; }
 

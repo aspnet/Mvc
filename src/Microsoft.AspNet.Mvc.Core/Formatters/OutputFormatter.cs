@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNet.HeaderValueAbstractions;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -48,7 +48,6 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The <see cref="Encoding"/> to use when reading the request or writing the response.</returns>
         public virtual Encoding SelectCharacterEncoding(MediaTypeHeaderValue contentTypeHeader)
         {
-            // Performance-sensitive
             Encoding encoding = null;
             if (contentTypeHeader != null)
             {
@@ -76,7 +75,7 @@ namespace Microsoft.AspNet.Mvc
             if (encoding == null)
             {
                 // No supported encoding was found so there is no way for us to start writing.
-                throw new InvalidOperationException(Resources.FormatMediaTypeFormatterNoEncoding(GetType().Name));
+                throw new InvalidOperationException(Resources.FormatOutputFormatterNoEncoding(GetType().FullName));
             }
 
             return encoding;
@@ -92,13 +91,13 @@ namespace Microsoft.AspNet.Mvc
         /// represent by <paramref name="context"/>'s ObjectResult and supports the passed in 
         /// <paramref name="contentType"/>. 
         /// False otherwise.</returns>
-        public abstract bool CanWriteResult(FormatterContext context, MediaTypeHeaderValue contentType);
+        public abstract bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType);
 
         /// <summary>
         /// Writes given <paramref name="value"/> to the HttpResponse <paramref name="response"/> body stream. 
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that serializes the value to the <paramref name="context"/>'s response message.</returns>
-        public abstract Task WriteAsync(FormatterContext context, CancellationToken cancellationToken);
+        public abstract Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken);
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc
             = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
-        /// Returns UnicodeEncoding Encoding which uses littleEndian byte order with BOM and throws on invalid bytes.
+        /// Returns UTF16 Encoding which uses littleEndian byte order with BOM and throws on invalid bytes.
         /// </summary>
         public static readonly Encoding UnicodeEncodingWithBOM = new UnicodeEncoding(bigEndian: false,
                                                                                      byteOrderMark: true,
