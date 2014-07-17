@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc
         /// Creates a new <see cref="HttpPostAttribute"/> with the given route template.
         /// </summary>
         /// <param name="template">The route template. May not be null.</param>
-        public HttpPostAttribute(string template)
+        public HttpPostAttribute([NotNull] string template)
         {
             Template = template;
         }

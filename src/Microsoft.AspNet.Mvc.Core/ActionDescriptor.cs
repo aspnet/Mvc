@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -12,10 +13,7 @@ namespace Microsoft.AspNet.Mvc
 
         public List<RouteDataActionConstraint> RouteConstraints { get; set; }
 
-        /// <summary>
-        /// The route template May be null if the action has no attribute routes.
-        /// </summary>
-        public string RouteTemplate { get; set; }
+        public RouteInfo RouteInfo { get; set; }
 
         public List<HttpMethodConstraint> MethodConstraints { get; set; }
 

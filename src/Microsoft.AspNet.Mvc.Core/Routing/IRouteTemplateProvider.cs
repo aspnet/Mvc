@@ -17,8 +17,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         string Template { get; }
 
         /// <summary>
-        /// Gets the route order. The order determines which route gets selected when multiple attribute routes
-        /// match a given request. Default value is 0.
+        /// Gets the route order. The order determines the order of route execution. Routes with a lower
+        /// order value are tried first. When a route doesn't specify a value, it gets a default value of 0.
         /// </summary>
         int? Order { get; }
 
@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         string Name { get; }
 
         /// <summary>
-        /// The constraints applied to the parameters of the route.
+        /// Additional constraints applied to the route.
         /// </summary>
         IDictionary<string, IRouteConstraint> Constraints { get; }
 
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         IDictionary<string, object> DataTokens { get; }
 
         /// <summary>
-        /// The list of default values associated with different parameters of this route.
+        /// Default values associated with the route.
         /// </summary>
         IDictionary<string, object> Defaults { get; }
     }

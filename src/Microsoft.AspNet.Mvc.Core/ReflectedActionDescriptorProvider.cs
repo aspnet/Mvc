@@ -200,7 +200,7 @@ namespace Microsoft.AspNet.Mvc
                     {
                         var templateText = AttributeRouteTemplate.Combine(
                                 controller.RouteTemplate,
-                                action.RouteTemplate);
+                                action.RouteInfo.Template);
 
                         if (templateText == null)
                         {
@@ -231,7 +231,7 @@ namespace Microsoft.AspNet.Mvc
                                 AttributeRouting.RouteGroupKey,
                                 routeGroup));
 
-                            actionDescriptor.RouteTemplate = templateText;
+                            actionDescriptor.RouteInfo.Template = templateText;
                         }
                     }
 
@@ -271,7 +271,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var action in controller.Actions)
                 {
-                    var template = AttributeRouteTemplate.Combine(controller.RouteTemplate, action.RouteTemplate);
+                    var template = AttributeRouteTemplate.Combine(controller.RouteTemplate, action.RouteInfo.Template);
                     if (template != null && !groupsByTemplate.ContainsKey(template))
                     {
                         groupsByTemplate.Add(template, "__route__" + template);

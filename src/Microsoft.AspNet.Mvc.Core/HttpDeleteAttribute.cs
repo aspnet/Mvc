@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
         /// Creates a new <see cref="HttpDeleteAttribute"/> with the given route template.
         /// </summary>
         /// <param name="template">The route template. May not be null.</param>
-        public HttpDeleteAttribute(string template)
+        public HttpDeleteAttribute([NotNull] string template)
         {
             Template = template;
         }

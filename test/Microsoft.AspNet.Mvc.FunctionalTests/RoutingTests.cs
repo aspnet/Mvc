@@ -310,14 +310,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Theory]
         [InlineData("GET", "GetBoss")]
         [InlineData("DELETE", "DeleteBoss")]
-        public async Task AttributeRoutedAction_ControllerLevelRoute_CombinedWithActionRoute_IsReachable(string url, string action)
+        public async Task AttributeRoutedAction_ControllerLevelRoute_CombinedWithActionRoute_IsReachable(string verb, string action)
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.Handler;
 
             // Act
-            var response = await client.SendAsync(url, "http://localhost/api/Employee/5/Boss");
+            var response = await client.SendAsync(verb, "http://localhost/api/Employee/5/Boss");
 
             // Assert
             Assert.Equal(200, response.StatusCode);
