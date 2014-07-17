@@ -13,7 +13,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public static class FormattingUtilities
     {
-        public static readonly int DefaultMinDepth = 1;
         public static readonly int DefaultMaxDepth = 32;
 
         /// <summary>

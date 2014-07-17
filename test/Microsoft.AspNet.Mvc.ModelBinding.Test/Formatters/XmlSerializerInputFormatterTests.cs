@@ -163,13 +163,32 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
+        public async Task XmlSerializerFormatterThrowsWhenReaderQuotasAreChanged()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                        "<TestLevelTwo><SampleString>test</SampleString>" +
+                        "<TestOne><SampleInt>10</SampleInt>" +
+                        "<sampleString>test</sampleString>" +
+                        "<SampleDate>" + XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc)
+                        + "</SampleDate></TestOne></TestLevelTwo>";
+            var formatter = new XmlSerializerInputFormatter();
+            formatter.XmlDictionaryReaderQuotas.MaxStringContentLength = 10;
+            var contentBytes = Encoding.UTF8.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
+
+            // Act & Assert
+            await Assert.ThrowsAsync(typeof(InvalidOperationException), async () => await formatter.ReadAsync(context));
+        }
+
+        [Fact]
         public void XmlSerializerSerializerThrowsWhenMaxDepthIsBelowOne()
         {
             // Arrange
             var formatter = new XmlSerializerInputFormatter();
 
             // Act & Assert
-            Assert.Throws(typeof(ArgumentOutOfRangeException), () => { formatter.MaxDepth = 0; });
+            Assert.Throws(typeof(ArgumentException), () => formatter.MaxDepth = 0);
         }
 
         [Fact]
@@ -190,20 +209,51 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(context.HttpContext.Request.Body.CanRead);
         }
 
-        [Theory]
-        [InlineData("1ûî0")]
-        [InlineData("ï»¿Test")]
-        public async Task XmlSerializerFormatterThrowsOnInvalidCharacters(string sampleString)
+        //[Fact]
+        //public async Task XmlSerializerFormatterThrowsOnInvalidCharacters()
+        //{
+        //    System.Diagnostics.Debugger.Launch();
+        //    // Arrange
+        //    var sampleString = "a\xc5z";
+        //    var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine +
+        //        "<TestLevelTwo><SampleString>" + sampleString + "</SampleString></TestLevelTwo>";
+        //    var formatter = new XmlSerializerInputFormatter();
+        //    var contentBytes = Encoding.UTF8.GetBytes(input);
+        //    var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
+
+        //    // Act
+        //    await Assert.ThrowsAsync(typeof(XmlException), async () => await formatter.ReadAsync(context));
+        //}
+
+        [Fact]
+        public async Task XmlSerializerFormatterIgnoresBOMCharacters()
         {
             // Arrange
-            var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine +
-                "<TestLevelTwo><SampleString>" + sampleString + "</SampleString></TestLevelTwo>";
+            var sampleString = "Test";
+            var sampleStringBytes = Encoding.UTF8.GetBytes(sampleString);
+            var inputStart = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine +
+                "<TestLevelTwo><SampleString>" + sampleString);
+            byte[] bom = { 0xef, 0xbb, 0xbf };
+            var inputEnd = Encoding.UTF8.GetBytes("</SampleString></TestLevelTwo>");
+            var expectedBytes = new byte[sampleString.Length + bom.Length];
+
+            var contentBytes = new byte[inputStart.Length + bom.Length + inputEnd.Length];
+            Buffer.BlockCopy(inputStart, 0, contentBytes, 0, inputStart.Length);
+            Buffer.BlockCopy(bom, 0, contentBytes, inputStart.Length, bom.Length);
+            Buffer.BlockCopy(inputEnd, 0, contentBytes, inputStart.Length + bom.Length, inputEnd.Length);
+
             var formatter = new XmlSerializerInputFormatter();
-            var contentBytes = Encoding.UTF8.GetBytes(input);
-            var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
+            var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
             // Act
-            await Assert.ThrowsAsync(typeof(InvalidOperationException), async () => await formatter.ReadAsync(context));
+            await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.NotNull(context.Model);
+            var model = context.Model as TestLevelTwo;
+            Buffer.BlockCopy(sampleStringBytes, 0, expectedBytes, 0, sampleStringBytes.Length);
+            Buffer.BlockCopy(bom, 0, expectedBytes, sampleStringBytes.Length, bom.Length);
+            Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(model.SampleString));
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)

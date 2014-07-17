@@ -13,7 +13,8 @@ using System.Xml.Serialization;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Deserialize input using XmlSerializer.
+    /// This class handles deserialization of input XML data
+    /// to strongly-typed objects using <see cref="XmlSerializer"/>
     /// </summary>
     public class XmlSerializerInputFormatter : IInputFormatter
     {
@@ -60,19 +61,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public int MaxDepth
         {
-            get
-            {
-                return _readerQuotas.MaxDepth;
-            }
-            set
-            {
-                if (value < FormattingUtilities.DefaultMinDepth)
-                {
-                    throw new ArgumentOutOfRangeException("value");
-                }
+            get { return _readerQuotas.MaxDepth; }
+            set { _readerQuotas.MaxDepth = value; }
+        }
 
-                _readerQuotas.MaxDepth = value;
-            }
+        /// <summary>
+        /// The quotas include - DefaultMaxDepth, DefaultMaxStringContentLength, DefaultMaxArrayLength,
+        /// DefaultMaxBytesPerRead, DefaultMaxNameTableCharCount
+        /// </summary>
+        public XmlDictionaryReaderQuotas XmlDictionaryReaderQuotas
+        {
+            get { return _readerQuotas; }
         }
 
         /// <summary>
