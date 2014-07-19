@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -11,7 +12,7 @@ namespace Microsoft.AspNet.Mvc
     /// Identifies an action that only supports the HTTP GET method.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public sealed class HttpGetAttribute : Attribute, IActionHttpMethodProvider, IRouteTemplateProvider
+    public class HttpGetAttribute : Attribute, IActionHttpMethodProvider, IRouteTemplateProvider
     {
         private static readonly IEnumerable<string> _supportedMethods = new string[] { "GET" };
 
@@ -39,5 +40,29 @@ namespace Microsoft.AspNet.Mvc
 
         /// <inheritdoc />
         public string Template { get; private set; }
+
+        /// <inheritdoc />
+        public string Name { get; set; }
+
+        /// <inheritdoc />
+        public int? Order { get; set; }
+
+        /// <inheritdoc />
+        public virtual IDictionary<string, IRouteConstraint> Constraints
+        {
+            get { return null; }
+        }
+
+        /// <inheritdoc />
+        public virtual IDictionary<string, object> DataTokens
+        {
+            get { return null; }
+        }
+
+        /// <inheritdoc />
+        public virtual IDictionary<string, object> Defaults
+        {
+            get { return null; }
+        }
     }
 }

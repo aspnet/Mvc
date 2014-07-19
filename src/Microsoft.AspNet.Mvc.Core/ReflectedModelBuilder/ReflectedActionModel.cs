@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
 {
@@ -23,7 +24,13 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
             var routeTemplateAttribute = Attributes.OfType<IRouteTemplateProvider>().FirstOrDefault();
             if (routeTemplateAttribute != null)
             {
-                RouteTemplate = routeTemplateAttribute.Template;
+                RouteInfo = new RouteInfo(
+                    routeTemplateAttribute.Template,
+                    routeTemplateAttribute.Name,
+                    routeTemplateAttribute.Order,
+                    routeTemplateAttribute.Constraints,
+                    routeTemplateAttribute.DataTokens,
+                    routeTemplateAttribute.Defaults);
             }
 
             HttpMethods = new List<string>();
@@ -44,6 +51,6 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
 
         public List<ReflectedParameterModel> Parameters { get; private set; }
 
-        public string RouteTemplate { get; set; }
+        public RouteInfo RouteInfo { get; set; }
     }
 }

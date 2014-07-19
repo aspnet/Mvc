@@ -76,8 +76,11 @@
     <Compile Include="Rendering\DefaultViewEngineProviderTest.cs" />
     <Compile Include="Routing\AttributeRoutePrecedenceTests.cs" />
     <Compile Include="Routing\AttributeRouteTemplateTests.cs" />
+<<<<<<< HEAD
     <Compile Include="StaticControllerAssemblyProvider.cs" />
+=======
     <Compile Include="Routing\RouteTemplateProviderAttributesTests.cs" />
+>>>>>>> [Issue #730] Attribute Routing: Flesh out attributes
     <Compile Include="TestController.cs" />
     <Compile Include="TypeHelperTest.cs" />
     <Compile Include="StaticActionDiscoveryConventions.cs" />

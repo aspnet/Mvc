@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         private static Dictionary<string, string> GroupTemplatesByGroupId(IReadOnlyList<ActionDescriptor> actions)
         {
             var routeTemplatesByGroup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var action in actions.Where(a => a.RouteTemplate != null))
+            foreach (var action in actions.Where(a => a.RouteInfo != null && a.RouteInfo.Template != null))
             {
                 var constraint = action.RouteConstraints
                     .Where(c => c.RouteKey == AttributeRouting.RouteGroupKey)
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 var routeGroup = constraint.RouteValue;
                 if (!routeTemplatesByGroup.ContainsKey(routeGroup))
                 {
-                    routeTemplatesByGroup.Add(routeGroup, action.RouteTemplate);
+                    routeTemplatesByGroup.Add(routeGroup, action.RouteInfo.Template);
                 }
             }
 
