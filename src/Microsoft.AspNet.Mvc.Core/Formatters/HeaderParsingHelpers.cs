@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public static class HeaderParsingHelpers
     {
-        public static IEnumerable<MediaTypeWithQualityHeaderValue> GetAcceptHeaders(string acceptHeader)
+        public static IList<MediaTypeWithQualityHeaderValue> GetAcceptHeaders(string acceptHeader)
         {
             if (string.IsNullOrEmpty(acceptHeader))
             {
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
             return acceptHeaderCollection;
         }
 
-        public static IEnumerable<StringWithQualityHeaderValue> GetAcceptCharsetHeaders(string acceptCharsetHeader)
+        public static IList<StringWithQualityHeaderValue> GetAcceptCharsetHeaders(string acceptCharsetHeader)
         {
             if (string.IsNullOrEmpty(acceptCharsetHeader))
             {

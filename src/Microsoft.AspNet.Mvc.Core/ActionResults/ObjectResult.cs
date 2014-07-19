@@ -38,28 +38,31 @@ namespace Microsoft.AspNet.Mvc
             };
 
             var incomingAcceptHeader = HeaderParsingHelpers.GetAcceptHeaders(context.HttpContext.Request.Accept);
-            var sortedAcceptHeaders = incomingAcceptHeader != null ?
-                                            SortMediaTypeWithQualityHeaderValues(incomingAcceptHeader.ToArray())
-                                            .Where(header => header.Quality != FormattingUtilities.NoMatch)
-                                            .ToArray() :
-                                            new MediaTypeWithQualityHeaderValue[] { };
+            var sortedAcceptHeaders = SortMediaTypeWithQualityHeaderValues(incomingAcceptHeader)
+                                        .Where(header => header.Quality != FormattingUtilities.NoMatch)
+                                        .ToArray();
 
             OutputFormatter selectedFormatter = null;
 
             // Enable the scenario where there is no content type set. 
             if (ContentTypes == null || ContentTypes.Count == 0)
             {
-                MediaTypeHeaderValue[] contentTypes = sortedAcceptHeaders;
-                if (sortedAcceptHeaders.Length == 0)
-                {
-                    var incomingContentType = MediaTypeHeaderValue.Parse(context.HttpContext.Request.ContentType);
-                    contentTypes = new MediaTypeHeaderValue[] { incomingContentType };
-                }
-
+                // Select based on sorted accept headers. 
                 selectedFormatter = SelectFormatterUsingSortedAcceptHeaders(
                                                                         formatterContext,
                                                                         formatters,
-                                                                        contentTypes);
+                                                                        sortedAcceptHeaders);
+
+                if (selectedFormatter == null)
+                {
+                    // No formatter found based on accept headers, fall back on request contentType.
+                    var incomingContentType = MediaTypeHeaderValue.Parse(context.HttpContext.Request.ContentType);
+                    var contentTypes = new MediaTypeHeaderValue[] { incomingContentType };
+                    selectedFormatter = SelectFormatterUsingAnyAcceptableContentType(
+                                                                                formatterContext,
+                                                                                formatters,
+                                                                                contentTypes);
+                }
             }
             else if (ContentTypes.Count == 1)
             {
@@ -71,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
             }
             else
             {
-                // Do an intersection. 
+                // Filter and remove accept headers which cannot support any of the user specified content types. 
                 var filteredAndSortedAcceptHeaders = sortedAcceptHeaders
                                                         .Where(acceptHeader =>
                                                                 ContentTypes
@@ -109,8 +112,8 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException();
             }
 
-            // TODO: When deciding the response charset we need to look at accept charset headers as well.
-            context.HttpContext.Response.ContentType = formatterContext.SelectedContentType.RawValue;
+            // set the content headers.
+            selectedFormatter.SetResponseContentHeaders(formatterContext);
             await selectedFormatter.WriteAsync(formatterContext, CancellationToken.None);
         }
 
@@ -151,21 +154,20 @@ namespace Microsoft.AspNet.Mvc
         }
 
         private static MediaTypeWithQualityHeaderValue[] SortMediaTypeWithQualityHeaderValues
-                                                    (MediaTypeWithQualityHeaderValue[] headerValues)
+                                                    (IEnumerable<MediaTypeWithQualityHeaderValue> headerValues)
         {
-            if (headerValues.Length > 1)
+            if (headerValues == null)
             {
-                // Use OrderBy() instead of Array.Sort() as it performs fewer comparisons. In this case the comparisons
-                // are quite expensive so OrderBy() performs better.
-                return headerValues.OrderByDescending(headerValue => 
-                                                        headerValue,
-                                                        MediaTypeWithQualityHeaderValueComparer.QualityComparer)
-                                   .ToArray();
+                return new MediaTypeWithQualityHeaderValue[] { };
             }
-            else
-            {
-                return headerValues;
-            }
+
+            // Leagacy Comment: 
+            // Use OrderBy() instead of Array.Sort() as it performs fewer comparisons. In this case the comparisons
+            // are quite expensive so OrderBy() performs better.
+            return headerValues.OrderByDescending(headerValue =>
+                                                    headerValue,
+                                                    MediaTypeWithQualityHeaderValueComparer.QualityComparer)
+                               .ToArray();
         }
 
         private IEnumerable<OutputFormatter> GetDefaultFormatters(ActionContext context)

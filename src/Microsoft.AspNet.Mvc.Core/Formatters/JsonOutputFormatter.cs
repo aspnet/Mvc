@@ -80,8 +80,9 @@ namespace Microsoft.AspNet.Mvc
             var response = context.HttpContext.Response;
 
             // The content type including the encoding should have been set already. 
-            // In case it was not present, a default will be selected. 
-            var selectedEncoding = SelectCharacterEncoding(MediaTypeHeaderValue.Parse(response.ContentType));
+            // TODO: throw a nicely wrapped exception if the parsed contentType is null.
+            var contentTypeHeader = MediaTypeHeaderValue.Parse(context.HttpContext.Response.ContentType);
+            var selectedEncoding = Encoding.GetEncoding(contentTypeHeader.Charset);
             using (var writer = new StreamWriter(response.Body, selectedEncoding, 1024, leaveOpen: true))
             {
                 using (var jsonWriter = CreateJsonWriter(writer))

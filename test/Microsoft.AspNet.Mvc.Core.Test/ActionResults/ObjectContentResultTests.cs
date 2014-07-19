@@ -21,47 +21,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 {
     public class ObjectResultTests
     {
-        [Fact]
-        public void ObjectResult_Create_CallsContentResult_InitializesValue()
-        {
-            // Arrange
-            var input = "testInput";
-            var actionContext = CreateMockActionContext();
 
-            // Act
-            var result = new ObjectResult(input);
-
-            // Assert
-            Assert.Equal(input, result.Value);
-        }
-
-        [Fact]
-        public async Task ObjectResult_WithSingleContentType_TheContentTypeIsSelected()
-        {
-            // Arrange
-            var expectedContentType = "application/json";
-            var input = "testInput";
-            var stream = new MemoryStream();
-
-            var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
-            httpResponse.SetupGet(r => r.Body).Returns(stream);
-
-            var actionContext = CreateMockActionContext(httpResponse.Object);
-            var result = new ObjectResult(input);
-            // Set the content type property explicitly to a single value. 
-            result.ContentTypes = new List<MediaTypeHeaderValue>();
-            result.ContentTypes.Add(MediaTypeHeaderValue.Parse(expectedContentType));
-               
-            // Act
-            await result.ExecuteResultAsync(actionContext);
-
-            // Assert
-            httpResponse.VerifySet(r => r.ContentType = expectedContentType);
-            //// The following verifies the correct Content was written to Body
-            //Assert.Equal(input.Length, httpResponse.Object.Body.Length);
-
-        }
 
         public static IEnumerable<object[]> ContentTypes
         {
@@ -109,7 +69,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var stream = new MemoryStream();
 
             var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
+            var tempContentType = string.Empty;
+            httpResponse.SetupProperty<string>(o => o.ContentType);
             httpResponse.SetupGet(r => r.Body).Returns(stream);
 
             var actionContext = CreateMockActionContext(httpResponse.Object, acceptHeader);
@@ -132,17 +93,48 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         }
 
         [Fact]
+        public void ObjectResult_Create_CallsContentResult_InitializesValue()
+        {
+            // Arrange
+            var input = "testInput";
+            var actionContext = CreateMockActionContext();
+
+            // Act
+            var result = new ObjectResult(input);
+
+            // Assert
+            Assert.Equal(input, result.Value);
+        }
+
+
+        [Fact]
+        public async Task ObjectResult_WithSingleContentType_TheGivenContentTypeIsSelected()
+        {
+            // Arrange
+            var expectedContentType = "application/json";
+            var input = "testInput";
+            var httpResponse = GetMockHttpResponse();
+            var actionContext = CreateMockActionContext(httpResponse.Object);
+            
+            // Set the content type property explicitly to a single value. 
+            var result = new ObjectResult(input);
+            result.ContentTypes = new List<MediaTypeHeaderValue>();
+            result.ContentTypes.Add(MediaTypeHeaderValue.Parse(expectedContentType));
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+        }
+
+        [Fact]
         public async Task ObjectResult_MultipleContentTypes_PicksFirstFormatterWhichSupportsAnyOfTheContentTypes()
         {
             // Arrange
             var expectedContentType = "application/json";
             var input = "testInput";
-            var stream = new MemoryStream();
-
-            var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
-            httpResponse.SetupGet(r => r.Body).Returns(stream);
-
+            var httpResponse = GetMockHttpResponse();
             var actionContext = CreateMockActionContext(httpResponse.Object, requestAcceptHeader: null);
             var result = new ObjectResult(input);
 
@@ -170,14 +162,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         public async Task ObjectResult_MultipleFormattersSupportingTheSameContentType_SelectsTheFirstFormatterInList()
         {
             // Arrange
-            var expectedContentType = "text/custom";
             var input = "testInput";
             var stream = new MemoryStream();
 
-            var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
-            httpResponse.SetupGet(r => r.Body).Returns(stream);
-
+            var httpResponse = GetMockHttpResponse();
             var actionContext = CreateMockActionContext(httpResponse.Object, requestAcceptHeader: null);
             var result = new ObjectResult(input);
 
@@ -185,18 +173,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var contentTypes = new[] { "application/json", "text/custom" };
             var mediaTypeHeaderValue = MediaTypeHeaderValue.Parse("text/custom");
 
-            var mockFormatter = new Mock<TestOutputFormatter>();
-            mockFormatter.Setup(o => o.CanWriteResult(It.IsAny<OutputFormatterContext>(),
-                                                      It.IsAny<MediaTypeHeaderValue>()))
-                         .Callback<OutputFormatterContext, MediaTypeHeaderValue>(
-                                    (context, headerValue) => context.SelectedContentType = mediaTypeHeaderValue)
-                         .Returns(true);
+            // Get a  mock formatter which supports everything.
+            var mockFormatter = GetMockFormatter();
 
-            mockFormatter.Setup(o => o.WriteAsync(It.IsAny<OutputFormatterContext>(), CancellationToken.None))
-                         .Returns(Task.FromResult<bool>(true))
-                         .Verifiable();
-
-            // Set the content type property explicitly. 
             result.ContentTypes = contentTypes.Select(contentType => MediaTypeHeaderValue.Parse(contentType)).ToList();
             result.Formatters = new List<OutputFormatter>
                                         {
@@ -208,7 +187,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
-            httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+            // Verify that mock formatter was chosen.
             mockFormatter.Verify(o => o.WriteAsync(It.IsAny<OutputFormatterContext>(), CancellationToken.None));
         }
 
@@ -220,10 +199,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var input = "testInput";
             var stream = new MemoryStream();
 
-            var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
-            httpResponse.SetupGet(r => r.Body).Returns(stream);
-
+            var httpResponse = GetMockHttpResponse();
             var actionContext = 
                 CreateMockActionContext(httpResponse.Object,
                                         requestAcceptHeader: "text/custom;q=0.1,application/json;q=0.9",
@@ -252,7 +228,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var stream = new MemoryStream();
             var expectedContentType = "application/json";
             var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
+            httpResponse.SetupProperty<string>(o => o.ContentType);
             httpResponse.SetupGet(r => r.Body).Returns(stream);
 
             var actionContext = CreateMockActionContext(httpResponse.Object,
@@ -275,7 +251,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpResponse.VerifySet(r => r.ContentType = expectedContentType);
         }
 
-        
         // TODO: Disabling since this scenario is no longer dealt with in object result. 
         // Re-enable once we do. 
         //[Fact]
@@ -287,7 +262,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var stream = new MemoryStream();
 
             var httpResponse = new Mock<HttpResponse>();
-            httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
+            var tempContentType = string.Empty;
+            httpResponse.SetupProperty<string>(o => o.ContentType);
             httpResponse.SetupGet(r => r.Body).Returns(stream);
 
             var actionContext = CreateMockActionContext(httpResponse.Object);
@@ -306,25 +282,27 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         public async Task ObjectResult_Execute_CallsJsonResult_SetsContent()
         {
             // Arrange
-            var expectedContentType = "application/json";
+            var expectedContentType = "application/json;charset=utf-8";
             var nonStringValue = new { x1 = 10, y1 = "Hello" };
             var httpResponse = Mock.Of<HttpResponse>();
             httpResponse.Body = new MemoryStream();
             var actionContext = CreateMockActionContext(httpResponse);
-
             var tempStream = new MemoryStream();
             var tempHttpContext = new Mock<HttpContext>();
             var tempHttpResponse = new Mock<HttpResponse>();
+
             tempHttpResponse.SetupGet(o => o.Body).Returns(tempStream);
+            tempHttpResponse.SetupProperty<string>(o => o.ContentType);
             tempHttpContext.SetupGet(o => o.Response).Returns(tempHttpResponse.Object);
+            tempHttpContext.SetupGet(o => o.Request.AcceptCharset).Returns(string.Empty);
             var formatterContext = new OutputFormatterContext()
                                     {
                                         HttpContext = tempHttpContext.Object,
                                         ObjectResult = new ObjectResult(nonStringValue),
                                         DeclaredType = nonStringValue.GetType()
                                     };
-
             var formatter = new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true);
+            formatter.SetResponseContentHeaders(formatterContext);
             await formatter.WriteAsync(formatterContext, CancellationToken.None);
 
             // Act
@@ -338,7 +316,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
         private static ActionContext CreateMockActionContext(HttpResponse response = null,
                                                              string requestAcceptHeader = "application/*",
-                                                             string requestContentType = "application/json")
+                                                             string requestContentType = "application/json",
+                                                             string requestAcceptCharsetHeader = "")
         {
             var httpContext = new Mock<HttpContext>();
             if (response != null)
@@ -350,6 +329,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
             var request = new Mock<HttpRequest>();
+            request.SetupGet(r => r.AcceptCharset).Returns(requestAcceptCharsetHeader);
             request.SetupGet(r => r.Accept).Returns(requestAcceptHeader);
             request.SetupGet(r => r.ContentType).Returns(requestContentType);
             request.SetupGet(f => f.Body).Returns(new MemoryStream(contentBytes));
@@ -358,6 +338,28 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpContext.Setup(o => o.RequestServices).Returns(GetServiceProvider());
             
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
+        }
+
+        private static Mock<HttpResponse> GetMockHttpResponse()
+        {
+            var stream = new MemoryStream();
+            var httpResponse = new Mock<HttpResponse>();
+            httpResponse.SetupProperty<string>(o => o.ContentType);
+            httpResponse.SetupGet(r => r.Body).Returns(stream);
+            return httpResponse; 
+        }
+
+        private static Mock<TestOutputFormatter> GetMockFormatter()
+        {
+            var mockFormatter = new Mock<TestOutputFormatter>();
+            mockFormatter.Setup(o => o.CanWriteResult(It.IsAny<OutputFormatterContext>(),
+                                                      It.IsAny<MediaTypeHeaderValue>()))
+                         .Returns(true);
+
+            mockFormatter.Setup(o => o.WriteAsync(It.IsAny<OutputFormatterContext>(), CancellationToken.None))
+                         .Returns(Task.FromResult<bool>(true))
+                         .Verifiable();
+            return mockFormatter;
         }
 
         private static IServiceProvider GetServiceProvider()
