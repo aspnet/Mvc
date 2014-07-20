@@ -27,6 +27,7 @@
     <Compile Include="ActionDescriptor.cs" />
     <Compile Include="ActionDescriptorProviderContext.cs" />
     <Compile Include="ActionDescriptorsCollection.cs" />
+    <Compile Include="ActionResults\HttpNotFoundResult.cs" />
     <Compile Include="ExpiringFileInfoCache.cs" />
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />
