@@ -59,6 +59,7 @@
     <Compile Include="ReflectedActionDescriptorProvider.cs" />
     <Compile Include="ReflectedModelBuilder\IReflectedApplicationModelConvention.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedActionModel.cs" />
+    <Compile Include="ReflectedModelBuilder\ReflectedAttributeRouteModel.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedControllerModel.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedApplicationModel.cs" />
     <Compile Include="ActionInvokerFactory.cs" />
@@ -240,8 +241,8 @@
     <Compile Include="Routing\AttributeRoute.cs" />
     <Compile Include="Routing\AttributeRouteLinkGenerationEntry.cs" />
     <Compile Include="Routing\AttributeRouteMatchingEntry.cs" />
+    <Compile Include="Routing\AttributeRouteInfo.cs" />
     <Compile Include="Routing\AttributeRoutePrecedence.cs" />
-    <Compile Include="Routing\AttributeRouteTemplate.cs" />
     <Compile Include="Routing\AttributeRouting.cs" />
     <Compile Include="Routing\IRouteTemplateProvider.cs" />
     <Compile Include="TemplateInfo.cs" />

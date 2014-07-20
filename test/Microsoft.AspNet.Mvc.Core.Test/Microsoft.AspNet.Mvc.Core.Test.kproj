@@ -46,8 +46,9 @@
     <Compile Include="ExpiringFileInfoCacheTest.cs" />
     <Compile Include="DefaultActionDiscoveryConventionsTests.cs" />
     <Compile Include="Formatters\OutputFormatterTests.cs" />
-<Compile Include="MediaTypeWithQualityHeaderValueTests.cs" />
+    <Compile Include="MediaTypeWithQualityHeaderValueTests.cs" />
     <Compile Include="ParameterBinding\ModelBindingHelperTest.cs" />
+    <Compile Include="ReflectedModelBuilder\ReflectedAttributeRouteModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedActionModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedControllerModelTests.cs" />
@@ -89,7 +90,6 @@
     <Compile Include="Rendering\ViewDataOfTTest.cs" />
     <Compile Include="KnownRouteValueConstraintTests.cs" />
     <Compile Include="Routing\AttributeRoutePrecedenceTests.cs" />
-    <Compile Include="Routing\AttributeRouteTemplateTests.cs" />
     <Compile Include="Routing\AttributeRoutingTest.cs" />
     <Compile Include="StaticControllerAssemblyProvider.cs" />
     <Compile Include="Routing\AttributeRouteTests.cs" />

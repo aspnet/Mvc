@@ -109,7 +109,9 @@ namespace Microsoft.AspNet.Mvc.Routing
             // of memory, so sharing is worthwhile.
             var templateCache = new Dictionary<string, Template>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var action in actions.Where(a => a.AttributeRouteTemplate != null))
+            var attributeRoutedActions = actions.Where(a => a.AttributeRouteInfo != null &&
+                a.AttributeRouteInfo.Template != null);
+            foreach (var action in attributeRoutedActions)
             {
                 var routeInfo = GetRouteInfo(constraintResolver, templateCache, action);
                 if (routeInfo.ErrorMessage == null)
@@ -125,11 +127,11 @@ namespace Microsoft.AspNet.Mvc.Routing
             if (errors.Count > 0)
             {
                 var allErrors = string.Join(
-                    Environment.NewLine + Environment.NewLine, 
+                    Environment.NewLine + Environment.NewLine,
                     errors.Select(
                         e => Resources.FormatAttributeRoute_IndividualErrorMessage(
-                            e.ActionDescriptor.DisplayName, 
-                            Environment.NewLine, 
+                            e.ActionDescriptor.DisplayName,
+                            Environment.NewLine,
                             e.ErrorMessage)));
 
                 var message = Resources.FormatAttributeRoute_AggregateErrorMessage(Environment.NewLine, allErrors);
@@ -163,17 +165,17 @@ namespace Microsoft.AspNet.Mvc.Routing
             {
                 ActionDescriptor = action,
                 RouteGroup = constraint.RouteValue,
-                RouteTemplate = action.AttributeRouteTemplate,
+                RouteTemplate = action.AttributeRouteInfo.Template,
             };
 
             try
             {
                 Template parsedTemplate;
-                if (!templateCache.TryGetValue(action.AttributeRouteTemplate, out parsedTemplate))
+                if (!templateCache.TryGetValue(action.AttributeRouteInfo.Template, out parsedTemplate))
                 {
                     // Parsing with throw if the template is invalid.
-                    parsedTemplate = TemplateParser.Parse(action.AttributeRouteTemplate, constraintResolver);
-                    templateCache.Add(action.AttributeRouteTemplate, parsedTemplate);
+                    parsedTemplate = TemplateParser.Parse(action.AttributeRouteInfo.Template, constraintResolver);
+                    templateCache.Add(action.AttributeRouteInfo.Template, parsedTemplate);
                 }
 
                 routeInfo.ParsedTemplate = parsedTemplate;
@@ -198,38 +200,38 @@ namespace Microsoft.AspNet.Mvc.Routing
                         return routeInfo;
                     }
                 }
-            }
+        }
 
-            routeInfo.Precedence = AttributeRoutePrecedence.Compute(routeInfo.ParsedTemplate);
+        routeInfo.Precedence = AttributeRoutePrecedence.Compute(routeInfo.ParsedTemplate);
 
             routeInfo.Constraints = routeInfo.ParsedTemplate.Parameters
                 .Where(p => p.InlineConstraint != null)
                 .ToDictionary(p => p.Name, p => p.InlineConstraint, StringComparer.OrdinalIgnoreCase);
 
-            routeInfo.Defaults = routeInfo.ParsedTemplate.Parameters
-                .Where(p => p.DefaultValue != null)
+        routeInfo.Defaults = routeInfo.ParsedTemplate.Parameters
+            .Where(p => p.DefaultValue != null)
                 .ToDictionary(p => p.Name, p => p.DefaultValue, StringComparer.OrdinalIgnoreCase);
 
             return routeInfo;
         }
 
-        private class RouteInfo
-        {
-            public ActionDescriptor ActionDescriptor { get; set; }
+    private class RouteInfo
+    {
+        public ActionDescriptor ActionDescriptor { get; set; }
 
-            public IDictionary<string, IRouteConstraint> Constraints { get; set; }
+        public IDictionary<string, IRouteConstraint> Constraints { get; set; }
 
-            public IDictionary<string, object> Defaults { get; set; }
+        public IDictionary<string, object> Defaults { get; set; }
 
-            public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; }
 
-            public Template ParsedTemplate { get; set; }
+        public Template ParsedTemplate { get; set; }
 
-            public decimal Precedence { get; set; }
+        public decimal Precedence { get; set; }
 
-            public string RouteGroup { get; set; }
+        public string RouteGroup { get; set; }
 
-            public string RouteTemplate { get; set; }
-        }
+        public string RouteTemplate { get; set; }
     }
+}
 }
