@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -16,7 +18,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         ViewContext ViewContext { get; set; }
 
-        string BodyContent { get; set; }
+        /// <summary>
+        /// Gets or sets the action invoked to render the body.
+        /// </summary>
+        // TODO: https://github.com/aspnet/Mvc/issues/845 tracks making this async
+        Action<TextWriter> BodyAction { get; set; }
 
         /// <summary>
         /// Gets or sets the path of a layout page.

@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 
@@ -49,37 +48,27 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
             else
             {
-                await RenderPageCoreAsync(_page, context);
+                await RenderPageCoreAsync(_page, context, context.Writer);
             }
         }
 
-        private async Task<string> RenderPageAsync(IRazorPage page, ViewContext context)
+        private async Task<RazorTextWriter> RenderPageAsync(IRazorPage page,
+                                                            ViewContext context)
         {
-            var contentBuilder = new StringBuilder(1024);
-            using (var bodyWriter = new StringWriter(contentBuilder))
+            using (var writer = new RazorTextWriter(context.Writer.Encoding))
             {
                 // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
                 // and ViewComponents to reference it.
-                var oldWriter = context.Writer;
-                context.Writer = bodyWriter;
-                try
-                {
-                    await RenderPageCoreAsync(page, context);
-                }
-                finally
-                {
-                    context.Writer = oldWriter;
-                }
+                await RenderPageCoreAsync(page, context, writer);
+                return writer;
             }
-
-            return contentBuilder.ToString();
         }
 
-        private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
+        private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context, TextWriter writer)
         {
             // Activating a page might mutate the ViewContext (for instance ViewContext.ViewData) is mutated by 
             // RazorPageActivator. We'll instead pass in a copy of the ViewContext.
-            var pageViewContext = new ViewContext(context, context.View, context.ViewData, context.Writer);
+            var pageViewContext = new ViewContext(context, context.View, context.ViewData, writer);
             page.ViewContext = pageViewContext;
             _pageActivator.Activate(page, pageViewContext);
 
@@ -87,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         private async Task RenderLayoutAsync(ViewContext context,
-                                             string bodyContent)
+                                             RazorTextWriter bodyWriter)
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.
@@ -102,9 +91,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
-                layoutPage.BodyContent = bodyContent;
-
-                bodyContent = await RenderPageAsync(layoutPage, context);
+                layoutPage.BodyAction = bodyWriter.CopyTo;
+                bodyWriter = await RenderPageAsync(layoutPage, context);
 
                 // Verify that RenderBody is called, or that RenderSection is called for all sections
                 layoutPage.EnsureBodyAndSectionsWereRendered();
@@ -112,7 +100,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 previousPage = layoutPage;
             }
 
-            await context.Writer.WriteAsync(bodyContent);
+            await bodyWriter.CopyToAsync(context.Writer);
         }
     }
 }
