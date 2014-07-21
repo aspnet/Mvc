@@ -35,25 +35,25 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                         };
 
                 // Empty accept header, should select based on contentTypes.
-                yield return new object[] { contentTypes, "", "application/json" };
+                yield return new object[] { contentTypes, "", "application/json;charset=utf-8" };
                 
                 // null accept header, should select based on contentTypes.
-                yield return new object[] { contentTypes, null, "application/json" };
+                yield return new object[] { contentTypes, null, "application/json;charset=utf-8" };
 
                 // No accept Header match with given contentype collection. 
                 // Should select based on if any formatter supported any content type.
-                yield return new object[] { contentTypes, "text/custom", "application/json"};
+                yield return new object[] { contentTypes, "text/custom", "application/json;charset=utf-8" };
 
                 // Accept Header matches but no formatter supports the accept header.
                 // Should select based on if any formatter supported any user provided content type.
-                yield return new object[] { contentTypes, "text/xml", "application/json" };
+                yield return new object[] { contentTypes, "text/xml", "application/json;charset=utf-8" };
 
                 // Filtets out Accept headers with 0 quality and selects the one with highest quality.
                 yield return new object[]
                         {
                             contentTypes,
                             "text/plain;q=0.3, text/json;q=0, text/cusotm;q=0.0, application/json;q=0.4",
-                            "application/json"
+                            "application/json;charset=utf-8"
                         };
             }
         }
@@ -106,12 +106,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             Assert.Equal(input, result.Value);
         }
 
-
         [Fact]
         public async Task ObjectResult_WithSingleContentType_TheGivenContentTypeIsSelected()
         {
             // Arrange
-            var expectedContentType = "application/json";
+            var expectedContentType = "application/json;charset=utf-8";
             var input = "testInput";
             var httpResponse = GetMockHttpResponse();
             var actionContext = CreateMockActionContext(httpResponse.Object);
@@ -132,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         public async Task ObjectResult_MultipleContentTypes_PicksFirstFormatterWhichSupportsAnyOfTheContentTypes()
         {
             // Arrange
-            var expectedContentType = "application/json";
+            var expectedContentType = "application/json;charset=utf-8";
             var input = "testInput";
             var httpResponse = GetMockHttpResponse();
             var actionContext = CreateMockActionContext(httpResponse.Object, requestAcceptHeader: null);
@@ -195,7 +194,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         public async Task ObjectResult_NoContentTypeSetWithAcceptHeaders_PicksFormatterOnAcceptHeaders()
         {
             // Arrange
-            var expectedContentType = "application/json";
+            var expectedContentType = "application/json;charset=utf-8";
             var input = "testInput";
             var stream = new MemoryStream();
 
@@ -226,7 +225,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         {
             // Arrange
             var stream = new MemoryStream();
-            var expectedContentType = "application/json";
+            var expectedContentType = "application/json;charset=utf-8";
             var httpResponse = new Mock<HttpResponse>();
             httpResponse.SetupProperty<string>(o => o.ContentType);
             httpResponse.SetupGet(r => r.Body).Returns(stream);
@@ -295,9 +294,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             tempHttpResponse.SetupProperty<string>(o => o.ContentType);
             tempHttpContext.SetupGet(o => o.Response).Returns(tempHttpResponse.Object);
             tempHttpContext.SetupGet(o => o.Request.AcceptCharset).Returns(string.Empty);
+            var tempActionContext = new ActionContext(tempHttpContext.Object, 
+                                                      new RouteData(),
+                                                      new ActionDescriptor());
             var formatterContext = new OutputFormatterContext()
                                     {
-                                        HttpContext = tempHttpContext.Object,
+                                        ActionContext = tempActionContext,
                                         ObjectResult = new ObjectResult(nonStringValue),
                                         DeclaredType = nonStringValue.GetType()
                                     };
@@ -336,7 +338,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
             httpContext.Setup(o => o.Request).Returns(request.Object);
             httpContext.Setup(o => o.RequestServices).Returns(GetServiceProvider());
-            
+            httpContext.Setup(o => o.RequestServices.GetService(typeof(IOutputFormattersProvider)))
+                       .Returns(new TestOutputFormatterProvider());
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
         }
 
@@ -385,6 +388,18 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        private class TestOutputFormatterProvider : IOutputFormattersProvider
+        {
+            public IReadOnlyList<OutputFormatter> OutputFormatters
+            {
+                get
+                {
+                    return new List<OutputFormatter>()
+                        { new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), indent: true) };
+                }
             }
         }
     }

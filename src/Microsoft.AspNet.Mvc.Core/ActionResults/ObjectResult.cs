@@ -33,11 +33,28 @@ namespace Microsoft.AspNet.Mvc
             var formatterContext = new OutputFormatterContext()
             {
                 DeclaredType = DeclaredType,
-                HttpContext = context.HttpContext,
-                ObjectResult = this
+                ActionContext = context,
+                ObjectResult = this, 
             };
 
-            var incomingAcceptHeader = HeaderParsingHelpers.GetAcceptHeaders(context.HttpContext.Request.Accept);
+            var selectedFormatter = SelectFormatter(formatterContext, formatters);
+            if (selectedFormatter == null)
+            {
+                // No formatter supports this.
+                context.HttpContext.Response.StatusCode = 406;
+                return;
+            }
+
+            // set the content headers.
+            selectedFormatter.SetResponseContentHeaders(formatterContext);
+            await selectedFormatter.WriteAsync(formatterContext, CancellationToken.None);
+        }
+
+        public virtual OutputFormatter SelectFormatter(OutputFormatterContext formatterContext,
+                                                       IEnumerable<OutputFormatter> formatters)
+        {
+            var incomingAcceptHeader = HeaderParsingHelpers.GetAcceptHeaders(
+                                                formatterContext.ActionContext.HttpContext.Request.Accept);
             var sortedAcceptHeaders = SortMediaTypeWithQualityHeaderValues(incomingAcceptHeader)
                                         .Where(header => header.Quality != FormattingUtilities.NoMatch)
                                         .ToArray();
@@ -56,8 +73,9 @@ namespace Microsoft.AspNet.Mvc
                 if (selectedFormatter == null)
                 {
                     // No formatter found based on accept headers, fall back on request contentType.
-                    var incomingContentType = MediaTypeHeaderValue.Parse(context.HttpContext.Request.ContentType);
-                    var contentTypes = new MediaTypeHeaderValue[] { incomingContentType };
+                    var incomingContentType = 
+                        MediaTypeHeaderValue.Parse(formatterContext.ActionContext.HttpContext.Request.ContentType);
+                    var contentTypes = new [] { incomingContentType };
                     selectedFormatter = SelectFormatterUsingAnyAcceptableContentType(
                                                                                 formatterContext,
                                                                                 formatters,
@@ -105,19 +123,10 @@ namespace Microsoft.AspNet.Mvc
                 }
             }
 
-            if (selectedFormatter == null)
-            {
-                // No formatter supports this. throw 406.
-                // TODO: This is a stop gap, we need to decide on how to return different status codes here.
-                throw new InvalidOperationException();
-            }
-
-            // set the content headers.
-            selectedFormatter.SetResponseContentHeaders(formatterContext);
-            await selectedFormatter.WriteAsync(formatterContext, CancellationToken.None);
+            return selectedFormatter;
         }
 
-        private OutputFormatter SelectFormatterUsingSortedAcceptHeaders(
+        public virtual OutputFormatter SelectFormatterUsingSortedAcceptHeaders(
                                                             OutputFormatterContext formatterContext,
                                                             IEnumerable<OutputFormatter> formatters,
                                                             IEnumerable<MediaTypeHeaderValue> sortedAcceptHeaders)
@@ -140,7 +149,7 @@ namespace Microsoft.AspNet.Mvc
             return selectedFormatter;
         }
 
-        private OutputFormatter SelectFormatterUsingAnyAcceptableContentType(
+        public virtual OutputFormatter SelectFormatterUsingAnyAcceptableContentType(
                                                             OutputFormatterContext formatterContext,
                                                             IEnumerable<OutputFormatter> formatters,
                                                             IEnumerable<MediaTypeHeaderValue> acceptableContentTypes)
@@ -161,7 +170,6 @@ namespace Microsoft.AspNet.Mvc
                 return new MediaTypeWithQualityHeaderValue[] { };
             }
 
-            // Leagacy Comment: 
             // Use OrderBy() instead of Array.Sort() as it performs fewer comparisons. In this case the comparisons
             // are quite expensive so OrderBy() performs better.
             return headerValues.OrderByDescending(headerValue =>
@@ -177,10 +185,8 @@ namespace Microsoft.AspNet.Mvc
             {
                 formatters = context.HttpContext
                                     .RequestServices
-                                    .GetService<IOptionsAccessor<MvcOptions>>()
-                                    .Options
-                                    .OutputFormatters
-                                    .Select(descriptor => descriptor.OutputFormatter);
+                                    .GetService<IOutputFormattersProvider>()
+                                    .OutputFormatters;
             }
             else
             {

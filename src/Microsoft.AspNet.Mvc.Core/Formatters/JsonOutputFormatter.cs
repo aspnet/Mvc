@@ -77,12 +77,8 @@ namespace Microsoft.AspNet.Mvc
                                         CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var response = context.HttpContext.Response;
-
-            // The content type including the encoding should have been set already. 
-            // TODO: throw a nicely wrapped exception if the parsed contentType is null.
-            var contentTypeHeader = MediaTypeHeaderValue.Parse(context.HttpContext.Response.ContentType);
-            var selectedEncoding = Encoding.GetEncoding(contentTypeHeader.Charset);
+            var response = context.ActionContext.HttpContext.Response;
+            var selectedEncoding = context.SelectedEncoding;
             using (var writer = new StreamWriter(response.Body, selectedEncoding, 1024, leaveOpen: true))
             {
                 using (var jsonWriter = CreateJsonWriter(writer))

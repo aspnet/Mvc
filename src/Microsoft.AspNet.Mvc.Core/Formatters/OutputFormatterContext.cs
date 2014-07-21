@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
@@ -13,6 +14,10 @@ namespace Microsoft.AspNet.Mvc
 
         public Type DeclaredType { get; set; }
 
-        public HttpContext HttpContext { get; set; }
+        public ActionContext ActionContext { get; set; }
+
+        public Encoding SelectedEncoding { get; set; }
+
+        public MediaTypeHeaderValue SelectedContentType { get; set; }
     }
 }

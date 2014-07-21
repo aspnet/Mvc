@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
@@ -29,8 +30,10 @@ namespace Microsoft.AspNet.Mvc.Test
 
                 yield return new object[] { "utf-8; q=0.0", null, new string[] { "utf-8", "utf-16" }, "utf-8" };
                 yield return new object[] { "utf-8; q=0.0", "utf-16", new string[] { "utf-8", "utf-16" }, "utf-16" };
-                yield return new object[] { "utf-8; q=0.0, utf-16; q=0.0", "utf-16", new string[] { "utf-8", "utf-16" }, "utf-16" };
-                yield return new object[] { "utf-8; q=0.0, utf-16; q=0.0", null, new string[] { "utf-8", "utf-16" }, "utf-8" };
+                yield return new object[]
+                    { "utf-8; q=0.0, utf-16; q=0.0", "utf-16", new string[] { "utf-8", "utf-16" }, "utf-16" };
+                yield return new object[]
+                    { "utf-8; q=0.0, utf-16; q=0.0", null, new string[] { "utf-8", "utf-16" }, "utf-8" };
 
                 yield return new object[] { "*; q=0.0", null, new string[] { "utf-8", "utf-16" }, "utf-8" };
                 yield return new object[] { "*; q=0.0", "utf-16", new string[] { "utf-8", "utf-16" }, "utf-16" };
@@ -39,7 +42,10 @@ namespace Microsoft.AspNet.Mvc.Test
 
         [Theory]
         [MemberData("SelectResponseCharacterEncodingData")]
-        public void SelectResponseCharacterEncoding_SelectsEncoding(string acceptCharsetHeaders, string requestEncoding, string[] supportedEncodings, string expectedEncoding)
+        public void SelectResponseCharacterEncoding_SelectsEncoding(string acceptCharsetHeaders,
+                                                                    string requestEncoding,
+                                                                    string[] supportedEncodings,
+                                                                    string expectedEncoding)
         {
             // Arrange
             var mockHttpContext = new Mock<HttpContext>();
@@ -47,6 +53,7 @@ namespace Microsoft.AspNet.Mvc.Test
                            .Returns(acceptCharsetHeaders);
             mockHttpContext.SetupGet(o => o.Request.ContentType)
                            .Returns("application/acceptCharset;charset=" + requestEncoding);
+            var actionContext = new ActionContext(mockHttpContext.Object, new RouteData(), new ActionDescriptor());
             var formatter = new TestOutputFormatter();
             foreach (string supportedEncoding in supportedEncodings)
             {
@@ -56,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Test
             var formatterContext = new OutputFormatterContext()
             {
                 ObjectResult = new ObjectResult("someValue"),
-                HttpContext = mockHttpContext.Object,
+                ActionContext = actionContext,
                 DeclaredType = typeof(string)
             };
 
@@ -68,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void SelectCharacterEncoding_FormatterWithNoEncoding_Throws()
+        public void SetResponseContentHeaders_FormatterWithNoEncoding_Throws()
         {
             // Arrange
             var testFormatter = new TestOutputFormatter();
@@ -77,10 +84,12 @@ namespace Microsoft.AspNet.Mvc.Test
             var mockHttpContext = new Mock<HttpContext>();
             mockHttpContext.SetupGet(o => o.Request.AcceptCharset)
                            .Returns(string.Empty);
-            formatterContext.HttpContext = mockHttpContext.Object;
+            var actionContext = new ActionContext(mockHttpContext.Object, new RouteData(), new ActionDescriptor());
+            formatterContext.ActionContext = actionContext;
 
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(() => testFormatter.SelectCharacterEncoding(formatterContext));
+            var ex = Assert.Throws<InvalidOperationException>(
+                        () => testFormatter.SetResponseContentHeaders(formatterContext));
             Assert.Equal("No encoding found for output formatter " +
                          "'Microsoft.AspNet.Mvc.Test.OutputFormatterTests+TestOutputFormatter'." +
                          " There must be at least one supported encoding registered in order for the" +

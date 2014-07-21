@@ -49,11 +49,11 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The <see cref="Encoding"/> to use when reading the request or writing the response.</returns>
         public virtual Encoding SelectCharacterEncoding(OutputFormatterContext context)
         {
-            var encoding = MatchAcceptCharacterEncoding(context.HttpContext.Request.AcceptCharset);
+            var encoding = MatchAcceptCharacterEncoding(context.ActionContext.HttpContext.Request.AcceptCharset);
             if (encoding == null)
             {
                 // Match based on request acceptHeader.
-                var requestContentType = MediaTypeHeaderValue.Parse(context.HttpContext.Request.ContentType);
+                var requestContentType = MediaTypeHeaderValue.Parse(context.ActionContext.HttpContext.Request.ContentType);
                 if (requestContentType != null && !string.IsNullOrEmpty(requestContentType.Charset))
                 {
                     var requestCharset = requestContentType.Charset;
@@ -63,22 +63,7 @@ namespace Microsoft.AspNet.Mvc
                 }
             }
 
-            if (encoding == null)
-            {
-                // We didn't find a character encoding match based on the request headers.
-                // Instead we try getting the default character encoding.
-                if (SupportedEncodings.Count > 0)
-                {
-                    encoding = SupportedEncodings[0];
-                }
-            }
-
-            if (encoding == null)
-            {
-                // No supported encoding was found so there is no way for us to start writing.
-                throw new InvalidOperationException(Resources.FormatOutputFormatterNoEncoding(GetType().FullName));
-            }
-
+            encoding = encoding ?? SupportedEncodings.FirstOrDefault();
             return encoding;
         }
 
@@ -88,25 +73,30 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="context">The formatter context associated with the call.</param>
         public virtual void SetResponseContentHeaders(OutputFormatterContext context)
         {
-            var response = context.HttpContext.Response;
-            var selectedMediaType = MediaTypeHeaderValue.Parse(response.ContentType);
-            
+            var selectedMediaType = context.SelectedContentType;
+
             // If content type is not set then set it based on supported media types.
-            if (selectedMediaType == null)
+            selectedMediaType = selectedMediaType ?? SupportedMediaTypes.FirstOrDefault();
+            if(selectedMediaType == null)
             {
-                if (SupportedMediaTypes.Count > 0)
-                {
-                    selectedMediaType = SupportedMediaTypes[0];
-                }
+                throw new InvalidOperationException(Resources.FormatOutputFormatterNoMediaType(GetType().FullName));
             }
 
-            // If content type charset parameter is not set then set it based on the supported encodings.
-            if (selectedMediaType.Charset == null)
+            if (selectedMediaType != null && selectedMediaType.Charset == null)
             {
+                // If content type charset parameter is not set then set it based on the supported encodings.
                 var selectedEncoding = SelectCharacterEncoding(context);
+                if (selectedEncoding == null)
+                {
+                    // No supported encoding was found so there is no way for us to start writing.
+                    throw new InvalidOperationException(Resources.FormatOutputFormatterNoEncoding(GetType().FullName));
+                }
+
+                context.SelectedEncoding = selectedEncoding;
                 selectedMediaType.Charset = selectedEncoding.WebName;
             }
-
+            
+            var response = context.ActionContext.HttpContext.Response;
             response.ContentType = selectedMediaType.RawValue;
         }
 
@@ -132,9 +122,7 @@ namespace Microsoft.AspNet.Mvc
                                 .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
             if (mediaType != null)
             {
-                // Write the content type directly here.
-                // The header does not get sent untill the first call to write.
-                context.HttpContext.Response.ContentType = mediaType.RawValue;
+                context.SelectedContentType = mediaType;
                 return true;
             }
 
