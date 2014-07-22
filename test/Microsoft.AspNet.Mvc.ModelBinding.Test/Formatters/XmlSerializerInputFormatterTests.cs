@@ -209,21 +209,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(context.HttpContext.Request.Body.CanRead);
         }
 
-        //[Fact]
-        //public async Task XmlSerializerFormatterThrowsOnInvalidCharacters()
-        //{
-        //    System.Diagnostics.Debugger.Launch();
-        //    // Arrange
-        //    var sampleString = "a\xc5z";
-        //    var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine +
-        //        "<TestLevelTwo><SampleString>" + sampleString + "</SampleString></TestLevelTwo>";
-        //    var formatter = new XmlSerializerInputFormatter();
-        //    var contentBytes = Encoding.UTF8.GetBytes(input);
-        //    var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
+        [Fact]
+        public async Task XmlSerializerFormatterThrowsOnInvalidCharacters()
+        {
+            // Arrange
+            var inpStart = Encodings.UTF16EncodingLittleEndian.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<DummyClass><SampleInt>");
+            byte[] inp = { 192, 193 };
+            var inpEnd = Encodings.UTF16EncodingLittleEndian.GetBytes("</SampleInt></DummyClass>");
 
-        //    // Act
-        //    await Assert.ThrowsAsync(typeof(XmlException), async () => await formatter.ReadAsync(context));
-        //}
+            var contentBytes = new byte[inpStart.Length + inp.Length + inpEnd.Length];
+            Buffer.BlockCopy(inpStart, 0, contentBytes, 0, inpStart.Length);
+            Buffer.BlockCopy(inp, 0, contentBytes, inpStart.Length, inp.Length);
+            Buffer.BlockCopy(inpEnd, 0, contentBytes, inpStart.Length + inp.Length, inpEnd.Length);
+
+            var formatter = new XmlSerializerInputFormatter();
+            var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
+
+            // Act
+            await Assert.ThrowsAsync(typeof(XmlException), async () => await formatter.ReadAsync(context));
+        }
 
         [Fact]
         public async Task XmlSerializerFormatterIgnoresBOMCharacters()
@@ -254,6 +259,36 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Buffer.BlockCopy(sampleStringBytes, 0, expectedBytes, 0, sampleStringBytes.Length);
             Buffer.BlockCopy(bom, 0, expectedBytes, sampleStringBytes.Length, bom.Length);
             Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(model.SampleString));
+        }
+
+        [Fact]
+        public async Task XmlSerializerFormatterAcceptsUTF16Characters()
+        {
+            // Arrange
+            var expectedInt = 10;
+            var expectedString = "TestString";
+            var expectedDateTime = XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc);
+
+            var input = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>" +
+                                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                                "<sampleString>" + expectedString + "</sampleString>" +
+                                "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
+
+            var formatter = new XmlSerializerInputFormatter();
+            var contentBytes = Encodings.UTF16EncodingLittleEndian.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(TestLevelOne));
+
+            // Act
+            await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.NotNull(context.Model);
+            Assert.IsType<TestLevelOne>(context.Model);
+
+            var model = context.Model as TestLevelOne;
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.sampleString);
+            Assert.Equal(XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc), model.SampleDate);
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)

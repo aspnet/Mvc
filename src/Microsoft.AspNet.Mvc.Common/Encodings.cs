@@ -7,10 +7,17 @@ namespace Microsoft.AspNet.Mvc
 {
     internal static class Encodings
     {
+        /// <summary>
+        /// Returns UTF8 Encoding without BOM and throws on invalid bytes.
+        /// </summary>
         public static readonly Encoding UTF8EncodingWithoutBOM
             = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        public static readonly Encoding UTF16EncodingWithBOM
+        /// <summary>
+        /// Returns UTF16 Encoding with Little endian byte order, Unicode Byte order mark provided,
+        /// and throws on invalid bytes.
+        /// </summary>
+        public static readonly Encoding UTF16EncodingLittleEndian
             = new UnicodeEncoding(bigEndian: false, byteOrderMark: true, throwOnInvalidBytes: true);
     }
 }

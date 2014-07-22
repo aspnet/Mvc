@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _supportedEncodings = new List<Encoding>
             {
                 Encodings.UTF8EncodingWithoutBOM,
-                Encodings.UTF16EncodingWithBOM
+                Encodings.UTF16EncodingLittleEndian
             };
         }
 
@@ -113,8 +113,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private object GetDefaultValueForType(Type modelType)
         {
-            return modelType.GetTypeInfo().IsValueType ? Activator.CreateInstance(modelType) :
-                                                                      null;
+            if (modelType.GetTypeInfo().IsValueType)
+            {
+                return Activator.CreateInstance(modelType);
+            }
+
+            return null;
         }
 
         private Task<object> ReadInternal(InputFormatterContext context)

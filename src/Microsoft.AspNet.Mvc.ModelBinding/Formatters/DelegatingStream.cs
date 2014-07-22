@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class DelegatingStream : Stream
     {
-        private Stream _innerStream;
+        private readonly Stream _innerStream;
 
         /// <summary>
         /// Initializes a new object of DelegatingStream

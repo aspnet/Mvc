@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.AspNet.Http;
 using Moq;
 using Xunit;
@@ -43,10 +44,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void DataContractSerializerFormatterHasProperSuppportedMediaTypes()
+        public void XmlDataContractSerializerFormatterHasProperSuppportedMediaTypes()
         {
             // Arrange & Act
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
 
             // Assert
             Assert.True(formatter.SupportedMediaTypes.Contains("application/xml"));
@@ -54,10 +55,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void DataContractSerializerFormatterHasProperSuppportedEncodings()
+        public void XmlDataContractSerializerFormatterHasProperSuppportedEncodings()
         {
             // Arrange & Act
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
 
             // Assert
             Assert.True(formatter.SupportedEncodings.Any(i => i.WebName == "utf-8"));
@@ -65,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task DataContractSerializerFormatterReadsSimpleTypes()
+        public async Task XmlDataContractSerializerFormatterReadsSimpleTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -75,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                 "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
                                 "<sampleString>" + expectedString + "</sampleString></TestLevelOne>";
 
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelOne));
 
@@ -92,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task DataContractSerializerFormatterReadsComplexTypes()
+        public async Task XmlDataContractSerializerFormatterReadsComplexTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -104,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         "<TestOne><SampleInt>" + expectedInt + "</SampleInt>" +
                         "<sampleString>" + expectedString + "</sampleString></TestOne></TestLevelTwo>";
 
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
@@ -122,14 +123,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task DataContractSerializerFormatterReadsWhenMaxDepthIsModified()
+        public async Task XmlDataContractSerializerFormatterReadsWhenMaxDepthIsModified()
         {
             // Arrange
             var expectedInt = 10;
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<DummyClass><SampleInt>" + expectedInt + "</SampleInt></DummyClass>";
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             formatter.MaxDepth = 10;
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
@@ -146,14 +147,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task DataContractSerializerFormatterThrowsOnExceededMaxDepth()
+        public async Task XmlDataContractSerializerFormatterThrowsOnExceededMaxDepth()
         {
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                         "<TestLevelTwo><SampleString>test</SampleString>" +
                         "<TestOne><SampleInt>10</SampleInt>" +
                         "<sampleString>test</sampleString></TestOne></TestLevelTwo>";
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             formatter.MaxDepth = 1;
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
@@ -163,14 +164,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task DataContractSerializerFormatterThrowsWhenReaderQuotasAreChanged()
+        public async Task XmlDataContractSerializerFormatterThrowsWhenReaderQuotasAreChanged()
         {
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                         "<TestLevelTwo><SampleString>test</SampleString>" +
                         "<TestOne><SampleInt>10</SampleInt>" +
                         "<sampleString>test</sampleString></TestOne></TestLevelTwo>";
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             formatter.XmlDictionaryReaderQuotas.MaxStringContentLength = 2;
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
@@ -180,10 +181,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void DataContractSerializerFormatterThrowsWhenMaxDepthIsBelowOne()
+        public void XmlDataContractSerializerFormatterThrowsWhenMaxDepthIsBelowOne()
         {
             // Arrange
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
 
             // Act & Assert
             Assert.Throws(typeof(ArgumentException), () => formatter.MaxDepth = 0);
@@ -195,7 +196,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<DummyClass><SampleInt>10</SampleInt></DummyClass>";
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
 
@@ -207,23 +208,29 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(context.HttpContext.Request.Body.CanRead);
         }
 
-        //[Theory]
-        //[InlineData("a\xc5z")]
-        //public async Task DataContractSerializerFormatterThrowsOnInvalidCharacters(string sampleString)
-        //{
-        //    // Arrange
-        //    var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine +
-        //        "<TestLevelTwo><SampleString>" + sampleString + "</SampleString></TestLevelTwo>";
-        //    var formatter = new DataContractSerializerInputFormatter();
-        //    var contentBytes = Encoding.UTF8.GetBytes(input);
-        //    var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterThrowsOnInvalidCharacters()
+        {
+            // Arrange
+            var inpStart = Encodings.UTF16EncodingLittleEndian.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<DummyClass><SampleInt>");
+            byte[] inp = { 192, 193 };
+            var inpEnd = Encodings.UTF16EncodingLittleEndian.GetBytes("</SampleInt></DummyClass>");
 
-        //    // Act
-        //    await Assert.ThrowsAsync(typeof(InvalidOperationException), async () => await formatter.ReadAsync(context));
-        //}
+            var contentBytes = new byte[inpStart.Length + inp.Length + inpEnd.Length];
+            Buffer.BlockCopy(inpStart, 0, contentBytes, 0, inpStart.Length);
+            Buffer.BlockCopy(inp, 0, contentBytes, inpStart.Length, inp.Length);
+            Buffer.BlockCopy(inpEnd, 0, contentBytes, inpStart.Length + inp.Length, inpEnd.Length);
+
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
+
+            // Act
+            await Assert.ThrowsAsync(typeof(XmlException), async () => await formatter.ReadAsync(context));
+        }
 
         [Fact]
-        public async Task DataContractSerializerFormatterIgnoresBOMCharacters()
+        public async Task XmlDataContractSerializerFormatterIgnoresBOMCharacters()
         {
             // Arrange
             var sampleString = "Test";
@@ -239,7 +246,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Buffer.BlockCopy(bom, 0, contentBytes, inputStart.Length, bom.Length);
             Buffer.BlockCopy(inputEnd, 0, contentBytes, inputStart.Length + bom.Length, inputEnd.Length);
 
-            var formatter = new DataContractSerializerInputFormatter();
+            var formatter = new XmlDataContractSerializerInputFormatter();
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
             // Act
@@ -251,6 +258,33 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Buffer.BlockCopy(sampleStringBytes, 0, expectedBytes, 0, sampleStringBytes.Length);
             Buffer.BlockCopy(bom, 0, expectedBytes, sampleStringBytes.Length, bom.Length);
             Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(model.SampleString));
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerAcceptsUTF16Characters()
+        {
+            // Arrange
+            var expectedInt = 10;
+            var expectedString = "TestString";
+
+            var input = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>" +
+                                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                                "<sampleString>" + expectedString + "</sampleString></TestLevelOne>";
+
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF16EncodingLittleEndian.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(TestLevelOne));
+
+            // Act
+            await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.NotNull(context.Model);
+            Assert.IsType<TestLevelOne>(context.Model);
+
+            var model = context.Model as TestLevelOne;
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.sampleString);
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
