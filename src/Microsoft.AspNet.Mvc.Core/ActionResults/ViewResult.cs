@@ -6,37 +6,33 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class ViewResult : ActionResult
     {
         private const int BufferSize = 1024;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IViewEngine _viewEngine;
-
-        public ViewResult([NotNull] IServiceProvider serviceProvider, [NotNull] IViewEngine viewEngine)
-        {
-            _serviceProvider = serviceProvider;
-            _viewEngine = viewEngine;
-        }
 
         public string ViewName { get; set; }
 
         public ViewDataDictionary ViewData { get; set; }
 
+        public IViewEngine ViewEngine { get; set; }
+
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
+            var viewEngine = ViewEngine ?? context.HttpContext.RequestServices.GetService<ICompositeViewEngine>();
+
             var viewName = ViewName ?? context.ActionDescriptor.Name;
-            var view = FindView(context.RouteData.Values, viewName);
+            var view = FindView(viewEngine, context.RouteData.Values, viewName);
 
             using (view as IDisposable)
             {
                 context.HttpContext.Response.ContentType = "text/html; charset=utf-8";
                 var wrappedStream = new StreamWrapper(context.HttpContext.Response.Body);
-                var encoding = UTF8EncodingWithoutBOM.Encoding;
+                var encoding = Encodings.UTF8EncodingWithoutBOM;
                 using (var writer = new StreamWriter(wrappedStream, encoding, BufferSize, leaveOpen: true))
                 {
                     try
@@ -56,9 +52,12 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private IView FindView([NotNull] IDictionary<string, object> context, [NotNull] string viewName)
+        private static IView FindView(
+            [NotNull] IViewEngine viewEngine, 
+            [NotNull] IDictionary<string, object> context, 
+            [NotNull] string viewName)
         {
-            var result = _viewEngine.FindView(context, viewName);
+            var result = viewEngine.FindView(context, viewName);
             if (!result.Success)
             {
                 var locations = string.Empty;

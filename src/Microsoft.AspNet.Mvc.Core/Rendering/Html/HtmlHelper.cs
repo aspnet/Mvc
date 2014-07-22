@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private const string HiddenListItem = @"<li style=""display:none""></li>";
 
         private readonly IUrlHelper _urlHelper;
-        private readonly IViewEngine _viewEngine;
+        private readonly ICompositeViewEngine _viewEngine;
         private readonly AntiForgery _antiForgeryInstance;
         private readonly IActionBindingContextProvider _actionBindingContextProvider;
 
@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Initializes a new instance of the <see cref="HtmlHelper"/> class.
         /// </summary>
         public HtmlHelper(
-            [NotNull] IViewEngine viewEngine,
+            [NotNull] ICompositeViewEngine viewEngine,
             [NotNull] IModelMetadataProvider metadataProvider,
             [NotNull] IUrlHelper urlHelper,
             [NotNull] AntiForgery antiForgeryInstance,
@@ -706,13 +706,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // We don't call ModelMetadata.GetDisplayName here because
             // we want to fall back to the field name rather than the ModelType.
             // This is similar to how the GenerateLabel get the text of a label.
-            // TODO: This needs to be updated after ModelMetadata has a DisplayName property
-            var resolvedDisplayName = metadata.PropertyName;
+            var resolvedDisplayName = metadata.DisplayName ?? metadata.PropertyName;
             if (resolvedDisplayName == null)
             {
-                resolvedDisplayName = string.IsNullOrEmpty(htmlFieldName) ?
-                                                                    string.Empty :
-                                                                    htmlFieldName.Split('.').Last();
+                resolvedDisplayName =
+                    string.IsNullOrEmpty(htmlFieldName) ? string.Empty : htmlFieldName.Split('.').Last();
             }
 
             return new HtmlString(Encode(resolvedDisplayName));
@@ -857,13 +855,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                     string labelText,
                                                     object htmlAttributes)
         {
-            // TODO: This needs to be updated after ModelMetadata has a DisplayName property
-            var resolvedLabelText = labelText ?? metadata.PropertyName;
+            var resolvedLabelText = labelText ?? metadata.DisplayName ?? metadata.PropertyName;
             if (resolvedLabelText == null)
             {
-                resolvedLabelText = string.IsNullOrEmpty(htmlFieldName) ?
-                                                                    string.Empty :
-                                                                    htmlFieldName.Split('.').Last();
+                resolvedLabelText =
+                    string.IsNullOrEmpty(htmlFieldName) ? string.Empty : htmlFieldName.Split('.').Last();
             }
 
             if (string.IsNullOrEmpty(resolvedLabelText))

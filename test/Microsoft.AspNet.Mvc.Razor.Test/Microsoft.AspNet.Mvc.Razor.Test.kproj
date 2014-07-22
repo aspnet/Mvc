@@ -23,7 +23,9 @@
   <ItemGroup>
     <Compile Include="MvcRazorCodeParserTest.cs" />
     <Compile Include="RazorCompilationServiceTest.cs" />
+    <Compile Include="RazorPageActivatorTest.cs" />
     <Compile Include="RazorViewEngineTest.cs" />
+    <Compile Include="RazorPageTest.cs" />
     <Compile Include="RazorViewTest.cs" />
     <Compile Include="SpanFactory.cs" />
   </ItemGroup>

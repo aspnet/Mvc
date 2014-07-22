@@ -50,6 +50,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                        : base.ComputeDescription();
         }
 
+        protected override string ComputeDisplayName()
+        {
+            // DisplayName could be provided by either the DisplayAttribute or (in NET45) DisplayNameAttribute.
+            // If neither of those supply a name, then we fall back to the property name (in base.GetDisplayName()).
+            if (PrototypeCache.Display != null)
+            {
+                // DisplayAttribute doesn't require you to set a name, so this could be null.
+                var name = PrototypeCache.Display.GetName();
+                if (name != null)
+                {
+                    return name;
+                }
+            }
+
+#if NET45
+            if (PrototypeCache.DisplayName != null)
+            {
+                // It's also possible for DisplayNameAttribute to be used without setting a name. If a user does that,
+                // then DisplayName will return the empty string - but for consistency we allow it. We fall back to the
+                // property name in the (unlikely) scenario that the user sets DisplayName to null, again, for
+                // consistency.
+                var name = PrototypeCache.DisplayName.DisplayName;
+                if (name != null)
+                {
+                    return name;
+                }
+            }
+#endif
+
+            return base.ComputeDisplayName();
+        }
+
         protected override bool ComputeIsReadOnly()
         {
             if (PrototypeCache.Editable != null)
@@ -97,22 +129,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return PrototypeCache.ScaffoldColumn != null
                        ? PrototypeCache.ScaffoldColumn.Scaffold
                        : base.ComputeShowForEdit();
-        }
-
-        public override string GetDisplayName()
-        {
-            // DisplayAttribute doesn't require you to set a name, so this could be null. 
-            if (PrototypeCache.Display != null)
-            {
-                var name = PrototypeCache.Display.GetName();
-                if (name != null)
-                {
-                    return name;
-                }
-            }
-
-            // If DisplayAttribute does not specify a name, we'll fall back to the property name.
-            return base.GetDisplayName();
         }
 
         private static void ValidateDisplayColumnAttribute(DisplayColumnAttribute displayColumnAttribute,

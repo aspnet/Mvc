@@ -1,99 +1,70 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public abstract class RazorView : IView
+    /// <summary>
+    /// Represents a <see cref="IView"/> that executes one or more <see cref="RazorPage"/> instances as part of
+    /// view rendering.
+    /// </summary>
+    public class RazorView : IView
     {
-        private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private bool _renderedBody;
+        private readonly IRazorPageFactory _pageFactory;
+        private readonly IRazorPageActivator _pageActivator;
+        private readonly IRazorPage _page;
+        private readonly bool _executeViewHierarchy;
 
-        public IViewComponentHelper Component { get; private set; }
-
-        public HttpContext Context
+        /// <summary>
+        /// Initializes a new instance of RazorView
+        /// </summary>
+        /// <param name="page">The page to execute</param>
+        /// <param name="pageFactory">The view factory used to instantiate additional views.</param>
+        /// <param name="pageActivator">The <see cref="IRazorPageActivator"/> used to activate pages.</param>
+        /// <param name="executeViewHierarchy">A value that indiciates whether the view hierarchy that involves 
+        /// view start and layout pages are executed as part of the executing the page.</param>
+        public RazorView([NotNull] IRazorPageFactory pageFactory,
+                         [NotNull] IRazorPageActivator pageActivator,
+                         [NotNull] IRazorPage page,
+                         bool executeViewHierarchy)
         {
-            get
-            {
-                if (ViewContext == null)
-                {
-                    return null;
-                }
+            _pageFactory = pageFactory;
+            _pageActivator = pageActivator;
+            _page = page;
+            _executeViewHierarchy = executeViewHierarchy;
+        }
 
-                return ViewContext.HttpContext;
+        /// <inheritdoc />
+        public async Task RenderAsync([NotNull] ViewContext context)
+        {
+            if (_executeViewHierarchy)
+            {
+                var bodyContent = await RenderPageAsync(_page, context);
+                await RenderLayoutAsync(context, bodyContent);
+            }
+            else
+            {
+                await RenderPageCoreAsync(_page, context);
             }
         }
 
-        public ViewContext ViewContext { get; set; }
-
-        public string Layout { get; set; }
-
-        protected TextWriter Output { get; set; }
-
-        public IUrlHelper Url { get; private set; }
-
-        public virtual IPrincipal User
+        private async Task<string> RenderPageAsync(IRazorPage page, ViewContext context)
         {
-            get
-            {
-                if (Context == null)
-                {
-                    return null;
-                }
-
-                return Context.User;
-            }
-        }
-
-        public dynamic ViewBag
-        {
-            get
-            {
-                return (ViewContext == null) ? null : ViewContext.ViewBag;
-            }
-        }
-
-        private string BodyContent { get; set; }
-
-        private Dictionary<string, HelperResult> SectionWriters { get; set; }
-
-        private Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
-
-        public virtual async Task RenderAsync([NotNull] ViewContext context)
-        {
-            SectionWriters = new Dictionary<string, HelperResult>(StringComparer.OrdinalIgnoreCase);
-            ViewContext = context;
-
-            InitHelpers();
-
             var contentBuilder = new StringBuilder(1024);
             using (var bodyWriter = new StringWriter(contentBuilder))
             {
-                Output = bodyWriter;
-
                 // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
                 // and ViewComponents to reference it.
                 var oldWriter = context.Writer;
-
+                context.Writer = bodyWriter;
                 try
                 {
-                    context.Writer = bodyWriter;
-                    await ExecuteAsync();
-
-                    // Verify that RenderBody is called, or that RenderSection is called for all sections
-                    VerifyRenderedBodyOrSections();
+                    await RenderPageCoreAsync(page, context);
                 }
                 finally
                 {
@@ -101,276 +72,47 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
             }
 
-            var bodyContent = contentBuilder.ToString();
-            if (!string.IsNullOrEmpty(Layout))
-            {
-                await RenderLayoutAsync(context, bodyContent);
-            }
-            else
-            {
-                await context.Writer.WriteAsync(bodyContent);
-            }
+            return contentBuilder.ToString();
         }
 
-        private void InitHelpers()
+        private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
         {
-            Contract.Assert(ViewContext != null);
-            Contract.Assert(Context != null);
+            // Activating a page might mutate the ViewContext (for instance ViewContext.ViewData) is mutated by 
+            // RazorPageActivator. We'll instead pass in a copy of the ViewContext.
+            var pageViewContext = new ViewContext(context, context.View, context.ViewData, context.Writer);
+            page.ViewContext = pageViewContext;
+            _pageActivator.Activate(page, pageViewContext);
 
-            Url = Context.RequestServices.GetService<IUrlHelper>();
-
-            Component = Context.RequestServices.GetService<IViewComponentHelper>();
-
-            var contextable = Component as ICanHasViewContext;
-            if (contextable != null)
-            {
-                contextable.Contextualize(ViewContext);
-            }
+            await page.ExecuteAsync();
         }
 
-        private async Task RenderLayoutAsync(ViewContext context, string bodyContent)
+        private async Task RenderLayoutAsync(ViewContext context,
+                                             string bodyContent)
         {
-            var virtualPathFactory = context.HttpContext.RequestServices.GetService<IVirtualPathViewFactory>();
-            var layoutView = (RazorView)virtualPathFactory.CreateInstance(Layout);
-
-            if (layoutView == null)
+            // A layout page can specify another layout page. We'll need to continue
+            // looking for layout pages until they're no longer specified.
+            var previousPage = _page;
+            while (!string.IsNullOrEmpty(previousPage.Layout))
             {
-                var message = Resources.FormatLayoutCannotBeLocated(Layout);
-                throw new InvalidOperationException(message);
-            }
-
-            layoutView.PreviousSectionWriters = SectionWriters;
-            layoutView.BodyContent = bodyContent;
-            await layoutView.RenderAsync(context);
-        }
-
-        public abstract Task ExecuteAsync();
-
-        public virtual void Write(object value)
-        {
-            WriteTo(Output, value);
-        }
-
-        public virtual void WriteTo(TextWriter writer, object content)
-        {
-            if (content != null)
-            {
-                var helperResult = content as HelperResult;
-                if (helperResult != null)
+                var layoutPage = _pageFactory.CreateInstance(previousPage.Layout);
+                if (layoutPage == null)
                 {
-                    helperResult.WriteTo(writer);
+                    var message = Resources.FormatLayoutCannotBeLocated(previousPage.Layout);
+                    throw new InvalidOperationException(message);
                 }
-                else
-                {
-                    var htmlString = content as HtmlString;
-                    if (htmlString != null)
-                    {
-                        writer.Write(content.ToString());
-                    }
-                    else
-                    {
-                        writer.Write(WebUtility.HtmlEncode(content.ToString()));
-                    }
-                }
-            }
-        }
 
-        public void WriteLiteral(object value)
-        {
-            WriteLiteralTo(Output, value);
-        }
+                layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
+                layoutPage.BodyContent = bodyContent;
 
-        public virtual void WriteLiteralTo(TextWriter writer, object text)
-        {
-            if (text != null)
-            {
-                writer.Write(text.ToString());
-            }
-        }
+                bodyContent = await RenderPageAsync(layoutPage, context);
 
-        public virtual void WriteAttribute(string name,
-                                           PositionTagged<string> prefix,
-                                           PositionTagged<string> suffix,
-                                           params AttributeValue[] values)
-        {
-            WriteAttributeTo(Output, name, prefix, suffix, values);
-        }
+                // Verify that RenderBody is called, or that RenderSection is called for all sections
+                layoutPage.EnsureBodyAndSectionsWereRendered();
 
-        public virtual void WriteAttributeTo(TextWriter writer,
-                                             string name,
-                                             PositionTagged<string> prefix,
-                                             PositionTagged<string> suffix,
-                                             params AttributeValue[] values)
-        {
-            var first = true;
-            var wroteSomething = false;
-            if (values.Length == 0)
-            {
-                // Explicitly empty attribute, so write the prefix and suffix
-                WritePositionTaggedLiteral(writer, prefix);
-                WritePositionTaggedLiteral(writer, suffix);
-            }
-            else
-            {
-                for (var i = 0; i < values.Length; i++)
-                {
-                    var attrVal = values[i];
-                    var val = attrVal.Value;
-                    var next = i == values.Length - 1 ?
-                        suffix : // End of the list, grab the suffix
-                        values[i + 1].Prefix; // Still in the list, grab the next prefix
-
-                    if (val.Value == null)
-                    {
-                        // Nothing to write
-                        continue;
-                    }
-
-                    // The special cases here are that the value we're writing might already be a string, or that the 
-                    // value might be a bool. If the value is the bool 'true' we want to write the attribute name
-                    // instead of the string 'true'. If the value is the bool 'false' we don't want to write anything.
-                    // Otherwise the value is another object (perhaps an HtmlString) and we'll ask it to format itself.
-                    string stringValue;
-                    var boolValue = val.Value as bool?;
-                    if (boolValue == true)
-                    {
-                        stringValue = name;
-                    }
-                    else if (boolValue == false)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        stringValue = val.Value as string;
-                    }
-
-                    if (first)
-                    {
-                        WritePositionTaggedLiteral(writer, prefix);
-                        first = false;
-                    }
-                    else
-                    {
-                        WritePositionTaggedLiteral(writer, attrVal.Prefix);
-                    }
-
-                    // Calculate length of the source span by the position of the next value (or suffix)
-                    var sourceLength = next.Position - attrVal.Value.Position;
-
-                    if (attrVal.Literal)
-                    {
-                        WriteLiteralTo(writer, stringValue ?? val.Value);
-                    }
-                    else
-                    {
-                        WriteTo(writer, stringValue ?? val.Value); // Write value
-                    }
-                    wroteSomething = true;
-                }
-                if (wroteSomething)
-                {
-                    WritePositionTaggedLiteral(writer, suffix);
-                }
-            }
-        }
-
-        public virtual string Href([NotNull] string contentPath)
-        {
-            return Url.Content(contentPath);
-        }
-
-        private void WritePositionTaggedLiteral(TextWriter writer, string value, int position)
-        {
-            WriteLiteralTo(writer, value);
-        }
-
-        private void WritePositionTaggedLiteral(TextWriter writer, PositionTagged<string> value)
-        {
-            WritePositionTaggedLiteral(writer, value.Value, value.Position);
-        }
-
-        protected virtual HtmlString RenderBody()
-        {
-            if (BodyContent == null)
-            {
-                throw new InvalidOperationException(Resources.FormatRenderBodyCannotBeCalled("RenderBody"));
-            }
-            _renderedBody = true;
-            return new HtmlString(BodyContent);
-        }
-
-        public void DefineSection(string name, HelperResult action)
-        {
-            if (SectionWriters.ContainsKey(name))
-            {
-                throw new InvalidOperationException(Resources.FormatSectionAlreadyDefined(name));
-            }
-            SectionWriters[name] = action;
-        }
-
-        public bool IsSectionDefined([NotNull] string name)
-        {
-            EnsureMethodCanBeInvoked("IsSectionDefined");
-            return PreviousSectionWriters.ContainsKey(name);
-        }
-
-        public HelperResult RenderSection([NotNull] string name)
-        {
-            return RenderSection(name, required: true);
-        }
-
-        public HelperResult RenderSection([NotNull] string name, bool required)
-        {
-            EnsureMethodCanBeInvoked("RenderSection");
-            if (_renderedSections.Contains(name))
-            {
-                throw new InvalidOperationException(Resources.FormatSectionAlreadyRendered("RenderSection", name));
+                previousPage = layoutPage;
             }
 
-            HelperResult action;
-            if (PreviousSectionWriters.TryGetValue(name, out action))
-            {
-                _renderedSections.Add(name);
-                return action;
-            }
-            else if (required)
-            {
-                // If the section is not found, and it is not optional, throw an error.
-                throw new InvalidOperationException(Resources.FormatSectionNotDefined(name));
-            }
-            else
-            {
-                // If the section is optional and not found, then don't do anything.
-                return null;
-            }
-        }
-
-        private void EnsureMethodCanBeInvoked(string methodName)
-        {
-            if (PreviousSectionWriters == null)
-            {
-                throw new InvalidOperationException(Resources.FormatView_MethodCannotBeCalled(methodName));
-            }
-        }
-
-        private void VerifyRenderedBodyOrSections()
-        {
-            if (BodyContent != null)
-            {
-                var sectionsNotRendered = PreviousSectionWriters.Keys.Except(_renderedSections,
-                                                                             StringComparer.OrdinalIgnoreCase);
-                if (sectionsNotRendered.Any())
-                {
-                    var sectionNames = String.Join(", ", sectionsNotRendered);
-                    throw new InvalidOperationException(Resources.FormatSectionsNotRendered(sectionNames));
-                }
-                else if (!_renderedBody)
-                {
-                    // If a body was defined, then RenderBody should have been called.
-                    throw new InvalidOperationException(Resources.FormatRenderBodyNotCalled("RenderBody"));
-                }
-            }
+            await context.Writer.WriteAsync(bodyContent);
         }
     }
 }

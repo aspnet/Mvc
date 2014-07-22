@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
@@ -34,10 +34,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Arrange
             var expectedContentType = "text/plain";
             var input = "testInput";
+            var stream = new MemoryStream();
 
             var httpResponse = new Mock<HttpResponse>();
             httpResponse.SetupSet(r => r.ContentType = expectedContentType).Verifiable();
-            httpResponse.Object.Body = new MemoryStream();
+            httpResponse.SetupGet(r => r.Body).Returns(stream);
 
             var actionContext = CreateMockActionContext(httpResponse.Object);
 
@@ -48,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Assert
             httpResponse.VerifySet(r => r.ContentType = expectedContentType);
             // The following verifies the correct Content was written to Body
-            httpResponse.Verify(o => o.WriteAsync(input), Times.Exactly(1));
+            Assert.Equal(input.Length, httpResponse.Object.Body.Length);
         }
 
         [Fact]
@@ -62,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var actionContext = CreateMockActionContext(httpResponse);
 
             var tempStream = new MemoryStream();
-            using (var writer = new StreamWriter(tempStream, UTF8EncodingWithoutBOM.Encoding, 1024, leaveOpen: true))
+            using (var writer = new StreamWriter(tempStream, Encodings.UTF8EncodingWithoutBOM, 1024, leaveOpen: true))
             {
                 var formatter = new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), false);
                 formatter.WriteObject(writer, nonStringValue);

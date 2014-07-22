@@ -4,6 +4,7 @@
     "warningsAsErrors": true
   },
   "dependencies": {
+    "Microsoft.AspNet.FileSystems": "1.0.0-*",
     "Microsoft.AspNet.Http": "1.0.0-*",
     "Microsoft.AspNet.Mvc.Common": "",
     "Microsoft.AspNet.Mvc.ModelBinding": "",
@@ -15,12 +16,12 @@
     "Microsoft.Framework.OptionsModel": "1.0.0-*",
     "Newtonsoft.Json": "5.0.8"
   },
-  "configurations": {
+  "frameworks": {
     "net45": {},
     "k10": {
       "dependencies": {
         "Microsoft.CSharp": "4.0.0.0",
-        "System.Collections": "4.0.0.0",
+        "System.Collections": "4.0.10.0",
         "System.Collections.Concurrent": "4.0.0.0",
         "System.ComponentModel": "4.0.0.0",
         "System.Diagnostics.Contracts": "4.0.0.0",
@@ -40,8 +41,8 @@
         "System.Runtime.Extensions": "4.0.10.0",
         "System.Runtime.InteropServices": "4.0.20.0",
         "System.Security.Claims": "1.0.0-*",
-        "System.Security.Cryptography": "4.0.0.0",
-        "System.Security.Cryptography.HashAlgorithms.SHA2": "4.0.0.0",
+        "System.Security.Cryptography.Encryption": "4.0.0.0",
+        "System.Security.Cryptography.Hashing.Algorithms": "4.0.0.0",
         "System.Security.Principal": "4.0.0.0",
         "System.Text.Encoding": "4.0.20.0",
         "System.Threading": "4.0.0.0",
