@@ -144,11 +144,10 @@ namespace Microsoft.AspNet.Mvc
             if (acceptCharsetHeaders != null && acceptCharsetHeaders.Count > 0)
             {
                 var sortedAcceptCharsetHeaders = acceptCharsetHeaders
-                                                    .OrderByDescending(
-                                                        m => m, StringWithQualityHeaderValueComparer.QualityComparer)
                                                     .Where(acceptCharset =>
                                                                 acceptCharset.Quality != FormattingUtilities.NoMatch)
-                                                    .ToArray();
+                                                    .OrderByDescending(
+                                                        m => m, StringWithQualityHeaderValueComparer.QualityComparer);
 
                 foreach (var acceptCharset in sortedAcceptCharsetHeaders)
                 {

@@ -61,7 +61,6 @@ namespace Microsoft.AspNet.Mvc
 
             OutputFormatter selectedFormatter = null;
 
-            // Enable the scenario where there is no content type set. 
             if (ContentTypes == null || ContentTypes.Count == 0)
             {
                 // Select based on sorted accept headers. 
@@ -75,6 +74,11 @@ namespace Microsoft.AspNet.Mvc
                     // No formatter found based on accept headers, fall back on request contentType.
                     var incomingContentType = 
                         MediaTypeHeaderValue.Parse(formatterContext.ActionContext.HttpContext.Request.ContentType);
+                    if(incomingContentType == null)
+                    {
+                        return null;
+                    }
+
                     var contentTypes = new [] { incomingContentType };
                     selectedFormatter = SelectFormatterUsingAnyAcceptableContentType(
                                                                                 formatterContext,

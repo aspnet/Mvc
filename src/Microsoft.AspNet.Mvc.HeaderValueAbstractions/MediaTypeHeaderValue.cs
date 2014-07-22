@@ -15,6 +15,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
 
         public string MediaSubType { get; set; }
 
+        public MediaTypeHeaderValueRange MediaTypeRange { get; set; }
+
         public string RawValue
         {
             get
@@ -65,6 +67,15 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             // TODO: throw if the media type and subtypes are invalid.
             var mediaType = mediaTypeParts[0].Trim();
             var mediaSubType = mediaTypeParts[1].Trim();
+            var mediaTypeRange = MediaTypeHeaderValueRange.None;
+            if (mediaType == "*" && mediaSubType == "*")
+            {
+                mediaTypeRange = MediaTypeHeaderValueRange.AllMediaRange;
+            }
+            else if (mediaSubType == "*")
+            {
+                mediaTypeRange = MediaTypeHeaderValueRange.SubtypeMediaRange;
+            }
 
             Dictionary<string, string> parameters = null;
             string charset = null;
@@ -78,6 +89,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             {
                 MediaType = mediaType,
                 MediaSubType = mediaSubType,
+                MediaTypeRange = mediaTypeRange,
                 Charset = charset,
                 Parameters = parameters ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
             };
@@ -100,6 +112,73 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             }
 
             return parameterNameValue;
+        }
+
+        /// <summary>
+        /// Determines whether this instance is a subset of passed <see cref="MediaTypeHeaderValue"/>.
+        /// If the media type and media type parameters of this media type are all present 
+        /// and match those of <paramref name="otherMediaType"/> then it is a match even though 
+        /// <paramref name="otherMediaType"/> may have additional parameters.
+        /// </summary>
+        /// <param name="mediaType">The first media type.</param>
+        /// <param name="otherMediaType">The second media type.</param>
+        /// <returns><c>true</c> if this is a subset of <paramref name="otherMediaType"/>; false otherwise.</returns>
+        public bool IsSubsetOf(MediaTypeHeaderValue otherMediaType)
+        {
+            if (otherMediaType == null)
+            {
+                return false;
+            }
+
+            if (!MediaType.Equals(otherMediaType.MediaType, StringComparison.OrdinalIgnoreCase))
+            {
+                if (otherMediaType.MediaTypeRange != MediaTypeHeaderValueRange.AllMediaRange)
+                {
+                    return false;
+                }
+            }
+            else if (!MediaSubType.Equals(otherMediaType.MediaSubType, StringComparison.OrdinalIgnoreCase))
+            {
+                if (otherMediaType.MediaTypeRange != MediaTypeHeaderValueRange.SubtypeMediaRange)
+                {
+                    return false;
+                }
+            }
+
+            if (Parameters != null)
+            {
+                if (Parameters.Count != 0 &&
+                    (otherMediaType.Parameters == null || otherMediaType.Parameters.Count == 0))
+                {
+                    return false;
+                }
+
+                // So far we either have a full match or a subset match. Now check that all of 
+                // mediaType1's parameters are present and equal in mediatype2
+                MatchParameters(Parameters, otherMediaType.Parameters);
+            }
+
+            return true;
+        }
+
+        private static bool MatchParameters(IDictionary<string, string> parameters1,
+                                            IDictionary<string, string> parameters2)
+        {
+            foreach (var parameterKey in parameters1.Keys)
+            {
+                string parameterValue2 = null;
+                if (!parameters2.TryGetValue(parameterKey, out parameterValue2))
+                {
+                    return false;
+                }
+
+                if (parameterValue2 == null || !parameterValue2.Equals(parameters1[parameterKey]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

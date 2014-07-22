@@ -7,8 +7,10 @@ using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
     /// Implementation of <see cref="IComparer{T}"/> that can compare accept media type header fields
     /// based on their quality values (a.k.a q-values).
+    /// </summary>
     public class MediaTypeWithQualityHeaderValueComparer : IComparer<MediaTypeWithQualityHeaderValue>
     {
         private static readonly MediaTypeWithQualityHeaderValueComparer _mediaTypeComparer = 
@@ -45,36 +47,34 @@ namespace Microsoft.AspNet.Mvc
 
             if (returnValue == 0)
             {
-                var mediaType1Range = mediaType1.GetMediaTypeRange();
-                var mediaType2Range = mediaType2.GetMediaTypeRange();
                 if (!mediaType1.MediaType.Equals(mediaType2.MediaType, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (mediaType1Range == MediaTypeHeaderValueRange.AllMediaRange)
+                    if (mediaType1.MediaTypeRange == MediaTypeHeaderValueRange.AllMediaRange)
                     {
                         return -1;
                     }
-                    else if (mediaType2Range == MediaTypeHeaderValueRange.AllMediaRange)
+                    else if (mediaType2.MediaTypeRange == MediaTypeHeaderValueRange.AllMediaRange)
                     {
                         return 1;
                     }
-                    else if (mediaType1Range == MediaTypeHeaderValueRange.SubtypeMediaRange &&
-                             mediaType2Range != MediaTypeHeaderValueRange.SubtypeMediaRange)
+                    else if (mediaType1.MediaTypeRange == MediaTypeHeaderValueRange.SubtypeMediaRange &&
+                             mediaType2.MediaTypeRange != MediaTypeHeaderValueRange.SubtypeMediaRange)
                     {
                         return -1;
                     }
-                    else if (mediaType1Range != MediaTypeHeaderValueRange.SubtypeMediaRange &&
-                             mediaType2Range == MediaTypeHeaderValueRange.SubtypeMediaRange)
+                    else if (mediaType1.MediaTypeRange != MediaTypeHeaderValueRange.SubtypeMediaRange &&
+                             mediaType2.MediaTypeRange == MediaTypeHeaderValueRange.SubtypeMediaRange)
                     {
                         return 1;
                     }
                 }
                 else if (!mediaType1.MediaSubType.Equals(mediaType2.MediaSubType, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (mediaType1Range == MediaTypeHeaderValueRange.SubtypeMediaRange)
+                    if (mediaType1.MediaTypeRange == MediaTypeHeaderValueRange.SubtypeMediaRange)
                     {
                         return -1;
                     }
-                    else if (mediaType2Range == MediaTypeHeaderValueRange.SubtypeMediaRange)
+                    else if (mediaType2.MediaTypeRange == MediaTypeHeaderValueRange.SubtypeMediaRange)
                     {
                         return 1;
                     }
