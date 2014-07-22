@@ -18,15 +18,19 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             var inputArray = input.Split(new[] { ';' }, 2);
             var value = inputArray[0].Trim();
 
-            // By default, an uspecified q factor value is equal to a match.
+            // Unspecified q factor value is equal to a match.
             var quality = FormattingUtilities.Match;
             if (inputArray.Length > 1)
             {
-                var parameter = inputArray[1].Trim();                
-                var index = parameter.IndexOf("=", System.StringComparison.Ordinal);
-                if (index > 0 && parameter.StartsWith("q"))
+                var parameter = inputArray[1].Trim();
+                var nameValuePair = parameter.Split(new[] { '=' }, 2);
+                if (nameValuePair.Length > 1 && nameValuePair[0].Trim().Equals("q"))
                 {
-                    quality = Double.Parse(parameter.Substring(index + 1).Trim());
+                    // TODO: all extraneous parameters are ignored. Throw/return null if that is the case.
+                    if(!Double.TryParse(nameValuePair[1].Trim(), out quality))
+                    {
+                        return null;
+                    }
                 }
             }
 

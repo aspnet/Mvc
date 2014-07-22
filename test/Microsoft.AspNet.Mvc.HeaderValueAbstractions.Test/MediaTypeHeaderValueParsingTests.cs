@@ -14,25 +14,24 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             {
                 yield return new object[]
                 {
-                    "application",
-                    "json",
+                    "*",
+                    "*",
                     null,
-                    null,
+                    MediaTypeHeaderValueRange.AllMediaRange,
                     null,
                     FormattingUtilities.Match,
-                    "application/json"
+                    "*/*"
                 };
 
                 yield return new object[]
                 {
                     "text",
-                    "plain",
-                    "us-ascii",
-                    new Dictionary<string, string>() { { "charset", "us-ascii" } },
-                    new Dictionary<string, string>()
-                                        { { "q", "0.8"  }, { "acceptParam", "foo" } },
-                    0.8,
-                    "text/plain;charset=us-ascii;q=0.8;acceptParam=foo",
+                    "*",
+                    "utf-8",
+                    MediaTypeHeaderValueRange.SubtypeMediaRange,
+                    new Dictionary<string, string>() { { "charset", "utf-8" }, { "foo", "bar" } },
+                    FormattingUtilities.Match,
+                    "text/*;charset=utf-8;foo=bar",
                 };
 
                 yield return new object[]
@@ -40,30 +39,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                     "text",
                     "plain",
                     "utf-8",
-                    new Dictionary<string, string>() { { "charset", "utf-8" }, { "foo", "bar" } },
-                    null,
-                    FormattingUtilities.Match,
-                    "text/plain;charset=utf-8;foo=bar",
-                };
-
-                yield return new object[]
-                {
-                    "text",
-                    "plain",
-                    null,
-                    new Dictionary<string, string>() { { "foo", "bar" } },
-                    new Dictionary<string, string>() { { "q", "0.0" }},
-                    FormattingUtilities.NoMatch,
-                    "text/plain;foo=bar;q=0.0",
-                };
-
-                yield return new object[]
-                {
-                    "text",
-                    "plain",
-                    "utf-8",
-                    new Dictionary<string, string>() { { "charset", "utf-8" }, { "foo", "bar" } },
-                    new Dictionary<string, string>() { { "q", "0.0" }},
+                    MediaTypeHeaderValueRange.None,
+                    new Dictionary<string, string>() { { "charset", "utf-8" }, { "foo", "bar" }, { "q", "0.0" } },
                     FormattingUtilities.NoMatch,
                     "text/plain;charset=utf-8;foo=bar;q=0.0",
                 };
@@ -75,8 +52,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
         public void MediaTypeWithQualityHeaderValue_ParseSuccessfully(string mediaType,
                                          string mediaSubType,
                                          string charset,
+                                         MediaTypeHeaderValueRange range,
                                          IDictionary<string, string> parameters,
-                                         IDictionary<string, string> acceptParameters,
                                          double quality,
                                          string rawValue)
         {
@@ -86,8 +63,63 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             Assert.Equal(mediaType, parsedValue.MediaType);
             Assert.Equal(mediaSubType, parsedValue.MediaSubType);
             Assert.Equal(charset, parsedValue.Charset);
+            Assert.Equal(range, parsedValue.MediaTypeRange);
             ValidateParametes(parameters, parsedValue.Parameters);
-            ValidateParametes(acceptParameters, parsedValue.AcceptParameters);
+        }
+
+        [Theory]
+        [InlineData("*/*;", "*/*", true)]
+        [InlineData("text/*;", "text/*", true)]
+        [InlineData("text/plain;", "text/plain", true)]
+        [InlineData("*/*;", "*/*;charset=utf-8;", true)]
+        [InlineData("text/*;", "*/*;charset=utf-8;", true)]
+        [InlineData("text/plain;", "*/*;charset=utf-8;", true)]
+        [InlineData("text/plain;", "text/*;charset=utf-8;", true)]
+        [InlineData("text/plain;", "text/plain;charset=utf-8;", true)]
+        [InlineData("text/plain;charset=utf-8;foo=bar;q=0.0", "text/plain;charset=utf-8;foo=bar;q=0.0", true)]
+        [InlineData("text/plain;charset=utf-8;foo=bar;q=0.0", "text/*;charset=utf-8;foo=bar;q=0.0", true)]
+        [InlineData("text/plain;charset=utf-8;foo=bar;q=0.0", "*/*;charset=utf-8;foo=bar;q=0.0", true)]
+        [InlineData("*/*;", "text/plain;charset=utf-8;foo=bar;q=0.0", false)]
+        [InlineData("text/*;", "text/plain;charset=utf-8;foo=bar;q=0.0", false)]
+        [InlineData("text/plain;missingparam=4;", "text/plain;charset=utf-8;foo=bar;q=0.0", false)]
+        [InlineData("text/plain;missingparam=4;", "text/*;charset=utf-8;foo=bar;q=0.0", false)]
+        [InlineData("text/plain;missingparam=4;", "*/*;charset=utf-8;foo=bar;q=0.0", false)]
+        public void MediaTypeHeaderValue_IsSubTypeTests(string mediaType1,
+                                                        string mediaType2,
+                                                        bool isMediaType1Subset)
+        {
+            var parsedMediaType1 = MediaTypeWithQualityHeaderValue.Parse(mediaType1);
+            var parsedMediaType2 = MediaTypeWithQualityHeaderValue.Parse(mediaType2);
+
+            // Act
+            var isSubset = parsedMediaType1.IsSubsetOf(parsedMediaType2);
+
+            // Assert
+            Assert.Equal(isMediaType1Subset, isSubset);
+        }
+
+        [Theory]
+        [InlineData("text/plain;charset=utf-16;foo=bar", "text/plain;charset=utf-8;foo=bar")]
+        [InlineData("text/plain;charset=utf-16;foo=bar", "text/plain;charset=utf-16;foo=bar1")]
+        [InlineData("text/plain;charset=utf-16;foo=bar", "text/json;charset=utf-16;foo=bar")]
+        [InlineData("text/plain;charset=utf-16;foo=bar", "application/plain;charset=utf-16;foo=bar")]
+        [InlineData("text/plain;charset=utf-16;foo=bar", "application/json;charset=utf-8;foo=bar1")]
+        public void MediaTypeHeaderValue_UpdateValue_RawValueGetsUpdated(string mediaTypeValue,
+                                                        string expectedRawValue)
+        {
+            // Arrange
+            var parsedOldValue = MediaTypeHeaderValue.Parse(mediaTypeValue);
+            var parsedNewValue = MediaTypeHeaderValue.Parse(expectedRawValue);
+            
+            // Act
+            parsedOldValue.Charset = parsedNewValue.Charset;
+            parsedOldValue.Parameters = parsedNewValue.Parameters;
+            parsedOldValue.MediaType = parsedNewValue.MediaType;
+            parsedOldValue.MediaSubType = parsedNewValue.MediaSubType;
+            parsedOldValue.MediaTypeRange = parsedNewValue.MediaTypeRange;
+
+            // Assert
+            Assert.Equal(expectedRawValue, parsedOldValue.RawValue);
         }
 
         private static void ValidateParametes(IDictionary<string, string> expectedParameters,

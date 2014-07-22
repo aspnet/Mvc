@@ -11,8 +11,7 @@
   "configurations": {
     "net45": { 
       "dependencies": {
-        "Shouldly": "1.1.1.1",
-        "System.Runtime":  ""
+        "System.Runtime": "4.0.20.0"
       }
     }
   }
