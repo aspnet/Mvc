@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var formatterContext = new OutputFormatterContext()
             {
-                ObjectResult = new ObjectResult("someValue"),
+                Object = "someValue",
                 ActionContext = actionContext,
                 DeclaredType = typeof(string)
             };

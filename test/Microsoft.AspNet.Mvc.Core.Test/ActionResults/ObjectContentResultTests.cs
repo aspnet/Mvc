@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             result.ContentTypes = contentTypes.Select(contentType => MediaTypeHeaderValue.Parse(contentType)).ToList();
             result.Formatters = new List<OutputFormatter>
                                             {
-                                                new TestOutputFormatter(),
+                                                new CannotWriteFormatter(),
                                                 new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
                                             };
 
@@ -146,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                               .ToList();
             result.Formatters = new List<OutputFormatter>
                                     {
-                                        new TestOutputFormatter(),
+                                        new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
                                     };
             // Act
@@ -180,7 +180,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                         {
                                             mockFormatter.Object,
                                             new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
-                                            new TestOutputFormatter()
+                                            new CannotWriteFormatter()
                                         };
             // Act
             await result.ExecuteResultAsync(actionContext);
@@ -208,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Set more than one formatters. The test output formatter throws on write.
             result.Formatters = new List<OutputFormatter>
                                     {
-                                        new TestOutputFormatter(),
+                                        new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
                                     };
 
@@ -239,7 +239,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Set more than one formatters. The test output formatter throws on write.
             result.Formatters = new List<OutputFormatter>
                                     {
-                                        new TestOutputFormatter(),
+                                        new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
                                     };
             // Act
@@ -248,6 +248,65 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Assert
             // Asserts that content type is not text/custom. 
             httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+        }
+
+        [Fact]
+        public async Task 
+            ObjectResult_NoContentTypeSetWithNoAcceptHeadersAndNoRequestContentType_PicksFirstFormatterWhichCanWrite()
+        {
+            // Arrange
+            var stream = new MemoryStream();
+            var expectedContentType = "application/json;charset=utf-8";
+            var httpResponse = new Mock<HttpResponse>();
+            httpResponse.SetupProperty<string>(o => o.ContentType);
+            httpResponse.SetupGet(r => r.Body).Returns(stream);
+
+            var actionContext = CreateMockActionContext(httpResponse.Object,
+                                                        requestAcceptHeader: null,
+                                                        requestContentType: null);
+            var input = "testInput";
+            var result = new ObjectResult(input);
+
+            // Set more than one formatters. The test output formatter throws on write.
+            result.Formatters = new List<OutputFormatter>
+                                    {
+                                        new CannotWriteFormatter(),
+                                        new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
+                                    };
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            // Asserts that content type is not text/custom. 
+            httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+        }
+
+        [Fact]
+        public async Task ObjectResult_NoFormatterFound_Returns406()
+        {
+            // Arrange
+            var stream = new MemoryStream();
+            var httpResponse = new Mock<HttpResponse>();
+            httpResponse.SetupProperty<string>(o => o.ContentType);
+            httpResponse.SetupGet(r => r.Body).Returns(stream);
+
+            var actionContext = CreateMockActionContext(httpResponse.Object,
+                                                        requestAcceptHeader: null,
+                                                        requestContentType: null);
+            var input = "testInput";
+            var result = new ObjectResult(input);
+
+            // Set more than one formatters. The test output formatter throws on write.
+            result.Formatters = new List<OutputFormatter>
+                                    {
+                                        new CannotWriteFormatter(),
+                                    };
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            // Asserts that content type is not text/custom. 
+            httpResponse.VerifySet(r => r.StatusCode = 406);
         }
 
         // TODO: Disabling since this scenario is no longer dealt with in object result. 
@@ -300,7 +359,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var formatterContext = new OutputFormatterContext()
                                     {
                                         ActionContext = tempActionContext,
-                                        ObjectResult = new ObjectResult(nonStringValue),
+                                        Object = nonStringValue,
                                         DeclaredType = nonStringValue.GetType()
                                     };
             var formatter = new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true);
@@ -352,9 +411,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             return httpResponse; 
         }
 
-        private static Mock<TestOutputFormatter> GetMockFormatter()
+        private static Mock<CannotWriteFormatter> GetMockFormatter()
         {
-            var mockFormatter = new Mock<TestOutputFormatter>();
+            var mockFormatter = new Mock<CannotWriteFormatter>();
             mockFormatter.Setup(o => o.CanWriteResult(It.IsAny<OutputFormatterContext>(),
                                                       It.IsAny<MediaTypeHeaderValue>()))
                          .Returns(true);
@@ -378,11 +437,29 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             return serviceCollection.BuildServiceProvider();
         }
 
-        public class TestOutputFormatter : OutputFormatter
+        private class UnsupportedOutputFormatter : OutputFormatter
         {
-            public TestOutputFormatter()
+            public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
+            {
+                return false;
+            }
+
+            public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class CannotWriteFormatter : OutputFormatter
+        {
+            public CannotWriteFormatter()
             {
                 SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/custom"));
+            }
+
+            public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
+            {
+                return false;
             }
 
             public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)

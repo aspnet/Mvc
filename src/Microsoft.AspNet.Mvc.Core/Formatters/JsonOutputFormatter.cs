@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
                 using (var jsonWriter = CreateJsonWriter(writer))
                 {
                     var jsonSerializer = CreateJsonSerializer();
-                    jsonSerializer.Serialize(jsonWriter, context.ObjectResult.Value);
+                    jsonSerializer.Serialize(jsonWriter, context.Object);
 
                     // We're explicitly calling flush here to simplify the debugging experience because the
                     // underlying TextWriter might be long-lived. If this method ends up being called repeatedly

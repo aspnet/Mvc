@@ -87,7 +87,6 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             Assert.Equal(mediaSubType, parsedValue.MediaSubType);
             Assert.Equal(charset, parsedValue.Charset);
             ValidateParametes(parameters, parsedValue.Parameters);
-            ValidateParametes(acceptParameters, parsedValue.AcceptParameters);
         }
 
         private static void ValidateParametes(IDictionary<string, string> expectedParameters,

@@ -25,6 +25,8 @@ namespace Microsoft.AspNet.Mvc
         public ObjectResult(object value)
         {
             Value = value;
+            Formatters = new List<OutputFormatter>();
+            ContentTypes = new List<MediaTypeHeaderValue>();
         }
 
         public override async Task ExecuteResultAsync(ActionContext context)
@@ -34,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 DeclaredType = DeclaredType,
                 ActionContext = context,
-                ObjectResult = this, 
+                Object = Value, 
             };
 
             var selectedFormatter = SelectFormatter(formatterContext, formatters);
@@ -74,11 +76,10 @@ namespace Microsoft.AspNet.Mvc
                     // No formatter found based on accept headers, fall back on request contentType.
                     var incomingContentType = 
                         MediaTypeHeaderValue.Parse(formatterContext.ActionContext.HttpContext.Request.ContentType);
-                    if(incomingContentType == null)
-                    {
-                        return null;
-                    }
 
+                    // In case the incomingContentType is null (as can be the case with get requests), 
+                    // we need to pick the first formatter which 
+                    // can support writing this type. 
                     var contentTypes = new [] { incomingContentType };
                     selectedFormatter = SelectFormatterUsingAnyAcceptableContentType(
                                                                                 formatterContext,

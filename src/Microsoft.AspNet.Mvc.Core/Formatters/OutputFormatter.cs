@@ -116,10 +116,21 @@ namespace Microsoft.AspNet.Mvc
         /// False otherwise.</returns>
         public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
-            // Since supportedMedia Type is going to be more specific check if supportedMediaType is a subset
-            // of the content type which is typically what we get on acceptHeader.
-            var mediaType = SupportedMediaTypes
-                                .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
+            MediaTypeHeaderValue mediaType = null;
+            if (contentType == null)
+            {
+                // If the desired content type is set to null, the current formatter is free to choose the 
+                // response media type. 
+                mediaType = SupportedMediaTypes.FirstOrDefault();
+            }
+            else
+            {
+                // Since supportedMedia Type is going to be more specific check if supportedMediaType is a subset
+                // of the content type which is typically what we get on acceptHeader.
+                mediaType = SupportedMediaTypes
+                                  .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
+            }
+
             if (mediaType != null)
             {
                 context.SelectedContentType = mediaType;

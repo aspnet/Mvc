@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class OutputFormatterContext
     {
-        public ObjectResult ObjectResult { get; set; }
+        public object Object { get; set; }
 
         public Type DeclaredType { get; set; }
 
