@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                     "*",
                     null,
                     MediaTypeHeaderValueRange.AllMediaRange,
-                    null,
+                    new Dictionary<string, string>(),
                     FormattingUtilities.Match,
                     "*/*"
                 };
@@ -110,7 +110,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             // Arrange
             var parsedOldValue = MediaTypeHeaderValue.Parse(mediaTypeValue);
             var parsedNewValue = MediaTypeHeaderValue.Parse(expectedRawValue);
-            
+
             // Act
             parsedOldValue.Charset = parsedNewValue.Charset;
             parsedOldValue.Parameters = parsedNewValue.Parameters;
@@ -125,16 +125,10 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
         private static void ValidateParametes(IDictionary<string, string> expectedParameters,
                                               IDictionary<string, string> actualParameters)
         {
-            if (expectedParameters == null)
+            Assert.Equal(expectedParameters.Count, actualParameters.Count);
+            foreach (var key in expectedParameters.Keys)
             {
-                Assert.Null(expectedParameters);
-            }
-            else
-            {
-                foreach (var key in expectedParameters.Keys)
-                {
-                    Assert.Equal(expectedParameters[key], actualParameters[key]);
-                }
+                Assert.Equal(expectedParameters[key], actualParameters[key]);
             }
         }
     }
