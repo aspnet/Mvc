@@ -4,17 +4,10 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
-using InlineConstraints;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
-using Xunit;
-using Microsoft.Framework.ConfigurationModel;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {

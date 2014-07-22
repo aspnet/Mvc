@@ -32,9 +32,12 @@
     <Content Include="Views\ViewEngine\ViewWithoutLayout.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\ViewEngine\_NestedLayout.cshtml" />
+    <Content Include="Views\ViewStart\Index.cshtml" />
+    <Content Include="Views\ViewStart\_ViewStart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\ViewEngineController.cs" />
+    <Compile Include="Controllers\ViewStartController.cs" />
     <Compile Include="Models\Person.cs" />
     <Compile Include="Models\Address.cs" />
     <Compile Include="Startup.cs" />
