@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Logging;
+using Microsoft.AspNet.Mvc.DecisionTree;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
 using Microsoft.Framework.Logging;
@@ -22,6 +24,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         private readonly AttributeRouteLinkGenerationEntry[] _linkGenerationEntries;
         private ILogger _logger;
         private ILogger _constraintLogger;
+        private readonly LinkGenerationDecisionTree _tree;
 
         /// <summary>
         /// Creates a new <see cref="AttributeRoute"/>.
@@ -29,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         /// <param name="next">The next router. Invoked when a route entry matches.</param>
         /// <param name="entries">The set of route entries.</param>
         public AttributeRoute(
-            [NotNull] IRouter next, 
+            [NotNull] IRouter next,
             [NotNull] IEnumerable<AttributeRouteMatchingEntry> matchingEntries,
             [NotNull] IEnumerable<AttributeRouteLinkGenerationEntry> linkGenerationEntries,
             [NotNull] ILoggerFactory factory)
@@ -56,6 +59,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             _logger = factory.Create<AttributeRoute>();
             _constraintLogger = factory.Create(typeof(RouteConstraintMatcher).FullName);
+            _tree = new LinkGenerationDecisionTree(linkGenerationEntries);
         }
 
         /// <inheritdoc />
@@ -92,26 +96,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             // and controller.
             //
             // Building a proper data structure to optimize this is tracked by #741
-            foreach (var entry in _linkGenerationEntries)
+            var matches = _tree.Select(context);
+            foreach (var entry in matches)
             {
-                var isMatch = true;
-                foreach (var requiredLinkValue in entry.RequiredLinkValues)
+                var path = GenerateLink(context, entry);
+                if (path != null)
                 {
-                    if (!ContextHasSameValue(context, requiredLinkValue.Key, requiredLinkValue.Value))
-                    {
-                        isMatch = false;
-                        break;
-                    }
-                }
-                
-                if (isMatch)
-                {
-                    var path = GenerateLink(context, entry);
-                    if (path != null)
-                    {
-                        context.IsBound = true;
-                        return path;
-                    }
+                    context.IsBound = true;
+                    return path;
                 }
             }
 
@@ -216,6 +208,123 @@ namespace Microsoft.AspNet.Mvc.Routing
             }
 
             return TemplateBinder.RoutePartsEqual(providedValue, value);
+        }
+
+        private class LinkGenerationDecisionTree
+        {
+            private readonly DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> _root;
+
+            public LinkGenerationDecisionTree(IReadOnlyList<AttributeRouteLinkGenerationEntry> entries)
+            {
+                var fullTree = DecisionTreeBuilder<AttributeRouteLinkGenerationEntry, object>.GenerateTree(entries, new AttributeRouteLinkGenerationEntryClassifier());
+                _root = DecisionTreeBuilder<AttributeRouteLinkGenerationEntry, object>.Optimize(fullTree, new HashSet<AttributeRouteLinkGenerationEntry>());
+            }
+
+            public List<AttributeRouteLinkGenerationEntry> Select(VirtualPathContext context)
+            {
+                var results = new List<AttributeRouteLinkGenerationEntry>();
+                Walk(results, context, _root);
+                results.Sort(new AttributeRouteLinkGenerationEntryComparer());
+                return results;
+            }
+
+            private void Walk(List<AttributeRouteLinkGenerationEntry> results, VirtualPathContext context, DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> node)
+            {
+                for (int i = 0; i < node.Matches.Count; i++)
+                {
+                    results.Add(node.Matches[i].Item);
+                }
+
+                for (int i = 0; i < node.Criteria.Count; i++)
+                {
+                    var criterion = node.Criteria[i];
+                    var key = criterion.Key;
+
+                    object value;
+                    if (context.Values.TryGetValue(key, out value))
+                    {
+                        DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> branch;
+                        if (criterion.Branches.TryGetValue(value ?? string.Empty, out branch))
+                        {
+                            Walk(results, context, branch);
+                        }
+                    }
+                    else
+                    {
+                        // If a value wasn't explicitly supplied, match BOTH the ambient value and the empty value
+                        // if an ambient value was supplied.
+                        DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> branch;
+                        if (context.AmbientValues.TryGetValue(key, out value) &&
+                            !criterion.Branches.Comparer.Equals(value, string.Empty))
+                        {
+                            if (criterion.Branches.TryGetValue(value, out branch))
+                            {
+                                Walk(results, context, branch);
+                            }
+                        }
+
+                        if (criterion.Branches.TryGetValue(string.Empty, out branch))
+                        {
+                            Walk(results, context, branch);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        private class AttributeRouteLinkGenerationEntryClassifier : IClassifier<AttributeRouteLinkGenerationEntry, object>
+        {
+            public AttributeRouteLinkGenerationEntryClassifier()
+            {
+                ValueComparer = new RouteValueEqualityComparer();
+            }
+
+            public IEqualityComparer<object> ValueComparer { get; private set; }
+
+            public IDictionary<string, object> GetCriteria(AttributeRouteLinkGenerationEntry item)
+            {
+                return item.RequiredLinkValues.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        private class RouteValueEqualityComparer : IEqualityComparer<object>
+        {
+            public new bool Equals(object x, object y)
+            {
+                var stringX = x as string ?? Convert.ToString(x, CultureInfo.InvariantCulture);
+                var stringY = y as string ?? Convert.ToString(y, CultureInfo.InvariantCulture);
+
+                if (string.IsNullOrEmpty(stringX) && string.IsNullOrEmpty(stringY))
+                {
+                    return true;
+                }
+                else
+                {
+                    return string.Equals(stringX, stringY, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+
+            public int GetHashCode(object obj)
+            {
+                var stringObj = obj as string ?? Convert.ToString(obj, CultureInfo.InvariantCulture);
+                if (string.IsNullOrEmpty(stringObj))
+                {
+                    return StringComparer.OrdinalIgnoreCase.GetHashCode(string.Empty);
+                }
+                else
+                {
+                    return StringComparer.OrdinalIgnoreCase.GetHashCode(stringObj);
+                }
+            }
+        }
+
+        private class AttributeRouteLinkGenerationEntryComparer : IComparer<AttributeRouteLinkGenerationEntry>
+        {
+            public int Compare(AttributeRouteLinkGenerationEntry x, AttributeRouteLinkGenerationEntry y)
+            {
+                return x.Precedence.CompareTo(y.Precedence);
+            }
         }
     }
 }
