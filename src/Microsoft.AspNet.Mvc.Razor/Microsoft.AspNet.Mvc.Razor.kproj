@@ -30,6 +30,7 @@
     <Compile Include="Compilation\RoslynCompilationService.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="IRazorPage.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RazorTextWriter.cs" />
     <Compile Include="VirtualPathRazorPageFactory.cs" />
     <Compile Include="HelperResult.cs" />
