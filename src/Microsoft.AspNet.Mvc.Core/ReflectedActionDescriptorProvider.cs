@@ -213,20 +213,11 @@ namespace Microsoft.AspNet.Mvc
                             actionDescriptor.RouteValueDefaults.Add(constraint.RouteKey, constraint.RouteValue);
                         }
 
-
-                        // Perform token replacement of route values we know about.
-                        foreach (var kvp in actionDescriptor.RouteValueDefaults)
-                        {
-                            // There is no-case-insensitive string.Replace
-                            var replacementToken = Regex.Escape("[" + kvp.Key + "]");
-                            var replacementValue = Regex.Escape(Convert.ToString(kvp.Value));
-
-                            templateText = Regex.Replace(
-                                templateText,
-                                replacementToken,
-                                replacementValue,
-                                RegexOptions.IgnoreCase);
-                        }
+                        // Replaces tokens like [controller]/[action] in the route template with the actual values
+                        // for this action.
+                        templateText = AttributeRouteTemplate.ReplaceTokens(
+                            templateText, 
+                            actionDescriptor.RouteValueDefaults);
 
                         actionDescriptor.AttributeRouteTemplate = templateText;
 

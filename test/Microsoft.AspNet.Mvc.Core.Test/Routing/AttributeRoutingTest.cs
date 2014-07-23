@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 Environment.NewLine +
                 "For action: 'DisallowedParameter'" + Environment.NewLine +
                 "Error: The attribute route '{foo}/{action}' cannot contain a parameter named '{foo}'. " + 
-                "Use '[foo]` in the route template to insert the value 'bleh'.";
+                "Use '[foo]' in the route template to insert the value 'bleh'.";
 
             var router = CreateRouter();
             var services = CreateServices(action);
@@ -76,11 +76,11 @@ namespace Microsoft.AspNet.Mvc.Routing
                 Environment.NewLine +
                 "For action: 'DisallowedParameter1'" + Environment.NewLine +
                 "Error: The attribute route '{foo}/{action}' cannot contain a parameter named '{foo}'. " +
-                "Use '[foo]` in the route template to insert the value 'bleh'." + Environment.NewLine +
+                "Use '[foo]' in the route template to insert the value 'bleh'." + Environment.NewLine +
                 Environment.NewLine +
                 "For action: 'DisallowedParameter2'" + Environment.NewLine +
                 "Error: The attribute route 'cool/{action}' cannot contain a parameter named '{action}'. " +
-                "Use '[action]` in the route template to insert the value 'hey'.";
+                "Use '[action]' in the route template to insert the value 'hey'.";
 
             var router = CreateRouter();
             var services = CreateServices(action1, action2);
@@ -114,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 Environment.NewLine +
                 "For action: 'Microsoft.AspNet.Mvc.Routing.AttributeRoutingTest+HomeController.Index'" + Environment.NewLine +
                 "Error: The attribute route '{controller}/{action}' cannot contain a parameter named '{controller}'. " +
-                "Use '[controller]` in the route template to insert the value 'Home'.";
+                "Use '[controller]' in the route template to insert the value 'Home'.";
 
             var router = CreateRouter();
             var services = CreateServices(action);

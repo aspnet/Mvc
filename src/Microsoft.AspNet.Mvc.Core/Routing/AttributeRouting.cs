@@ -151,7 +151,11 @@ namespace Microsoft.AspNet.Mvc.Routing
                 constraint.KeyHandling != RouteKeyHandling.RequireKey ||
                 constraint.RouteValue == null)
             {
-                // This is unlikely to happen by default, but could happen through extensibility. Just ignore it.
+                // This can happen if an ActionDescriptor has a route template, but doesn't have one of our
+                // special route group constraints. This is a good indication that the user is using a 3rd party
+                // routing system, or has customized their ADs in a way that we can no longer understand them.
+                //
+                // We just treat this case as an 'opt-out' of our attribute routing system.
                 return null;
             }
 

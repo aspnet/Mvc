@@ -240,17 +240,20 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void AttributeRouting_TokenReplacement_IgnoresUnknownToken()
+        public void AttributeRouting_TokenReplacement_ThrowsOnTokeReplacementError()
         {
             // Arrange
             var provider = GetProvider(typeof(UnknownTokenController).GetTypeInfo());
 
+            var message = "While processing template 'stub/[action]/[unknown]', " +
+                "a replacement value for the token 'unknown' could not be found. " +
+                "Available tokens: 'controller, action'.";
+
             // Act
-            var actions = provider.GetDescriptors();
+            var ex = Assert.Throws<InvalidOperationException>(() => { provider.GetDescriptors(); });
 
             // Assert
-            var action = Assert.Single(actions);
-            Assert.Equal("stub/Unknown/[unknown]", action.AttributeRouteTemplate);
+            Assert.Equal(message, ex.Message);
         }
 
         [Fact]
