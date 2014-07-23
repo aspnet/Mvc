@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #if NET45
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
@@ -32,6 +33,16 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(2, objectResult.ContentTypes.Count);
             ValidateMediaType(mediaType1, objectResult.ContentTypes[0]);
             ValidateMediaType(mediaType2, objectResult.ContentTypes[1]);
+        }
+
+        [Fact]
+        public void ProducesContentAttribute_InvalidContentType_Throws()
+        {
+            // Act & Assert
+            var ex = Assert.Throws<ArgumentException>(
+                       () => new ProducesContentAttribute("invalid"));
+            Assert.Equal("Invalid Argument. Content type 'invalid' could not be parsed.",
+                         ex.Message);
         }
 
         private static void ValidateMediaType(MediaTypeHeaderValue expectedMediaType, MediaTypeHeaderValue actualMediaType)

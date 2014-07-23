@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class ProducesContentAttribute : ResultFilterAttribute
     {
         private List<MediaTypeHeaderValue> _contentTypes;
@@ -35,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
                 var contentType = MediaTypeHeaderValue.Parse(item);
                 if(contentType == null)
                 {
-                    throw new ArgumentException("Invalid Argument. content type {0} could not be parsed.");
+                    throw new ArgumentException(Resources.FormatProducesContentArgumentCannotBeParsed(item));
                 }
 
                 contentTypes.Add(contentType);

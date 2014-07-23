@@ -92,7 +92,7 @@ namespace MvcSample.Web
         }
 
         [ProducesContent("application/json", "application/custom", "text/json")]
-        public object ReturnUser()
+        public User ReturnUser()
         {
             return CreateUser();
         }

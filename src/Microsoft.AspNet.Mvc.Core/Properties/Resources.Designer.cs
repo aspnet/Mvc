@@ -1083,147 +1083,19 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The following errors occurred with attribute routing information:{0}{0}{1}
+        /// Invalid Argument. Content type '{0}' could not be parsed.
         /// </summary>
-        internal static string AttributeRoute_AggregateErrorMessage
+        internal static string ProducesContentArgumentCannotBeParsed
         {
-            get { return GetString("AttributeRoute_AggregateErrorMessage"); }
+            get { return GetString("ProducesContentArgumentCannotBeParsed"); }
         }
 
         /// <summary>
-        /// The following errors occurred with attribute routing information:{0}{0}{1}
+        /// Invalid Argument. Content type '{0}' could not be parsed.
         /// </summary>
-        internal static string FormatAttributeRoute_AggregateErrorMessage(object p0, object p1)
+        internal static string FormatProducesContentArgumentCannotBeParsed(object p0)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_AggregateErrorMessage"), p0, p1);
-        }
-
-        /// <summary>
-        /// The attribute route '{0}' cannot contain a parameter named '{{{1}}}'. Use '[{1}]' in the route template to insert the value '{2}'.
-        /// </summary>
-        internal static string AttributeRoute_CannotContainParameter
-        {
-            get { return GetString("AttributeRoute_CannotContainParameter"); }
-        }
-
-        /// <summary>
-        /// The attribute route '{0}' cannot contain a parameter named '{{{1}}}'. Use '[{1}]' in the route template to insert the value '{2}'.
-        /// </summary>
-        internal static string FormatAttributeRoute_CannotContainParameter(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_CannotContainParameter"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// For action: '{0}'{1}Error: {2}
-        /// </summary>
-        internal static string AttributeRoute_IndividualErrorMessage
-        {
-            get { return GetString("AttributeRoute_IndividualErrorMessage"); }
-        }
-
-        /// <summary>
-        /// For action: '{0}'{1}Error: {2}
-        /// </summary>
-        internal static string FormatAttributeRoute_IndividualErrorMessage(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_IndividualErrorMessage"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// An empty replacement token ('[]') is not allowed.
-        /// </summary>
-        internal static string AttributeRoute_TokenReplacement_EmptyTokenNotAllowed
-        {
-            get { return GetString("AttributeRoute_TokenReplacement_EmptyTokenNotAllowed"); }
-        }
-
-        /// <summary>
-        /// An empty replacement token ('[]') is not allowed.
-        /// </summary>
-        internal static string FormatAttributeRoute_TokenReplacement_EmptyTokenNotAllowed()
-        {
-            return GetString("AttributeRoute_TokenReplacement_EmptyTokenNotAllowed");
-        }
-
-        /// <summary>
-        /// Token delimiters ('[', ']') are imbalanced.
-        /// </summary>
-        internal static string AttributeRoute_TokenReplacement_ImbalancedSquareBrackets
-        {
-            get { return GetString("AttributeRoute_TokenReplacement_ImbalancedSquareBrackets"); }
-        }
-
-        /// <summary>
-        /// Token delimiters ('[', ']') are imbalanced.
-        /// </summary>
-        internal static string FormatAttributeRoute_TokenReplacement_ImbalancedSquareBrackets()
-        {
-            return GetString("AttributeRoute_TokenReplacement_ImbalancedSquareBrackets");
-        }
-
-        /// <summary>
-        /// The route template '{0}' has invalid syntax. {1}
-        /// </summary>
-        internal static string AttributeRoute_TokenReplacement_InvalidSyntax
-        {
-            get { return GetString("AttributeRoute_TokenReplacement_InvalidSyntax"); }
-        }
-
-        /// <summary>
-        /// The route template '{0}' has invalid syntax. {1}
-        /// </summary>
-        internal static string FormatAttributeRoute_TokenReplacement_InvalidSyntax(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_TokenReplacement_InvalidSyntax"), p0, p1);
-        }
-
-        /// <summary>
-        /// While processing template '{0}', a replacement value for the token '{1}' could not be found. Available tokens: '{2}'.
-        /// </summary>
-        internal static string AttributeRoute_TokenReplacement_ReplacementValueNotFound
-        {
-            get { return GetString("AttributeRoute_TokenReplacement_ReplacementValueNotFound"); }
-        }
-
-        /// <summary>
-        /// While processing template '{0}', a replacement value for the token '{1}' could not be found. Available tokens: '{2}'.
-        /// </summary>
-        internal static string FormatAttributeRoute_TokenReplacement_ReplacementValueNotFound(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_TokenReplacement_ReplacementValueNotFound"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// A replacement token is not closed.
-        /// </summary>
-        internal static string AttributeRoute_TokenReplacement_UnclosedToken
-        {
-            get { return GetString("AttributeRoute_TokenReplacement_UnclosedToken"); }
-        }
-
-        /// <summary>
-        /// A replacement token is not closed.
-        /// </summary>
-        internal static string FormatAttributeRoute_TokenReplacement_UnclosedToken()
-        {
-            return GetString("AttributeRoute_TokenReplacement_UnclosedToken");
-        }
-
-        /// <summary>
-        /// An unescaped '[' token is not allowed inside of a replacement token. Use '[[' to escape.
-        /// </summary>
-        internal static string AttributeRoute_TokenReplacement_UnescapedBraceInToken
-        {
-            get { return GetString("AttributeRoute_TokenReplacement_UnescapedBraceInToken"); }
-        }
-
-        /// <summary>
-        /// An unescaped '[' token is not allowed inside of a replacement token. Use '[[' to escape.
-        /// </summary>
-        internal static string FormatAttributeRoute_TokenReplacement_UnescapedBraceInToken()
-        {
-            return GetString("AttributeRoute_TokenReplacement_UnescapedBraceInToken");
+            return string.Format(CultureInfo.CurrentCulture, GetString("ProducesContentArgumentCannotBeParsed"), p0);
         }
 
         private static string GetString(string name, params string[] formatterNames)
