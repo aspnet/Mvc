@@ -17,10 +17,17 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public abstract class OutputFormatter : IOutputFormatter
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the mutable collection of character encodings supported by
+        /// this <see cref="OutputFormatter"/> instance. The encodings are
+        /// used when writing the data.
+        /// </summary>
         public List<Encoding> SupportedEncodings { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the mutable collection of <see cref="MediaTypeHeaderValue"/> elements supported by
+        /// this <see cref="OutputFormatter"/> instance.
+        /// </summary>
         public List<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
 
         /// <summary>
@@ -128,7 +135,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Writes the response body.
         /// </summary>
-        /// <param name="context">The formatter context assoicated with the call.</param>
+        /// <param name="context">The formatter context associated with the call.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns></returns>
         public abstract Task WriteResponseBodyAsync(OutputFormatterContext context,
