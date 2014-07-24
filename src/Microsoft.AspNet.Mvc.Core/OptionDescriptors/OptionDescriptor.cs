@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNet.Mvc.Core;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     /// <summary>
     /// Encapsulates information that describes a <typeparamref name="TOption"/> option on <see cref="MvcOptions"/> .

@@ -8,7 +8,7 @@ using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     public class DefaultValueProviderFactoryProviderTest
     {

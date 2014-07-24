@@ -4,10 +4,11 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc
 {
     public class ModelBinderDescriptorExtensionTest
     {

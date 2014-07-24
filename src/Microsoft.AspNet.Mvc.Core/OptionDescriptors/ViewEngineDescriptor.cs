@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNet.Mvc.Rendering;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     /// <summary>
     /// Encapsulates information that describes an <see cref="IViewEngine"/>.

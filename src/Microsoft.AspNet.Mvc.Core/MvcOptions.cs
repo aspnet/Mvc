@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.Descriptors;
+using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
 
 namespace Microsoft.AspNet.Mvc

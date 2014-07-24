@@ -4,10 +4,11 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc
 {
     public class ValueProviderFactoryDescriptorExtensionsTest
     {
@@ -24,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.Descriptors
             };
 
             // Act & Assert
-            Assert.Throws<ArgumentOutOfRangeException>("index", 
+            Assert.Throws<ArgumentOutOfRangeException>("index",
                                                        () => collection.Insert(index, typeof(IValueProviderFactory)));
         }
 

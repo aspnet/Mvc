@@ -2,36 +2,35 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Testing;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
-    public class ValueProviderFactoryDescriptorTest
+    public class ViewEngineDescriptorTest
     {
         [Fact]
         public void ConstructorThrows_IfTypeIsNotViewEngine()
         {
             // Arrange
-            var viewEngineType = typeof(IValueProviderFactory).FullName;
+            var viewEngineType = typeof(IViewEngine).FullName;
             var type = typeof(string);
             var expected = string.Format("The type '{0}' must derive from '{1}'.",
                                          type.FullName, viewEngineType);
 
             // Act & Assert
-            ExceptionAssert.ThrowsArgument(() => new ValueProviderFactoryDescriptor(type), "type", expected);
+            ExceptionAssert.ThrowsArgument(() => new ViewEngineDescriptor(type), "type", expected);
         }
 
         [Fact]
         public void ConstructorSetsViewEngineType()
         {
             // Arrange
-            var type = typeof(TestValueProviderFactory);
+            var type = typeof(TestViewEngine);
 
             // Act
-            var descriptor = new ValueProviderFactoryDescriptor(type);
+            var descriptor = new ViewEngineDescriptor(type);
 
             // Assert
             Assert.Equal(type, descriptor.OptionType);
@@ -42,19 +41,24 @@ namespace Microsoft.AspNet.Mvc.Descriptors
         public void ConstructorSetsViewEngineAndViewEngineType()
         {
             // Arrange
-            var viewEngine = new TestValueProviderFactory();
+            var viewEngine = new TestViewEngine();
 
             // Act
-            var descriptor = new ValueProviderFactoryDescriptor(viewEngine);
+            var descriptor = new ViewEngineDescriptor(viewEngine);
 
             // Assert
             Assert.Same(viewEngine, descriptor.Instance);
             Assert.Equal(viewEngine.GetType(), descriptor.OptionType);
         }
 
-        private class TestValueProviderFactory : IValueProviderFactory
+        private class TestViewEngine : IViewEngine
         {
-            public IValueProvider GetValueProvider(ValueProviderFactoryContext context)
+            public ViewEngineResult FindPartialView(ActionContext context, string partialViewName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ViewEngineResult FindView(ActionContext context, string viewName)
             {
                 throw new NotImplementedException();
             }

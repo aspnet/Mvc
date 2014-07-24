@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.Rendering;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc
 {
     public class ViewEngineDescriptorExtensionTest
     {
@@ -69,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.Descriptors
                 throw new NotImplementedException();
             }
 
-            public ViewEngineResult FindView(IDictionary<string, object> context, string viewName)
+            public ViewEngineResult FindView(ActionContext context, string viewName)
             {
                 throw new NotImplementedException();
             }

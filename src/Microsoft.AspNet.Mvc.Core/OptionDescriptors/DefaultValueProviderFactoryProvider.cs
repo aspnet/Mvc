@@ -7,10 +7,11 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     /// <inheritdoc />
-    public class DefaultValueProviderFactoryProvider : OptionProviderBase<IValueProviderFactory>, IValueProviderFactoryProvider
+    public class DefaultValueProviderFactoryProvider : 
+        OptionDescriptorBasedProvider<IValueProviderFactory>, IValueProviderFactoryProvider
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultValueProviderFactoryProvider"/> class.

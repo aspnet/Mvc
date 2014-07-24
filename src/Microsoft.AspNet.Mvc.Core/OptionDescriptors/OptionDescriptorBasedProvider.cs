@@ -1,23 +1,27 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.Framework.DependencyInjection;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     /// <summary>
     /// Provides a default implementation for instantiating options from a sequence of 
     /// <see cref="OptionDescriptor{TOption}"/>.
     /// </summary>
     /// <typeparam name="TOption">The type of the option.</typeparam>
-    public abstract class OptionProviderBase<TOption>
+    public abstract class OptionDescriptorBasedProvider<TOption>
     {
         private readonly IEnumerable<OptionDescriptor<TOption>> _optionDescriptors;
         private readonly ITypeActivator _typeActivator;
         private readonly IServiceProvider _serviceProvider;
 
-        public OptionProviderBase([NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
-                                  [NotNull] ITypeActivator typeActivator,
-                                  [NotNull] IServiceProvider serviceProvider)
+        public OptionDescriptorBasedProvider(
+            [NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
+            [NotNull] ITypeActivator typeActivator,
+            [NotNull] IServiceProvider serviceProvider)
         {
             _optionDescriptors = optionDescriptors;
             _typeActivator = typeActivator;

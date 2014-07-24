@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Descriptors
+namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     public class DefaultViewEngineProviderTest
     {
@@ -68,4 +66,3 @@ namespace Microsoft.AspNet.Mvc.Descriptors
         }
     }
 }
-#endif
