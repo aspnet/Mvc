@@ -403,25 +403,13 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Creates an <see cref="HttpStatusCodeResult"/> with a 404 HTTP status code.
+        /// Creates an <see cref="HttpNotFoundResult"/> that produces a Not Found (404) response.
         /// </summary>
-        /// <returns>The created <see cref="HttpStatusCodeResult"/> for the response.</returns>
+        /// <returns>The created <see cref="HttpNotFoundResult"/> for the response.</returns>
         [NonAction]
         public virtual HttpNotFoundResult HttpNotFound()
         {
             return new HttpNotFoundResult();
-        }
-
-        /// <summary>
-        /// Creates an <see cref="HttpStatusCodeResult"/> with a 404 HTTP status code and the
-        /// specified <paramref name="statusDescription"/>.
-        /// </summary>
-        /// <param name="statusDescription">The status description of the response.</param>
-        /// <returns>The created <see cref="HttpStatusCodeResult"/> for the response.</returns>
-        [NonAction]
-        public virtual HttpNotFoundResult HttpNotFound([NotNull] string statusDescription)
-        {
-            return new HttpNotFoundResult(statusDescription);
         }
 
         /// <summary>

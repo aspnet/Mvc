@@ -368,22 +368,6 @@ namespace Microsoft.AspNet.Mvc.Test
             // Assert
             Assert.IsType<HttpNotFoundResult>(result);
             Assert.Equal(404, result.StatusCode);
-            Assert.Null(result.StatusDescription);
-        }
-
-        [Fact]
-        public void HttpNotFound_WithStatusDescription_SetsStatusDescription()
-        {
-            // Arrange
-            var controller = new Controller();
-
-            // Act
-            var result = controller.HttpNotFound("Not found");
-
-            // Assert
-            Assert.IsType<HttpNotFoundResult>(result);
-            Assert.Equal(404, result.StatusCode);
-            Assert.Equal("Not found", result.StatusDescription);
         }
 
         [Theory]

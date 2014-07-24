@@ -31,7 +31,7 @@ namespace MvcSample.Web
 
         public ActionResult NotFound()
         {
-            return HttpNotFound("Couldn't find the page");
+            return HttpNotFound();
         }
 
         /// <summary>

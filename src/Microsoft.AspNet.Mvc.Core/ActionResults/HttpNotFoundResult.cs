@@ -4,25 +4,15 @@
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Represents an action result that when executed will produce a 404 response.
+    /// Represents an <see cref="HttpStatusCodeResult"/> that when
+    /// executed will produce a Not Found (404) response.
     /// </summary>
     public class HttpNotFoundResult : HttpStatusCodeResult
     {
         /// <summary>
         /// Creates a new <see cref="HttpNotFoundResult"/> instance.
         /// </summary>
-	    public HttpNotFoundResult() :this(statusDescription: null)
-	    {
-	    }
-
-        /// <summary>
-        /// Creates a new <see cref="HttpNotFoundResult"/> instance
-        /// with the given <paramref name="statusDescription"/> message.
-        /// </summary>
-        /// <param name="statusDescription">
-        /// The error message that will be returned in the body of the response.
-        /// </param>
-        public HttpNotFoundResult(string statusDescription) : base(404, statusDescription)
+        public HttpNotFoundResult() : base(404)
         {
         }
     }

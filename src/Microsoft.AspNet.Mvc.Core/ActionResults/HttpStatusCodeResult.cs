@@ -7,8 +7,8 @@ using Microsoft.AspNet.Http;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Represents an action result that when executed will produce an HTTP response
-    /// with the given response status code and description.
+    /// Represents an <see cref="ActionResult"/> that when executed will
+    /// produce an HTTP response with the given response status code.
     /// </summary>
     public class HttpStatusCodeResult : ActionResult
     {
@@ -23,38 +23,14 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Initializes a new instance of the<see cref="HttpStatusCodeResult"/> class
-        /// with the given <paramref name="statusCode"/> and <paramref name="statusDescription"/>.
-        /// </summary>
-        /// <param name="statusCode">The status code of the response.</param>
-        /// <param name="statusDescription">The status description of the response.</param>
-        public HttpStatusCodeResult(int statusCode, string statusDescription)
-        {
-            StatusCode = statusCode;
-            StatusDescription = statusDescription;
-        }
-
-        /// <summary>
         /// Gets the HTTP status code.
         /// </summary>
         public int StatusCode { get; private set; }
 
-        /// <summary>
-        /// Gets the HTTP status description.
-        /// </summary>
-        public string StatusDescription { get; private set; }
-
         /// <inheritdoc />
-        public async override Task ExecuteResultAsync([NotNull] ActionContext context)
+        public override void ExecuteResult([NotNull] ActionContext context)
         {
-            var response = context.HttpContext.Response;
-
-            response.StatusCode = StatusCode;
-            if (StatusDescription != null)
-            {
-                response.ContentType = "text/plain; charset=utf-8";
-                await response.WriteAsync(StatusDescription);
-            }
+            context.HttpContext.Response.StatusCode = StatusCode;
         }
     }
 }
