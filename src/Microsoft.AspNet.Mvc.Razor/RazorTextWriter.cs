@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public RazorTextWriter(Encoding encoding)
         {
             _encoding = encoding;
-            Buffer = new List<ListOrValue>();
+            Buffer = new List<BufferEntry>();
         }
 
         public override Encoding Encoding
@@ -32,12 +32,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             get { return _encoding; }
         }
 
-        internal List<ListOrValue> Buffer { get; private set; }
+        internal List<BufferEntry> Buffer { get; private set; }
 
         /// <inheritdoc />
         public override void Write(char value)
         {
-            Buffer.Add(new ListOrValue { StringValue = "" + value });
+            Buffer.Add(new BufferEntry { StringValue = value.ToString() });
         }
 
         /// <inheritdoc />
@@ -56,8 +56,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentOutOfRangeException("count");
             }
 
-            var result = new ArraySegment<char>(buffer, index, count);
-            Buffer.Add(new ListOrValue { CharArrayValue = result });
+            var result = new char[count];
+            Array.Copy(buffer, index, result, 0, count);
+            Buffer.Add(new BufferEntry { CharArrayValue = result });
         }
 
         /// <inheritdoc />
@@ -65,52 +66,35 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (value != null)
             {
-                Buffer.Add(new ListOrValue { StringValue = value });
+                Buffer.Add(new BufferEntry { StringValue = value });
             }
         }
 
         /// <inheritdoc />
         public override Task WriteAsync(char value)
         {
-            Buffer.Add(new ListOrValue { StringValue = "" + value });
+            Write(value);
             return _completedTask;
         }
 
         /// <inheritdoc />
         public override Task WriteAsync([NotNull] char[] buffer, int index, int count)
         {
-            if (index < 0)
-            {
-                throw new ArgumentOutOfRangeException("index");
-            }
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException("count");
-            }
-            if (index + count > buffer.Length)
-            {
-                throw new ArgumentOutOfRangeException("count");
-            }
-
-            var result = new ArraySegment<char>(buffer, index, count);
-            Buffer.Add(new ListOrValue { CharArrayValue = result });
+            Write(buffer, index, count);
             return _completedTask;
         }
 
         /// <inheritdoc />
         public override Task WriteAsync(string value)
         {
-            if (value != null)
-            {
-                Buffer.Add(new ListOrValue { StringValue = value });
-            }
+            Write(value);
             return _completedTask;
         }
 
         /// <inheritdoc />
         public override void WriteLine()
         {
-            Buffer.Add(new ListOrValue { StringValue = Environment.NewLine });
+            Buffer.Add(new BufferEntry { StringValue = Environment.NewLine });
         }
 
         /// <inheritdoc />
@@ -123,28 +107,28 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public override Task WriteLineAsync(char value)
         {
-            Buffer.Add(new ListOrValue { StringValue = "" + value });
+            WriteLine(value);
             return _completedTask;
         }
 
         /// <inheritdoc />
-        public override async Task WriteLineAsync(char[] value, int start, int offset)
+        public override Task WriteLineAsync(char[] value, int start, int offset)
         {
-            await WriteAsync(value, start, offset);
-            await WriteLineAsync();
+            WriteLine(value, start, offset);
+            return _completedTask;
         }
 
         /// <inheritdoc />
-        public override async Task WriteLineAsync(string value)
+        public override Task WriteLineAsync(string value)
         {
-            await WriteAsync(value);
-            await WriteLineAsync();
+            WriteLine(value);
+            return _completedTask;
         }
 
         /// <inheritdoc />
         public override Task WriteLineAsync()
         {
-            Buffer.Add(new ListOrValue { StringValue = Environment.NewLine });
+            WriteLine();
             return _completedTask;
         }
 
@@ -157,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var targetRazorTextWriter = writer as RazorTextWriter;
             if (targetRazorTextWriter != null)
             {
-                targetRazorTextWriter.Buffer.Add(new ListOrValue { List = Buffer });
+                targetRazorTextWriter.Buffer.Add(new BufferEntry { ListValue = Buffer });
             }
             else
             {
@@ -175,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var targetRazorTextWriter = writer as RazorTextWriter;
             if (targetRazorTextWriter != null)
             {
-                targetRazorTextWriter.Buffer.Add(new ListOrValue { List = Buffer });
+                targetRazorTextWriter.Buffer.Add(new BufferEntry { ListValue = Buffer });
             }
             else
             {
@@ -185,13 +169,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             return _completedTask;
         }
 
-        private static void WriteList(TextWriter writer, List<ListOrValue> values)
+        private static void WriteList(TextWriter writer, List<BufferEntry> values)
         {
             foreach (var value in values)
             {
-                if (value.List != null)
+                if (value.ListValue != null)
                 {
-                    WriteList(writer, value.List);
+                    WriteList(writer, value.ListValue);
                 }
                 else if (value.StringValue != null)
                 {
@@ -199,19 +183,18 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
                 else
                 {
-                    var arrayValue = value.CharArrayValue;
-                    writer.Write(arrayValue.Array, arrayValue.Offset, arrayValue.Count);
+                    writer.Write(value.CharArrayValue);
                 }
             }
         }
 
-        private static async Task WriteListAsync(TextWriter writer, List<ListOrValue> values)
+        private static async Task WriteListAsync(TextWriter writer, List<BufferEntry> values)
         {
             foreach (var value in values)
             {
-                if (value.List != null)
+                if (value.ListValue != null)
                 {
-                    await WriteListAsync(writer, value.List);
+                    await WriteListAsync(writer, value.ListValue);
                 }
                 else if (value.StringValue != null)
                 {
@@ -219,19 +202,18 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
                 else
                 {
-                    var arrayValue = value.CharArrayValue;
-                    await writer.WriteAsync(arrayValue.Array, arrayValue.Offset, arrayValue.Count);
+                    await writer.WriteAsync(value.CharArrayValue);
                 }
             }
         }
 
-        internal sealed class ListOrValue
+        internal sealed class BufferEntry
         {
             public string StringValue { get; set; }
 
-            public ArraySegment<char> CharArrayValue { get; set; }
+            public char[] CharArrayValue { get; set; }
 
-            public List<ListOrValue> List { get; set; }
+            public List<BufferEntry> ListValue { get; set; }
         }
     }
 }
