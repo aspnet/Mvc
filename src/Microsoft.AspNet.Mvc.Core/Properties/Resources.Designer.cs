@@ -1082,22 +1082,6 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("OutputFormatterNoMediaType"), p0);
         }
 
-        /// <summary>
-        /// Invalid Argument. Content type '{0}' could not be parsed.
-        /// </summary>
-        internal static string ProducesContentArgumentCannotBeParsed
-        {
-            get { return GetString("ProducesContentArgumentCannotBeParsed"); }
-        }
-
-        /// <summary>
-        /// Invalid Argument. Content type '{0}' could not be parsed.
-        /// </summary>
-        internal static string FormatProducesContentArgumentCannotBeParsed(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ProducesContentArgumentCannotBeParsed"), p0);
-        }
-
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

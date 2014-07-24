@@ -52,9 +52,12 @@ namespace Microsoft.AspNet.Mvc
             var encoding = MatchAcceptCharacterEncoding(request.AcceptCharset);
             if (encoding == null)
             {
+                var request = context.ActionContext.HttpContext.Request;
+
                 // Match based on request acceptHeader.
-                var requestContentType = MediaTypeHeaderValue.Parse(request.ContentType);
-                if (requestContentType != null && !string.IsNullOrEmpty(requestContentType.Charset))
+                MediaTypeHeaderValue requestContentType = null;
+                if (MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType) &&
+                    !string.IsNullOrEmpty(requestContentType.Charset))
                 {
                     var requestCharset = requestContentType.Charset;
                     encoding = SupportedEncodings.FirstOrDefault(

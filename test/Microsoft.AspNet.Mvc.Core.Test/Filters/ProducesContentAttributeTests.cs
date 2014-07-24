@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Test
@@ -35,13 +33,16 @@ namespace Microsoft.AspNet.Mvc.Test
             ValidateMediaType(mediaType2, objectResult.ContentTypes[1]);
         }
 
-        [Fact]
-        public void ProducesContentAttribute_InvalidContentType_Throws()
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("invalid")]
+        public void ProducesContentAttribute_InvalidContentType_Throws(string content)
         {
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(
-                       () => new ProducesContentAttribute("invalid"));
-            Assert.Equal("Invalid Argument. Content type 'invalid' could not be parsed.",
+                       () => new ProducesContentAttribute(content));
+            Assert.Equal("Invalid Argument. Content type '" + content + "' could not be parsed.",
                          ex.Message);
         }
 
@@ -73,8 +74,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
         private static ActionContext CreateActionContext()
         {
-            return new ActionContext(Mock.Of<HttpContext>(), new RouteData(), new ActionDescriptor());
+            return new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
         }
     }
 }
-#endif

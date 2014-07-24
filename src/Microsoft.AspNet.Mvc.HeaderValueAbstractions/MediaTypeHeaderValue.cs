@@ -54,14 +54,14 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
         {
             if (string.IsNullOrEmpty(input))
             {
-                return null;
+                throw new ArgumentException(Resources.FormatInvalidContentType(input));
             }
 
             var inputArray = input.Split(new[] { ';' }, 2);
             var mediaTypeParts = inputArray[0].Split('/');
             if (mediaTypeParts.Length != 2)
             {
-                return null;
+                throw new ArgumentException(Resources.FormatInvalidContentType(input));
             }
 
             // TODO: throw if the media type and subtypes are invalid.
@@ -95,6 +95,20 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             };
 
             return mediaTypeHeader;
+        }
+
+        public static bool TryParse(string input, out MediaTypeHeaderValue headerValue)
+        {
+            headerValue = null;
+            try
+            {
+                headerValue = Parse(input);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         protected static Dictionary<string, string> ParseParameters(string inputString)

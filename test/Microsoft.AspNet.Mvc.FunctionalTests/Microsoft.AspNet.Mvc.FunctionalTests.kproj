@@ -30,6 +30,7 @@
     <Content Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnegTests.cs" />
     <Compile Include="ViewEngineTests.cs" />
     <Compile Include="ActivatorTests.cs" />
     <Compile Include="ValueProviderTests.cs" />

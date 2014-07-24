@@ -348,7 +348,4 @@
   <data name="AttributeRoute_TokenReplacement_UnescapedBraceInToken" xml:space="preserve">
     <value>An unescaped '[' token is not allowed inside of a replacement token. Use '[[' to escape.</value>
   </data>
-  <data name="ProducesContentArgumentCannotBeParsed" xml:space="preserve">
-    <value>Invalid Argument. Content type '{0}' could not be parsed.</value>
-  </data>
 </root>
