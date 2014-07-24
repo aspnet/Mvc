@@ -7,18 +7,18 @@ using Microsoft.AspNet.Mvc.Core;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Encapsulates information that describes an <see cref="OutputFormatter"/>.
+    /// Encapsulates information that describes an <see cref="IOutputFormatter"/>.
     /// </summary>
     public class OutputFormatterDescriptor
     {
         /// <summary>
         /// Creates a new instance of <see cref="OutputFormatterDescriptor"/>.
         /// </summary>
-        /// <param name="outputFormatterType">A <see cref="OutputFormatter/> type that the descriptor represents.
+        /// <param name="outputFormatterType">A <see cref="IOutputFormatter/> type that the descriptor represents.
         /// </param>
         public OutputFormatterDescriptor([NotNull] Type outputFormatterType)
         {
-            var formatterType = typeof(OutputFormatter);
+            var formatterType = typeof(IOutputFormatter);
             if (!formatterType.IsAssignableFrom(outputFormatterType))
             {
                 var message = Resources.FormatTypeMustDeriveFromType(outputFormatterType,
@@ -32,16 +32,16 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Creates a new instance of <see cref="OutputFormatterDescriptor"/>.
         /// </summary>
-        /// <param name="outputFormatter">An instance of <see cref="OutputFormatter"/>
+        /// <param name="outputFormatter">An instance of <see cref="IOutputFormatter"/>
         /// that the descriptor represents.</param>
-        public OutputFormatterDescriptor([NotNull] OutputFormatter outputFormatter)
+        public OutputFormatterDescriptor([NotNull] IOutputFormatter outputFormatter)
         {
             OutputFormatter = outputFormatter;
             OutputFormatterType = outputFormatter.GetType();
         }
 
         /// <summary>
-        /// Gets the type of the <see cref="OutputFormatter"/>.
+        /// Gets the type of the <see cref="IOutputFormatter"/>.
         /// </summary>
         public Type OutputFormatterType
         {
@@ -50,9 +50,9 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets the instance of the <see cref="OutputFormatter"/>.
+        /// Gets the instance of the <see cref="IOutputFormatter"/>.
         /// </summary>
-        public OutputFormatter OutputFormatter
+        public IOutputFormatter OutputFormatter
         {
             get;
             private set;

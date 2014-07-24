@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(
-                        () => testFormatter.SetResponseContentHeaders(formatterContext));
+                        () => testFormatter.WriteResponseContentHeaders(formatterContext));
             Assert.Equal("No encoding found for output formatter " +
                          "'Microsoft.AspNet.Mvc.Test.OutputFormatterTests+TestOutputFormatter'." +
                          " There must be at least one supported encoding registered in order for the" +
@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/acceptCharset"));
             }
 
-            public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
+            public override Task WriteResponseBodyAsync(OutputFormatterContext context, CancellationToken token)
             {
                 return Task.FromResult(true);
             }

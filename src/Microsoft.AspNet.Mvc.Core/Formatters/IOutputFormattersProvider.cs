@@ -6,13 +6,13 @@ using System.Collections.Generic;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Provides an activated collection of <see cref="OutputFormatter"/> instances.
+    /// Provides an activated collection of <see cref="IOutputFormatter"/> instances.
     /// </summary>
     public interface IOutputFormattersProvider
     {
         /// <summary>
         /// Gets a collection of activated OutputFormatter instances.
         /// </summary>
-        IReadOnlyList<OutputFormatter> OutputFormatters { get; }
+        IReadOnlyList<IOutputFormatter> OutputFormatters { get; }
     }
 }

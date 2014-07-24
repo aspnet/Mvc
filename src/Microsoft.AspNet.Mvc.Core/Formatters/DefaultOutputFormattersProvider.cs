@@ -34,17 +34,17 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<OutputFormatter> OutputFormatters
+        public IReadOnlyList<IOutputFormatter> OutputFormatters
         {
             get
             {
-                var outputFormatters = new List<OutputFormatter>();
+                var outputFormatters = new List<IOutputFormatter>();
                 foreach (var descriptor in _descriptors)
                 {
                     var formatter = descriptor.OutputFormatter;
                     if (formatter == null)
                     {
-                        formatter = (OutputFormatter)_typeActivator.CreateInstance(_serviceProvider, 
+                        formatter = (IOutputFormatter)_typeActivator.CreateInstance(_serviceProvider, 
                                                                              descriptor.OutputFormatterType);
                     }
 

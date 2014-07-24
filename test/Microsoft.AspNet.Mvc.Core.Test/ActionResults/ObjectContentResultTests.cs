@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             
             // Set the content type property explicitly. 
             result.ContentTypes = contentTypes.Select(contentType => MediaTypeHeaderValue.Parse(contentType)).ToList();
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                             {
                                                 new CannotWriteFormatter(),
                                                 new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
@@ -144,7 +144,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Set the content type and the formatters property explicitly. 
             result.ContentTypes = contentTypes.Select(contentType => MediaTypeHeaderValue.Parse(contentType))
                                               .ToList();
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                     {
                                         new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
@@ -176,7 +176,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var mockFormatter = GetMockFormatter();
 
             result.ContentTypes = contentTypes.Select(contentType => MediaTypeHeaderValue.Parse(contentType)).ToList();
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                         {
                                             mockFormatter.Object,
                                             new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
@@ -206,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var result = new ObjectResult(input);
 
             // Set more than one formatters. The test output formatter throws on write.
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                     {
                                         new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
@@ -237,7 +237,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var result = new ObjectResult(input);
 
             // Set more than one formatters. The test output formatter throws on write.
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                     {
                                         new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
@@ -268,7 +268,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var result = new ObjectResult(input);
 
             // Set more than one formatters. The test output formatter throws on write.
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                     {
                                         new CannotWriteFormatter(),
                                         new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true),
@@ -297,7 +297,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var result = new ObjectResult(input);
 
             // Set more than one formatters. The test output formatter throws on write.
-            result.Formatters = new List<OutputFormatter>
+            result.Formatters = new List<IOutputFormatter>
                                     {
                                         new CannotWriteFormatter(),
                                     };
@@ -363,7 +363,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                         DeclaredType = nonStringValue.GetType()
                                     };
             var formatter = new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true);
-            formatter.SetResponseContentHeaders(formatterContext);
+            formatter.WriteResponseContentHeaders(formatterContext);
             await formatter.WriteAsync(formatterContext, CancellationToken.None);
 
             // Act
@@ -437,32 +437,30 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             return serviceCollection.BuildServiceProvider();
         }
 
-        private class UnsupportedOutputFormatter : OutputFormatter
+        public class CannotWriteFormatter : IOutputFormatter
         {
-            public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
+            public List<Encoding> SupportedEncodings
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public List<MediaTypeHeaderValue> SupportedMediaTypes
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
             {
                 return false;
             }
 
-            public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public class CannotWriteFormatter : OutputFormatter
-        {
-            public CannotWriteFormatter()
-            {
-                SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/custom"));
-            }
-
-            public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
-            {
-                return false;
-            }
-
-            public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
+            public virtual Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }
@@ -470,11 +468,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
         private class TestOutputFormatterProvider : IOutputFormattersProvider
         {
-            public IReadOnlyList<OutputFormatter> OutputFormatters
+            public IReadOnlyList<IOutputFormatter> OutputFormatters
             {
                 get
                 {
-                    return new List<OutputFormatter>()
+                    return new List<IOutputFormatter>()
                         { new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), indent: true) };
                 }
             }

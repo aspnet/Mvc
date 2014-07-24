@@ -31,6 +31,9 @@
     <Compile Include="ActionDescriptorsCollection.cs" />
     <Compile Include="ExpiringFileInfoCache.cs" />
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
+    <Compile Include="Formatters\DefaultOutputFormattersProvider.cs" />
+    <Compile Include="Formatters\IOutputFormatter.cs" />
+    <Compile Include="Formatters\StringWithQualityHeaderValueComparer.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />
     <Compile Include="Formatters\IOutputFormattersProvider.cs" />
     <Compile Include="Formatters\OutputFormatterContext.cs" />

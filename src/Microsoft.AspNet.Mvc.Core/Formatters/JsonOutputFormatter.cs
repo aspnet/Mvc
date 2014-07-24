@@ -73,8 +73,8 @@ namespace Microsoft.AspNet.Mvc
             return jsonSerializer;
         }
 
-        public override Task WriteAsync(OutputFormatterContext context,
-                                        CancellationToken cancellationToken)
+        public override Task WriteResponseBodyAsync(OutputFormatterContext context,
+                                                    CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var response = context.ActionContext.HttpContext.Response;

@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc
     {
         public object Value { get; set; }
 
-        public List<OutputFormatter> Formatters { get; set; }
+        public List<IOutputFormatter> Formatters { get; set; }
 
         public List<MediaTypeHeaderValue> ContentTypes { get; set; }
 
@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc
         public ObjectResult(object value)
         {
             Value = value;
-            Formatters = new List<OutputFormatter>();
+            Formatters = new List<IOutputFormatter>();
             ContentTypes = new List<MediaTypeHeaderValue>();
         }
 
@@ -47,13 +47,12 @@ namespace Microsoft.AspNet.Mvc
                 return;
             }
 
-            // set the content headers.
-            selectedFormatter.SetResponseContentHeaders(formatterContext);
-            await selectedFormatter.WriteAsync(formatterContext, CancellationToken.None);
+            await selectedFormatter.WriteAsync(formatterContext, 
+                                               formatterContext.ActionContext.HttpContext.RequestAborted);
         }
 
-        public virtual OutputFormatter SelectFormatter(OutputFormatterContext formatterContext,
-                                                       IEnumerable<OutputFormatter> formatters)
+        public virtual IOutputFormatter SelectFormatter(OutputFormatterContext formatterContext,
+                                                       IEnumerable<IOutputFormatter> formatters)
         {
             var incomingAcceptHeader = HeaderParsingHelpers.GetAcceptHeaders(
                                                 formatterContext.ActionContext.HttpContext.Request.Accept);
@@ -61,7 +60,7 @@ namespace Microsoft.AspNet.Mvc
                                         .Where(header => header.Quality != FormattingUtilities.NoMatch)
                                         .ToArray();
 
-            OutputFormatter selectedFormatter = null;
+            IOutputFormatter selectedFormatter = null;
 
             if (ContentTypes == null || ContentTypes.Count == 0)
             {
@@ -80,7 +79,7 @@ namespace Microsoft.AspNet.Mvc
                     // In case the incomingContentType is null (as can be the case with get requests), 
                     // we need to pick the first formatter which 
                     // can support writing this type. 
-                    var contentTypes = new [] { incomingContentType };
+                    var contentTypes = new[] { incomingContentType };
                     selectedFormatter = SelectFormatterUsingAnyAcceptableContentType(
                                                                                 formatterContext,
                                                                                 formatters,
@@ -131,12 +130,12 @@ namespace Microsoft.AspNet.Mvc
             return selectedFormatter;
         }
 
-        public virtual OutputFormatter SelectFormatterUsingSortedAcceptHeaders(
+        public virtual IOutputFormatter SelectFormatterUsingSortedAcceptHeaders(
                                                             OutputFormatterContext formatterContext,
-                                                            IEnumerable<OutputFormatter> formatters,
+                                                            IEnumerable<IOutputFormatter> formatters,
                                                             IEnumerable<MediaTypeHeaderValue> sortedAcceptHeaders)
         {
-            OutputFormatter selectedFormatter = null;
+            IOutputFormatter selectedFormatter = null;
             foreach (var contentType in sortedAcceptHeaders)
             {
                 // Loop through each of the formatters and see if any one will support this 
@@ -154,9 +153,9 @@ namespace Microsoft.AspNet.Mvc
             return selectedFormatter;
         }
 
-        public virtual OutputFormatter SelectFormatterUsingAnyAcceptableContentType(
+        public virtual IOutputFormatter SelectFormatterUsingAnyAcceptableContentType(
                                                             OutputFormatterContext formatterContext,
-                                                            IEnumerable<OutputFormatter> formatters,
+                                                            IEnumerable<IOutputFormatter> formatters,
                                                             IEnumerable<MediaTypeHeaderValue> acceptableContentTypes)
         {
             var selectedFormatter = formatters.FirstOrDefault(
@@ -183,9 +182,9 @@ namespace Microsoft.AspNet.Mvc
                                .ToArray();
         }
 
-        private IEnumerable<OutputFormatter> GetDefaultFormatters(ActionContext context)
+        private IEnumerable<IOutputFormatter> GetDefaultFormatters(ActionContext context)
         {
-            IEnumerable<OutputFormatter> formatters = null;
+            IEnumerable<IOutputFormatter> formatters = null;
             if (Formatters == null || Formatters.Count == 0)
             {
                 formatters = context.HttpContext

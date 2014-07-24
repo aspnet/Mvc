@@ -34,11 +34,11 @@ namespace Microsoft.AspNet.Mvc
 
             // Set up default output formatters.
             options.OutputFormatters.Add(new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true));
-            
+
             // Set up ValueProviders
-            options.ValueProviderFactories.Add(new RouteValueValueProviderFactory());            
+            options.ValueProviderFactories.Add(new RouteValueValueProviderFactory());
             options.ValueProviderFactories.Add(new QueryStringValueProviderFactory());
-            options.ValueProviderFactories.Add(new FormValueProviderFactory());	
+            options.ValueProviderFactories.Add(new FormValueProviderFactory());
         }
     }
 }
