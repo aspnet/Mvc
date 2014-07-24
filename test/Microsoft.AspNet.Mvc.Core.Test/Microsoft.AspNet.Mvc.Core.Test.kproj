@@ -35,14 +35,14 @@
     <Compile Include="OptionDescriptors\DefaultViewEngineProviderTest.cs" />
     <Compile Include="OptionDescriptors\ModelBinderDescriptorExtensionsTest.cs" />
     <Compile Include="OptionDescriptors\ModelBinderDescriptorTest.cs" />
+    <Compile Include="OptionDescriptors\OutputFormatterDescriptorExtensionTest.cs" />
+    <Compile Include="OptionDescriptors\OutputFormatterDescriptorTest.cs" />
     <Compile Include="OptionDescriptors\ValueProviderFactoryDescriptorTest.cs" />
     <Compile Include="OptionDescriptors\ViewEngineDescriptorTest.cs" />
     <Compile Include="OptionDescriptors\ValueProviderFactoryDescriptorExtensionsTest.cs" />
     <Compile Include="OptionDescriptors\ViewEngineDscriptorExtensionsTest.cs" />
     <Compile Include="ExpiringFileInfoCacheTest.cs" />
     <Compile Include="DefaultActionDiscoveryConventionsTests.cs" />
-    <Compile Include="Formatters\OutputFormatterDescriptorExtensionTest.cs" />
-    <Compile Include="Formatters\OutputFormatterDescriptorTest.cs" />
     <Compile Include="Formatters\OutputFormatterTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedParameterModelTests.cs" />
     <Compile Include="ReflectedModelBuilder\ReflectedActionModelTests.cs" />
