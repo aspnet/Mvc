@@ -309,22 +309,21 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpResponse.VerifySet(r => r.StatusCode = 406);
         }
 
-        // TODO: Disabling since this scenario is no longer dealt with in object result. 
-        // Re-enable once we do. 
-        //[Fact]
+        [Fact]
         public async Task ObjectResult_Execute_CallsContentResult_SetsContent()
         {
             // Arrange
-            var expectedContentType = "text/plain";
+            var expectedContentType = "text/plain;charset=utf-8";
             var input = "testInput";
             var stream = new MemoryStream();
 
             var httpResponse = new Mock<HttpResponse>();
-            var tempContentType = string.Empty;
             httpResponse.SetupProperty<string>(o => o.ContentType);
             httpResponse.SetupGet(r => r.Body).Returns(stream);
 
-            var actionContext = CreateMockActionContext(httpResponse.Object);
+            var actionContext = CreateMockActionContext(httpResponse.Object,
+                                                        requestAcceptHeader: null,
+                                                        requestContentType: null);
 
             // Act
             var result = new ObjectResult(input);
@@ -332,6 +331,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
             // Assert
             httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+
             // The following verifies the correct Content was written to Body
             Assert.Equal(input.Length, httpResponse.Object.Body.Length);
         }
@@ -473,7 +473,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                 get
                 {
                     return new List<IOutputFormatter>()
-                        { new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), indent: true) };
+                        {
+                            new TextPlainFormatter(),
+                            new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), indent: true)
+                        };
                 }
             }
         }

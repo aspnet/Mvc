@@ -33,6 +33,7 @@
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
     <Compile Include="Formatters\DefaultOutputFormattersProvider.cs" />
     <Compile Include="Formatters\IOutputFormatter.cs" />
+    <Compile Include="Formatters\TextPlainFormatter.cs" />
     <Compile Include="Formatters\StringWithQualityHeaderValueComparer.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />
     <Compile Include="Formatters\IOutputFormattersProvider.cs" />
