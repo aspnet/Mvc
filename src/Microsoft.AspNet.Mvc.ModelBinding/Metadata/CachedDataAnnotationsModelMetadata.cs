@@ -50,6 +50,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                        : base.ComputeDescription();
         }
 
+        protected override string ComputeDisplayName()
+        {
+            // DisplayName may be provided by the DisplayAttribute.
+            // If that does not supply a name, then we fall back to the property name (in base.GetDisplayName()).
+            if (PrototypeCache.Display != null)
+            {
+                // DisplayAttribute doesn't require you to set a name, so this could be null.
+                var name = PrototypeCache.Display.GetName();
+                if (name != null)
+                {
+                    return name;
+                }
+            }
+
+            return base.ComputeDisplayName();
+        }
+
         protected override bool ComputeIsReadOnly()
         {
             if (PrototypeCache.Editable != null)
@@ -97,22 +114,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return PrototypeCache.ScaffoldColumn != null
                        ? PrototypeCache.ScaffoldColumn.Scaffold
                        : base.ComputeShowForEdit();
-        }
-
-        public override string GetDisplayName()
-        {
-            // DisplayAttribute doesn't require you to set a name, so this could be null. 
-            if (PrototypeCache.Display != null)
-            {
-                var name = PrototypeCache.Display.GetName();
-                if (name != null)
-                {
-                    return name;
-                }
-            }
-
-            // If DisplayAttribute does not specify a name, we'll fall back to the property name.
-            return base.GetDisplayName();
         }
 
         private static void ValidateDisplayColumnAttribute(DisplayColumnAttribute displayColumnAttribute,
