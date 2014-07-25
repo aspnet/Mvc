@@ -34,8 +34,7 @@ namespace Microsoft.AspNet.Mvc
         /// Writes the object represented by <paramref name="context"/>'s Object property.
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that serializes the value to the <paramref name="context"/>'s response message.</returns>
-        Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken);
+        Task WriteAsync(OutputFormatterContext context);
     }
 }

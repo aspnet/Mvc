@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/acceptCharset"));
             }
 
-            public override Task WriteResponseBodyAsync(OutputFormatterContext context, CancellationToken token)
+            public override Task WriteResponseBodyAsync(OutputFormatterContext context)
             {
                 return Task.FromResult(true);
             }

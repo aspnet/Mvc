@@ -47,8 +47,7 @@ namespace Microsoft.AspNet.Mvc
                 return;
             }
 
-            await selectedFormatter.WriteAsync(formatterContext, 
-                                               formatterContext.ActionContext.HttpContext.RequestAborted);
+            await selectedFormatter.WriteAsync(formatterContext);
         }
 
         public virtual IOutputFormatter SelectFormatter(OutputFormatterContext formatterContext,

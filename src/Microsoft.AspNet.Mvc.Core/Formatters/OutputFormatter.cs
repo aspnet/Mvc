@@ -22,13 +22,13 @@ namespace Microsoft.AspNet.Mvc
         /// this <see cref="OutputFormatter"/> instance. The encodings are
         /// used when writing the data.
         /// </summary>
-        public List<Encoding> SupportedEncodings { get; private set; }
+        public IList<Encoding> SupportedEncodings { get; private set; }
 
         /// <summary>
         /// Gets the mutable collection of <see cref="MediaTypeHeaderValue"/> elements supported by
         /// this <see cref="OutputFormatter"/> instance.
         /// </summary>
-        public List<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
+        public IList<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OutputFormatter"/> class.
@@ -95,11 +95,10 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public async Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
+        public async Task WriteAsync(OutputFormatterContext context)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             WriteResponseContentHeaders(context);
-            await WriteResponseBodyAsync(context, cancellationToken);
+            await WriteResponseBodyAsync(context);
         }
 
         /// <summary>
@@ -136,10 +135,8 @@ namespace Microsoft.AspNet.Mvc
         /// Writes the response body.
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns></returns>
-        public abstract Task WriteResponseBodyAsync(OutputFormatterContext context,
-                                                    CancellationToken cancellationToken);
+        /// <returns>A task which can write the response body.</returns>
+        public abstract Task WriteResponseBodyAsync(OutputFormatterContext context);
 
         private Encoding MatchAcceptCharacterEncoding(string acceptCharsetHeader)
         {

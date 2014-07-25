@@ -187,7 +187,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
             // Assert
             // Verify that mock formatter was chosen.
-            mockFormatter.Verify(o => o.WriteAsync(It.IsAny<OutputFormatterContext>(), CancellationToken.None));
+            mockFormatter.Verify(o => o.WriteAsync(It.IsAny<OutputFormatterContext>()));
         }
 
         [Fact]
@@ -364,7 +364,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                     };
             var formatter = new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), true);
             formatter.WriteResponseContentHeaders(formatterContext);
-            await formatter.WriteAsync(formatterContext, CancellationToken.None);
+            await formatter.WriteAsync(formatterContext);
 
             // Act
             var result = new ObjectResult(nonStringValue);
@@ -418,7 +418,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                                       It.IsAny<MediaTypeHeaderValue>()))
                          .Returns(true);
 
-            mockFormatter.Setup(o => o.WriteAsync(It.IsAny<OutputFormatterContext>(), CancellationToken.None))
+            mockFormatter.Setup(o => o.WriteAsync(It.IsAny<OutputFormatterContext>()))
                          .Returns(Task.FromResult<bool>(true))
                          .Verifiable();
             return mockFormatter;
@@ -460,7 +460,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                 return false;
             }
 
-            public virtual Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
+            public virtual Task WriteAsync(OutputFormatterContext context)
             {
                 throw new NotImplementedException();
             }
