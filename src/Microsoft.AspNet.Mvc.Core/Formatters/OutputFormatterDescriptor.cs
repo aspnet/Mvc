@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc
         /// Creates a new instance of <see cref="OutputFormatterDescriptor"/>.
         /// </summary>
         /// <param name="outputFormatter">An instance of <see cref="OutputFormatter"/>
-        ///  that the descriptor represents.</param>
+        /// that the descriptor represents.</param>
         public OutputFormatterDescriptor([NotNull] OutputFormatter outputFormatter)
         {
             OutputFormatter = outputFormatter;
