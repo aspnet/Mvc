@@ -14,38 +14,26 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// Writes a string value to the response.
     /// </summary>
-    public class TextPlainFormatter : OutputFormatter
+    public class TextPlainFormatter : IOutputFormatter
     {
-        public TextPlainFormatter()
+        public bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
-            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/plain"));
-            SupportedEncodings.Add(Encoding.GetEncoding("utf-8"));
-        }
-        
-        public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
-        {
-            if (base.CanWriteResult(context, contentType))
+            // Ignore the passed in content type, if the object is string 
+            // always return it as a text/plain format.
+            var valueAsString = context.Object as string;
+            if (valueAsString != null)
             {
-                var valueAsString = context.Object as string;
-                if (valueAsString != null)
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
         }
 
-        public override void WriteResponseContentHeaders(OutputFormatterContext context)
+        public async Task WriteAsync(OutputFormatterContext context)
         {
             // Ignore the accept-charset field, as this will always write utf-8.
-            var response = context.ActionContext.HttpContext.Response;            
-            response.ContentType = "text/plain;charset=utf-8";
-        }
-
-        public override async Task WriteResponseBodyAsync(OutputFormatterContext context)
-        {
             var response = context.ActionContext.HttpContext.Response;
+            response.ContentType = "text/plain;charset=utf-8";
             var valueAsString = context.Object as string;
             await response.WriteAsync(valueAsString);
         }
