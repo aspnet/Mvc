@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.Write('m');
 
             // Assert
-            Assert.Equal(expected, writer.Buffer.Select(v => v.StringValue));
+            Assert.Equal(expected, writer.Buffer.BufferEntries.Select(v => v.Value));
         }
 
         [Fact]
@@ -49,16 +49,16 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.WriteLine(3L);
 
             // Assert
-            Assert.Equal(expected, writer.Buffer.Select(v => v.StringValue));
+            Assert.Equal(expected, writer.Buffer.BufferEntries.Select(v => v.Value));
         }
 
         [Fact]
         public async Task Write_WritesCharBuffer()
         {
             // Arrange
-            var input1 = new ArraySegment<char>(new char[10], 1, 8);
-            var input2 = new ArraySegment<char>(new char[6], 0, 6);
-            var input3 = new ArraySegment<char>(new char[4], 3, 1);
+            var input1 = new ArraySegment<char>(new char[] { 'a', 'b', 'c', 'd' }, 1, 3);
+            var input2 = new ArraySegment<char>(new char[] { 'e', 'f' }, 0, 2);
+            var input3 = new ArraySegment<char>(new char[] { 'g', 'h', 'i', 'j' }, 3, 1);
             var writer = new RazorTextWriter(Encoding.UTF8);
 
             // Act
@@ -67,12 +67,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(input3.Array, input3.Offset, input3.Count);
 
             // Assert
-            var buffer = writer.Buffer;
+            var buffer = writer.Buffer.BufferEntries;
             Assert.Equal(4, buffer.Count);
-            Assert.Equal(input1, buffer[0].CharArrayValue);
-            Assert.Equal(input2, buffer[1].CharArrayValue);
-            Assert.Equal(input3, buffer[2].CharArrayValue);
-            Assert.Equal(Environment.NewLine, buffer[3].StringValue);
+            Assert.Equal("bcd", buffer[0].Value);
+            Assert.Equal("ef", buffer[1].Value);
+            Assert.Equal("j", buffer[2].Value);
+            Assert.Equal(Environment.NewLine, buffer[3].Value);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync();
 
             // Assert
-            var actual = writer.Buffer.Select(v => v.StringValue);
+            var actual = writer.Buffer.BufferEntries.Select(v => v.Value);
             Assert.Equal(new[] { newLine, newLine }, actual);
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(input4);
 
             // Assert
-            var actual = writer.Buffer.Select(v => v.StringValue);
+            var actual = writer.Buffer.BufferEntries.Select(v => v.Value);
             Assert.Equal(new[] { input1, input2, newLine, input3, input4, newLine }, actual);
         }
 
@@ -127,9 +127,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.Buffer.Count);
-            Assert.Equal(1, target.Buffer.Count);
-            Assert.Same(source.Buffer, target.Buffer[0].List);
+            Assert.Equal(2, source.Buffer.BufferEntries.Count);
+            Assert.Equal(1, target.Buffer.BufferEntries.Count);
+            Assert.Same(source.Buffer, target.Buffer.BufferEntries[0].Buffer);
         }
 
         [Fact]
@@ -163,9 +163,9 @@ abc";
             await source.CopyToAsync(target);
 
             // Assert
-            Assert.Equal(3, source.Buffer.Count);
-            Assert.Equal(1, target.Buffer.Count);
-            Assert.Same(source.Buffer, target.Buffer[0].List);
+            Assert.Equal(3, source.Buffer.BufferEntries.Count);
+            Assert.Equal(1, target.Buffer.BufferEntries.Count);
+            Assert.Same(source.Buffer, target.Buffer.BufferEntries[0].Buffer);
         }
 
         [Fact]

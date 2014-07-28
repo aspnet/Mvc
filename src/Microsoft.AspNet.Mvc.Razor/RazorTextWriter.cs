@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public RazorTextWriter(Encoding encoding)
         {
             _encoding = encoding;
-            Buffer = new List<BufferEntry>();
+            Buffer = new BufferEntryCollection();
         }
 
         public override Encoding Encoding
@@ -32,12 +31,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             get { return _encoding; }
         }
 
-        internal List<BufferEntry> Buffer { get; private set; }
+        public BufferEntryCollection Buffer { get; private set; }
 
         /// <inheritdoc />
         public override void Write(char value)
         {
-            Buffer.Add(new BufferEntry { StringValue = value.ToString() });
+            Buffer.Add(value.ToString());
         }
 
         /// <inheritdoc />
@@ -56,17 +55,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentOutOfRangeException("count");
             }
 
-            var result = new char[count];
-            Array.Copy(buffer, index, result, 0, count);
-            Buffer.Add(new BufferEntry { CharArrayValue = result });
+            Buffer.Add(buffer, index, count);
         }
 
         /// <inheritdoc />
         public override void Write(string value)
         {
-            if (value != null)
+            if (!string.IsNullOrEmpty(value))
             {
-                Buffer.Add(new BufferEntry { StringValue = value });
+                Buffer.Add(value);
             }
         }
 
@@ -94,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public override void WriteLine()
         {
-            Buffer.Add(new BufferEntry { StringValue = Environment.NewLine });
+            Buffer.Add(Environment.NewLine);
         }
 
         /// <inheritdoc />
@@ -141,7 +138,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var targetRazorTextWriter = writer as RazorTextWriter;
             if (targetRazorTextWriter != null)
             {
-                targetRazorTextWriter.Buffer.Add(new BufferEntry { ListValue = Buffer });
+                targetRazorTextWriter.Buffer.Add(Buffer);
             }
             else
             {
@@ -159,7 +156,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var targetRazorTextWriter = writer as RazorTextWriter;
             if (targetRazorTextWriter != null)
             {
-                targetRazorTextWriter.Buffer.Add(new BufferEntry { ListValue = Buffer });
+                targetRazorTextWriter.Buffer.Add(Buffer);
             }
             else
             {
@@ -169,51 +166,20 @@ namespace Microsoft.AspNet.Mvc.Razor
             return _completedTask;
         }
 
-        private static void WriteList(TextWriter writer, List<BufferEntry> values)
+        private static void WriteList(TextWriter writer, BufferEntryCollection values)
         {
             foreach (var value in values)
             {
-                if (value.ListValue != null)
-                {
-                    WriteList(writer, value.ListValue);
-                }
-                else if (value.StringValue != null)
-                {
-                    writer.Write(value.StringValue);
-                }
-                else
-                {
-                    writer.Write(value.CharArrayValue);
-                }
+                writer.Write(value);
             }
         }
 
-        private static async Task WriteListAsync(TextWriter writer, List<BufferEntry> values)
+        private static async Task WriteListAsync(TextWriter writer, BufferEntryCollection values)
         {
             foreach (var value in values)
             {
-                if (value.ListValue != null)
-                {
-                    await WriteListAsync(writer, value.ListValue);
-                }
-                else if (value.StringValue != null)
-                {
-                    await writer.WriteAsync(value.StringValue);
-                }
-                else
-                {
-                    await writer.WriteAsync(value.CharArrayValue);
-                }
+                await writer.WriteAsync(value);
             }
-        }
-
-        internal sealed class BufferEntry
-        {
-            public string StringValue { get; set; }
-
-            public char[] CharArrayValue { get; set; }
-
-            public List<BufferEntry> ListValue { get; set; }
         }
     }
 }

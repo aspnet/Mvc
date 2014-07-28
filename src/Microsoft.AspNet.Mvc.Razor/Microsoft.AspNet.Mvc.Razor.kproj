@@ -22,6 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AttributeValue.cs" />
+    <Compile Include="BufferEntry.cs" />
+    <Compile Include="BufferEntryCollection.cs" />
     <Compile Include="Compilation\CompilationFailedException.cs" />
     <Compile Include="Compilation\CompilationMessage.cs" />
     <Compile Include="Compilation\CompilationResult.cs" />
