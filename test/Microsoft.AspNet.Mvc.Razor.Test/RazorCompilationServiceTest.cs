@@ -28,8 +28,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                 .Returns(new GeneratorResults(new Block(new BlockBuilder { Type = BlockType.Comment }), new RazorError[0], new CodeBuilderResult("", new LineMapping[0])))
                 .Verifiable();
             var compiler = new Mock<ICompilationService>();
-            compiler.Setup(c => c.Compile(It.IsAny<string>()))
-                    .Returns(CompilationResult.Successful("", typeof(RazorCompilationServiceTest)));
+            compiler.Setup(c => c.Compile(viewPath, It.IsAny<string>()))
+                    .Returns(CompilationResult.Successful(typeof(RazorCompilationServiceTest)));
 
             var razorService = new RazorCompilationService(env.Object, compiler.Object, host.Object);
             var fileInfo = new Mock<IFileInfo>();

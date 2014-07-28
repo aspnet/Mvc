@@ -7,35 +7,57 @@ using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
+    /// <summary>
+    /// An exception that is thrown when acessing the result of a failed compilation.
+    /// </summary>
     public class CompilationFailedException : Exception
     {
-        public CompilationFailedException(IEnumerable<CompilationMessage> messages, string generatedCode)
+        /// <summary>
+        /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
+        /// </summary>
+        /// <param name="filePath">The path to the file that was compiled.</param>
+        /// <param name="compiledCode">The contents that were compiled.</param>
+        /// <param name="messages">A sequence of <see cref="CompilationMessage"/> encountered during compilation.</param>
+        public CompilationFailedException(
+                [NotNull] string filePath,
+                [NotNull] string compiledCode,
+                [NotNull] IEnumerable<CompilationMessage> messages)
             : base(FormatMessage(messages))
         {
+            FilePath = filePath;
             Messages = messages.ToList();
-            GeneratedCode = generatedCode;
+            CompiledContent = compiledCode;
         }
 
-        public string GeneratedCode { get; private set; }
+        /// <summary>
+        /// Gets the path to the file that produced the compilation failure..
+        /// </summary>
+        public string FilePath { get; private set; }
 
+        /// <summary>
+        /// Gets a sequence of <see cref="CompilationMessage"/> encountered during compilation.
+        /// </summary>
         public IEnumerable<CompilationMessage> Messages { get; private set; }
 
-        public string CompilationSource
-        {
-            get { return GeneratedCode; }
-        }
+        /// <summary>
+        /// Gets the content that was compiled.
+        /// </summary>
+        public string CompiledContent { get; private set; }
 
+        /// <inheritdoc />
         public override string Message
         {
             get
             {
-                return "Compilation Failed:" + FormatMessage(Messages);
+                return Resources.FormatCompilationFailed(FilePath) +
+                       Environment.NewLine +
+                       FormatMessage(Messages);
             }
         }
 
         private static string FormatMessage(IEnumerable<CompilationMessage> messages)
         {
-            return String.Join(Environment.NewLine, messages);
+            return string.Join(Environment.NewLine, messages);
         }
     }
 }

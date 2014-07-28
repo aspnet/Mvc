@@ -35,8 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             return _cache.GetOrAdd(file, () => CompileCore(file));
         }
 
-        // TODO: Make this internal
-        public CompilationResult CompileCore(IFileInfo file)
+        internal CompilationResult CompileCore(IFileInfo file)
         {
             GeneratorResults results;
             using (var inputStream = file.CreateReadStream())
@@ -49,10 +48,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (!results.Success)
             {
                 var messages = results.ParserErrors.Select(e => new CompilationMessage(e.Message));
-                throw new CompilationFailedException(messages, results.GeneratedCode);
+                throw new CompilationFailedException(file.PhysicalPath, results.GeneratedCode, messages);
             }
 
-            return _baseCompilationService.Compile(results.GeneratedCode);
+            return _baseCompilationService.Compile(file.PhysicalPath, results.GeneratedCode);
         }
 
         private static string EnsureTrailingSlash([NotNull]string path)

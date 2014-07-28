@@ -7,22 +7,34 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
+    /// <summary>
+    /// A type that provides compilation of C# content using Roslyn.
+    /// </summary>
     public class RoslynCompilationService : ICompilationService
     {
-        private static readonly ConcurrentDictionary<string, MetadataReference> _metadataFileCache =
+        public static readonly string CompilationResultDiagnosticsKey = "Diagnostics";
+        private readonly ConcurrentDictionary<string, MetadataReference> _metadataFileCache =
             new ConcurrentDictionary<string, MetadataReference>(StringComparer.OrdinalIgnoreCase);
 
         private readonly ILibraryManager _libraryManager;
         private readonly IApplicationEnvironment _environment;
         private readonly IAssemblyLoaderEngine _loader;
 
+        /// <summary>
+        /// Initalizes Roslyn based <see cref="ICompilationService"/>.
+        /// </summary>
+        /// <param name="environment">The environment for the executing application.</param>
+        /// <param name="loaderEngine">The loader used to load compiled assemblies.</param>
+        /// <param name="libraryManager">The library manager that provides export and reference information.</param>
         public RoslynCompilationService(IApplicationEnvironment environment,
                                         IAssemblyLoaderEngine loaderEngine,
                                         ILibraryManager libraryManager)
@@ -32,9 +44,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             _libraryManager = libraryManager;
         }
 
-        public CompilationResult Compile(string content)
+        /// <inheritdoc />
+        public CompilationResult Compile(string path, string content)
         {
-            var syntaxTrees = new[] { CSharpSyntaxTree.ParseText(content) };
+            var sourceText = SourceText.From(content, Encoding.UTF8);
+            var syntaxTrees = new[] { CSharpSyntaxTree.ParseText(sourceText, path: path) };
             var targetFramework = _environment.TargetFramework;
 
             var references = GetApplicationReferences();
@@ -70,7 +84,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                                              .Select(d => GetCompilationMessage(formatter, d))
                                              .ToList();
 
-                        return CompilationResult.Failed(content, messages);
+                        var additionalInfo = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            {  CompilationResultDiagnosticsKey, result.Diagnostics }
+                        };
+                        return CompilationResult.Failed(path, content, messages, additionalInfo);
                     }
 
                     Assembly assembly;
@@ -89,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                     var type = assembly.GetExportedTypes()
                                        .First();
 
-                    return CompilationResult.Successful(string.Empty, type);
+                    return CompilationResult.Successful(type);
                 }
             }
         }
@@ -135,12 +153,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             });
         }
 
-        private CompilationMessage GetCompilationMessage(DiagnosticFormatter formatter, Diagnostic diagnostic)
+        private static CompilationMessage GetCompilationMessage(DiagnosticFormatter formatter, Diagnostic diagnostic)
         {
             return new CompilationMessage(formatter.Format(diagnostic));
         }
 
-        private bool IsError(Diagnostic diagnostic)
+        private static bool IsError(Diagnostic diagnostic)
         {
             return diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
         }
