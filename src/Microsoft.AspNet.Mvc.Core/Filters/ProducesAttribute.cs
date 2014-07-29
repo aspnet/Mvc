@@ -3,25 +3,25 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
-using System.Linq;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Specifies the allowed content types which can be used to select a formatter
-    /// while executing <see cref="ObjectResult"/>.
+    /// Specifies the allowed content types and the type of the value returned by the action 
+    /// which can be used to select a formatter while executing <see cref="ObjectResult"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class ProducesContentAttribute : ResultFilterAttribute
+    public class ProducesAttribute : ResultFilterAttribute, IActionReturnTypeProvider
     {
         private List<MediaTypeHeaderValue> _contentTypes;
 
-        public ProducesContentAttribute(string contentType, params string[] additionalContentTypes)
+        public ProducesAttribute(string contentType, params string[] additionalContentTypes)
         {
             _contentTypes = GetContentTypes(contentType, additionalContentTypes);
         }
+
+        public Type Type { get; set; }
 
         public override void OnResultExecuting([NotNull]ResultExecutingContext context)
         {

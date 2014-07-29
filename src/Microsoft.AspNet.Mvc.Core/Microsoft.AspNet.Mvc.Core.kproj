@@ -32,7 +32,8 @@
     <Compile Include="Formatters\TextPlainFormatter.cs" />
     <Compile Include="ExpiringFileInfoCache.cs" />
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
-    <Compile Include="Filters\ProducesContentAttribute.cs" />
+    <Compile Include="Filters\IActionReturnTypeProvider.cs" />
+    <Compile Include="Filters\ProducesAttribute.cs" />
     <Compile Include="Formatters\DefaultOutputFormattersProvider.cs" />
     <Compile Include="Formatters\StringWithQualityHeaderValueComparer.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />

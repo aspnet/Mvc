@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Test
 {
-    public class ProducesContentAttributeTests
+    public class ProducesAttributeTests
     {
         [Fact]
         public async Task ProducesContentAttribute_SetsContentType()
@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.Test
             // Arrange
             var mediaType1 = MediaTypeHeaderValue.Parse("application/json");
             var mediaType2 = MediaTypeHeaderValue.Parse("text/json;charset=utf-8");
-            var producesContentAttribute = new ProducesContentAttribute("application/json", "text/json;charset=utf-8");
+            var producesContentAttribute = new ProducesAttribute("application/json", "text/json;charset=utf-8");
             var resultExecutingContext = CreateResultExecutingContext(producesContentAttribute);
             var next = new ResultExecutionDelegate(
                             () => Task.FromResult(CreateResultExecutedContext(resultExecutingContext)));
@@ -37,11 +37,11 @@ namespace Microsoft.AspNet.Mvc.Test
         [InlineData("")]
         [InlineData(null)]
         [InlineData("invalid")]
-        public void ProducesContentAttribute_InvalidContentType_Throws(string content)
+        public void ProducesAttribute_InvalidContentType_Throws(string content)
         {
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(
-                       () => new ProducesContentAttribute(content));
+                       () => new ProducesAttribute(content));
             Assert.Equal("Invalid Argument. Content type '" + content + "' could not be parsed.",
                          ex.Message);
         }
