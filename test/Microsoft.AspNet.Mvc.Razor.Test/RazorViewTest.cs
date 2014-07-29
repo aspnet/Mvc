@@ -4,8 +4,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.PipelineCore;
 using Moq;
 using Xunit;
 
@@ -27,6 +27,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             });
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: false);
             var viewContext = CreateViewContext(view);
@@ -41,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
-        public async Task RenderAsync_WithoutHierarchy_ActivatesViews_WithACopyOfViewContext()
+        public async Task RenderAsync_WithoutHierarchy_ActivatesViews_WithThePassedInViewContext()
         {
             // Arrange
             var viewData = new ViewDataDictionary(Mock.Of<IModelMetadataProvider>());
@@ -51,18 +52,18 @@ namespace Microsoft.AspNet.Mvc.Razor
                 Assert.Same(viewData, v.ViewContext.ViewData);
             });
             var activator = new Mock<IRazorPageActivator>();
-            
+
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: false);
             var viewContext = CreateViewContext(view);
-            var expectedViewData = viewContext.ViewData;
             var expectedWriter = viewContext.Writer;
             activator.Setup(a => a.Activate(page, It.IsAny<ViewContext>()))
                      .Callback((IRazorPage p, ViewContext c) =>
                      {
-                         Assert.NotSame(c, viewContext);
+                         Assert.Same(c, viewContext);
                          c.ViewData = viewData;
                      })
                      .Verifiable();
@@ -72,7 +73,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // Assert
             activator.Verify();
-            Assert.Same(expectedViewData, viewContext.ViewData);
             Assert.Same(expectedWriter, viewContext.Writer);
         }
 
@@ -86,6 +86,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                      .Verifiable();
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: false);
             var viewContext = CreateViewContext(view);
@@ -98,15 +99,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
-        public async Task RenderAsync_WithoutHierarchy_DoesNotExecuteLayoutPages()
+        public async Task RenderAsync_WithoutHierarchy_DoesNotExecuteLayoutOrViewStartPages()
         {
             var page = new TestableRazorPage(v =>
             {
                 v.Layout = LayoutPath;
             });
             var pageFactory = new Mock<IRazorPageFactory>();
+            var viewStartProvider = CreateViewStartProvider();
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
+                                     viewStartProvider,
                                      page,
                                      executeViewHierarchy: false);
             var viewContext = CreateViewContext(view);
@@ -116,6 +119,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // Assert
             pageFactory.Verify(v => v.CreateInstance(It.IsAny<string>()), Times.Never());
+            Mock.Get(viewStartProvider).Verify(v => v.GetViewStartPages(It.IsAny<string>()), Times.Never());
         }
 
         [Fact]
@@ -129,6 +133,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             });
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -152,6 +157,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             });
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -177,6 +183,49 @@ namespace Microsoft.AspNet.Mvc.Razor
                      .Verifiable();
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
+                                     CreateViewStartProvider(),
+                                     page,
+                                     executeViewHierarchy: true);
+            var viewContext = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            activator.Verify();
+        }
+
+        [Fact]
+        public async Task RenderAsync_WithHierarchy_ExecutesViewStart()
+        {
+            // Arrange
+            var actualLayoutPath = "";
+            var layoutPath = "/Views/_Shared/_Layout.cshtml";
+            var viewStart1 = new TestableRazorPage(v =>
+            {
+                v.Layout = "/fake-layout-path";
+            });
+            var viewStart2 = new TestableRazorPage(v =>
+            {
+                v.Layout = layoutPath;
+            });
+            var page = new TestableRazorPage(v =>
+            {
+                // This path must have been set as a consequence of running viewStart
+                actualLayoutPath = v.Layout;
+                // Clear out layout so we don't render it
+                v.Layout = null;
+            });
+            var activator = new Mock<IRazorPageActivator>();
+            activator.Setup(a => a.Activate(viewStart1, It.IsAny<ViewContext>()))
+                     .Verifiable();
+            activator.Setup(a => a.Activate(viewStart2, It.IsAny<ViewContext>()))
+                     .Verifiable();
+            activator.Setup(a => a.Activate(page, It.IsAny<ViewContext>()))
+                     .Verifiable();
+            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+                                     activator.Object,
+                                     CreateViewStartProvider(viewStart1, viewStart2),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -231,6 +280,7 @@ foot-content";
 
             var view = new RazorView(pageFactory.Object,
                                      activator.Object,
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -264,6 +314,7 @@ foot-content";
 
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -290,6 +341,7 @@ foot-content";
 
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -344,6 +396,7 @@ body-content";
 
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
                                      page,
                                      executeViewHierarchy: true);
             var viewContext = CreateViewContext(view);
@@ -357,13 +410,23 @@ body-content";
 
         private static ViewContext CreateViewContext(RazorView view)
         {
-            var httpContext = new Mock<HttpContext>();
-            var actionContext = new ActionContext(httpContext.Object, routeData: null, actionDescriptor: null);
+            var httpContext = new DefaultHttpContext();
+            var actionContext = new ActionContext(httpContext, routeData: null, actionDescriptor: null);
             return new ViewContext(
                 actionContext,
                 view,
                 new ViewDataDictionary(Mock.Of<IModelMetadataProvider>()),
                 new StringWriter());
+        }
+
+        private static IViewStartProvider CreateViewStartProvider(params IRazorPage[] viewStartPages)
+        {
+            viewStartPages = viewStartPages ?? new IRazorPage[0];
+            var viewStartProvider = new Mock<IViewStartProvider>();
+            viewStartProvider.Setup(v => v.GetViewStartPages(It.IsAny<string>()))
+                             .Returns(viewStartPages);
+
+            return viewStartProvider.Object;
         }
 
         private class TestableRazorPage : RazorPage

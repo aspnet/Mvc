@@ -29,15 +29,15 @@
     <Compile Include="Binders\CompositeModelBinderTest.cs" />
     <Compile Include="Binders\DictionaryModelBinderTest.cs" />
     <Compile Include="Binders\KeyValuePairModelBinderTest.cs" />
-    <Compile Include="Binders\ModelBinderDescriptorExtensionsTest.cs" />
-    <Compile Include="Binders\ModelBinderDescriptorTest.cs" />
     <Compile Include="Binders\ModelBindingContextTest.cs" />
     <Compile Include="Binders\MutableObjectModelBinderTest.cs" />
     <Compile Include="Binders\TypeConverterModelBinderTest.cs" />
     <Compile Include="Formatters\JsonInputFormatterTest.cs" />
     <Compile Include="Internal\TypeExtensionTests.cs" />
     <Compile Include="Metadata\AssociatedMetadataProviderTest.cs" />
+    <Compile Include="Metadata\CachedDataAnnotationsMetadataAttributesTest.cs" />
     <Compile Include="Metadata\CachedDataAnnotationsModelMetadataProviderTest.cs" />
+    <Compile Include="Metadata\CachedDataAnnotationsModelMetadataTest.cs" />
     <Compile Include="Metadata\ModelMetadataTest.cs" />
     <Compile Include="ModelBindingContextTest.cs" />
     <Compile Include="Properties\Resources.Designer.cs" />

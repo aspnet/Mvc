@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
-using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -23,7 +22,8 @@ namespace Microsoft.AspNet.Mvc
             ApplicationModelConventions = new List<IReflectedApplicationModelConvention>();
             ModelBinders = new List<ModelBinderDescriptor>();
             ViewEngines = new List<ViewEngineDescriptor>();
-            ValueProviderFactories = new List<IValueProviderFactory>();
+            ValueProviderFactories = new List<ValueProviderFactoryDescriptor>();
+            OutputFormatters = new List<OutputFormatterDescriptor>();
         }
 
         /// <summary>
@@ -49,6 +49,8 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        public List<OutputFormatterDescriptor> OutputFormatters { get; private set; }
+        
         /// <summary>
         /// Provides programmatic configuration for the default <see cref="IViewEngine" />.
         /// </summary>
@@ -83,9 +85,9 @@ namespace Microsoft.AspNet.Mvc
         public List<ViewEngineDescriptor> ViewEngines { get; private set; }
 
         /// <summary>
-        /// Gets a list of <see cref="IValueProviderFactory"/> used by this application.
+        /// Gets a list of descriptors that represent <see cref="IValueProviderFactory"/> used by this application.
         /// </summary>
-        public List<IValueProviderFactory> ValueProviderFactories { get; private set; }
+        public List<ValueProviderFactoryDescriptor> ValueProviderFactories { get; private set; }
 
         public List<IReflectedApplicationModelConvention> ApplicationModelConventions { get; private set; }
     }

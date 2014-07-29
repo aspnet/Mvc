@@ -189,6 +189,125 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Same(filter, Assert.Single(filters));
         }
 
+        [Fact]
+        public void GetDescriptor_SetsDisplayName()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(PersonController).GetTypeInfo());
+
+            // Act
+            var descriptors = provider.GetDescriptors();
+            var displayNames = descriptors.Select(ad => ad.DisplayName);
+
+            // Assert
+            Assert.Equal(
+                new[]
+                {
+                    "Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+PersonController.GetPerson",
+                    "Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+PersonController.ListPeople",
+                },
+                displayNames);
+        }
+
+        public void AttributeRouting_TokenReplacement_IsAfterReflectedModel()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(TokenReplacementController).GetTypeInfo());
+
+            // Act
+            var model = provider.BuildModel();
+
+            // Assert
+            var controller = Assert.Single(model.Controllers);
+            Assert.Equal("api/Token/[key]/[controller]", controller.RouteTemplate);
+
+            var action = Assert.Single(controller.Actions);
+            Assert.Equal("stub/[action]", action.RouteTemplate);
+        }
+
+        [Fact]
+        public void AttributeRouting_TokenReplacement_InActionDescriptor()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(TokenReplacementController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var action = Assert.Single(actions);
+            Assert.Equal("api/Token/value/TokenReplacement/stub/ThisIsAnAction", action.AttributeRouteTemplate);
+        }
+
+        [Fact]
+        public void AttributeRouting_TokenReplacement_ThrowsOnTokeReplacementError()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(UnknownTokenController).GetTypeInfo());
+
+            var message = "While processing template 'stub/[action]/[unknown]', " +
+                "a replacement value for the token 'unknown' could not be found. " +
+                "Available tokens: 'controller, action'.";
+
+            // Act
+            var ex = Assert.Throws<InvalidOperationException>(() => { provider.GetDescriptors(); });
+
+            // Assert
+            Assert.Equal(message, ex.Message);
+        }
+
+        [Fact]
+        public void AttributeRouting_TokenReplacement_CaseInsensitive()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(CaseInsensitiveController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var action = Assert.Single(actions);
+            Assert.Equal("stub/ThisIsAnAction", action.AttributeRouteTemplate);
+        }
+
+        // Token replacement happens before we 'group' routes. So two route templates
+        // that are equivalent after token replacement go to the same 'group'.
+        [Fact]
+        public void AttributeRouting_TokenReplacement_BeforeGroupId()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(SameGroupIdController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors().ToArray();
+
+            var groupIds = actions.Select(
+                a => a.RouteConstraints
+                    .Where(rc => rc.RouteKey == AttributeRouting.RouteGroupKey)
+                    .Select(rc => rc.RouteValue)
+                    .Single())
+                .ToArray();
+
+            // Assert
+            Assert.Equal(2, groupIds.Length);
+            Assert.Equal(groupIds[0], groupIds[1]);
+        }
+
+        // Parameters are validated later. This action uses the forbidden {action} and {controller}
+        [Fact]
+        public void AttributeRouting_DoesNotValidateParameters()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(InvalidParametersController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var action = Assert.Single(actions);
+            Assert.Equal("stub/{controller}/{action}", action.AttributeRouteTemplate);
+        }
+
         private ReflectedActionDescriptorProvider GetProvider(
             TypeInfo controllerTypeInfo, 
             IEnumerable<IFilter> filters = null)
@@ -291,6 +410,41 @@ namespace Microsoft.AspNet.Mvc.Test
             public void FilterAction()
             {
             }
+        }
+
+        [Route("api/Token/[key]/[controller]")]
+        [MyRouteConstraint(false)]
+        private class TokenReplacementController
+        {
+            [HttpGet("stub/[action]")]
+            public void ThisIsAnAction() { }
+        }
+
+        private class CaseInsensitiveController
+        {
+            [HttpGet("stub/[ActIon]")]
+            public void ThisIsAnAction() { }
+        }
+
+        private class UnknownTokenController
+        {
+            [HttpGet("stub/[action]/[unknown]")]
+            public void Unknown() { }
+        }
+
+        private class InvalidParametersController
+        {
+            [HttpGet("stub/{controller}/{action}")]
+            public void Action1() { }
+        }
+
+        private class SameGroupIdController
+        {
+            [HttpGet("stub/[action]")]
+            public void Action1() { }
+
+            [HttpGet("stub/Action1")]
+            public void Action2() { }
         }
     }
 }

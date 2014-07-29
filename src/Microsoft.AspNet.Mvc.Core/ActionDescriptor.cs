@@ -34,5 +34,16 @@ namespace Microsoft.AspNet.Mvc
         public List<ParameterDescriptor> Parameters { get; set; }
 
         public List<FilterDescriptor> FilterDescriptors { get; set; }
+
+        /// <summary>
+        /// A friendly name for this action.
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return DisplayName == null ? base.ToString() : DisplayName;
+        }
     }
 }
