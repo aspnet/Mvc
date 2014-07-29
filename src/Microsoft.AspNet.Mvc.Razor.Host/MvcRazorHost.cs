@@ -9,42 +9,25 @@ using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     public class MvcRazorHost : RazorEngineHost, IMvcRazorHost
     {
-        private const string ViewNamespace = "ASP";
-
-        private static readonly string[] _defaultNamespaces = new[] 
-        { 
-            "System",
-            "System.Linq",
-            "System.Collections.Generic",
-            "Microsoft.AspNet.Mvc",
-            "Microsoft.AspNet.Mvc.Razor",
-            "Microsoft.AspNet.Mvc.Rendering"
-        };
-
         private readonly MvcRazorHostOptions _hostOptions;
 
-        // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>. 
-        // This field holds the type name without the generic decoration (MyBaseType)
-        private readonly string _baseType;
-
-        public MvcRazorHost(Type baseType)
-            : this(baseType.FullName)
+        public MvcRazorHost(IServiceProvider serviceProvider)
+            : this(GetHostOptions(serviceProvider))
         {
         }
 
-        public MvcRazorHost(string baseType)
+        protected MvcRazorHost(MvcRazorHostOptions hostOptions)
             : base(new CSharpRazorCodeLanguage())
         {
-            // TODO: this needs to flow from the application rather than being initialized here.
-            // Tracked by #774
-            _hostOptions = new MvcRazorHostOptions();
-            _baseType = baseType;
-            DefaultBaseClass = baseType + '<' + _hostOptions.DefaultModel + '>';
+            _hostOptions = hostOptions;
+            DefaultBaseClass = _hostOptions.DefaultBaseClass + '<' + _hostOptions.DefaultModel + '>';
             GeneratedClassContext = new GeneratedClassContext(
                 executeMethodName: "ExecuteAsync",
                 writeMethodName: "Write",
@@ -57,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 ResolveUrlMethodName = "Href"
             };
 
-            foreach (var ns in _defaultNamespaces)
+            foreach (var ns in hostOptions.DefaultImportedNamespaces)
             {
                 NamespaceImports.Add(ns);
             }
@@ -69,13 +52,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             using (var reader = new StreamReader(inputStream))
             {
                 var engine = new RazorTemplateEngine(this);
-                return engine.GenerateCode(reader, className, ViewNamespace, rootRelativePath);
+                return engine.GenerateCode(reader, className, _hostOptions.DefaultNamespace, rootRelativePath);
             }
         }
 
         public override ParserBase DecorateCodeParser(ParserBase incomingCodeParser)
         {
-            return new MvcRazorCodeParser(_baseType);
+            return new MvcRazorCodeParser(_hostOptions.DefaultBaseClass);
         }
 
         public override CodeBuilder DecorateCodeBuilder(CodeBuilder incomingBuilder, CodeGeneratorContext context)
@@ -108,6 +91,24 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var typeName = property.TypeName.Replace("<TModel>", model);
                 currentChunks.Add(new InjectChunk(typeName, property.MemberName));
             }
+        }
+
+        private static MvcRazorHostOptions GetHostOptions(IServiceProvider serviceProvider)
+        {
+            IOptionsAccessor<MvcRazorHostOptions> optionsAccessor;
+            try
+            {
+                // Try reading the IOptionsAccessor from the DI container in a safe manner. This is
+                // neccessary to support design time scenarios where the application does not compile
+                // and consequently the startup cannot be executed to provide the actual configured host options.
+                optionsAccessor = serviceProvider.GetService<IOptionsAccessor<MvcRazorHostOptions>>();
+            }
+            catch
+            {
+                optionsAccessor = null;
+            }
+
+            return optionsAccessor == null ? new MvcRazorHostOptions() : optionsAccessor.Options;
         }
     }
 }
