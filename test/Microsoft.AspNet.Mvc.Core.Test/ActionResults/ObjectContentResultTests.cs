@@ -111,7 +111,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         {
             // Arrange
             var expectedContentType = "application/json;charset=utf-8";
-            var input = "testInput";
+
+            // non string value. 
+            var input = 123;
             var httpResponse = GetMockHttpResponse();
             var actionContext = CreateMockActionContext(httpResponse.Object);
             
@@ -119,6 +121,30 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var result = new ObjectResult(input);
             result.ContentTypes = new List<MediaTypeHeaderValue>();
             result.ContentTypes.Add(MediaTypeHeaderValue.Parse(expectedContentType));
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            httpResponse.VerifySet(r => r.ContentType = expectedContentType);
+        }
+
+        [Fact]
+        public async Task ObjectResult_WithSingleContentType_TheContentTypeIsIgnoredIfTheTypeIsString()
+        {
+            // Arrange
+            var contentType = "application/json;charset=utf-8";
+            var expectedContentType = "text/plain;charset=utf-8";
+
+            // string value. 
+            var input = "1234";
+            var httpResponse = GetMockHttpResponse();
+            var actionContext = CreateMockActionContext(httpResponse.Object);
+
+            // Set the content type property explicitly to a single value. 
+            var result = new ObjectResult(input);
+            result.ContentTypes = new List<MediaTypeHeaderValue>();
+            result.ContentTypes.Add(MediaTypeHeaderValue.Parse(contentType));
 
             // Act
             await result.ExecuteResultAsync(actionContext);
