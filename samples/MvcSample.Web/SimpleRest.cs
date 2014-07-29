@@ -14,7 +14,8 @@ namespace MvcSample.Web
         [HttpGet("[action]")]
         public string GetOtherThing()
         {
-            return "Get other thing";
+            // Will be GetOtherThing
+            return (string)ActionContext.RouteData.Values["action"];
         }
 
         [HttpGet("Link")]

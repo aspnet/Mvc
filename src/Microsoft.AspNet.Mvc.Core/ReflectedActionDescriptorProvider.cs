@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 #if K10
 using System.Reflection;
 #endif
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
@@ -117,6 +117,8 @@ namespace Microsoft.AspNet.Mvc
             var routeGroupsByTemplate = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var removalConstraints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            var routeTemplateErrors = new List<string>();
+
             foreach (var controller in model.Controllers)
             {
                 var controllerDescriptor = new ControllerDescriptor(controller.ControllerType);
@@ -215,9 +217,21 @@ namespace Microsoft.AspNet.Mvc
 
                         // Replaces tokens like [controller]/[action] in the route template with the actual values
                         // for this action.
-                        templateText = AttributeRouteTemplate.ReplaceTokens(
-                            templateText, 
-                            actionDescriptor.RouteValueDefaults);
+                        try
+                        {
+                            templateText = AttributeRouteTemplate.ReplaceTokens(
+                                templateText,
+                                actionDescriptor.RouteValueDefaults);
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            var message = Resources.FormatAttributeRoute_IndividualErrorMessage(
+                                actionDescriptor,
+                                Environment.NewLine,
+                                ex.Message);
+
+                            routeTemplateErrors.Add(message);
+                        }
 
                         actionDescriptor.AttributeRouteTemplate = templateText;
 
@@ -284,6 +298,14 @@ namespace Microsoft.AspNet.Mvc
                         }
                     }
                 }
+            }
+
+            if (routeTemplateErrors.Any())
+            {
+                var message = Resources.FormatAttributeRoute_AggregateErrorMessage(
+                    Environment.NewLine,
+                    string.Join(Environment.NewLine, routeTemplateErrors));
+                throw new InvalidOperationException(message);
             }
 
             return actions;

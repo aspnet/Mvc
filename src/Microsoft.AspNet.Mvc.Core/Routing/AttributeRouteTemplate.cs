@@ -104,11 +104,10 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             int? tokenStart = null;
 
-            var i = 0;
-            while (i < template.Length + 1)
+            // We'll run the loop one extra time with 'null' to detect the end of the string.
+            for (var i = 0; i <= template.Length; i++)
             {
-                // We'll run the loop one extra time with \0 to detect the end of the string.
-                var c = i < template.Length ? template[i] : '\0';
+                var c = i < template.Length ? (char?)template[i] : null;
                 switch (state)
                 {
                     case TemplateParserState.Plaintext:
@@ -122,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                             state = TemplateParserState.SeenRight;
                             break;
                         }
-                        else if (c == '\0')
+                        else if (c == null)
                         {
                             // We're at the end of the string, nothing left to do.
                             break;
@@ -148,7 +147,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                                 Resources.AttributeRoute_TokenReplacement_EmptyTokenNotAllowed);
                             throw new InvalidOperationException(message);
                         }
-                        else if (c == '\0')
+                        else if (c == null)
                         {
                             // This is a left-bracket at the end of the string.
                             var message = Resources.FormatAttributeRoute_TokenReplacement_InvalidSyntax(
@@ -170,7 +169,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                             state = TemplateParserState.Plaintext;
                             break;
                         }
-                        else if (c == '\0')
+                        else if (c == null)
                         {
                             // This is an imbalanced right-bracket at the end of the string.
                             var message = Resources.FormatAttributeRoute_TokenReplacement_InvalidSyntax(
@@ -197,7 +196,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                             state = TemplateParserState.InsideToken | TemplateParserState.SeenRight;
                             break;
                         }
-                        else if (c == '\0')
+                        else if (c == null)
                         {
                             // This is an unclosed replacement token
                             var message = Resources.FormatAttributeRoute_TokenReplacement_InvalidSyntax(
@@ -261,7 +260,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                             {
                                 state = TemplateParserState.SeenRight;
                             }
-                            else if (c == '\0')
+                            else if (c == null)
                             {
                                 state = TemplateParserState.Plaintext;
                             }
@@ -275,8 +274,6 @@ namespace Microsoft.AspNet.Mvc.Routing
                             break;
                         }
                 }
-
-                i++;
             }
 
             return builder.ToString();
