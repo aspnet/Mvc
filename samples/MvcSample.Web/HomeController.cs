@@ -91,8 +91,8 @@ namespace MvcSample.Web
             Context.Response.WriteAsync("Hello World raw");
         }
 
-        [Produces("application/json", "application/custom", "text/json", ExpectedRuntimeType = typeof(User))]
-        public User ReturnUser()
+        [Produces("application/json", "application/custom", "text/json", Type = typeof(User))]
+        public object ReturnUser()
         {
             return CreateUser();
         }

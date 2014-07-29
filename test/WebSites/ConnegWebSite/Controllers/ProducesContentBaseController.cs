@@ -5,7 +5,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace ConnegWebsite
 {
-    [ProducesContent("application/custom_ProducesContentBaseController")]
+    [Produces("application/custom_ProducesContentBaseController")]
     public class ProducesContentBaseController : Controller
     {
         public override void OnActionExecuted(ActionExecutedContext context)
@@ -21,7 +21,7 @@ namespace ConnegWebsite
             base.OnActionExecuted(context);
         }
 
-        [ProducesContent("application/custom_ProducesContentBaseController_Action")]
+        [Produces("application/custom_ProducesContentBaseController_Action")]
         public virtual string ReturnClassName()
         {
             // Should be written using the action's content type. Overriding the one at the class.

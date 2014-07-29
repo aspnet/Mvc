@@ -35,7 +35,7 @@ namespace ConnegWebsite
             return false;
         }
 
-        public override async Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
+        public override async Task WriteResponseBodyAsync(OutputFormatterContext context)
         {
             var response = context.ActionContext.HttpContext.Response;
             response.ContentType = ContentType + ";charset=utf-8";

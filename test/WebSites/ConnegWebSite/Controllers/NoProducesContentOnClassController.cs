@@ -18,7 +18,7 @@ namespace ConnegWebsite
             base.OnActionExecuted(context);
         }
 
-        [ProducesContent("application/custom_NoProducesContentOnClassController_Action")]
+        [Produces("application/custom_NoProducesContentOnClassController_Action")]
         public override string ReturnClassName()
         {
             // should be written using the formatter provided by this action and not the base action.

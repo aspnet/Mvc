@@ -5,7 +5,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace ConnegWebsite
 {
-    [ProducesContent("application/custom_ProducesContentOnClassController")]
+    [Produces("application/custom_ProducesContentOnClassController")]
     public class ProducesContentOnClassController : ProducesContentBaseController
     {
         public override void OnActionExecuted(ActionExecutedContext context)
@@ -34,7 +34,7 @@ namespace ConnegWebsite
             return "ProducesContentOnClassController";
         }
 
-        [ProducesContent("application/custom_ProducesContentOnClassController_Action")]
+        [Produces("application/custom_ProducesContentOnClassController_Action")]
         public override string ReturnClassNameContentTypeOnDerivedAction()
         {
             // should be written using the content defined at derived class's class.

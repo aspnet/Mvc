@@ -31,19 +31,19 @@ namespace ConnegWebsite
             return CreateUser();
         }
 
-        [ProducesContent("application/NoFormatter")]
+        [Produces("application/NoFormatter")]
         public User ReturnUser_NoMatchingFormatter()
         {
             return CreateUser();
         }
 
-        [ProducesContent("application/custom", "application/json", "text/json")]
+        [Produces("application/custom", "application/json", "text/json")]
         public User MultipleAllowedContentTypes()
         {
             return CreateUser();
         }
 
-        [ProducesContent("application/custom")]
+        [Produces("application/custom")]
         public string WriteUserUsingCustomFormat()
         {
             return "Written using custom format.";
