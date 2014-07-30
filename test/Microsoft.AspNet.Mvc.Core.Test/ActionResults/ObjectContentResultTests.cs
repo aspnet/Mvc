@@ -21,8 +21,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 {
     public class ObjectResultTests
     {
-
-
         public static IEnumerable<object[]> ContentTypes
         {
             get
