@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var expected = "The type 'System.String' must derive from " +
-                            "'Microsoft.AspNet.Mvc.OutputFormatter'.";
+                            "'Microsoft.AspNet.Mvc.IOutputFormatter'.";
 
             var type = typeof(string);
 

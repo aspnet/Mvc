@@ -62,6 +62,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IInputFormatter, JsonInputFormatter>();
             yield return describe.Transient<IInputFormatterProvider, TempInputFormatterProvider>();
 
+            yield return describe.Transient<IOutputFormattersProvider, DefaultOutputFormattersProvider>();
             yield return describe.Transient<IModelBindersProvider, DefaultModelBindersProvider>();
             yield return describe.Transient<ICompositeModelBinder, CompositeModelBinder>();
 

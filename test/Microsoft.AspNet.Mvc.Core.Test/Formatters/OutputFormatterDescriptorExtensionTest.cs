@@ -19,13 +19,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var collection = new List<OutputFormatterDescriptor>
             {
-                new OutputFormatterDescriptor(Mock.Of<OutputFormatter>()),
-                new OutputFormatterDescriptor(Mock.Of<OutputFormatter>())
+                new OutputFormatterDescriptor(Mock.Of<IOutputFormatter>()),
+                new OutputFormatterDescriptor(Mock.Of<IOutputFormatter>())
             };
 
             // Act & Assert
             Assert.Throws<ArgumentOutOfRangeException>("index", 
-                                                       () => collection.Insert(index, typeof(OutputFormatter)));
+                                                       () => collection.Insert(index, typeof(IOutputFormatter)));
         }
 
         [Theory]
@@ -36,10 +36,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var collection = new List<OutputFormatterDescriptor>
             {
-                new OutputFormatterDescriptor(Mock.Of<OutputFormatter>()),
-                new OutputFormatterDescriptor(Mock.Of<OutputFormatter>())
+                new OutputFormatterDescriptor(Mock.Of<IOutputFormatter>()),
+                new OutputFormatterDescriptor(Mock.Of<IOutputFormatter>())
             };
-            var formatter = Mock.Of<OutputFormatter>();
+            var formatter = Mock.Of<IOutputFormatter>();
 
             // Act & Assert
             Assert.Throws<ArgumentOutOfRangeException>("index", () => collection.Insert(index, formatter));
@@ -49,8 +49,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void OutputFormatterDescriptors_AddsTypesAndInstances()
         {
             // Arrange
-            var formatter1 = Mock.Of<OutputFormatter>();
-            var formatter2 = Mock.Of<OutputFormatter>();
+            var formatter1 = Mock.Of<IOutputFormatter>();
+            var formatter2 = Mock.Of<IOutputFormatter>();
             var type1 = typeof(JsonOutputFormatter);
             var type2 = typeof(OutputFormatter);
             var collection = new List<OutputFormatterDescriptor>();

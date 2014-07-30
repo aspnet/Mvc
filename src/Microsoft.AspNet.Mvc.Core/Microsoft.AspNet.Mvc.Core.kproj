@@ -31,9 +31,15 @@
     <Compile Include="ActionDescriptorsCollection.cs" />
     <Compile Include="ExpiringFileInfoCache.cs" />
     <Compile Include="Extensions\ViewEngineDescriptorExtensions.cs" />
+    <Compile Include="Formatters\DefaultOutputFormattersProvider.cs" />
+    <Compile Include="Formatters\IOutputFormatter.cs" />
+    <Compile Include="Formatters\StringWithQualityHeaderValueComparer.cs" />
     <Compile Include="IExpiringFileInfoCache.cs" />
+    <Compile Include="Formatters\IOutputFormattersProvider.cs" />
     <Compile Include="Formatters\OutputFormatterContext.cs" />
+    <Compile Include="Formatters\HeaderParsingHelpers.cs" />
     <Compile Include="Formatters\JsonOutputFormatter.cs" />
+    <Compile Include="Formatters\MediaTypeWithQualityHeaderValueComparer.cs" />
     <Compile Include="Formatters\OutputFormatter.cs" />
     <Compile Include="Formatters\OutputFormatterDescriptor.cs" />
     <Compile Include="OutputFormatterDescriptorExtensions.cs" />

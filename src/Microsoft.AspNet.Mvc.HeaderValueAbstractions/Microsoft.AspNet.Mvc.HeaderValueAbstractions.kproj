@@ -19,6 +19,7 @@
   <ItemGroup>
     <Compile Include="FormattingUtilities.cs" />
     <Compile Include="MediaTypeHeaderValue.cs" />
+    <Compile Include="MediaTypeHeaderValueRange.cs" />
     <Compile Include="MediaTypeWithQualityHeaderValue.cs" />
     <Compile Include="StringWithQualityHeaderValue.cs" />
   </ItemGroup>
