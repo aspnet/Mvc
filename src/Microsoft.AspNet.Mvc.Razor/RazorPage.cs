@@ -86,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public Action<TextWriter> BodyAction { get; set; }
+        public Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <inheritdoc />
         public Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
@@ -243,13 +243,13 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected virtual HelperResult RenderBody()
         {
-            if (BodyAction == null)
+            if (RenderBodyDelegate == null)
             {
                 throw new InvalidOperationException(Resources.FormatRenderBodyCannotBeCalled("RenderBody"));
             }
 
             _renderedBody = true;
-            return new HelperResult(BodyAction);
+            return new HelperResult(RenderBodyDelegate);
         }
 
         public void DefineSection(string name, HelperResult action)
@@ -314,7 +314,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // If BodyContent is set, ensure it was rendered.
-            if (BodyAction != null && !_renderedBody)
+            if (RenderBodyDelegate != null && !_renderedBody)
             {
                 // If a body was defined, then RenderBody should have been called.
                 throw new InvalidOperationException(Resources.FormatRenderBodyNotCalled("RenderBody"));

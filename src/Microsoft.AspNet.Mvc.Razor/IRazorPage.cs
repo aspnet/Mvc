@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets or sets the action invoked to render the body.
         /// </summary>
         // TODO: https://github.com/aspnet/Mvc/issues/845 tracks making this async
-        Action<TextWriter> BodyAction { get; set; }
+        Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <summary>
         /// Gets or sets the path of a layout page.

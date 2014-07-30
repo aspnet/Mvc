@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,14 +9,16 @@ using System.Diagnostics;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents a sequence of <see cref="BufferEntry"/> items and provides
-    /// an enumerator that iterates over the sequence.
+    /// Represents a hierarchy of strings and provides an enumerator that iterates over it as a sequence.
     /// </summary>
     public class BufferEntryCollection : IEnumerable<string>
     {
-        private readonly List<BufferEntry> _buffer = new List<BufferEntry>();
+        // Specifies the maximum size we'll allow for direct conversion from
+        // char arrays to string.
+        private const int MaxCharToStringLength = 1024;
+        private readonly List<object> _buffer = new List<object>();
 
-        public List<BufferEntry> BufferEntries
+        public IReadOnlyList<object> BufferEntries
         {
             get { return _buffer; }
         }
@@ -26,19 +29,38 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="value">The value to add.</param>
         public void Add(string value)
         {
-            _buffer.Add(new BufferEntry { Value = value });
+            _buffer.Add(value);
         }
 
         /// <summary>
         /// Adds a subarray of characters to the buffer.
         /// </summary>
         /// <param name="value">The array to add.</param>
-        /// <param name="start">The character position in the array at which to start copying data.</param>
-        /// <param name="length">The number of characters to copy.</param>
-        public void Add([NotNull] char[] value, int start, int length)
+        /// <param name="index">The character position in the array at which to start copying data.</param>
+        /// <param name="count">The number of characters to copy.</param>
+        public void Add([NotNull] char[] value, int index, int count)
         {
-            var stringValue = new string(value, start, length);
-            Add(stringValue);
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
+            if (value.Length - index < count)
+            {
+                throw new ArgumentOutOfRangeException("count");
+            }
+
+            while (count > 0)
+            {
+                // Split large char arrays into 1KB strings.
+                var currentCount = Math.Min(count, MaxCharToStringLength);
+                Add(new string(value, index, currentCount));
+                index += currentCount;
+                count -= currentCount;
+            }
         }
 
         /// <summary>
@@ -47,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="buffer">The buffer collection to add.</param>
         public void Add([NotNull] BufferEntryCollection buffer)
         {
-            _buffer.Add(new BufferEntry { Buffer = buffer });
+            _buffer.Add(buffer.BufferEntries);
         }
 
         /// <inheritdoc />
@@ -63,16 +85,16 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private sealed class BufferEntryEnumerator : IEnumerator<string>
         {
-            private readonly Stack<IEnumerator<BufferEntry>> _enumerators = new Stack<IEnumerator<BufferEntry>>();
-            private readonly List<BufferEntry> _initialBuffer;
+            private readonly Stack<IEnumerator<object>> _enumerators = new Stack<IEnumerator<object>>();
+            private readonly List<object> _initialBuffer;
 
-            public BufferEntryEnumerator(List<BufferEntry> buffer)
+            public BufferEntryEnumerator(List<object> buffer)
             {
                 _initialBuffer = buffer;
                 Reset();
             }
 
-            public IEnumerator<BufferEntry> CurrentEnumerator
+            public IEnumerator<object> CurrentEnumerator
             {
                 get
                 {
@@ -87,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     var currentEnumerator = CurrentEnumerator;
                     Debug.Assert(currentEnumerator != null);
 
-                    return currentEnumerator.Current.Value;
+                    return (string)currentEnumerator.Current;
                 }
             }
 
@@ -104,11 +126,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var currentEnumerator = CurrentEnumerator;
                 if (currentEnumerator.MoveNext())
                 {
-                    // If the next item is a collection, recursively call in to it.
-                    var buffer = currentEnumerator.Current.Buffer;
+                    var current = currentEnumerator.Current;
+                    var buffer = current as List<object>;
                     if (buffer != null)
                     {
-                        var enumerator = buffer.BufferEntries.GetEnumerator();
+                        // If the next item is a collection, recursively call in to it.
+                        var enumerator = buffer.GetEnumerator();
                         _enumerators.Push(enumerator);
                         return MoveNext();
                     }
@@ -133,15 +156,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 DisposeEnumerators();
 
-                _enumerators.Clear();
                 _enumerators.Push(_initialBuffer.GetEnumerator());
             }
 
             private void DisposeEnumerators()
             {
-                foreach (var buffer in _enumerators)
+                while (_enumerators.Count > 0)
                 {
-                    buffer.Dispose();
+                    _enumerators.Pop().Dispose();
                 }
             }
 

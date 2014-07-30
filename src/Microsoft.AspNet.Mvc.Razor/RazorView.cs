@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
-                layoutPage.BodyAction = bodyWriter.CopyTo;
+                layoutPage.RenderBodyDelegate = bodyWriter.CopyTo;
                 bodyWriter = await RenderPageAsync(layoutPage, context);
 
                 // Verify that RenderBody is called, or that RenderSection is called for all sections

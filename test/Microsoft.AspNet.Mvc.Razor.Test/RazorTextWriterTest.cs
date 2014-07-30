@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.Write('m');
 
             // Assert
-            Assert.Equal(expected, writer.Buffer.BufferEntries.Select(v => v.Value));
+            Assert.Equal(expected, writer.Buffer.BufferEntries);
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.WriteLine(3L);
 
             // Assert
-            Assert.Equal(expected, writer.Buffer.BufferEntries.Select(v => v.Value));
+            Assert.Equal(expected, writer.Buffer.BufferEntries);
         }
 
         [Fact]
@@ -69,10 +69,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             // Assert
             var buffer = writer.Buffer.BufferEntries;
             Assert.Equal(4, buffer.Count);
-            Assert.Equal("bcd", buffer[0].Value);
-            Assert.Equal("ef", buffer[1].Value);
-            Assert.Equal("j", buffer[2].Value);
-            Assert.Equal(Environment.NewLine, buffer[3].Value);
+            Assert.Equal("bcd", buffer[0]);
+            Assert.Equal("ef", buffer[1]);
+            Assert.Equal("j", buffer[2]);
+            Assert.Equal(Environment.NewLine, buffer[3]);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync();
 
             // Assert
-            var actual = writer.Buffer.BufferEntries.Select(v => v.Value);
+            var actual = writer.Buffer.BufferEntries;
             Assert.Equal(new[] { newLine, newLine }, actual);
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(input4);
 
             // Assert
-            var actual = writer.Buffer.BufferEntries.Select(v => v.Value);
+            var actual = writer.Buffer.BufferEntries;
             Assert.Equal(new[] { input1, input2, newLine, input3, input4, newLine }, actual);
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             // Make sure content was written to the source.
             Assert.Equal(2, source.Buffer.BufferEntries.Count);
             Assert.Equal(1, target.Buffer.BufferEntries.Count);
-            Assert.Same(source.Buffer, target.Buffer.BufferEntries[0].Buffer);
+            Assert.Same(source.Buffer.BufferEntries, target.Buffer.BufferEntries[0]);
         }
 
         [Fact]
@@ -165,7 +165,7 @@ abc";
             // Assert
             Assert.Equal(3, source.Buffer.BufferEntries.Count);
             Assert.Equal(1, target.Buffer.BufferEntries.Count);
-            Assert.Same(source.Buffer, target.Buffer.BufferEntries[0].Buffer);
+            Assert.Same(source.Buffer.BufferEntries, target.Buffer.BufferEntries[0]);
         }
 
         [Fact]
@@ -179,7 +179,7 @@ abc";
 
             // Act
             source.Write("Hello ");
-            await source.WriteLineAsync(new[] { 'w', 'o', 'r', 'l', 'd'});
+            await source.WriteLineAsync(new[] { 'w', 'o', 'r', 'l', 'd' });
             await source.CopyToAsync(target);
 
             // Assert

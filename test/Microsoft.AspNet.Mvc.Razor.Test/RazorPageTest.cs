@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 { "baz", new HelperResult(writer => { }) }
             };
-            page.BodyAction = CreateBodyAction("body-content");
+            page.RenderBodyDelegate = CreateBodyAction("body-content");
 
             // Act
             await page.ExecuteAsync();
@@ -146,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 { "baz", new HelperResult(writer => { }) }
             };
-            page.BodyAction = CreateBodyAction("body-content");
+            page.RenderBodyDelegate = CreateBodyAction("body-content");
 
             // Act
             await page.ExecuteAsync();
@@ -211,7 +211,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(v =>
             {
             });
-            page.BodyAction = CreateBodyAction("some content");
+            page.RenderBodyDelegate = CreateBodyAction("some content");
 
             // Act
             await page.ExecuteAsync();
@@ -240,7 +240,7 @@ Layout end
                 v.WriteLiteral("Layout end" + Environment.NewLine);
 
             });
-            page.BodyAction = CreateBodyAction("body content" + Environment.NewLine);
+            page.RenderBodyDelegate = CreateBodyAction("body content" + Environment.NewLine);
             page.PreviousSectionWriters = new Dictionary<string, HelperResult>
             {
                 {

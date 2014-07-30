@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 throw new ArgumentOutOfRangeException("count");
             }
-            if (index + count > buffer.Length)
+            if (buffer.Length - index < count)
             {
                 throw new ArgumentOutOfRangeException("count");
             }
