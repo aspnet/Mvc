@@ -6,13 +6,20 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc
 {
     public class TempInputFormatterProvider : IInputFormatterProvider
     {
-        private IInputFormatter[] _formatters;
+        private IEnumerable<IInputFormatter> _formatters;
+        private IInputFormattersProvider _defaultFormattersProvider;
+
+        public TempInputFormatterProvider([NotNull] IInputFormattersProvider formattersProvider)
+        {
+            _defaultFormattersProvider = formattersProvider;
+        }
 
         public IInputFormatter GetInputFormatter(InputFormatterProviderContext context)
         {
@@ -22,9 +29,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             if (formatters == null)
             {
-                formatters = context.HttpContext.RequestServices.GetService<IEnumerable<IInputFormatter>>()
-                                    .ToArray();
-
+                formatters = _defaultFormattersProvider.InputFormatters;
                 _formatters = formatters;
             }
 
@@ -37,8 +42,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             foreach (var formatter in formatters)
             {
-                formatter.SupportedMediaTypes
-                                  .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
+                var formatterMatched = formatter.SupportedMediaTypes
+                                                .Any(supportedMediaType => 
+                                                        supportedMediaType.IsSubsetOf(contentType));
+                if (formatterMatched)
+                {
+                    return formatter;
+                }
             }
 
             // TODO: Http exception

@@ -49,7 +49,6 @@
     <Compile Include="Formatters\InputFormatterContext.cs" />
     <Compile Include="Formatters\InputFormatterProviderContext.cs" />
     <Compile Include="Formatters\JsonInputFormatter.cs" />
-    <Compile Include="Formatters\TempInputFormatterProvider.cs" />
     <Compile Include="Formatters\XmlSerializerInputFormatter.cs" />
     <Compile Include="Internal\CollectionExtensions.cs" />
     <Compile Include="Internal\CollectionModelBinderUtil.cs" />

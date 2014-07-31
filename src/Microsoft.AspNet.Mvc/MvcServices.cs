@@ -71,6 +71,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IValueProviderFactoryProvider, DefaultValueProviderFactoryProvider>();
             yield return describe.Scoped<ICompositeValueProviderFactory, CompositeValueProviderFactory>();
             yield return describe.Transient<IOutputFormattersProvider, DefaultOutputFormattersProvider>();
+            yield return describe.Transient<IInputFormattersProvider, DefaultInputFormattersProvider>();
 
             yield return describe.Transient<INestedProvider<FilterProviderContext>, DefaultFilterProvider>();
 

@@ -8,7 +8,7 @@ using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public abstract class InputFormatter
+    public abstract class InputFormatter : IInputFormatter
     {
         /// <inheritdoc />
         public IList<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
