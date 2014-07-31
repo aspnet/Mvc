@@ -360,7 +360,53 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 result.RouteValues);
         }
 
-		[Fact]
+        [Fact]
+        public async Task AttributeRoutedAction_OverrideActionOverridesOrderOnController()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Team/5");
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Contains("/Team/5", result.ExpectedUrls);
+            Assert.Equal("Team", result.Controller);
+            Assert.Equal("GetOrganization", result.Action);
+
+            Assert.Contains(
+                new KeyValuePair<string, object>("teamId", "5"),
+                result.RouteValues);
+        }
+
+        [Fact]
+        public async Task AttributeRoutedAction_OrderOnActionOverridesOrderOnController()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Teams");
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Contains("/Teams", result.ExpectedUrls);
+            Assert.Equal("Team", result.Controller);
+            Assert.Equal("GetOrganizations", result.Action);
+        }
+
+        [Fact]
         public async Task AttributeRoutedAction_LinkToSelf()
         {
             // Arrange

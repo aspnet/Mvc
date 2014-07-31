@@ -40,10 +40,12 @@ namespace Microsoft.AspNet.Mvc.Routing
                     Binder = new TemplateBinder(routeInfo.ParsedTemplate, routeInfo.Defaults),
                     Defaults = routeInfo.Defaults,
                     Constraints = routeInfo.Constraints,
+                    Order = routeInfo.Order,
                     Precedence = routeInfo.Precedence,
                     RequiredLinkValues = routeInfo.ActionDescriptor.RouteValueDefaults,
                     RouteGroup = routeInfo.RouteGroup,
                     Template = routeInfo.ParsedTemplate,
+                    TemplateText = routeInfo.RouteTemplate
                 });
             }
 
@@ -56,6 +58,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             {
                 matchingEntries.Add(new AttributeRouteMatchingEntry()
                 {
+                    Order = routeInfo.Order,
                     Precedence = routeInfo.Precedence,
                     Route = new TemplateRoute(
                         target,
@@ -200,38 +203,42 @@ namespace Microsoft.AspNet.Mvc.Routing
                         return routeInfo;
                     }
                 }
-        }
+            }
 
-        routeInfo.Precedence = AttributeRoutePrecedence.Compute(routeInfo.ParsedTemplate);
+            routeInfo.Order = action.AttributeRouteInfo.Order;
+
+            routeInfo.Precedence = AttributeRoutePrecedence.Compute(routeInfo.ParsedTemplate);
 
             routeInfo.Constraints = routeInfo.ParsedTemplate.Parameters
                 .Where(p => p.InlineConstraint != null)
                 .ToDictionary(p => p.Name, p => p.InlineConstraint, StringComparer.OrdinalIgnoreCase);
 
-        routeInfo.Defaults = routeInfo.ParsedTemplate.Parameters
-            .Where(p => p.DefaultValue != null)
-                .ToDictionary(p => p.Name, p => p.DefaultValue, StringComparer.OrdinalIgnoreCase);
+            routeInfo.Defaults = routeInfo.ParsedTemplate.Parameters
+                .Where(p => p.DefaultValue != null)
+                    .ToDictionary(p => p.Name, p => p.DefaultValue, StringComparer.OrdinalIgnoreCase);
 
             return routeInfo;
         }
 
-    private class RouteInfo
-    {
-        public ActionDescriptor ActionDescriptor { get; set; }
+        private class RouteInfo
+        {
+            public ActionDescriptor ActionDescriptor { get; set; }
 
-        public IDictionary<string, IRouteConstraint> Constraints { get; set; }
+            public IDictionary<string, IRouteConstraint> Constraints { get; set; }
 
-        public IDictionary<string, object> Defaults { get; set; }
+            public IDictionary<string, object> Defaults { get; set; }
 
-        public string ErrorMessage { get; set; }
+            public string ErrorMessage { get; set; }
 
-        public Template ParsedTemplate { get; set; }
+            public Template ParsedTemplate { get; set; }
 
-        public decimal Precedence { get; set; }
+            public int Order { get; set; }
 
-        public string RouteGroup { get; set; }
+            public decimal Precedence { get; set; }
 
-        public string RouteTemplate { get; set; }
+            public string RouteGroup { get; set; }
+
+            public string RouteTemplate { get; set; }
+        }
     }
-}
 }

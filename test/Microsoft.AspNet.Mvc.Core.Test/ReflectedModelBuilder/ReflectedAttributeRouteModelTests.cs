@@ -315,6 +315,21 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
         }
 
         [Theory]
+        [InlineData(null, null, null)]
+        [InlineData(null, 1, 1)]
+        [InlineData(2, 1, 1)]
+        [InlineData(1, 2, 2)]
+        [InlineData(1, null, 1)]
+        public void Combine_Orders(int? left, int? right, int? expected)
+        {
+            // Arrange & Act
+            var combined = ReflectedAttributeRouteModel.CombineOrders(left, right);
+
+            // Assert
+            Assert.Equal(expected, combined);
+        }
+
+        [Theory]
         [MemberData("ValidReflectedAttributeRouteModelsTestData")]
         public void Combine_ValidReflectedAttributeRouteModels(
             ReflectedAttributeRouteModel left,
@@ -342,6 +357,39 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
             Assert.Null(combined);
         }
 
+        [Theory]
+        [MemberData("RightOverridesReflectedAttributeRouteModel")]
+        public void Combine_RightOverridesReflectedAttributeRouteModel(
+            ReflectedAttributeRouteModel left,
+            ReflectedAttributeRouteModel right)
+        {
+            // Arrange
+            var expectedTemplate = ReflectedAttributeRouteModel.CombineTemplates(null, right.Template);
+
+            // Act
+            var combined = ReflectedAttributeRouteModel.CombineReflectedAttributeRouteModel(left, right);
+
+            // Assert
+            Assert.NotNull(combined);
+            Assert.Equal(expectedTemplate, combined.Template);
+            Assert.Equal(combined.Order, right.Order);
+        }
+
+        public static IEnumerable<object[]> RightOverridesReflectedAttributeRouteModel
+        {
+            get
+            {
+                var data = new TheoryData<ReflectedAttributeRouteModel, ReflectedAttributeRouteModel>();
+                var leftModel = Create("Home");
+                leftModel.Order = 3;
+
+                data.Add(leftModel, Create("/"));
+                data.Add(leftModel, Create("~/"));
+
+                return data;
+            }
+        }
+
         public static IEnumerable<object[]> NullOrNullTemplateReflectedAttributeRouteModelTestData
         {
             get
@@ -356,7 +404,7 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
             }
         }
 
-        public static IEnumerable<object []> ValidReflectedAttributeRouteModelsTestData
+        public static IEnumerable<object[]> ValidReflectedAttributeRouteModelsTestData
         {
             get
             {

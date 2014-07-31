@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             {
                 new RouteDataActionConstraint(AttributeRouting.RouteGroupKey, "group"),
             };
-            action.AttributeRouteInfo.Template = "{controller}/{action}";
+            action.AttributeRouteInfo = new AttributeRouteInfo { Template = "{controller}/{action}" };
             action.RouteValueDefaults.Add("controller", "Home");
             action.RouteValueDefaults.Add("action", "Index");
 
