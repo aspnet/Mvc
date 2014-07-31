@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly string _appRoot;
 
         public RazorCompilationService(IApplicationEnvironment environment,
-                                       ICompilationService compilationService, 
+                                       ICompilationService compilationService,
                                        IMvcRazorHost razorHost)
         {
             _environment = environment;
@@ -48,10 +48,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (!results.Success)
             {
                 var messages = results.ParserErrors.Select(e => new CompilationMessage(e.Message));
-                throw new CompilationFailedException(file.PhysicalPath, results.GeneratedCode, messages);
+                return CompilationResult.Failed(file, results.GeneratedCode, messages, additionalInfo: null);
             }
 
-            return _baseCompilationService.Compile(file.PhysicalPath, results.GeneratedCode);
+            return _baseCompilationService.Compile(file, results.GeneratedCode);
         }
 
         private static string EnsureTrailingSlash([NotNull]string path)

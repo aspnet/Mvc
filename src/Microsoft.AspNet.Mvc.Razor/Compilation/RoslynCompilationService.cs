@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNet.FileSystems;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -45,10 +46,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         }
 
         /// <inheritdoc />
-        public CompilationResult Compile(string path, string content)
+        public CompilationResult Compile(IFileInfo fileInfo, string compilationContent)
         {
-            var sourceText = SourceText.From(content, Encoding.UTF8);
-            var syntaxTrees = new[] { CSharpSyntaxTree.ParseText(sourceText, path: path) };
+            var sourceText = SourceText.From(compilationContent, Encoding.UTF8);
+            var syntaxTrees = new[] { CSharpSyntaxTree.ParseText(sourceText, path: fileInfo.PhysicalPath) };
             var targetFramework = _environment.TargetFramework;
 
             var references = GetApplicationReferences();
@@ -86,9 +87,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
 
                         var additionalInfo = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                         {
-                            {  CompilationResultDiagnosticsKey, result.Diagnostics }
+                            { CompilationResultDiagnosticsKey, result.Diagnostics }
                         };
-                        return CompilationResult.Failed(path, content, messages, additionalInfo);
+                        return CompilationResult.Failed(fileInfo, compilationContent, messages, additionalInfo);
                     }
 
                     Assembly assembly;

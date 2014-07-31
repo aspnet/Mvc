@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using Microsoft.AspNet.FileSystems;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -20,7 +22,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the path of the file that was compiled.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string FilePath
+        {
+            get { return File.PhysicalPath; }
+        }
 
         /// <summary>
         /// Gets a sequence of <see cref="CompilationMessage"/> encountered during compilation.
@@ -42,7 +47,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the content that was compiled.
         /// </summary>
-        public string CompiledContent { get; private set; }
+        /// <remarks>
+        /// For a Razor page, <see cref="FileContent"/> represents the actual contents on disk and
+        /// CompilationContent represents the transformed C# content.
+        /// </remarks>
+        public string CompilationContent { get; private set; }
 
         /// <summary>
         /// Gets the type produced as a result of compilation.
@@ -61,24 +70,26 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
+        private IFileInfo File { get; set; }
+
         /// <summary>
         /// Creates a <see cref="CompilationResult"/> that represents a failure in compilation.
         /// </summary>
-        /// <param name="filePath">The path of the file that was compiled.</param>
-        /// <param name="compiledContent">The content that was compiled.</param>
+        /// <param name="file">The <see cref="IFileInfo"/> for the file that was compiled.</param>
+        /// <param name="compilationContent">The content that was compiled.</param>
         /// <param name="messages">The sequence of failure messages encountered during compilation.</param>
         /// <param name="additionalInfo">Additional info about the compilation.</param>
         /// <returns>A CompilationResult instance representing a failure.</returns>
-        public static CompilationResult Failed([NotNull] string filePath,
-                                               [NotNull] string compiledContent,
+        public static CompilationResult Failed([NotNull] IFileInfo file,
+                                               [NotNull] string compilationContent,
                                                [NotNull] IEnumerable<CompilationMessage> messages,
                                                IDictionary<string, object> additionalInfo)
         {
             return new CompilationResult
             {
-                CompiledContent = compiledContent,
+                File = file,
+                CompilationContent = compilationContent,
                 Messages = messages,
-                FilePath = filePath,
                 AdditionalInfo = additionalInfo
             };
         }
@@ -98,7 +109,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private CompilationFailedException CreateCompilationFailedException()
         {
-            var exception = new CompilationFailedException(FilePath, CompiledContent, Messages);
+            var fileContent = ReadContent(File);
+            var exception = new CompilationFailedException(FilePath, fileContent, CompilationContent, Messages);
             if (AdditionalInfo != null)
             {
                 foreach (var item in AdditionalInfo)
@@ -108,6 +120,23 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             return exception;
+        }
+
+        private static string ReadContent(IFileInfo file)
+        {
+            try
+            {
+                using (var stream = file.CreateReadStream())
+                using (var reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+            catch (IOException)
+            {
+                // Don't throw if reading the file fails.
+                return string.Empty;
+            }
         }
     }
 }

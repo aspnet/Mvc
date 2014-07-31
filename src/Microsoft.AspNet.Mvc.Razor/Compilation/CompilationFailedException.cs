@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.FileSystems;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -15,18 +16,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
         /// </summary>
-        /// <param name="filePath">The path to the file that was compiled.</param>
+        /// <param name="filePath">The file that was compiled.</param>
+        /// <param name="fileContent">The contents of the file.</param>
         /// <param name="compiledCode">The contents that were compiled.</param>
-        /// <param name="messages">A sequence of <see cref="CompilationMessage"/> encountered during compilation.</param>
+        /// <param name="messages">A sequence of <see cref="CompilationMessage"/> encountered
+        /// during compilation.</param>
         public CompilationFailedException(
                 [NotNull] string filePath,
+                [NotNull] string fileContent,
                 [NotNull] string compiledCode,
                 [NotNull] IEnumerable<CompilationMessage> messages)
             : base(FormatMessage(messages))
         {
             FilePath = filePath;
-            Messages = messages.ToList();
+            FileContent = fileContent;
             CompiledContent = compiledCode;
+            Messages = messages.ToList();
         }
 
         /// <summary>
@@ -38,6 +43,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets a sequence of <see cref="CompilationMessage"/> encountered during compilation.
         /// </summary>
         public IEnumerable<CompilationMessage> Messages { get; private set; }
+
+        /// <summary>
+        /// Gets the content of the file.
+        /// </summary>
+        public string FileContent { get; private set; }
 
         /// <summary>
         /// Gets the content that was compiled.

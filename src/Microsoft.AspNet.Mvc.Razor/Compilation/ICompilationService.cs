@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.FileSystems;
+
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Provides methods for compilation.
+    /// Provides methods for compilation of a Razor page.
     /// </summary>
     public interface ICompilationService
     {
@@ -12,10 +14,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Compiles content and returns the result of compilation.
         /// </summary>
         /// <param name="path">The path where the source file is located.</param>
-        /// <param name="content">The contents to be compiled.</param>
+        /// <param name="compilationContent">The contents to be compiled.</param>
+        /// <param name="pageContent">The contents of the page.</param>
         /// <returns>
-        /// A CompilationResult representing the result of compilation.
+        /// A <see cref="CompilationResult"/> representing the result of compilation.
         /// </returns>
-        CompilationResult Compile(string path, string content);
+        CompilationResult Compile(IFileInfo fileInfo, string compilationContent);
     }
 }

@@ -25,9 +25,10 @@
     <Compile Include="BufferEntryCollection.cs" />
     <Compile Include="Compilation\CompilationFailedException.cs" />
     <Compile Include="Compilation\CompilationMessage.cs" />
-    <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\CompilerCache.cs" />
     <Compile Include="Compilation\ICompilationService.cs" />
+    <Compile Include="Compilation\CompilationFailedException.cs" />
+    <Compile Include="Compilation\CompilationResult.cs" />
     <Compile Include="Compilation\RoslynCompilationService.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="IRazorPage.cs" />
