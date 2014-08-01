@@ -1,4 +1,3 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -28,8 +27,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: false);
+                                     page);
             var viewContext = CreateViewContext(view);
             var expected = viewContext.Writer;
 
@@ -56,8 +54,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: false);
+                                     page);
             var viewContext = CreateViewContext(view);
             var expectedWriter = viewContext.Writer;
             activator.Setup(a => a.Activate(page, It.IsAny<ViewContext>()))
@@ -87,8 +84,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: false);
+                                     page);
             var viewContext = CreateViewContext(view);
 
             // Act
@@ -110,8 +106,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      viewStartProvider,
-                                     page,
-                                     executeViewHierarchy: false);
+                                     page);
             var viewContext = CreateViewContext(view);
 
             // Act
@@ -134,8 +129,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
             var original = viewContext.Writer;
 
@@ -158,8 +155,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
             var original = viewContext.Writer;
 
@@ -184,8 +183,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
+                                     
             var viewContext = CreateViewContext(view);
 
             // Act
@@ -226,8 +228,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(viewStart1, viewStart2),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
 
             // Act
@@ -281,8 +285,10 @@ foot-content";
             var view = new RazorView(pageFactory.Object,
                                      activator.Object,
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
 
             // Act
@@ -315,8 +321,10 @@ foot-content";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
 
             // Act and Assert
@@ -342,8 +350,10 @@ foot-content";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                         ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
 
             // Act and Assert
@@ -397,8 +407,10 @@ body-content";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
-                                     page,
-                                     executeViewHierarchy: true);
+                                     page)
+                                     {
+                                        ExecuteViewHierarchy = true
+                                     };
             var viewContext = CreateViewContext(view);
 
             // Act
