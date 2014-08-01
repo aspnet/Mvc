@@ -120,8 +120,8 @@ MyType2 @MyPropertyName2
             };
             host.NamespaceImports.Clear();
             var engine = new RazorTemplateEngine(host);
-            var source = ReadResource("TestFiles/Input/Inject.cshtml");
-            var expectedCode = ReadResource("TestFiles/Output/Inject.cs");
+            var source = ReadResource("Host/TestFiles/Input/Inject.cshtml");
+            var expectedCode = ReadResource("Host/TestFiles/Output/Inject.cs");
             var expectedLineMappings = new List<LineMapping>
             {
                 BuildLineMapping(1, 0, 1, 32, 3, 0, 17),
@@ -152,8 +152,8 @@ MyType2 @MyPropertyName2
             };
             host.NamespaceImports.Clear();
             var engine = new RazorTemplateEngine(host);
-            var source = ReadResource("TestFiles/Input/InjectWithModel.cshtml");
-            var expectedCode = ReadResource("TestFiles/Output/InjectWithModel.cs");
+            var source = ReadResource("Host/TestFiles/Input/InjectWithModel.cshtml");
+            var expectedCode = ReadResource("Host/TestFiles/Output/InjectWithModel.cs");
             var expectedLineMappings = new List<LineMapping>
             {
                 BuildLineMapping(7, 0, 7, 126, 6, 7, 7),

@@ -10,7 +10,6 @@
     "Microsoft.AspNet.Mvc.Common" : "",
     "Microsoft.AspNet.Mvc.Core" : "",
     "Microsoft.AspNet.Mvc.ModelBinding" : "",
-    "Microsoft.AspNet.Mvc.Razor.Host" : "",
     "Microsoft.AspNet.Razor": "4.0.0-*",
     "Microsoft.Framework.DependencyInjection": "1.0.0-*",
     "Microsoft.Framework.Runtime.Interfaces":  "1.0.0-*"

@@ -18,9 +18,24 @@
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Host\TestFiles\Input\Inject.cshtml" />
+    <Content Include="Host\TestFiles\Input\InjectWithModel.cshtml" />
+    <Content Include="Host\TestFiles\Input\Model.cshtml" />
     <Content Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Host\InjectChunkVisitorTest.cs" />
+    <Compile Include="Host\ModelChunkVisitorTest.cs" />
+    <Compile Include="Host\MvcCSharpRazorCodeParserTest.cs" />
+    <Compile Include="Host\SpanFactory\RawTextSymbol.cs" />
+    <Compile Include="Host\SpanFactory\SpanConstructor.cs" />
+    <Compile Include="Host\SpanFactory\SpanFactory.cs" />
+    <Compile Include="Host\SpanFactory\SpanFactoryExtensions.cs" />
+    <Compile Include="Host\SpanFactory\UnclassifiedSpanConstructor.cs" />
+    <Compile Include="Host\StringTextBuffer.cs" />
+    <Compile Include="Host\TestFiles\Output\Inject.cs" />
+    <Compile Include="Host\TestFiles\Output\InjectWithModel.cs" />
+    <Compile Include="Host\TestFiles\Output\Model.cs" />
     <Compile Include="MvcRazorCodeParserTest.cs" />
     <Compile Include="RazorCompilationServiceTest.cs" />
     <Compile Include="RazorPageActivatorTest.cs" />

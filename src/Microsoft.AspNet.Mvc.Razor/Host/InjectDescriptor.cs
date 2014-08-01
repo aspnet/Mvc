@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Mvc.Razor.Host;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -15,12 +14,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (string.IsNullOrEmpty(typeName))
             {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpy, "typeName");
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "typeName");
             }
 
             if (string.IsNullOrEmpty(memberName))
             {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpy, "memberName");
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "memberName");
             }
 
             TypeName = typeName;

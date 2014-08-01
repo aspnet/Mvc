@@ -10,7 +10,6 @@
     "Microsoft.AspNet.Mvc.Core": "",
     "Microsoft.AspNet.Mvc.ModelBinding": "",
     "Microsoft.AspNet.Mvc.Razor": "",
-    "Microsoft.AspNet.Mvc.Razor.Host": "",
     "Microsoft.AspNet.Razor" : "4.0.0-*",
     "Microsoft.AspNet.RequestContainer": "1.0.0-*",
     "Microsoft.AspNet.Routing" : "1.0.0-*",
