@@ -33,11 +33,17 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // FOR RIGHT NOW - this is just an array of regular template routes. We'll follow up by implementing
             // a good data-structure here. See #740
-            _matchingRoutes = matchingEntries.OrderBy(e => e.Precedence).Select(e => e.Route).ToArray();
+            // Order by Order, then precedence, and then finally by template in order to provide a stable routing
+            // order for templates with same order and precedence.
+            _matchingRoutes = matchingEntries.OrderBy(o => o.Order)
+                .ThenBy(e => e.Precedence)
+                .ThenBy(e => e.Route.RouteTemplate, StringComparer.Ordinal).Select(e => e.Route).ToArray();
 
             // FOR RIGHT NOW - this is just an array of entries. We'll follow up by implementing
             // a good data-structure here. See #741
-            _linkGenerationEntries = linkGenerationEntries.OrderBy(e => e.Precedence).ToArray();
+            _linkGenerationEntries = linkGenerationEntries.OrderBy(o => o.Order)
+                .ThenBy(e => e.Precedence)
+                .ThenBy(e => e.TemplateText, StringComparer.Ordinal).ToArray();
         }
 
         /// <inheritdoc />

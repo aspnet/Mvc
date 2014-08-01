@@ -12,6 +12,8 @@ namespace Microsoft.AspNet.Mvc
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class RouteAttribute : Attribute, IRouteTemplateProvider
     {
+        private int? _order;
+
         /// <summary>
         /// Creates a new <see cref="RouteAttribute"/> with the given route template.
         /// </summary>
@@ -21,7 +23,39 @@ namespace Microsoft.AspNet.Mvc
             Template = template;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The route template. May be null.
+        /// </summary>
         public string Template { get; private set; }
+
+        /// <summary>
+        /// Gets the route order. The order determines the order of route execution. Routes with a lower order
+        /// value are tried first. If an action defines a route by providing an <see cref="IRouteTemplateProvider"/>
+        /// with a non <c>null</c> order, that order is used instead of this value. If neither the action nor the
+        /// controller defines an order, a default value of 0 is used.
+        /// </summary>
+        public int Order
+        {
+            get { return _order ?? 0; }
+            set { _order = value; }
+        }
+
+        /// <inheritdoc />
+        string IRouteTemplateProvider.Template
+        {
+            get
+            {
+                return Template;
+            }
+        }
+
+        /// <inheritdoc />
+        int? IRouteTemplateProvider.Order
+        {
+            get
+            {
+                return _order;
+            }
+        }
     }
 }

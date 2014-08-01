@@ -5,21 +5,71 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Routing;
 
-namespace Microsoft.AspNet.Mvc.Routing
+namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
 {
-    /// <summary>
-    /// Functionality supporting route templates for attribute routes.
-    /// </summary>
-    public static class AttributeRouteTemplate
+    public class ReflectedAttributeRouteModel
     {
+        private static readonly ReflectedAttributeRouteModel _default = new ReflectedAttributeRouteModel();
+
+        public ReflectedAttributeRouteModel()
+        {
+        }
+
+        public ReflectedAttributeRouteModel([NotNull] IRouteTemplateProvider templateProvider)
+        {
+            Template = templateProvider.Template;
+            Order = templateProvider.Order;
+        }
+
+        public string Template { get; set; }
+
+        public int? Order { get; set; }
+
         /// <summary>
-        /// Combines attribute routing templates.
+        /// Combines two <see cref="ReflectedAttributeRouteModel"/> instances and returns
+        /// a new <see cref="ReflectedAttributeRouteModel"/> instance with the result.
         /// </summary>
-        /// <param name="left">The left template.</param>
-        /// <param name="right">The right template.</param>
-        /// <returns>A combined template.</returns>
-        public static string Combine(string left, string right)
+        /// <param name="left">The left <see cref="ReflectedAttributeRouteModel"/>.</param>
+        /// <param name="right">The right <see cref="ReflectedAttributeRouteModel"/>.</param>
+        /// <returns>A new instance of <see cref="ReflectedAttributeRouteModel"/> that represents the
+        /// combination of the two <see cref="ReflectedAttributeRouteModel"/> instances or <c>null</c> if both
+        /// parameters are <c>null</c>.</returns>
+        public static ReflectedAttributeRouteModel CombineReflectedAttributeRouteModel(
+            ReflectedAttributeRouteModel left,
+            ReflectedAttributeRouteModel right)
+        {
+            right = right ?? _default;
+
+            // If the right template is an override template (starts with / or ~/)
+            // we ignore the values from left.
+            if (left == null || IsOverridePattern(right.Template))
+            {
+                left = _default;
+            }
+
+            var combinedTemplate = CombineTemplates(left.Template, right.Template);
+
+            // The action is not attribute routed.
+            if (combinedTemplate == null)
+            {
+                return null;
+            }
+
+            return new ReflectedAttributeRouteModel()
+            {
+                Template = combinedTemplate,
+                Order = CombineOrders(left.Order, right.Order)
+            };
+        }
+
+        internal static int? CombineOrders(int? left, int? right)
+        {
+            return right ?? left;
+        }
+
+        internal static string CombineTemplates(string left, string right)
         {
             var result = CombineCore(left, right);
             return CleanTemplate(result);
@@ -31,19 +81,11 @@ namespace Microsoft.AspNet.Mvc.Routing
             {
                 return null;
             }
-            else if (left == null)
-            {
-                return right;
-            }
             else if (right == null)
             {
                 return left;
             }
-
-            if (right.StartsWith("~/", StringComparison.OrdinalIgnoreCase) ||
-                right.StartsWith("/", StringComparison.OrdinalIgnoreCase) ||
-                left.Equals("~/", StringComparison.OrdinalIgnoreCase) ||
-                left.Equals("/", StringComparison.OrdinalIgnoreCase))
+            else if (left == null || IsEmptySegment(left) || IsOverridePattern(right))
             {
                 return right;
             }
@@ -55,6 +97,19 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // Both templates contain some text.
             return left + '/' + right;
+        }
+
+        private static bool IsOverridePattern(string template)
+        {
+            return template != null &&
+                (template.StartsWith("~/", StringComparison.OrdinalIgnoreCase) ||
+                template.StartsWith("/", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool IsEmptySegment(string template)
+        {
+            return template.Equals("~/", StringComparison.OrdinalIgnoreCase) ||
+                template.Equals("/", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string CleanTemplate(string result)

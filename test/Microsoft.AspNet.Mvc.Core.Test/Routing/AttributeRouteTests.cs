@@ -11,11 +11,344 @@ using Microsoft.AspNet.Routing.Template;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
+using Microsoft.AspNet.PipelineCore;
 
 namespace Microsoft.AspNet.Mvc.Routing
 {
     public class AttributeRouteTests
     {
+        [Theory]
+        [InlineData("template/5", "template/{parameter:int}")]
+        [InlineData("template/5", "template/{parameter}")]
+        [InlineData("template/5", "template/{*parameter:int}")]
+        [InlineData("template/5", "template/{*parameter}")]
+        [InlineData("template/{parameter:int}", "template/{parameter}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter}")]
+        [InlineData("template/{parameter}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter}", "template/{*parameter}")]
+        [InlineData("template/{*parameter:int}", "template/{*parameter}")]
+        public async Task AttributeRoute_RouteAsync_RespectsPrecedence(
+            string firstTemplate, 
+            string secondTemplate)
+        {
+            // Arrange
+            var next = new Mock<IRouter>().Object;
+
+            var firstRouter = new Mock<IRouter>();
+            firstRouter.Setup(r => r.RouteAsync(It.IsAny<RouteContext>()))
+                .Returns(Task.FromResult(true))
+                .Verifiable();
+
+            var secondRouter = new Mock<IRouter>();
+
+            var firstRoute = CreateMatchingEntry(firstRouter.Object, firstTemplate, order: 0);
+            var secondRoute = CreateMatchingEntry(secondRouter.Object, secondTemplate, order: 0);
+            var matchingRoutes = new[] { secondRoute, firstRoute };
+
+            var linkGenerationEntries = Enumerable.Empty<AttributeRouteLinkGenerationEntry>();
+
+            var route = new AttributeRoute(next, matchingRoutes, linkGenerationEntries);
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Path = new PathString("/template/5");
+
+            var context = new RouteContext(httpContext);
+
+            // Act
+            await route.RouteAsync(context);
+
+            // Assert
+            Assert.DoesNotThrow(() => firstRouter.Verify());
+        }
+
+        [Theory]
+        [InlineData("template/5", "template/{parameter:int}")]
+        [InlineData("template/5", "template/{parameter}")]
+        [InlineData("template/5", "template/{*parameter:int}")]
+        [InlineData("template/5", "template/{*parameter}")]
+        [InlineData("template/{parameter:int}", "template/{parameter}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter}")]
+        [InlineData("template/{parameter}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter}", "template/{*parameter}")]
+        [InlineData("template/{*parameter:int}", "template/{*parameter}")]
+        public async Task AttributeRoute_RouteAsync_RespectsOrderOverPrecedence(
+            string firstTemplate, 
+            string secondTemplate)
+        {
+            // Arrange
+            var next = new Mock<IRouter>().Object;
+
+            var firstRouter = new Mock<IRouter>();
+
+            var secondRouter = new Mock<IRouter>();
+            secondRouter.Setup(r => r.RouteAsync(It.IsAny<RouteContext>()))
+                .Returns(Task.FromResult(true))
+                .Verifiable();
+
+            var firstRoute = CreateMatchingEntry(firstRouter.Object, firstTemplate, order: 1);
+            var secondRoute = CreateMatchingEntry(secondRouter.Object, secondTemplate, order: 0);
+            var matchingRoutes = new[] { firstRoute, secondRoute };
+
+            var linkGenerationEntries = Enumerable.Empty<AttributeRouteLinkGenerationEntry>();
+
+            var route = new AttributeRoute(next, matchingRoutes, linkGenerationEntries);
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Path = new PathString("/template/5");
+
+            var context = new RouteContext(httpContext);
+
+            // Act
+            await route.RouteAsync(context);
+
+            // Assert
+            Assert.DoesNotThrow(() => secondRouter.Verify());
+        }
+
+        [Theory]
+        [InlineData("template/5")]
+        [InlineData("template/{parameter:int}")]
+        [InlineData("template/{parameter}")]
+        [InlineData("template/{*parameter:int}")]
+        [InlineData("template/{*parameter}")]
+        public async Task AttributeRoute_RouteAsync_RespectsOrder(string template)
+        {
+            // Arrange
+            var next = new Mock<IRouter>().Object;
+
+            var firstRouter = new Mock<IRouter>();
+
+            var secondRouter = new Mock<IRouter>();
+            secondRouter.Setup(r => r.RouteAsync(It.IsAny<RouteContext>()))
+                .Returns(Task.FromResult(true))
+                .Verifiable();
+
+            var firstRoute = CreateMatchingEntry(firstRouter.Object, template, order: 1);
+            var secondRoute = CreateMatchingEntry(secondRouter.Object, template, order: 0);
+            var matchingRoutes = new[] { firstRoute, secondRoute };
+
+            var linkGenerationEntries = Enumerable.Empty<AttributeRouteLinkGenerationEntry>();
+
+            var route = new AttributeRoute(next, matchingRoutes, linkGenerationEntries);
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Path = new PathString("/template/5");
+
+            var context = new RouteContext(httpContext);
+
+            // Act
+            await route.RouteAsync(context);
+
+            // Assert
+            Assert.DoesNotThrow(() => secondRouter.Verify());
+        }
+
+        [Theory]
+        [InlineData("template/{first:int}", "template/{second:int}")]
+        [InlineData("template/{first}", "template/{second}")]
+        [InlineData("template/{*first:int}", "template/{*second:int}")]
+        [InlineData("template/{*first}", "template/{*second}")]
+        public async Task AttributeRoute_RouteAsync_EnsuresStableOrdering(string first, string second)
+        {
+            // Arrange
+            var next = new Mock<IRouter>().Object;
+
+            var firstRouter = new Mock<IRouter>();
+            firstRouter.Setup(r => r.RouteAsync(It.IsAny<RouteContext>()))
+                .Returns(Task.FromResult(true))
+                .Verifiable();
+
+            var secondRouter = new Mock<IRouter>();
+
+            var firstRoute = CreateMatchingEntry(firstRouter.Object, first, order: 0);
+            var secondRoute = CreateMatchingEntry(secondRouter.Object, second, order: 0);
+            var matchingRoutes = new[] { secondRoute, firstRoute };
+
+            var linkGenerationEntries = Enumerable.Empty<AttributeRouteLinkGenerationEntry>();
+
+            var route = new AttributeRoute(next, matchingRoutes, linkGenerationEntries);
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Path = new PathString("/template/5");
+
+            var context = new RouteContext(httpContext);
+
+            // Act
+            await route.RouteAsync(context);
+
+            // Assert
+            Assert.DoesNotThrow(() => firstRouter.Verify());
+        }
+
+        [Theory]
+        [InlineData("template/5", "template/{parameter:int}")]
+        [InlineData("template/5", "template/{parameter}")]
+        [InlineData("template/5", "template/{*parameter:int}")]
+        [InlineData("template/5", "template/{*parameter}")]
+        [InlineData("template/{parameter:int}", "template/{parameter}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter}")]
+        [InlineData("template/{parameter}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter}", "template/{*parameter}")]
+        [InlineData("template/{*parameter:int}", "template/{*parameter}")]
+        public void AttributeRoute_GenerateLink_RespectsPrecedence(string firstTemplate, string secondTemplate)
+        {
+            // Arrange
+            var expectedGroup = CreateRouteGroup(0, firstTemplate);
+
+            string selectedGroup = null;
+
+            var router = new Mock<IRouter>();
+            router.Setup(n => n.GetVirtualPath(It.IsAny<VirtualPathContext>())).Callback<VirtualPathContext>(ctx =>
+            {
+                selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
+                ctx.IsBound = true;
+            })
+            .Returns((string)null);
+
+            var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
+
+            var firstEntry = CreateGenerationEntry(firstTemplate, requiredValues: null);
+            var secondEntry = CreateGenerationEntry(secondTemplate, requiredValues: null, order: 0);
+            var linkGenerationEntries = new[] { secondEntry, firstEntry };
+
+            var route = new AttributeRoute(router.Object, matchingRoutes, linkGenerationEntries);
+
+            var context = CreateVirtualPathContext(values: null, ambientValues: new { parameter = 5 });
+
+            // Act
+            string result = route.GetVirtualPath(context);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("template/5", result);
+            Assert.Equal(expectedGroup, selectedGroup);
+        }
+
+        [Theory]
+        [InlineData("template/5", "template/{parameter:int}")]
+        [InlineData("template/5", "template/{parameter}")]
+        [InlineData("template/5", "template/{*parameter:int}")]
+        [InlineData("template/5", "template/{*parameter}")]
+        [InlineData("template/{parameter:int}", "template/{parameter}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter:int}", "template/{*parameter}")]
+        [InlineData("template/{parameter}", "template/{*parameter:int}")]
+        [InlineData("template/{parameter}", "template/{*parameter}")]
+        [InlineData("template/{*parameter:int}", "template/{*parameter}")]
+        public void AttributeRoute_GenerateLink_RespectsOrderOverPrecedence(string firstTemplate, string secondTemplate)
+        {
+            // Arrange
+            var selectedGroup = CreateRouteGroup(0, secondTemplate);
+
+            string firstRouteGroupSelected = null;
+            var next = new Mock<IRouter>();
+            next.Setup(n => n.GetVirtualPath(It.IsAny<VirtualPathContext>())).Callback<VirtualPathContext>(ctx =>
+            {
+                firstRouteGroupSelected = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
+                ctx.IsBound = true;
+            })
+            .Returns((string)null);
+
+            var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
+
+            var firstRoute = CreateGenerationEntry(firstTemplate, requiredValues: null, order: 1);
+            var secondRoute = CreateGenerationEntry(secondTemplate, requiredValues: null, order: 0);
+            var linkGenerationEntries = new[] { firstRoute, secondRoute };
+
+            var route = new AttributeRoute(next.Object, matchingRoutes, linkGenerationEntries);
+
+            var context = CreateVirtualPathContext(null, ambientValues: new { parameter = 5 });
+
+            // Act
+            string result = route.GetVirtualPath(context);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("template/5", result);
+            Assert.Equal(selectedGroup, firstRouteGroupSelected);
+        }
+
+        [Theory]
+        [InlineData("template/5", "template/5")]
+        [InlineData("template/{first:int}", "template/{second:int}")]
+        [InlineData("template/{first}", "template/{second}")]
+        [InlineData("template/{*first:int}", "template/{*second:int}")]
+        [InlineData("template/{*first}", "template/{*second}")]
+        public void AttributeRoute_GenerateLink_RespectsOrder(string firstTemplate, string secondTemplate)
+        {
+            // Arrange
+            var expectedGroup = CreateRouteGroup(0, secondTemplate);
+
+            var next = new Mock<IRouter>();
+            string selectedGroup = null;
+            next.Setup(n => n.GetVirtualPath(It.IsAny<VirtualPathContext>())).Callback<VirtualPathContext>(ctx =>
+            {
+                selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
+                ctx.IsBound = true;
+            })
+            .Returns((string)null);
+
+            var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
+
+            var firstRoute = CreateGenerationEntry(firstTemplate, requiredValues: null, order: 1);
+            var secondRoute = CreateGenerationEntry(secondTemplate, requiredValues: null, order: 0);
+            var linkGenerationEntries = new[] { firstRoute, secondRoute };
+
+            var route = new AttributeRoute(next.Object, matchingRoutes, linkGenerationEntries);
+
+            var context = CreateVirtualPathContext(values: null, ambientValues: new { first = 5, second = 5 });
+
+            // Act
+            string result = route.GetVirtualPath(context);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("template/5", result);
+            Assert.Equal(expectedGroup, selectedGroup);
+        }
+
+        [Theory]
+        [InlineData("first/5", "second/5")]
+        [InlineData("first/{first:int}", "second/{second:int}")]
+        [InlineData("first/{first}", "second/{second}")]
+        [InlineData("first/{*first:int}", "second/{*second:int}")]
+        [InlineData("first/{*first}", "second/{*second}")]
+        public void AttributeRoute_GenerateLink_EnsuresStableOrder(string firstTemplate, string secondTemplate)
+        {
+            // Arrange
+            var expectedGroup = CreateRouteGroup(0, firstTemplate);
+
+            var next = new Mock<IRouter>();
+            string selectedGroup = null;
+            next.Setup(n => n.GetVirtualPath(It.IsAny<VirtualPathContext>())).Callback<VirtualPathContext>(ctx =>
+            {
+                selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
+                ctx.IsBound = true;
+            })
+            .Returns((string)null);
+
+            var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
+
+            var firstRoute = CreateGenerationEntry(firstTemplate, requiredValues: null, order: 0);
+            var secondRoute = CreateGenerationEntry(secondTemplate, requiredValues: null, order: 0);
+            var linkGenerationEntries = new[] { secondRoute, firstRoute };
+
+            var route = new AttributeRoute(next.Object, matchingRoutes, linkGenerationEntries);
+
+            var context = CreateVirtualPathContext(values: null, ambientValues: new { first = 5, second = 5 });
+
+            // Act
+            string result = route.GetVirtualPath(context);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("first/5", result);
+            Assert.Equal(expectedGroup, selectedGroup);
+        }
+
         [Fact]
         public void AttributeRoute_GenerateLink_NoRequiredValues()
         {
@@ -215,7 +548,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             var entry = CreateGenerationEntry("api/Store", new { action = "Index", controller = "Store" });
             var route = CreateAttributeRoute(entry);
 
-            var context = CreateVirtualPathContext(new { action = "Index", id = 5}, new { controller = "Store" });
+            var context = CreateVirtualPathContext(new { action = "Index", id = 5 }, new { controller = "Store" });
 
             // Act
             var path = route.GetVirtualPath(context);
@@ -280,7 +613,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 // Reject entry 1.
                 callCount++;
                 return !c.ProvidedValues.Contains(new KeyValuePair<string, object>(
-                    AttributeRouting.RouteGroupKey, 
+                    AttributeRouting.RouteGroupKey,
                     entry1.RouteGroup));
             };
 
@@ -397,16 +730,31 @@ namespace Microsoft.AspNet.Mvc.Routing
             var httpContext = Mock.Of<HttpContext>();
 
             return new VirtualPathContext(
-                httpContext, 
-                new RouteValueDictionary(ambientValues), 
+                httpContext,
+                new RouteValueDictionary(ambientValues),
                 new RouteValueDictionary(values));
         }
 
-        private static AttributeRouteLinkGenerationEntry CreateGenerationEntry(string template, object requiredValues)
+        private static AttributeRouteMatchingEntry CreateMatchingEntry(IRouter router, string template, int order)
+        {
+            var constraintResolver = CreateConstraintResolver();
+
+            var routeTemplate = TemplateParser.Parse(template, constraintResolver);
+
+            var entry = new AttributeRouteMatchingEntry();
+            entry.Route = new TemplateRoute(router, template, constraintResolver);
+            entry.Precedence = AttributeRoutePrecedence.Compute(routeTemplate);
+            entry.Order = order;
+
+            return entry;
+        }
+
+        private static AttributeRouteLinkGenerationEntry CreateGenerationEntry(string template, object requiredValues, int order = 0)
         {
             var constraintResolver = CreateConstraintResolver();
 
             var entry = new AttributeRouteLinkGenerationEntry();
+            entry.TemplateText = template;
             entry.Template = TemplateParser.Parse(template, constraintResolver);
 
             var defaults = entry.Template.Parameters
@@ -420,11 +768,17 @@ namespace Microsoft.AspNet.Mvc.Routing
             entry.Constraints = constraints;
             entry.Defaults = defaults;
             entry.Binder = new TemplateBinder(entry.Template, defaults);
+            entry.Order = order;
             entry.Precedence = AttributeRoutePrecedence.Compute(entry.Template);
             entry.RequiredLinkValues = new RouteValueDictionary(requiredValues);
-            entry.RouteGroup = template;
+            entry.RouteGroup = CreateRouteGroup(order, template);
 
             return entry;
+        }
+
+        private static string CreateRouteGroup(int order, string template)
+        {
+            return string.Format("{0}&{1}", order, template);
         }
 
         private static DefaultInlineConstraintResolver CreateConstraintResolver()

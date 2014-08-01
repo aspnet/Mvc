@@ -114,6 +114,30 @@ namespace MvcSample.Web
             return user;
         }
 
+        [HttpGet("/AttributeRouting/{other}", 0)]
+        public string LowerPrecedence(string param)
+        {
+            return "Lower";
+        }
+
+        [HttpGet("/AttributeRouting/HigherPrecedence", 1)]
+        public string HigherOrder()
+        {
+            return "Higher";
+        }
+
+        [HttpGet("/AttributeRouting/SameTemplate", 0)]
+        public string SameTemplateHigherOrderPrecedence()
+        {
+            return "HigherOrderPrecedence";
+        }
+
+        [HttpGet("/AttributeRouting/SameTemplate", 1)]
+        public string SameTemplateLowerOrderPrecedence()
+        {
+            return "LowerOrderPrecedence";
+        }
+
         /// <summary>
         /// Action that exercises default view names.
         /// </summary>
