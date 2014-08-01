@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -16,10 +17,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// This class handles deserialization of input XML data
     /// to strongly-typed objects using <see cref="DataContractSerializer"/>.
     /// </summary>
-    public class XmlDataContractSerializerInputFormatter : IInputFormatter
+    public class XmlDataContractSerializerInputFormatter : InputFormatter
     {
-        private readonly IList<Encoding> _supportedEncodings;
-        private readonly IList<string> _supportedMediaTypes;
         private readonly XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
 
         /// <summary>
@@ -27,33 +26,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public XmlDataContractSerializerInputFormatter()
         {
-            _supportedMediaTypes = new List<string>
-            {
-                "application/xml",
-                "text/xml"
-            };
-
-            _supportedEncodings = new List<Encoding>
-            {
-                Encodings.UTF8EncodingWithoutBOM,
-                Encodings.UTF16EncodingLittleEndian
-            };
-        }
-
-        /// <summary>
-        /// Returns the list of supported encodings.
-        /// </summary>
-        public IList<Encoding> SupportedEncodings
-        {
-            get { return _supportedEncodings; }
-        }
-
-        /// <summary>
-        /// Returns the list of supported Media Types.
-        /// </summary>
-        public IList<string> SupportedMediaTypes
-        {
-            get { return _supportedMediaTypes; }
+            SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
+            SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/xml"));
         }
 
         /// <summary>
@@ -79,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="context">The input formatter context which contains the body to be read.</param>
         /// <returns>Task which reads the input.</returns>
-        public async Task ReadAsync(InputFormatterContext context)
+        public override async Task ReadAsync(InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
             if (request.ContentLength == 0)

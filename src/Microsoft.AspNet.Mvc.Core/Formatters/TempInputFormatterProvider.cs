@@ -5,13 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc
 {
     public class TempInputFormatterProvider : IInputFormatterProvider
     {
-        private IInputFormatter[] _formatters;
+        private IEnumerable<IInputFormatter> _formatters;
+        private IInputFormattersProvider _defaultFormattersProvider;
+
+        public TempInputFormatterProvider([NotNull] IInputFormattersProvider formattersProvider)
+        {
+            _defaultFormattersProvider = formattersProvider;
+        }
 
         public IInputFormatter GetInputFormatter(InputFormatterProviderContext context)
         {
@@ -21,23 +29,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             if (formatters == null)
             {
-                formatters = context.HttpContext.RequestServices.GetService<IEnumerable<IInputFormatter>>()
-                                    .ToArray();
-
+                formatters = _defaultFormattersProvider.InputFormatters;
                 _formatters = formatters;
             }
 
-            var contentType = request.GetContentType();
+            var contentType = MediaTypeHeaderValue.Parse(request.ContentType);
             if (contentType == null)
             {
                 // TODO: http exception?
                 throw new InvalidOperationException("400: Bad Request");
             }
 
-            for (var i = 0; i < formatters.Length; i++)
+            foreach (var formatter in formatters)
             {
-                var formatter = formatters[i];
-                if (formatter.SupportedMediaTypes.Contains(contentType.ContentType, StringComparer.OrdinalIgnoreCase))
+                var formatterMatched = formatter.SupportedMediaTypes
+                                                .Any(supportedMediaType => 
+                                                        supportedMediaType.IsSubsetOf(contentType));
+                if (formatterMatched)
                 {
                     return formatter;
                 }
@@ -46,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // TODO: Http exception
             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, 
                                                               "415: Unsupported content type {0}", 
-                                                              contentType));
+                                                              contentType.RawValue));
         }
     }
 }

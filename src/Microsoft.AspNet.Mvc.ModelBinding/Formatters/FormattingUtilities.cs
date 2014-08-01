@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -35,15 +36,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 #endif
         }
 
-        /// Internal because ContentTypeHeaderValue is internal.
-        internal static Encoding SelectCharacterEncoding(IList<Encoding> supportedEncodings,
-            ContentTypeHeaderValue contentType, Type callerType)
+        public static Encoding SelectCharacterEncoding(IList<Encoding> supportedEncodings,
+                                                       MediaTypeHeaderValue contentType,
+                                                       Type callerType)
         {
             if (contentType != null)
             {
                 // Find encoding based on content type charset parameter
-                var charset = contentType.CharSet;
-                if (!string.IsNullOrWhiteSpace(contentType.CharSet))
+                var charset = contentType.Charset;
+                if (!string.IsNullOrWhiteSpace(contentType.Charset))
                 {
                     for (var i = 0; i < supportedEncodings.Count; i++)
                     {
