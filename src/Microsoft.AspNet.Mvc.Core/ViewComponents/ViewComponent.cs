@@ -30,8 +30,10 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        [Activate]
         public ViewContext ViewContext { get; set; }
 
+        [Activate]
         public ViewDataDictionary ViewData { get; set; }
 
         public ContentViewComponentResult Content([NotNull] string content)
