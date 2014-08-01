@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -27,26 +28,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 _formatters = formatters;
             }
 
-            var contentType = request.GetContentType();
+            var contentType = MediaTypeHeaderValue.Parse(request.ContentType);
             if (contentType == null)
             {
                 // TODO: http exception?
                 throw new InvalidOperationException("400: Bad Request");
             }
 
-            for (var i = 0; i < formatters.Length; i++)
+            foreach (var formatter in formatters)
             {
-                var formatter = formatters[i];
-                if (formatter.SupportedMediaTypes.Contains(contentType.ContentType, StringComparer.OrdinalIgnoreCase))
-                {
-                    return formatter;
-                }
+                formatter.SupportedMediaTypes
+                                  .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
             }
 
             // TODO: Http exception
             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, 
                                                               "415: Unsupported content type {0}", 
-                                                              contentType));
+                                                              contentType.RawValue));
         }
     }
 }

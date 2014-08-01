@@ -40,6 +40,7 @@
     <Compile Include="Binders\MutableObjectModelBinder.cs" />
     <Compile Include="Binders\TypeConverterModelBinder.cs" />
     <Compile Include="Binders\TypeMatchModelBinder.cs" />
+    <Compile Include="Formatters\InputFormatter.cs" />
     <Compile Include="Formatters\XmlDataContractSerializerInputFormatter.cs" />
     <Compile Include="Formatters\DelegatingStream.cs" />
     <Compile Include="Formatters\FormattingUtilities.cs" />
@@ -52,10 +53,8 @@
     <Compile Include="Formatters\XmlSerializerInputFormatter.cs" />
     <Compile Include="Internal\CollectionExtensions.cs" />
     <Compile Include="Internal\CollectionModelBinderUtil.cs" />
-    <Compile Include="Internal\ContentTypeHeaderValue.cs" />
     <Compile Include="Internal\DictionaryHelper.cs" />
     <Compile Include="Internal\EfficientTypePropertyKey.cs" />
-    <Compile Include="Internal\HttpRequestExtensions.cs" />
     <Compile Include="Internal\ModelBindingContextExtensions.cs" />
     <Compile Include="Internal\ModelBindingHelper.cs" />
     <Compile Include="Internal\PrefixContainer.cs" />

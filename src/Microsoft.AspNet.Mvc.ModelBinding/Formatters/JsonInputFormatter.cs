@@ -8,30 +8,22 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public class JsonInputFormatter : IInputFormatter
+    public class JsonInputFormatter : InputFormatter
     {
         private const int DefaultMaxDepth = 32;
-        private readonly List<Encoding> _supportedEncodings;
-        private readonly List<string> _supportedMediaTypes;
         private JsonSerializerSettings _jsonSerializerSettings;
 
         public JsonInputFormatter()
         {
-            _supportedMediaTypes = new List<string>
-            {
-                "application/json",
-                "text/json"
-            };
-
-            _supportedEncodings = new List<Encoding>
-            {
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                new UnicodeEncoding(bigEndian: false, byteOrderMark: true, throwOnInvalidBytes: true)
-            };
+            SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
+            SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/json"));
 
             _jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -45,18 +37,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // Setting this to None prevents Json.NET from loading malicious, unsafe, or security-sensitive types
                 TypeNameHandling = TypeNameHandling.None
             };
-        }
-
-        /// <inheritdoc />
-        public IList<string> SupportedMediaTypes
-        {
-            get { return _supportedMediaTypes; }
-        }
-
-        /// <inheritdoc />
-        public IList<Encoding> SupportedEncodings
-        {
-            get { return _supportedEncodings; }
         }
 
         /// <summary>
@@ -83,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public bool CaptureDeserilizationErrors { get; set; }
 
         /// <inheritdoc />
-        public async Task ReadAsync([NotNull] InputFormatterContext context)
+        public override async Task ReadAsync([NotNull] InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
             if (request.ContentLength == 0)
@@ -94,9 +74,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return;
             }
 
+            var requestContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+
             // Get the character encoding for the content
             // Never non-null since SelectCharacterEncoding() throws in error / not found scenarios
-            var effectiveEncoding = SelectCharacterEncoding(request.GetContentType());
+            var effectiveEncoding = SelectCharacterEncoding(requestContentType);
 
             context.Model = await ReadInternal(context, effectiveEncoding);
         }
@@ -122,12 +104,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public virtual JsonSerializer CreateJsonSerializer()
         {
             return JsonSerializer.Create(SerializerSettings);
-        }
-
-        private bool IsSupportedContentType(ContentTypeHeaderValue contentType)
-        {
-            return contentType != null &&
-                   _supportedMediaTypes.Contains(contentType.ContentType, StringComparer.OrdinalIgnoreCase);
         }
 
         private Task<object> ReadInternal(InputFormatterContext context,
@@ -172,17 +148,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        private Encoding SelectCharacterEncoding(ContentTypeHeaderValue contentType)
+        private Encoding SelectCharacterEncoding(MediaTypeHeaderValue contentType)
         {
             if (contentType != null)
             {
                 // Find encoding based on content type charset parameter
-                var charset = contentType.CharSet;
-                if (!string.IsNullOrWhiteSpace(contentType.CharSet))
+                var charset = contentType.Charset;
+                if (!string.IsNullOrWhiteSpace(contentType.Charset))
                 {
-                    for (var i = 0; i < _supportedEncodings.Count; i++)
+                    foreach (var supportedEncoding in SupportedEncodings)
                     {
-                        var supportedEncoding = _supportedEncodings[i];
                         if (string.Equals(charset, supportedEncoding.WebName, StringComparison.OrdinalIgnoreCase))
                         {
                             return supportedEncoding;
@@ -191,9 +166,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            if (_supportedEncodings.Count > 0)
+            if (SupportedEncodings.Count > 0)
             {
-                return _supportedEncodings[0];
+                return SupportedEncodings[0];
             }
 
             // No supported encoding was found so there is no way for us to start reading.
