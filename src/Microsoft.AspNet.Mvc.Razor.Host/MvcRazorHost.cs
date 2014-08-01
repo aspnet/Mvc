@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
@@ -15,9 +16,10 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class MvcRazorHost : RazorEngineHost, IMvcRazorHost
     {
         private const string ViewNamespace = "ASP";
+        private const int BufferSize = 1024;
 
-        private static readonly string[] _defaultNamespaces = new[] 
-        { 
+        private static readonly string[] _defaultNamespaces = new[]
+        {
             "System",
             "System.Linq",
             "System.Collections.Generic",
@@ -66,10 +68,27 @@ namespace Microsoft.AspNet.Mvc.Razor
         public GeneratorResults GenerateCode(string rootRelativePath, Stream inputStream)
         {
             var className = ParserHelpers.SanitizeClassName(rootRelativePath);
-            using (var reader = new StreamReader(inputStream))
+            using (var reader = CreateNonClosingStreamReader(inputStream))
             {
                 var engine = new RazorTemplateEngine(this);
                 return engine.GenerateCode(reader, className, ViewNamespace, rootRelativePath);
+            }
+        }
+
+        /// <inheritdoc />
+        public IList<Chunk> GetCodeTree(string rootRelativePath, Stream inputStream)
+        {
+            using (var reader = CreateNonClosingStreamReader(inputStream))
+            {
+                var engine = new RazorTemplateEngine(this);
+                var parseResults = engine.ParseTemplate(reader);
+                var className = ParserHelpers.SanitizeClassName(rootRelativePath);
+                var codeGenerator = engine.Host.CodeLanguage.CreateCodeGenerator(className,
+                                                                                 ViewNamespace,
+                                                                                 rootRelativePath,
+                                                                                 engine.Host);
+                codeGenerator.Visit(parseResults);
+                return codeGenerator.Context.CodeTreeBuilder.CodeTree.Chunks;
             }
         }
 
@@ -108,6 +127,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var typeName = property.TypeName.Replace("<TModel>", model);
                 currentChunks.Add(new InjectChunk(typeName, property.MemberName));
             }
+        }
+
+        private static StreamReader CreateNonClosingStreamReader(Stream inputStream)
+        {
+            return new StreamReader(inputStream,
+                                    Encoding.UTF8,
+                                    detectEncodingFromByteOrderMarks: true,
+                                    bufferSize: BufferSize,
+                                    leaveOpen: true);
         }
     }
 }
