@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IControllerAssemblyProvider, DefaultControllerAssemblyProvider>();
             yield return describe.Transient<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
 
-            yield return describe.Instance<IMvcRazorHost>(new MvcRazorHost(typeof(RazorPage).FullName));
+            yield return describe.Transient<IMvcRazorHost, MvcRazorHost>();
 
             yield return describe.Singleton<ICompilationService, RoslynCompilationService>();
             yield return describe.Singleton<IRazorCompilationService, RazorCompilationService>();

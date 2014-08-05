@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var modelChunk = Context.CodeTreeBuilder.CodeTree.Chunks.OfType<ModelChunk>()
                                                                     .LastOrDefault();
 
-            Model = modelChunk != null ? modelChunk.ModelType : _hostOptions.DefaultModel;
+            Model = modelChunk != null ? modelChunk.ModelType : MvcRazorHost.DefaultModel;
 
             // If there were any model chunks then we need to modify the class declaration signature.
             if (modelChunk != null)
