@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc
 
         public IList<MediaTypeHeaderValue> ContentTypes { get; set; }
 
-            public override void OnResultExecuting([NotNull]ResultExecutingContext context)
+        public override void OnResultExecuting([NotNull] ResultExecutingContext context)
         {
             base.OnResultExecuting(context);
             var objectResult = context.Result as ObjectResult;
@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
             // This is because filters are executed in the order of 
             // Action->Controller->Global, if something has been set by a lower filter
             // We should not override. 
-            if (objectResult != null && 
+            if (objectResult != null &&
                 (objectResult.ContentTypes == null || objectResult.ContentTypes.Count == 0))
             {
                 objectResult.ContentTypes = ContentTypes;

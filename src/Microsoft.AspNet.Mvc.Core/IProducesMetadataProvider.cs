@@ -8,7 +8,7 @@ using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Represents a type which can represent static metadata for the produces attribute.
+    /// Provides a return type and a set of possible content types returned by a successful execution of the action.
     /// </summary>
     public interface IProducesMetadataProvider
     {
