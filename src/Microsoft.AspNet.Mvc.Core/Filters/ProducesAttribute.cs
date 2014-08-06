@@ -30,12 +30,7 @@ namespace Microsoft.AspNet.Mvc
             base.OnResultExecuting(context);
             var objectResult = context.Result as ObjectResult;
 
-            // Do not override if there is a value that is already present. 
-            // This is because filters are executed in the order of 
-            // Action->Controller->Global, if something has been set by a lower filter
-            // We should not override. 
-            if (objectResult != null &&
-                (objectResult.ContentTypes == null || objectResult.ContentTypes.Count == 0))
+            if (objectResult != null)
             {
                 objectResult.ContentTypes = ContentTypes;
             }
