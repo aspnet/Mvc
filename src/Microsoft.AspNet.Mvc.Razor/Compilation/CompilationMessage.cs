@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Initializes a <see cref="CompilationMessage"/> with the specified message.
         /// </summary>
-        /// <param name="message">A message produced from compilation.</param>
+        /// <param name="message">A message <see cref="string"/> produced from compilation.</param>
         public CompilationMessage(string message)
         {
             Message = message;
@@ -22,7 +22,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         public string Message { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Returns a <see cref="string"/> representation of this instance of <see cref="CompilationMessage"/>.
+        /// </summary>
+        /// <returns>A <see cref="string"/> representing this <see cref="CompilationMessage"/> instance.</returns>
+        /// <remarks>Returns same value as <see cref="Message"/>.</remarks>
         public override string ToString()
         {
             return Message;

@@ -13,9 +13,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Compiles content and returns the result of compilation.
         /// </summary>
-        /// <param name="path">The path where the source file is located.</param>
-        /// <param name="compilationContent">The contents to be compiled.</param>
-        /// <param name="pageContent">The contents of the page.</param>
+        /// <param name="fileInfo">The <see cref="IFileInfo"/> for the Razor file that was compiled.</param>
+        /// <param name="compilationContent">The generated C# contents to be compiled.</param>
         /// <returns>
         /// A <see cref="CompilationResult"/> representing the result of compilation.
         /// </returns>

@@ -9,48 +9,48 @@ using Microsoft.AspNet.FileSystems;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// An exception that is thrown when acessing the result of a failed compilation.
+    /// An exception thrown when accessing the result of a failed compilation.
     /// </summary>
     public class CompilationFailedException : Exception
     {
         /// <summary>
         /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
         /// </summary>
-        /// <param name="filePath">The file that was compiled.</param>
-        /// <param name="fileContent">The contents of the file.</param>
-        /// <param name="compiledCode">The contents that were compiled.</param>
+        /// <param name="filePath">The file to the Razor source file that was compiled.</param>
+        /// <param name="fileContent">The contents of the Razor source file.</param>
+        /// <param name="compiledContent">The generated C# contents that was compiled.</param>
         /// <param name="messages">A sequence of <see cref="CompilationMessage"/> encountered
         /// during compilation.</param>
         public CompilationFailedException(
                 [NotNull] string filePath,
                 [NotNull] string fileContent,
-                [NotNull] string compiledCode,
+                [NotNull] string compiledContent,
                 [NotNull] IEnumerable<CompilationMessage> messages)
             : base(FormatMessage(messages))
         {
             FilePath = filePath;
             FileContent = fileContent;
-            CompiledContent = compiledCode;
+            CompiledContent = compiledContent;
             Messages = messages.ToList();
         }
 
         /// <summary>
-        /// Gets the path to the file that produced the compilation failure..
+        /// Gets the path to the Razor source file that produced the compilation failure.
         /// </summary>
         public string FilePath { get; private set; }
 
         /// <summary>
-        /// Gets a sequence of <see cref="CompilationMessage"/> encountered during compilation.
+        /// Gets a sequence of <see cref="CompilationMessage"/> instances encountered during compilation.
         /// </summary>
         public IEnumerable<CompilationMessage> Messages { get; private set; }
 
         /// <summary>
-        /// Gets the content of the file.
+        /// Gets the content of the Razor source file.
         /// </summary>
         public string FileContent { get; private set; }
 
         /// <summary>
-        /// Gets the content that was compiled.
+        /// Gets the generated C# contents that was compiled.
         /// </summary>
         public string CompiledContent { get; private set; }
 

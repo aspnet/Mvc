@@ -18,12 +18,12 @@ using Microsoft.Framework.Runtime;
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
     /// <summary>
-    /// A type that provides compilation of C# content using Roslyn.
+    /// A type that uses Roslyn to compilate of C# content.
     /// </summary>
     public class RoslynCompilationService : ICompilationService
     {
         public static readonly string CompilationResultDiagnosticsKey = "Diagnostics";
-        private readonly ConcurrentDictionary<string, MetadataReference> _metadataFileCache =
+        private static readonly ConcurrentDictionary<string, MetadataReference> _metadataFileCache =
             new ConcurrentDictionary<string, MetadataReference>(StringComparer.OrdinalIgnoreCase);
 
         private readonly ILibraryManager _libraryManager;
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private readonly IAssemblyLoaderEngine _loader;
 
         /// <summary>
-        /// Initalizes Roslyn based <see cref="ICompilationService"/>.
+        /// Initalizes a new instance of the <see cref="RoslynCompilationService"/> class.
         /// </summary>
         /// <param name="environment">The environment for the executing application.</param>
         /// <param name="loaderEngine">The loader used to load compiled assemblies.</param>
@@ -159,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             return new CompilationMessage(formatter.Format(diagnostic));
         }
 
-        private static bool IsError(Diagnostic diagnostic)
+        private bool IsError(Diagnostic diagnostic)
         {
             return diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
         }

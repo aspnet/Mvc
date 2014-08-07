@@ -35,7 +35,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             return _cache.GetOrAdd(file, () => CompileCore(file));
         }
 
-        internal CompilationResult CompileCore(IFileInfo file)
+        // TODO: Make this internal
+        public CompilationResult CompileCore(IFileInfo file)
         {
             GeneratorResults results;
             using (var inputStream = file.CreateReadStream())
