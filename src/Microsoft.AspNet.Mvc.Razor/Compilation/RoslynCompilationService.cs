@@ -18,7 +18,7 @@ using Microsoft.Framework.Runtime;
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
     /// <summary>
-    /// A type that uses Roslyn to compilate of C# content.
+    /// A type that uses Roslyn to compile C# content.
     /// </summary>
     public class RoslynCompilationService : ICompilationService
     {

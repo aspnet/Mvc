@@ -47,10 +47,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the generated C# content that was compiled.
         /// </summary>
-        /// <remarks>
-        /// For a Razor page, <c>ReadContent(compilationResult.File)</c> represents the actual contents on disk and
-        /// CompilationContent represents the generated C# content.
-        /// </remarks>
         public string CompiledContent { get; private set; }
 
         /// <summary>

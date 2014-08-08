@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
         /// </summary>
-        /// <param name="filePath">The file to the Razor source file that was compiled.</param>
+        /// <param name="filePath">The path of the Razor source file that was compiled.</param>
         /// <param name="fileContent">The contents of the Razor source file.</param>
-        /// <param name="compiledContent">The generated C# contents that was compiled.</param>
+        /// <param name="compiledContent">The generated C# content that was compiled.</param>
         /// <param name="messages">A sequence of <see cref="CompilationMessage"/> encountered
         /// during compilation.</param>
         public CompilationFailedException(
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Gets the path to the Razor source file that produced the compilation failure.
+        /// Gets the path of the Razor source file that produced the compilation failure.
         /// </summary>
         public string FilePath { get; private set; }
 
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public string FileContent { get; private set; }
 
         /// <summary>
-        /// Gets the generated C# contents that was compiled.
+        /// Gets the generated C# content that was compiled.
         /// </summary>
         public string CompiledContent { get; private set; }
 
