@@ -25,17 +25,12 @@ namespace Microsoft.AspNet.Mvc
             _valueAccessorLookup = CreateValueAccessorLookup();
             _injectActions = new ConcurrentDictionary<Type, PropertyActivator<ViewContext>[]>();
             _getPropertiesToActivate = type =>
-                PropertyActivator<ViewContext>.GetPropertiesToActivate(type,
-                                                                        typeof(ActivateAttribute),
-                                                                        CreateActivateInfo);
+                PropertyActivator<ViewContext>.GetPropertiesToActivate(
+                    type, typeof(ActivateAttribute), CreateActivateInfo);
         }
 
-        /// <summary>
-        /// Activates the specified ViewComponent using the specified ViewContext.
-        /// </summary>
-        /// <param name="viewComponent">The ViewComponent which needs to be activated.</param>
-        /// <param name="context">The context which should be used to activate the ViewComponent.</param>
-        public void Activate(object viewComponent, ViewContext context)
+        /// <inheritdoc />
+        public void Activate([NotNull] object viewComponent, [NotNull] ViewContext context)
         {
             var propertiesToActivate = _injectActions.GetOrAdd(viewComponent.GetType(),
                                                                _getPropertiesToActivate);
@@ -47,6 +42,10 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        /// <summary>
+        /// Creates a lookup dictionary for the values to be activated.
+        /// </summary>
+        /// <returns>Returns a readonly dictionary of the values corresponding to the types.</returns>
         protected virtual IReadOnlyDictionary<Type, Func<ViewContext, object>> CreateValueAccessorLookup()
         {
             return new Dictionary<Type, Func<ViewContext, object>>
@@ -65,15 +64,14 @@ namespace Microsoft.AspNet.Mvc
             };
         }
 
-        private PropertyActivator<ViewContext> CreateActivateInfo(
-            PropertyInfo property)
+        private PropertyActivator<ViewContext> CreateActivateInfo(PropertyInfo property)
         {
             Func<ViewContext, object> valueAccessor;
             if (!_valueAccessorLookup.TryGetValue(property.PropertyType, out valueAccessor))
             {
-                valueAccessor = (actionContext) =>
+                valueAccessor = (viewContext) =>
                 {
-                    var serviceProvider = actionContext.HttpContext.RequestServices;
+                    var serviceProvider = viewContext.HttpContext.RequestServices;
                     return serviceProvider.GetService(property.PropertyType);
                 };
             }

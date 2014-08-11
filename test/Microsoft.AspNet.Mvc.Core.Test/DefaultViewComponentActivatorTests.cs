@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
@@ -24,7 +25,9 @@ namespace Microsoft.AspNet.Mvc.Core
             var activator = new DefaultViewComponentActivator();
             var instance = new TestViewComponent();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var viewContext = GetMockViewContext(helper);
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
+            var viewContext = GetViewContext(serviceProvider.Object);
 
             // Act
             activator.Activate(instance, viewContext);
@@ -41,7 +44,9 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var activator = new DefaultViewComponentActivator();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var viewContext = GetMockViewContext(helper);
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
+            var viewContext = GetViewContext(serviceProvider.Object);
 
             // Act
             activator.Activate(new TestViewComponent(), viewContext);
@@ -50,14 +55,32 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Null(viewContext.ViewData.Model);
         }
 
-        private ViewContext GetMockViewContext(IHtmlHelper helper)
+        [Fact]
+        public void DefaultViewComponentActivatorActivatesNonBuiltInTypes()
         {
+            // Arrange
+            var activator = new DefaultViewComponentActivator();
+            var helper = Mock.Of<IHtmlHelper<object>>();
+            var sampleInput = "HelloWorld";
             var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
-                           .Returns(helper);
-            var httpContext = new Mock<HttpContext>();
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(string))).Returns(sampleInput);
+            var viewContext = GetViewContext(serviceProvider.Object);
+            var instance = new TestViewComponentWithCustomDataType();
+
+            // Act
+            activator.Activate(instance, viewContext);
+
+            // Assert
+            Assert.Equal(sampleInput, instance.TestString);
+
+        }
+
+        private ViewContext GetViewContext(IServiceProvider serviceProvider)
+        {
+            var httpContext = new Mock<DefaultHttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
-                       .Returns(serviceProvider.Object);
+                       .Returns(serviceProvider);
             var routeContext = new RouteContext(httpContext.Object);
             var actionContext = new ActionContext(routeContext, new ActionDescriptor());
             return new ViewContext(actionContext,
@@ -69,12 +92,18 @@ namespace Microsoft.AspNet.Mvc.Core
         private class TestViewComponent : ViewComponent
         {
             [Activate]
-            internal IHtmlHelper<object> Html { get; private set; }
+            public IHtmlHelper<object> Html { get; private set; }
 
             public Task ExecuteAsync()
             {
                 throw new NotImplementedException();
             }
+        }
+
+        private class TestViewComponentWithCustomDataType : TestViewComponent
+        {
+            [Activate]
+            public string TestString { get; set; }
         }
     }
 }

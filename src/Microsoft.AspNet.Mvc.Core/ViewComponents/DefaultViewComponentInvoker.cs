@@ -20,8 +20,8 @@ namespace Microsoft.AspNet.Mvc
 
         public DefaultViewComponentInvoker(
             [NotNull] IServiceProvider serviceProvider,
-            [NotNull] TypeInfo componentType,
             [NotNull] IViewComponentActivator viewComponentActivator,
+            [NotNull] TypeInfo componentType,
             object[] args)
         {
             _serviceProvider = serviceProvider;
@@ -77,8 +77,6 @@ namespace Microsoft.AspNet.Mvc
             var activator = _serviceProvider.GetService<ITypeActivator>();
             var component = activator.CreateInstance(_serviceProvider, _componentType.AsType());
             _viewComponentActivator.Activate(component, context);
-
-            Injector.CallInitializer(component, _serviceProvider);
             return component;
         }
 
