@@ -35,6 +35,7 @@
     <Compile Include="Logging\LoggerExtensions.cs" />
     <Compile Include="Logging\MvcRouteHandlerRouteAsyncValues.cs" />
     <Compile Include="Logging\StringBuilderHelpers.cs" />
+    <Compile Include="FilterActionInvoker.cs" />
     <Compile Include="OptionDescriptors\DefaultModelBinderProvider.cs" />
     <Compile Include="OptionDescriptors\DefaultValueProviderFactoryProvider.cs" />
     <Compile Include="OptionDescriptors\DefaultViewEngineProvider.cs" />
