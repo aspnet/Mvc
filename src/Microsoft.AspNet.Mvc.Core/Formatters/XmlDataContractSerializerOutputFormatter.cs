@@ -21,7 +21,8 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
         /// </summary>
-        public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings, bool indent)
+        /// <param name="writerSettings">The settings to be used by the DataContractSerializer.</param>
+        public XmlDataContractSerializerOutputFormatter([NotNull] XmlWriterSettings writerSettings)
         {
             SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
@@ -30,7 +31,6 @@ namespace Microsoft.AspNet.Mvc
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/xml"));
 
             WriterSettings = writerSettings;
-            Indent = indent;
         }
 
         /// <summary>
@@ -53,50 +53,11 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to indent elements when writing data. 
-        /// </summary>
-        public bool Indent
-        {
-            get
-            {
-                return WriterSettings.Indent;
-            }
-            set
-            {
-                WriterSettings.Indent = value;
-            }
-        }
-
-        /// <inheritdoc />
-        public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
-        {
-            return SupportedMediaTypes.Any(supportedMediaType =>
-                                            contentType.RawValue.Equals(supportedMediaType.RawValue,
-                                                                        StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <inheritdoc />
-        public override Task WriteAsync(OutputFormatterContext context, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var response = context.HttpContext.Response;
-
-            WriterSettings.Encoding = SelectCharacterEncoding(MediaTypeHeaderValue.Parse(response.ContentType));
-            using (var xmlWriter = CreateXmlWriter(response.Body))
-            {
-                var xmlSerializer = CreateDataContractSerializer(context.DeclaredType);
-                xmlSerializer.WriteObject(xmlWriter, context.ObjectResult.Value);
-            }
-
-            return Task.FromResult(true);
-        }
-
-        /// <summary>
         /// Creates a new instance of <see cref="XmlWriter"/> using the given stream and the WriterSettings.
         /// </summary>
         /// <param name="writeStream">The stream on which the XmlWriter should operate on.</param>
         /// <returns>A new instance of <see cref="XmlWriter"/></returns>
-        public virtual XmlWriter CreateXmlWriter([NotNull]Stream writeStream)
+        public virtual XmlWriter CreateXmlWriter([NotNull] Stream writeStream)
         {
             return XmlWriter.Create(writeStream, WriterSettings);
         }
@@ -109,6 +70,20 @@ namespace Microsoft.AspNet.Mvc
         public virtual DataContractSerializer CreateDataContractSerializer([NotNull]Type type)
         {
             return new DataContractSerializer(type);
+        }
+
+        public override Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context)
+        {
+            var response = context.ActionContext.HttpContext.Response;
+
+            WriterSettings.Encoding = SelectCharacterEncoding(context);
+            using (var xmlWriter = CreateXmlWriter(response.Body))
+            {
+                var xmlSerializer = CreateDataContractSerializer(context.DeclaredType);
+                xmlSerializer.WriteObject(xmlWriter, context.Object);
+            }
+
+            return Task.FromResult(true);
         }
     }
 }
