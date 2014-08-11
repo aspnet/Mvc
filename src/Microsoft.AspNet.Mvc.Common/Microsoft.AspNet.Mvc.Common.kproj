@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Encodings.cs" />
+    <Compile Include="CopyOnWriteDictionary.cs" />
     <Compile Include="NotNullArgument.cs" />
     <Compile Include="PlatformHelper.cs" />
     <Compile Include="PropertyActivator.cs" />

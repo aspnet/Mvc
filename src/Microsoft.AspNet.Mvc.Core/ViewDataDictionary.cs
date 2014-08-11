@@ -24,12 +24,11 @@ namespace Microsoft.AspNet.Mvc
         }
 
         public ViewDataDictionary([NotNull] IModelMetadataProvider metadataProvider,
-            [NotNull] ModelStateDictionary modelState)
+                                  [NotNull] ModelStateDictionary modelState)
+            : this(metadataProvider,
+                  modelState: modelState,
+                  data: new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase))
         {
-            ModelState = modelState;
-            TemplateInfo = new TemplateInfo();
-            _data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            _metadataProvider = metadataProvider;
         }
 
         /// <summary>
@@ -45,22 +44,23 @@ namespace Microsoft.AspNet.Mvc
         /// exceptions a derived class may throw when <see cref="SetModel"/> is called.
         /// </summary>
         public ViewDataDictionary([NotNull] ViewDataDictionary source, object model)
-            : this(source.MetadataProvider)
+            : this(source.MetadataProvider,
+                   new ModelStateDictionary(source.ModelState),
+                   new CopyOnWriteDictionary<string, object>(source, StringComparer.OrdinalIgnoreCase))
         {
             _modelMetadata = source.ModelMetadata;
-             TemplateInfo = new TemplateInfo(source.TemplateInfo);
-
-            foreach (var entry in source.ModelState)
-            {
-                ModelState.Add(entry.Key, entry.Value);
-            }
-
-            foreach (var entry in source)
-            {
-                _data.Add(entry.Key, entry.Value);
-            }
-
+            TemplateInfo = new TemplateInfo(source.TemplateInfo);
             SetModel(model);
+        }
+
+        private ViewDataDictionary(IModelMetadataProvider metadataProvider,
+                                   ModelStateDictionary modelState,
+                                   IDictionary<string, object> data)
+        {
+            _metadataProvider = metadataProvider;
+            ModelState = modelState;
+            _data = data;
+            TemplateInfo = new TemplateInfo();
         }
 
         public object Model
@@ -88,7 +88,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Provider for subclasses that need it to override <see cref="ModelMetadata"/>.
         /// </summary>
-        protected IModelMetadataProvider MetadataProvider
+        protected internal IModelMetadataProvider MetadataProvider
         {
             get { return _metadataProvider; }
         }

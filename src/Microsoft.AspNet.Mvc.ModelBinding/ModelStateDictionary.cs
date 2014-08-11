@@ -11,19 +11,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class ModelStateDictionary : IDictionary<string, ModelState>
     {
-        private readonly IDictionary<string, ModelState> _innerDictionary =
-            new Dictionary<string, ModelState>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<string, ModelState> _innerDictionary;
 
         public ModelStateDictionary()
         {
+            _innerDictionary = new Dictionary<string, ModelState>(StringComparer.OrdinalIgnoreCase);
         }
 
         public ModelStateDictionary([NotNull] ModelStateDictionary dictionary)
         {
-            foreach (var entry in dictionary)
-            {
-                _innerDictionary.Add(entry.Key, entry.Value);
-            }
+            _innerDictionary = new CopyOnWriteDictionary<string, ModelState>(dictionary,
+                                                                             StringComparer.OrdinalIgnoreCase);
         }
 
         #region IDictionary properties

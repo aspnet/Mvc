@@ -10,6 +10,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class ModelStateDictionaryTest
     {
         [Fact]
+        public void CopyConstructor_CopiesModelStateData()
+        {
+            // Arrange
+            var modelState = new ModelState
+            {
+                Value = GetValueProviderResult("value")
+            };
+            var source = new ModelStateDictionary
+            {
+                { "key",  modelState }
+            };
+
+            // Act
+            var target = new ModelStateDictionary(source);
+
+            // Assert
+            Assert.Equal(1, target.Count);
+            Assert.Same(modelState, target["key"]);
+        }
+
+        [Fact]
         public void AddModelErrorCreatesModelStateIfNotPresent()
         {
             // Arrange
@@ -162,15 +183,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 { "foo", new ModelState
                         {
-                            ValidationState = ModelValidationState.Valid, 
-                            Value = GetValueProviderResult("bar", "bar") 
+                            ValidationState = ModelValidationState.Valid,
+                            Value = GetValueProviderResult("bar", "bar")
                         }
                 },
-                { "baz", new ModelState 
-                         { 
-                             ValidationState = ModelValidationState.Valid, 
-                             Value = GetValueProviderResult("quux", "bar") 
-                         } 
+                { "baz", new ModelState
+                         {
+                             ValidationState = ModelValidationState.Valid,
+                             Value = GetValueProviderResult("quux", "bar")
+                         }
                 }
             };
 
