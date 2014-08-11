@@ -200,7 +200,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "friends[0].friends[0].firstname", "nested friend"},
                 { "friends[1].firstName", "some other"},
                 { "friends[1].lastName", "name"},
-                { "resume", "Fys1" }
+                { "resume", "4+mFeTp3tPF=" }
             };
             var bindingContext = CreateBindingContext(binder, valueProvider, typeof(Person));
 
@@ -219,7 +219,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal("nested friend", nestedFriend.FirstName);
             Assert.Equal("some other", model.Friends[1].FirstName);
             Assert.Equal("name", model.Friends[1].LastName);
-            Assert.Equal(new byte[] { 23, 43, 53 }, model.Resume);
+            Assert.Equal(new byte[] { 227, 233, 133, 121, 58, 119, 180, 241 }, model.Resume);
         }
 
         [Fact]

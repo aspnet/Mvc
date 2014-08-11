@@ -20,19 +20,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task CheckIfByteArrayModelBinderWorks()
+        public async Task ModelBindingBindsBase64StringsToByteArrays()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.Handler;
-            var input = "";
 
             // Act
-            var response = await client.PostAsync("http://localhost/Home/Index?byteValues=Fys1", input, "application/json");
+            var response = await client.GetAsync("http://localhost/Home/Index?byteValues=SGVsbG9Xb3JsZA==");
 
             //Assert
             Assert.Equal(200, response.StatusCode);
-            Assert.Equal("23,43,53", await response.ReadBodyAsStringAsync());
+            Assert.Equal("HelloWorld", await response.ReadBodyAsStringAsync());
         }
     }
 }

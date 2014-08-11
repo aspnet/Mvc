@@ -70,16 +70,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task BindModelThrowsOnNullBindingContext()
-        {
-            // Arrange
-            var binder = new ByteArrayModelBinder();
-
-            // Act & assert
-            await Assert.ThrowsAsync<NullReferenceException>(() => binder.BindModelAsync(null));
-        }
-
-        [Fact]
         public async Task BindModelReturnsFalseWhenValueNotFound()
         {
             // Arrange

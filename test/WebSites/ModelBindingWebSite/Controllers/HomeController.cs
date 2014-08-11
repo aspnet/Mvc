@@ -7,11 +7,10 @@ namespace ModelBindingWebSite.Controllers
 {
     public class HomeController : Controller
     {
-        [HttpPost]
+        [HttpGet]
         public IActionResult Index(byte[] byteValues)
         {
-            return Content(byteValues[0].ToString() + "," + byteValues[1].ToString()
-                            + "," + byteValues[2].ToString());
+            return Content(System.Text.Encoding.UTF8.GetString(byteValues));
         }
     }
 }
