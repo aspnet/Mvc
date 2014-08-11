@@ -70,6 +70,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ConnegWebsite", "test\WebSites\ConnegWebSite\ConnegWebsite.kproj", "{C6E5AFFA-890A-448F-8DE3-878B1D3C9FC7}"
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AntiForgeryWebSite", "test\WebSites\AntiForgeryWebSite\AntiForgeryWebSite.kproj", "{A353B17E-A940-4CE8-8BF9-179E24A9041F}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.Mvc.Test", "test\Microsoft.AspNet.Mvc.Test\Microsoft.AspNet.Mvc.Test.kproj", "{5F945B82-FE5F-425C-956C-8BC2F2020254}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -360,6 +362,16 @@ Global
 		{A353B17E-A940-4CE8-8BF9-179E24A9041F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A353B17E-A940-4CE8-8BF9-179E24A9041F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A353B17E-A940-4CE8-8BF9-179E24A9041F}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5F945B82-FE5F-425C-956C-8BC2F2020254}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -394,5 +406,6 @@ Global
 		{EE1AB716-F102-4CA3-AD2C-214A44B459A0} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 		{C6E5AFFA-890A-448F-8DE3-878B1D3C9FC7} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 		{A353B17E-A940-4CE8-8BF9-179E24A9041F} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
+		{5F945B82-FE5F-425C-956C-8BC2F2020254} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 	EndGlobalSection
 EndGlobal

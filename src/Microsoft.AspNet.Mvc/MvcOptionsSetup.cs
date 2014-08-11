@@ -43,13 +43,11 @@ namespace Microsoft.AspNet.Mvc
             options.ValueProviderFactories.Add(new QueryStringValueProviderFactory());
             options.ValueProviderFactories.Add(new FormValueProviderFactory());
             options.OutputFormatters.Add(
-                new XmlSerializerOutputFormatter(
-                    XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings(),
-                    indent: false));
-            options.OutputFormatters.Add(
                 new XmlDataContractSerializerOutputFormatter(
-                    XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings(),
-                    indent: false));
+                    XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings()));
+            options.OutputFormatters.Add(
+                new XmlSerializerOutputFormatter(
+                    XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings()));
         }
     }
 }

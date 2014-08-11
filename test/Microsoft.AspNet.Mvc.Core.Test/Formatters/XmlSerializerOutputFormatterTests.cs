@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Moq;
@@ -37,19 +36,19 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings(),
-                indent: false);
+                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
-            await formatter.WriteAsync(outputFormatterContext, CancellationToken.None);
+            await formatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
-            Assert.NotNull(outputFormatterContext.HttpContext.Response.Body);
-            outputFormatterContext.HttpContext.Response.Body.Position = 0;
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
             Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                 "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>",
-                new StreamReader(outputFormatterContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd());
+                new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8)
+                        .ReadToEnd());
         }
 
         [Fact]
@@ -66,21 +65,21 @@ namespace Microsoft.AspNet.Mvc.Core
                 }
             };
             var formatter = new XmlSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings(),
-                indent: false);
+                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
-            await formatter.WriteAsync(outputFormatterContext, CancellationToken.None);
+            await formatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
-            Assert.NotNull(outputFormatterContext.HttpContext.Response.Body);
-            outputFormatterContext.HttpContext.Response.Body.Position = 0;
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
             Assert.Equal("<TestLevelTwo xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                             "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleString>TestString</SampleString>" +
                             "<TestOne><sampleString>TestLevelOne string</sampleString>" +
                             "<SampleInt>10</SampleInt></TestOne></TestLevelTwo>",
-                new StreamReader(outputFormatterContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd());
+                new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8)
+                        .ReadToEnd());
         }
 
         [Fact]
@@ -94,19 +93,19 @@ namespace Microsoft.AspNet.Mvc.Core
                 {
                     OmitXmlDeclaration = false,
                     CloseOutput = false
-                },
-                indent: false);
+                });
 
             // Act
-            await formatter.WriteAsync(outputFormatterContext, CancellationToken.None);
+            await formatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
-            Assert.NotNull(outputFormatterContext.HttpContext.Response.Body);
-            outputFormatterContext.HttpContext.Response.Body.Position = 0;
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
             Assert.Equal("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                             "<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                             "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>",
-                        new StreamReader(outputFormatterContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd());
+                        new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8)
+                                .ReadToEnd());
         }
 
         [Fact]
@@ -114,22 +113,22 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
-            var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType(), "application/xml; charset=utf-16");
+            var outputFormatterContext = 
+                GetOutputFormatterContext(sampleInput, sampleInput.GetType(), "application/xml; charset=utf-16");
             var formatter = new XmlSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings(),
-                indent: false);
+                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
             formatter.WriterSettings.OmitXmlDeclaration = false;
 
             // Act
-            await formatter.WriteAsync(outputFormatterContext, CancellationToken.None);
+            await formatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
-            Assert.NotNull(outputFormatterContext.HttpContext.Response.Body);
-            outputFormatterContext.HttpContext.Response.Body.Position = 0;
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
             Assert.Equal("<?xml version=\"1.0\" encoding=\"utf-16\"?>" +
                             "<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                             "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>",
-                        new StreamReader(outputFormatterContext.HttpContext.Response.Body,
+                        new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body,
                                 Encodings.UTF16EncodingLittleEndian).ReadToEnd());
         }
 
@@ -139,17 +138,17 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings(),
-                indent: true);
+                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
+            formatter.WriterSettings.Indent = true;
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
-            await formatter.WriteAsync(outputFormatterContext, CancellationToken.None);
+            await formatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
-            Assert.NotNull(outputFormatterContext.HttpContext.Response.Body);
-            outputFormatterContext.HttpContext.Response.Body.Position = 0;
-            var outputString = new StreamReader(outputFormatterContext.HttpContext.Response.Body,
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
+            var outputString = new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body,
                 Encoding.UTF8).ReadToEnd();
             Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                 "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <SampleInt>10</SampleInt>\r\n</DummyClass>",
@@ -161,22 +160,25 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             return new OutputFormatterContext
             {
-                ObjectResult = new ObjectResult(outputValue),
+                Object = outputValue,
                 DeclaredType = outputType,
-                HttpContext = GetHttpContext(contentType)
+                ActionContext = GetActionContext(contentType)
             };
         }
 
-        private static HttpContext GetHttpContext(string contentType)
+        private static ActionContext GetActionContext(string contentType)
         {
-            var response = new Mock<HttpResponse>();
+            var request = new Mock<HttpRequest>();
             var headers = new Mock<IHeaderDictionary>();
-            response.Setup(r => r.ContentType).Returns(contentType);
-            response.SetupGet(r => r.Headers).Returns(headers.Object);
+            request.Setup(r => r.ContentType).Returns(contentType);
+            request.SetupGet(r => r.Headers).Returns(headers.Object);
+            request.SetupGet(f => f.AcceptCharset).Returns(contentType.Split('=')[1]);
+            var response = new Mock<HttpResponse>();
             response.SetupGet(f => f.Body).Returns(new MemoryStream());
             var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(c => c.Request).Returns(request.Object);
             httpContext.SetupGet(c => c.Response).Returns(response.Object);
-            return httpContext.Object;
+            return new ActionContext(httpContext.Object, routeData: null, actionDescriptor: null);
         }
     }
 }
