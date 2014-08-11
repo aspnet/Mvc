@@ -18,6 +18,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <returns>A Task with a bool implying the success or failure of the operation.</returns>
         public async Task<bool> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
+            if (bindingContext.ModelType != typeof(byte[]))
+            {
+                return false;
+            }
+
             var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
 
             // case 1: there was no <input ... /> element containing this data
@@ -34,9 +39,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return false;
             }
 
-            // Future proofing. If the byte array is actually an instance of System.Data.Linq.Binary
-            // then we need to remove these quotes put in place by the ToString() method.
-            bindingContext.Model = Convert.FromBase64String(value.Replace("\"", string.Empty));
+            bindingContext.Model = Convert.FromBase64String(value);
             return true;
         }
     }

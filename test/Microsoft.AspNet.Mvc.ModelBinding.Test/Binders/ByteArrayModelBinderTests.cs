@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "foo", value }
             };
 
-            var bindingContext = GetBindingContext(valueProvider);
+            var bindingContext = GetBindingContext(valueProvider, typeof(byte[]));
             var binder = new ByteArrayModelBinder();
 
             // Act
@@ -32,18 +32,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Null(bindingContext.Model);
         }
 
-        [Theory]
-        [InlineData("Fys1", new byte[] { 23, 43, 53 })]
-        [InlineData("\"Fys1\"", new byte[] { 23, 43, 53 })]
-        public async Task BindModel(string input, byte[] expectedOutput)
+        [Fact]
+        public async Task BindModel()
         {
             // Arrange
             var valueProvider = new SimpleHttpValueProvider()
             {
-                { "foo", input }
+                { "foo", "Fys1" }
             };
 
-            var bindingContext = GetBindingContext(valueProvider);
+            var bindingContext = GetBindingContext(valueProvider, typeof(byte[]));
             var binder = new ByteArrayModelBinder();
 
             // Act
@@ -51,20 +49,34 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.True(binderResult);
-            Assert.Equal(expectedOutput, bindingContext.Model as byte[]);
+            Assert.IsType<byte[]>(bindingContext.Model);
+            Assert.Equal(new byte[] { 23, 43, 53 }, bindingContext.Model as byte[]);
         }
 
         [Fact]
-        public void BindModelThrowsOnNullBindingContext()
+        public async Task BindModelThrowsOnInvalidCharacters()
+        {
+            // Arrange
+            var valueProvider = new SimpleHttpValueProvider()
+            {
+                { "foo", "\"Fys1\"" }
+            };
+
+            var bindingContext = GetBindingContext(valueProvider, typeof(byte[]));
+            var binder = new ByteArrayModelBinder();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<FormatException>(() => binder.BindModelAsync(bindingContext));
+        }
+
+        [Fact]
+        public async Task BindModelThrowsOnNullBindingContext()
         {
             // Arrange
             var binder = new ByteArrayModelBinder();
 
             // Act & assert
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
-            {
-                return binder.BindModelAsync(null);
-            });
+            await Assert.ThrowsAsync<NullReferenceException>(() => binder.BindModelAsync(null));
         }
 
         [Fact]
@@ -76,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "someName", "" }
             };
 
-            var bindingContext = GetBindingContext(valueProvider);
+            var bindingContext = GetBindingContext(valueProvider, typeof(byte[]));
             var binder = new ByteArrayModelBinder();
 
             // Act
@@ -86,33 +98,28 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.False(binderResult);
         }
 
-        private static IModelBinder CreateIntBinder()
+        [Fact]
+        public async Task ByteArrayModelBinderReturnsFalseForOtherTypes()
         {
-            var mockIntBinder = new Mock<IModelBinder>();
-            mockIntBinder
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(async (ModelBindingContext mbc) =>
-                {
-                    var value = await mbc.ValueProvider.GetValueAsync(mbc.ModelName);
-                    if (value != null)
-                    {
-                        mbc.Model = value.ConvertTo(mbc.ModelType);
-                        return true;
-                    }
-                    return false;
-                });
-            return mockIntBinder.Object;
+            // Arrange
+            var bindingContext = GetBindingContext(null, typeof(int[]));
+            var binder = new ByteArrayModelBinder();
+
+            // Act
+            var binderResult = await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.False(binderResult);
         }
 
-        private static ModelBindingContext GetBindingContext(IValueProvider valueProvider)
+        private static ModelBindingContext GetBindingContext(IValueProvider valueProvider, Type modelType)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            ModelBindingContext bindingContext = new ModelBindingContext
+            var bindingContext = new ModelBindingContext
             {
-                ModelMetadata = metadataProvider.GetMetadataForType(null, typeof(int[])),
+                ModelMetadata = metadataProvider.GetMetadataForType(null, modelType),
                 ModelName = "foo",
                 ValueProvider = valueProvider,
-                ModelBinder = CreateIntBinder(),
                 MetadataProvider = metadataProvider
             };
             return bindingContext;
