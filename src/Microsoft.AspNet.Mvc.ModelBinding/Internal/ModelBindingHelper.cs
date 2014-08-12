@@ -93,5 +93,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
                 throw new ArgumentException(message, "bindingContext");
             }
         }
+
+        internal static bool IsFormatException(Exception ex)
+        {
+            for (; ex != null; ex = ex.InnerException)
+            {
+                if (ex is FormatException)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

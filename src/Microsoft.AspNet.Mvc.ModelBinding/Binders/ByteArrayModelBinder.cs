@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -11,11 +12,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class ByteArrayModelBinder : IModelBinder
     {
-        /// <summary>
-        /// Async function to bind Byte Arrays.
-        /// </summary>
-        /// <param name="bindingContext">The binding context which has the object to be bound.</param>
-        /// <returns>A Task with a bool implying the success or failure of the operation.</returns>
+        /// <inheritdoc />
         public async Task<bool> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
             if (bindingContext.ModelType != typeof(byte[]))
@@ -39,7 +36,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return false;
             }
 
-            bindingContext.Model = Convert.FromBase64String(value);
+            try
+            {
+                bindingContext.Model = Convert.FromBase64String(value);
+            }
+            catch (Exception ex)
+            {
+                if (ModelBindingHelper.IsFormatException(ex))
+                {
+                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex.Message);
+                }
+                else
+                {
+                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex);
+                }
+            }
+            
             return true;
         }
     }

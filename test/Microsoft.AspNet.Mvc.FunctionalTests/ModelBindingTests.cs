@@ -33,5 +33,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(200, response.StatusCode);
             Assert.Equal("HelloWorld", await response.ReadBodyAsStringAsync());
         }
+
+        [Fact]
+        public async Task ModelBindingBindsEmptyStringsToByteArrays()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/Index?byteValues=");
+
+            //Assert
+            Assert.Equal(200, response.StatusCode);
+            Assert.Equal("\0", await response.ReadBodyAsStringAsync());
+        }
     }
 }
