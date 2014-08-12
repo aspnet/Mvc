@@ -11,6 +11,8 @@ namespace Microsoft.AspNet.Mvc
 {
     public class HttpMethodConstraint : IActionConstraint
     {
+        public static readonly int HttpMethodConstraintOrder = 100;
+
         private readonly IReadOnlyList<string> _methods;
 
         // Empty collection means any method will be accepted.
@@ -44,7 +46,12 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public bool Accept([NotNull] RouteContext context)
+        public int Order
+        {
+            get { return HttpMethodConstraintOrder; }
+        }
+
+        public bool Accept([NotNull] ActionConstraintContext context)
         {
             if (context == null)
             {
@@ -56,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
                 return true;
             }
 
-            var request = context.HttpContext.Request;
+            var request = context.RouteContext.HttpContext.Request;
 
             return (HttpMethods.Any(m => m.Equals(request.Method, StringComparison.Ordinal)));
         }

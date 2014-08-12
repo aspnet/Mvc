@@ -22,6 +22,8 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
             // is needed to so that the result of ToList() is List<object>
             Attributes = ControllerType.GetCustomAttributes(inherit: true).OfType<object>().ToList();
 
+            ActionConstraints = Attributes.OfType<IActionConstraintMetadata>().ToList();
+
             Filters = Attributes
                 .OfType<IFilter>()
                 .ToList();
@@ -48,6 +50,8 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
                         ? controllerType.Name.Substring(0, controllerType.Name.Length - "Controller".Length)
                         : controllerType.Name;
         }
+
+        public List<IActionConstraintMetadata> ActionConstraints { get; private set; }
 
         public List<ReflectedActionModel> Actions { get; private set; }
 

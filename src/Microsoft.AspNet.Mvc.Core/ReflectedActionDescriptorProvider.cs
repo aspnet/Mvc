@@ -471,13 +471,27 @@ namespace Microsoft.AspNet.Mvc
             ReflectedActionModel action,
             ReflectedControllerModel controller)
         {
+            var constraints = new List<IActionConstraintMetadata>();
+
             var httpMethods = action.HttpMethods;
             if (httpMethods != null && httpMethods.Count > 0)
             {
-                actionDescriptor.MethodConstraints = new List<HttpMethodConstraint>()
-                {
-                    new HttpMethodConstraint(httpMethods)
-                };
+                constraints.Add(new HttpMethodConstraint(httpMethods));
+            }
+
+            if (action.ActionConstraints != null && action.ActionConstraints.Count > 0)
+            {
+                constraints.AddRange(action.ActionConstraints);
+            }
+
+            if (controller.ActionConstraints != null && controller.ActionConstraints.Count > 0)
+            {
+                constraints.AddRange(controller.ActionConstraints);
+            }
+
+            if (constraints.Count > 0)
+            {
+                actionDescriptor.ActionConstraints = constraints;
             }
 
             actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
