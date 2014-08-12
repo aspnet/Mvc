@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -72,7 +73,13 @@ namespace Microsoft.AspNet.Mvc
                 valueAccessor = (viewContext) =>
                 {
                     var serviceProvider = viewContext.HttpContext.RequestServices;
-                    return serviceProvider.GetService(property.PropertyType);
+                    var service = serviceProvider.GetService(property.PropertyType);
+                    if (typeof(ICanHasViewContext).IsAssignableFrom(property.PropertyType))
+                    {
+                        ((ICanHasViewContext)service).Contextualize(viewContext);
+                    }
+
+                    return service;
                 };
             }
 

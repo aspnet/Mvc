@@ -5,12 +5,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -76,6 +74,25 @@ namespace Microsoft.AspNet.Mvc.Core
 
         }
 
+        [Fact]
+        public void DefaulViewComponentActivatorContextualizesService()
+        {
+            // Arrange
+            var activator = new DefaultViewComponentActivator();
+            var instance = new TestClassUsingMyService();
+            var myTestService = new MyService();
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(MyService))).Returns(myTestService);
+            var viewContext = GetViewContext(serviceProvider.Object);
+
+            // Act
+            activator.Activate(instance, viewContext);
+
+            // Assert
+            Assert.Same(myTestService, instance.MyTestService);
+            Assert.Same(viewContext, instance.MyTestService.ViewContext);
+        }
+
         private ViewContext GetViewContext(IServiceProvider serviceProvider)
         {
             var httpContext = new Mock<DefaultHttpContext>();
@@ -104,6 +121,22 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             [Activate]
             public string TestString { get; set; }
+        }
+
+        private class MyService : ICanHasViewContext
+        {
+            public ViewContext ViewContext { get; private set; }
+
+            public void Contextualize(ViewContext viewContext)
+            {
+                ViewContext = viewContext;
+            }
+        }
+
+        private class TestClassUsingMyService
+        {
+            [Activate]
+            public MyService MyTestService { get; set; }
         }
     }
 }
