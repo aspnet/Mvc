@@ -94,6 +94,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
             }
         }
 
+        internal static void AddModelErrorBasedOnExceptionType(ModelBindingContext bindingContext, Exception ex)
+        {
+            if (IsFormatException(ex))
+            {
+                bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex.Message);
+            }
+            else
+            {
+                bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex);
+            }
+        }
+
         internal static bool IsFormatException(Exception ex)
         {
             for (; ex != null; ex = ex.InnerException)

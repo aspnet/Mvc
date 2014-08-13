@@ -42,14 +42,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
             catch (Exception ex)
             {
-                if (ModelBindingHelper.IsFormatException(ex))
-                {
-                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex.Message);
-                }
-                else
-                {
-                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex);
-                }
+                ModelBindingHelper.AddModelErrorBasedOnExceptionType(bindingContext, ex);
             }
             
             return true;
