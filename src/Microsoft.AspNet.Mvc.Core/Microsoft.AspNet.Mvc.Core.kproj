@@ -18,7 +18,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="project.json" />
-    <Content Include="project.json.orig" />
     <Content Include="Resources.resx">
       <SubType>Designer</SubType>
     </Content>
@@ -32,6 +31,7 @@
     <Compile Include="ActionDescriptorsCollection.cs" />
     <Compile Include="ActionResults\HttpNotFoundResult.cs" />
     <Compile Include="Formatters\TextPlainFormatter.cs" />
+    <Compile Include="Formatters\XmlOutputFormatter.cs" />
     <Compile Include="Logging\AttributeRouteRouteAsyncValues.cs" />
     <Compile Include="Formatters\XmlDataContractSerializerOutputFormatter.cs" />
     <Compile Include="Formatters\XmlSerializerOutputFormatter.cs" />
