@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private Type _type;
 
-        private CompilationResult()
+        protected CompilationResult()
         {
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the generated C# content that was compiled.
         /// </summary>
-        public string CompiledContent { get; private set; }
+        public string CompiledContent { get; protected set; }
 
         /// <summary>
         /// Gets the type produced as a result of compilation.
@@ -58,6 +58,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 return _type;
+            }
+            protected set
+            {
+                _type = value;
             }
         }
 
@@ -91,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             return new CompilationResult
             {
-                _type = type
+                CompiledType = type
             };
         }
 
