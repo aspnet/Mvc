@@ -31,7 +31,10 @@
     <Compile Include="ActionDescriptorsCollection.cs" />
     <Compile Include="ActionResults\HttpNotFoundResult.cs" />
     <Compile Include="Formatters\TextPlainFormatter.cs" />
+    <Compile Include="Formatters\XmlOutputFormatter.cs" />
     <Compile Include="Logging\AttributeRouteRouteAsyncValues.cs" />
+    <Compile Include="Formatters\XmlDataContractSerializerOutputFormatter.cs" />
+    <Compile Include="Formatters\XmlSerializerOutputFormatter.cs" />
     <Compile Include="Logging\LoggerExtensions.cs" />
     <Compile Include="Logging\MvcRouteHandlerRouteAsyncValues.cs" />
     <Compile Include="Logging\StringBuilderHelpers.cs" />

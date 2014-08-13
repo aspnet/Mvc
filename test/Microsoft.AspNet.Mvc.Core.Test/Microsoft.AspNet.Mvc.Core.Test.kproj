@@ -36,6 +36,8 @@
     <Compile Include="Formatters\TextPlainFormatterTests.cs" />
     <Compile Include="DefaultViewComponentActivatorTests.cs" />
     <Compile Include="Logging\BeginScopeContext.cs" />
+    <Compile Include="Formatters\XmlDataContractSerializerOutputFormatterTests.cs" />
+    <Compile Include="Formatters\XmlSerializerOutputFormatterTests.cs" />
     <Compile Include="Logging\TestLoggerFactory.cs" />
     <Compile Include="Logging\WriteCoreContext.cs" />
     <Compile Include="Logging\NullDisposable.cs" />
