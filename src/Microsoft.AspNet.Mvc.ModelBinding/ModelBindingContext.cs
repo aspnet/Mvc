@@ -8,6 +8,9 @@ using Microsoft.AspNet.Http;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
+    /// <summary>
+    /// A context that contains operating information for model binding and validation.
+    /// </summary>
     public class ModelBindingContext
     {
         private string _modelName;
@@ -23,7 +26,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ModelBindingContext"/> class using the binding context.
+        /// Initializes a new instance of the <see cref="ModelBindingContext"/> class using the
+        /// <param name="bindingContext" />.
         // </summary>
         /// <remarks>
         /// This constructor copies certain values that won't change between parent and child objects,
@@ -129,37 +133,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public HttpContext HttpContext { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="IValueProvider"/> used for binding with this context.
+        /// Gets or sets the <see cref="IValueProvider"/> associated with this context.
         /// </summary>
-        public IValueProvider ValueProvider
-        {
-            get; set;
-        }
+        public IValueProvider ValueProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="IModelBinder"/> used for binding with this context.
+        /// Gets or sets the <see cref="IModelBinder"/> associated with this context.
         /// </summary>
-        public IModelBinder ModelBinder
-        {
-            get; set;
-        }
+        public IModelBinder ModelBinder { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="IModelMetadataProvider"/> used for binding with this context.
+        /// Gets or sets the <see cref="IModelMetadataProvider"/> associated with this context.
         /// </summary>
-        public IModelMetadataProvider MetadataProvider
-        {
-            get; set;
-        }
+        public IModelMetadataProvider MetadataProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the sequence of <see cref="IModelValidatorProvider"/> instances used for model validation
         /// with this context.
         /// </summary>
-        public IEnumerable<IModelValidatorProvider> ValidatorProviders
-        {
-            get; set;
-        }
+        public IEnumerable<IModelValidatorProvider> ValidatorProviders { get; set; }
 
         /// <summary>
         /// Gets a dictionary of property name to <see cref="ModelMetadata"/> instances for
