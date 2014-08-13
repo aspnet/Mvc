@@ -119,6 +119,27 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
+        public async Task RenderAsync_WithoutHierarchy_ThrowsIfItDeclaresSections()
+        {
+            var page = new TestableRazorPage(v =>
+            {
+                v.DefineSection("test", new HelperResult(action => { }));
+            });
+            var pageFactory = new Mock<IRazorPageFactory>();
+            var viewStartProvider = CreateViewStartProvider();
+            var view = new RazorView(pageFactory.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     viewStartProvider,
+                                     page);
+            var viewContext = CreateViewContext(view);
+
+            // Act and Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                            async () => await view.RenderAsync(viewContext));
+            Assert.Equal("Sections cannot be defined in a partial view.", ex.Message);
+        }
+
+        [Fact]
         public async Task RenderAsync_WithHierarchy_CreatesOutputBuffer()
         {
             // Arrange

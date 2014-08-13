@@ -135,6 +135,9 @@
   <data name="MvcRazorCodeParser_OnlyOneModelStatementIsAllowed" xml:space="preserve">
     <value>Only one '{0}' statement is allowed in a file.</value>
   </data>
+  <data name="PartialViewsCannotDefineSections" xml:space="preserve">
+    <value>Sections cannot be defined in a partial view.</value>
+  </data>
   <data name="RenderBodyCannotBeCalled" xml:space="preserve">
     <value>{0} can only be called from a layout page.</value>
   </data>

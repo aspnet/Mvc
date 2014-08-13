@@ -107,6 +107,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
+        /// Sections cannot be defined in a partial view.
+        /// </summary>
+        internal static string PartialViewsCannotDefineSections
+        {
+            get { return GetString("PartialViewsCannotDefineSections"); }
+        }
+
+        /// <summary>
+        /// Sections cannot be defined in a partial view.
+        /// </summary>
+        internal static string FormatPartialViewsCannotDefineSections()
+        {
+            return GetString("PartialViewsCannotDefineSections");
+        }
+
+        /// <summary>
         /// {0} can only be called from a layout page.
         /// </summary>
         internal static string RenderBodyCannotBeCalled

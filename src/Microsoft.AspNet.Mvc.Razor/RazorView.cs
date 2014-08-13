@@ -53,6 +53,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             else
             {
                 await RenderPageCoreAsync(_page, context);
+                // Ensure that the partial did not declare any sections.
+                if (_page.SectionWriters.Count > 0)
+                {
+                    throw new InvalidOperationException(Resources.PartialViewsCannotDefineSections);
+                }
             }
         }
 
