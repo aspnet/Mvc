@@ -10,7 +10,9 @@ namespace Microsoft.AspNet.Mvc.Core
     /// </summary>
     public class RazorViewEngineOptions
     {
+        private const string DefaultViewExtension = ".cshtml";
         private TimeSpan _expirationBeforeCheckingFilesOnDisk = TimeSpan.FromSeconds(2);
+        private string _viewExtension = DefaultViewExtension;
 
         /// <summary>
         /// Controls the <see cref="ExpiringFileInfoCache" /> caching behavior.
@@ -36,6 +38,28 @@ namespace Microsoft.AspNet.Mvc.Core
                 {
                     _expirationBeforeCheckingFilesOnDisk = value;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the extension for views supported by RazorViewEngine.
+        /// </summary>
+        public string ViewExtension
+        {
+            get { return _viewExtension; }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentException(Resources.FormatArgumentCannotBeNullOrEmpty(), "ViewExtension");
+                }
+
+                if (value[0] != '.')
+                {
+                    value = '.' + value;
+                }
+
+                _viewExtension = value;
             }
         }
     }

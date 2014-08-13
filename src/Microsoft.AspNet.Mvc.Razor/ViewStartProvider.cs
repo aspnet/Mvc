@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Framework.OptionsModel;
 using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -12,15 +13,20 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <inheritdoc />
     public class ViewStartProvider : IViewStartProvider
     {
-        private const string ViewStartFileName = "_ViewStart.cshtml";
+        private const string ViewStartFileNameWithoutExtension = "_ViewStart";
         private readonly string _appRoot;
         private readonly IRazorPageFactory _pageFactory;
+        private readonly string _viewStartFileName;
 
         public ViewStartProvider(IApplicationEnvironment appEnv,
-                                 IRazorPageFactory pageFactory)
+                                 IRazorPageFactory pageFactory,
+                                 IOptionsAccessor<MvcOptions> mvcOptions)
         {
             _appRoot = TrimTrailingSlash(appEnv.ApplicationBasePath);
             _pageFactory = pageFactory;
+
+            var razorOptions = mvcOptions.Options.ViewEngineOptions;
+            _viewStartFileName = ViewStartFileNameWithoutExtension + razorOptions.ViewExtension;
         }
 
         /// <inheritdoc />
@@ -50,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var currentDir = GetViewDirectory(_appRoot, path);
             while (IsSubDirectory(_appRoot, currentDir))
             {
-                viewStartLocations.Add(Path.Combine(currentDir, ViewStartFileName));
+                viewStartLocations.Add(Path.Combine(currentDir, _viewStartFileName));
                 currentDir = Path.GetDirectoryName(currentDir);
             }
 
@@ -68,7 +74,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 viewPath = viewPath.Substring(2);
             }
-            else if (viewPath[0] == Path.DirectorySeparatorChar || 
+            else if (viewPath[0] == Path.DirectorySeparatorChar ||
                      viewPath[0] == Path.AltDirectorySeparatorChar)
             {
                 viewPath = viewPath.Substring(1);
