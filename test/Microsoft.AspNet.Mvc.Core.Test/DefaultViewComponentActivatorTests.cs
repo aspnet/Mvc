@@ -12,7 +12,7 @@ using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class DefaultViewComponentActivatorTests
     {
@@ -59,10 +59,10 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var activator = new DefaultViewComponentActivator();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var sampleInput = "HelloWorld";
+            var myTestService = new MyService();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
-            serviceProvider.Setup(p => p.GetService(typeof(string))).Returns(sampleInput);
+            serviceProvider.Setup(p => p.GetService(typeof(MyService))).Returns(myTestService);
             var viewContext = GetViewContext(serviceProvider.Object);
             var instance = new TestViewComponentWithCustomDataType();
 
@@ -70,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.Core
             activator.Activate(instance, viewContext);
 
             // Assert
-            Assert.Equal(sampleInput, instance.TestString);
+            Assert.Equal(myTestService, instance.TestMyServiceObject);
 
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.Core
         private class TestViewComponentWithCustomDataType : TestViewComponent
         {
             [Activate]
-            public string TestString { get; set; }
+            public MyService TestMyServiceObject { get; set; }
         }
 
         private class MyService : ICanHasViewContext
