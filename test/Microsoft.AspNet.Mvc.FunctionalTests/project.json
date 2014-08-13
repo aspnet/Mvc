@@ -19,6 +19,7 @@
         "Microsoft.Framework.Runtime.Interfaces": "1.0.0-*",
         "Microsoft.AspNet.PipelineCore": "1.0.0-*",
         "RoutingWebSite": "",
+        "RazorExtensionWebSite":  "",
         "RazorWebSite": "",
         "ValueProvidersSite":  "",
         "Xunit.KRunner": "1.0.0-*"

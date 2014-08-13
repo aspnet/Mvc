@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
+using Microsoft.Framework.OptionsModel;
 using Microsoft.Framework.Runtime;
 using Moq;
 using Xunit;
@@ -18,7 +18,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         {
             // Arrange
             var appPath = @"x:\test";
-            var provider = new ViewStartProvider(GetAppEnv(appPath), Mock.Of<IRazorPageFactory>());
+            var mvcOptions = new MvcOptions();
+            var provider = new ViewStartProvider(GetAppEnv(appPath),
+                                                 Mock.Of<IRazorPageFactory>(),
+                                                 GetOptionsAccessor(mvcOptions));
 
             // Act
             var result = provider.GetViewStartLocations(viewPath);
@@ -76,10 +79,36 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                                                                              IEnumerable<string> expected)
         {
             // Arrange
-            var provider = new ViewStartProvider(GetAppEnv(appPath), Mock.Of<IRazorPageFactory>());
+            var mvcOptions = new MvcOptions();
+            var provider = new ViewStartProvider(GetAppEnv(appPath),
+                                                 Mock.Of<IRazorPageFactory>(),
+                                                 GetOptionsAccessor(mvcOptions));
 
             // Act
             var result = provider.GetViewStartLocations(viewPath);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetViewStartLocations_ReturnsPotentialViewStartLocationsWithCorrectExtension()
+        {
+            // Arrange
+            var expected = new[]
+            {
+                @"z:\mvcapp\views\home\_ViewStart.rzr",
+                @"z:\mvcapp\views\_ViewStart.rzr",
+                @"z:\mvcapp\_ViewStart.rzr",
+            };
+            var mvcOptions = new MvcOptions();
+            mvcOptions.ViewEngineOptions.ViewExtension = ".rzr";
+            var provider = new ViewStartProvider(GetAppEnv(@"z:\mvcapp\"),
+                                                 Mock.Of<IRazorPageFactory>(),
+                                                 GetOptionsAccessor(mvcOptions));
+
+            // Act
+            var result = provider.GetViewStartLocations(@"views\home\index.rzr");
 
             // Assert
             Assert.Equal(expected, result);
@@ -91,6 +120,15 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             appEnv.Setup(p => p.ApplicationBasePath)
                   .Returns(appPath);
             return appEnv.Object;
+        }
+
+        private static IOptionsAccessor<MvcOptions> GetOptionsAccessor(MvcOptions options)
+        {
+            var accessor = new Mock<IOptionsAccessor<MvcOptions>>();
+            accessor.SetupGet(a => a.Options)
+                    .Returns(options);
+
+            return accessor.Object;
         }
     }
 }

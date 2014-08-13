@@ -7,6 +7,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
@@ -100,7 +101,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         public void FindPartialViewFailureSearchesCorrectLocationsWithAreas()
         {
             // Arrange
-            var searchedLocations = new List<string>();
             var viewEngine = CreateSearchLocationViewEngineTester();
             var context = GetActionContext(_areaTestContext);
 
@@ -114,6 +114,29 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                 "/Areas/foo/Views/Shared/partial.cshtml",
                 "/Views/Shared/partial.cshtml",
             }, result.SearchedLocations);
+        }
+
+        [Fact]
+        public void FindPartialView_UsesViewExtensionSuffix()
+        {
+            // Arrange
+            var expected = new[]
+            {
+                "/Areas/foo/Views/bar/partial.test-view-extension",
+                "/Areas/foo/Views/Shared/partial.test-view-extension",
+                "/Views/Shared/partial.test-view-extension"
+            };
+            var options = new MvcOptions();
+            options.ViewEngineOptions.ViewExtension = ".test-view-extension";
+            var viewEngine = CreateSearchLocationViewEngineTester(options);
+            var context = GetActionContext(_areaTestContext);
+
+            // Act
+            var result = viewEngine.FindPartialView(context, "partial");
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(expected, result.SearchedLocations);
         }
 
         [Fact]
@@ -154,6 +177,28 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         }
 
         [Fact]
+        public void FindView_UsesViewExtensionSuffix()
+        {
+            // Arrange
+            var expected = new[]
+            {
+                "/Views/bar/viewname.test-extension",
+                "/Views/Shared/viewname.test-extension",
+            };
+            var options = new MvcOptions();
+            options.ViewEngineOptions.ViewExtension = ".test-extension";
+            var viewEngine = CreateSearchLocationViewEngineTester(options);
+            var context = GetActionContext(_controllerTestContext);
+
+            // Act
+            var result = viewEngine.FindPartialView(context, "viewname");
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(expected, result.SearchedLocations);
+        }
+
+        [Fact]
         public void FindViewFailureSearchesCorrectLocationsWithoutAreas()
         {
             // Arrange
@@ -189,7 +234,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                            .Returns(Mock.Of<IViewStartProvider>());
             var viewEngine = new RazorViewEngine(pageFactory.Object,
                                                  new TypeActivator(),
-                                                 serviceProvider.Object);
+                                                 serviceProvider.Object,
+                                                 GetOptionsAccessor(new MvcOptions()));
             var context = GetActionContext(_controllerTestContext);
 
             // Act
@@ -201,15 +247,17 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             Assert.Equal("/Views/bar/test-view.cshtml", result.ViewName);
         }
 
-        private IViewEngine CreateSearchLocationViewEngineTester()
+        private IViewEngine CreateSearchLocationViewEngineTester(MvcOptions options = null)
         {
+            options = options ?? new MvcOptions();
             var pageFactory = new Mock<IRazorPageFactory>();
             pageFactory.Setup(vpf => vpf.CreateInstance(It.IsAny<string>()))
                        .Returns<RazorPage>(null);
 
             var viewEngine = new RazorViewEngine(pageFactory.Object,
                                                  Mock.Of<ITypeActivator>(),
-                                                 Mock.Of<IServiceProvider>());
+                                                 Mock.Of<IServiceProvider>(),
+                                                 GetOptionsAccessor(options));
 
             return viewEngine;
         }
@@ -219,6 +267,15 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var httpContext = Mock.Of<HttpContext>();
             var routeData = new RouteData { Values = routeValues };
             return new ActionContext(httpContext, routeData, new ActionDescriptor());
+        }
+
+        private static IOptionsAccessor<MvcOptions> GetOptionsAccessor(MvcOptions options)
+        {
+            var accessor = new Mock<IOptionsAccessor<MvcOptions>>();
+            accessor.SetupGet(a => a.Options)
+                    .Returns(options);
+
+            return accessor.Object;
         }
     }
 }

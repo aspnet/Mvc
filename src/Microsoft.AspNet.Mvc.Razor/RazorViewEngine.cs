@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -15,24 +16,14 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class RazorViewEngine : IViewEngine
     {
-        private const string ViewExtension = ".cshtml";
+        private readonly string[] _viewLocationFormats;
 
-        private static readonly string[] _viewLocationFormats =
-        {
-            "/Views/{1}/{0}" + ViewExtension,
-            "/Views/Shared/{0}" + ViewExtension,
-        };
-
-        private static readonly string[] _areaViewLocationFormats =
-        {
-            "/Areas/{2}/Views/{1}/{0}" + ViewExtension,
-            "/Areas/{2}/Views/Shared/{0}" + ViewExtension,
-            "/Views/Shared/{0}" + ViewExtension,
-        };
+        private readonly string[] _areaViewLocationFormats;
 
         private readonly IRazorPageFactory _pageFactory;
         private readonly ITypeActivator _typeActivator;
         private readonly IServiceProvider _serviceProvider;
+        private readonly string _viewExtension;
 
         /// <summary>
         /// Initializes a new instance of the RazorViewEngine class.
@@ -43,11 +34,27 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// page being rendered.</param>
         public RazorViewEngine(IRazorPageFactory pageFactory,
                                ITypeActivator typeActivator,
-                               IServiceProvider serviceProvider)
+                               IServiceProvider serviceProvider,
+                               IOptionsAccessor<MvcOptions> optionsAccessor)
         {
             _pageFactory = pageFactory;
             _typeActivator = typeActivator;
             _serviceProvider = serviceProvider;
+            var razorOptions = optionsAccessor.Options.ViewEngineOptions;
+            _viewExtension = razorOptions.ViewExtension;
+
+            _viewLocationFormats = new[]
+            {
+                "/Views/{1}/{0}" + _viewExtension,
+                "/Views/Shared/{0}" + _viewExtension,
+            };
+
+            _areaViewLocationFormats = new[]
+            {
+                "/Areas/{2}/Views/{1}/{0}" + _viewExtension,
+                "/Areas/{2}/Views/Shared/{0}" + _viewExtension,
+                "/Views/Shared/{0}" + _viewExtension,
+            };
         }
 
         public IEnumerable<string> ViewLocationFormats
@@ -78,10 +85,10 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             if (nameRepresentsPath)
             {
-                if (!viewName.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase))
+                if (!viewName.EndsWith(_viewExtension, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new InvalidOperationException(
-                        Resources.FormatViewMustEndInExtension(viewName, ViewExtension));
+                        Resources.FormatViewMustEndInExtension(viewName, _viewExtension));
                 }
 
                 var page = _pageFactory.CreateInstance(viewName);
