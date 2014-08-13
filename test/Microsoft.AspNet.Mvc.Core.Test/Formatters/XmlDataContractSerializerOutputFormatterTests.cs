@@ -45,11 +45,11 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
-            await formatter.WriteResponseBodyAsync(outputFormatterContext);
+            await formatter.WriteAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
@@ -74,11 +74,11 @@ namespace Microsoft.AspNet.Mvc.Core
                 }
             };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
-            await formatter.WriteResponseBodyAsync(outputFormatterContext);
+            await formatter.WriteAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
@@ -105,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 });
 
             // Act
-            await formatter.WriteResponseBodyAsync(outputFormatterContext);
+            await formatter.WriteAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
@@ -124,11 +124,11 @@ namespace Microsoft.AspNet.Mvc.Core
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType(),
                 "application/xml; charset=utf-16");
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
             formatter.WriterSettings.OmitXmlDeclaration = false;
 
             // Act
-            await formatter.WriteResponseBodyAsync(outputFormatterContext);
+            await formatter.WriteAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
@@ -146,12 +146,12 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings());
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
             formatter.WriterSettings.Indent = true;
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
-            await formatter.WriteResponseBodyAsync(outputFormatterContext);
+            await formatter.WriteAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
@@ -161,6 +161,23 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Equal("<DummyClass xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
                 "\r\n  <SampleInt>10</SampleInt>\r\n</DummyClass>",
                 outputString);
+        }
+
+        [Fact]
+        public async Task VerifyBodyIsNotClosedAfterOutputIsWritten()
+        {
+            // Arrange
+            var sampleInput = new DummyClass { SampleInt = 10 };
+            var formatter = new XmlDataContractSerializerOutputFormatter(
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+            var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
+
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            Assert.True(outputFormatterContext.ActionContext.HttpContext.Response.Body.CanRead);
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
