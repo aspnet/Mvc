@@ -1,29 +1,27 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Represents a <see cref="IDictionary{TKey, TValue}"/> that defers creating a shallow copy of the source 
-    /// dictionary until a mutative operation has been performed on it.
+    /// A <see cref="IDictionary{string, TValue}"/> that defers creating a shallow copy of the source dictionary until
+    ///  a mutative operation has been performed on it.
     /// </summary>
-    internal class CopyOnWriteDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    internal class CopyOnWriteDictionary<TValue> : IDictionary<string, TValue>
     {
-        private readonly IDictionary<TKey, TValue> _sourceDictionary;
-        private readonly IEqualityComparer<TKey> _comparer;
-        private IDictionary<TKey, TValue> _innerDictionary;
+        private readonly IDictionary<string, TValue> _sourceDictionary;
+        private IDictionary<string, TValue> _innerDictionary;
 
-        public CopyOnWriteDictionary([NotNull] IDictionary<TKey, TValue> sourceDictionary,
-                                     [NotNull] IEqualityComparer<TKey> comparer)
+        public CopyOnWriteDictionary([NotNull] IDictionary<string, TValue> sourceDictionary)
         {
             _sourceDictionary = sourceDictionary;
-            _comparer = comparer;
         }
 
-        private IDictionary<TKey, TValue> ReadDictionary
+        private IDictionary<string, TValue> ReadDictionary
         {
             get
             {
@@ -31,20 +29,21 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private IDictionary<TKey, TValue> WriteDictionary
+        private IDictionary<string, TValue> WriteDictionary
         {
             get
             {
                 if (_innerDictionary == null)
                 {
-                    _innerDictionary = new Dictionary<TKey, TValue>(_sourceDictionary, _comparer);
+                    _innerDictionary = new Dictionary<string, TValue>(_sourceDictionary,
+                                                                      StringComparer.OrdinalIgnoreCase);
                 }
 
                 return _innerDictionary;
             }
         }
 
-        public virtual ICollection<TKey> Keys
+        public virtual ICollection<string> Keys
         {
             get
             {
@@ -76,7 +75,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public virtual TValue this[TKey key]
+        public virtual TValue this[[NotNull] string key]
         {
             get
             {
@@ -88,27 +87,27 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public virtual bool ContainsKey(TKey key)
+        public virtual bool ContainsKey([NotNull] string key)
         {
             return ReadDictionary.ContainsKey(key);
         }
 
-        public virtual void Add(TKey key, TValue value)
+        public virtual void Add([NotNull] string key, TValue value)
         {
             WriteDictionary.Add(key, value);
         }
 
-        public virtual bool Remove(TKey key)
+        public virtual bool Remove([NotNull] string key)
         {
             return WriteDictionary.Remove(key);
         }
 
-        public virtual bool TryGetValue(TKey key, out TValue value)
+        public virtual bool TryGetValue([NotNull] string key, out TValue value)
         {
             return ReadDictionary.TryGetValue(key, out value);
         }
 
-        public virtual void Add(KeyValuePair<TKey, TValue> item)
+        public virtual void Add(KeyValuePair<string, TValue> item)
         {
             WriteDictionary.Add(item);
         }
@@ -118,22 +117,22 @@ namespace Microsoft.AspNet.Mvc
             WriteDictionary.Clear();
         }
 
-        public virtual bool Contains(KeyValuePair<TKey, TValue> item)
+        public virtual bool Contains(KeyValuePair<string, TValue> item)
         {
             return ReadDictionary.Contains(item);
         }
 
-        public virtual void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        public virtual void CopyTo([NotNull] KeyValuePair<string, TValue>[] array, int arrayIndex)
         {
             ReadDictionary.CopyTo(array, arrayIndex);
         }
 
-        public bool Remove(KeyValuePair<TKey, TValue> item)
+        public bool Remove(KeyValuePair<string, TValue> item)
         {
             return WriteDictionary.Remove(item);
         }
 
-        public virtual IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        public virtual IEnumerator<KeyValuePair<string, TValue>> GetEnumerator()
         {
             return ReadDictionary.GetEnumerator();
         }

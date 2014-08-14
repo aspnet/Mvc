@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc
         public ViewDataDictionary([NotNull] ViewDataDictionary source, object model)
             : this(source.MetadataProvider,
                    new ModelStateDictionary(source.ModelState),
-                   new CopyOnWriteDictionary<string, object>(source, StringComparer.OrdinalIgnoreCase))
+                   new CopyOnWriteDictionary<object>(source))
         {
             _modelMetadata = source.ModelMetadata;
             TemplateInfo = new TemplateInfo(source.TemplateInfo);

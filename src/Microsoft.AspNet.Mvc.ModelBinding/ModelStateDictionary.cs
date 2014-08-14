@@ -20,8 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public ModelStateDictionary([NotNull] ModelStateDictionary dictionary)
         {
-            _innerDictionary = new CopyOnWriteDictionary<string, ModelState>(dictionary,
-                                                                             StringComparer.OrdinalIgnoreCase);
+            _innerDictionary = new CopyOnWriteDictionary<ModelState>(dictionary);
         }
 
         #region IDictionary properties
