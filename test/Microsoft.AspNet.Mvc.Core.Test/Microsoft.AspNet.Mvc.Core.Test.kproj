@@ -104,6 +104,7 @@
     <Compile Include="Rendering\ViewContextTests.cs" />
     <Compile Include="Rendering\ViewDataOfTTest.cs" />
     <Compile Include="KnownRouteValueConstraintTests.cs" />
+    <Compile Include="RouteConstraintAttributeTest.cs" />
     <Compile Include="Routing\AttributeRoutePrecedenceTests.cs" />
     <Compile Include="Routing\AttributeRouteTemplateTests.cs" />
     <Compile Include="Routing\AttributeRouteTests.cs" />
