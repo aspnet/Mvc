@@ -141,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 if (_properties == null)
                 {
                     var properties = Provider.GetMetadataForProperties(Model, RealModelType);
-                    _properties = new ReadOnlyCollection<ModelMetadata>(properties.OrderBy(m => m.Order).ToList());
+                    _properties = properties.OrderBy(m => m.Order).ToList();
                 }
 
                 return _properties;
