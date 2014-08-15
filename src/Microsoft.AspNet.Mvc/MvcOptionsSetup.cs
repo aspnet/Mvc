@@ -37,17 +37,15 @@ namespace Microsoft.AspNet.Mvc
             options.OutputFormatters.Add(new TextPlainFormatter());
             options.OutputFormatters.Add(new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(),
                                          indent: false));
+            options.OutputFormatters.Add(
+                new XmlDataContractSerializerOutputFormatter(XmlOutputFormatter.GetDefaultXmlWriterSettings()));
+            options.OutputFormatters.Add(
+                new XmlSerializerOutputFormatter(XmlOutputFormatter.GetDefaultXmlWriterSettings()));
 
             // Set up ValueProviders
             options.ValueProviderFactories.Add(new RouteValueValueProviderFactory());
             options.ValueProviderFactories.Add(new QueryStringValueProviderFactory());
             options.ValueProviderFactories.Add(new FormValueProviderFactory());
-            options.OutputFormatters.Add(
-                new XmlDataContractSerializerOutputFormatter(
-                    XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings()));
-            options.OutputFormatters.Add(
-                new XmlSerializerOutputFormatter(
-                    XmlSerializerOutputFormatter.GetDefaultXmlWriterSettings()));
         }
     }
 }
