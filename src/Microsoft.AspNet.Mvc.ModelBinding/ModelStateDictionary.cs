@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class ModelStateDictionary : IDictionary<string, ModelState>
     {
-        private readonly IDictionary<string, ModelState> _innerDictionary;
+        internal readonly IDictionary<string, ModelState> _innerDictionary;
 
         public ModelStateDictionary()
         {

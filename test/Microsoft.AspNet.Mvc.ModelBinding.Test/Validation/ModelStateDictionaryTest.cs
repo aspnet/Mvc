@@ -28,6 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.Equal(1, target.Count);
             Assert.Same(modelState, target["key"]);
+            Assert.IsType<CopyOnWriteDictionary<ModelState>>(target._innerDictionary);
         }
 
         [Fact]

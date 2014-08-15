@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var values = new List<object>();
             var enumerator = Mock.Of<IEnumerator<KeyValuePair<string, object>>>();
-            var sourceDictionary = new Mock<IDictionary<string, object>>();
+            var sourceDictionary = new Mock<IDictionary<string, object>>(MockBehavior.Strict);
             sourceDictionary.SetupGet(d => d.Count)
                             .Returns(100)
                             .Verifiable();
@@ -53,7 +53,6 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             // Arrange
             var values = new List<object>();
-            var enumerator = new List<KeyValuePair<string, object>>().GetEnumerator();
             var sourceDictionary = new Dictionary<string, object>
             {
                 { "key1", "value1" },
@@ -76,7 +75,6 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             // Arrange
             var values = new List<object>();
-            var enumerator = new List<KeyValuePair<string, object>>().GetEnumerator();
             var sourceDictionary = new Dictionary<string, object>
             {
                 { "key1", "value1" },
