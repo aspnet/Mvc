@@ -10,23 +10,23 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class UncachedCompilationResult : CompilationResult
     {
-        protected UncachedCompilationResult()
+        private UncachedCompilationResult()
         {
         }
 
         /// <summary>
-        /// Creates a <see cref="CompilationResult"/> that represents a success in compilation.
+        /// Creates a <see cref="UncachedCompilationResult"/> that represents a success in compilation.
         /// </summary>
         /// <param name="type">The compiled type.</param>
         /// <param name="compiledContent">The generated C# content that was compiled.</param>
         /// <returns>An <see cref="UncachedCompilationResult"/> instance that indicates a successful compilation.</returns>
-        public static CompilationResult Successful([NotNull] Type type,
-                                                   [NotNull] string compiledContent)
+        public static UncachedCompilationResult Successful([NotNull] Type type,
+                                                           [NotNull] string compiledContent)
         {
             return new UncachedCompilationResult
             {
                 CompiledType = type,
-                CompiledContent = compiledContent
+                CompiledContent = compiledContent,
             };
         }
     }

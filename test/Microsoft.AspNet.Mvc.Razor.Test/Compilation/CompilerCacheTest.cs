@@ -24,12 +24,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Assert
             Assert.Same(expected, actual);
-            Assert.Equal("hello world", expected.CompiledContent);
-            Assert.Same(type, expected.CompiledType);
+            Assert.Equal("hello world", actual.CompiledContent);
+            Assert.Same(type, actual.CompiledType);
         }
 
         [Fact]
-        public void GetOrAdd_DoesNotCacheCompiledContent()
+        public void GetOrAdd_DoesNotCacheCompiledContent_OnCallsAfterInitial()
         {
             // Arrange
             var lastModified = DateTime.UtcNow;
@@ -40,17 +40,23 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             fileInfo.SetupGet(f => f.LastModified)
                     .Returns(lastModified);
             var type = GetType();
-            var expected = UncachedCompilationResult.Successful(type, "hello world");
+            var uncachedResult = UncachedCompilationResult.Successful(type, "hello world");
 
             // Act
-            cache.GetOrAdd(fileInfo.Object, () => expected);
-            var actual = cache.GetOrAdd(fileInfo.Object, () => expected);
+            cache.GetOrAdd(fileInfo.Object, () => uncachedResult);
+            var actual1 = cache.GetOrAdd(fileInfo.Object, () => uncachedResult);
+            var actual2 = cache.GetOrAdd(fileInfo.Object, () => uncachedResult);
 
             // Assert
-            Assert.NotSame(expected, actual);
-            var result = Assert.IsType<CompilationResult>(actual);
-            Assert.Null(actual.CompiledContent);
-            Assert.Same(type, expected.CompiledType);
+            Assert.NotSame(uncachedResult, actual1);
+            Assert.NotSame(uncachedResult, actual2);
+            var result = Assert.IsType<CompilationResult>(actual1);
+            Assert.Null(actual1.CompiledContent);
+            Assert.Same(type, actual1.CompiledType);
+
+            result = Assert.IsType<CompilationResult>(actual2);
+            Assert.Null(actual2.CompiledContent);
+            Assert.Same(type, actual2.CompiledType);
         }
     }
 }
