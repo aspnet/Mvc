@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         new DisplayAttribute { Description = "value" }, metadata => metadata.Description
                     },
                     {
-                        new DisplayAttribute { Name = "value" },metadata => metadata.DisplayName
+                        new DisplayAttribute { Name = "value" }, metadata => metadata.DisplayName
                     },
                     {
                         new DisplayColumnAttribute("Property"), metadata => metadata.SimpleDisplayText
@@ -176,7 +176,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = property.HideSurroundingHtml;
 
             // Assert
-            Assert.Equal(true, result);
+            Assert.True(result);
         }
 
         // TODO #1000; enable test once we detect attributes on the property's type
@@ -191,7 +191,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = property.HideSurroundingHtml;
 
             // Assert
-            Assert.Equal(true, result);
+            Assert.True(result);
         }
 
         private class ClassWithDisplayableColumn
