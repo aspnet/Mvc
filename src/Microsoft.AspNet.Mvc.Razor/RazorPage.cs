@@ -128,7 +128,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        public void WriteLiteral(object value)
+        public virtual void WriteLiteral(object value)
         {
             WriteLiteralTo(Output, value);
         }

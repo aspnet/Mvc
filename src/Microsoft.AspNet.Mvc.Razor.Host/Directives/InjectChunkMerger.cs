@@ -8,52 +8,54 @@ using Microsoft.AspNet.Razor.Generator.Compiler;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
-    /// <inheritdoc />
-    public class InjectChunkMerger : ChunkMergerBase<InjectChunk>
+    /// <summary>
+    /// A <see cref="IChunkMerger"/> that merges <see cref="InjectChunk"/> instances.
+    /// </summary>
+    public class InjectChunkMerger : IChunkMerger
     {
-        private const string ModelToken = "<TModel>";
         private readonly HashSet<string> _addedMemberNames = new HashSet<string>(StringComparer.Ordinal);
-        private readonly string _modelName;
+        private string _modelType;
 
-        public InjectChunkMerger(CodeTree codeTree)
-            : base(codeTree)
+        /// <summary>
+        /// Initializes a new instance of <see cref="InjectChunkMerger"/>.
+        /// </summary>
+        /// <param name="modelType">The model type to be used to replace in &lt;TModel&gt; tokens.</param>
+        public InjectChunkMerger([NotNull] string modelType)
         {
-            _modelName = '<' + GetModelName(codeTree) + '>';
+            _modelType = '<' + modelType + '>';
         }
 
         /// <inheritdoc />
-        protected override void VisitChunk(InjectChunk chunk)
+        public void VisitChunk([NotNull] Chunk chunk)
         {
-            _addedMemberNames.Add(chunk.MemberName);
+            var injectChunk = ChunkHelper.EnsureChunk<InjectChunk>(chunk);
+            injectChunk.TypeName = ChunkHelper.ReplaceTModel(injectChunk.TypeName, _modelType);
+            _addedMemberNames.Add(injectChunk.MemberName);
         }
 
         /// <inheritdoc />
-        protected override void Merge(InjectChunk chunkToMerge)
+        public void Merge([NotNull] CodeTree codeTree, [NotNull] Chunk chunk)
         {
-            if (!_addedMemberNames.Contains(chunkToMerge.MemberName))
+            var injectChunk = ChunkHelper.EnsureChunk<InjectChunk>(chunk);
+            if (!_addedMemberNames.Contains(injectChunk.MemberName))
             {
-                _addedMemberNames.Add(chunkToMerge.MemberName);
-                CodeTree.Chunks.Add(TransformChunk(chunkToMerge));
+                _addedMemberNames.Add(injectChunk.MemberName);
+                codeTree.Chunks.Add(TransformChunk(injectChunk));
             }
         }
 
-        private Chunk TransformChunk(InjectChunk chunkToMerge)
+        private InjectChunk TransformChunk(InjectChunk injectChunk)
         {
-            return new InjectChunk(chunkToMerge.TypeName.Replace(ModelToken, _modelName),
-                                   chunkToMerge.MemberName);
-        }
-
-        private static string GetModelName(CodeTree codeTree)
-        {
-            var modelName = MvcRazorHost.DefaultModel;
-            var modelChunk = codeTree.Chunks
-                                     .OfType<ModelChunk>()
-                                     .LastOrDefault();
-            if (modelChunk != null)
+            var typeName = ChunkHelper.ReplaceTModel(injectChunk.TypeName, _modelType);
+            if (typeName != injectChunk.TypeName)
             {
-                modelName = modelChunk.ModelType;
+                return new InjectChunk(typeName, injectChunk.MemberName)
+                {
+                    Start = injectChunk.Start,
+                    Association = injectChunk.Association
+                };
             }
-            return modelName;
+            return injectChunk;
         }
     }
 }

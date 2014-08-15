@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.AspNet.Mvc.Razor.Directives;
@@ -14,8 +15,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public class MvcRazorHost : RazorEngineHost, IMvcRazorHost
     {
-        internal const string ViewNamespace = "ASP";
-        internal const string DefaultModel = "dynamic";
         private const string BaseType = "Microsoft.AspNet.Mvc.Razor.RazorPage";
         private static readonly string[] _defaultNamespaces = new[]
         {
@@ -26,33 +25,48 @@ namespace Microsoft.AspNet.Mvc.Razor
             "Microsoft.AspNet.Mvc.Razor",
             "Microsoft.AspNet.Mvc.Rendering"
         };
+        private static readonly Chunk[] _defaultInheritedChunks = new[]
+        {
+            new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<TModel>", "Html"),
+            new InjectChunk("Microsoft.AspNet.Mvc.IViewComponentHelper", "Component"),
+            new InjectChunk("Microsoft.AspNet.Mvc.IUrlHelper", "Url"),
+        };
 
-        private readonly MvcRazorHostOptions _hostOptions;
         private readonly string _appRoot;
         private readonly IFileSystem _fileSystem;
         // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>. 
         // This field holds the type name without the generic decoration (MyBaseType)
         private readonly string _baseType;
 
-        public MvcRazorHost(
-                IApplicationEnvironment appEnvironment)
+        /// <summary>
+        /// Initializes a new instance of <see cref="MvcRazorHost"/> with the specified
+        /// <param name="appEnvironment"/>.
+        /// </summary>
+        /// <param name="appEnvironment">Contains information about the executing application.</param>
+        public MvcRazorHost(IApplicationEnvironment appEnvironment)
             : this(appEnvironment.ApplicationBasePath,
                    new PhysicalFileSystem(appEnvironment.ApplicationBasePath))
         {
         }
 
-        protected internal MvcRazorHost(string appRoot,
+        /// <summary>
+        /// Initializes a new instance of <see cref="MvcRazorHost"/> at the specified application root
+        /// and <paramref name="fileSystem"/>.
+        /// </summary>
+        /// <param name="applicationBasePath">The base path of the application.</param>
+        /// <param name="fileSystem">
+        /// A <see cref="IFileSystem"/> rooted at the <paramref name="applicationBasePath"/>.
+        /// </param>
+        protected internal MvcRazorHost(string applicationBasePath,
                                         IFileSystem fileSystem)
             : base(new CSharpRazorCodeLanguage())
         {
-            _appRoot = appRoot;
+            _appRoot = applicationBasePath;
             _fileSystem = fileSystem;
             _baseType = BaseType;
 
-            // TODO: this needs to flow from the application rather than being initialized here.
-            // Tracked by #774
-            _hostOptions = new MvcRazorHostOptions();
             DefaultBaseClass = BaseType + '<' + DefaultModel + '>';
+            DefaultNamespace = "Asp";
             GeneratedClassContext = new GeneratedClassContext(
                 executeMethodName: "ExecuteAsync",
                 writeMethodName: "Write",
@@ -71,54 +85,64 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
+        /// <summary>
+        /// Gets the model type used by default when no model is specified.
+        /// </summary>
+        /// <remarks>This value is used as the generic type argument for the base type </remarks>
+        public virtual string DefaultModel
+        {
+            get { return "dynamic"; }
+        }
+
+        /// <summary>
+        /// Gets the list of chunks that are injected by default by this host.
+        /// </summary>
+        public virtual IList<Chunk> DefaultInheritedChunks
+        {
+            get { return _defaultInheritedChunks; }
+        }
+
+        /// <summary>
+        /// Gets or sets the name attribute that is used to decorate properties that are injected and need to be
+        /// activated.
+        /// </summary>
+        public virtual string ActivateAttribute
+        {
+            get { return "Microsoft.AspNet.Mvc.ActivateAttribute"; }
+        }
+
+        /// <inheritdoc />
         public GeneratorResults GenerateCode(string rootRelativePath, Stream inputStream)
         {
             var className = ParserHelpers.SanitizeClassName(rootRelativePath);
             using (var reader = new StreamReader(inputStream))
             {
                 var engine = new RazorTemplateEngine(this);
-                return engine.GenerateCode(reader, className, ViewNamespace, rootRelativePath);
+                return engine.GenerateCode(reader, className, DefaultNamespace, rootRelativePath);
             }
         }
 
-        public override ParserBase DecorateCodeParser(ParserBase incomingCodeParser)
+        /// <inheritdoc />
+        public override ParserBase DecorateCodeParser([NotNull] ParserBase incomingCodeParser)
         {
             return new MvcRazorCodeParser(_baseType);
         }
 
-        public override CodeBuilder DecorateCodeBuilder(CodeBuilder incomingBuilder, CodeGeneratorContext context)
+        /// <inheritdoc />
+        public override CodeBuilder DecorateCodeBuilder([NotNull] CodeBuilder incomingBuilder,
+                                                        [NotNull] CodeGeneratorContext context)
         {
             UpdateCodeBuilder(context);
-            return new MvcCSharpCodeBuilder(context, _hostOptions);
+            return new MvcCSharpCodeBuilder(context, DefaultModel, ActivateAttribute);
         }
 
         private void UpdateCodeBuilder(CodeGeneratorContext context)
         {
-            var engine = new RazorTemplateEngine(this);
-            var chunkUtility = new ChunkInheritanceUtility();
-            var inheritedChunks = chunkUtility.GetInheritedChunks(engine, _fileSystem, _appRoot, context.SourceFile);
-            chunkUtility.MergeInheritedChunks(context.CodeTreeBuilder.CodeTree, inheritedChunks);
-        }
-
-        private CodeTree ParseViewFile(RazorTemplateEngine engine, string viewStart)
-        {
-            IFileInfo fileInfo;
-            _fileSystem.TryGetFileInfo(viewStart, out fileInfo);
-
-            using (var stream = fileInfo.CreateReadStream())
-            {
-                using (var streamReader = new StreamReader(stream))
-                {
-                    var parseResults = engine.ParseTemplate(streamReader);
-                    var className = ParserHelpers.SanitizeClassName(viewStart);
-                    var codeGenerator = engine.Host.CodeLanguage.CreateCodeGenerator(className,
-                                                                                     ViewNamespace,
-                                                                                     viewStart,
-                                                                                     engine.Host);
-                    codeGenerator.Visit(parseResults);
-                    return codeGenerator.Context.CodeTreeBuilder.CodeTree;
-                }
-            }
+            var chunkUtility = new ChunkInheritanceUtility(context.CodeTreeBuilder.CodeTree,
+                                                           DefaultInheritedChunks,
+                                                           DefaultModel);
+            var inheritedChunks = chunkUtility.GetInheritedChunks(this, _fileSystem, _appRoot, context.SourceFile);
+            chunkUtility.MergeInheritedChunks(inheritedChunks);
         }
     }
 }

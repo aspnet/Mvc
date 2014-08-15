@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator.Compiler;
@@ -16,35 +17,61 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
     /// </summary>
     public class ChunkInheritanceUtility
     {
-        private static readonly List<Chunk> _defaultInheritedChunks = new List<Chunk>
+        private readonly IList<Chunk> _defaultInheritedChunks;
+
+        /// <summary>
+        /// Instantiates a new instance of <see cref="ChunkInheritanceUtility"/>.
+        /// </summary>
+        /// <param name="codeTree">The <see cref="CodeTree"/> instance to add <see cref="Chunk"/>s to.</param>
+        /// <param name="defaultInheritedChunks">The <see cref="Chunk"/>s inherited by default.</param>
+        /// <param name="defaultModel">The model type used by default in the event no model is specified via the 
+        /// <c>@model</c> keyword.</param>
+        public ChunkInheritanceUtility([NotNull] CodeTree codeTree,
+                                       [NotNull] IList<Chunk> defaultInheritedChunks,
+                                       [NotNull] string defaultModel)
         {
-            new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<TModel>", "Html"),
-            new InjectChunk("Microsoft.AspNet.Mvc.IViewComponentHelper", "Component"),
-        };
+            CodeTree = codeTree;
+            _defaultInheritedChunks = defaultInheritedChunks;
+            ChunkMergers = GetMergerMappings(codeTree, defaultModel);
+        }
+
+        /// <summary>
+        /// Gets the CodeTree to add inherited <see cref="Chunk"/> instances to.
+        /// </summary>
+        public CodeTree CodeTree { get; private set; }
+
+        /// <summary>
+        /// Gets a a dictionary mapping <see cref="Chunk"/> type to the <see cref="IChunkMerger"/> used to merge
+        /// chunks of that type.
+        /// </summary>
+        public IDictionary<Type, IChunkMerger> ChunkMergers { get; private set; }
 
         /// <summary>
         /// Gets the list of chunks that are to be inherited by a specified page.
         /// Chunks are inherited from _ViewStarts that are applicable to the page.
         /// </summary>
-        /// <param name="engine">The template engine used to parse a Razor page.</param>
+        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse _ViewStart pages.</param>
         /// <param name="fileSystem">The filesystem that represents the application.</param>
         /// <param name="appRoot">The root of the application.</param>
         /// <param name="pagePath">The path of the page to locate inherited chunks for.</param>
         /// <returns>A list of chunks that are applicable to the given page.</returns>
-        public List<Chunk> GetInheritedChunks(RazorTemplateEngine engine,
-                                              IFileSystem fileSystem,
-                                              string appRoot,
-                                              string pagePath)
+        public List<Chunk> GetInheritedChunks([NotNull] MvcRazorHost razorHost,
+                                              [NotNull] IFileSystem fileSystem,
+                                              [NotNull] string appRoot,
+                                              [NotNull] string pagePath)
         {
             var inheritedChunks = new List<Chunk>();
 
+            var templateEngine = new RazorTemplateEngine(razorHost);
             foreach (var viewStart in ViewStartUtility.GetViewStartLocations(appRoot, pagePath))
             {
                 IFileInfo fileInfo;
                 if (fileSystem.TryGetFileInfo(viewStart, out fileInfo))
                 {
-                    var parsedTree = ParseViewFile(engine, fileInfo);
-                    inheritedChunks.AddRange(parsedTree.Chunks);
+                    var parsedTree = ParseViewFile(templateEngine, fileInfo);
+                    var chunksToAdd = parsedTree.Chunks
+                                                .Where(chunk => ChunkMergers.ContainsKey(chunk.GetType()));
+                    inheritedChunks.AddRange(chunksToAdd);
                 }
             }
 
@@ -56,45 +83,46 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <summary>
         /// Merges a list of chunks into the <see cref="CodeTree"/> instance.
         /// </summary>
-        /// <param name="codeTree">The <see cref="CodeTree"/> instance to merge chunks into.</param>
         /// <param name="inherited">The list of chunks to merge.</param>
-        public void MergeInheritedChunks(CodeTree codeTree,
-                                         List<Chunk> inherited)
+        public void MergeInheritedChunks(List<Chunk> inherited)
         {
-            var mergerMappings = GetMergerMappings(codeTree);
-            var current = codeTree.Chunks;
+            var current = CodeTree.Chunks;
 
+            // We merge chunks into the codeTree in two passes. In the first pass, we traverse the CodeTree visiting
+            // a mapped IChunkMerger for types that are registered.
             foreach (var chunk in current)
             {
-                ChunkMergerBase merger;
-                if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
+                if (ChunkMergers.TryGetValue(chunk.GetType(), out var merger))
                 {
                     merger.VisitChunk(chunk);
                 }
             }
 
+            // In the second phase we invoke IChunkMerger.Merge for each chunk that has a mapped merger.
+            // During this phase, the merger can either add to the CodeTree or ignore the chunk based on the merging rules.
             foreach (var chunk in inherited)
             {
-                ChunkMergerBase merger;
-                if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
+                if (ChunkMergers.TryGetValue(chunk.GetType(), out var merger))
                 {
                     // TODO: When mapping chunks, we should remove mapping information since it would be incorrect
                     // to generate it in the page that inherits it. Tracked by #945
-                    merger.Merge(chunk);
+                    merger.Merge(CodeTree, chunk);
                 }
             }
         }
 
-        private Dictionary<Type, ChunkMergerBase> GetMergerMappings(CodeTree codeTree)
+        private static Dictionary<Type, IChunkMerger> GetMergerMappings(CodeTree codeTree, string defaultModel)
         {
-            return new Dictionary<Type, ChunkMergerBase>
+            var modelType = ChunkHelper.GetModelToken(codeTree, defaultModel);
+            return new Dictionary<Type, IChunkMerger>
             {
-                { typeof(UsingChunk), new UsingChunkMerger(codeTree) },
-                { typeof(InjectChunk), new InjectChunkMerger(codeTree) },
-                { typeof(SetBaseTypeChunk), new SetBaseTypeChunk(codeTree) }
+                { typeof(UsingChunk), new UsingChunkMerger() },
+                { typeof(InjectChunk), new InjectChunkMerger(modelType) },
+                { typeof(SetBaseTypeChunk), new SetBaseTypeChunkMerger(modelType) }
             };
         }
 
+        // TODO: This needs to be cached (#1016)
         private CodeTree ParseViewFile(RazorTemplateEngine engine,
                                        IFileInfo fileInfo)
         {
@@ -104,10 +132,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
                 {
                     var parseResults = engine.ParseTemplate(streamReader);
                     var className = ParserHelpers.SanitizeClassName(fileInfo.Name);
-                    var codeGenerator = engine.Host.CodeLanguage.CreateCodeGenerator(className,
-                                                                                     MvcRazorHost.ViewNamespace,
-                                                                                     fileInfo.PhysicalPath,
-                                                                                     engine.Host);
+                    var language = engine.Host.CodeLanguage;
+                    var codeGenerator = language.CreateCodeGenerator(className,
+                                                                     engine.Host.DefaultNamespace,
+                                                                     fileInfo.PhysicalPath,
+                                                                     engine.Host);
                     codeGenerator.Visit(parseResults);
                     return codeGenerator.Context.CodeTreeBuilder.CodeTree;
                 }

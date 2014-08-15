@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
@@ -30,16 +31,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expected, body.Trim());
         }
 
-        //ViewInheritsModelFromViewStarts
         [Fact]
-        public async Task ViewInheritsModelFromViewStarts()
+        public async Task ViewInheritsBasePageFromViewStarts()
         {
-            var expected = @"Hello Person2";
+            var expected = @"WriteLiteral says:layout:Write says:Write says:Hello Person2";
             var server = TestServer.Create(_provider, _app);
             var client = server.Handler;
 
             // Act
-            var result = await client.GetAsync("http://localhost/Directives/ViewInheritsModelFromViewStarts");
+            var result = await client.GetAsync("http://localhost/Directives/ViewInheritsBasePageFromViewStarts");
 
             // Assert
             var body = await result.HttpContext.Response.ReadBodyAsStringAsync();

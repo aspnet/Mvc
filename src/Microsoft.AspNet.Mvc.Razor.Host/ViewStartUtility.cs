@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public class ViewStartUtility
+    public static class ViewStartUtility
     {
         private const string ViewStartFileName = "_viewstart.cshtml";
 

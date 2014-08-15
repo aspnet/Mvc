@@ -7,28 +7,29 @@ using Microsoft.AspNet.Razor.Generator.Compiler;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
-    /// <inheritdoc />
-    public class UsingChunkMerger : ChunkMergerBase<UsingChunk>
+    /// <summary>
+    /// A <see cref="IChunkMerger"/> that merges <see cref="UsingChunk"/> instances.
+    /// </summary>
+    public class UsingChunkMerger : IChunkMerger
     {
         private readonly HashSet<string> _currentUsings = new HashSet<string>(StringComparer.Ordinal);
 
-        public UsingChunkMerger([NotNull] CodeTree codeTree)
-            : base(codeTree)
+        /// <inheritdoc />
+        public void VisitChunk([NotNull] Chunk chunk)
         {
+            var namespaceChunk = ChunkHelper.EnsureChunk<UsingChunk>(chunk);
+            _currentUsings.Add(namespaceChunk.Namespace);
         }
 
         /// <inheritdoc />
-        protected override void VisitChunk(UsingChunk chunk)
+        public void Merge([NotNull] CodeTree codeTree, [NotNull] Chunk chunk)
         {
-            _currentUsings.Add(chunk.Namespace);
-        }
+            var namespaceChunk = ChunkHelper.EnsureChunk<UsingChunk>(chunk);
 
-        /// <inheritdoc />
-        protected override void Merge(UsingChunk chunkToMerge)
-        {
-            if (!_currentUsings.Contains(chunkToMerge.Namespace))
+            if (!_currentUsings.Contains(namespaceChunk.Namespace))
             {
-                CodeTree.Chunks.Add(chunkToMerge);
+                _currentUsings.Add(namespaceChunk.Namespace);
+                codeTree.Chunks.Add(namespaceChunk);
             }
         }
     }
