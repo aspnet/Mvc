@@ -16,6 +16,15 @@ namespace Microsoft.AspNet.Mvc
     {
         /// <summary>
         /// Initializes a new instance of <see cref="XmlSerializerOutputFormatter"/>
+        /// with default XmlWriterSettings.
+        /// </summary>
+        public XmlSerializerOutputFormatter()
+            :this(GetDefaultXmlWriterSettings())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="XmlSerializerOutputFormatter"/>
         /// </summary>
         /// <param name="writerSettings">The settings to be used by the <see cref="XmlSerializer"/>.</param>
         public XmlSerializerOutputFormatter([NotNull] XmlWriterSettings writerSettings)
@@ -38,8 +47,9 @@ namespace Microsoft.AspNet.Mvc
         {
             var response = context.ActionContext.HttpContext.Response;
 
-            WriterSettings.Encoding = context.SelectedEncoding;
-            using (var xmlWriter = CreateXmlWriter(response.Body))
+            var tempWriterSettings = WriterSettings.Clone();
+            tempWriterSettings.Encoding = context.SelectedEncoding;
+            using (var xmlWriter = CreateXmlWriter(response.Body, tempWriterSettings))
             {
                 var xmlSerializer = CreateXmlSerializer(context.DeclaredType);
                 xmlSerializer.Serialize(xmlWriter, context.Object);

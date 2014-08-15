@@ -47,9 +47,9 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="writeStream">The stream on which the XmlWriter should operate on.</param>
         /// <returns>A new instance of <see cref="XmlWriter"/></returns>
-        public virtual XmlWriter CreateXmlWriter([NotNull] Stream writeStream)
+        public virtual XmlWriter CreateXmlWriter([NotNull] Stream writeStream, [NotNull] XmlWriterSettings xmlWriterSettings)
         {
-            return XmlWriter.Create(writeStream, WriterSettings);
+            return XmlWriter.Create(writeStream, xmlWriterSettings);
         }
     }
 }
