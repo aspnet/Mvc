@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Internal.DecisionTree;
 using Microsoft.AspNet.Mvc.Logging;
-using Microsoft.AspNet.Mvc.DecisionTree;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
 using Microsoft.Framework.Logging;
@@ -21,10 +21,9 @@ namespace Microsoft.AspNet.Mvc.Routing
     {
         private readonly IRouter _next;
         private readonly TemplateRoute[] _matchingRoutes;
-        private readonly AttributeRouteLinkGenerationEntry[] _linkGenerationEntries;
         private ILogger _logger;
         private ILogger _constraintLogger;
-        private readonly LinkGenerationDecisionTree _tree;
+        private readonly LinkGenerationDecisionTree _linkGenerationTree;
 
         /// <summary>
         /// Creates a new <see cref="AttributeRoute"/>.
@@ -51,15 +50,10 @@ namespace Microsoft.AspNet.Mvc.Routing
                 .Select(e => e.Route)
                 .ToArray();
 
-            _linkGenerationEntries = linkGenerationEntries
-                .OrderBy(o => o.Order)
-                .ThenBy(e => e.Precedence)
-                .ThenBy(e => e.TemplateText, StringComparer.Ordinal)
-                .ToArray();
+            _linkGenerationTree = new LinkGenerationDecisionTree(linkGenerationEntries.ToArray());
 
             _logger = factory.Create<AttributeRoute>();
             _constraintLogger = factory.Create(typeof(RouteConstraintMatcher).FullName);
-            _tree = new LinkGenerationDecisionTree(linkGenerationEntries);
         }
 
         /// <inheritdoc />
@@ -96,7 +90,8 @@ namespace Microsoft.AspNet.Mvc.Routing
             // and controller.
             //
             // Building a proper data structure to optimize this is tracked by #741
-            var matches = _tree.Select(context);
+            var matches = _linkGenerationTree.Select(context);
+
             foreach (var entry in matches)
             {
                 var path = GenerateLink(context, entry);
@@ -212,12 +207,13 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         private class LinkGenerationDecisionTree
         {
-            private readonly DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> _root;
+            private readonly DecisionTreeNode<AttributeRouteLinkGenerationEntry> _root;
 
             public LinkGenerationDecisionTree(IReadOnlyList<AttributeRouteLinkGenerationEntry> entries)
             {
-                var fullTree = DecisionTreeBuilder<AttributeRouteLinkGenerationEntry, object>.GenerateTree(entries, new AttributeRouteLinkGenerationEntryClassifier());
-                _root = DecisionTreeBuilder<AttributeRouteLinkGenerationEntry, object>.Optimize(fullTree, new HashSet<AttributeRouteLinkGenerationEntry>());
+                _root = DecisionTreeBuilder<AttributeRouteLinkGenerationEntry>.GenerateTree(
+                    entries, 
+                    new AttributeRouteLinkGenerationEntryClassifier());
             }
 
             public List<AttributeRouteLinkGenerationEntry> Select(VirtualPathContext context)
@@ -228,14 +224,17 @@ namespace Microsoft.AspNet.Mvc.Routing
                 return results;
             }
 
-            private void Walk(List<AttributeRouteLinkGenerationEntry> results, VirtualPathContext context, DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> node)
+            private void Walk(
+                List<AttributeRouteLinkGenerationEntry> results, 
+                VirtualPathContext context, 
+                DecisionTreeNode<AttributeRouteLinkGenerationEntry> node)
             {
-                for (int i = 0; i < node.Matches.Count; i++)
+                for (var i = 0; i < node.Matches.Count; i++)
                 {
-                    results.Add(node.Matches[i].Item);
+                    results.Add(node.Matches[i]);
                 }
 
-                for (int i = 0; i < node.Criteria.Count; i++)
+                for (var i = 0; i < node.Criteria.Count; i++)
                 {
                     var criterion = node.Criteria[i];
                     var key = criterion.Key;
@@ -243,7 +242,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                     object value;
                     if (context.Values.TryGetValue(key, out value))
                     {
-                        DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> branch;
+                        DecisionTreeNode<AttributeRouteLinkGenerationEntry> branch;
                         if (criterion.Branches.TryGetValue(value ?? string.Empty, out branch))
                         {
                             Walk(results, context, branch);
@@ -253,7 +252,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                     {
                         // If a value wasn't explicitly supplied, match BOTH the ambient value and the empty value
                         // if an ambient value was supplied.
-                        DecisionTreeNode<AttributeRouteLinkGenerationEntry, object> branch;
+                        DecisionTreeNode<AttributeRouteLinkGenerationEntry> branch;
                         if (context.AmbientValues.TryGetValue(key, out value) &&
                             !criterion.Branches.Comparer.Equals(value, string.Empty))
                         {
@@ -268,12 +267,11 @@ namespace Microsoft.AspNet.Mvc.Routing
                             Walk(results, context, branch);
                         }
                     }
-
                 }
             }
         }
 
-        private class AttributeRouteLinkGenerationEntryClassifier : IClassifier<AttributeRouteLinkGenerationEntry, object>
+        private class AttributeRouteLinkGenerationEntryClassifier : IClassifier<AttributeRouteLinkGenerationEntry>
         {
             public AttributeRouteLinkGenerationEntryClassifier()
             {
@@ -282,40 +280,15 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             public IEqualityComparer<object> ValueComparer { get; private set; }
 
-            public IDictionary<string, object> GetCriteria(AttributeRouteLinkGenerationEntry item)
+            public IDictionary<string, DecisionCriterionValue> GetCriteria(AttributeRouteLinkGenerationEntry item)
             {
-                return item.RequiredLinkValues.ToDictionary(kvp => kvp.Key, kvp => kvp.Value ?? string.Empty, StringComparer.OrdinalIgnoreCase);
-            }
-        }
+                var results = new Dictionary<string, DecisionCriterionValue>(StringComparer.OrdinalIgnoreCase);
+                foreach (var kvp in item.RequiredLinkValues)
+                {
+                    results.Add(kvp.Key, new DecisionCriterionValue(kvp.Value ?? string.Empty, isCatchAll: false));
+                }
 
-        private class RouteValueEqualityComparer : IEqualityComparer<object>
-        {
-            public new bool Equals(object x, object y)
-            {
-                var stringX = x as string ?? Convert.ToString(x, CultureInfo.InvariantCulture);
-                var stringY = y as string ?? Convert.ToString(y, CultureInfo.InvariantCulture);
-
-                if (string.IsNullOrEmpty(stringX) && string.IsNullOrEmpty(stringY))
-                {
-                    return true;
-                }
-                else
-                {
-                    return string.Equals(stringX, stringY, StringComparison.OrdinalIgnoreCase);
-                }
-            }
-
-            public int GetHashCode(object obj)
-            {
-                var stringObj = obj as string ?? Convert.ToString(obj, CultureInfo.InvariantCulture);
-                if (string.IsNullOrEmpty(stringObj))
-                {
-                    return StringComparer.OrdinalIgnoreCase.GetHashCode(string.Empty);
-                }
-                else
-                {
-                    return StringComparer.OrdinalIgnoreCase.GetHashCode(stringObj);
-                }
+                return results;
             }
         }
 
@@ -323,7 +296,17 @@ namespace Microsoft.AspNet.Mvc.Routing
         {
             public int Compare(AttributeRouteLinkGenerationEntry x, AttributeRouteLinkGenerationEntry y)
             {
-                return x.Precedence.CompareTo(y.Precedence);
+                if (x.Order != y.Order)
+                {
+                    return x.Order.CompareTo(y.Order);
+                }
+
+                if (x.Precedence != y.Precedence)
+                {
+                    return x.Precedence.CompareTo(y.Precedence);
+                }
+
+                return StringComparer.Ordinal.Compare(x.TemplateText, y.TemplateText);
             }
         }
     }
