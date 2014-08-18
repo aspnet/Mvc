@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using ConnegWebsite;
 using Microsoft.AspNet.Builder;
@@ -79,6 +82,47 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedBody, body);
             Assert.Equal(204, result.HttpContext.Response.StatusCode);
             Assert.Equal(0, result.HttpContext.Response.ContentLength);
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerOutputFormatterIsCalled()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.Handler;
+            var headers = new Dictionary<string, string[]>();
+            headers.Add("Accept", new string[] { "application/xml;charset=utf-8" });
+
+            // Act
+            var response = await client.SendAsync("POST",
+                "http://localhost/Home/GetDummyClass?sampleInput=10", headers, null, null);
+
+            //Assert
+            Assert.Equal(200, response.StatusCode);
+            Assert.Equal("<DummyClass xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "xmlns=\"http://schemas.datacontract.org/2004/07/ConnegWebsite\">" +
+                "<SampleInt>10</SampleInt></DummyClass>",
+                new StreamReader(response.Body, Encoding.UTF8).ReadToEnd());
+        }
+
+        [Fact]
+        public async Task XmlSerializerOutputFormatterIsCalled()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.Handler;
+            var headers = new Dictionary<string, string[]>();
+            headers.Add("Accept", new string[] { "application/xml;charset=utf-8" });
+
+            // Act
+            var response = await client.SendAsync("POST",
+                "http://localhost/XmlSerializer/GetDummyClass?sampleInput=10", headers, null, null);
+
+            //Assert
+            Assert.Equal(200, response.StatusCode);
+            Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>",
+                new StreamReader(response.Body, Encoding.UTF8).ReadToEnd());
         }
     }
 }
