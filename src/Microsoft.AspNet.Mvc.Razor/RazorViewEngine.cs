@@ -108,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        private ViewEngineResult CreateFoundResult(IRazorPage page, string viewName, bool partial)
+        protected virtual ViewEngineResult CreateFoundResult(IRazorPage page, string viewName, bool partial)
         {
             var view = _typeActivator.CreateInstance<RazorView>(_serviceProvider, page);
             view.ExecuteViewHierarchy = !partial;
