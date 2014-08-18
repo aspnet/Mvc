@@ -11,5 +11,11 @@ namespace ConnegWebsite
         {
             return new JsonResult("Index Method");
         }
+
+        [HttpPost]
+        public DummyClass GetDummyClass(int sampleInput)
+        {
+            return new DummyClass { SampleInt = sampleInput };
+        }
     }
 }

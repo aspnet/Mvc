@@ -12,11 +12,5 @@ namespace FormatterWebSite.Controllers
         {
             return Content(dummyObject.SampleInt.ToString());
         }
-
-        [HttpPost]
-        public DummyClass GetDummyClass(int sampleInput)
-        {
-            return new DummyClass { SampleInt = sampleInput };
-        }
     }
 }
