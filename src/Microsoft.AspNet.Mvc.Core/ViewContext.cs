@@ -66,9 +66,10 @@ namespace Microsoft.AspNet.Mvc
         public bool ClientValidationEnabled { get; set; }
 
         /// <summary>
-        /// Set this property to <see cref="Html5DateRenderingMode.Rfc3339" /> to have templated helpers such as <see
-        /// cref="IHtmlHelper.Editor" /> and <see cref="IHtmlHelper{TModel}.EditorFor" /> render date and time values as
-        /// RFC 3339 compliant strings. By default these helpers render dates and times using the current culture.
+        /// Set this property to <see cref="Html5DateRenderingMode.Rfc3339" /> to have templated helpers such as
+        /// <see cref="IHtmlHelper.Editor" /> and <see cref="IHtmlHelper{TModel}.EditorFor" /> render date and time
+        /// values as RFC 3339 compliant strings. By default these helpers render dates and times using the current
+        /// culture.
         /// </summary>
         public Html5DateRenderingMode Html5DateRenderingMode { get; set; }
 

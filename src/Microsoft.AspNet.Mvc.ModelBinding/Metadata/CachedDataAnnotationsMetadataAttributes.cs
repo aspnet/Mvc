@@ -22,9 +22,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ScaffoldColumn = attributes.OfType<ScaffoldColumnAttribute>().FirstOrDefault();
 
             // Special case the [DisplayFormat] attribute hanging off an applied [DataType] attribute. This property is
-            // non-null for DataType.Currency, DataType.Date, DataType.Time, and perhaps custom [DataType] subclasses.
-            // All system-provided [DisplayFormat] attributes have a non-null DataFormatString and all but that for
-            // DataType.Currency have ApplyFormatInEditMode==true.
+            // non-null for DataType.Currency, DataType.Date, DataType.Time, and potentially custom [DataType]
+            // subclasses. The DataType.Currency, DataType.Date, and DataType.Time [DisplayFormat] attributes have a
+            // non-null DataFormatString and the DataType.Date and DataType.Time [DisplayFormat] attributes have
+            // ApplyFormatInEditMode==true.
             if (DisplayFormat == null && DataType != null)
             {
                 DisplayFormat = DataType.DisplayFormat;

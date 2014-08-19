@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <returns>
         /// Calculated <see cref="ModelMetadata.DisplayFormatString"/> value.
-        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if an <see cref="DisplayFormatAttribute"/> exists;
+        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if an <see cref="DisplayFormatAttribute"/> exists.
         /// <c>null</c> otherwise.
         /// </returns>
         protected override string ComputeDisplayFormatString()
