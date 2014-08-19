@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         /// <summary>
         /// Gets (or sets in subclasses) <see cref="DisplayFormatAttribute"/> found in collection passed to the
-        /// <see cref="CachedDataAnnotationsMetadataAttributes(IEnumerable{Attribute}"/> constructor, if any.
+        /// <see cref="CachedDataAnnotationsMetadataAttributes(IEnumerable{Attribute})"/> constructor, if any.
         /// If no such attribute was found but a <see cref="DataTypeAttribute"/> was, gets the
         /// <see cref="DataTypeAttribute.DisplayFormat"/> value.
         /// </summary>

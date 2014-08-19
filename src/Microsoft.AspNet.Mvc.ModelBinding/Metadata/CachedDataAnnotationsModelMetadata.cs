@@ -127,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Following calculation ignores possibility something (an IModelMetadataProvider) set EditFormatString
             // directly.
-            if (!String.IsNullOrEmpty(EditFormatString) && _isEditFormatStringFromCache)
+            if (!string.IsNullOrEmpty(EditFormatString) && _isEditFormatStringFromCache)
             {
                 // Have a non-empty EditFormatString based on [DisplayFormat] from our cache.
                 if (PrototypeCache.DataType == null)
