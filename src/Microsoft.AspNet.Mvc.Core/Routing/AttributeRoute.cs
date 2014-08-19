@@ -3,10 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Internal.DecisionTree;
+using Microsoft.AspNet.Mvc.Internal.Routing;
 using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
@@ -50,6 +49,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 .Select(e => e.Route)
                 .ToArray();
 
+            // The decision tree will take care of ordering for these entries.
             _linkGenerationTree = new LinkGenerationDecisionTree(linkGenerationEntries.ToArray());
 
             _logger = factory.Create<AttributeRoute>();
@@ -85,11 +85,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         /// <inheritdoc />
         public string GetVirtualPath([NotNull] VirtualPathContext context)
         {
-            // To generate a link, we iterate the collection of entries (in order of precedence) and execute
-            // each one that matches the 'required link values' - which will typically be a value for action
-            // and controller.
-            //
-            // Building a proper data structure to optimize this is tracked by #741
+            // The decision tree will give us back all entries that match the provided route data in the correct
+            // order. We just need to iterate them and use the first one that can generate a link.
             var matches = _linkGenerationTree.Select(context);
 
             foreach (var entry in matches)
@@ -203,111 +200,6 @@ namespace Microsoft.AspNet.Mvc.Routing
             }
 
             return TemplateBinder.RoutePartsEqual(providedValue, value);
-        }
-
-        private class LinkGenerationDecisionTree
-        {
-            private readonly DecisionTreeNode<AttributeRouteLinkGenerationEntry> _root;
-
-            public LinkGenerationDecisionTree(IReadOnlyList<AttributeRouteLinkGenerationEntry> entries)
-            {
-                _root = DecisionTreeBuilder<AttributeRouteLinkGenerationEntry>.GenerateTree(
-                    entries, 
-                    new AttributeRouteLinkGenerationEntryClassifier());
-            }
-
-            public List<AttributeRouteLinkGenerationEntry> Select(VirtualPathContext context)
-            {
-                var results = new List<AttributeRouteLinkGenerationEntry>();
-                Walk(results, context, _root);
-                results.Sort(new AttributeRouteLinkGenerationEntryComparer());
-                return results;
-            }
-
-            private void Walk(
-                List<AttributeRouteLinkGenerationEntry> results, 
-                VirtualPathContext context, 
-                DecisionTreeNode<AttributeRouteLinkGenerationEntry> node)
-            {
-                for (var i = 0; i < node.Matches.Count; i++)
-                {
-                    results.Add(node.Matches[i]);
-                }
-
-                for (var i = 0; i < node.Criteria.Count; i++)
-                {
-                    var criterion = node.Criteria[i];
-                    var key = criterion.Key;
-
-                    object value;
-                    if (context.Values.TryGetValue(key, out value))
-                    {
-                        DecisionTreeNode<AttributeRouteLinkGenerationEntry> branch;
-                        if (criterion.Branches.TryGetValue(value ?? string.Empty, out branch))
-                        {
-                            Walk(results, context, branch);
-                        }
-                    }
-                    else
-                    {
-                        // If a value wasn't explicitly supplied, match BOTH the ambient value and the empty value
-                        // if an ambient value was supplied.
-                        DecisionTreeNode<AttributeRouteLinkGenerationEntry> branch;
-                        if (context.AmbientValues.TryGetValue(key, out value) &&
-                            !criterion.Branches.Comparer.Equals(value, string.Empty))
-                        {
-                            if (criterion.Branches.TryGetValue(value, out branch))
-                            {
-                                Walk(results, context, branch);
-                            }
-                        }
-
-                        if (criterion.Branches.TryGetValue(string.Empty, out branch))
-                        {
-                            Walk(results, context, branch);
-                        }
-                    }
-                }
-            }
-        }
-
-        private class AttributeRouteLinkGenerationEntryClassifier : IClassifier<AttributeRouteLinkGenerationEntry>
-        {
-            public AttributeRouteLinkGenerationEntryClassifier()
-            {
-                ValueComparer = new RouteValueEqualityComparer();
-            }
-
-            public IEqualityComparer<object> ValueComparer { get; private set; }
-
-            public IDictionary<string, DecisionCriterionValue> GetCriteria(AttributeRouteLinkGenerationEntry item)
-            {
-                var results = new Dictionary<string, DecisionCriterionValue>(StringComparer.OrdinalIgnoreCase);
-                foreach (var kvp in item.RequiredLinkValues)
-                {
-                    results.Add(kvp.Key, new DecisionCriterionValue(kvp.Value ?? string.Empty, isCatchAll: false));
-                }
-
-                return results;
-            }
-        }
-
-        private class AttributeRouteLinkGenerationEntryComparer : IComparer<AttributeRouteLinkGenerationEntry>
-        {
-            public int Compare(AttributeRouteLinkGenerationEntry x, AttributeRouteLinkGenerationEntry y)
-            {
-                if (x.Order != y.Order)
-                {
-                    return x.Order.CompareTo(y.Order);
-                }
-
-                if (x.Precedence != y.Precedence)
-                {
-                    return x.Precedence.CompareTo(y.Precedence);
-                }
-
-                return StringComparer.Ordinal.Compare(x.TemplateText, y.TemplateText);
-            }
         }
     }
 }
