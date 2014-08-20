@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// </summary>
         /// <typeparam name="TChunk">The type to cast to.</typeparam>
         /// <param name="chunk">The chunk to cast.</param>
-        /// <returns>The <paramref name="Chunk"/> casted to <typeparamref name="TChunk"/>.</returns>
+        /// <returns>The <paramref name="Chunk"/> cast to <typeparamref name="TChunk"/>.</returns>
         /// <exception cref="ArgumentException"><paramref name="chunk"/> is not an instance of <typeparamref name="TChunk"/>.</exception>
 	    public static TChunk EnsureChunk<TChunk>(Chunk chunk)
             where TChunk : Chunk
@@ -36,22 +36,33 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             return chunkOfT;
         }
 
-
         /// <summary>
-        /// Returns the type name of the Model specified via a <see cref="ModelChunk"/> in the <see cref="CodeTree"/>
-        /// if specified or the default model type.
+        /// Returns the <see cref="ModelChunk"/> used to determine the model name for the page generated
+        /// using the specified <paramref name="codeTree"/>
         /// </summary>
         /// <param name="codeTree">The <see cref="CodeTree"/> to scan for <see cref="ModelChunk"/>s in.</param>
-        /// <param name="defaultModel">The type of the default model.</param>
-        /// <returns>The model type for the generated page.</returns>
-        public static string GetModelToken(CodeTree codeTree, string defaultModel)
+        /// <returns>The last <see cref="ModelChunk"/> in the <see cref="CodeTree"/> if found, null otherwise.
+        /// </returns>
+        public static ModelChunk GetModelChunk(CodeTree codeTree)
         {
-            // Check if the CodeTree defines a ModelChunk. If not fall back to the default model.
-            var modelChunk = codeTree.Chunks
-                                     .OfType<ModelChunk>()
-                                     .LastOrDefault();
+            // If there's more than 1 model chunk there will be a Razor error BUT we want intellisense to show up on
+            // the current model chunk that the user is typing.
+            return codeTree.Chunks
+                           .OfType<ModelChunk>()
+                           .LastOrDefault();
+        }
 
-            return modelChunk?.ModelType ?? defaultModel;
+        /// <summary>
+        /// Returns the type name of the Model specified via a <see cref="ModelChunk"/> in the
+        /// <paramref name="codeTree"/> if specified or the default model type.
+        /// </summary>
+        /// <param name="codeTree">The <see cref="CodeTree"/> to scan for <see cref="ModelChunk"/>s in.</param>
+        /// <param name="defaultModelName">The <see cref="Type"/> name of the default model.</param>
+        /// <returns>The model type name for the generated page.</returns>
+        public static string GetModelToken(CodeTree codeTree, string defaultModelName)
+        {
+            var modelChunk = GetModelChunk(codeTree);
+            return modelChunk?.ModelType ?? defaultModelName;
         }
 
         /// <summary>

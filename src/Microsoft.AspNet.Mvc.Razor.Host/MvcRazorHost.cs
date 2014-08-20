@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the list of chunks that are injected by default by this host.
         /// </summary>
-        public virtual IList<Chunk> DefaultInheritedChunks
+        public virtual IReadOnlyList<Chunk> DefaultInheritedChunks
         {
             get { return _defaultInheritedChunks; }
         }

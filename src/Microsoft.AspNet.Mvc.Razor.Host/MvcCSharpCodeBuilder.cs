@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Globalization;
-using System.Linq;
+using Microsoft.AspNet.Mvc.Razor.Directives;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Generator.Compiler.CSharp;
@@ -28,10 +28,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         protected override CSharpCodeWritingScope BuildClassDeclaration(CSharpCodeWriter writer)
         {
             // Grab the last model chunk so it gets intellisense.
-            // NOTE: If there's more than 1 model chunk there will be a Razor error BUT we want intellisense to 
-            // show up on the current model chunk that the user is typing.
-            var modelChunk = Context.CodeTreeBuilder.CodeTree.Chunks.OfType<ModelChunk>()
-                                                                    .LastOrDefault();
+            var modelChunk = ChunkHelper.GetModelChunk(Context.CodeTreeBuilder.CodeTree);
 
             Model = modelChunk?.ModelType ?? _defaultModel;
 

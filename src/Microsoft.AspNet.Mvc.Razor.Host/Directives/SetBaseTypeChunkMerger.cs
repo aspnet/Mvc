@@ -33,9 +33,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <inheritdoc />
         public void Merge([NotNull] CodeTree codeTree, [NotNull] Chunk chunk)
         {
-            var baseTypeChunk = ChunkHelper.EnsureChunk<SetBaseTypeChunk>(chunk);
             if (!_isBaseTypeSet)
             {
+                var baseTypeChunk = ChunkHelper.EnsureChunk<SetBaseTypeChunk>(chunk);
+
                 // The base type can set exactly once and the first one we encounter wins.
                 _isBaseTypeSet = true;
 

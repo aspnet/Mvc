@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// </summary>
         /// <param name="codeTree">The <see cref="CodeTree"/> instance to add <see cref="Chunk"/>s to.</param>
         /// <param name="defaultInheritedChunks">The <see cref="Chunk"/>s inherited by default.</param>
-        /// <param name="defaultModel">The model type used by default in the event no model is specified via the 
+        /// <param name="defaultModel">The model type used in the event no model is specified via the
         /// <c>@model</c> keyword.</param>
         public ChunkInheritanceUtility([NotNull] CodeTree codeTree,
                                        [NotNull] IList<Chunk> defaultInheritedChunks,
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         public CodeTree CodeTree { get; private set; }
 
         /// <summary>
-        /// Gets a a dictionary mapping <see cref="Chunk"/> type to the <see cref="IChunkMerger"/> used to merge
+        /// Gets a dictionary mapping <see cref="Chunk"/> type to the <see cref="IChunkMerger"/> used to merge
         /// chunks of that type.
         /// </summary>
         public IDictionary<Type, IChunkMerger> ChunkMergers { get; private set; }

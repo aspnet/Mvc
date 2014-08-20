@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <summary>
         /// Initializes a new instance of <see cref="InjectChunkMerger"/>.
         /// </summary>
-        /// <param name="modelType">The model type to be used to replace in &lt;TModel&gt; tokens.</param>
+        /// <param name="modelType">The model type to be used to replace &lt;TModel&gt; tokens.</param>
         public InjectChunkMerger([NotNull] string modelType)
         {
             _modelType = '<' + modelType + '>';
