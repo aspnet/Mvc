@@ -1370,7 +1370,7 @@ namespace Microsoft.AspNet.Mvc
                                                           binder.Object,
                                                           Mock.Of<IValueProvider>(),
                                                           Mock.Of<IInputFormatterSelector>(),
-                                                          Enumerable.Empty<IModelValidatorProvider>());
+                                                          Mock.Of<IModelValidatorProvider>());
 
             var actionBindingContextProvider = new Mock<IActionBindingContextProvider>();
             actionBindingContextProvider.Setup(p => p.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
@@ -1429,7 +1429,7 @@ namespace Microsoft.AspNet.Mvc
                                                           binder.Object,
                                                           Mock.Of<IValueProvider>(),
                                                           Mock.Of<IInputFormatterSelector>(),
-                                                          Enumerable.Empty<IModelValidatorProvider>());
+                                                          Mock.Of<IModelValidatorProvider>());
 
             var actionBindingContextProvider = new Mock<IActionBindingContextProvider>();
             actionBindingContextProvider.Setup(p => p.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
@@ -1489,7 +1489,7 @@ namespace Microsoft.AspNet.Mvc
                                                           binder.Object,
                                                           Mock.Of<IValueProvider>(),
                                                           Mock.Of<IInputFormatterSelector>(),
-                                                          Enumerable.Empty<IModelValidatorProvider>());
+                                                          Mock.Of<IModelValidatorProvider>());
 
             var actionBindingContextProvider = new Mock<IActionBindingContextProvider>();
             actionBindingContextProvider.Setup(p => p.GetActionBindingContextAsync(It.IsAny<ActionContext>()))
