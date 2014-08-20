@@ -3,56 +3,63 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents a <see cref="IView"/> that executes one or more <see cref="RazorPage"/> instances as part of
-    /// view rendering.
+    /// Default implementation for <see cref="IRazorView"/> that executes one or more <see cref="RazorPage"/> 
+    /// instances as part of view rendering.
     /// </summary>
-    public class RazorView : IView
+    public class RazorView : IRazorView
     {
         private readonly IRazorPageFactory _pageFactory;
         private readonly IRazorPageActivator _pageActivator;
         private readonly IViewStartProvider _viewStartProvider;
-        private readonly IRazorPage _page;
 
         /// <summary>
         /// Initializes a new instance of RazorView
         /// </summary>
-        /// <param name="page">The page to execute</param>
         /// <param name="pageFactory">The view factory used to instantiate layout and _ViewStart pages.</param>
         /// <param name="pageActivator">The <see cref="IRazorPageActivator"/> used to activate pages.</param>
-        public RazorView([NotNull] IRazorPageFactory pageFactory,
-                         [NotNull] IRazorPageActivator pageActivator,
-                         [NotNull] IViewStartProvider viewStartProvider,
-                         [NotNull] IRazorPage page)
+        /// <param name="viewStartProvider">The <see cref="IViewStartProvider"/> used for discovery of _ViewStart
+        /// pages</param>
+        public RazorView(IRazorPageFactory pageFactory,
+                         IRazorPageActivator pageActivator,
+                         IViewStartProvider viewStartProvider)
         {
             _pageFactory = pageFactory;
             _pageActivator = pageActivator;
             _viewStartProvider = viewStartProvider;
-            _page = page;
         }
 
-        /// <summary>
-        /// Gets or sets a value that determines if the view hierarchy is executed as part of
-        /// executing the <see cref="IRazorPage"/> instance. The view hierarchy involves _ViewStart 
-        /// and Layout pages.
-        /// </summary>
-        public bool ExecuteViewHierarchy { get; set; }
+        private IRazorPage Page { get; set; }
+
+        private bool IsPartial { get; set; }
+
+        /// <inheritdoc />
+        public virtual void Contextualize(IRazorPage razorPage, bool isPartial)
+        {
+            Page = razorPage;
+            IsPartial = isPartial;
+        }
 
         /// <inheritdoc />
         public async Task RenderAsync([NotNull] ViewContext context)
         {
-            if (ExecuteViewHierarchy)
+            if (Page == null)
             {
-                var bodyWriter = await RenderPageAsync(_page, context, executeViewStart: true);
+                var message = Resources.FormatViewMustBeContextualized(nameof(Contextualize), nameof(RenderAsync));
+                throw new InvalidOperationException(message);
+            }
+
+            if (!IsPartial)
+            {
+                var bodyWriter = await RenderPageAsync(Page, context, executeViewStart: true);
                 await RenderLayoutAsync(context, bodyWriter);
             }
             else
             {
-                await RenderPageCoreAsync(_page, context);
+                await RenderPageCoreAsync(Page, context);
             }
         }
 
@@ -93,14 +100,14 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private async Task RenderViewStartAsync(ViewContext context)
         {
-            var viewStarts = _viewStartProvider.GetViewStartPages(_page.Path);
+            var viewStarts = _viewStartProvider.GetViewStartPages(Page.Path);
 
             foreach (var viewStart in viewStarts)
             {
                 await RenderPageCoreAsync(viewStart, context);
 
                 // Copy over interesting properties from the ViewStart page to the entry page.
-                _page.Layout = viewStart.Layout;
+                Page.Layout = viewStart.Layout;
             }
         }
 
@@ -109,7 +116,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.
-            var previousPage = _page;
+            var previousPage = Page;
             while (!string.IsNullOrEmpty(previousPage.Layout))
             {
                 var layoutPage = _pageFactory.CreateInstance(previousPage.Layout);
