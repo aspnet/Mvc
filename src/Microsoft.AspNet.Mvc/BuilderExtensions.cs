@@ -3,10 +3,9 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Builder
 {
@@ -28,7 +27,7 @@ namespace Microsoft.AspNet.Builder
         {
             // Verify if AddMvc was done before calling UseMvc
             // We use the MvcMarkerService to make sure if all the services were added.
-            MvcServicesHelper.ThrowIfServiceDoesNotExist(app.ApplicationServices);
+            MvcServicesHelper.ThrowIfMvcNotRegistered(app.ApplicationServices);
 
             var routes = new RouteBuilder
             {

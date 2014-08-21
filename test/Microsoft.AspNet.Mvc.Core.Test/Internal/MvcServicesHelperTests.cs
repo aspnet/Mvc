@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(
-                () => MvcServicesHelper.ThrowIfServiceDoesNotExist(services.Object));
+                () => MvcServicesHelper.ThrowIfMvcNotRegistered(services.Object));
             Assert.Equal(expectedMessage, ex.Message);
         }
 
@@ -37,12 +37,8 @@ namespace Microsoft.AspNet.Mvc
             services.Setup(o => o.GetService(typeof(IEnumerable<MvcMarkerService>)))
                 .Returns(new List<MvcMarkerService> { expectedOutput });
 
-            // Act
-            var markerService = MvcServicesHelper.ThrowIfServiceDoesNotExist(services.Object);
-
-            // Assert
-            Assert.NotNull(markerService);
-            Assert.Equal(markerService, expectedOutput);
+            // Act & Assert
+            Assert.DoesNotThrow(() => MvcServicesHelper.ThrowIfMvcNotRegistered(services.Object));
         }
     }
 }
