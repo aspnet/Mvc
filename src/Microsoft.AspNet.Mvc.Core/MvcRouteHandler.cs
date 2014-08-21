@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Routing;
@@ -31,6 +32,11 @@ namespace Microsoft.AspNet.Mvc
         public async Task RouteAsync([NotNull] RouteContext context)
         {
             var services = context.HttpContext.RequestServices;
+            
+            // Verify if AddMvc was done before calling UseMvc
+            // We use the MvcMarkerService to make sure if all the services were added.
+            MvcServicesHelper.ThrowIfServiceDoesNotExist(services, typeof(MvcMarkerService));
+
             Contract.Assert(services != null);
 
             // TODO: Throw an error here that's descriptive enough so that

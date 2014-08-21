@@ -117,6 +117,8 @@ namespace Microsoft.AspNet.Mvc
                     typeof(HtmlHelper<>),
                     implementationInstance: null,
                     lifecycle: LifecycleKind.Transient);
+
+            yield return describe.Transient<MvcMarkerService, MvcMarkerService>();
         }
     }
 }

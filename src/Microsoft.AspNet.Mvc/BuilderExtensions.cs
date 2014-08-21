@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
@@ -26,12 +27,8 @@ namespace Microsoft.AspNet.Builder
         public static IBuilder UseMvc([NotNull] this IBuilder app, [NotNull] Action<IRouteBuilder> configureRoutes)
         {
             // Verify if AddMvc was done before calling UseMvc
-            // Try to get 2 sample services. If it returns null then AddMvc was not called.
-            if(app.ApplicationServices.GetServiceOrNull(typeof(IActionDescriptorsCollectionProvider)) == null ||
-                app.ApplicationServices.GetServiceOrNull(typeof(IInlineConstraintResolver)) == null)
-            {
-                throw new InvalidOperationException(Resources.UnableToFindServices);
-            }
+            // We use the MvcMarkerService to make sure if all the services were added.
+            MvcServicesHelper.ThrowIfServiceDoesNotExist(app.ApplicationServices, typeof(MvcMarkerService));
 
             var routes = new RouteBuilder
             {

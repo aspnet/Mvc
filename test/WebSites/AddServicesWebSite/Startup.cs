@@ -13,7 +13,7 @@ namespace AddServicesWebSite
             var configuration = app.GetTestConfiguration();
 
             // Not calling AddMvc() here.
-            // The purpose of the Webiste is to demonstrate that it throws
+            // The purpose of the Website is to demonstrate that it throws
             // when AddMvc() is not called.
 
             // Add MVC to the request pipeline

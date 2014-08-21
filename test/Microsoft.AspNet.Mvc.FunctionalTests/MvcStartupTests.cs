@@ -17,8 +17,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public void MvcThrowsWhenRequiredServicesAreNotAdded()
         {
             // Arrange
-            var expectedMessage = "Unable to find the required services. Please add all the required services by " +
-                "calling AddMvc() before calling UseMvc()/UseServices() in the Application Startup.";
+            var expectedMessage = "Unable to find the required services. Please add all the required " +
+                "services by calling 'IServiceCollection.AddMvc()' inside the call to 'IBuilder.UseServices(...)' " +
+                "or 'IBuilder.UseMvc(...)' in the application startup code.";
 
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(() => TestServer.Create(_provider, _app));
