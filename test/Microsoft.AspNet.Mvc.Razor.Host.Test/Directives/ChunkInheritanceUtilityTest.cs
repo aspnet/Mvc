@@ -17,6 +17,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             // Arrange
             var appRoot = @"x:\myapproot";
             var fileSystem = new TestFileSystem();
+            fileSystem.AddFile(@"x:\myapproot\views\accounts\_viewstart.cshtml", "@using AccountModels");
+            fileSystem.AddFile(@"x:\myapproot\views\Shared\_viewstart.cshtml", "@inject SharedHelper Shared");
             fileSystem.AddFile(@"x:\myapproot\views\home\_viewstart.cshtml", "@using MyNamespace");
             fileSystem.AddFile(@"x:\myapproot\views\_viewstart.cshtml",
 @"@inject MyHelper<TModel> Helper
@@ -55,6 +57,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             // Arrange
             var appRoot = @"x:\myapproot";
             var fileSystem = new TestFileSystem();
+            fileSystem.AddFile(@"x:\myapproot\_viewstart.cs", string.Empty);
+            fileSystem.AddFile(@"x:\myapproot\views\_Layout.cshtml", string.Empty);
+            fileSystem.AddFile(@"x:\myapproot\views\home\_not-viewstart.cshtml", string.Empty);
             var host = new MvcRazorHost(appRoot, fileSystem);
             var utility = new ChunkInheritanceUtility(new CodeTree(), new Chunk[0], "dynamic");
 

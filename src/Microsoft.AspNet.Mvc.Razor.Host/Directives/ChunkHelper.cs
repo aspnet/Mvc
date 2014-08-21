@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="chunk">The chunk to cast.</param>
         /// <returns>The <paramref name="Chunk"/> cast to <typeparamref name="TChunk"/>.</returns>
         /// <exception cref="ArgumentException"><paramref name="chunk"/> is not an instance of <typeparamref name="TChunk"/>.</exception>
-	    public static TChunk EnsureChunk<TChunk>(Chunk chunk)
+        public static TChunk EnsureChunk<TChunk>(Chunk chunk)
             where TChunk : Chunk
         {
             var chunkOfT = chunk as TChunk;
