@@ -43,6 +43,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
+        /// '{0}' cannot be invoked when '{1}' has not been set. Possible reasons for {1} not being set would be that the method was invoked from a _ViewStart, a partial or a view component.
+        /// </summary>
+        internal static string FlushPointCannotBeInvoked
+        {
+            get { return GetString("FlushPointCannotBeInvoked"); }
+        }
+
+        /// <summary>
+        /// '{0}' cannot be invoked when '{1}' has not been set. Possible reasons for {1} not being set would be that the method was invoked from a _ViewStart, a partial or a view component.
+        /// </summary>
+        internal static string FormatFlushPointCannotBeInvoked(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FlushPointCannotBeInvoked"), p0, p1);
+        }
+
+        /// <summary>
         /// The layout view '{0}' could not be located.
         /// </summary>
         internal static string LayoutCannotBeLocated
@@ -56,6 +72,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         internal static string FormatLayoutCannotBeLocated(object p0)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("LayoutCannotBeLocated"), p0);
+        }
+
+        /// <summary>
+        /// A layout page cannot be rendered after '{0}' has been invoked.
+        /// </summary>
+        internal static string LayoutCannotBeRendered
+        {
+            get { return GetString("LayoutCannotBeRendered"); }
+        }
+
+        /// <summary>
+        /// A layout page cannot be rendered after '{0}' has been invoked.
+        /// </summary>
+        internal static string FormatLayoutCannotBeRendered(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("LayoutCannotBeRendered"), p0);
         }
 
         /// <summary>

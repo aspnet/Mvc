@@ -25,6 +25,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <summary>
+        /// Gets or sets the delegate that is invoked when a flush point is encountered.
+        /// </summary>
+        Func<Task> FlushPointDelegate { get; set; }
+
+        /// <summary>
         /// Gets the application base relative path to the page.
         /// </summary>
         string Path { get; set; }

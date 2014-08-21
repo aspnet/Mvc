@@ -41,6 +41,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             _isPartial = isPartial;
         }
 
+        private bool IsBuffered { get; set; } = true;
+
         /// <inheritdoc />
         public virtual async Task RenderAsync([NotNull] ViewContext context)
         {
@@ -65,28 +67,60 @@ namespace Microsoft.AspNet.Mvc.Razor
                                                             ViewContext context,
                                                             bool executeViewStart)
         {
-            using (var bufferedWriter = new RazorTextWriter(context.Writer.Encoding))
+            if (IsBuffered)
             {
-                // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
-                // and ViewComponents to reference it.
-                var oldWriter = context.Writer;
-                context.Writer = bufferedWriter;
-                try
+                using (var bufferedWriter = new RazorTextWriter(context.Writer.Encoding))
                 {
-                    if (executeViewStart)
-                    {
-                        // Execute view starts using the same context + writer as the page to render.
-                        await RenderViewStartAsync(context);
-                    }
+                    // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
+                    // and ViewComponents to reference it.
+                    var oldWriter = context.Writer;
+                    context.Writer = bufferedWriter;
 
-                    await RenderPageCoreAsync(page, context);
-                    return bufferedWriter;
-                }
-                finally
-                {
-                    context.Writer = oldWriter;
+                    page.FlushPointDelegate = async () =>
+                    {
+                        if (IsBuffered)
+                        {
+                            // When FlushAsync is invoked the first time around, we copy the buffered contents into
+                            // the original TextWriter that was passed in via the ViewContext, followed by flushing it.
+                            // Any further invocations of FlushAsync simply need to pass through the Flush call to the
+                            // original TextWriter.
+                            IsBuffered = false;
+                            context.Writer = oldWriter;
+                            await bufferedWriter.CopyToAsync(oldWriter);
+                        }
+                        await oldWriter.FlushAsync();
+                    };
+
+                    try
+                    {
+                        await RenderPageWithViewStart(page, context, executeViewStart);
+                        return bufferedWriter;
+                    }
+                    finally
+                    {
+                        context.Writer = oldWriter;
+                    }
                 }
             }
+            else
+            {
+                page.FlushPointDelegate = context.Writer.FlushAsync;
+                await RenderPageWithViewStart(page, context, executeViewStart);
+                return null;
+            }
+        }
+
+        private async Task RenderPageWithViewStart(IRazorPage page,
+                                                   ViewContext context,
+                                                   bool executeViewStart)
+        {
+            if (executeViewStart)
+            {
+                // Execute view starts using the same context + writer as the page to render.
+                await RenderViewStartAsync(context);
+            }
+
+            await RenderPageCoreAsync(page, context);
         }
 
         private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
@@ -117,6 +151,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             var previousPage = _razorPage;
             while (!string.IsNullOrEmpty(previousPage.Layout))
             {
+                if (!IsBuffered)
+                {
+                    var message = Resources.FormatLayoutCannotBeRendered("FlushAsync");
+                    throw new InvalidOperationException(message);
+                }
+
                 var layoutPage = _pageFactory.CreateInstance(previousPage.Layout);
                 if (layoutPage == null)
                 {
@@ -134,7 +174,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                 previousPage = layoutPage;
             }
 
-            await bodyWriter.CopyToAsync(context.Writer);
+            if (IsBuffered)
+            {
+                // Only copy buffered content to the Output if we're currently buffering.
+                await bodyWriter.CopyToAsync(context.Writer);
+            }
         }
     }
 }

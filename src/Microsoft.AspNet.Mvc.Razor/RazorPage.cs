@@ -91,6 +91,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         public Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <inheritdoc />
+        public Func<Task> FlushPointDelegate { get; set; }
+
+        /// <inheritdoc />
         public Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
 
         /// <inheritdoc />
@@ -327,6 +330,23 @@ namespace Microsoft.AspNet.Mvc.Razor
                 // If the section is optional and not found, then don't do anything.
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Invokes the <see cref="FlushPointDelegate"/> if it is set.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the invocation of the
+        /// <see cref="FlushPointDelegate"/>.</returns>
+        public async Task FlushAsync()
+        {
+            if (FlushPointDelegate == null)
+            {
+                var message = Resources.FormatFlushPointCannotBeInvoked(nameof(FlushAsync),
+                                                                        nameof(FlushPointDelegate));
+                throw new InvalidOperationException(message);
+            }
+
+            await FlushPointDelegate();
         }
 
         /// <inheritdoc />
