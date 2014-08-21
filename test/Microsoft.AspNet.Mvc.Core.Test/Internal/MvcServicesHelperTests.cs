@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Internal;
 using Moq;
 using Xunit;
 
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(
-                () => MvcServicesHelper.ThrowIfServiceDoesNotExist(services.Object, typeof(MvcMarkerService)));
+                () => MvcServicesHelper.ThrowIfServiceDoesNotExist(services.Object));
             Assert.Equal(expectedMessage, ex.Message);
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
                 .Returns(new List<MvcMarkerService> { expectedOutput });
 
             // Act
-            var markerService = MvcServicesHelper.ThrowIfServiceDoesNotExist(services.Object, typeof(MvcMarkerService));
+            var markerService = MvcServicesHelper.ThrowIfServiceDoesNotExist(services.Object);
 
             // Assert
             Assert.NotNull(markerService);

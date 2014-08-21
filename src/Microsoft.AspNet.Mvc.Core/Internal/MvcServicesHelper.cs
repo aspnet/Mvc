@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Framework.DependencyInjection;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Helper class which contains MvcServices related helpers.
@@ -17,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Core
         /// </summary>
         /// <param name="services">The list of services.</param>
         /// <param name="serviceType">The type of service which needs to be searched for.</param>
-        public static object ThrowIfServiceDoesNotExist(IServiceProvider services, Type serviceType)
+        public static object ThrowIfServiceDoesNotExist(IServiceProvider services)
         {
             var markerService = services.GetServiceOrNull(typeof(MvcMarkerService));
             if (markerService == null)

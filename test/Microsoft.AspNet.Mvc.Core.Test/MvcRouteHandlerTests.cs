@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;

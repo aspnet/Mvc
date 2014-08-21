@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Builder
         {
             // Verify if AddMvc was done before calling UseMvc
             // We use the MvcMarkerService to make sure if all the services were added.
-            MvcServicesHelper.ThrowIfServiceDoesNotExist(app.ApplicationServices, typeof(MvcMarkerService));
+            MvcServicesHelper.ThrowIfServiceDoesNotExist(app.ApplicationServices);
 
             var routes = new RouteBuilder
             {
