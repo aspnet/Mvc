@@ -22,8 +22,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <typeparam name="TChunk">The type to cast to.</typeparam>
         /// <param name="chunk">The chunk to cast.</param>
         /// <returns>The <paramref name="Chunk"/> cast to <typeparamref name="TChunk"/>.</returns>
-        /// <exception cref="ArgumentException"><paramref name="chunk"/> is not an instance of <typeparamref name="TChunk"/>.</exception>
-        public static TChunk EnsureChunk<TChunk>(Chunk chunk)
+        /// <exception cref="ArgumentException"><paramref name="chunk"/> is not an instance of
+        /// <typeparamref name="TChunk"/>.</exception>
+        public static TChunk EnsureChunk<TChunk>([NotNull] Chunk chunk)
             where TChunk : Chunk
         {
             var chunkOfT = chunk as TChunk;
@@ -43,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="codeTree">The <see cref="CodeTree"/> to scan for <see cref="ModelChunk"/>s in.</param>
         /// <returns>The last <see cref="ModelChunk"/> in the <see cref="CodeTree"/> if found, null otherwise.
         /// </returns>
-        public static ModelChunk GetModelChunk(CodeTree codeTree)
+        public static ModelChunk GetModelChunk([NotNull] CodeTree codeTree)
         {
             // If there's more than 1 model chunk there will be a Razor error BUT we want intellisense to show up on
             // the current model chunk that the user is typing.
@@ -59,10 +60,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="codeTree">The <see cref="CodeTree"/> to scan for <see cref="ModelChunk"/>s in.</param>
         /// <param name="defaultModelName">The <see cref="Type"/> name of the default model.</param>
         /// <returns>The model type name for the generated page.</returns>
-        public static string GetModelToken(CodeTree codeTree, string defaultModelName)
+        public static string GetModelTypeName([NotNull] CodeTree codeTree,
+                                              [NotNull] string defaultModelName)
         {
             var modelChunk = GetModelChunk(codeTree);
-            return modelChunk?.ModelType ?? defaultModelName;
+            return modelChunk != null ? modelChunk.ModelType : defaultModelName;
         }
 
         /// <summary>
@@ -72,7 +74,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="value">The string to replace the token in.</param>
         /// <param name="modelName">The model name to replace with.</param>
         /// <returns>A string with the token replaced.</returns>
-        public static string ReplaceTModel(string value, string modelName)
+        public static string ReplaceTModel([NotNull] string value,
+                                           [NotNull] string modelName)
         {
             return value.Replace(TModelToken, modelName);
         }

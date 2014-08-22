@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Grab the last model chunk so it gets intellisense.
             var modelChunk = ChunkHelper.GetModelChunk(Context.CodeTreeBuilder.CodeTree);
 
-            Model = modelChunk?.ModelType ?? _defaultModel;
+            Model = modelChunk != null ? modelChunk.ModelType : _defaultModel;
 
             // If there were any model chunks then we need to modify the class declaration signature.
             if (modelChunk != null)

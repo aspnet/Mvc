@@ -99,7 +99,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             }
 
             // In the second phase we invoke IChunkMerger.Merge for each chunk that has a mapped merger.
-            // During this phase, the merger can either add to the CodeTree or ignore the chunk based on the merging rules.
+            // During this phase, the merger can either add to the CodeTree or ignore the chunk based on the merging
+            // rules.
             foreach (var chunk in inherited)
             {
                 if (ChunkMergers.TryGetValue(chunk.GetType(), out var merger))
@@ -113,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 
         private static Dictionary<Type, IChunkMerger> GetMergerMappings(CodeTree codeTree, string defaultModel)
         {
-            var modelType = ChunkHelper.GetModelToken(codeTree, defaultModel);
+            var modelType = ChunkHelper.GetModelTypeName(codeTree, defaultModel);
             return new Dictionary<Type, IChunkMerger>
             {
                 { typeof(UsingChunk), new UsingChunkMerger() },
