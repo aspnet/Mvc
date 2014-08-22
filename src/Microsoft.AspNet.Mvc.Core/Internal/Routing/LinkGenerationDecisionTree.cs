@@ -21,11 +21,11 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
                 new AttributeRouteLinkGenerationEntryClassifier());
         }
 
-        public List<AttributeRouteLinkGenerationEntry> Select(VirtualPathContext context)
+        public List<AttributeRouteLinkGenerationEntry> GetMatches(VirtualPathContext context)
         {
             var results = new List<AttributeRouteLinkGenerationEntry>();
             Walk(results, context, _root);
-            results.Sort(new AttributeRouteLinkGenerationEntryComparer());
+            results.Sort(AttributeRouteLinkGenerationEntryComparer.Instance);
             return results;
         }
 
@@ -59,6 +59,8 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             VirtualPathContext context,
             DecisionTreeNode<AttributeRouteLinkGenerationEntry> node)
         {
+            // Any entries in node.Matches have had all their required values satisfied, so add them
+            // to the results.
             for (var i = 0; i < node.Matches.Count; i++)
             {
                 results.Add(node.Matches[i]);
@@ -123,6 +125,9 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
 
         private class AttributeRouteLinkGenerationEntryComparer : IComparer<AttributeRouteLinkGenerationEntry>
         {
+            public static readonly AttributeRouteLinkGenerationEntryComparer Instance = 
+                new AttributeRouteLinkGenerationEntryComparer();
+
             public int Compare(AttributeRouteLinkGenerationEntry x, AttributeRouteLinkGenerationEntry y)
             {
                 if (x.Order != y.Order)

@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Same(entry, Assert.Single(matches));
@@ -45,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Same(entry, Assert.Single(matches));
@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(values: null, ambientValues: new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Same(entry, Assert.Single(matches));
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
                 ambientValues: new { controller = "Store", action = "Cart" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Same(entry, Assert.Single(matches));
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
                 ambientValues: new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Same(entry, Assert.Single(matches));
@@ -129,7 +129,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { controller = "Store", action = "AddToCart" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Empty(matches);
@@ -151,7 +151,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
                 ambientValues: new { controller = "Store", action = "Cart" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Empty(matches);
@@ -176,7 +176,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
                 ambientValues: new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Same(entry1, Assert.Single(matches));
@@ -202,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
                 ambientValues: new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Equal(entries, matches);
@@ -226,7 +226,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { controller = "Store", action = "Buy", slug = "1234" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Equal(entries, matches);
@@ -253,7 +253,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Equal(entries, matches);
@@ -279,7 +279,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Equal(entries, matches);
@@ -305,7 +305,7 @@ namespace Microsoft.AspNet.Mvc.Internal.Routing
             var context = CreateContext(new { controller = "Store", action = "Buy" });
 
             // Act
-            var matches = tree.Select(context);
+            var matches = tree.GetMatches(context);
 
             // Assert
             Assert.Equal(entries, matches);
