@@ -4,24 +4,17 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
-using InlineConstraints;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
+using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
-using Xunit;
-using Microsoft.Framework.ConfigurationModel;
-using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public static class TestHelper
     {
-        public static IServiceProvider CreateServices(string applicationWebSiteName)
+        public static IServiceProvider CreateServices(string applicationWebSiteName, bool isSample = false)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             var appEnvironment = originalProvider.GetService<IApplicationEnvironment>();
@@ -33,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // To compensate for this, we need to calculate the original path and override the application
             // environment value so that components like the view engine work properly in the context of the
             // test.
-            var appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName);
+            var appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, isSample);
             var services = new ServiceCollection();
             services.AddInstance(
                 typeof(IApplicationEnvironment),
@@ -61,13 +54,19 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         // Calculate the path relative to the application base path.
         public static string CalculateApplicationBasePath(IApplicationEnvironment appEnvironment,
-                                                          string applicationWebSiteName)
+                                                          string applicationWebSiteName, bool sample)
         {
             // Mvc/test/Microsoft.AspNet.Mvc.FunctionalTests
             var appBase = appEnvironment.ApplicationBasePath;
 
             // Mvc/test
             var test = Path.GetDirectoryName(appBase);
+
+            if (sample)
+            {
+                // Mvc/samples/applicationWebSiteName
+                return Path.GetFullPath(Path.Combine(test, "..", "samples", applicationWebSiteName));
+            }
 
             // Mvc/test/WebSites/applicationWebSiteName
             return Path.GetFullPath(Path.Combine(appBase, "..", "WebSites", applicationWebSiteName));
