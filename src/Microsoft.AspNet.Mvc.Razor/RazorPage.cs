@@ -19,8 +19,9 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public abstract class RazorPage : IRazorPage
     {
-        private IUrlHelper _urlHelper;
+        private static readonly object _renderingSectionKey = new object();
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private IUrlHelper _urlHelper;
         private bool _renderedBody;
 
         public RazorPage()
@@ -89,9 +90,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <inheritdoc />
         public Action<TextWriter> RenderBodyDelegate { get; set; }
-
-        /// <inheritdoc />
-        public Func<Task> FlushPointDelegate { get; set; }
 
         /// <inheritdoc />
         public Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
@@ -286,13 +284,19 @@ namespace Microsoft.AspNet.Mvc.Razor
             return new HelperResult(RenderBodyDelegate);
         }
 
-        public void DefineSection(string name, HelperResult action)
+        /// <summary>
+        /// Creates a named content section in the page that can be invoked in a Layout page using 
+        /// <see cref="RenderSection(string)"/> or <see cref="RenderSection(string, bool)"/>.
+        /// </summary>
+        /// <param name="name">The name of the section to create.</param>
+        /// <param name="section">The <see cref="HelperResult"/> to execute when rendering the section.</param>
+        public void DefineSection(string name, HelperResult section)
         {
             if (SectionWriters.ContainsKey(name))
             {
                 throw new InvalidOperationException(Resources.FormatSectionAlreadyDefined(name));
             }
-            SectionWriters[name] = action;
+            SectionWriters[name] = new SectionResult(section, Context);
         }
 
         public bool IsSectionDefined([NotNull] string name)
@@ -331,22 +335,18 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return null;
             }
         }
-
-        /// <summary>
-        /// Invokes the <see cref="FlushPointDelegate"/> if it is set.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> that represents the invocation of the
-        /// <see cref="FlushPointDelegate"/>.</returns>
-        public async Task FlushAsync()
+        
+        public Task FlushAsync()
         {
-            if (FlushPointDelegate == null)
+            // Calls to Flush are allowed if the page does not specify a Layout or if we're executing as part of a section.
+            if (!string.IsNullOrEmpty(Layout) &&
+                !Context.Items.ContainsKey(_renderingSectionKey))
             {
-                var message = Resources.FormatFlushPointCannotBeInvoked(nameof(FlushAsync),
-                                                                        nameof(FlushPointDelegate));
+                var message = Resources.FormatLayoutCannotBeRendered(nameof(FlushAsync));
                 throw new InvalidOperationException(message);
             }
 
-            await FlushPointDelegate();
+            return Output.FlushAsync();
         }
 
         /// <inheritdoc />
@@ -377,6 +377,30 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (PreviousSectionWriters == null)
             {
                 throw new InvalidOperationException(Resources.FormatView_MethodCannotBeCalled(methodName));
+            }
+        }
+
+        private sealed class SectionResult : HelperResult
+        {
+            private readonly HttpContext _context;
+
+            public SectionResult(HelperResult writer, HttpContext context)
+                : base(writer.WriteAction)
+            {
+                _context = context;
+            }
+
+            public override void WriteTo([NotNull] TextWriter writer)
+            {
+                try
+                {
+                    _context.Items[_renderingSectionKey] = true;
+                    base.WriteTo(writer);
+                }
+                finally
+                {
+                    _context.Items.Remove(_renderingSectionKey);
+                }
             }
         }
     }

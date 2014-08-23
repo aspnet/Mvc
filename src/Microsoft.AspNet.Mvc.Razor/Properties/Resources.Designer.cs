@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// '{0}' cannot be invoked when '{1}' has not been set. Possible reasons for {1} not being set would be that the method was invoked from a _ViewStart, a partial or a view component.
+        /// '{0}' cannot be invoked when a Layout page is set to be executed.
         /// </summary>
         internal static string FlushPointCannotBeInvoked
         {
@@ -51,11 +51,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// '{0}' cannot be invoked when '{1}' has not been set. Possible reasons for {1} not being set would be that the method was invoked from a _ViewStart, a partial or a view component.
+        /// '{0}' cannot be invoked when a Layout page is set to be executed.
         /// </summary>
-        internal static string FormatFlushPointCannotBeInvoked(object p0, object p1)
+        internal static string FormatFlushPointCannotBeInvoked(object p0)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("FlushPointCannotBeInvoked"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("FlushPointCannotBeInvoked"), p0);
         }
 
         /// <summary>

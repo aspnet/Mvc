@@ -1,3 +1,15 @@
-﻿Initial content
-@{await FlushAsync();}
+﻿@inject WaitService WaitService
+Initial content
+@{
+    await FlushAsync();
+    WaitService.WaitForClient();
+}
+Secondary content
+@{
+    await FlushAsync();
+    WaitService.WaitForClient();
+}
 Final content
+@{
+    WaitService.NotifyClient();
+}
