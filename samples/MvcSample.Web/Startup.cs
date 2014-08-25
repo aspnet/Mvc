@@ -39,7 +39,8 @@ namespace MvcSample.Web
                 services.AddTransient<ITestService, TestService>();
                 services.Add(OptionsServices.GetDefaultServices());
                 // Setup services with a test AssemblyProvider so that only the
-                // sample's assemblies are loaded
+                // sample's assemblies are loaded. This prevents loading controllers from other assemblies
+                // when the sample is used in the Functional Tests.
                 services.AddTransient<IControllerAssemblyProvider, TestAssemblyProvider<Startup>>();
 
                 // Create the autofac container 
@@ -67,7 +68,8 @@ namespace MvcSample.Web
                     services.AddSingleton<UserNameService>();
                     services.AddTransient<ITestService, TestService>();
                     // Setup services with a test AssemblyProvider so that only the
-                    // sample's assemblies are loaded
+                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
+                    // when the sample is used in the Functional Tests.
                     services.AddTransient<IControllerAssemblyProvider, TestAssemblyProvider<Startup>>();
                 });
             }

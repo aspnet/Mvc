@@ -24,8 +24,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
 #if NET45
             // APPBASE is modified so that AddJsonFile in MVC sample looks in the correct location.
+            // The MvcSample uses this to determine the base path. If we do not set this, the base path will
+            // always point to the FunctionalTests folder - the current context,
+            // while it is required to point to the WebSite's root directory.
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             var appEnvironment = originalProvider.GetService<IApplicationEnvironment>();
+
+            // APPBASE is global to a process. So if any other test starts using APPBASE, it might break.
+            // So this is temporary. Once https://github.com/aspnet/Configuration/issues/109 is fixed,
+            // this code should be modified to use AppEnvironment. - aspnet/Mvc#1067
             AppDomain.CurrentDomain.SetData("APPBASE", TestHelper.CalculateApplicationBasePath(appEnvironment, "MvcSample.Web", true));
 #endif
         }
@@ -46,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task Home_NotFoundAction_ReturnsCorrectStatusCode()
+        public async Task Home_NotFoundAction_Returns404()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -61,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task Home_CreateUser_RetunsXmlBasedOnAcceptHeader()
+        public async Task Home_CreateUser_ShouldReturnXmlBasedOnAcceptHeader_ButOverridenByProducesAttribute()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -70,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             headers.Add("Accept", new string[] { "application/xml;charset=utf-8" });
 
             // Act
-            var response = await client.GetAsync("http://localhost/Home/ReturnUser");
+            var response = await client.SendAsync("GET", "http://localhost/Home/ReturnUser", headers, null, null);
 
             // Assert
             Assert.NotNull(response);

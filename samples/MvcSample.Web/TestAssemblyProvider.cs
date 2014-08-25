@@ -11,8 +11,7 @@ namespace MvcSample.Web
     /// Limits MVC to use a single Assembly for controller discovery.
     /// This is used by the functional test to limit the Controller discovery to
     /// MvcSample.Web Assembly alone.
-    /// The sample should work in the absense of this file (provided the configuration.json
-    /// has UseTestConfiguration set to false.
+    /// The sample should work in the absense of this file.
     /// </summary>
     /// <remarks>
     /// This is a generic type because it needs to instantiated by a service provider to replace
