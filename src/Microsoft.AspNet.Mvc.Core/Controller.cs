@@ -426,6 +426,16 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
+        /// Creates an <see cref="HttpBadRequestResult"/> that produces a Bad Request (400) response.
+        /// </summary>
+        /// <returns>The created <see cref="HttpBadRequestResult"/> for the response.</returns>
+        [NonAction]
+        public virtual HttpBadRequestResult HttpBadRequest()
+        {
+            return new HttpBadRequestResult();
+        }
+
+        /// <summary>
         /// Called before the action method is invoked.
         /// </summary>
         /// <param name="context">The action executing context.</param>
