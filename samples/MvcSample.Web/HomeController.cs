@@ -34,6 +34,11 @@ namespace MvcSample.Web
             return HttpNotFound();
         }
 
+        public ActionResult BadRequest()
+        {
+            return HttpBadRequest();
+        }
+
         public bool IsDefaultNameSpace()
         {
             var namespaceToken = ActionContext.RouteData.DataTokens["NameSpace"] as string;

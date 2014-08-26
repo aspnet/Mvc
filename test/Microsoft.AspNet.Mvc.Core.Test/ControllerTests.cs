@@ -371,6 +371,20 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(404, result.StatusCode);
         }
 
+        [Fact]
+        public void HttpBadRequest_SetsStatusCode()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            // Act
+            var result = controller.HttpBadRequest();
+
+            // Assert
+            Assert.IsType<HttpBadRequestResult>(result);
+            Assert.Equal(400, result.StatusCode);
+        }
+
         [Theory]
         [MemberData("PublicNormalMethodsFromController")]
         public void NonActionAttribute_IsOnEveryPublicNormalMethodFromController(MethodInfo method)
