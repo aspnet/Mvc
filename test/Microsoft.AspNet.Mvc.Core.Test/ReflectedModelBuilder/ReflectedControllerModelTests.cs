@@ -20,11 +20,12 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder.Test
             var model = new ReflectedControllerModel(controllerType.GetTypeInfo());
 
             // Assert
-            Assert.Equal(5, model.Attributes.Count);
+            Assert.Equal(6, model.Attributes.Count);
 
             Assert.Single(model.Attributes, a => a is MyOtherAttribute);
             Assert.Single(model.Attributes, a => a is MyFilterAttribute);
             Assert.Single(model.Attributes, a => a is MyRouteConstraintAttribute);
+            Assert.Single(model.Attributes, a => a is ApiExplorerSettingsAttribute);
 
             var routes = model.Attributes.OfType<RouteAttribute>().ToList();
             Assert.Equal(2, routes.Count());
@@ -102,11 +103,26 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder.Test
             Assert.Single(model.AttributeRoutes, r => r.Template.Equals("Microblog"));
         }
 
+        [Fact]
+        public void ReflectedControllerModel_PopulatesApiExplorerInfo()
+        {
+            // Arrange
+            var controllerType = typeof(BlogController);
+
+            // Act
+            var model = new ReflectedControllerModel(controllerType.GetTypeInfo());
+
+            // Assert
+            Assert.Equal(true, model.ApiExplorerIsVisible);
+            Assert.Equal("Blog", model.ApiExplorerGroupName);
+        }
+
         [MyOther]
         [MyFilter]
         [MyRouteConstraint]
         [Route("Blog")]
         [Route("Microblog")]
+        [ApiExplorerSettings(GroupName = "Blog")]
         private class BlogController
         {
         }

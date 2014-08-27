@@ -11,6 +11,7 @@ namespace Microsoft.AspNet.Mvc
     {
         public ActionDescriptor()
         {
+            ExtensionData = new Dictionary<Type, object>();
             RouteValueDefaults = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -34,5 +35,38 @@ namespace Microsoft.AspNet.Mvc
         /// A friendly name for this action.
         /// </summary>
         public virtual string DisplayName { get; set; }
+
+        /// <summary>
+        /// Stores arbitrary extension metadata associated with the <see cref="ActionDescriptor"/>.
+        /// </summary>
+        public IDictionary<Type, object> ExtensionData { get; private set; }
+
+        /// <summary>
+        /// Gets the value of an extension data from the <see cref="ExtensionData"/> collection.
+        /// </summary>
+        /// <typeparam name="T">The type of the extension data.</typeparam>
+        /// <returns>The extension data or the default value of <typeparamref name="T"/>.</returns>
+        public T GetExtension<T>()
+        {
+            object value;
+            if (ExtensionData.TryGetValue(typeof(T), out value))
+            {
+                return (T)value;
+            }
+            else
+            {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// Sets the value of an extension data in the <see cref="ExtensionData"/> collection.
+        /// </summary>
+        /// <typeparam name="T">The type of the extension data.</typeparam>
+        /// <param name="value">The value of an extension data.</param>
+        public void SetExtension<T>([NotNull] T value)
+        {
+            ExtensionData[typeof(T)] = value;
+        }
     }
 }
