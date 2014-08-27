@@ -5,17 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Mvc.ResourceModel;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Writes an object to the output stream.
     /// </summary>
-    public abstract class OutputFormatter : IOutputFormatter
+    public abstract class OutputFormatter : IOutputFormatter, IResourceOutputMetadataProvider
     {
         /// <summary>
         /// Gets the mutable collection of character encodings supported by
@@ -108,10 +108,36 @@ namespace Microsoft.AspNet.Mvc
             if (mediaType != null)
             {
                 context.SelectedContentType = mediaType;
-                return true;
+                return CanWriteType(GetObjectType(context));
             }
 
             return false;
+        }
+
+        protected virtual bool CanWriteType(Type dataType)
+        {
+            return true;
+        }
+
+        public virtual IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(Type dataType, MediaTypeHeaderValue contentType)
+        {
+            if (!CanWriteType(dataType))
+            {
+                return Enumerable.Empty<MediaTypeHeaderValue>();
+            }
+
+            var mediaTypes = new List<MediaTypeHeaderValue>();
+
+            if (contentType == null)
+            {
+                mediaTypes.AddRange(SupportedMediaTypes);
+            }
+            else
+            {
+                mediaTypes.Add(SupportedMediaTypes.FirstOrDefault(mt => mt.IsSubsetOf(contentType)));
+            }
+
+            return mediaTypes;
         }
 
         /// <inheritdoc />
