@@ -136,6 +136,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                     throw new InvalidOperationException(message);
                 }
 
+                // Notify the previous page that any writes that are performed on it are part of sections being written
+                // in the layout.
+                previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
                 layoutPage.RenderBodyDelegate = bodyWriter.CopyTo;
                 bodyWriter = await RenderPageAsync(layoutPage, context, executeViewStart: false);

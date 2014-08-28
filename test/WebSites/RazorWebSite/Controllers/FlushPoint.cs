@@ -16,5 +16,10 @@ namespace RazorWebSite
         {
             return View();
         }
+
+        public ViewResult PageWithPartialsAndViewComponents()
+        {
+            return View();
+        }
     }
 }

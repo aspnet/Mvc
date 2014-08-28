@@ -329,7 +329,7 @@ Layout end
         }
 
         [Fact]
-        public async Task FlushAsync_DoesNotThrowWhenInvokedWithinASection()
+        public async Task FlushAsync_DoesNotThrowWhenIsRenderingLayoutIsSet()
         {
             // Arrange
             var writer = new Mock<TextWriter>();
@@ -345,6 +345,7 @@ Layout end
 
             // Act
             await page.ExecuteAsync();
+            page.IsLayoutBeingRendered = true;
 
             // Assert
             Assert.DoesNotThrow(() => page.SectionWriters["test-section"].WriteTo(TextWriter.Null));

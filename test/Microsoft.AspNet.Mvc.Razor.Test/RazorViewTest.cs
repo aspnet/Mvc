@@ -465,17 +465,33 @@ section-content-2";
         {
             // Arrange
             var expected =
-@"before-flush
-after-flush";
+@"layout-1
+section-content-1
+section-content-2";
 
             var page = new TestableRazorPage(v =>
+           {
+               v.Layout = "layout-1";
+               v.DefineSection("foo", new HelperResult(_ =>
+               {
+                   v.WriteLiteral("section-content-1" + Environment.NewLine);
+                   v.FlushAsync().Wait();
+                   v.WriteLiteral("section-content-2");
+               }));
+           });
+
+            var layout1 = new TestableRazorPage(v =>
             {
-                v.WriteLiteral("before-flush" + Environment.NewLine);
-                v.FlushAsync().Wait();
-                v.WriteLiteral("after-flush");
+                v.Write("layout-1" + Environment.NewLine);
+                v.RenderBodyPublic();
+                v.Write(v.RenderSection("foo"));
             });
 
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var pageFactory = new Mock<IRazorPageFactory>();
+            pageFactory.Setup(p => p.CreateInstance("layout-1"))
+                       .Returns(layout1);
+
+            var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider());
             view.Contextualize(page, isPartial: false);

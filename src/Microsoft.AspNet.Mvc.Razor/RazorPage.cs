@@ -19,7 +19,6 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public abstract class RazorPage : IRazorPage
     {
-        private static readonly object _renderingSectionKey = new object();
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private IUrlHelper _urlHelper;
         private bool _renderedBody;
@@ -90,6 +89,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <inheritdoc />
         public Action<TextWriter> RenderBodyDelegate { get; set; }
+
+        /// <inheritdoc />
+        public bool IsLayoutBeingRendered { get; set; }
 
         /// <inheritdoc />
         public Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
@@ -296,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 throw new InvalidOperationException(Resources.FormatSectionAlreadyDefined(name));
             }
-            SectionWriters[name] = new SectionResult(section, Context);
+            SectionWriters[name] = section;
         }
 
         public bool IsSectionDefined([NotNull] string name)
@@ -335,12 +337,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return null;
             }
         }
-        
+
+        /// <summary>
+        /// Invokes <see cref="TextWriter.FlushAsync"/> on <see cref="Output"/> writing out any buffered
+        /// content to the <see cref="HttpResponse.Body"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous flush operation.</returns>
         public Task FlushAsync()
         {
-            // Calls to Flush are allowed if the page does not specify a Layout or if we're executing as part of a section.
-            if (!string.IsNullOrEmpty(Layout) &&
-                !Context.Items.ContainsKey(_renderingSectionKey))
+            // Calls to Flush are allowed if the page does not specify a Layout or if it is executing a section in the
+            // Layout.
+            if (!IsLayoutBeingRendered && !string.IsNullOrEmpty(Layout))
             {
                 var message = Resources.FormatLayoutCannotBeRendered(nameof(FlushAsync));
                 throw new InvalidOperationException(message);
@@ -377,30 +384,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (PreviousSectionWriters == null)
             {
                 throw new InvalidOperationException(Resources.FormatView_MethodCannotBeCalled(methodName));
-            }
-        }
-
-        private sealed class SectionResult : HelperResult
-        {
-            private readonly HttpContext _context;
-
-            public SectionResult(HelperResult writer, HttpContext context)
-                : base(writer.WriteAction)
-            {
-                _context = context;
-            }
-
-            public override void WriteTo([NotNull] TextWriter writer)
-            {
-                try
-                {
-                    _context.Items[_renderingSectionKey] = true;
-                    base.WriteTo(writer);
-                }
-                finally
-                {
-                    _context.Items.Remove(_renderingSectionKey);
-                }
             }
         }
     }

@@ -67,6 +67,35 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Final content", GetTrimmedString(stream));
         }
 
+        [Fact]
+        public async Task FlushPointsAreExecutedForPagesWithComponentsAndPartials()
+        {
+            var waitService = new WaitService();
+            var serviceProvider = GetServiceProvider(waitService);
+
+            var server = TestServer.Create(serviceProvider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var stream = await client.GetStreamAsync("http://localhost/FlushPoint/PageWithPartialsAndViewComponents");
+
+            // Assert - 1
+            Assert.Equal(
+@"<title>Page With Components and Partials</title>
+
+RenderBody content", GetTrimmedString(stream));
+            waitService.WaitForServer();
+
+            // Assert - 2
+            Assert.Equal("partial-content", GetTrimmedString(stream));
+            waitService.WaitForServer();
+
+            // Assert - 3
+            Assert.Equal(
+@"component-content
+    <span>Content that takes time to produce</span>", GetTrimmedString(stream));
+        }
+
         private IServiceProvider GetServiceProvider(WaitService waitService)
         {
             var services = new ServiceCollection();
