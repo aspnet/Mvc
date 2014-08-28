@@ -73,8 +73,8 @@ namespace Microsoft.AspNet.Mvc
             var response = context.ActionContext.HttpContext.Response;
             var selectedEncoding = context.SelectedEncoding;
 
-            using (var delegatingStream = new DelegatingStream(response.Body, false))
-            using (var writer = new StreamWriter(delegatingStream, selectedEncoding, 1024, leaveOpen: false))
+            using (var delegatingStream = new DelegatingStream(response.Body))
+            using (var writer = new StreamWriter(delegatingStream, selectedEncoding, 1024, leaveOpen: true))
             {
                 WriteObject(writer, context.Object);
             }

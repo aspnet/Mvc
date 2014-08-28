@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc
 
             var innerStream = context.ActionContext.HttpContext.Response.Body;
 
-            using (var outputStream = new DelegatingStream(innerStream, delegateFlush: false))
+            using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
                 var dataContractSerializer = (DataContractSerializer)CreateSerializer(GetObjectType(context));
