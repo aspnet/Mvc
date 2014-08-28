@@ -187,8 +187,7 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
-            var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+            var formatter = new XmlDataContractSerializerOutputFormatter();
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             var response = outputFormatterContext.ActionContext.HttpContext.Response;

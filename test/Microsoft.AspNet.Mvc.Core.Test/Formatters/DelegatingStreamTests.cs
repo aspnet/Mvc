@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc
             var delegatingStream = new DelegatingStream(stream);
 
             // Act & Assert
-            delegatingStream.Dispose();
+            delegatingStream.Close();
         }
 
         [Fact]
