@@ -65,8 +65,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Only perform validation at the root of the object graph. ValidationNode will recursively walk the graph.
             // Ignore ComplexModelDto since it essentially wraps the primary object.
-            if (newBindingContext.ModelMetadata.ContainerType == null &&
-                newBindingContext.ModelMetadata.ModelType != typeof(ComplexModelDto))
+            if (IsBindingAtRootOfObjectGraph(newBindingContext))
             {
                 // run validation and return the model
                 // If we fell back to an empty prefix above and are dealing with simple types,
@@ -85,14 +84,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                                    bindingContext.ModelMetadata,
                                                                    containerMetadata: null);
 
-                newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
+                try
+                {
+                    newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
+                }
+                catch (TooManyModelErrorsException)
+                {
+                }
             }
 
             bindingContext.Model = newBindingContext.Model;
             return true;
         }
 
-        private async Task<bool> TryBind([NotNull] ModelBindingContext bindingContext)
+        private async Task<bool> TryBind(ModelBindingContext bindingContext)
         {
             // TODO: RuntimeHelpers.EnsureSufficientExecutionStack does not exist in the CoreCLR.
             // Protects against stack overflow for deeply nested model binding
@@ -100,14 +105,34 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             foreach (var binder in ModelBinders)
             {
-                if (await binder.BindModelAsync(bindingContext))
+                try
                 {
-                    return true;
+                    if (await binder.BindModelAsync(bindingContext))
+                    {
+                        return true;
+                    }
+                }
+                catch (TooManyModelErrorsException)
+                {
+                    if (!IsBindingAtRootOfObjectGraph(bindingContext))
+                    {
+                        throw;
+                    }
                 }
             }
 
             // Either we couldn't find a binder, or the binder couldn't bind. Distinction is not important.
             return false;
+        }
+
+        private static bool IsBindingAtRootOfObjectGraph(ModelBindingContext bindingContext)
+        {
+            // We're at the root of the object graph if the model does does not have a container.
+            // This statement is true for complex types at the root twice over - once with the actual model
+            // and once when when it is represented by a ComplexModelDto. Ignore the latter case.
+
+            return bindingContext.ModelMetadata.ContainerType == null &&
+                   bindingContext.ModelMetadata.ModelType != typeof(ComplexModelDto);
         }
 
         private static ModelBindingContext CreateNewBindingContext(ModelBindingContext oldBindingContext,

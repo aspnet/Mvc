@@ -365,6 +365,43 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(ModelValidationState.Valid, validationState);
         }
 
+        [InlineData]
+        public void AddModelError_WithErrorString_ThrowsWhenMaxAllowedErrors_IsReached()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 4
+            };
+            dictionary.AddModelError("key1", "error1");
+            dictionary.AddModelError("key2", new Exception());
+            dictionary.AddModelError("key3", new Exception());
+            dictionary.AddModelError("key4", "error4");
+
+            // Act and Assert
+            var ex = Assert.Throws<TooManyModelErrorsException>(() => dictionary.AddModelError("key5", "error5"));
+            Assert.Equal(expected, ex.Message);
+        }
+
+        [Fact]
+        public void AddModelError_WithException_ThrowsWhenMaxAllowedErrors_IsReached()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 3
+            };
+            dictionary.AddModelError("key1", new Exception());
+            dictionary.AddModelError("key2", "error2");
+            dictionary.AddModelError("key3", "error3");
+
+            // Act and Assert
+            var ex = Assert.Throws<TooManyModelErrorsException>(() => dictionary.AddModelError("key4", new Exception()));
+            Assert.Equal(expected, ex.Message);
+        }
+
         private static ValueProviderResult GetValueProviderResult(object rawValue = null, string attemptedValue = null)
         {
             return new ValueProviderResult(rawValue ?? "some value",

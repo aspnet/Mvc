@@ -16,6 +16,7 @@ namespace Microsoft.AspNet.Mvc
     {
         private AntiForgeryOptions _antiForgeryOptions = new AntiForgeryOptions();
         private RazorViewEngineOptions _viewEngineOptions = new RazorViewEngineOptions();
+        private int _maxModelStateErrors = 200;
 
         public MvcOptions()
         {
@@ -82,6 +83,24 @@ namespace Microsoft.AspNet.Mvc
                 }
 
                 _viewEngineOptions = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum number of validation errors that are allowed by this application before further
+        /// errors are ignored.
+        /// </summary>
+        public int MaxModelValidationErrors
+        {
+            get { return _maxModelStateErrors; }
+            set
+            {
+                if (value < 0)
+                {
+                    throw new ArgumentOutOfRangeException("MaxModelValidationErrors");
+                }
+
+                _maxModelStateErrors = value;
             }
         }
 
