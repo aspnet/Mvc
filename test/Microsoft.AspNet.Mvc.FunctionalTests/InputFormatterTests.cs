@@ -62,42 +62,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task ModelStateErrorValidation_NoInputFormatterFound_IfContentTypeIsNotSet(bool filterHandlesModelStateError)
-        {
-            // Arrange
-            var actionName = filterHandlesModelStateError ? "ActionFilterHandlesError" : "ActionHandlesError";
-            var expectedSource = filterHandlesModelStateError ? "filter" : "action";
-
-            var server = TestServer.Create(_services, _app);
-            var client = server.CreateClient();
-
-            // Act
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/InputFormatter/" + actionName);
-            request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json"));
-            var response = await client.SendAsync(request);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<FormatterWebSite.ErrorInfo>(responseBody);
-
-            // Assert
-            Assert.Equal(1, result.Errors.Count);
-            Assert.Equal("Unsupported content type ''.", result.Errors[0]);
-            Assert.Equal(actionName, result.ActionName);
-            Assert.Equal("dummy", result.ParameterName);
-            Assert.Equal(expectedSource, result.Source);
-        }
-
-        [Theory]
-        [InlineData("invalid/invalid", true)]
+        [InlineData("", true)]
+        [InlineData(null, true)]
+        [InlineData("invalid", true)]
         [InlineData("application/custom", true)]
         [InlineData("image/jpg", true)]
-        [InlineData("invalid/invalid", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        [InlineData("invalid", false)]
         [InlineData("application/custom", false)]
         [InlineData("image/jpg", false)]
         public async Task ModelStateErrorValidation_NoInputFormatterFound_ForGivenContentType(string requestContentType,
-                                                                                             bool filterHandlesModelStateError)
+                                                                                              bool filterHandlesModelStateError)
         {
             // Arrange
             var actionName = filterHandlesModelStateError ? "ActionFilterHandlesError" : "ActionHandlesError";
@@ -107,7 +83,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             var input = "{\"SampleInt\":10}";
             var content = new StringContent(input);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse(requestContentType);
+            content.Headers.Clear();
+            content.Headers.TryAddWithoutValidation("Content-Type", requestContentType);
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/InputFormatter/" + actionName);
