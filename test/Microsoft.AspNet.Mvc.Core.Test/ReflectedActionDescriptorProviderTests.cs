@@ -58,23 +58,36 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(FilterScope.Action, filter3.Scope);
         }
 
-        [Theory]
-        [InlineData(typeof(HttpMethodController), nameof(HttpMethodController.OnlyPost), "POST")]
-        [InlineData(typeof(AttributeRoutedHttpMethodController), nameof(AttributeRoutedHttpMethodController.PutOrPatch), "PUT,PATCH")]
-        public void GetDescriptors_AddsHttpMethodConstraints(Type controllerType, string actionName, string expectedMethods)
+        [Fact]
+        public void GetDescriptors_AddsHttpMethodConstraints_ForConventionallyRoutedActions()
         {
             // Arrange
-            var provider = GetProvider(controllerType.GetTypeInfo());
+            var provider = GetProvider(typeof(HttpMethodController).GetTypeInfo());
 
             // Act
             var descriptors = provider.GetDescriptors();
             var descriptor = Assert.Single(descriptors);
 
             // Assert
-            Assert.Equal(actionName, descriptor.Name);
+            Assert.Equal("OnlyPost", descriptor.Name);
 
             Assert.Single(descriptor.MethodConstraints);
-            Assert.Equal(expectedMethods.Split(','), descriptor.MethodConstraints[0].HttpMethods);
+            Assert.Equal(new string[] { "POST" }, descriptor.MethodConstraints[0].HttpMethods);
+        }
+
+        [Fact]
+        public void GetDescriptors_DoesNotAddHttpMethodConstraints_ForAttributeRoutedActions()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(AttributeRoutedHttpMethodController).GetTypeInfo());
+
+            // Act
+            var descriptors = provider.GetDescriptors();
+            var descriptor = Assert.Single(descriptors);
+
+            // Assert
+            Assert.Equal(nameof(AttributeRoutedHttpMethodController.PutOrPatch), descriptor.Name);
+            Assert.Null(descriptor.MethodConstraints);
         }
 
         [Fact]

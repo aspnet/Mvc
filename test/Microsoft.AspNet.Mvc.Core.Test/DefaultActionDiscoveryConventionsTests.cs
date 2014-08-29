@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.AspNet.Mvc.DefaultActionDiscoveryConventionsControllers;
 using Xunit;
 using System.Linq;
+using System;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -163,6 +164,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("Edit", action.ActionName);
             Assert.True(action.RequireActionNameMatch);
             Assert.Null(action.HttpMethods);
+            Assert.Null(action.AttributeRoute);
         }
 
         [Fact]
@@ -181,6 +183,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("Update", action.ActionName);
             Assert.True(action.RequireActionNameMatch);
             Assert.Equal(new[] { "PUT", "PATCH" }, action.HttpMethods);
+            Assert.Null(action.AttributeRoute);
         }
 
         [Fact]
@@ -201,6 +204,7 @@ namespace Microsoft.AspNet.Mvc
 
             var httpMethod = Assert.Single(action.HttpMethods);
             Assert.Equal("DELETE", httpMethod);
+            Assert.Null(action.AttributeRoute);
         }
 
         [Fact]
@@ -219,6 +223,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("Details", action.ActionName);
             Assert.True(action.RequireActionNameMatch);
             Assert.Equal(new[] { "POST", "GET" }, action.HttpMethods);
+            Assert.Null(action.AttributeRoute);
         }
 
         [Fact]
@@ -237,6 +242,138 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("List", action.ActionName);
             Assert.True(action.RequireActionNameMatch);
             Assert.Equal(new[] { "GET", "PUT", "POST" }, action.HttpMethods);
+            Assert.Null(action.AttributeRoute);
+        }
+
+        [Fact]
+        public void GetActions_AttributeRouteOnAction()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(NoRouteAttributeController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeController.Edit);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+
+            Assert.Equal("Edit", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+
+            var httpMethod = Assert.Single(action.HttpMethods);
+            Assert.Equal("POST", httpMethod);
+
+            Assert.NotNull(action.AttributeRoute);
+            Assert.Equal("Change", action.AttributeRoute.Template);
+        }
+
+
+        [Fact]
+        public void GetActions_AttributeRouteOnAction_CreatesOneActionInforPerRouteTemplate()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(NoRouteAttributeController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeController.Index);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            Assert.Equal(2, actionInfos.Count());
+
+            foreach (var action in actionInfos)
+            {
+                Assert.Equal("Index", action.ActionName);
+                Assert.True(action.RequireActionNameMatch);
+
+                Assert.NotNull(action.AttributeRoute);
+            }
+
+            var list = Assert.Single(actionInfos, ai => ai.AttributeRoute.Template.Equals("List"));
+            var listMethod = Assert.Single(list.HttpMethods);
+            Assert.Equal("POST", listMethod);
+
+            var all = Assert.Single(actionInfos, ai => ai.AttributeRoute.Template.Equals("All"));
+            var allMethod = Assert.Single(all.HttpMethods);
+            Assert.Equal("GET", allMethod);
+        }
+
+        [Fact]
+        public void GetActions_NoRouteOnController_AllowsConventionallyRoutedActions_OnTheSameController()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(NoRouteAttributeController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeController.Remove);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+
+            Assert.Equal("Remove", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+
+            Assert.Null(action.HttpMethods);
+
+            Assert.Null(action.AttributeRoute);
+        }
+
+        [Theory]
+        [InlineData(typeof(SingleRouteAttributeController))]
+        [InlineData(typeof(MultipleRouteAttributeController))]
+        public void GetActions_RouteAttributeOnController_CreatesAttributeRoute_ForNonAttributedActions(Type controller)
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = controller.GetTypeInfo();
+            
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod("Delete"), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+
+            Assert.Equal("Delete", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+
+            Assert.Null(action.HttpMethods);
+
+            Assert.Null(action.AttributeRoute);
+        }
+
+        [Theory]
+        [InlineData(typeof(SingleRouteAttributeController))]
+        [InlineData(typeof(MultipleRouteAttributeController))]
+        public void GetActions_RouteOnController_CreatesOneActionInforPerRouteTemplateOnAction(Type controller)
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = controller.GetTypeInfo();
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod("Index"), typeInfo);
+
+            // Assert
+            Assert.Equal(2, actionInfos.Count());
+
+            foreach (var action in actionInfos)
+            {
+                Assert.Equal("Index", action.ActionName);
+                Assert.True(action.RequireActionNameMatch);
+
+                var httpMethod = Assert.Single(action.HttpMethods);
+                Assert.Equal("GET", httpMethod);
+
+                Assert.NotNull(action.AttributeRoute);
+            }
+
+            Assert.Single(actionInfos, ai => ai.AttributeRoute.Template.Equals("List"));
+            Assert.Single(actionInfos, ai => ai.AttributeRoute.Template.Equals("All"));
         }
 
         [Fact]
@@ -500,6 +637,40 @@ namespace Microsoft.AspNet.Mvc.DefaultActionDiscoveryConventionsControllers
         {
             return new OperatorOverloadingController();
         }
+    }
+
+    public class NoRouteAttributeController : Controller
+    {
+        [HttpGet("All")]
+        [HttpPost("List")]
+        public void Index() { }
+
+        [HttpPost("Change")]
+        public void Edit() { }
+
+        public void Remove() { }
+    }
+
+
+    [Route("Products")]
+    public class SingleRouteAttributeController : Controller
+    {
+        [HttpGet("All")]
+        [HttpGet("List")]
+        public void Index() { }
+
+        public void Delete() { }
+    }
+
+    [Route("Products")]
+    [Route("Items")]
+    public class MultipleRouteAttributeController : Controller
+    {
+        [HttpGet("All")]
+        [HttpGet("List")]
+        public void Index() { }
+
+        public void Delete() { }
     }
 
     public class ConventionallyRoutedController : Controller

@@ -20,7 +20,7 @@ namespace RoutingWebSite
             return _generator.Generate("/api/Employee");
         }
 
-        [AcceptVerbs("PUT", "PATCH")]
+        [MultipleHttpMethods(null, "PUT", "PATCH")]
         public IActionResult UpdateEmployee()
         {
             return _generator.Generate("/api/Employee");
