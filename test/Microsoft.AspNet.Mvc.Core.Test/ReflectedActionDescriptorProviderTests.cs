@@ -388,13 +388,13 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var conventional = Assert.Single(model.Controllers,
                 c => c.ControllerName == "ConventionallyRouted");
-            Assert.Null(conventional.AttributeRouteModel);
+            Assert.Empty(conventional.AttributeRoutes);
             Assert.Single(conventional.Actions);
 
             var attributeRouted = Assert.Single(model.Controllers,
                 c => c.ControllerName == "AttributeRouted");
             Assert.Single(attributeRouted.Actions);
-            Assert.NotNull(attributeRouted.AttributeRouteModel);
+            Assert.Single(attributeRouted.AttributeRoutes);
 
             var empty = Assert.Single(model.Controllers,
                 c => c.ControllerName == "Empty");
@@ -459,7 +459,9 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             var controller = Assert.Single(model.Controllers);
-            Assert.Equal("api/Token/[key]/[controller]", controller.AttributeRouteModel.Template);
+
+            var attributeRouteModel = Assert.Single(controller.AttributeRoutes);
+            Assert.Equal("api/Token/[key]/[controller]", attributeRouteModel.Template);
 
             var action = Assert.Single(controller.Actions);
             Assert.Equal("stub/[action]", action.AttributeRouteModel.Template);
