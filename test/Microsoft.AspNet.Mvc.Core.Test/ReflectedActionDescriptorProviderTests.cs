@@ -507,6 +507,62 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
+        public void AttributeRouting_CreatesOneActionDescriptor_PerControllerAndActionRouteCombination()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(MultiRouteAttributesController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            Assert.Equal(4, actions.Count());
+
+            foreach (var action in actions)
+            {
+                Assert.Equal("Index", action.Name);
+                Assert.Equal("MultiRouteAttributes", action.ControllerName);
+            }
+
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v1/List"));
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v1/All"));
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v2/List"));
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v2/All"));
+        }
+
+        [Theory]
+        [InlineData(nameof(DuplicatedAttributeRouteController.Action), "list")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.Controller), "product")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.ControllerAndAction), "product/list")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.ControllerActionAndOverride), "product/list")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.DifferentCasing), "product/list")]
+        public void AttributeRouting_IgnoresDuplicateAttributeRoutedActions_WithTheSameTemplateOnTheSameMethod(
+            string actionName,
+            string expectedTemplate)
+        {
+            // Arrange
+            var provider = GetProvider(typeof(DuplicatedAttributeRouteController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var action = Assert.Single(actions, a => a.Name.Equals(actionName));
+            Assert.NotNull(action.AttributeRouteInfo);
+            Assert.Equal(expectedTemplate, action.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Theory]
+        public void AttributeRouting_ThrowsIfAttributeRoutedAndNonAttributedActions_OnTheSameMethod()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+        }
+
+        [Fact]
         public void AttributeRouting_Name_ThrowsIfMultipleActions_WithDifferentTemplatesHaveTheSameName()
         {
             // Arrange
@@ -930,6 +986,40 @@ namespace Microsoft.AspNet.Mvc.Test
 
             [HttpDelete("{ID}", Order = 1, Name = "PRODUCTS")]
             public void Delete(int id) { }
+        }
+
+        [Route("v1")]
+        [Route("v2")]
+        public class MultiRouteAttributesController
+        {
+            [HttpGet("List")]
+            [HttpGet("All")]
+            public void Index() { }
+        }
+
+        [Route("Product")]
+        [Route("/Product")]
+        [Route("/product")]
+        public class DuplicatedAttributeRouteController : Controller
+        {
+            [HttpGet("/List")]
+            [HttpGet("/List")]
+            public void Action() { }
+
+            public void Controller() { }
+
+            [HttpPost("List")]
+            [HttpPost("List")]
+            public void ControllerAndAction() { }
+
+            [HttpGet("List")]
+            [HttpPut("/Product/List")]
+            public void ControllerActionAndOverride() { }
+
+            [HttpGet("LIST")]
+            [HttpGet("List")]
+            [HttpGet("list")]
+            public void DifferentCasing() { }
         }
 
         [MyRouteConstraint(blockNonAttributedActions: true)]
