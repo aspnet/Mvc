@@ -4,6 +4,7 @@
 using System.Reflection;
 using Microsoft.AspNet.Mvc.DefaultActionDiscoveryConventionsControllers;
 using Xunit;
+using System.Linq;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -144,6 +145,98 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.False(isValid);
+        }
+
+        [Fact]
+        public void GetActions_ConventionallyRoutedActionWithoutHttpConstraints()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(ConventionallyRoutedController).GetTypeInfo();
+            var actionName = nameof(ConventionallyRoutedController.Edit);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+            Assert.Equal("Edit", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+            Assert.Null(action.HttpMethods);
+        }
+
+        [Fact]
+        public void GetActions_ConventionallyRoutedActionWithHttpConstraints()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(ConventionallyRoutedController).GetTypeInfo();
+            var actionName = nameof(ConventionallyRoutedController.Update);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+            Assert.Equal("Update", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+            Assert.Equal(new[] { "PUT", "PATCH" }, action.HttpMethods);
+        }
+
+        [Fact]
+        public void GetActions_ConventionallyRoutedActionWithHttpConstraints_AndInvalidRouteTemplateProvider()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(ConventionallyRoutedController).GetTypeInfo();
+            var actionName = nameof(ConventionallyRoutedController.Delete);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+            Assert.Equal("Delete", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+
+            var httpMethod = Assert.Single(action.HttpMethods);
+            Assert.Equal("DELETE", httpMethod);
+        }
+
+        [Fact]
+        public void GetActions_ConventionallyRoutedActionWithMultipleHttpConstraints()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(ConventionallyRoutedController).GetTypeInfo();
+            var actionName = nameof(ConventionallyRoutedController.Details);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+            Assert.Equal("Details", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+            Assert.Equal(new[] { "POST", "GET" }, action.HttpMethods);
+        }
+
+        [Fact]
+        public void GetActions_ConventionallyRoutedActionWithMultipleOverlappingHttpConstraints()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(ConventionallyRoutedController).GetTypeInfo();
+            var actionName = nameof(ConventionallyRoutedController.List);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+            Assert.Equal("List", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+            Assert.Equal(new[] { "GET", "PUT", "POST" }, action.HttpMethods);
         }
 
         [Fact]
@@ -407,5 +500,28 @@ namespace Microsoft.AspNet.Mvc.DefaultActionDiscoveryConventionsControllers
         {
             return new OperatorOverloadingController();
         }
+    }
+
+    public class ConventionallyRoutedController : Controller
+    {
+        public void Edit() { }
+
+        [AcceptVerbs("PUT", "PATCH")]
+        public void Update() { }
+
+        // Here the constraint is acting as an IActionHttpMethodProvider and
+        // not as an IRouteTemplateProvider given that there is no RouteAttribute
+        // on the controller and the template for [HttpDelete] is null.
+        [HttpDelete]
+        public void Delete() { }
+
+        [HttpPost]
+        [HttpGet]
+        public void Details() { }
+
+        [HttpGet]
+        [HttpPut]
+        [AcceptVerbs("GET", "POST")]
+        public void List() { }
     }
 }
