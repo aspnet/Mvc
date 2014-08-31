@@ -58,23 +58,50 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(FilterScope.Action, filter3.Scope);
         }
 
-        [Theory]
-        [InlineData(typeof(HttpMethodController), nameof(HttpMethodController.OnlyPost), "POST")]
-        [InlineData(typeof(AttributeRoutedHttpMethodController), nameof(AttributeRoutedHttpMethodController.PutOrPatch), "PUT,PATCH")]
-        public void GetDescriptors_AddsHttpMethodConstraints(Type controllerType, string actionName, string expectedMethods)
+        [Fact]
+        public void GetDescriptors_AddsHttpMethodConstraints_ForConventionallyRoutedActions()
         {
             // Arrange
-            var provider = GetProvider(controllerType.GetTypeInfo());
+            var provider = GetProvider(typeof(HttpMethodController).GetTypeInfo());
 
             // Act
             var descriptors = provider.GetDescriptors();
             var descriptor = Assert.Single(descriptors);
 
             // Assert
-            Assert.Equal(actionName, descriptor.Name);
+            Assert.Equal("OnlyPost", descriptor.Name);
 
             Assert.Single(descriptor.MethodConstraints);
-            Assert.Equal(expectedMethods.Split(','), descriptor.MethodConstraints[0].HttpMethods);
+            Assert.Equal(new string[] { "POST" }, descriptor.MethodConstraints[0].HttpMethods);
+        }
+
+        [Fact]
+        public void GetDescriptors_ThrowsIfHttpMethodConstraints_OnAttributeRoutedActions()
+        {
+            // Arrange
+            var expectedExceptionMessage =
+                "The following errors occurred with attribute routing information:" + Environment.NewLine +
+                Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
+                "A method 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeRoutedHttpMethodController.PutOrPatch'" +
+                " that defines attribute routed actions must not contain attributes that implement " +
+                "'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' and do not implement " +
+                "'Microsoft.AspNet.Mvc.Routing.IRouteTemplateProvider':" + Environment.NewLine +
+                "Action 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeRoutedHttpMethodController.PutOrPatch' has 'Microsoft.AspNet.Mvc.AcceptVerbsAttribute'" +
+                " invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes.";
+
+            var provider = GetProvider(
+                typeof(AttributeRoutedHttpMethodController)
+                .GetTypeInfo());
+
+            // Act
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => provider.GetDescriptors());
+
+            // Act
+            Assert.Equal(expectedExceptionMessage, ex.Message);
         }
 
         [Fact]
@@ -450,13 +477,13 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var conventional = Assert.Single(model.Controllers,
                 c => c.ControllerName == "ConventionallyRouted");
-            Assert.Null(conventional.AttributeRouteModel);
+            Assert.Empty(conventional.AttributeRoutes);
             Assert.Single(conventional.Actions);
 
             var attributeRouted = Assert.Single(model.Controllers,
                 c => c.ControllerName == "AttributeRouted");
             Assert.Single(attributeRouted.Actions);
-            Assert.NotNull(attributeRouted.AttributeRouteModel);
+            Assert.Single(attributeRouted.AttributeRoutes);
 
             var empty = Assert.Single(model.Controllers,
                 c => c.ControllerName == "Empty");
@@ -521,7 +548,9 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             var controller = Assert.Single(model.Controllers);
-            Assert.Equal("api/Token/[key]/[controller]", controller.AttributeRouteModel.Template);
+
+            var attributeRouteModel = Assert.Single(controller.AttributeRoutes);
+            Assert.Equal("api/Token/[key]/[controller]", attributeRouteModel.Template);
 
             var action = Assert.Single(controller.Actions);
             Assert.Equal("stub/[action]", action.AttributeRouteModel.Template);
@@ -550,11 +579,13 @@ namespace Microsoft.AspNet.Mvc.Test
             var expectedMessage =
                 "The following errors occurred with attribute routing information:" + Environment.NewLine +
                 Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
                 "For action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
                 "MultipleErrorsController.Unknown'" + Environment.NewLine +
                 "Error: While processing template 'stub/[action]/[unknown]', a replacement value for the token 'unknown' " +
                 "could not be found. Available tokens: 'controller, action'." + Environment.NewLine +
                 Environment.NewLine +
+                "Error 2:" + Environment.NewLine +
                 "For action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
                 "MultipleErrorsController.Invalid'" + Environment.NewLine +
                 "Error: The route template '[invalid/syntax' has invalid syntax. A replacement token is not closed.";
@@ -564,6 +595,113 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.Equal(expectedMessage, ex.Message);
+        }
+
+        [Fact]
+        public void AttributeRouting_CreatesOneActionDescriptor_PerControllerAndActionRouteCombination()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(MultiRouteAttributesController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            Assert.Equal(4, actions.Count());
+
+            foreach (var action in actions)
+            {
+                Assert.Equal("Index", action.Name);
+                Assert.Equal("MultiRouteAttributes", action.ControllerName);
+            }
+
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v1/List"));
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v1/All"));
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v2/List"));
+            Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v2/All"));
+        }
+
+        [Theory]
+        [InlineData(nameof(DuplicatedAttributeRouteController.Action), "list")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.Controller), "product")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.ControllerAndAction), "product/list")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.ControllerActionAndOverride), "product/list")]
+        [InlineData(nameof(DuplicatedAttributeRouteController.DifferentCasing), "product/list")]
+        public void AttributeRouting_IgnoresDuplicateAttributeRoutedActions_WithTheSameTemplateOnTheSameMethod(
+            string actionName,
+            string expectedTemplate)
+        {
+            // Arrange
+            var provider = GetProvider(typeof(DuplicatedAttributeRouteController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var action = Assert.Single(actions, a => a.Name.Equals(actionName));
+            Assert.NotNull(action.AttributeRouteInfo);
+            Assert.Equal(expectedTemplate, action.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void AttributeRouting_AllowsDuplicateAttributeRoutedActions_WithTheSameTemplateOnDifferentMethods()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(DuplicatedAttributeRouteController).GetTypeInfo());
+            var firstActionName = nameof(DuplicatedAttributeRouteController.ControllerAndAction);
+            var secondActionName = nameof(DuplicatedAttributeRouteController.ControllerActionAndOverride);
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var controllerAndAction = Assert.Single(actions, a => a.Name.Equals(firstActionName));
+            Assert.NotNull(controllerAndAction.AttributeRouteInfo);
+
+            var controllerActionAndOverride = Assert.Single(actions, a => a.Name.Equals(secondActionName));
+            Assert.NotNull(controllerActionAndOverride.AttributeRouteInfo);
+
+            Assert.Equal(
+                controllerAndAction.AttributeRouteInfo.Template,
+                controllerActionAndOverride.AttributeRouteInfo.Template);
+        }
+
+        [Fact]
+        public void AttributeRouting_ThrowsIfAttributeRoutedAndNonAttributedActions_OnTheSameMethod()
+        {
+            // Arrange
+            var expectedMessage =
+                "The following errors occurred with attribute routing information:" + Environment.NewLine +
+                Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
+                "A method 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method'" +
+                " must not define attribute routed actions and non attribute routed actions at the same time:" + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' - Template: 'AttributeRouted'" + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' - Template: '(null)'" + Environment.NewLine +
+                "A method 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' that defines attribute routed actions must not" +
+                " contain attributes that implement 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' and do not implement" +
+                " 'Microsoft.AspNet.Mvc.Routing.IRouteTemplateProvider':" + Environment.NewLine +
+                "Action 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' has " +
+                "'Microsoft.AspNet.Mvc.AcceptVerbsAttribute, Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+CustomHttpMethodConstraintAttribute'" +
+                " invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes." + Environment.NewLine +
+                "Action 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' has " +
+                "'Microsoft.AspNet.Mvc.AcceptVerbsAttribute, Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+CustomHttpMethodConstraintAttribute'" +
+                " invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes.";
+
+            var provider = GetProvider(
+                typeof(AttributeAndNonAttributeRoutedActionsOnSameMethodController).GetTypeInfo());
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() => provider.GetDescriptors());
+
+            // Assert
+            Assert.Equal(expectedMessage, exception.Message);
         }
 
         [Fact]
@@ -992,6 +1130,49 @@ namespace Microsoft.AspNet.Mvc.Test
             public void Delete(int id) { }
         }
 
+        [Route("v1")]
+        [Route("v2")]
+        public class MultiRouteAttributesController
+        {
+            [HttpGet("List")]
+            [HttpGet("All")]
+            public void Index() { }
+        }
+
+        public class AttributeAndNonAttributeRoutedActionsOnSameMethodController
+        {
+            [HttpGet("AttributeRouted")]
+            [HttpPost]
+            [AcceptVerbs("PUT", "PATCH")]
+            [CustomHttpMethodConstraint("DELETE")]
+            public void Method() { }
+        }
+
+        [Route("Product")]
+        [Route("/Product")]
+        [Route("/product")]
+        public class DuplicatedAttributeRouteController : Controller
+        {
+            [HttpGet("/List")]
+            [HttpGet("/List")]
+            public void Action() { }
+
+            public void Controller() { }
+
+            [HttpPost("List")]
+            [HttpPost("List")]
+            public void ControllerAndAction() { }
+
+            [HttpGet("List")]
+            [HttpPut("/Product/List")]
+            public void ControllerActionAndOverride() { }
+
+            [HttpGet("LIST")]
+            [HttpGet("List")]
+            [HttpGet("list")]
+            public void DifferentCasing() { }
+        }
+
         [MyRouteConstraint(blockNonAttributedActions: true)]
         [MySecondRouteConstraint(blockNonAttributedActions: true)]
         private class ConstrainedController
@@ -1036,6 +1217,24 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             [NonAction]
             public void Action() { }
+        }
+
+        private class CustomHttpMethodConstraintAttribute : Attribute, IActionHttpMethodProvider
+        {
+            private readonly string[] _methods;
+
+            public CustomHttpMethodConstraintAttribute(params string[] methods)
+            {
+                _methods = methods;
+            }
+
+            public IEnumerable<string> HttpMethods
+            {
+                get
+                {
+                    return _methods;
+                }
+            }
         }
 
         private class TestActionParameter
