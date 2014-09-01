@@ -131,6 +131,7 @@ namespace Microsoft.AspNet.Mvc
             var actionNameAttribute = attributes.OfType<ActionNameAttribute>().FirstOrDefault();
             var httpMethodConstraints = attributes.OfType<IActionHttpMethodProvider>();
             var routeTemplates = attributes.OfType<IRouteTemplateProvider>();
+
             return new ActionAttributes()
             {
                 ActionNameAttribute = actionNameAttribute,
@@ -146,12 +147,19 @@ namespace Microsoft.AspNet.Mvc
             var controllerRouteTemplates = GetControllerRouteTemplates(controller);
             var actionAttributes = GetActionCustomAttributes(methodInfo);
 
+            // We need to check controllerRouteTemplates to take into account the
+            // case the controller has [Route] on it and the action doesn't have any
+            // attribute applied to it.
             if (actionAttributes.Any() || controllerRouteTemplates.Any())
             {
                 var actionNameAttribute = actionAttributes.ActionNameAttribute;
                 var actionName = actionNameAttribute != null ? actionNameAttribute.Name : methodInfo.Name;
 
-                if (ActionHasAttributeRoutes(controllerRouteTemplates, actionAttributes))
+                // The moment we see a non null attribute route template in the mehtod or
+                // in the controller we consider the whole group to be attribute routed actions.
+                // If a combination ends up producing a non attribute routed action we consider
+                // that an error and throw at a later point in the pipeline.
+                if (ActionHasAttributeRoutes(actionAttributes, controllerRouteTemplates))
                 {
                     return GetAttributeRoutedActions(actionAttributes, actionName);
                 }
@@ -169,23 +177,22 @@ namespace Microsoft.AspNet.Mvc
         }
 
         private static bool ActionHasAttributeRoutes(
-            IRouteTemplateProvider[] controllerRouteTemplates,
-            ActionAttributes actionAttributes)
+            ActionAttributes actionAttributes,
+            IEnumerable<IRouteTemplateProvider> controllerRouteTemplates)
         {
             return controllerRouteTemplates.Any() ||
                 actionAttributes.RouteTemplateProviderAttributes
                 .Any(rtp => rtp.Template != null);
         }
 
-        private static IRouteTemplateProvider[] GetControllerRouteTemplates(TypeInfo controller)
+        private static IEnumerable<IRouteTemplateProvider> GetControllerRouteTemplates(TypeInfo controller)
         {
             // An action inside a controller is considered attribute routed if the controller has
             // an attribute that implements IRouteTemplateProvider with a non null template aplied
             // to it.
             return controller.GetCustomAttributes()
                             .OfType<IRouteTemplateProvider>()
-                            .Where(cr => cr.Template != null)
-                            .ToArray();
+                            .Where(cr => cr.Template != null);
         }
 
         private static IEnumerable<ActionInfo> GetHttpConstrainedActions(

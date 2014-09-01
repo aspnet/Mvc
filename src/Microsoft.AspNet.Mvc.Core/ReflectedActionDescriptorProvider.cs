@@ -134,6 +134,11 @@ namespace Microsoft.AspNet.Mvc
                 var controllerDescriptor = new ControllerDescriptor(controller.ControllerType);
                 foreach (var action in controller.Actions)
                 {
+                    // Controllers with multiple [Route] attributes (or user defined implementation of
+                    // IRouteTemplateProvider) will generate one action descriptor per IRouteTemplateProvider
+                    // instance.
+                    // Actions with multiple [Http*] attributes or other (IRouteTemplateProvider implementations
+                    // have already been identified as different actions during action discovery.
                     var actionDescriptors = CreateActionDescriptors(action, controller, controllerDescriptor);
 
                     foreach (var actionDescriptor in actionDescriptors)
@@ -178,6 +183,8 @@ namespace Microsoft.AspNet.Mvc
             var actionsByRouteName = new Dictionary<string, IList<ActionDescriptor>>(
                 StringComparer.OrdinalIgnoreCase);
 
+            // Keeps track of all the C# methods that we've validated to avoid visiting each action group
+            // more than once.
             var validatedMethods = new HashSet<MethodInfo>();
 
             foreach (var actionDescriptor in actions)
@@ -194,7 +201,7 @@ namespace Microsoft.AspNet.Mvc
 
                 if (!IsAttributeRoutedAction(actionDescriptor))
                 {
-                    // Any any attribute routes are in use, then non-attribute-routed action descriptors can't be
+                    // Any attribute routes are in use, then non-attribute-routed action descriptors can't be
                     // selected when a route group returned by the route.
                     if (hasAttributeRoutes)
                     {
@@ -236,20 +243,22 @@ namespace Microsoft.AspNet.Mvc
 
             if (attributeRoutingConfigurationErrors.Any())
             {
-                var message = CreateAggregateErrorMessage(attributeRoutingConfigurationErrors.Values);
+                var message = CreateAttributeRoutingAggregateErrorMessage(
+                    attributeRoutingConfigurationErrors.Values);
+
                 throw new InvalidOperationException(message);
             }
 
             var namedRoutedErrors = ValidateNamedAttributeRoutedActions(actionsByRouteName);
             if (namedRoutedErrors.Any())
             {
-                var message = CreateAggregateErrorMessage(namedRoutedErrors);
+                var message = CreateAttributeRoutingAggregateErrorMessage(namedRoutedErrors);
                 throw new InvalidOperationException(message);
             }
 
             if (routeTemplateErrors.Any())
             {
-                var message = CreateAggregateErrorMessage(routeTemplateErrors);
+                var message = CreateAttributeRoutingAggregateErrorMessage(routeTemplateErrors);
                 throw new InvalidOperationException(message);
             }
 
@@ -410,13 +419,12 @@ namespace Microsoft.AspNet.Mvc
                                 controller,
                                 action);
 
-            var attributeRouteInfo = combinedRoute == null ? null : new AttributeRouteInfo()
+            return combinedRoute == null ? null : new AttributeRouteInfo()
             {
                 Template = combinedRoute.Template,
                 Order = combinedRoute.Order ?? DefaultAttributeRouteOrder,
                 Name = combinedRoute.Name,
             };
-            return attributeRouteInfo;
         }
 
         private static void AddActionConstraints(
@@ -639,6 +647,7 @@ namespace Microsoft.AspNet.Mvc
             ReflectedActionDescriptor actionDescriptor,
             IDictionary<MethodInfo, string> routingConfigurationErrors)
         {
+            // Text to show as the attribute route template for conventionally routed actions.
             const string NullTemplate = "(null)";
 
             string mixedRoutingTypesErrorMessage = null;
@@ -647,10 +656,10 @@ namespace Microsoft.AspNet.Mvc
             var hasAttributeRoutedActions = false;
             var hasConventionallyRoutedActions = false;
 
-            // Keeps tracks of all the C# methods that result in attribute and non attribute actions
-            // at the same time. This is for example the case when someone uses [HttpGet("Products")]
-            // and [HttpPost] on the same C# method. We consider this an invalid configuration. By
-            // design all the actions in a C# method are either attribute routed or conventionally
+            // Validate that no C# method result in attribute and non attribute actions at the same time.
+            // This is for example the case when someone uses [HttpGet("Products")] and [HttpPost]
+            // on the same C# method. We consider this an invalid configuration.
+            // By design all the actions in a C# method are either attribute routed or conventionally
             // routed, but mixing attribute and non attributed actions in the same method is not allowed.
             var actionsForMethod = methodMap[actionDescriptor.MethodInfo];
             foreach (var action in actionsForMethod.SelectMany(a => a.Value))
@@ -684,6 +693,11 @@ namespace Microsoft.AspNet.Mvc
                         actionDescriptor.MethodInfo.DeclaringType.FullName,
                         actionDescriptor.MethodInfo.Name);
 
+                // Sample error message:
+                // A method 'MyApplication.CustomerController.Index' must not define attributed actions and
+                // non attributed actions at the same time:
+                // Action: 'MyApplication.CustomerController.Index' - Template: 'Products'
+                // Action: 'MyApplication.CustomerController.Index' - Template: '(null)'
                 mixedRoutingTypesErrorMessage =
                     Resources.FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod(
                         methodFullName,
@@ -718,10 +732,11 @@ namespace Microsoft.AspNet.Mvc
             ReflectedActionDescriptor actionDescriptor,
             IDictionary<ReflectedActionModel, IList<ReflectedActionDescriptor>> actionsForMethod)
         {
-            // Keeps tracks of all the C# methods that create attribute routed actions and
-            // also use attributes that only constraint the set of HTTP methods like [AcceptVerbs]
-            // which is an invalid configuration. By design only attribute routes can define which
-            // HTTP methods their resulted action accepts.
+            // Validates that no C# method that creates attribute routed actions and
+            // also uses attributes that only constraint the set of HTTP methods, for example [AcceptVerbs].
+            // This situation is considered to be an invalid configuration. By design only attribute routes
+            // can define which HTTP methods their resulted action allows by implementing
+            // IActionHttpMethodProvider. An example of such attributes is [HttpGet].
             var invalidActions = new Dictionary<ReflectedActionModel, IEnumerable<string>>();
 
             foreach (var action in actionsForMethod)
@@ -758,6 +773,12 @@ namespace Microsoft.AspNet.Mvc
                     actionDescriptor.MethodInfo.DeclaringType.FullName,
                     actionDescriptor.MethodInfo.Name);
 
+                // Sample message:
+                // A method 'MyApplication.CustomerController.Index' that defines attribute routed actions must
+                // not contain attributes that implement 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider'
+                // and do not implement 'Microsoft.AspNet.Mvc.Routing.IRouteTemplateProvider':
+                // Action 'MyApplication.CustomerController.Index' has 'Microsoft.AspNet.Mvc.AcceptVerbsAttribute'
+                // invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes.
                 return
                     Resources.FormatAttributeRoute_InvalidHttpConstraints(
                         methodFullName,
@@ -770,7 +791,7 @@ namespace Microsoft.AspNet.Mvc
             return null;
         }
 
-        private static string CreateAggregateErrorMessage(IEnumerable<string> individualErrors)
+        private static string CreateAttributeRoutingAggregateErrorMessage(IEnumerable<string> individualErrors)
         {
             var errorMessages = AddErrorNumbers(individualErrors);
 

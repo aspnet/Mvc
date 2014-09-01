@@ -569,6 +569,29 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
+        public void AttributeRouting_AllowsDuplicateAttributeRoutedActions_WithTheSameTemplateOnDifferentMethods()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(DuplicatedAttributeRouteController).GetTypeInfo());
+            var firstActionName = nameof(DuplicatedAttributeRouteController.ControllerAndAction);
+            var secondActionName = nameof(DuplicatedAttributeRouteController.ControllerActionAndOverride);
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var controllerAndAction = Assert.Single(actions, a => a.Name.Equals(firstActionName));
+            Assert.NotNull(controllerAndAction.AttributeRouteInfo);
+
+            var controllerActionAndOverride = Assert.Single(actions, a => a.Name.Equals(secondActionName));
+            Assert.NotNull(controllerActionAndOverride.AttributeRouteInfo);
+
+            Assert.Equal(
+                controllerAndAction.AttributeRouteInfo.Template,
+                controllerActionAndOverride.AttributeRouteInfo.Template);
+        }
+
+        [Fact]
         public void AttributeRouting_ThrowsIfAttributeRoutedAndNonAttributedActions_OnTheSameMethod()
         {
             // Arrange

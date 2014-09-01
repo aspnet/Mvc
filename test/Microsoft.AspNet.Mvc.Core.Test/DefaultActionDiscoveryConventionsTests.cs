@@ -149,7 +149,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void GetActions_ConventionallyRoutedActionWithoutHttpConstraints()
+        public void GetActions_ConventionallyRoutedAction_WithoutHttpConstraints()
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
@@ -168,7 +168,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void GetActions_ConventionallyRoutedActionWithHttpConstraints()
+        public void GetActions_ConventionallyRoutedAction_WithHttpConstraints()
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
@@ -208,7 +208,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void GetActions_ConventionallyRoutedActionWithMultipleHttpConstraints()
+        public void GetActions_ConventionallyRoutedAction_WithMultipleHttpConstraints()
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
@@ -227,7 +227,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void GetActions_ConventionallyRoutedActionWithMultipleOverlappingHttpConstraints()
+        public void GetActions_ConventionallyRoutedAction_WithMultipleOverlappingHttpConstraints()
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
@@ -331,7 +331,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
             var typeInfo = controller.GetTypeInfo();
-            
+
             // Act
             var actionInfos = conventions.GetActions(typeInfo.GetMethod("Delete"), typeInfo);
 
