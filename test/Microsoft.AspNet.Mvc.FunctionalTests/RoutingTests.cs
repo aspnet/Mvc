@@ -162,6 +162,163 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 result.RouteValues);
         }
 
+        [Theory]
+        [InlineData("http://localhost/api/v1/Maps")]
+        [InlineData("http://localhost/api/v2/Maps")]
+        public async Task AttributeRoutedAction_MultipleRouteAttributes_WorksWithNameAndOrder(string url)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Maps", result.Controller);
+            Assert.Equal("Get", result.Action);
+
+            Assert.Equal(new string[]
+            {
+                    "/api/v2/Maps",
+                    "/api/v1/Maps",
+                    "/api/v2/Maps"
+            },
+            result.ExpectedUrls);
+        }
+
+        [Fact]
+        public async Task AttributeRoutedAction_MultipleRouteAttributes_WorksWithOverrideRoutes()
+        {
+            // Arrange
+            var url = "http://localhost/api/v2/Maps";
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.SendAsync("POST", url);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Maps", result.Controller);
+            Assert.Equal("Post", result.Action);
+
+            Assert.Equal(new string[]
+            {
+                    "/api/v2/Maps",
+                    "/api/v2/Maps"
+            },
+            result.ExpectedUrls);
+        }
+
+        [Fact]
+        public async Task AttributeRoutedAction_MultipleRouteAttributes_RouteAttributeTemplatesIgnoredForOverrideActions()
+        {
+            // Arrange
+            var url = "http://localhost/api/v1/Maps";
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.SendAsync("POST", url);
+
+            // Assert
+            Assert.Equal(404, response.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("http://localhost/api/v1/Maps/5", "PUT")]
+        [InlineData("http://localhost/api/v2/Maps/5", "PUT")]
+        [InlineData("http://localhost/api/v1/Maps/PartialUpdate/5", "PATCH")]
+        [InlineData("http://localhost/api/v2/Maps/PartialUpdate/5", "PATCH")]
+        public async Task AttributeRoutedAction_MultipleRouteAttributes_CombinesWithMultipleHttpAttributes(
+            string url,
+            string method)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+
+            // Act
+            var response = await client.SendAsync(method, url);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Maps", result.Controller);
+            Assert.Equal("Update", result.Action);
+
+            Assert.Equal(new string[]
+            {
+                    "/api/v2/Maps/PartialUpdate/5",
+                    "/api/v2/Maps/PartialUpdate/5"
+            },
+            result.ExpectedUrls);
+        }
+
+        [Theory]
+        [InlineData("http://localhost/Banks/Get/5")]
+        [InlineData("http://localhost/Bank/Get/5")]
+        public async Task AttributeRoutedAction_MultipleHttpAttributesAndTokenReplacement(string url)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+            var expectedUrl = new Uri(url).AbsolutePath;
+
+            // Act
+            var response = await client.SendAsync("GET", url);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+
+            var body = await response.ReadBodyAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Banks", result.Controller);
+            Assert.Equal("Get", result.Action);
+
+            Assert.Equal(new string[]
+            {
+                    "/Bank/Get/5",
+                    "/Bank/Get/5"
+            },
+            result.ExpectedUrls);
+        }
+
+        [Theory]
+        [InlineData("http://localhost/api/v1/Maps/5", "PATCH")]
+        [InlineData("http://localhost/api/v2/Maps/5", "PATCH")]
+        [InlineData("http://localhost/api/v1/Maps/PartialUpdate/5", "PUT")]
+        [InlineData("http://localhost/api/v2/Maps/PartialUpdate/5", "PUT")]
+        public async Task AttributeRoutedAction_MultipleRouteAttributes_WithMultipleHttpAttributes_RespectsConstraints(
+            string url,
+            string method)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.Handler;
+            var expectedUrl = new Uri(url).AbsolutePath;
+
+            // Act
+            var response = await client.SendAsync(method, url);
+
+            // Assert
+            Assert.Equal(404, response.StatusCode);
+        }
+
         // The url would be /Store/ListProducts with conventional routes
         [Fact]
         public async Task AttributeRoutedAction_IsNotReachableWithTraditionalRoute()
@@ -421,7 +578,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task AttributeRoutedAction__LinkGeneration_OrderOnActionOverridesOrderOnController()
+        public async Task AttributeRoutedAction_LinkGeneration_OrderOnActionOverridesOrderOnController()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);

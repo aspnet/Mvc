@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if ASPNETCORE50
 using System.Reflection;
-#endif
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
 using Microsoft.AspNet.Mvc.Routing;
@@ -99,6 +97,12 @@ namespace Microsoft.AspNet.Mvc
                         actionModel.IsActionNameMatchRequired = actionInfo.RequireActionNameMatch;
                         actionModel.HttpMethods.AddRange(actionInfo.HttpMethods ?? Enumerable.Empty<string>());
 
+                        if (actionInfo.AttributeRoute != null)
+                        {
+                            actionModel.AttributeRouteModel = new ReflectedAttributeRouteModel(
+                                actionInfo.AttributeRoute);
+                        }
+
                         foreach (var parameter in methodInfo.GetParameters())
                         {
                             actionModel.Parameters.Add(new ReflectedParameterModel(parameter));
@@ -118,41 +122,79 @@ namespace Microsoft.AspNet.Mvc
 
             var hasAttributeRoutes = false;
             var removalConstraints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var methodInfoMap = new Dictionary<MethodInfo, IDictionary<ReflectedActionModel, IList<ReflectedActionDescriptor>>>();
 
             var routeTemplateErrors = new List<string>();
+
+            // Keeps tracks of all the C# methods that create attribute routed actions and
+            // also use attributes that only constraint the set of HTTP methods like [AcceptVerbs]
+            // which is an invalid configuration. By design only attribute routes can define which
+            // HTTP methods their resulted action accepts.
+            // Keeps tracks of all the C# methods that result in attribute and non attribute actions
+            // at the same time. This is for example the case when someone uses [HttpGet("Products")]
+            // and [HttpPost] on the same C# method. We consider this an invalid configuration. By
+            // design all the actions in a C# method are either attribute routed or conventionally
+            // routed, but mixing attribute and non attributed actions in the same method is not allowed.
+            var attributeRoutingConfigurationErrors = new Dictionary<MethodInfo, string>();
 
             foreach (var controller in model.Controllers)
             {
                 var controllerDescriptor = new ControllerDescriptor(controller.ControllerType);
                 foreach (var action in controller.Actions)
                 {
-                    var actionDescriptor = CreateActionDescriptor(
-                        action,
-                        controller,
-                        controllerDescriptor,
-                        model.Filters);
-
-                    AddActionConstraints(actionDescriptor, action, controller);
-                    AddControllerRouteConstraints(actionDescriptor, controller.RouteConstraints, removalConstraints);
-
-                    if (IsAttributeRoutedAction(actionDescriptor))
+                    var actionDescriptors = new List<ReflectedActionDescriptor>();
+                    if (controller.AttributeRoutes != null &&
+                        controller.AttributeRoutes.Count > 0)
                     {
-                        hasAttributeRoutes = true;
+                        foreach (var controllerAttributeRoute in controller.AttributeRoutes)
+                        {
+                            var actionDescriptor = CreateActionDescriptor(
+                                action,
+                                controllerAttributeRoute,
+                                controllerDescriptor);
 
-                        // An attribute routed action will ignore conventional routed constraints. We still
-                        // want to provide these values as ambient values.
-                        AddConstraintsAsDefaultRouteValues(actionDescriptor);
-
-                        // Replaces tokens like [controller]/[action] in the route template with the actual values
-                        // for this action.
-                        ReplaceAttributeRouteTokens(actionDescriptor, routeTemplateErrors);
-
-                        // Attribute routed actions will ignore conventional routed constraints. Instead they have
-                        // a single route constraint "RouteGroup" associated with it.
-                        ReplaceRouteConstraints(actionDescriptor);
+                            actionDescriptors.Add(actionDescriptor);
+                        }
+                    }
+                    else
+                    {
+                        actionDescriptors.Add(CreateActionDescriptor(
+                            action,
+                            controllerAttributeRoute: null,
+                            controllerDescriptor: controllerDescriptor));
                     }
 
-                    actions.Add(actionDescriptor);
+                    foreach (var actionDescriptor in actionDescriptors)
+                    {
+                        AddActionFilters(actionDescriptor, action.Filters, controller.Filters, model.Filters);
+                        AddActionConstraints(actionDescriptor, action, controller);
+                        AddControllerRouteConstraints(actionDescriptor, controller.RouteConstraints, removalConstraints);
+
+                        if (IsAttributeRoutedAction(actionDescriptor))
+                        {
+                            hasAttributeRoutes = true;
+
+                            // An attribute routed action will ignore conventional routed constraints. We still
+                            // want to provide these values as ambient values.
+                            AddConstraintsAsDefaultRouteValues(actionDescriptor);
+
+                            // Replaces tokens like [controller]/[action] in the route template with the actual values
+                            // for this action.
+                            ReplaceAttributeRouteTokens(actionDescriptor, routeTemplateErrors);
+
+                            // Attribute routed actions will ignore conventional routed constraints. Instead they have
+                            // a single route constraint "RouteGroup" associated with it.
+                            ReplaceRouteConstraints(actionDescriptor);
+                        }
+                    }
+
+                    // Filter duplicate action descriptors, that is, those action descriptors that have the same attribute
+                    // route template and the same method info. This means that for example, the combination of
+                    // [Route]+[HttpGet] produced the same attribute route template for two action descriptors on the
+                    // same C# method. For example, [Route("Products")]+"[HttpGet("{id}")] and [HttpGet("/Products/{id}")].
+                    actionDescriptors = FilterDuplicates(methodInfoMap, action, actionDescriptors);
+
+                    actions.AddRange(actionDescriptors);
                 }
             }
 
@@ -161,6 +203,11 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var actionDescriptor in actions)
             {
+                ValidateActionGroupConfiguration(
+                    methodInfoMap,
+                    actionDescriptor,
+                    attributeRoutingConfigurationErrors);
+
                 if (!IsAttributeRoutedAction(actionDescriptor))
                 {
                     // Any any attribute routes are in use, then non-attribute-routed action descriptors can't be
@@ -186,7 +233,7 @@ namespace Microsoft.AspNet.Mvc
                         // Build a map of attribute route name to action descriptors to ensure that all
                         // attribute routes with a given name have the same template.
                         AddActionToNamedGroup(actionsByRouteName, attributeRouteInfo.Name, actionDescriptor);
-                        }
+                    }
 
                     // We still want to add a 'null' for any constraint with DenyKey so that link generation
                     // works properly.
@@ -201,6 +248,17 @@ namespace Microsoft.AspNet.Mvc
                         }
                     }
                 }
+            }
+
+            if (attributeRoutingConfigurationErrors.Any())
+            {
+                var errorMessages = AddErrorNumbers(attributeRoutingConfigurationErrors.Values);
+
+                var message = Resources.FormatAttributeRoute_AggregateErrorMessage(
+                    Environment.NewLine,
+                    string.Join(Environment.NewLine + Environment.NewLine, errorMessages));
+
+                throw new InvalidOperationException(message);
             }
 
             var namedRoutedErrors = ValidateNamedAttributeRoutedActions(actionsByRouteName);
@@ -227,68 +285,252 @@ namespace Microsoft.AspNet.Mvc
             return actions;
         }
 
-        private static ReflectedActionDescriptor CreateActionDescriptor(ReflectedActionModel action,
-            ReflectedControllerModel controller,
-            ControllerDescriptor controllerDescriptor,
-            IEnumerable<IFilter> globalFilters)
+        private void ValidateActionGroupConfiguration(
+            IDictionary<MethodInfo, IDictionary<ReflectedActionModel, IList<ReflectedActionDescriptor>>> methodInfoMap,
+            ReflectedActionDescriptor actionDescriptor,
+            IDictionary<MethodInfo, string> routingConfigurationErrors)
         {
+            const string nullTemplate = "(null)";
 
-                    var parameterDescriptors = new List<ParameterDescriptor>();
-                    foreach (var parameter in action.Parameters)
+            if (routingConfigurationErrors.ContainsKey(actionDescriptor.MethodInfo))
+            {
+                // We have already examined this C# method for invalid configurations and gathered the errors, so
+                // we just return to avoid duplicated errors.
+                return;
+            }
+
+            string mixedRoutingTypesErrorMessage = null;
+            string invalidHttpErrorMessage = null;
+
+            var hasAttributeRoutedActions = false;
+            var hasConventionallyRoutedActions = false;
+
+            var actionsForMethod = methodInfoMap[actionDescriptor.MethodInfo];
+            foreach (var action in actionsForMethod.SelectMany(a => a.Value))
+            {
+                if (IsAttributeRoutedAction(action))
+                {
+                    hasAttributeRoutedActions = true;
+                }
+                else
+                {
+                    hasConventionallyRoutedActions = true;
+                }
+
+                // If we have valid and invalid attribute routed actions we found an invalid configuration.
+                if (hasAttributeRoutedActions && hasConventionallyRoutedActions)
+                {
+                    break;
+                }
+            }
+
+            if (hasAttributeRoutedActions && hasConventionallyRoutedActions)
+            {
+                var actionDescriptions = actionsForMethod
+                    .SelectMany(a => a.Value)
+                    .Select(ad =>
+                    Resources.FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item(
+                        ad.DisplayName,
+                        ad.AttributeRouteInfo != null ? ad.AttributeRouteInfo.Template : nullTemplate));
+
+                var methodFullName = string.Format("{0}.{1}",
+                        actionDescriptor.MethodInfo.DeclaringType.FullName,
+                        actionDescriptor.MethodInfo.Name);
+
+                mixedRoutingTypesErrorMessage =
+                    Resources.FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod(
+                        methodFullName,
+                        Environment.NewLine,
+                        string.Join(Environment.NewLine, actionDescriptions));
+            }
+
+            if (hasAttributeRoutedActions)
+            {
+                var invalidActions = new Dictionary<ReflectedActionModel, IEnumerable<string>>();
+
+                foreach (var action in actionsForMethod)
+                {
+                    var invalidConstraintAttributes = action.Key.Attributes
+                        .Where(attr => attr is IActionHttpMethodProvider &&
+                                       !(attr is IRouteTemplateProvider))
+                        .Select(attr => attr.GetType().FullName);
+
+                    if (invalidConstraintAttributes.Any())
                     {
-                        var isFromBody = parameter.Attributes.OfType<FromBodyAttribute>().Any();
+                        invalidActions.Add(action.Key, invalidConstraintAttributes);
+                    }
+                }
 
-                        parameterDescriptors.Add(new ParameterDescriptor()
+                var messagesForMethodInfo = new List<string>();
+                if (invalidActions.Any())
+                {
+
+                    foreach (var invalidAction in invalidActions)
+                    {
+                        string invalidAttributesList = string.Join(", ", invalidAction.Value);
+                        foreach (var descriptor in actionsForMethod[invalidAction.Key])
                         {
-                            Name = parameter.ParameterName,
-                            IsOptional = parameter.IsOptional,
+                            var messageItem = Resources.FormatAttributeRoute_InvalidHttpConstraints_Item(
+                                descriptor.DisplayName,
+                                invalidAttributesList,
+                                typeof(IActionHttpMethodProvider).FullName);
 
-                            ParameterBindingInfo = isFromBody
-                                ? null
-                                : new ParameterBindingInfo(
-                                    parameter.ParameterName,
-                                    parameter.ParameterInfo.ParameterType),
-
-                            BodyParameterInfo = isFromBody
-                                ? new BodyParameterInfo(parameter.ParameterInfo.ParameterType)
-                                : null
-                        });
+                            messagesForMethodInfo.Add(messageItem);
+                        }
                     }
 
-            AttributeRouteInfo attributeRouteInfo = CreateAttributeRouteInfo(action, controller);
+                    var methodFullName = string.Format("{0}.{1}",
+                        actionDescriptor.MethodInfo.DeclaringType.FullName,
+                        actionDescriptor.MethodInfo.Name);
 
-                    var actionDescriptor = new ReflectedActionDescriptor()
+                    invalidHttpErrorMessage =
+                        Resources.FormatAttributeRoute_InvalidHttpConstraints(
+                            methodFullName,
+                            typeof(IActionHttpMethodProvider).FullName,
+                            typeof(IRouteTemplateProvider).FullName,
+                            Environment.NewLine,
+                            string.Join(Environment.NewLine, messagesForMethodInfo));
+                }
+            }
+
+            if (invalidHttpErrorMessage != null &&
+                mixedRoutingTypesErrorMessage != null)
+            {
+                string errorMessage = string.Join(
+                    Environment.NewLine,
+                    mixedRoutingTypesErrorMessage,
+                    invalidHttpErrorMessage);
+
+                routingConfigurationErrors.Add(actionDescriptor.MethodInfo, errorMessage);
+            }
+            else if(invalidHttpErrorMessage != null || mixedRoutingTypesErrorMessage != null)
+            {
+                routingConfigurationErrors.Add(
+                    actionDescriptor.MethodInfo,
+                    mixedRoutingTypesErrorMessage ?? invalidHttpErrorMessage);
+            }
+        }
+
+        private List<ReflectedActionDescriptor> FilterDuplicates(
+            IDictionary<MethodInfo, IDictionary<ReflectedActionModel, IList<ReflectedActionDescriptor>>> methodInfoMap,
+            ReflectedActionModel action,
+            IList<ReflectedActionDescriptor> actionDescriptors)
+        {
+            var filteredList = new List<ReflectedActionDescriptor>();
+
+            IDictionary<ReflectedActionModel, IList<ReflectedActionDescriptor>> actionsForMethod = null;
+            if (methodInfoMap.TryGetValue(action.ActionMethod, out actionsForMethod))
+            {
+                var actions = actionsForMethod.SelectMany(a => a.Value).ToArray();
+
+                foreach (var descriptor in actionDescriptors)
+                {
+                    if (!IsDuplicateActionDescriptor(actions, descriptor))
                     {
-                        Name = action.ActionName,
-                        ControllerDescriptor = controllerDescriptor,
-                        MethodInfo = action.ActionMethod,
-                        Parameters = parameterDescriptors,
-                        RouteConstraints = new List<RouteDataActionConstraint>(),
-                        AttributeRouteInfo = attributeRouteInfo
-                    };
+                        filteredList.Add(descriptor);
+                    }
+                }
 
-                    actionDescriptor.DisplayName = string.Format(
-                        "{0}.{1}",
-                        action.ActionMethod.DeclaringType.FullName,
-                        action.ActionMethod.Name);
+                actionsForMethod.Add(action, actionDescriptors);
+            }
+            else
+            {
+                var actionToActionDescriptorMap = new Dictionary<ReflectedActionModel, IList<ReflectedActionDescriptor>>();
+                actionToActionDescriptorMap.Add(action, actionDescriptors);
+                methodInfoMap.Add(action.ActionMethod, actionToActionDescriptorMap);
 
-            actionDescriptor.FilterDescriptors =
-                action.Filters.Select(f => new FilterDescriptor(f, FilterScope.Action))
-                .Concat(controller.Filters.Select(f => new FilterDescriptor(f, FilterScope.Controller)))
-                .Concat(globalFilters.Select(f => new FilterDescriptor(f, FilterScope.Global)))
-                .OrderBy(d => d, FilterDescriptorOrderComparer.Comparer)
-                .ToList();
+                foreach (var actionDescriptor in actionDescriptors)
+                {
+                    if (!IsDuplicateActionDescriptor(filteredList, actionDescriptor))
+                    {
+                        filteredList.Add(actionDescriptor);
+                    }
+                }
+            }
+
+            return filteredList;
+        }
+
+        private static bool IsDuplicateActionDescriptor(IEnumerable<ReflectedActionDescriptor> actions, ReflectedActionDescriptor descriptor)
+        {
+            return actions.Any(a => a.AttributeRouteInfo != null &&
+                                    a.AttributeRouteInfo.Template != null &&
+                                    descriptor.AttributeRouteInfo != null &&
+                                    a.AttributeRouteInfo.Template.Equals(
+                                        descriptor.AttributeRouteInfo.Template,
+                                        StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static ReflectedActionDescriptor CreateActionDescriptor(
+            ReflectedActionModel action,
+            ReflectedAttributeRouteModel controllerAttributeRoute,
+            ControllerDescriptor controllerDescriptor)
+        {
+            var parameterDescriptors = new List<ParameterDescriptor>();
+            foreach (var parameter in action.Parameters)
+            {
+                var isFromBody = parameter.Attributes.OfType<FromBodyAttribute>().Any();
+
+                parameterDescriptors.Add(new ParameterDescriptor()
+                {
+                    Name = parameter.ParameterName,
+                    IsOptional = parameter.IsOptional,
+
+                    ParameterBindingInfo = isFromBody
+                        ? null
+                        : new ParameterBindingInfo(
+                            parameter.ParameterName,
+                            parameter.ParameterInfo.ParameterType),
+
+                    BodyParameterInfo = isFromBody
+                        ? new BodyParameterInfo(parameter.ParameterInfo.ParameterType)
+                        : null
+                });
+            }
+
+            AttributeRouteInfo attributeRouteInfo = CreateAttributeRouteInfo(
+                action.AttributeRouteModel,
+                controllerAttributeRoute);
+
+            var actionDescriptor = new ReflectedActionDescriptor()
+            {
+                Name = action.ActionName,
+                ControllerDescriptor = controllerDescriptor,
+                MethodInfo = action.ActionMethod,
+                Parameters = parameterDescriptors,
+                RouteConstraints = new List<RouteDataActionConstraint>(),
+                AttributeRouteInfo = attributeRouteInfo
+            };
+
+            actionDescriptor.DisplayName = string.Format(
+                "{0}.{1}",
+                action.ActionMethod.DeclaringType.FullName,
+                action.ActionMethod.Name);
 
             return actionDescriptor;
         }
 
+        private static void AddActionFilters(
+            ReflectedActionDescriptor actionDescriptor,
+            IEnumerable<IFilter> actionFilters,
+            IEnumerable<IFilter> controllerFilters,
+            IEnumerable<IFilter> globalFilters)
+        {
+            actionDescriptor.FilterDescriptors =
+                            actionFilters.Select(f => new FilterDescriptor(f, FilterScope.Action))
+                            .Concat(controllerFilters.Select(f => new FilterDescriptor(f, FilterScope.Controller)))
+                            .Concat(globalFilters.Select(f => new FilterDescriptor(f, FilterScope.Global)))
+                            .OrderBy(d => d, FilterDescriptorOrderComparer.Comparer)
+                            .ToList();
+        }
+
         private static AttributeRouteInfo CreateAttributeRouteInfo(
-            ReflectedActionModel action,
-            ReflectedControllerModel controller)
+            ReflectedAttributeRouteModel action,
+            ReflectedAttributeRouteModel controller)
         {
             var combinedRoute = ReflectedAttributeRouteModel.CombineReflectedAttributeRouteModel(
-                                controller.AttributeRoutes.FirstOrDefault(),
-                                action.AttributeRouteModel);
+                                controller,
+                                action);
 
             var attributeRouteInfo = combinedRoute == null ? null : new AttributeRouteInfo()
             {
@@ -304,116 +546,116 @@ namespace Microsoft.AspNet.Mvc
             ReflectedActionModel action,
             ReflectedControllerModel controller)
         {
-                    var httpMethods = action.HttpMethods;
-                    if (httpMethods != null && httpMethods.Count > 0)
-                    {
-                        actionDescriptor.MethodConstraints = new List<HttpMethodConstraint>()
+            var httpMethods = action.HttpMethods;
+            if (httpMethods != null && httpMethods.Count > 0)
+            {
+                actionDescriptor.MethodConstraints = new List<HttpMethodConstraint>()
                         {
                             new HttpMethodConstraint(httpMethods)
                         };
-                    }
+            }
 
-                    actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                        "controller",
-                        controller.ControllerName));
+            actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
+                "controller",
+                controller.ControllerName));
 
-                    if (action.IsActionNameMatchRequired)
-                    {
-                        actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                            "action",
-                            action.ActionName));
-                    }
-                    else
-                    {
-                        actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                            "action",
-                            RouteKeyHandling.DenyKey));
-                    }
+            if (action.IsActionNameMatchRequired)
+            {
+                actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
+                    "action",
+                    action.ActionName));
+            }
+            else
+            {
+                actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
+                    "action",
+                    RouteKeyHandling.DenyKey));
+            }
         }
 
         private static void AddControllerRouteConstraints(
             ReflectedActionDescriptor actionDescriptor,
             IList<RouteConstraintAttribute> routeconstraints,
             ISet<string> removalConstraints)
-                    {
+        {
             foreach (var constraintAttribute in routeconstraints)
             {
-                        if (constraintAttribute.BlockNonAttributedActions)
-                        {
-                            removalConstraints.Add(constraintAttribute.RouteKey);
-                        }
+                if (constraintAttribute.BlockNonAttributedActions)
+                {
+                    removalConstraints.Add(constraintAttribute.RouteKey);
+                }
 
-                        // Skip duplicates
-                        if (!HasConstraint(actionDescriptor.RouteConstraints, constraintAttribute.RouteKey))
-                        {
-                            if (constraintAttribute.RouteValue == null)
-                            {
-                                actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                                    constraintAttribute.RouteKey,
-                                    constraintAttribute.RouteKeyHandling));
-                            }
-                            else
-                            {
-                                actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                                    constraintAttribute.RouteKey,
-                                    constraintAttribute.RouteValue));
-                            }
-                        }
+                // Skip duplicates
+                if (!HasConstraint(actionDescriptor.RouteConstraints, constraintAttribute.RouteKey))
+                {
+                    if (constraintAttribute.RouteValue == null)
+                    {
+                        actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
+                            constraintAttribute.RouteKey,
+                            constraintAttribute.RouteKeyHandling));
                     }
+                    else
+                    {
+                        actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
+                            constraintAttribute.RouteKey,
+                            constraintAttribute.RouteValue));
+                    }
+                }
+            }
         }
 
         private static bool HasConstraint(List<RouteDataActionConstraint> constraints, string routeKey)
         {
             return constraints.Any(
                 rc => string.Equals(rc.RouteKey, routeKey, StringComparison.OrdinalIgnoreCase));
-                        }
+        }
 
         private static void ReplaceRouteConstraints(ReflectedActionDescriptor actionDescriptor)
-                        {
-                        var routeGroupValue = GetRouteGroupValue(
-                            actionDescriptor.AttributeRouteInfo.Order,
+        {
+            var routeGroupValue = GetRouteGroupValue(
+                actionDescriptor.AttributeRouteInfo.Order,
                 actionDescriptor.AttributeRouteInfo.Template);
 
-                        var routeConstraints = new List<RouteDataActionConstraint>();
-                        routeConstraints.Add(new RouteDataActionConstraint(
-                            AttributeRouting.RouteGroupKey,
-                            routeGroupValue));
+            var routeConstraints = new List<RouteDataActionConstraint>();
+            routeConstraints.Add(new RouteDataActionConstraint(
+                AttributeRouting.RouteGroupKey,
+                routeGroupValue));
 
-                        actionDescriptor.RouteConstraints = routeConstraints;
-                    }
+            actionDescriptor.RouteConstraints = routeConstraints;
+        }
 
         private static void ReplaceAttributeRouteTokens(
             ReflectedActionDescriptor actionDescriptor,
             IList<string> routeTemplateErrors)
-                    {
+        {
             try
-                        {
+            {
                 actionDescriptor.AttributeRouteInfo.Template = ReflectedAttributeRouteModel.ReplaceTokens(
                     actionDescriptor.AttributeRouteInfo.Template,
                     actionDescriptor.RouteValueDefaults);
-                }
+            }
             catch (InvalidOperationException ex)
-                    {
+            {
                 var message = Resources.FormatAttributeRoute_IndividualErrorMessage(
                     actionDescriptor.DisplayName,
                     Environment.NewLine,
                     ex.Message);
 
                 routeTemplateErrors.Add(message);
-                        }
-                    }
+            }
+        }
 
         private static void AddConstraintsAsDefaultRouteValues(ReflectedActionDescriptor actionDescriptor)
-                    {
+        {
             foreach (var constraint in actionDescriptor.RouteConstraints)
-                        {
+            {
                 // We don't need to do anything with attribute routing for 'catch all' behavior. Order
                 // and predecedence of attribute routes allow this kind of behavior.
                 if (constraint.KeyHandling == RouteKeyHandling.RequireKey ||
                     constraint.KeyHandling == RouteKeyHandling.DenyKey)
-            {
+                {
                     actionDescriptor.RouteValueDefaults.Add(constraint.RouteKey, constraint.RouteValue);
-            }
+                }
             }
         }
 
@@ -457,7 +699,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         private static IList<string> AddErrorNumbers(
-            IList<string> namedRoutedErrors)
+            IEnumerable<string> namedRoutedErrors)
         {
             return namedRoutedErrors
                 .Select((nre, i) =>

@@ -76,18 +76,32 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void GetDescriptors_DoesNotAddHttpMethodConstraints_ForAttributeRoutedActions()
+        public void GetDescriptors_ThrowsIfHttpMethodConstraints_OnAttributeRoutedActions()
         {
             // Arrange
-            var provider = GetProvider(typeof(AttributeRoutedHttpMethodController).GetTypeInfo());
+            var expectedExceptionMessage =
+                "The following errors occurred with attribute routing information:" + Environment.NewLine +
+                Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
+                "A method 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeRoutedHttpMethodController.PutOrPatch'" +
+                " that defines attribute routed actions must not contain attributes that implement " +
+                "'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' and do not implement " +
+                "'Microsoft.AspNet.Mvc.Routing.IRouteTemplateProvider':" + Environment.NewLine +
+                "Action 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeRoutedHttpMethodController.PutOrPatch' has 'Microsoft.AspNet.Mvc.AcceptVerbsAttribute'" +
+                " invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes.";
+
+            var provider = GetProvider(
+                typeof(AttributeRoutedHttpMethodController)
+                .GetTypeInfo());
 
             // Act
-            var descriptors = provider.GetDescriptors();
-            var descriptor = Assert.Single(descriptors);
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => provider.GetDescriptors());
 
-            // Assert
-            Assert.Equal(nameof(AttributeRoutedHttpMethodController.PutOrPatch), descriptor.Name);
-            Assert.Null(descriptor.MethodConstraints);
+            // Act
+            Assert.Equal(expectedExceptionMessage, ex.Message);
         }
 
         [Fact]
@@ -552,14 +566,42 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(expectedTemplate, action.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
         }
 
-        [Theory]
+        [Fact]
         public void AttributeRouting_ThrowsIfAttributeRoutedAndNonAttributedActions_OnTheSameMethod()
         {
             // Arrange
+            var expectedMessage =
+                "The following errors occurred with attribute routing information:" + Environment.NewLine +
+                Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
+                "A method 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method'" +
+                " must not define attribute routed actions and non attribute routed actions at the same time:" + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' - Template: 'AttributeRouted'" + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' - Template: '(null)'" + Environment.NewLine +
+                "A method 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' that defines attribute routed actions must not" +
+                " contain attributes that implement 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' and do not implement" +
+                " 'Microsoft.AspNet.Mvc.Routing.IRouteTemplateProvider':" + Environment.NewLine +
+                "Action 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' has " +
+                "'Microsoft.AspNet.Mvc.AcceptVerbsAttribute, Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+CustomHttpMethodConstraintAttribute'" +
+                " invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes." + Environment.NewLine +
+                "Action 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
+                "AttributeAndNonAttributeRoutedActionsOnSameMethodController.Method' has " +
+                "'Microsoft.AspNet.Mvc.AcceptVerbsAttribute, Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+CustomHttpMethodConstraintAttribute'" +
+                " invalid 'Microsoft.AspNet.Mvc.IActionHttpMethodProvider' attributes.";
+
+            var provider = GetProvider(
+                typeof(AttributeAndNonAttributeRoutedActionsOnSameMethodController).GetTypeInfo());
 
             // Act
+            var exception = Assert.Throws<InvalidOperationException>(() => provider.GetDescriptors());
 
             // Assert
+            Assert.Equal(expectedMessage, exception.Message);
         }
 
         [Fact]
@@ -997,6 +1039,15 @@ namespace Microsoft.AspNet.Mvc.Test
             public void Index() { }
         }
 
+        public class AttributeAndNonAttributeRoutedActionsOnSameMethodController
+        {
+            [HttpGet("AttributeRouted")]
+            [HttpPost]
+            [AcceptVerbs("PUT", "PATCH")]
+            [CustomHttpMethodConstraint("DELETE")]
+            public void Method() { }
+        }
+
         [Route("Product")]
         [Route("/Product")]
         [Route("/product")]
@@ -1062,6 +1113,24 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             [NonAction]
             public void Action() { }
+        }
+
+        private class CustomHttpMethodConstraintAttribute : Attribute, IActionHttpMethodProvider
+        {
+            private readonly string[] _methods;
+
+            public CustomHttpMethodConstraintAttribute(params string[] methods)
+            {
+                _methods = methods;
+            }
+
+            public IEnumerable<string> HttpMethods
+            {
+                get
+                {
+                    return _methods;
+                }
+            }
         }
 
         private class TestActionParameter
