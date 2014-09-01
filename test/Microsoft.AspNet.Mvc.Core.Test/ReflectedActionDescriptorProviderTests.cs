@@ -504,11 +504,13 @@ namespace Microsoft.AspNet.Mvc.Test
             var expectedMessage =
                 "The following errors occurred with attribute routing information:" + Environment.NewLine +
                 Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
                 "For action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
                 "MultipleErrorsController.Unknown'" + Environment.NewLine +
                 "Error: While processing template 'stub/[action]/[unknown]', a replacement value for the token 'unknown' " +
                 "could not be found. Available tokens: 'controller, action'." + Environment.NewLine +
                 Environment.NewLine +
+                "Error 2:" + Environment.NewLine +
                 "For action: 'Microsoft.AspNet.Mvc.Test.ReflectedActionDescriptorProviderTests+" +
                 "MultipleErrorsController.Invalid'" + Environment.NewLine +
                 "Error: The route template '[invalid/syntax' has invalid syntax. A replacement token is not closed.";

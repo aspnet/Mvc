@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.Routing;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -139,7 +139,9 @@ namespace Microsoft.AspNet.Mvc
             };
         }
 
-        private IEnumerable<ActionInfo> GetActionsForMethodsWithCustomAttributes(MethodInfo methodInfo, TypeInfo controller)
+        private IEnumerable<ActionInfo> GetActionsForMethodsWithCustomAttributes(
+            MethodInfo methodInfo,
+            TypeInfo controller)
         {
             var controllerRouteTemplates = GetControllerRouteTemplates(controller);
             var actionAttributes = GetActionCustomAttributes(methodInfo);
@@ -186,7 +188,9 @@ namespace Microsoft.AspNet.Mvc
                             .ToArray();
         }
 
-        private static IEnumerable<ActionInfo> GetHttpConstrainedActions(ActionAttributes actionAttributes, string actionName)
+        private static IEnumerable<ActionInfo> GetHttpConstrainedActions(
+            ActionAttributes actionAttributes,
+            string actionName)
         {
             var httpMethodProviders = actionAttributes.HttpMethodProviderAttributes;
             var httpMethods = httpMethodProviders.SelectMany(x => x.HttpMethods).Distinct().ToArray();
@@ -199,7 +203,9 @@ namespace Microsoft.AspNet.Mvc
             };
         }
 
-        private static IEnumerable<ActionInfo> GetAttributeRoutedActions(ActionAttributes actionAttributes, string actionName)
+        private static IEnumerable<ActionInfo> GetAttributeRoutedActions(
+            ActionAttributes actionAttributes,
+            string actionName)
         {
             var actions = new List<ActionInfo>();
 
@@ -232,7 +238,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static string[] GetRouteTemplateHttpMethods(IRouteTemplateProvider routeTemplateProvider)
         {
-            IActionHttpMethodProvider provider = routeTemplateProvider as IActionHttpMethodProvider;
+            var provider = routeTemplateProvider as IActionHttpMethodProvider;
             if (provider != null)
             {
                 return provider.HttpMethods.ToArray();
