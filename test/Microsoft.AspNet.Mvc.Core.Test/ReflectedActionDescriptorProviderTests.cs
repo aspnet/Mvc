@@ -546,6 +546,27 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Single(actions, a => a.AttributeRouteInfo.Template.Equals("v2/All"));
         }
 
+        [Fact]
+        public void AttributeRouting_RouteOnControllerAndAction_CreatesActionDescriptorWithoutHttpConstraints()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(OnlyRouteController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var action = Assert.Single(actions);
+
+            Assert.Equal("Index", action.Name);
+            Assert.Equal("OnlyRoute", action.ControllerName);
+
+            Assert.NotNull(action.AttributeRouteInfo);
+            Assert.Equal("Products/Index", action.AttributeRouteInfo.Template);
+
+            Assert.Null(action.MethodConstraints);
+        }
+
         [Theory]
         [InlineData(nameof(DuplicatedAttributeRouteController.Action), "list")]
         [InlineData(nameof(DuplicatedAttributeRouteController.Controller), "product")]
@@ -1061,6 +1082,13 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             [HttpGet("List")]
             [HttpGet("All")]
+            public void Index() { }
+        }
+
+        [Route("Products")]
+        public class OnlyRouteController
+        {
+            [Route("Index")]
             public void Index() { }
         }
 
