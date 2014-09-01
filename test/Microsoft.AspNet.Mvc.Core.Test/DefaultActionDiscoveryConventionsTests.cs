@@ -250,8 +250,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
-            var typeInfo = typeof(NoRouteAttributeController).GetTypeInfo();
-            var actionName = nameof(NoRouteAttributeController.Edit);
+            var typeInfo = typeof(NoRouteAttributeOnControllerController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeOnControllerController.Edit);
 
             // Act
             var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
@@ -269,14 +269,37 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("Change", action.AttributeRoute.Template);
         }
 
+        [Fact]
+        public void GetActions_AttributeRouteOnAction_RouteAttribute()
+        {
+            // Arrange
+            var conventions = new DefaultActionDiscoveryConventions();
+            var typeInfo = typeof(NoRouteAttributeOnControllerController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeOnControllerController.Update);
+
+            // Act
+            var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
+
+            // Assert
+            var action = Assert.Single(actionInfos);
+
+            Assert.Equal("Update", action.ActionName);
+            Assert.True(action.RequireActionNameMatch);
+
+            Assert.Empty(action.HttpMethods);
+
+            Assert.NotNull(action.AttributeRoute);
+            Assert.Equal("Update", action.AttributeRoute.Template);
+        }
+
 
         [Fact]
         public void GetActions_AttributeRouteOnAction_CreatesOneActionInforPerRouteTemplate()
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
-            var typeInfo = typeof(NoRouteAttributeController).GetTypeInfo();
-            var actionName = nameof(NoRouteAttributeController.Index);
+            var typeInfo = typeof(NoRouteAttributeOnControllerController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeOnControllerController.Index);
 
             // Act
             var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
@@ -306,8 +329,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var conventions = new DefaultActionDiscoveryConventions();
-            var typeInfo = typeof(NoRouteAttributeController).GetTypeInfo();
-            var actionName = nameof(NoRouteAttributeController.Remove);
+            var typeInfo = typeof(NoRouteAttributeOnControllerController).GetTypeInfo();
+            var actionName = nameof(NoRouteAttributeOnControllerController.Remove);
 
             // Act
             var actionInfos = conventions.GetActions(typeInfo.GetMethod(actionName), typeInfo);
@@ -639,7 +662,7 @@ namespace Microsoft.AspNet.Mvc.DefaultActionDiscoveryConventionsControllers
         }
     }
 
-    public class NoRouteAttributeController : Controller
+    public class NoRouteAttributeOnControllerController : Controller
     {
         [HttpGet("All")]
         [HttpPost("List")]
@@ -649,6 +672,9 @@ namespace Microsoft.AspNet.Mvc.DefaultActionDiscoveryConventionsControllers
         public void Edit() { }
 
         public void Remove() { }
+
+        [Route("Update")]
+        public void Update() { }
     }
 
 
