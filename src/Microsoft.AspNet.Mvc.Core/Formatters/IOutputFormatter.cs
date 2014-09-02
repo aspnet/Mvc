@@ -31,6 +31,23 @@ namespace Microsoft.AspNet.Mvc
         bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType);
 
         /// <summary>
+        /// Gets all possible values of <see cref="MediaTypeHeaderValue"/> for the provided combination of 
+        /// <paramref name="declaredType"/>, <paramref name="actualType"/>, and <paramref name="contentType"/>.
+        /// </summary>
+        /// <param name="declaredType">The declared return type of the action method, may be null.</param>
+        /// <param name="actualType">The actual return type of the action method, may be null.</param>
+        /// <param name="contentType">The desired content type, may be null.</param>
+        /// <returns>A collection of supported media types, or null.</returns>
+        /// <remarks>
+        /// If <paramref name="contentType"/> is null, then a formatter should return an ordered list of
+        /// preferred content types.
+        /// </remarks>
+        IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(
+            Type declaredType,
+            Type actualType,
+            MediaTypeHeaderValue contentType);
+
+        /// <summary>
         /// Writes the object represented by <paramref name="context"/>'s Object property.
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>

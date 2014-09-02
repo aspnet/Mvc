@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -10,7 +11,6 @@ using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Mvc.Razor.Compilation;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Mvc.ResourceModel;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Security;
 using Microsoft.Framework.ConfigurationModel;
@@ -100,8 +100,8 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Singleton<IAntiForgeryAdditionalDataProvider,
                 DefaultAntiForgeryAdditionalDataProvider>();
 
-            yield return describe.Singleton<IResourceDescriptorCollectionProvider, ResourceDescriptorCollectionProvider>();
-            yield return describe.Transient<INestedProvider<ResourceDescriptorProviderContext>, DefaultResourceDescriptorProvider>();
+            yield return describe.Singleton<IApiDescriptionCollectionProvider, ApiDescriptionCollectionProvider>();
+            yield return describe.Transient<INestedProvider<ApiDescriptionProviderContext>, DefaultApiDescriptionProvider>();
 
             yield return
                describe.Describe(

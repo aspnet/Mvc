@@ -36,9 +36,10 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The serializer object.</returns>
         public abstract object CreateSerializer(Type type);
 
-        protected override bool CanWriteType(Type dataType)
+        protected override bool CanWriteType(Type declaredType, Type actualType)
         {
-            return CreateSerializer(dataType) != null;
+            var type = declaredType ?? actualType;
+            return type != null && CreateSerializer(type) != null;
         }
 
         /// <summary>

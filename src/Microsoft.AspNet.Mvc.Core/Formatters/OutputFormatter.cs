@@ -7,15 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
-using Microsoft.AspNet.Mvc.ResourceModel;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Writes an object to the output stream.
     /// </summary>
-    public abstract class OutputFormatter : IOutputFormatter, IResourceOutputMetadataProvider
+    public abstract class OutputFormatter : IOutputFormatter
     {
         /// <summary>
         /// Gets the mutable collection of character encodings supported by
@@ -68,25 +68,6 @@ namespace Microsoft.AspNet.Mvc
             return encoding;
         }
 
-        /// <summary>
-        /// Gets the type of the object to be serialized.
-        /// </summary>
-        /// <param name="context">The context which contains the object to be serialized.</param>
-        /// <returns>The type of the object to be serialized.</returns>
-        public virtual Type GetObjectType([NotNull] OutputFormatterContext context)
-        {
-            if (context.DeclaredType == null ||
-                context.DeclaredType == typeof(object))
-            {
-                if (context.Object != null)
-                {
-                    return context.Object.GetType();
-                }
-            }
-
-            return context.DeclaredType;
-        }
-
         /// <inheritdoc />
         public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
@@ -108,36 +89,44 @@ namespace Microsoft.AspNet.Mvc
             if (mediaType != null)
             {
                 context.SelectedContentType = mediaType;
-                return CanWriteType(GetObjectType(context));
+                return CanWriteType(context.DeclaredType, context.Object?.GetType());
             }
 
             return false;
         }
 
-        protected virtual bool CanWriteType(Type dataType)
+        protected virtual bool CanWriteType(Type declaredType, Type actualType)
         {
             return true;
         }
 
-        public virtual IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(Type dataType, MediaTypeHeaderValue contentType)
+        public virtual IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(
+            Type declaredType, 
+            Type actualType, 
+            MediaTypeHeaderValue contentType)
         {
-            if (!CanWriteType(dataType))
+            if (!CanWriteType(declaredType, actualType))
             {
-                return Enumerable.Empty<MediaTypeHeaderValue>();
+                return null;
             }
-
-            var mediaTypes = new List<MediaTypeHeaderValue>();
 
             if (contentType == null)
             {
-                mediaTypes.AddRange(SupportedMediaTypes);
+                return SupportedMediaTypes;
+            }
+
+            // By default we assume the policy to take the first match for a content type. A formatter might
+            // make a decision based on some other criteria, and overriding this method allows the formatter
+            // the express that multiple formats are possible.
+            var mediaType = SupportedMediaTypes.FirstOrDefault(mt => mt.IsSubsetOf(contentType));
+            if (mediaType == null)
+            {
+                return null;
             }
             else
             {
-                mediaTypes.Add(SupportedMediaTypes.FirstOrDefault(mt => mt.IsSubsetOf(contentType)));
+                return new List<MediaTypeHeaderValue>() { mediaType };
             }
-
-            return mediaTypes;
         }
 
         /// <inheritdoc />

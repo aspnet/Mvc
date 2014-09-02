@@ -118,6 +118,14 @@ namespace Microsoft.AspNet.Mvc
                 return true;
             }
 
+            public IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(
+                Type declaredType, 
+                Type actualType, 
+                MediaTypeHeaderValue contentType)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task WriteAsync(OutputFormatterContext context)
             {
                 // Override using the selected encoding.

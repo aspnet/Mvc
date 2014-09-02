@@ -1,27 +1,27 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
-using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.AspNet.Mvc.Internal;
 
-namespace Microsoft.AspNet.Mvc.ResourceModel
+namespace Microsoft.AspNet.Mvc.Description
 {
-    public class DefaultResourceDescriptorProvider : INestedProvider<ResourceDescriptorProviderContext>
+    public class DefaultApiDescriptionProvider : INestedProvider<ApiDescriptionProviderContext>
     {
         private readonly IOutputFormattersProvider _formattersProvider;
 
-        public DefaultResourceDescriptorProvider(
-            IOutputFormattersProvider formattersProvider)
+        public DefaultApiDescriptionProvider(IOutputFormattersProvider formattersProvider)
         {
             _formattersProvider = formattersProvider;
         }
 
         public int Order { get; private set; }
 
-        public void Invoke(ResourceDescriptorProviderContext context, Action callNext)
+        public void Invoke(ApiDescriptionProviderContext context, Action callNext)
         {
             foreach (var action in context.Actions.OfType<ReflectedActionDescriptor>())
             {
@@ -32,33 +32,36 @@ namespace Microsoft.AspNet.Mvc.ResourceModel
                 }
                 else
                 {
-                    httpMethods = new string[] { "GET", "POST", "PUT", "DELETE" };
+                    httpMethods = new string[] { null };
                 }
 
                 foreach (var httpMethod in httpMethods)
                 {
-                    var resource = new ResourceDescriptor()
+                    var apiDescription = new ApiDescription()
                     {
                         ActionDescriptor = action,
                         HttpMethod = httpMethod,
-                        ResourceName = action.ControllerName,
-                        Path = GetPath(action),
+                        RelativePath = GetPath(action),
                     };
 
                     foreach (var parameter in action.Parameters)
                     {
-                        resource.Parameters.Add(GetParameter(parameter));
+                        apiDescription.ParameterDescriptions.Add(GetParameter(parameter));
                     }
 
                     var metadataAttributes = GetFilters<IProducesMetadataProvider>(action);
 
-                    var dataType = GetActionReturnType(action, metadataAttributes);
-                    if (dataType != null && dataType != typeof(void))
+                    // We only provide response info if the type is a user-data type. Void/Task object/IActionResult
+                    // will result in no data.
+                    var returnType = GetActionReturnType(action, metadataAttributes);
+                    if (returnType != null && returnType != typeof(void))
                     {
-                        resource.OutputFormats.AddRange(GetOutputFormats(action, metadataAttributes, dataType));
+                        apiDescription.ResponseType = returnType;
+                        apiDescription.SupportedResponseFormats.AddRange(
+                            GetResponseFormats(action, metadataAttributes, returnType));
                     }
 
-                    context.Results.Add(resource);
+                    context.Results.Add(apiDescription);
                 }
             }
 
@@ -76,9 +79,9 @@ namespace Microsoft.AspNet.Mvc.ResourceModel
             return null;
         }
 
-        private ResourceParameterDescriptor GetParameter(ParameterDescriptor parameter)
+        private ApiParameterDescriptor GetParameter(ParameterDescriptor parameter)
         {
-            var resourceParameter = new ResourceParameterDescriptor()
+            var resourceParameter = new ApiParameterDescriptor()
             {
                 IsOptional = parameter.IsOptional,
                 Name = parameter.Name,
@@ -88,24 +91,24 @@ namespace Microsoft.AspNet.Mvc.ResourceModel
             if (parameter.ParameterBindingInfo != null)
             {
                 resourceParameter.Type = parameter.ParameterBindingInfo.ParameterType;
-                resourceParameter.Source = ResourceParameterSource.Query;
+                resourceParameter.Source = ApiParameterSource.Query;
             }
 
             if (parameter.BodyParameterInfo != null)
             {
                 resourceParameter.Type = parameter.BodyParameterInfo.ParameterType;
-                resourceParameter.Source = ResourceParameterSource.Body;
+                resourceParameter.Source = ApiParameterSource.Body;
             }
 
             return resourceParameter;
         }
 
-        private IReadOnlyList<ResourceOutputFormat> GetOutputFormats(
+        private IReadOnlyList<ApiResponseFormat> GetResponseFormats(
             ReflectedActionDescriptor action, 
             IProducesMetadataProvider[] metadataAttributes,
             Type dataType)
         {
-            var results = new List<ResourceOutputFormat>();
+            var results = new List<ApiResponseFormat>();
 
             var contentTypes = new List<MediaTypeHeaderValue>();
             foreach (var metadataAttribute in metadataAttributes)
@@ -122,20 +125,20 @@ namespace Microsoft.AspNet.Mvc.ResourceModel
                 contentTypes.Add(null);
             }
 
-            var formatters = _formattersProvider.OutputFormatters.OfType<IResourceOutputMetadataProvider>();
+            var formatters = _formattersProvider.OutputFormatters;
             foreach (var contentType in contentTypes)
             {
                 foreach (var formatter in formatters)
                 {
-                    var supportedTypes = formatter.GetAllPossibleContentTypes(dataType, contentType).ToArray();
+                    var supportedTypes = formatter.GetAllPossibleContentTypes(dataType, null, contentType);
                     if (supportedTypes != null)
                     {
                         foreach (var supportedType in supportedTypes)
                         {
-                            results.Add(new ResourceOutputFormat()
+                            results.Add(new ApiResponseFormat()
                             {
                                 DataType = dataType,
-                                Formatter = (IOutputFormatter)formatter,
+                                Formatter = formatter,
                                 MediaType = supportedType,
                             });
                         }

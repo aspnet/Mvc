@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc
             using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
-                var xmlSerializer = (XmlSerializer)CreateSerializer(GetObjectType(context));
+                var xmlSerializer = (XmlSerializer)CreateSerializer(context.DeclaredType ?? context.Object.GetType());
                 xmlSerializer.Serialize(xmlWriter, context.Object);
             }
 
