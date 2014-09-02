@@ -49,16 +49,16 @@ namespace Microsoft.AspNet.Mvc.Description
                         apiDescription.ParameterDescriptions.Add(GetParameter(parameter));
                     }
 
-                    var metadataAttributes = GetFilters<IProducesMetadataProvider>(action);
+                    var responseMetadataAttributes = GetResponseMetadataAttributes(action);
 
                     // We only provide response info if the type is a user-data type. Void/Task object/IActionResult
                     // will result in no data.
-                    var returnType = GetActionReturnType(action, metadataAttributes);
+                    var returnType = GetActionReturnType(action, responseMetadataAttributes);
                     if (returnType != null && returnType != typeof(void))
                     {
                         apiDescription.ResponseType = returnType;
                         apiDescription.SupportedResponseFormats.AddRange(
-                            GetResponseFormats(action, metadataAttributes, returnType));
+                            GetResponseFormats(action, responseMetadataAttributes, returnType));
                     }
 
                     context.Results.Add(apiDescription);
@@ -104,20 +104,18 @@ namespace Microsoft.AspNet.Mvc.Description
         }
 
         private IReadOnlyList<ApiResponseFormat> GetResponseFormats(
-            ReflectedActionDescriptor action, 
-            IProducesMetadataProvider[] metadataAttributes,
+            ReflectedActionDescriptor action,
+            IApiResponseMetadataProvider[] responseMetadataAttributes,
             Type dataType)
         {
             var results = new List<ApiResponseFormat>();
 
+            // Walk through all 'filter' attributes in order, and allow each one to see or override
+            // the results of the previous ones. This is similar to the execution path for content-negotiation.
             var contentTypes = new List<MediaTypeHeaderValue>();
-            foreach (var metadataAttribute in metadataAttributes)
+            foreach (var metadataAttribute in responseMetadataAttributes)
             {
-                if (metadataAttribute.ContentTypes != null && metadataAttribute.ContentTypes.Count > 0)
-                {
-                    contentTypes.AddRange(metadataAttribute.ContentTypes);
-                    break;
-                }
+                metadataAttribute.SetContentTypes(contentTypes);
             }
 
             if (contentTypes.Count == 0)
@@ -150,14 +148,22 @@ namespace Microsoft.AspNet.Mvc.Description
             return results;
         }
 
-        private Type GetActionReturnType(ReflectedActionDescriptor action, IProducesMetadataProvider[] metadataAttributes)
+        private Type GetActionReturnType(ReflectedActionDescriptor action, IApiResponseMetadataProvider[] metadataAttributes)
         {
+            // Walk through all of the filter attributes and allow them to set the type. This will execute them
+            // in filter-order allowing the desired behavior for overriding.
+            Type typeSetByAttribute = null;
             foreach (var metadataAttribute in metadataAttributes)
             {
                 if (metadataAttribute.Type != null)
                 {
-                    return metadataAttribute.Type;
+                    typeSetByAttribute = metadataAttribute.Type;
                 }
+            }
+
+            if (typeSetByAttribute != null)
+            {
+                return typeSetByAttribute;
             }
 
             var declaredReturnType = action.MethodInfo.ReturnType;
@@ -180,11 +186,11 @@ namespace Microsoft.AspNet.Mvc.Description
             return unwrappedReturnType;
         }
 
-        private TFilter[] GetFilters<TFilter>(ReflectedActionDescriptor action)
+        private IApiResponseMetadataProvider[] GetResponseMetadataAttributes(ReflectedActionDescriptor action)
         {
             return action.FilterDescriptors
                 .Select(fd => fd.Filter)
-                .OfType<TFilter>()
+                .OfType<IApiResponseMetadataProvider>()
                 .ToArray();
         }
     }
