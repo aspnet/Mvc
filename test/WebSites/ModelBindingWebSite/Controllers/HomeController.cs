@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.ModelBinding;
+using System.Linq;
 using ModelBindingWebSite.Models;
 
 namespace ModelBindingWebSite.Controllers
@@ -31,8 +31,13 @@ namespace ModelBindingWebSite.Controllers
             var result = new Dictionary<string, string>();
             foreach (var item in ModelState)
             {
-                var value = item.Value.Errors[0].ErrorMessage;
-                result.Add(item.Key, value);
+                var error = item.Value.Errors.SingleOrDefault();
+                if (error != null)
+                {
+                    var value = error.Exception != null ? error.Exception.Message :
+                                                          error.ErrorMessage;
+                    result.Add(item.Key, value);
+                }
             }
 
             return result;

@@ -84,13 +84,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                                    bindingContext.ModelMetadata,
                                                                    containerMetadata: null);
 
-                try
-                {
-                    newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
-                }
-                catch (TooManyModelErrorsException)
-                {
-                }
+                newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
             }
 
             bindingContext.Model = newBindingContext.Model;
@@ -105,19 +99,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             foreach (var binder in ModelBinders)
             {
-                try
+                if (await binder.BindModelAsync(bindingContext))
                 {
-                    if (await binder.BindModelAsync(bindingContext))
-                    {
-                        return true;
-                    }
-                }
-                catch (TooManyModelErrorsException)
-                {
-                    if (!IsBindingAtRootOfObjectGraph(bindingContext))
-                    {
-                        throw;
-                    }
+                    return true;
                 }
             }
 

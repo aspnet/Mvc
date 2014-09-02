@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ModelBinding_LimitsErrosToMaxErrorCount()
+        public async Task ModelBinding_LimitsErrorsToMaxErrorCount()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -70,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("The Field2 field is required.", json["Field2.Field2"]);
             Assert.Equal("The Field3 field is required.", json["Field2.Field3"]);
             Assert.Equal("The Field1 field is required.", json["Field3.Field1"]);
-            Assert.Equal("The Field2 field is required.", json["Field3.Field2"]);
+            Assert.Equal("The maximum number of allowed model errors has been reached.", json[""]);
         }
 
         [Fact]

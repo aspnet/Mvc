@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value < 0)
                 {
-                    throw new ArgumentOutOfRangeException("MaxModelValidationErrors");
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
                 _maxModelStateErrors = value;
