@@ -4,9 +4,9 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.OptionsModel;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
+using Microsoft.AspNet.Mvc.Rendering;
 
 #if ASPNET50 
 using Autofac;
@@ -45,6 +45,12 @@ namespace MvcSample.Web
                     services.SetupOptions<MvcOptions>(options =>
                     {
                         options.Filters.Add(typeof(PassThroughAttribute), order: 17);
+                    });
+                    services.SetupOptions<MvcOptions>(options =>
+                    {
+                        var expander = new LanguageViewLocationExpander(
+                            context => context.HttpContext.Request.Query["language"]);
+                        options.ViewLocationExpanders.Insert(0, expander);
                     });
 
                     // Create the autofac container 
