@@ -373,7 +373,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             var newViewData = new ViewDataDictionary(baseViewData, model);
 
-            var viewEngineResult = _viewEngine.FindPartialView(ViewContext, partialViewName);
+            var viewEngineResult = await _viewEngine.FindPartialViewAsync(ViewContext, partialViewName);
             if (!viewEngineResult.Success)
             {
                 var locations = string.Empty;

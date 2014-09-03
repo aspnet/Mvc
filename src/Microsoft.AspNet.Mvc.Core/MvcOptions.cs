@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
+using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -95,8 +96,14 @@ namespace Microsoft.AspNet.Mvc
         /// Get a list of the <see cref="ModelValidatorProviderDescriptor" />s used by
         /// <see cref="ModelBinding.CompositeModelValidatorProvider"/>.
         /// </summary>
-        public List<ModelValidatorProviderDescriptor> ModelValidatorProviders { get; } =
-            new List<ModelValidatorProviderDescriptor>();
+        public List<ModelValidatorProviderDescriptor> ModelValidatorProviders { get; }
+            = new List<ModelValidatorProviderDescriptor>();
+
+        /// <summary>
+        /// Get a list of descriptors for <see cref="IViewLocationExpander" />s used by this application.
+        /// </summary>
+        public List<ViewLocationExpanderDescriptor> ViewLocationExpanders { get; }
+            = new List<ViewLocationExpanderDescriptor>();
 
         /// <summary>
         /// Gets a list of descriptors that represent <see cref="Rendering.IViewEngine"/> used

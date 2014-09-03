@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                   new RouteData() { Values = routeDictionary },
                                                   new ActionDescriptor());
 
-            viewEngine.Setup(v => v.FindView(actionContext, It.IsAny<string>()))
+            viewEngine.Setup(v => v.FindViewAsync(actionContext, It.IsAny<string>()))
                       .Returns(ViewEngineResult.Found("MyView", view.Object));
 
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                   new RouteData() { Values = routeDictionary },
                                                   new ActionDescriptor());
 
-            goodViewEngine.Setup(v => v.FindView(actionContext, It.IsAny<string>()))
+            goodViewEngine.Setup(v => v.FindViewAsync(actionContext, It.IsAny<string>()))
                           .Returns(ViewEngineResult.Found("MyView", view.Object));
 
 
@@ -147,7 +147,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                  });
 
             var viewEngine = new Mock<ICompositeViewEngine>();
-            viewEngine.Setup(v => v.FindView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+            viewEngine.Setup(v => v.FindViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                       .Returns(ViewEngineResult.Found("MyView", view.Object));
 
             var serviceProvider = new Mock<IServiceProvider>();

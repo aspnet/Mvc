@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_controllerTestContext);
 
             // Act
-            var result = viewEngine.FindView(context, viewName);
+            var result = viewEngine.FindViewAsync(context, viewName);
 
             // Assert
             Assert.False(result.Success);
@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Act & Assert
             // If this throws then our test case fails
-            var result = viewEngine.FindPartialView(context, viewName);
+            var result = viewEngine.FindPartialViewAsync(context, viewName);
 
             Assert.False(result.Success);
         }
@@ -76,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_controllerTestContext);
 
             // Act
-            var result = viewEngine.FindPartialView(context, partialViewName);
+            var result = viewEngine.FindPartialViewAsync(context, partialViewName);
 
             // Assert
             Assert.False(result.Success);
@@ -94,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Act & Assert
             // If this throws then our test case fails
-            var result = viewEngine.FindPartialView(context, partialViewName);
+            var result = viewEngine.FindPartialViewAsync(context, partialViewName);
 
             Assert.False(result.Success);
         }
@@ -108,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_areaTestContext);
 
             // Act
-            var result = viewEngine.FindPartialView(context, "partial");
+            var result = viewEngine.FindPartialViewAsync(context, "partial");
 
             // Assert
             Assert.False(result.Success);
@@ -127,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_controllerTestContext);
 
             // Act
-            var result = viewEngine.FindPartialView(context, "partialNoArea");
+            var result = viewEngine.FindPartialViewAsync(context, "partialNoArea");
 
             // Assert
             Assert.False(result.Success);
@@ -145,7 +145,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_areaTestContext);
 
             // Act
-            var result = viewEngine.FindView(context, "full");
+            var result = viewEngine.FindViewAsync(context, "full");
 
             // Assert
             Assert.False(result.Success);
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_controllerTestContext);
 
             // Act
-            var result = viewEngine.FindView(context, "fullNoArea");
+            var result = viewEngine.FindViewAsync(context, "fullNoArea");
 
             // Assert
             Assert.False(result.Success);
@@ -186,7 +186,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var context = GetActionContext(_controllerTestContext);
 
             // Act
-            var result = viewEngine.FindView(context, "test-view");
+            var result = viewEngine.FindViewAsync(context, "test-view");
 
             // Assert
             Assert.True(result.Success);

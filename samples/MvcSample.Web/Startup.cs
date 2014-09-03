@@ -5,11 +5,12 @@ using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
+using Microsoft.Framework.OptionsModel;
+using Microsoft.AspNet.Mvc;
 
 #if ASPNET50 
 using Autofac;
 using Microsoft.Framework.DependencyInjection.Autofac;
-using Microsoft.Framework.OptionsModel;
 #endif
 
 namespace MvcSample.Web
@@ -26,7 +27,7 @@ namespace MvcSample.Web
 
             string diSystem;
 
-            if (configuration.TryGet("DependencyInjection", out diSystem) && 
+            if (configuration.TryGet("DependencyInjection", out diSystem) &&
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {
                 app.UseMiddleware<MonitoringMiddlware>();
@@ -36,8 +37,12 @@ namespace MvcSample.Web
                 services.AddMvc();
                 services.AddSingleton<PassThroughAttribute>();
                 services.AddSingleton<UserNameService>();
-                services.AddTransient<ITestService, TestService>();                
+                services.AddTransient<ITestService, TestService>();
                 services.Add(OptionsServices.GetDefaultServices());
+                services.SetupOptions<MvcOptions>(m =>
+                {
+                    m.ViewLocationExpanders.Insert(0, typeof(LanguageViewLocationExpander));
+                });
 
                 // Create the autofac container 
                 ContainerBuilder builder = new ContainerBuilder();

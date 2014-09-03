@@ -9,7 +9,7 @@ namespace CompositeViewEngine
 {
     public class TestViewEngine : IViewEngine
     {
-        public ViewEngineResult FindPartialView(ActionContext context, string partialViewName)
+        public ViewEngineResult FindPartialViewAsync(ActionContext context, string partialViewName)
         {
             if (string.Equals(partialViewName, "partial-test-view", StringComparison.Ordinal))
             {
@@ -18,7 +18,7 @@ namespace CompositeViewEngine
             return ViewEngineResult.NotFound(partialViewName, new[] { partialViewName });
         }
 
-        public ViewEngineResult FindView(ActionContext context, string viewName)
+        public ViewEngineResult FindViewAsync(ActionContext context, string viewName)
         {
             if (string.Equals(viewName, "test-view"))
             {

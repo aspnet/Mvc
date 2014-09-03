@@ -152,7 +152,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.Found("MyView", view.Object));
 
             return viewEngine.Object;

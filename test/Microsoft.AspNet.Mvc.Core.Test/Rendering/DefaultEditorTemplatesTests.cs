@@ -101,7 +101,7 @@ Environment.NewLine;
 
             var model = new DefaultTemplatesUtilities.ObjectWithScaffoldColumn();
             var viewEngine = new Mock<ICompositeViewEngine>();
-            viewEngine.Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+            viewEngine.Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                       .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
 
@@ -190,7 +190,7 @@ Environment.NewLine;
             var model = new DefaultTemplatesUtilities.ObjectTemplateModel { Property1 = "Model string" };
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.ViewData["Property1"] = "ViewData string";
@@ -228,7 +228,7 @@ Environment.NewLine;
                 offset: offset);
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.ViewData.ModelMetadata.DataTypeName = dataTypeName;
@@ -267,7 +267,7 @@ Environment.NewLine;
                 offset: offset);
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.Html5DateRenderingMode = Html5DateRenderingMode.Rfc3339;
@@ -308,7 +308,7 @@ Environment.NewLine;
                 offset: offset);
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.Html5DateRenderingMode = renderingMode; // Ignored due to HasNonDefaultEditFormat.
@@ -331,7 +331,7 @@ Environment.NewLine;
             var model = new DefaultTemplatesUtilities.ObjectTemplateModel { Property1 = "Model string" };
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.ViewData["Property1"] = "ViewData string";
@@ -352,7 +352,7 @@ Environment.NewLine;
             var model = new DefaultTemplatesUtilities.ObjectTemplateModel { Property1 = "Model string" };
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
 
@@ -374,7 +374,7 @@ Environment.NewLine;
             var model = new DefaultTemplatesUtilities.ObjectTemplateModel { Property1 = propertyValue, };
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.NotFound("", Enumerable.Empty<string>()));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.ViewData["Property1"] = "ViewData string";
@@ -402,7 +402,7 @@ Environment.NewLine;
                 }));
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
+                .Setup(v => v.FindPartialViewAsync(It.IsAny<ActionContext>(), It.IsAny<string>()))
                 .Returns(ViewEngineResult.Found("test-view", view.Object));
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
             helper.ViewData["Property1"] = "ViewData string";

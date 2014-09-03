@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 var fullViewName = modeViewPath + "/" + viewName;
 
-                var viewEngineResult = _viewEngine.FindPartialView(_viewContext, fullViewName);
+                var viewEngineResult = _viewEngine.FindPartialViewAsync(_viewContext, fullViewName).Result;
                 if (viewEngineResult.Success)
                 {
                     using (var writer = new StringWriter(CultureInfo.InvariantCulture))

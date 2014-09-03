@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -20,28 +21,28 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public IReadOnlyList<IViewEngine> ViewEngines { get; private set; }
 
         /// <inheritdoc />
-        public ViewEngineResult FindPartialView([NotNull] ActionContext context,
-                                                [NotNull] string partialViewName)
+        public Task<ViewEngineResult> FindPartialViewAsync([NotNull] ActionContext context,
+                                                           [NotNull] string partialViewName)
         {
             return FindView(context, partialViewName, partial: true);
         }
 
         /// <inheritdoc />
-        public ViewEngineResult FindView([NotNull] ActionContext context,
-                                         [NotNull] string viewName)
+        public Task<ViewEngineResult> FindViewAsync([NotNull] ActionContext context,
+                                                    [NotNull] string viewName)
         {
             return FindView(context, viewName, partial: false);
         }
 
-        private ViewEngineResult FindView(ActionContext context,
-                                          string viewName,
-                                          bool partial)
+        private async Task<ViewEngineResult> FindView(ActionContext context,
+                                                      string viewName,
+                                                      bool partial)
         {
             var searchedLocations = Enumerable.Empty<string>();
             foreach (var engine in ViewEngines)
             {
-                var result = partial ? engine.FindPartialView(context, viewName) :
-                                       engine.FindView(context, viewName);
+                var result = partial ? await engine.FindPartialViewAsync(context, viewName) :
+                                       await engine.FindViewAsync(context, viewName);
 
                 if (result.Success)
                 {

@@ -375,4 +375,7 @@
     <value>Error {0}:{1}{2}</value>
     <comment>{0} is the error number, {1} is Environment.NewLine {2} is the  error message</comment>
   </data>
+  <data name="TemplatedViewLocationExpander_NoReplacementToken" xml:space="preserve">
+    <value>Could not find a replacement for view expansion token '{0}'.</value>
+  </data>
 </root>

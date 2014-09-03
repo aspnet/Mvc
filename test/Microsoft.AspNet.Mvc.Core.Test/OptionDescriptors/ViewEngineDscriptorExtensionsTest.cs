@@ -65,12 +65,12 @@ namespace Microsoft.AspNet.Mvc
 
         private class TestViewEngine : IViewEngine
         {
-            public ViewEngineResult FindPartialView(ActionContext context, string partialViewName)
+            public ViewEngineResult FindPartialViewAsync(ActionContext context, string partialViewName)
             {
                 throw new NotImplementedException();
             }
 
-            public ViewEngineResult FindView(ActionContext context, string viewName)
+            public ViewEngineResult FindViewAsync(ActionContext context, string viewName)
             {
                 throw new NotImplementedException();
             }

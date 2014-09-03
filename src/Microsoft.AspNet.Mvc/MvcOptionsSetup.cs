@@ -3,6 +3,7 @@
 
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Razor;
+using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc
@@ -56,6 +57,9 @@ namespace Microsoft.AspNet.Mvc
             // Set up validators
             options.ModelValidatorProviders.Add(new DataAnnotationsModelValidatorProvider());
             options.ModelValidatorProviders.Add(new DataMemberModelValidatorProvider());
+
+            // Set up ViewLocationExpanders
+            options.ViewLocationExpanders.Add(new TemplatedViewLocationExpander());
         }
     }
 }

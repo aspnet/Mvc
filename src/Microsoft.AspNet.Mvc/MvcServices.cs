@@ -51,6 +51,8 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Scoped<ICompositeViewEngine, CompositeViewEngine>();
             yield return describe.Singleton<IViewStartProvider, ViewStartProvider>();
             yield return describe.Transient<IRazorView, RazorView>();
+            yield return describe.Transient<IViewLocationExpanderProvider, DefaultViewLocationExpanderProvider>();
+            yield return describe.Singleton<IViewLocationCache, DefaultViewLocationCache>();
 
             yield return describe.Singleton<IRazorPageActivator, RazorPageActivator>();
             // Virtual path view factory needs to stay scoped so views can get get scoped services.

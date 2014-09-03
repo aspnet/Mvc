@@ -1354,6 +1354,22 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_AggregateErrorMessage_ErrorNumber"), p0, p1, p2);
         }
 
+        /// <summary>
+        /// Could not find a replacement for view expansion token '{0}'.
+        /// </summary>
+        internal static string TemplatedViewLocationExpander_NoReplacementToken
+        {
+            get { return GetString("TemplatedViewLocationExpander_NoReplacementToken"); }
+        }
+
+        /// <summary>
+        /// Could not find a replacement for view expansion token '{0}'.
+        /// </summary>
+        internal static string FormatTemplatedViewLocationExpander_NoReplacementToken(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("TemplatedViewLocationExpander_NoReplacementToken"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

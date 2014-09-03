@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc
                     ViewName ?? "Default");
             }
 
-            var view = FindView(context.ViewContext, qualifiedViewName);
+            var view = await FindView(context.ViewContext, qualifiedViewName);
 
             var childViewContext = new ViewContext(
                 context.ViewContext,
@@ -74,9 +74,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private IView FindView(ActionContext context, string viewName)
+        private async Task<IView> FindView(ActionContext context, string viewName)
         {
-            var result = _viewEngine.FindPartialView(context, viewName);
+            var result = await _viewEngine.FindPartialViewAsync(context, viewName);
             if (!result.Success)
             {
                 var locations = string.Empty;
