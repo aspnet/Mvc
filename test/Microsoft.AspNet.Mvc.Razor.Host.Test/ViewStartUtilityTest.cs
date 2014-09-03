@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.FileSystems;
+using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Infrastructure;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public class ViewStartProviderTest : IDisposable
+    public class ViewStartProviderTest
     {
-        private readonly string _rootPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -38,11 +36,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 @"views\_viewstart.cshtml",
                 @"_viewstart.cshtml"
             };
-            var fileSystemDir = Path.Combine(_rootPath, Path.GetRandomFileName());
-            var viewPath = Path.Combine(fileSystemDir, "Views", "Home", "MyView.cshtml");
-            Directory.CreateDirectory(Path.GetDirectoryName(viewPath));
-            File.WriteAllText(viewPath, string.Empty);
-            var fileSystem = new PhysicalFileSystem(fileSystemDir);
+            var fileSystem = new PhysicalFileSystem(GetTestFileSystemBase());
 
             // Act
             var result = ViewStartUtility.GetViewStartLocations(fileSystem, inputPath);
@@ -64,11 +58,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 @"Areas\_viewstart.cshtml",
                 @"_viewstart.cshtml",
             };
-            var fileSystemDir = Path.Combine(_rootPath, Path.GetRandomFileName());
-            var viewPath = Path.Combine(fileSystemDir, "Areas", "MyArea", "Sub", "Views", "Admin", "Test.cshtml");
-            Directory.CreateDirectory(Path.GetDirectoryName(viewPath));
-            File.WriteAllText(viewPath, string.Empty);
-            var fileSystem = new PhysicalFileSystem(fileSystemDir);
+            var appBase = GetTestFileSystemBase();
+            var viewPath = Path.Combine(appBase, "Areas", "MyArea", "Sub", "Views", "Admin", "Test.cshtml");
+            var fileSystem = new PhysicalFileSystem(appBase);
 
             // Act
             var result = ViewStartUtility.GetViewStartLocations(fileSystem, viewPath);
@@ -77,15 +69,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Equal(expected, result);
         }
 
-        public void Dispose()
+        private static string GetTestFileSystemBase()
         {
-            try
-            {
-                Directory.Delete(_rootPath, recursive: true);
-            }
-            catch
-            {
-            }
+            var serviceProvider = CallContextServiceLocator.Locator.ServiceProvider;
+            var appEnv = (IApplicationEnvironment)serviceProvider.GetService(typeof(IApplicationEnvironment));
+            return Path.Combine(appEnv.ApplicationBasePath, "TestFiles", "ViewStartUtilityFiles");
         }
     }
 }
