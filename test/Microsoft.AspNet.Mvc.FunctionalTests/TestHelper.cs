@@ -14,6 +14,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public static class TestHelper
     {
+        // Path from Mvc/test
+        private static string samplesPath = Path.Combine("..", "samples");
+        private static string websitesPath = Path.Combine("websites");
+
         public static IServiceProvider CreateServices(string applicationWebSiteName, bool isSample = false)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
@@ -26,7 +30,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // To compensate for this, we need to calculate the original path and override the application
             // environment value so that components like the view engine work properly in the context of the
             // test.
-            var appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, isSample);
+            var appBasePath = "";
+            if (isSample)
+            {
+                appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, samplesPath);
+            }
+            else
+            {
+                appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, websitesPath);
+            }
+
             var services = new ServiceCollection();
             services.AddInstance(
                 typeof(IApplicationEnvironment),
@@ -49,27 +62,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 typeof(ILoggerFactory),
                 NullLoggerFactory.Instance);
 
-            return services.BuildServiceProvider(originalProvider);
+            var tempServiceProvider = services.BuildServiceProvider(originalProvider);
+            CallContextServiceLocator.Locator.ServiceProvider = tempServiceProvider;
+            return tempServiceProvider;
         }
 
         // Calculate the path relative to the application base path.
         public static string CalculateApplicationBasePath(IApplicationEnvironment appEnvironment,
-                                                          string applicationWebSiteName, bool sample)
+                                                          string applicationWebSiteName, string websitePath)
         {
-            // Mvc/test/Microsoft.AspNet.Mvc.FunctionalTests
-            var appBase = appEnvironment.ApplicationBasePath;
-
             // Mvc/test
-            var test = Path.GetDirectoryName(appBase);
-
-            if (sample)
-            {
-                // Mvc/samples/applicationWebSiteName
-                return Path.GetFullPath(Path.Combine(test, "..", "samples", applicationWebSiteName));
-            }
-
+            var testDirectory = Path.GetDirectoryName(appEnvironment.ApplicationBasePath);
+            
             // Mvc/test/WebSites/applicationWebSiteName
-            return Path.GetFullPath(Path.Combine(appBase, "..", "WebSites", applicationWebSiteName));
+            return Path.GetFullPath(Path.Combine(testDirectory, websitePath, applicationWebSiteName));
         }
 
         private static Type CreateAssemblyProviderType(string siteName)
