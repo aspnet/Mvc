@@ -16,7 +16,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class MvcSampleTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("MvcSample.Web", true);
+        // Path relative to Mvc\\test\Microsoft.AspNet.Mvc.FunctionalTests
+        private readonly IServiceProvider _services =
+            TestHelper.CreateServices("MvcSample.Web", Path.Combine("..", "..", "samples"));
         private readonly Action<IBuilder> _app = new MvcSample.Web.Startup().Configure;
 
         [Fact]
