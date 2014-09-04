@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
@@ -11,14 +12,9 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class AntiForgeryOptions
     {
-        private const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
         private string _cookieName;
         private string _formFieldName = AntiForgeryTokenFieldName;
-
-        public AntiForgeryOptions()
-        {
-            _cookieName = GetAntiForgeryCookieName();
-        }
+        internal const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
 
         /// <summary>
         /// Specifies the name of the cookie that is used by the anti-forgery
@@ -94,10 +90,19 @@ namespace Microsoft.AspNet.Mvc
             set;
         }
 
-        // TODO: Replace the stub.
-        private string GetAntiForgeryCookieName()
+        // If the app path is provided, we're generating a cookie name rather than using a field name, and the cookie names should
+        // be unique so that a development server cookie and an IIS cookie - both running on localhost - don't stomp on
+        // each other.
+        internal static string GetDefaultAntiForgeryCookieName(string appPath)
         {
-            return AntiForgeryTokenFieldName;
+            if (string.IsNullOrEmpty(appPath) || appPath == "/")
+            {
+                return AntiForgeryTokenFieldName;
+            }
+            else
+            {
+                return AntiForgeryTokenFieldName + "_" + AntiForgeryTokenEncodingHelper.UrlTokenEncode(Encoding.UTF8.GetBytes(appPath));
+            }
         }
     }
 }

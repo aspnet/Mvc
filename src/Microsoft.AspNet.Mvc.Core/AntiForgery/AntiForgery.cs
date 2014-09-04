@@ -6,6 +6,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Security.DataProtection;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -21,9 +22,18 @@ namespace Microsoft.AspNet.Mvc
         public AntiForgery([NotNull] IClaimUidExtractor claimUidExtractor,
                            [NotNull] IDataProtectionProvider dataProtectionProvider,
                            [NotNull] IAntiForgeryAdditionalDataProvider additionalDataProvider,
-                           [NotNull] IOptionsAccessor<MvcOptions> mvcOptions)
+                           [NotNull] IOptionsAccessor<MvcOptions> mvcOptions,
+                           [NotNull] IApplicationEnvironment applicationEnvironment)
         {
             var config = mvcOptions.Options.AntiForgeryOptions;
+
+            // If the cookie name is not yet set by the user set it now.
+            if (config.CookieName == null)
+            {
+                config.CookieName = AntiForgeryOptions.GetDefaultAntiForgeryCookieName(
+                                                                    applicationEnvironment.ApplicationName);
+            }
+
             var serializer = new AntiForgeryTokenSerializer(dataProtectionProvider.CreateProtector(_purpose));
             var tokenStore = new AntiForgeryTokenStore(config, serializer);
             var tokenProvider = new TokenProvider(config, claimUidExtractor, additionalDataProvider);
