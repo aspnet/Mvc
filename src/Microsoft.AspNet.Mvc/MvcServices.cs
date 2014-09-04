@@ -79,6 +79,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Instance<JsonOutputFormatter>(
                 new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(), indent: false));
 
+            yield return describe.Transient<IGlobalFilterProvider, DefaultGlobalFilterProvider>();
             yield return describe.Transient<INestedProvider<FilterProviderContext>, DefaultFilterProvider>();
 
             yield return describe.Transient<IModelValidatorProviderProvider, DefaultModelValidatorProviderProvider>();
