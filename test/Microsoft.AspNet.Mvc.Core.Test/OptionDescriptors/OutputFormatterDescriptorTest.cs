@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
@@ -56,6 +57,11 @@ namespace Microsoft.AspNet.Mvc.Core
         private class TestOutputFormatter : IOutputFormatter
         {
             public bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(Type declaredType, Type actualType, MediaTypeHeaderValue contentType)
             {
                 throw new NotImplementedException();
             }

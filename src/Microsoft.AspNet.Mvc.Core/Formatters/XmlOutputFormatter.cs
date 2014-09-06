@@ -36,18 +36,10 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The serializer object.</returns>
         public abstract object CreateSerializer(Type type);
 
-        /// <inheritdoc />
-        public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        protected override bool CanWriteType(Type declaredType, Type actualType)
         {
-            if (base.CanWriteResult(context, contentType))
-            {
-                if (CreateSerializer(GetObjectType(context)) != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            var type = declaredType ?? actualType;
+            return type != null && CreateSerializer(type) != null;
         }
 
         /// <summary>

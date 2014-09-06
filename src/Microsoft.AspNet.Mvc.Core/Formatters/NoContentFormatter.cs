@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
@@ -16,6 +18,14 @@ namespace Microsoft.AspNet.Mvc
             // ignore the contentType and just look at the content.
             // This formatter will be selected if the content is null. 
             return context.Object == null;
+        }
+
+        public IEnumerable<MediaTypeHeaderValue> GetAllPossibleContentTypes(
+            Type declaredType, 
+            Type actualType, 
+            MediaTypeHeaderValue contentType)
+        {
+            return null;
         }
 
         public Task WriteAsync(OutputFormatterContext context)
