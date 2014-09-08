@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -81,6 +80,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "xmlns=\"http://schemas.datacontract.org/2004/07/FormatterWebSite\">" +
                 "<Name>HelloWorld</Name></Person>",
                 await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task HeadersWrittenAfterWritingTheBodyAreAbsent()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Rogue/GetDummyClass?sampleInput=10");
+            request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/xml;charset=utf-8"));
+            var response = await client.SendAsync(request);
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.False(response.Headers.Contains("TestHeader"));
         }
     }
 }

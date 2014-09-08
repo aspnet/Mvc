@@ -3,16 +3,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class XmlSerializerOutputFormatterTests
     {
@@ -31,6 +31,25 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             public string SampleString { get; set; }
             public TestLevelOne TestOne { get; set; }
+        }
+
+        public class RogueFormatter : OutputFormatter
+        {
+            public RogueFormatter()
+            {
+                SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
+                SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
+            }
+
+            public override Task WriteResponseBodyAsync(OutputFormatterContext context)
+            {
+                var message = "HelloWorld";
+                var response = context.ActionContext.HttpContext.Response;
+                response.Body.Write(Encoding.UTF8.GetBytes(message), 0, message.Length);
+                response.Headers.Set("TestHeader", "TestValue");
+
+                return Task.FromResult(true);
+            }
         }
 
         [Fact]
@@ -215,6 +234,65 @@ namespace Microsoft.AspNet.Mvc.Core
             await formatter.WriteAsync(outputFormatterContext);
         }
 
+        [Fact]
+        public async Task VerifyHeadersAreSetBeforeWritingBody()
+        {
+            // Arrange
+            var sampleInput = new DummyClass { SampleInt = 10 };
+            var formatter = new XmlSerializerOutputFormatter(
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+            var outputFormatterContext = new OutputFormatterContext
+            {
+                Object = sampleInput,
+                DeclaredType = sampleInput.GetType(),
+                ActionContext = GetActionContext("application/xml; charset=utf-8",
+                    FormatterTestsHelper.GetMockResponseWhichThrowsOnHeadersBeingSetAfterWritingBody())
+            };
+
+            // Act & Assert
+            await Assert.DoesNotThrowAsync(() => formatter.WriteAsync(outputFormatterContext));
+        }
+
+        [Fact]
+        public async Task ThrowIfHeadersAreNotSetBeforeWritingBody()
+        {
+            // Arrange
+            var sampleInput = new DummyClass { SampleInt = 10 };
+            var formatter = new XmlSerializerOutputFormatter(
+                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+            var outputFormatterContext = new OutputFormatterContext
+            {
+                Object = sampleInput,
+                DeclaredType = sampleInput.GetType(),
+                ActionContext = GetActionContext("application/xml; charset=utf-8",
+                    FormatterTestsHelper.GetMockResponseWhichThrowsOnHeadersBeingSetAfterWritingBody())
+            };
+
+            // Act & Assert
+            await formatter.WriteAsync(outputFormatterContext);
+            Assert.Throws<InvalidOperationException>(
+                () => outputFormatterContext.ActionContext.HttpContext.Response.Headers.Set("SampleKey", "SampleValue"));
+        }
+
+        [Fact]
+        public async Task ThrowIfHeadersAreNotSetBeforeWritingBodyRogueFormatter()
+        {
+            // Arrange
+            var sampleInput = new DummyClass { SampleInt = 10 };
+            var formatter = new RogueFormatter();
+            var outputFormatterContext = new OutputFormatterContext
+            {
+                Object = sampleInput,
+                DeclaredType = sampleInput.GetType(),
+                ActionContext = GetActionContext("application/xml; charset=utf-8",
+                    FormatterTestsHelper.GetMockResponseWhichThrowsOnHeadersBeingSetAfterWritingBody())
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await formatter.WriteAsync(outputFormatterContext));
+        }
+
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
                                                         string contentType = "application/xml; charset=utf-8")
         {
@@ -226,18 +304,22 @@ namespace Microsoft.AspNet.Mvc.Core
             };
         }
 
-        private static ActionContext GetActionContext(string contentType)
+        private static ActionContext GetActionContext(string contentType, Mock<HttpResponse> mockedResponse = null)
         {
             var request = new Mock<HttpRequest>();
             var headers = new Mock<IHeaderDictionary>();
             request.Setup(r => r.ContentType).Returns(contentType);
             request.SetupGet(r => r.Headers).Returns(headers.Object);
             request.SetupGet(f => f.AcceptCharset).Returns(contentType.Split('=')[1]);
-            var response = new Mock<HttpResponse>();
-            response.SetupGet(f => f.Body).Returns(new MemoryStream());
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(c => c.Request).Returns(request.Object);
-            httpContext.SetupGet(c => c.Response).Returns(response.Object);
+            if (mockedResponse == null)
+            {
+                mockedResponse = new Mock<HttpResponse>();
+                mockedResponse.SetupGet(f => f.Body).Returns(new MemoryStream());
+            }
+
+            httpContext.SetupGet(c => c.Response).Returns(mockedResponse.Object);
             return new ActionContext(httpContext.Object, routeData: null, actionDescriptor: null);
         }
     }
