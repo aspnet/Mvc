@@ -40,11 +40,10 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>A new instance of <see cref="XmlSerializer"/></returns>
         public XmlSerializer CreateSerializer([NotNull] Type type)
         {
-            XmlSerializer serializer = null;
             try
             {
                 // If the serializer does not support this type it will throw an exception.
-                serializer = new XmlSerializer(type);
+                return new XmlSerializer(type);
             }
             catch (Exception)
             {
@@ -52,21 +51,14 @@ namespace Microsoft.AspNet.Mvc
                 // false, then this Formatter is not picked up at all.
             }
 
-            return serializer;
+            return null;
         }
 
         /// <inheritdoc />
         public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
-            if (base.CanWriteResult(context, contentType))
-            {
-                if (CreateSerializer(GetObjectType(context)) != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return base.CanWriteResult(context, contentType)
+                && (CreateSerializer(base.GetObjectType(context)) != null);
         }
 
         /// <inheritdoc />
