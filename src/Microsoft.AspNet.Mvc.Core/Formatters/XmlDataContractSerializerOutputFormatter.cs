@@ -5,6 +5,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -37,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>A new instance of <see cref="DataContractSerializer"/></returns>
-        public override object CreateSerializer([NotNull] Type type)
+        public DataContractSerializer CreateSerializer([NotNull] Type type)
         {
             DataContractSerializer serializer = null;
             try
@@ -59,6 +60,20 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
+        public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        {
+            if (base.CanWriteResult(context, contentType))
+            {
+                if (CreateSerializer(GetObjectType(context)) != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc />
         public override Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context)
         {
             var tempWriterSettings = WriterSettings.Clone();
@@ -69,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
             using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
-                var dataContractSerializer = (DataContractSerializer)CreateSerializer(GetObjectType(context));
+                var dataContractSerializer = CreateSerializer(GetObjectType(context));
                 dataContractSerializer.WriteObject(xmlWriter, context.Object);
             }
 

@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -37,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>A new instance of <see cref="XmlSerializer"/></returns>
-        public override object CreateSerializer([NotNull] Type type)
+        public XmlSerializer CreateSerializer([NotNull] Type type)
         {
             XmlSerializer serializer = null;
             try
@@ -55,6 +56,20 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
+        public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        {
+            if (base.CanWriteResult(context, contentType))
+            {
+                if (CreateSerializer(GetObjectType(context)) != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc />
         public override Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context)
         {
             var response = context.ActionContext.HttpContext.Response;
@@ -67,7 +82,7 @@ namespace Microsoft.AspNet.Mvc
             using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
-                var xmlSerializer = (XmlSerializer)CreateSerializer(GetObjectType(context));
+                var xmlSerializer = CreateSerializer(GetObjectType(context));
                 xmlSerializer.Serialize(xmlWriter, context.Object);
             }
 
