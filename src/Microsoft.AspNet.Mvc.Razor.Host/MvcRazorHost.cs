@@ -83,8 +83,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                 templateTypeName: "Microsoft.AspNet.Mvc.Razor.HelperResult",
                 defineSectionMethodName: "DefineSection")
             {
-                ResolveUrlMethodName = "Href"
+                ResolveUrlMethodName = "Href",
+                BeginContextMethodName = "PageExecutionContext.BeginContext",
+                EndContextMethodName = "PageExecutionContext.EndContext"
             };
+            EnableInstrumentation = true;
 
             foreach (var ns in _defaultNamespaces)
             {

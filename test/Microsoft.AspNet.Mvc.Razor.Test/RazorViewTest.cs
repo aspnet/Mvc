@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.PageExecution;
 using Microsoft.AspNet.PipelineCore;
 using Moq;
 using Xunit;
@@ -567,6 +568,151 @@ section-content-2";
             // Act and Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
             Assert.Equal(expected, ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderAsync_UsesPageExecutionFeatureFromRequest_ToWrapWriter()
+        {
+            // Arrange
+            var pageWriter = CreateBufferedWriter();
+            var layoutWriter = CreateBufferedWriter();
+
+            var layoutExecuted = false;
+            var count = -1;
+            var feature = new Mock<IPageExecutionListenerFeature>(MockBehavior.Strict);
+            feature.Setup(f => f.DecorateWriter(It.IsAny<RazorTextWriter>()))
+                   .Returns(() =>
+                   {
+                       count++;
+                       if (count == 0)
+                       {
+                           return pageWriter;
+                       }
+                       else if (count == 1)
+                       {
+                           return layoutWriter;
+                       }
+                       throw new Exception();
+                   })
+                   .Verifiable();
+
+            var pageContext = Mock.Of<IPageExecutionContext>();
+            feature.Setup(f => f.GetContext("/MyPage.cshtml", pageWriter))
+                    .Returns(pageContext)
+                    .Verifiable();
+
+            var layoutContext = Mock.Of<IPageExecutionContext>();
+            feature.Setup(f => f.GetContext("/Layout.cshtml", layoutWriter))
+                    .Returns(layoutContext)
+                    .Verifiable();
+
+            var page = new TestableRazorPage(v =>
+            {
+                v.Layout = "/Layout.cshtml";
+                Assert.Same(pageWriter, v.Output);
+                Assert.Same(pageContext, v.PageExecutionContext);
+            });
+            page.Path = "/MyPage.cshtml";
+
+            var layout = new TestableRazorPage(v =>
+            {
+                Assert.Same(layoutWriter, v.Output);
+                Assert.Same(layoutContext, v.PageExecutionContext);
+                v.RenderBodyPublic();
+
+                layoutExecuted = true;
+            });
+            layout.Path = "/Layout.cshtml";
+
+            var pageFactory = new Mock<IRazorPageFactory>();
+            pageFactory.Setup(p => p.CreateInstance("/Layout.cshtml"))
+                       .Returns(layout);
+
+            var view = new RazorView(pageFactory.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     Mock.Of<IViewStartProvider>());
+            view.Contextualize(page, isPartial: false);
+            var viewContext = CreateViewContext(view);
+            viewContext.HttpContext.SetFeature<IPageExecutionListenerFeature>(feature.Object);
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            feature.Verify();
+            Assert.True(layoutExecuted);
+        }
+
+        [Fact]
+        public async Task RenderAsync_UsesPageExecutionFeatureFromRequest_ToGetExecutionContext()
+        {
+            // Arrange
+            var writer = Mock.Of<TextWriter>();
+            var executed = false;
+            var feature = new Mock<IPageExecutionListenerFeature>(MockBehavior.Strict);
+
+            var pageContext = Mock.Of<IPageExecutionContext>();
+            feature.Setup(f => f.GetContext("/MyPartialPage.cshtml", writer))
+                    .Returns(pageContext)
+                    .Verifiable();
+
+            var page = new TestableRazorPage(v =>
+            {
+                Assert.Same(writer, v.Output);
+                Assert.Same(pageContext, v.PageExecutionContext);
+                executed = true;
+            });
+            page.Path = "/MyPartialPage.cshtml";
+
+            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+                                     Mock.Of<IRazorPageActivator>(),
+                                     Mock.Of<IViewStartProvider>());
+            view.Contextualize(page, isPartial: true);
+            var viewContext = CreateViewContext(view);
+            viewContext.HttpContext.SetFeature<IPageExecutionListenerFeature>(feature.Object);
+            viewContext.Writer = writer;
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            feature.Verify();
+            Assert.True(executed);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task RenderAsync_UsesNullExecutionContextWhenListenerIsNotRegistered(bool isPartial)
+        {
+            // Arrange
+            var executed = false;
+            var page = new TestableRazorPage(v =>
+            {
+                Assert.IsType<NullPageExectionContext>(v.PageExecutionContext);
+                executed = true;
+            });
+
+            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+                                     Mock.Of<IRazorPageActivator>(),
+                                     Mock.Of<IViewStartProvider>());
+            view.Contextualize(page, isPartial);
+            var viewContext = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            Assert.True(executed);
+        }
+
+        private static TextWriter CreateBufferedWriter()
+        {
+            var mockWriter = new Mock<TextWriter>();
+            var bufferedWriter = mockWriter.As<IBufferedTextWriter>();
+            bufferedWriter.SetupGet(b => b.IsBuffering)
+                          .Returns(true);
+            return mockWriter.Object;
         }
 
         private static ViewContext CreateViewContext(RazorView view)

@@ -1,6 +1,6 @@
 ﻿namespace Asp
 {
-#line 1 ""
+#line 1 "TestFiles/Input/Inject.cshtml"
 using MyNamespace
 
 #line default
@@ -8,7 +8,7 @@ using MyNamespace
     ;
     using System.Threading.Tasks;
 
-    public class __CompiledTemplate : Microsoft.AspNet.Mvc.Razor.RazorPage<dynamic>
+    public class TestFiles_Input_Inject_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<dynamic>
     {
         private static object @__o;
         private void @__RazorDesignTimeHelpers__()
@@ -17,13 +17,13 @@ using MyNamespace
             #pragma warning restore 219
         }
         #line hidden
-        public __CompiledTemplate()
+        public TestFiles_Input_Inject_cshtml()
         {
         }
         #line hidden
         [Microsoft.AspNet.Mvc.ActivateAttribute]
         public
-#line 2 ""
+#line 2 "TestFiles/Input/Inject.cshtml"
         MyApp MyPropertyName
 
 #line default

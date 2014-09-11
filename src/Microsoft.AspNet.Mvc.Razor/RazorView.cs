@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.PageExecution;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -15,6 +17,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IRazorPageFactory _pageFactory;
         private readonly IRazorPageActivator _pageActivator;
         private readonly IViewStartProvider _viewStartProvider;
+        private IPageExecutionListenerFeature _pageExecutionFeature;
         private IRazorPage _razorPage;
         private bool _isPartial;
 
@@ -50,6 +53,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(message);
             }
 
+            _pageExecutionFeature = context.HttpContext.GetFeature<IPageExecutionListenerFeature>();
             if (!_isPartial)
             {
                 var bodyWriter = await RenderPageAsync(_razorPage, context, executeViewStart: true);
@@ -61,38 +65,69 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        private async Task<RazorTextWriter> RenderPageAsync(IRazorPage page,
-                                                            ViewContext context,
-                                                            bool executeViewStart)
+        private async Task<IBufferedTextWriter> RenderPageAsync(IRazorPage page,
+                                                                ViewContext context,
+                                                                bool executeViewStart)
         {
-            using (var bufferedWriter = new RazorTextWriter(context.Writer, context.Writer.Encoding))
+            var razorTextWriter = new RazorTextWriter(context.Writer, context.Writer.Encoding);
+            TextWriter writer = razorTextWriter;
+            IBufferedTextWriter bufferedWriter = razorTextWriter;
+
+            if (_pageExecutionFeature != null)
             {
-                // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
-                // and ViewComponents to reference it.
-                var oldWriter = context.Writer;
-                context.Writer = bufferedWriter;
-
-                try
+                writer = _pageExecutionFeature.DecorateWriter(razorTextWriter);
+                bufferedWriter = writer as IBufferedTextWriter;
+                if (bufferedWriter == null)
                 {
-                    if (executeViewStart)
-                    {
-                        // Execute view starts using the same context + writer as the page to render.
-                        await RenderViewStartAsync(context);
-                    }
-
-                    await RenderPageCoreAsync(page, context);
-                    return bufferedWriter;
+                    var message = Resources.FormatInstrumentation_WriterMustBeBufferedTextWriter(
+                        nameof(TextWriter),
+                        _pageExecutionFeature.GetType().FullName,
+                        typeof(IBufferedTextWriter).FullName);
+                    throw new InvalidOperationException(message);
                 }
-                finally
+            }
+
+            // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
+            // and ViewComponents to reference it.
+            var oldWriter = context.Writer;
+            context.Writer = writer;
+
+            try
+            {
+                if (executeViewStart)
                 {
-                    context.Writer = oldWriter;
+                    // Execute view starts using the same context + writer as the page to render.
+                    await RenderViewStartAsync(context);
+                }
+
+                await RenderPageCoreAsync(page, context);
+                return bufferedWriter;
+            }
+            finally
+            {
+                context.Writer = oldWriter;
+                if (writer != razorTextWriter)
+                {
+                    // We don't need to dispose the RazorTextWriter instance since it no-ops
+                    writer.Dispose();
                 }
             }
         }
 
         private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
         {
+            IPageExecutionContext pageExecutionContext;
+            if (_pageExecutionFeature != null)
+            {
+                pageExecutionContext = _pageExecutionFeature.GetContext(page.Path, context.Writer);
+            }
+            else
+            {
+                pageExecutionContext = NullPageExectionContext.Instance;
+            }
+
             page.ViewContext = context;
+            page.PageExecutionContext = pageExecutionContext;
             _pageActivator.Activate(page, context);
             await page.ExecuteAsync();
         }
@@ -111,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         private async Task RenderLayoutAsync(ViewContext context,
-                                             RazorTextWriter bodyWriter)
+                                             IBufferedTextWriter bodyWriter)
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.

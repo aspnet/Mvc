@@ -2,8 +2,8 @@
 {
     using System.Threading.Tasks;
 
-    public class __CompiledTemplate : Microsoft.AspNet.Mvc.Razor.RazorPage<
-#line 1 ""
+    public class TestFiles_Input_InjectWithModel_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
+#line 1 "TestFiles/Input/InjectWithModel.cshtml"
        MyModel
 
 #line default
@@ -17,13 +17,13 @@
             #pragma warning restore 219
         }
         #line hidden
-        public __CompiledTemplate()
+        public TestFiles_Input_InjectWithModel_cshtml()
         {
         }
         #line hidden
         [Microsoft.AspNet.Mvc.ActivateAttribute]
         public
-#line 2 ""
+#line 2 "TestFiles/Input/InjectWithModel.cshtml"
         MyApp MyPropertyName
 
 #line default
@@ -31,7 +31,7 @@
         { get; private set; }
         [Microsoft.AspNet.Mvc.ActivateAttribute]
         public
-#line 3 ""
+#line 3 "TestFiles/Input/InjectWithModel.cshtml"
         MyService<MyModel> Html
 
 #line default

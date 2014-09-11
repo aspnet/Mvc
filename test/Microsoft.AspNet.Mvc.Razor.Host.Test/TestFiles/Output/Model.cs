@@ -2,8 +2,8 @@
 {
     using System.Threading.Tasks;
 
-    public class __CompiledTemplate : Microsoft.AspNet.Mvc.Razor.RazorPage<
-#line 1 ""
+    public class TestFiles_Input_Model_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
+#line 1 "TestFiles/Input/Model.cshtml"
        System.Collections.IEnumerable
 
 #line default
@@ -17,7 +17,7 @@
             #pragma warning restore 219
         }
         #line hidden
-        public __CompiledTemplate()
+        public TestFiles_Input_Model_cshtml()
         {
         }
         #line hidden
