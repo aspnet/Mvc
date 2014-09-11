@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>A new instance of <see cref="DataContractSerializer"/></returns>
-        public DataContractSerializer CreateSerializer([NotNull] Type type)
+        public virtual DataContractSerializer CreateSerializer([NotNull] Type type)
         {
             try
             {
@@ -61,8 +61,18 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
-            return base.CanWriteResult(context, contentType)
-                && (CreateSerializer(base.GetObjectType(context)) != null);
+            var savedContentType = context.SelectedContentType;
+            if (base.CanWriteResult(context, contentType))
+            {
+                if (CreateSerializer(base.GetObjectType(context)) != null)
+                {
+                    return true;
+                }
+
+                context.SelectedContentType = savedContentType;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
