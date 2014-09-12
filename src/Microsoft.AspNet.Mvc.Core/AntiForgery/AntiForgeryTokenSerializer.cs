@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
             Exception innerException = null;
             try
             {
-                var tokenBytes = UrlTokenDecode(serializedToken);
+                var tokenBytes = AntiForgeryTokenEncodingHelper.UrlTokenDecode(serializedToken);
                 using (var stream = new MemoryStream(_cryptoSystem.Unprotect(tokenBytes)))
                 {
                     using (var reader = new BinaryReader(stream))
@@ -127,65 +127,9 @@ namespace Microsoft.AspNet.Mvc
                     }
 
                     writer.Flush();
-                    return UrlTokenEncode(_cryptoSystem.Protect(stream.ToArray()));
+                    return AntiForgeryTokenEncodingHelper.UrlTokenEncode(_cryptoSystem.Protect(stream.ToArray()));
                 }
             }
-        }
-
-        private string UrlTokenEncode(byte[] input)
-        {
-            var base64String = Convert.ToBase64String(input);
-            if (string.IsNullOrEmpty(base64String))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder();
-            for (var i = 0; i < base64String.Length; i++)
-            {
-                switch (base64String[i])
-                {
-                    case '+':
-                        sb.Append('-');
-                        break;
-                    case '/':
-                        sb.Append('_');
-                        break;
-                    case '=':
-                        sb.Append('.');
-                        break;
-                    default:
-                        sb.Append(base64String[i]);
-                        break;
-                }
-            }
-
-            return sb.ToString();
-        }
-
-        private byte[] UrlTokenDecode(string input)
-        {
-            var sb = new StringBuilder();
-            for (var i = 0; i < input.Length; i++)
-            {
-                switch (input[i])
-                {
-                    case '-':
-                        sb.Append('+');
-                        break;
-                    case '_':
-                        sb.Append('/');
-                        break;
-                    case '.':
-                        sb.Append('=');
-                        break;
-                    default:
-                        sb.Append(input[i]);
-                        break;
-                }
-            }
-
-            return Convert.FromBase64String(sb.ToString());
         }
     }
 }
