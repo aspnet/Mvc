@@ -126,6 +126,8 @@ namespace Microsoft.AspNet.Mvc
 
             var methodInfoMap = new MethodToActionMap();
 
+            var routeGroupIdProvider = new RouteGroupIdProvider();
+
             var routeTemplateErrors = new List<string>();
             var attributeRoutingConfigurationErrors = new Dictionary<MethodInfo, string>();
 
@@ -164,7 +166,7 @@ namespace Microsoft.AspNet.Mvc
 
                             // Attribute routed actions will ignore conventional routed constraints. Instead they have
                             // a single route constraint "RouteGroup" associated with it.
-                            ReplaceRouteConstraints(actionDescriptor);
+                            ReplaceRouteConstraints(actionDescriptor, routeGroupIdProvider);
                         }
                     }
 
@@ -458,11 +460,11 @@ namespace Microsoft.AspNet.Mvc
                 rc => string.Equals(rc.RouteKey, routeKey, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static void ReplaceRouteConstraints(ReflectedActionDescriptor actionDescriptor)
+        private static void ReplaceRouteConstraints(
+            ReflectedActionDescriptor actionDescriptor,
+            RouteGroupIdProvider provider)
         {
-            var routeGroupValue = GetRouteGroupValue(
-                actionDescriptor.AttributeRouteInfo.Order,
-                actionDescriptor.AttributeRouteInfo.Template);
+            var routeGroupValue = provider.GetGroupId(actionDescriptor);
 
             var routeConstraints = new List<RouteDataActionConstraint>();
             routeConstraints.Add(new RouteDataActionConstraint(
@@ -797,12 +799,6 @@ namespace Microsoft.AspNet.Mvc
             return message;
         }
 
-        private static string GetRouteGroupValue(int order, string template)
-        {
-            var group = string.Format("{0}-{1}", order, template);
-            return ("__route__" + group).ToUpperInvariant();
-        }
-
         // We need to build a map of methods to reflected actions and reflected actions to
         // action descriptors so that we can validate later that no method produced attribute
         // and non attributed actions at the same time, and that no method that produced attribute
@@ -837,6 +833,80 @@ namespace Microsoft.AspNet.Mvc
                     reflectedActionMap.Add(action, actionDescriptors);
                     Add(action.ActionMethod, reflectedActionMap);
                 }
+            }
+        }
+
+        // Assigns route group values to each attribute routed action descriptors
+        // by giving each descriptor a sequential number as their route group and
+        // keeping track of the action descriptors for which it has provided a
+        // route group value.
+        // The value of the group id for an action descriptor will be their position
+        // on the list the first time we see that action descriptor. Other actions
+        // with the same route group will get the same route group value because we
+        // will scan the list for equivalent action descriptors before giving them
+        // a value.
+        // For example:
+        // Given the following controller
+        // public class CustomersController
+        // {
+        //     [HttpGet("Customers/Index")] // Action descriptor 1
+        //     public ActionResult Index() { }
+        // 
+        //     [HttpGet("Customers/Edit")] // Action descriptor 2
+        //     public ActionResult Edit() { }
+        // 
+        //     [HttpPut("Customers/{id}")] // Action descriptor 3
+        //     public ActionResult Put() { }
+        // 
+        //     [HttpPatch("Customers/{id}", Order = 1)] // Action descriptor 4
+        //     [HttpPatch("Customers/UpdateCustomer/{id}")] // Action descriptor 5
+        //     public ActionResult Patch() { }
+        // 
+        //     [HttpPut("Customers/{id}")] // Action descriptor 6
+        //     public ActionResult Delete() { }
+        // }
+        // Action descriptor 1 with template /Customers/Index and order 0 will have route group id 0.
+        // Action descriptor 2 with template /Customers/Edit and order 0 will have route group id 1
+        // Action descriptor 3 with template /Customers/{id} and order 0 will have route group id 2
+        // Action descriptor 4 with template /Customers/{id} and order 1 will have route group id 3
+        // Action descriptor 5 with template /Customers/UpdateCustomer/{id} and order 0 will have route group id 4
+        // Action descriptor 6 with template /Customers/{id} and order 0 will have route group id 5
+        // This class is not thread safe.
+        private class RouteGroupIdProvider
+        {
+            // Keeps tracks of the action descriptors we've already provided a
+            // group id for. The group id is their position on the list.
+            private readonly IList<ActionDescriptor> descriptors = new List<ActionDescriptor>();
+
+            public string GetGroupId(ActionDescriptor action)
+            {
+                for (var i = 0; i < descriptors.Count; i++)
+                {
+                    if (HaveSameRouteGroupId(action, descriptors[i]))
+                    {
+                        return i.ToString();
+                    }
+                }
+
+                var routeGroupId = descriptors.Count.ToString();
+                descriptors.Add(action);
+
+                return routeGroupId;
+            }
+
+            private static bool HaveSameRouteGroupId(ActionDescriptor left, ActionDescriptor right)
+            {
+                // Two action descriptors have the same route group id if they have the same
+                // route order and route template.
+
+                if (left.AttributeRouteInfo.Order != right.AttributeRouteInfo.Order)
+                {
+                    return false;
+                }
+
+                return left.AttributeRouteInfo.Template.Equals(
+                    right.AttributeRouteInfo.Template,
+                    StringComparison.OrdinalIgnoreCase);
             }
         }
     }
