@@ -366,7 +366,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelError_WithErrorString_ThrowsWhenMaxAllowedErrors_IsReached()
+        public void AddModelError_WithErrorString_AddsTooManyModelErrors_WhenMaxErrorsIsReached()
         {
             // Arrange
             var expected = "The maximum number of allowed model errors has been reached.";
@@ -378,10 +378,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary.AddModelError("key2", new Exception());
             dictionary.AddModelError("key3", new Exception());
             dictionary.AddModelError("key4", "error4");
+            dictionary.AddModelError("key5", "error5");
+            dictionary.AddModelError("key6", "error6");
 
             // Act and Assert
-            var ex = Assert.Throws<TooManyModelErrorsException>(() => dictionary.AddModelError("key5", "error5"));
-            Assert.Equal(expected, ex.Message);
+            var error = Assert.Single(dictionary[""].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
         }
 
         [Fact]
@@ -391,7 +394,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var expected = "The maximum number of allowed model errors has been reached.";
             var dictionary = new ModelStateDictionary
             {
-                MaxAllowedErrors = 4
+                MaxAllowedErrors = 3
             };
 
             // Act and Assert
@@ -402,19 +405,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(result);
 
             result = dictionary.TryAddModelError("key3", "error3");
-            Assert.True(result);
+            Assert.False(result);
 
             result = dictionary.TryAddModelError("key4", "error4");
             Assert.False(result);
-            var error = Assert.Single(dictionary[""].Errors);
 
-            Assert.Equal(4, dictionary.Count);
+            Assert.Equal(3, dictionary.Count);
+            var error = Assert.Single(dictionary[""].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
             Assert.Equal(expected, error.Exception.Message);
         }
 
         [Fact]
-        public void AddModelError_WithException_ThrowsWhenMaxAllowedErrors_IsReached()
+        public void AddModelError_WithException_AddsTooManyModelError_WhenMaxErrorIsReached()
         {
             // Arrange
             var expected = "The maximum number of allowed model errors has been reached.";
@@ -425,10 +428,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary.AddModelError("key1", new Exception());
             dictionary.AddModelError("key2", "error2");
             dictionary.AddModelError("key3", "error3");
+            dictionary.AddModelError("key3", new Exception());
+            dictionary.AddModelError("key4", new InvalidOperationException());
+            dictionary.AddModelError("key5", new FormatException());
 
             // Act and Assert
-            var ex = Assert.Throws<TooManyModelErrorsException>(() => dictionary.AddModelError("key4", new Exception()));
-            Assert.Equal(expected, ex.Message);
+            Assert.Equal(4, dictionary.Count);
+            var error = Assert.Single(dictionary[""].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
         }
 
         [Fact]
@@ -450,9 +458,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             result = dictionary.TryAddModelError("key3", new Exception());
             Assert.False(result);
-            var error = Assert.Single(dictionary[""].Errors);
 
             Assert.Equal(3, dictionary.Count);
+            var error = Assert.Single(dictionary[""].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
             Assert.Equal(expected, error.Exception.Message);
         }
@@ -464,7 +472,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var expected = "The maximum number of allowed model errors has been reached.";
             var dictionary = new ModelStateDictionary
             {
-                MaxAllowedErrors = 2
+                MaxAllowedErrors = 3
             };
 
             // Act
@@ -472,10 +480,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary.TryAddModelError("key3", new Exception());
 
             var copy = new ModelStateDictionary(dictionary);
+            copy.AddModelError("key2", "error2");
 
             // Assert
-            var ex = Assert.Throws<TooManyModelErrorsException>(() => copy.AddModelError("key2", "error2"));
-            Assert.Equal(expected, ex.Message);
+            Assert.Equal(3, copy.Count);
+            var error = Assert.Single(copy[""].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
         }
 
         private static ValueProviderResult GetValueProviderResult(object rawValue = null, string attemptedValue = null)

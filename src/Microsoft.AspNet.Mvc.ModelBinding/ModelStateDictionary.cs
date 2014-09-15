@@ -16,8 +16,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class ModelStateDictionary : IDictionary<string, ModelState>
     {
         private readonly IDictionary<string, ModelState> _innerDictionary;
-        private int _addedErrors;
-        private bool _recordedMaxError;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelStateDictionary"/> class.
@@ -38,8 +36,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                                              StringComparer.OrdinalIgnoreCase);
 
             MaxAllowedErrors = dictionary.MaxAllowedErrors;
-            _addedErrors = dictionary._addedErrors;
-            _recordedMaxError = dictionary._recordedMaxError;
+            AddedErrors = dictionary.AddedErrors;
+            HasRecordedMaxModelError = dictionary.HasRecordedMaxModelError;
         }
 
         /// <summary>
@@ -60,8 +58,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public bool CanRecordErrors
         {
-            get { return _addedErrors < MaxAllowedErrors; }
+            get { return AddedErrors < MaxAllowedErrors; }
         }
+
+        /// <summary>
+        /// Gets the number of recorded added to this instance of <see cref="ModelStateDictionary"/> via
+        /// <see cref="AddModelError(string, Exception)"/> and <see cref="AddModelError(string, string)"/>.
+        /// </summary>
+        public int AddedErrors { get; private set; }
 
         /// <inheritdoc />
         public int Count
@@ -124,6 +128,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             get { return _innerDictionary; }
         }
 
+        private bool HasRecordedMaxModelError { get; set; }
+
         /// <summary>
         /// Adds the specified <paramref name="exception"/> to the <see cref="ModelState.Errors"/> instance
         /// that is associated with the specified <paramref name="key"/>.
@@ -132,10 +138,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
         public void AddModelError([NotNull] string key, [NotNull] Exception exception)
         {
-            if (!TryAddModelError(key, exception))
-            {
-                throw new TooManyModelErrorsException(Resources.ModelStateDictionary_MaxModelStateErrors);
-            }
+            TryAddModelError(key, exception);
         }
 
         /// <summary>
@@ -153,16 +156,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </remarks>
         public bool TryAddModelError([NotNull] string key, [NotNull] Exception exception)
         {
-            if (_addedErrors >= MaxAllowedErrors - 1)
+            if (AddedErrors >= MaxAllowedErrors - 1)
             {
                 EnsureMaxErrorsReachedRecorded();
                 return false;
             }
 
-            _addedErrors++;
+            AddedErrors++;
 
             AddModelErrorCore(key, exception);
-
             return true;
         }
 
@@ -171,13 +173,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// that is associated with the specified <paramref name="key"/>.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelState"/> to add errors to.</param>
-        /// <param name="exception">The <see cref="Exception"/> to add.</param>
+        /// <param name="errorMessage">The error message to add.</param>
         public void AddModelError([NotNull] string key, [NotNull] string errorMessage)
         {
-            if (!TryAddModelError(key, errorMessage))
-            {
-                throw new TooManyModelErrorsException(Resources.ModelStateDictionary_MaxModelStateErrors);
-            }
+            TryAddModelError(key, errorMessage);
         }
 
         /// <summary>
@@ -186,7 +185,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// errors has already been recorded, records a <see cref="TooManyModelErrorsException"/> exception instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelState"/> to add errors to.</param>
-        /// <param name="exception">The <see cref="Exception"/> to add.</param>
+        /// <param name="errorMessage">The error message to add.</param>
         /// <returns>True if the error was added, false if the dictionary has already recorded 
         /// at least <see cref="MaxAllowedErrors"/> number of errors.</returns>
         /// <remarks>
@@ -195,13 +194,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </remarks>
         public bool TryAddModelError([NotNull] string key, [NotNull] string errorMessage)
         {
-            if (_addedErrors >= MaxAllowedErrors - 1)
+            if (AddedErrors >= MaxAllowedErrors - 1)
             {
                 EnsureMaxErrorsReachedRecorded();
                 return false;
             }
 
-            _addedErrors++;
+            AddedErrors++;
 
             var modelState = GetModelStateForKey(key);
             modelState.ValidationState = ModelValidationState.Invalid;
@@ -307,11 +306,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private void EnsureMaxErrorsReachedRecorded()
         {
-            if (!_recordedMaxError)
+            if (!HasRecordedMaxModelError)
             {
                 var exception = new TooManyModelErrorsException(Resources.ModelStateDictionary_MaxModelStateErrors);
                 AddModelErrorCore(string.Empty, exception);
-                _recordedMaxError = true;
+                HasRecordedMaxModelError = true;
             }
         }
 

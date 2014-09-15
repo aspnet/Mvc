@@ -307,7 +307,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.IsType<TooManyModelErrorsException>(context.ModelState[""].Errors[0].Exception);
             Assert.Equal("The RequiredString field is required.", 
                         context.ModelState["theKey.RequiredString"].Errors[0].ErrorMessage);
-            Assert.False(context.ModelState.ContainsKey("theKey.RangedInt"));
+            Assert.Equal("The field RangedInt must be between 10 and 30.",
+                         context.ModelState["theKey.RangedInt"].Errors[0].ErrorMessage);
             Assert.False(context.ModelState.ContainsKey("theKey.ValidString"));
         }
 

@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act & Assert
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => options.MaxModelValidationErrors = -1);
-            Assert.Equal("value", ex.Message);
+            Assert.Equal("value", ex.ParamName);
         }
     }
 }
