@@ -5,6 +5,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -37,9 +38,8 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>A new instance of <see cref="DataContractSerializer"/></returns>
-        public override object CreateSerializer([NotNull] Type type)
+        public virtual DataContractSerializer CreateSerializer([NotNull] Type type)
         {
-            DataContractSerializer serializer = null;
             try
             {
 #if ASPNET50
@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc
                 FormattingUtilities.XsdDataContractExporter.GetRootElementName(type);
 #endif
                 // If the serializer does not support this type it will throw an exception.
-                serializer = new DataContractSerializer(type);
+                return new DataContractSerializer(type);
             }
             catch (Exception)
             {
@@ -55,7 +55,24 @@ namespace Microsoft.AspNet.Mvc
                 // false, then this Formatter is not picked up at all.
             }
 
-            return serializer;
+            return null;
+        }
+
+        /// <inheritdoc />
+        public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        {
+            var savedContentType = context.SelectedContentType;
+            if (base.CanWriteResult(context, contentType))
+            {
+                if (CreateSerializer(base.GetObjectType(context)) != null)
+                {
+                    return true;
+                }
+
+                context.SelectedContentType = savedContentType;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
@@ -69,7 +86,7 @@ namespace Microsoft.AspNet.Mvc
             using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
-                var dataContractSerializer = (DataContractSerializer)CreateSerializer(GetObjectType(context));
+                var dataContractSerializer = CreateSerializer(GetObjectType(context));
                 dataContractSerializer.WriteObject(xmlWriter, context.Object);
             }
 

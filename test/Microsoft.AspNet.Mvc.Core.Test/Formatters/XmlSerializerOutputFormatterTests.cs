@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Moq;
@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void XmlDataContractSerializer_CanWriteResult_ReturnsTrue_ForWritableType()
+        public void XmlSerializer_CanWriteResult_ReturnsTrue_ForWritableType()
         {
             // Arrange
             var formatter = new XmlSerializerOutputFormatter();
@@ -198,6 +198,28 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Act & Assert
             Assert.True(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
+        }
+
+        [Fact]
+        public void XmlSerializer_CanWriteResult_DoesNotChangeContentType_WhenCreateSerializerThrows()
+        {
+            // Arrange
+            var formatter = new Mock<XmlSerializerOutputFormatter>();
+            formatter.CallBase = true;
+            formatter.Setup(o => o.CreateSerializer(It.IsAny<Type>())).Returns<XmlSerializer>(null);
+            var outputFormatterContext = GetOutputFormatterContext(outputValue: null,
+                outputType: typeof(string));
+            // Setting the header to a random value so that we can verify if it remains unchanged.
+            var sampleMediaTypeHeaderValue = MediaTypeHeaderValue.Parse("application/randomHeaderValue");
+            outputFormatterContext.SelectedContentType = sampleMediaTypeHeaderValue;
+
+            // Act
+            var result =
+                formatter.Object.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml"));
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal(sampleMediaTypeHeaderValue, outputFormatterContext.SelectedContentType);
         }
 
         [Fact]

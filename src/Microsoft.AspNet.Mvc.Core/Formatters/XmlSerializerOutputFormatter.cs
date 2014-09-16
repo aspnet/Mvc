@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -37,13 +38,12 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>A new instance of <see cref="XmlSerializer"/></returns>
-        public override object CreateSerializer([NotNull] Type type)
+        public virtual XmlSerializer CreateSerializer([NotNull] Type type)
         {
-            XmlSerializer serializer = null;
             try
             {
                 // If the serializer does not support this type it will throw an exception.
-                serializer = new XmlSerializer(type);
+                return new XmlSerializer(type);
             }
             catch (Exception)
             {
@@ -51,7 +51,24 @@ namespace Microsoft.AspNet.Mvc
                 // false, then this Formatter is not picked up at all.
             }
 
-            return serializer;
+            return null;
+        }
+
+        /// <inheritdoc />
+        public override bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        {
+            var savedContentType = context.SelectedContentType;
+            if (base.CanWriteResult(context, contentType))
+            {
+                if (CreateSerializer(base.GetObjectType(context)) != null)
+                {
+                    return true;
+                }
+
+                context.SelectedContentType = savedContentType;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
@@ -67,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
             using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
-                var xmlSerializer = (XmlSerializer)CreateSerializer(GetObjectType(context));
+                var xmlSerializer = CreateSerializer(GetObjectType(context));
                 xmlSerializer.Serialize(xmlWriter, context.Object);
             }
 

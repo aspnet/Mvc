@@ -209,6 +209,28 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.True(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
         }
 
+        [Fact]
+        public void XmlDataContractSerializer_CanWriteResult_DoesNotChangeContentType_WhenCreateSerializerThrows()
+        {
+            // Arrange
+            var formatter = new Mock<XmlDataContractSerializerOutputFormatter>();
+            formatter.CallBase = true;
+            formatter.Setup(o => o.CreateSerializer(It.IsAny<Type>())).Returns<DataContractSerializer>(null);
+            var outputFormatterContext = GetOutputFormatterContext(outputValue: null,
+                outputType: typeof(string));
+            // Setting the header to a random value so that we can verify if it remains unchanged.
+            var sampleMediaTypeHeaderValue = MediaTypeHeaderValue.Parse("application/randomHeaderValue");
+            outputFormatterContext.SelectedContentType = sampleMediaTypeHeaderValue;
+
+            // Act
+            var result =
+                formatter.Object.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml"));
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal(sampleMediaTypeHeaderValue, outputFormatterContext.SelectedContentType);
+        }
+
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
                                                         string contentType = "application/xml; charset=utf-8")
         {
