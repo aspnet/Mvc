@@ -32,12 +32,18 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
+        /// <inheritdoc />
+        protected override bool CanWriteType(Type declaredType, Type runtimeType)
+        {
+            return CreateSerializer(GetSerializableType(declaredType, runtimeType)) != null;
+        }
+
         /// <summary>
         /// Create a new instance of <see cref="XmlSerializer"/> for the given object type.
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>A new instance of <see cref="XmlSerializer"/></returns>
-        public override object CreateSerializer([NotNull] Type type)
+        protected virtual XmlSerializer CreateSerializer([NotNull] Type type)
         {
             XmlSerializer serializer = null;
             try
@@ -67,7 +73,8 @@ namespace Microsoft.AspNet.Mvc
             using (var outputStream = new DelegatingStream(innerStream))
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
-                var xmlSerializer = (XmlSerializer)CreateSerializer(GetObjectType(context));
+                var type = GetSerializableType(context.DeclaredType, context.Object?.GetType());
+                var xmlSerializer = CreateSerializer(type);
                 xmlSerializer.Serialize(xmlWriter, context.Object);
             }
 
