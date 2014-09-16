@@ -16,13 +16,16 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public abstract class OutputFormatter : IOutputFormatter
     {
+        // using a field so we can return it as both IList and IReadOnlyList
+        private readonly List<MediaTypeHeaderValue> _supportedMediaTypes;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="OutputFormatter"/> class.
         /// </summary>
         protected OutputFormatter()
         {
             SupportedEncodings = new List<Encoding>();
-            SupportedMediaTypes = new List<MediaTypeHeaderValue>();
+            _supportedMediaTypes = new List<MediaTypeHeaderValue>();
         }
 
         /// <summary>
@@ -36,7 +39,10 @@ namespace Microsoft.AspNet.Mvc
         /// Gets the mutable collection of <see cref="MediaTypeHeaderValue"/> elements supported by
         /// this <see cref="OutputFormatter"/>.
         /// </summary>
-        public IList<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
+        public IList<MediaTypeHeaderValue> SupportedMediaTypes
+        {
+            get { return _supportedMediaTypes; }
+        }
 
         /// <summary>
         /// Returns a value indicating whether or not the given type can be written by this serializer.
@@ -60,23 +66,25 @@ namespace Microsoft.AspNet.Mvc
                 return null;
             }
 
-            var mediaTypes = new List<MediaTypeHeaderValue>();
             if (contentType == null)
             {
-                mediaTypes.AddRange(SupportedMediaTypes);
+                // If contentType is null, then any type we support is valid.
+                return _supportedMediaTypes;
             }
             else
             {
-                foreach (var mediaType in SupportedMediaTypes)
+                var mediaTypes = new List<MediaTypeHeaderValue>();
+
+                foreach (var mediaType in _supportedMediaTypes)
                 {
                     if (mediaType.IsSubsetOf(contentType))
                     {
                         mediaTypes.Add(mediaType);
                     }
                 }
-            }
 
-            return mediaTypes;
+                return mediaTypes;
+            }
         }
 
         /// <summary>

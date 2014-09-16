@@ -45,19 +45,17 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>A new instance of <see cref="XmlSerializer"/></returns>
         protected virtual XmlSerializer CreateSerializer([NotNull] Type type)
         {
-            XmlSerializer serializer = null;
             try
             {
                 // If the serializer does not support this type it will throw an exception.
-                serializer = new XmlSerializer(type);
+                return new XmlSerializer(type);
             }
             catch (Exception)
             {
                 // We do not surface the caught exception because if CanWriteResult returns
                 // false, then this Formatter is not picked up at all.
+                return null;
             }
-
-            return serializer;
         }
 
         /// <inheritdoc />

@@ -45,7 +45,6 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>A new instance of <see cref="DataContractSerializer"/></returns>
         protected virtual DataContractSerializer CreateSerializer([NotNull] Type type)
         {
-            DataContractSerializer serializer = null;
             try
             {
 #if ASPNET50
@@ -53,15 +52,14 @@ namespace Microsoft.AspNet.Mvc
                 FormattingUtilities.XsdDataContractExporter.GetRootElementName(type);
 #endif
                 // If the serializer does not support this type it will throw an exception.
-                serializer = new DataContractSerializer(type);
+                return new DataContractSerializer(type);
             }
             catch (Exception)
             {
                 // We do not surface the caught exception because if CanWriteResult returns
                 // false, then this Formatter is not picked up at all.
+                return null;
             }
-
-            return serializer;
         }
 
         /// <inheritdoc />
@@ -76,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
             using (var xmlWriter = CreateXmlWriter(outputStream, tempWriterSettings))
             {
                 var type = GetSerializableType(context.DeclaredType, context.Object?.GetType());
-                var dataContractSerializer = (DataContractSerializer)CreateSerializer(type);
+                var dataContractSerializer = CreateSerializer(type);
                 dataContractSerializer.WriteObject(xmlWriter, context.Object);
             }
 
