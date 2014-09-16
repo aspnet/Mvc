@@ -27,7 +27,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             var sampleInputInt = 10;
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<DummyClass><SampleInt>" + sampleInputInt.ToString() + "</SampleInt></DummyClass>";
+                "<DummyClass xmlns=\"http://schemas.datacontract.org/2004/07/FormatterWebSite\"><SampleInt>"
+                + sampleInputInt.ToString() + "</SampleInt></DummyClass>";
             var content = new StringContent(input, Encoding.UTF8, "application/xml");
 
             // Act
