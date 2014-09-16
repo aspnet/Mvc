@@ -41,6 +41,48 @@ namespace Microsoft.AspNet.Mvc.Core
             public TestLevelOne TestOne { get; set; }
         }
 
+        public static IEnumerable<object[]> BasicTypeValues
+        {
+            get
+            {
+                yield return new object[] { "sampleString",
+                    "<string xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">sampleString</string>" };
+                yield return new object[] { 5,
+                    "<int xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">5</int>" };
+                yield return new object[] { 5.43,
+                    "<double xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">5.43</double>" };
+                yield return new object[] { 'a',
+                    "<char xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">97</char>" };
+                yield return new object[] { new DummyClass { SampleInt = 10 },
+                    "<DummyClass xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                    "<SampleInt>10</SampleInt></DummyClass>" };
+                yield return new object[] { new Dictionary<string, string>() { { "Hello", "World" } },
+                    "<ArrayOfKeyValueOfstringstring xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" " + 
+                    "xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/Arrays\"><KeyValueOfstringstring>" + 
+                    "<Key>Hello</Key><Value>World</Value></KeyValueOfstringstring></ArrayOfKeyValueOfstringstring>" };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(BasicTypeValues))]
+        public async Task XmlDataContractSerializerOutputFormatterCanWriteBasicTypes(object input, string expectedOutput)
+        {
+            // Arrange
+            var formatter = new XmlDataContractSerializerOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(input, typeof(object));
+
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
+            Assert.Equal(expectedOutput,
+                new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8)
+                        .ReadToEnd());
+            Assert.True(outputFormatterContext.ActionContext.HttpContext.Response.Body.CanRead);
+        }
+
         [Fact]
         public async Task XmlDataContractSerializerOutputFormatterWritesSimpleTypes()
         {

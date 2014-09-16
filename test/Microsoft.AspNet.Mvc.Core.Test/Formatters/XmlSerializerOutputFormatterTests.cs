@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +30,39 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             public string SampleString { get; set; }
             public TestLevelOne TestOne { get; set; }
+        }
+
+        public static IEnumerable<object[]> BasicTypeValues
+        {
+            get
+            {
+                yield return new object[] { "sampleString", "<string>sampleString</string>" };
+                yield return new object[] { 5, "<int>5</int>" };
+                yield return new object[] { 5.43, "<double>5.43</double>" };
+                yield return new object[] { 'a', "<char>97</char>" };
+                yield return new object[] { new DummyClass { SampleInt = 10 }, "<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                    "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>" };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(BasicTypeValues))]
+        public async Task XmlSerializerOutputFormatterCanWriteBasicTypes(object input, string expectedOutput)
+        {
+            // Arrange
+            var formatter = new XmlSerializerOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(input, typeof(object));
+
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+            
+            // Assert
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
+            Assert.Equal(expectedOutput,
+                new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8)
+                        .ReadToEnd());
+            Assert.True(outputFormatterContext.ActionContext.HttpContext.Response.Body.CanRead);
         }
 
         [Fact]
@@ -189,7 +221,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void XmlDataContractSerializer_CanWriteResult_ReturnsTrue_ForWritableType()
+        public void XmlSerializer_CanWriteResult_ReturnsTrue_ForWritableType()
         {
             // Arrange
             var formatter = new XmlSerializerOutputFormatter();
@@ -198,6 +230,19 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Act & Assert
             Assert.True(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
+        }
+
+        [Fact]
+        public void XmlSerializer_CanWriteResult_ReturnsFalse_ForDictionaryTypes()
+        {
+            // Arrange
+            var dict = new Dictionary<string, string>();
+            dict.Add("Hello", "World");
+            var formatter = new XmlSerializerOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(dict, typeof(object));
+
+            // Act & Assert
+            Assert.False(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
         }
 
         [Fact]
