@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
@@ -39,18 +38,42 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         public IList<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
 
-        /// <inheritdoc />
-        public virtual IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(Type declaredType, Type runtimeType, MediaTypeHeaderValue contentType)
+        /// <summary>
+        /// Returns a value indicating whether or not the given type can be written by this serializer.
+        /// </summary>
+        /// <param name="declaredType">The declared type.</param>
+        /// <param name="runtimeType">The runtime type.</param>
+        /// <returns><c>true</c> if the type can be written, otherwise <c>false</c>.</returns>
+        protected virtual bool CanWriteType(Type declaredType, Type runtimeType)
         {
-            var mediaTypes = new List<MediaTypeHeaderValue>();
+            return true;
+        }
 
+        /// <inheritdoc />
+        public virtual IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(
+            Type declaredType,
+            Type runtimeType,
+            MediaTypeHeaderValue contentType)
+        {
+            if (!CanWriteType(declaredType, runtimeType))
+            {
+                return null;
+            }
+
+            var mediaTypes = new List<MediaTypeHeaderValue>();
             if (contentType == null)
             {
                 mediaTypes.AddRange(SupportedMediaTypes);
             }
             else
             {
-                mediaTypes.Add(SupportedMediaTypes.FirstOrDefault(mt => mt.IsSubsetOf(contentType)));
+                foreach (var mediaType in SupportedMediaTypes)
+                {
+                    if (mediaType.IsSubsetOf(contentType))
+                    {
+                        mediaTypes.Add(mediaType);
+                    }
+                }
             }
 
             return mediaTypes;
@@ -85,28 +108,14 @@ namespace Microsoft.AspNet.Mvc
             return encoding;
         }
 
-        /// <summary>
-        /// Gets the type of the object to be serialized.
-        /// </summary>
-        /// <param name="context">The context which contains the object to be serialized.</param>
-        /// <returns>The type of the object to be serialized.</returns>
-        public virtual Type GetObjectType([NotNull] OutputFormatterContext context)
-        {
-            if (context.DeclaredType == null ||
-                context.DeclaredType == typeof(object))
-            {
-                if (context.Object != null)
-                {
-                    return context.Object.GetType();
-                }
-            }
-
-            return context.DeclaredType;
-        }
-
         /// <inheritdoc />
         public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
+            if (!CanWriteType(context.DeclaredType, context.Object?.GetType()))
+            {
+                return false;
+            }
+
             MediaTypeHeaderValue mediaType = null;
             if (contentType == null)
             {
