@@ -1028,8 +1028,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             var action = Assert.Single(actions);
-            Assert.NotNull(action.GetExtension<ApiDescriptionActionExtensionData>());
-            Assert.True(action.GetExtension<ApiDescriptionActionExtensionData>().IsVisible);
+            Assert.NotNull(action.GetProperty<ApiDescriptionActionData>());
         }
 
         [Fact]
@@ -1045,11 +1044,10 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(2, actions.Count());
 
             var action = Assert.Single(actions, a => a.Name == "Edit");
-            Assert.NotNull(action.GetExtension<ApiDescriptionActionExtensionData>());
-            Assert.True(action.GetExtension<ApiDescriptionActionExtensionData>().IsVisible);
+            Assert.NotNull(action.GetProperty<ApiDescriptionActionData>());
 
             action = Assert.Single(actions, a => a.Name == "Create");
-            Assert.Null(action.GetExtension<ApiDescriptionActionExtensionData>());
+            Assert.Null(action.GetProperty<ApiDescriptionActionData>());
         }
 
         [Theory]
@@ -1067,7 +1065,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             var action = Assert.Single(actions);
-            Assert.Null(action.GetExtension<ApiDescriptionActionExtensionData>());
+            Assert.Null(action.GetProperty<ApiDescriptionActionData>());
         }
 
         [Fact]
@@ -1082,7 +1080,7 @@ namespace Microsoft.AspNet.Mvc.Test
             // Assert
 
             var action = Assert.Single(actions);
-            Assert.Null(action.GetExtension<ApiDescriptionActionExtensionData>().GroupName);
+            Assert.Null(action.GetProperty<ApiDescriptionActionData>().GroupName);
         }
 
         [Fact]
@@ -1097,7 +1095,7 @@ namespace Microsoft.AspNet.Mvc.Test
             // Assert
 
             var action = Assert.Single(actions);
-            Assert.Equal("Store", action.GetExtension<ApiDescriptionActionExtensionData>().GroupName);
+            Assert.Equal("Store", action.GetProperty<ApiDescriptionActionData>().GroupName);
         }
 
         [Fact]
@@ -1112,7 +1110,7 @@ namespace Microsoft.AspNet.Mvc.Test
             // Assert
 
             var action = Assert.Single(actions);
-            Assert.Equal("Blog", action.GetExtension<ApiDescriptionActionExtensionData>().GroupName);
+            Assert.Equal("Blog", action.GetProperty<ApiDescriptionActionData>().GroupName);
         }
 
         [Fact]
@@ -1128,10 +1126,10 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(2, actions.Count());
 
             var action = Assert.Single(actions, a => a.Name == "Edit");
-            Assert.Equal("Blog", action.GetExtension<ApiDescriptionActionExtensionData>().GroupName);
+            Assert.Equal("Blog", action.GetProperty<ApiDescriptionActionData>().GroupName);
 
             action = Assert.Single(actions, a => a.Name == "Create");
-            Assert.Equal("Store", action.GetExtension<ApiDescriptionActionExtensionData>().GroupName);
+            Assert.Equal("Store", action.GetProperty<ApiDescriptionActionData>().GroupName);
         }
 
         private ReflectedActionDescriptorProvider GetProvider(

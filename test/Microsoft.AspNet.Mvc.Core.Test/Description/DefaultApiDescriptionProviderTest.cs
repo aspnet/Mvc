@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Description
         {
             // Arrange
             var action = new ActionDescriptor();
-            action.SetExtension(new ApiDescriptionActionExtensionData() { IsVisible = true, });
+            action.SetExtension(new ApiDescriptionActionData());
 
             // Act
             var descriptions = GetDescriptions(action);
@@ -31,21 +31,7 @@ namespace Microsoft.AspNet.Mvc.Description
         }
 
         [Fact]
-        public void GetApiDescription_IgnoresNonVisible()
-        {
-            // Arrange
-            var action = new ReflectedActionDescriptor();
-            action.SetExtension(new ApiDescriptionActionExtensionData() { IsVisible = false, });
-
-            // Act
-            var descriptions = GetDescriptions(action);
-
-            // Assert
-            Assert.Empty(descriptions);
-        }
-
-        [Fact]
-        public void GetApiDescription_IgnoresActionWithoutApiExplorerExtensionData()
+        public void GetApiDescription_IgnoresActionWithoutApiExplorerData()
         {
             // Arrange
             var action = new ReflectedActionDescriptor();
@@ -62,7 +48,6 @@ namespace Microsoft.AspNet.Mvc.Description
         {
             // Arrange
             var action = CreateActionDescriptor();
-            action.GetExtension<ApiDescriptionActionExtensionData>();
 
             // Act
             var descriptions = GetDescriptions(action);
@@ -77,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.Description
         {
             // Arrange
             var action = CreateActionDescriptor();
-            action.GetExtension<ApiDescriptionActionExtensionData>().GroupName = "Customers";
+            action.GetProperty<ApiDescriptionActionData>().GroupName = "Customers";
 
             // Act
             var descriptions = GetDescriptions(action);
@@ -386,10 +371,7 @@ namespace Microsoft.AspNet.Mvc.Description
         private ReflectedActionDescriptor CreateActionDescriptor(string methodName = null)
         {
             var action = new ReflectedActionDescriptor();
-            action.SetExtension(new ApiDescriptionActionExtensionData()
-            {
-                IsVisible = true,
-            });
+            action.SetExtension(new ApiDescriptionActionData());
 
             action.MethodInfo = GetType().GetMethod(
                 methodName ?? "ReturnsObject",

@@ -357,13 +357,12 @@ namespace Microsoft.AspNet.Mvc
             var apiExplorerIsVisible = action.ApiExplorerIsVisible ?? controller.ApiExplorerIsVisible ?? false;
             if (apiExplorerIsVisible)
             {
-                var apiExplorerActionExtensionData = new ApiDescriptionActionExtensionData();
-                apiExplorerActionExtensionData.IsVisible = true;
-                apiExplorerActionExtensionData.GroupName =
-                    action.ApiExplorerGroupName ??
-                    controller.ApiExplorerGroupName;
+                var apiExplorerActionData = new ApiDescriptionActionData()
+                {
+                    GroupName = action.ApiExplorerGroupName ?? controller.ApiExplorerGroupName,
+                };  
 
-                actionDescriptor.SetExtension(apiExplorerActionExtensionData);
+                actionDescriptor.SetExtension(apiExplorerActionData);
             }
         }
 

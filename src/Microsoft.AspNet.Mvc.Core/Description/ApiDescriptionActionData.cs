@@ -5,15 +5,10 @@ namespace Microsoft.AspNet.Mvc.Description
 {
     /// <summary>
     /// Represents data used to build an <see cref="ApiDescription"/>, stored as part of the 
-    /// <see cref="ActionDescriptor.ExtensionData"/>.
+    /// <see cref="ActionDescriptor.Properties"/>.
     /// </summary>
-    public class ApiDescriptionActionExtensionData
+    public class ApiDescriptionActionData
     {
-        /// <summary>
-        /// If <c>true</c>, then <see cref="ApiDescription"/> objects should be created for the associated action.
-        /// </summary>
-        public bool IsVisible { get; set; }
-
         /// <summary>
         /// The <see cref="ApiDescription.GroupName"/> of <see cref="ApiDescription"/> objects for the associated 
         /// action.

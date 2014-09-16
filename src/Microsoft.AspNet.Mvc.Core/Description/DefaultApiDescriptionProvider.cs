@@ -41,8 +41,8 @@ namespace Microsoft.AspNet.Mvc.Description
         {
             foreach (var action in context.Actions.OfType<ReflectedActionDescriptor>())
             {
-                var extensionData = action.GetExtension<ApiDescriptionActionExtensionData>();
-                if (extensionData != null && extensionData.IsVisible)
+                var extensionData = action.GetProperty<ApiDescriptionActionData>();
+                if (extensionData != null)
                 {
                     var httpMethods = GetHttpMethods(action);
                     foreach (var httpMethod in httpMethods)

@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.Description
         /// </summary>
         public ApiDescription()
         {
-            ExtensionData = new Dictionary<Type, object>();
+            Properties = new Dictionary<object, object>();
             ParameterDescriptions = new List<ApiParameterDescription>();
             SupportedResponseFormats = new List<ApiResponseFormat>();
         }
@@ -26,11 +26,6 @@ namespace Microsoft.AspNet.Mvc.Description
         /// The <see cref="ActionDescriptor"/> for this api.
         /// </summary>
         public ActionDescriptor ActionDescriptor { get; set; }
-
-        /// <summary>
-        /// Stores arbitrary extension metadata associated with the <see cref="ApiDescription"/>.
-        /// </summary>
-        public IDictionary<Type, object> ExtensionData { get; private set; }
 
         /// <summary>
         /// The group name for this api.
@@ -46,6 +41,11 @@ namespace Microsoft.AspNet.Mvc.Description
         /// The list of <see cref="ApiParameterDescription"/> for this api.
         /// </summary>
         public List<ApiParameterDescription> ParameterDescriptions { get; private set; }
+
+        /// <summary>
+        /// Stores arbitrary metadata properties associated with the <see cref="ApiDescription"/>.
+        /// </summary>
+        public IDictionary<object, object> Properties { get; private set; }
 
         /// <summary>
         /// The relative url path template (relative to application root) for this api.
@@ -77,33 +77,5 @@ namespace Microsoft.AspNet.Mvc.Description
         /// <see cref="ProducesAttribute"/> on an action method to specify a response type.
         /// </remarks>
         public IList<ApiResponseFormat> SupportedResponseFormats { get; private set; }
-
-        /// <summary>
-        /// Gets the value of an extension data from the <see cref="ExtensionData"/> collection.
-        /// </summary>
-        /// <typeparam name="T">The type of the extension data.</typeparam>
-        /// <returns>The extension data or the default value of <typeparamref name="T"/>.</returns>
-        public T GetExtension<T>()
-        {
-            object value;
-            if (ExtensionData.TryGetValue(typeof(T), out value))
-            {
-                return (T)value;
-            }
-            else
-            {
-                return default(T);
-            }
-        }
-
-        /// <summary>
-        /// Sets the value of an extension data in the <see cref="ExtensionData"/> collection.
-        /// </summary>
-        /// <typeparam name="T">The type of the extension data.</typeparam>
-        /// <param name="value">The value of an extension data.</param>
-        public void SetExtension<T>([NotNull] T value)
-        {
-            ExtensionData[typeof(T)] = value;
-        }
     }
 }
