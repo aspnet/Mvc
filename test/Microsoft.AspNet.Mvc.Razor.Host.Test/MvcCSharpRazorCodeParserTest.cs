@@ -338,6 +338,37 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
+        public void ParseInjectKeyword_ErrorOnMissingTypeName_WhenTypeNameEndsWithEOF()
+        {
+            // Arrange
+            var errors = new List<RazorError>();
+            var documentContent = "@inject    ";
+            var factory = SpanFactory.CreateCsHtml();
+            var expectedSpans = new Span[]
+            {
+                factory.EmptyHtml(),
+                factory.CodeTransition(SyntaxConstants.TransitionString)
+                    .Accepts(AcceptedCharacters.None),
+                factory.MetaCode("inject ")
+                    .Accepts(AcceptedCharacters.None),
+                factory.Code("   ")
+                    .As(new InjectParameterGenerator(string.Empty, string.Empty)),
+            };
+            var expectedErrors = new[]
+            {
+                 new RazorError("The 'inject' keyword must be followed by a type name on the same line.",
+                                new SourceLocation(11, 0, 11), 1)
+            };
+
+            // Act
+            var spans = ParseDocument(documentContent, errors);
+
+            // Assert
+            Assert.Equal(expectedSpans, spans);
+            Assert.Equal(expectedErrors, errors);
+        }
+
+        [Fact]
         public void ParseInjectKeyword_ErrorOnMissingPropertyName()
         {
             // Arrange
