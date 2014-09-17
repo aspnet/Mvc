@@ -26,6 +26,12 @@ namespace Microsoft.AspNet.Mvc
             options.ViewEngines.Add(typeof(RazorViewEngine));
 
             // Set up ModelBinding
+            options.ModelBinders.Add(new OptionDescriptors.ModelBinderDescriptor(typeof(BodyBinder)));
+            options.ModelBinders.Add(new OptionDescriptors.ModelBinderDescriptor(typeof(WellKnownTypeBinder)));
+            options.ModelBinders.Add(new OptionDescriptors.ModelBinderDescriptor(typeof(ServiceBinder)));
+            options.ModelBinders.Add(new HeaderBinder());
+            options.ModelBinders.Add(new FromQueryModelBinder());
+
             options.ModelBinders.Add(new TypeConverterModelBinder());
             options.ModelBinders.Add(new TypeMatchModelBinder());
             options.ModelBinders.Add(new ByteArrayModelBinder());
@@ -38,6 +44,7 @@ namespace Microsoft.AspNet.Mvc
             options.OutputFormatters.Add(new TextPlainFormatter());
             options.OutputFormatters.Add(new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(),
                                          indent: false));
+
             options.OutputFormatters.Add(
                 new XmlDataContractSerializerOutputFormatter(XmlOutputFormatter.GetDefaultXmlWriterSettings()));
             options.OutputFormatters.Add(

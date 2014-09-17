@@ -33,7 +33,6 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IOptionsSetup<MvcOptions>, MvcOptionsSetup>();
 
             yield return describe.Transient<IControllerFactory, DefaultControllerFactory>();
-            yield return describe.Singleton<IControllerActivator, DefaultControllerActivator>();
 
             yield return describe.Singleton<IActionSelectorDecisionTreeProvider, ActionSelectorDecisionTreeProvider>();
             yield return describe.Scoped<IActionSelector, DefaultActionSelector>();

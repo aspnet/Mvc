@@ -30,12 +30,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private string _simpleDisplayText;
         private bool _showForDisplay = true;
         private bool _showForEdit = true;
+        private bool? forceBindProperties = null;
 
         public ModelMetadata([NotNull] IModelMetadataProvider provider,
                              Type containerType,
                              Func<object> modelAccessor,
                              [NotNull] Type modelType,
-                             string propertyName)
+                             string propertyName, 
+                             IBinderMarker marker = null)
         {
             Provider = provider;
 
@@ -46,7 +48,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             _convertEmptyStringToNull = true;
             _isRequired = !modelType.AllowsNullValue();
+            Marker = marker;
         }
+
+        public IBinderMarker Marker { get; set; }
 
         public Type ContainerType
         {
@@ -150,6 +155,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         public virtual string NullDisplayText { get; set; }
+
+        public bool ForceBindProperties
+        {
+            get
+            {
+                if (!forceBindProperties.HasValue)
+                {
+                    forceBindProperties = !Properties.Any(property => property.Marker == null) || 
+                                          Properties.Any(property => property.Marker != null && 
+                                                         property.Marker.ForceBind);
+                }
+
+                return forceBindProperties.Value;
+            }
+        }
 
         public virtual IEnumerable<ModelMetadata> Properties
         {

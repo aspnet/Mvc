@@ -234,50 +234,60 @@ namespace Microsoft.AspNet.Mvc
             for (var i = 0; i < parameters.Count; i++)
             {
                 var parameter = parameters[i];
-                if (parameter.BodyParameterInfo != null)
-                {
-                    var parameterType = parameter.BodyParameterInfo.ParameterType;
-                    var formatterContext = new InputFormatterContext(actionBindingContext.ActionContext,
-                                                                     parameterType);
-                    var inputFormatter = actionBindingContext.InputFormatterSelector.SelectFormatter(
-                        formatterContext);
-                    if (inputFormatter == null)
-                    {
-                        var request = ActionContext.HttpContext.Request;
-                        var unsupportedContentType = Resources.FormatUnsupportedContentType(request.ContentType);
-                        ActionContext.ModelState.AddModelError(parameter.Name, unsupportedContentType);
-                    }
-                    else
-                    {
-                        parameterValues[parameter.Name] = await inputFormatter.ReadAsync(formatterContext);
-                    }
-                }
-                else
-                {
-                    var parameterType = parameter.ParameterBindingInfo.ParameterType;
-                    var modelMetadata = metadataProvider.GetMetadataForType(
-                        modelAccessor: null,
-                        modelType: parameterType);
+                var parameterType = parameter.ParameterBindingInfo.ParameterType;
+                var modelMetadata = metadataProvider.GetMetadataForParameter(
+                    modelAccessor: null,
+                    parameterType: parameterType,
+                    parameterAttributes: parameter.ParameterBindingInfo.Attributes, 
+                    parameterName: parameter.Name);
 
-                    var modelBindingContext = new ModelBindingContext
-                    {
-                        ModelName = parameter.Name,
-                        ModelState = modelState,
-                        ModelMetadata = modelMetadata,
-                        ModelBinder = actionBindingContext.ModelBinder,
-                        ValueProvider = actionBindingContext.ValueProvider,
-                        ValidatorProvider = actionBindingContext.ValidatorProvider,
-                        MetadataProvider = metadataProvider,
-                        HttpContext = actionBindingContext.ActionContext.HttpContext,
-                        FallbackToEmptyPrefix = true
-                    };
-                    if (await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext))
-                    {
-                        parameterValues[parameter.Name] = modelBindingContext.Model;
-                    }
+                var modelBindingContext = new ModelBindingContext
+                {
+                    ModelName = parameter.Name,
+                    ModelState = modelState,
+                    ModelMetadata = modelMetadata,
+                    ModelBinder = actionBindingContext.ModelBinder,
+                    ValueProvider = actionBindingContext.ValueProvider,
+                    OriginalValueProvider = actionBindingContext.ValueProvider,
+                    ValidatorProvider = actionBindingContext.ValidatorProvider,
+                    MetadataProvider = metadataProvider,
+                    HttpContext = actionBindingContext.ActionContext.HttpContext,
+                    FallbackToEmptyPrefix = false,
+                    EnableValueProviderBindingForProperties = true
+                };
+
+                if (await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext))
+                {
+                    parameterValues[parameter.Name] = modelBindingContext.Model;
                 }
             }
 
+            // Activate controllerproperties.
+            var controllerType = ActionContext.Controller.GetType();
+            var controllerModelMetadata = metadataProvider.GetMetadataForType(
+                     modelAccessor: () => ActionContext.Controller,
+                     modelType: controllerType);
+
+            controllerModelMetadata.Marker = new BindAlwaysAttribute();
+            var controllerBindingContext = new ModelBindingContext
+            {
+                ModelName = controllerModelMetadata.DataTypeName,
+                ModelState = modelState,
+                ModelMetadata = controllerModelMetadata,
+                ModelBinder = actionBindingContext.ModelBinder,
+                ValueProvider = actionBindingContext.ValueProvider,
+                OriginalValueProvider = actionBindingContext.ValueProvider,
+                ValidatorProvider = actionBindingContext.ValidatorProvider,
+                MetadataProvider = metadataProvider,
+                HttpContext = actionBindingContext.ActionContext.HttpContext,
+                FallbackToEmptyPrefix = false,
+
+                // Bind only explicitly marked properties.
+                EnableValueProviderBindingForProperties = false,
+            };
+
+            // This will ensure that all properties explicitly bound by the marker will get activated.
+            await actionBindingContext.ModelBinder.BindModelAsync(controllerBindingContext);
             return parameterValues;
         }
 

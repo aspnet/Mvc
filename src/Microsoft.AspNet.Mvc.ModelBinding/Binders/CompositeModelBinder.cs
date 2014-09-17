@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -120,10 +121,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelName = modelName,
                 ModelState = oldBindingContext.ModelState,
                 ValueProvider = oldBindingContext.ValueProvider,
+                OriginalValueProvider = oldBindingContext.OriginalValueProvider,
                 ValidatorProvider = oldBindingContext.ValidatorProvider,
                 MetadataProvider = oldBindingContext.MetadataProvider,
                 ModelBinder = oldBindingContext.ModelBinder,
-                HttpContext = oldBindingContext.HttpContext
+                HttpContext = oldBindingContext.HttpContext, 
+                EnableValueProviderBindingForProperties = oldBindingContext.EnableValueProviderBindingForProperties
             };
 
             // validation is expensive to create, so copy it over if we can
@@ -133,6 +136,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return newBindingContext;
+        }
+
+        private static IValueProvider GetValueProvider(IBinderMarker marker, ModelBindingContext context)
+        {
+            if (typeof(FromQueryAttribute) == marker?.GetType())
+            {
+                return new ReadableStringCollectionValueProvider(context.HttpContext.Request.Query, CultureInfo.InvariantCulture);
+            }
+
+            return context.ValueProvider;
         }
     }
 }

@@ -43,6 +43,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelBinder = bindingContext.ModelBinder;
                 ValidatorProvider = bindingContext.ValidatorProvider;
                 HttpContext = bindingContext.HttpContext;
+                EnableValueProviderBindingForProperties = EnableValueProviderBindingForProperties;
+                OriginalValueProvider = bindingContext.ValueProvider;
             }
         }
 
@@ -128,9 +130,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public bool FallbackToEmptyPrefix { get; set; }
 
         /// <summary>
+        /// Tells the modelbinding system to also bind properties of a model without an explicit marker.
+        /// </summary>
+        public bool EnableValueProviderBindingForProperties { get; set; }
+
+        /// <summary>
         /// Gets or sets the <see cref="HttpContext"/> for the current request.
         /// </summary>
         public HttpContext HttpContext { get; set; }
+
+        /// <summary>
+        /// Gets the unaltered value provider.
+        /// Value providers can be filtered by specific model binders (like FromQuery).
+        /// </summary>
+        public IValueProvider OriginalValueProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IValueProvider"/> associated with this context.

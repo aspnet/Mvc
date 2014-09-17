@@ -11,15 +11,12 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ITypeActivator _typeActivator;
-        private readonly IControllerActivator _controllerActivator;
 
         public DefaultControllerFactory(IServiceProvider serviceProvider, 
-                                        ITypeActivator typeActivator,
-                                        IControllerActivator controllerActivator)
+                                        ITypeActivator typeActivator)
         {
             _serviceProvider = serviceProvider;
             _typeActivator = typeActivator;
-            _controllerActivator = controllerActivator;
         }
 
         public object CreateController(ActionContext actionContext)
@@ -38,8 +35,6 @@ namespace Microsoft.AspNet.Mvc
                 actionDescriptor.ControllerDescriptor.ControllerTypeInfo.AsType());
 
             actionContext.Controller = controller;
-            _controllerActivator.Activate(controller, actionContext);
-
             return controller;
         }
 
