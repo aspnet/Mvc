@@ -111,6 +111,40 @@ MyType2 @MyPropertyName2
         }
 
         [Fact]
+        public void Visit_WithDesignTimeHost_GeneratesPropertiesAndLinePragmas_ForPartialInjectChunks()
+        {
+            // Arrange
+            var expected = @"[Microsoft.AspNet.Mvc.ActivateAttribute]
+public
+#line 1 """"
+MyType1
+
+#line default
+#line hidden
+{ get; private set; }
+";
+            var writer = new CSharpCodeWriter();
+            var context = CreateContext();
+            context.Host.DesignTimeMode = true;
+
+            var visitor = new InjectChunkVisitor(writer, context, "Microsoft.AspNet.Mvc.ActivateAttribute");
+            var factory = SpanFactory.CreateCsHtml();
+            var node = (Span)factory.Code("Some code")
+                                    .As(new InjectParameterGenerator("MyType", "MyPropertyName"));
+
+            // Act
+            visitor.Accept(new Chunk[]
+            {
+                new LiteralChunk(),
+                new InjectChunk("MyType1", string.Empty) { Association = node },
+            });
+            var code = writer.GenerateCode();
+
+            // Assert
+            Assert.Equal(expected, code);
+        }
+
+        [Fact]
         public void InjectVisitor_GeneratesCorrectLineMappings()
         {
             // Arrange

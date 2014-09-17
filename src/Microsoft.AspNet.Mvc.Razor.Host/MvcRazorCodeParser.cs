@@ -131,6 +131,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                                                               propertyName.Trim());
 
             // Output the span and finish the block
+            CompleteBlock();
             Output(SpanKind.Code);
         }
 
