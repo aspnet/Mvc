@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
@@ -17,13 +16,16 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public abstract class OutputFormatter : IOutputFormatter
     {
+        // using a field so we can return it as both IList and IReadOnlyList
+        private readonly List<MediaTypeHeaderValue> _supportedMediaTypes;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="OutputFormatter"/> class.
         /// </summary>
         protected OutputFormatter()
         {
             SupportedEncodings = new List<Encoding>();
-            SupportedMediaTypes = new List<MediaTypeHeaderValue>();
+            _supportedMediaTypes = new List<MediaTypeHeaderValue>();
         }
 
         /// <summary>
@@ -37,23 +39,57 @@ namespace Microsoft.AspNet.Mvc
         /// Gets the mutable collection of <see cref="MediaTypeHeaderValue"/> elements supported by
         /// this <see cref="OutputFormatter"/>.
         /// </summary>
-        public IList<MediaTypeHeaderValue> SupportedMediaTypes { get; private set; }
+        public IList<MediaTypeHeaderValue> SupportedMediaTypes
+        {
+            get { return _supportedMediaTypes; }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether or not the given type can be written by this serializer.
+        /// </summary>
+        /// <param name="declaredType">The declared type.</param>
+        /// <param name="runtimeType">The runtime type.</param>
+        /// <returns><c>true</c> if the type can be written, otherwise <c>false</c>.</returns>
+        protected virtual bool CanWriteType(Type declaredType, Type runtimeType)
+        {
+            return true;
+        }
 
         /// <inheritdoc />
-        public virtual IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(Type declaredType, Type runtimeType, MediaTypeHeaderValue contentType)
+        public virtual IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(
+            Type declaredType,
+            Type runtimeType,
+            MediaTypeHeaderValue contentType)
         {
-            var mediaTypes = new List<MediaTypeHeaderValue>();
+            if (!CanWriteType(declaredType, runtimeType))
+            {
+                return null;
+            }
 
             if (contentType == null)
             {
-                mediaTypes.AddRange(SupportedMediaTypes);
+                // If contentType is null, then any type we support is valid.
+                return _supportedMediaTypes.Count > 0 ? _supportedMediaTypes : null;
             }
             else
             {
-                mediaTypes.Add(SupportedMediaTypes.FirstOrDefault(mt => mt.IsSubsetOf(contentType)));
-            }
+                List<MediaTypeHeaderValue> mediaTypes = null;
 
-            return mediaTypes;
+                foreach (var mediaType in _supportedMediaTypes)
+                {
+                    if (mediaType.IsSubsetOf(contentType))
+                    {
+                        if (mediaTypes == null)
+                        {
+                            mediaTypes = new List<MediaTypeHeaderValue>();
+                        }
+
+                        mediaTypes.Add(mediaType);
+                    }
+                }
+
+                return mediaTypes;
+            }
         }
 
         /// <summary>
@@ -85,28 +121,14 @@ namespace Microsoft.AspNet.Mvc
             return encoding;
         }
 
-        /// <summary>
-        /// Gets the type of the object to be serialized.
-        /// </summary>
-        /// <param name="context">The context which contains the object to be serialized.</param>
-        /// <returns>The type of the object to be serialized.</returns>
-        public virtual Type GetObjectType([NotNull] OutputFormatterContext context)
-        {
-            if (context.DeclaredType == null ||
-                context.DeclaredType == typeof(object))
-            {
-                if (context.Object != null)
-                {
-                    return context.Object.GetType();
-                }
-            }
-
-            return context.DeclaredType;
-        }
-
         /// <inheritdoc />
         public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
+            if (!CanWriteType(context.DeclaredType, context.Object?.GetType()))
+            {
+                return false;
+            }
+
             MediaTypeHeaderValue mediaType = null;
             if (contentType == null)
             {
