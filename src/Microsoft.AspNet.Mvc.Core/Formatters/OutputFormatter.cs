@@ -69,16 +69,21 @@ namespace Microsoft.AspNet.Mvc
             if (contentType == null)
             {
                 // If contentType is null, then any type we support is valid.
-                return _supportedMediaTypes;
+                return _supportedMediaTypes.Count > 0 ? _supportedMediaTypes : null;
             }
             else
             {
-                var mediaTypes = new List<MediaTypeHeaderValue>();
+                List<MediaTypeHeaderValue> mediaTypes = null;
 
                 foreach (var mediaType in _supportedMediaTypes)
                 {
                     if (mediaType.IsSubsetOf(contentType))
                     {
+                        if (mediaTypes == null)
+                        {
+                            mediaTypes = new List<MediaTypeHeaderValue>();
+                        }
+
                         mediaTypes.Add(mediaType);
                     }
                 }

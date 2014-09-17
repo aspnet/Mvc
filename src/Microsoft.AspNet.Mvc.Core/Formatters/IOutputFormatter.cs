@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc
         /// for the <paramref name="declaredType"/> and <paramref name="contentType"/>.
         /// </summary>
         /// <param name="declaredType">The declared type for which the supported content types are desired.</param>
-        /// <param name="instanceType">The runtime type for which the supported content types are desired.</param>
+        /// <param name="runtimeType">The runtime type for which the supported content types are desired.</param>
         /// <param name="contentType">
         /// The content type for which the supported content types are desired, or <c>null</c> if any content 
         /// type can be used.
@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc
         /// </remarks>
         IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(
             Type declaredType, 
-            Type instanceType, 
+            Type runtimeType, 
             MediaTypeHeaderValue contentType);
 
         /// <summary>

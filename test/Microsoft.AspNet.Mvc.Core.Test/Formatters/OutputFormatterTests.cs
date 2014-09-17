@@ -216,6 +216,45 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Single(contentTypes, ct => ct.RawValue == "application/json");
         }
 
+        [Fact]
+        public void GetSupportedContentTypes_ReturnsMatchingContentTypes_NoMatches()
+        {
+            // Arrange
+            var formatter = new TestOutputFormatter();
+
+            formatter.SupportedMediaTypes.Clear();
+            formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
+            formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/xml"));
+
+            // Act
+            var contentTypes = formatter.GetSupportedContentTypes(
+                typeof(int),
+                typeof(int),
+                contentType: MediaTypeHeaderValue.Parse("application/xml"));
+
+            // Assert
+            Assert.Null(contentTypes);
+        }
+
+        [Fact]
+        public void GetSupportedContentTypes_ReturnsAllContentTypes_ReturnsNullWithNoSupportedContentTypes()
+        {
+            // Arrange
+            var formatter = new TestOutputFormatter();
+
+            // Intentionally empty
+            formatter.SupportedMediaTypes.Clear();
+
+            // Act
+            var contentTypes = formatter.GetSupportedContentTypes(
+                typeof(int),
+                typeof(int),
+                contentType: null);
+
+            // Assert
+            Assert.Null(contentTypes);
+        }
+
         private class TypeSpecificFormatter : OutputFormatter
         {
             public List<Type> SupportedTypes { get; } = new List<Type>();
