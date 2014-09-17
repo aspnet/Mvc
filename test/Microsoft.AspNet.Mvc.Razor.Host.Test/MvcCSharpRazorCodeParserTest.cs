@@ -309,7 +309,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var errors = new List<RazorError>();
-            var documentContent = "@inject    \r\nBar";
+            var documentContent = "@inject    " + Environment.NewLine + "Bar";
             var factory = SpanFactory.CreateCsHtml();
             var expectedSpans = new Span[]
             {
@@ -361,6 +361,38 @@ namespace Microsoft.AspNet.Mvc.Razor
                 new RazorError("A property name must be specified when using the 'inject' statement. " +
                                "Format for a 'inject' statement is '@inject <Type Name> <Property Name>'.",
                                 new SourceLocation(20, 0, 20), 1)
+            };
+
+            // Act
+            var spans = ParseDocument(documentContent, errors);
+
+            // Assert
+            Assert.Equal(expectedSpans, spans);
+            Assert.Equal(expectedErrors, errors);
+        }
+
+        [Fact]
+        public void ParseInjectKeyword_ErrorOnMissingPropertyName_WhenTypeNameEndsWithEOF()
+        {
+            // Arrange
+            var errors = new List<RazorError>();
+            var documentContent = "@inject    IMyServi";
+            var factory = SpanFactory.CreateCsHtml();
+            var expectedSpans = new Span[]
+            {
+                factory.EmptyHtml(),
+                factory.CodeTransition(SyntaxConstants.TransitionString)
+                    .Accepts(AcceptedCharacters.None),
+                factory.MetaCode("inject ")
+                    .Accepts(AcceptedCharacters.None),
+                factory.Code("   IMyServi")
+                    .As(new InjectParameterGenerator("IMyServi", string.Empty)),
+            };
+            var expectedErrors = new[]
+            {
+                new RazorError("A property name must be specified when using the 'inject' statement. " +
+                               "Format for a 'inject' statement is '@inject <Type Name> <Property Name>'.",
+                                new SourceLocation(19, 0, 19), 1)
             };
 
             // Act

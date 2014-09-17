@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.Razor;
@@ -71,23 +72,24 @@ public MyType2 @MyPropertyName2 { get; private set; }
         public void Visit_WithDesignTimeHost_GeneratesPropertiesAndLinePragmas_ForInjectChunks()
         {
             // Arrange
-            var expected = @"[Microsoft.AspNet.Mvc.ActivateAttribute]
-public
-#line 1 """"
-MyType1 MyPropertyName1
-
-#line default
-#line hidden
-{ get; private set; }
-[Microsoft.AspNet.Mvc.ActivateAttribute]
-public
-#line 1 """"
-MyType2 @MyPropertyName2
-
-#line default
-#line hidden
-{ get; private set; }
-";
+            var expected = string.Join(Environment.NewLine,
+@"[Microsoft.AspNet.Mvc.ActivateAttribute]",
+@"public",
+@"#line 1 """"",
+@"MyType1 MyPropertyName1",
+"",
+@"#line default",
+@"#line hidden",
+@"{ get; private set; }",
+@"[Microsoft.AspNet.Mvc.ActivateAttribute]",
+@"public",
+@"#line 1 """"",
+@"MyType2 @MyPropertyName2",
+"",
+@"#line default",
+@"#line hidden",
+@"{ get; private set; }",
+"");
             var writer = new CSharpCodeWriter();
             var context = CreateContext();
             context.Host.DesignTimeMode = true;
