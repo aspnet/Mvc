@@ -239,16 +239,49 @@ namespace Microsoft.AspNet.Mvc.Core
             await formatter.WriteAsync(outputFormatterContext);
         }
 
-        [Fact]
-        public void XmlDataContractSerializer_CanWriteResult_ReturnsTrue_ForWritableType()
+        public static IEnumerable<object[]> TypesForCanWriteResult
+        {
+            get
+            {
+                yield return new object[] { null, typeof(string), true };
+                yield return new object[] { null, null, false };
+                yield return new object[] { new DummyClass { SampleInt = 5 }, null, true };
+                yield return new object[] { new DummyClass { SampleInt = 5 }, typeof(object), true };
+                yield return new object[] { null, typeof(object), true };
+                yield return new object[] {
+                    new Dictionary<string, string> { { "Hello", "world" } }, typeof(object), true };
+                yield return new object[] {
+                    new Dictionary<string, string> { { "Hello", "world" } }, typeof(Dictionary<string,string>), true };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(TypesForCanWriteResult))]
+        public void XmlDataContractSerializer_CanWriteResult(object input, Type declaredType, bool expectedOutput)
         {
             // Arrange
-            var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
-            var outputFormatterContext = GetOutputFormatterContext(null, typeof(Dictionary<string, string>));
+            var formatter = new XmlDataContractSerializerOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(input, declaredType);
 
-            // Act & Assert
-            Assert.True(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
+            // Act
+            var result = formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml"));
+
+            // Assert
+            Assert.Equal(expectedOutput, result);
+        }
+
+        [Fact]
+        public void XmlDataContractSerializer_GetSupportedContentTypes_Returns_SupportedTypes()
+        {
+            // Arrange
+            var formatter = new XmlDataContractSerializerOutputFormatter();
+
+            // Act
+            var resultArray = formatter.GetSupportedContentTypes(
+                typeof(DummyClass), typeof(DummyClass), MediaTypeHeaderValue.Parse("application/xml")).AsArray();
+
+            // Assert
+            Assert.Equal("application/xml", resultArray[0].RawValue);
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,

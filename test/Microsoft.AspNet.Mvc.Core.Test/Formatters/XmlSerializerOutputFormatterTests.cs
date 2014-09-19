@@ -208,41 +208,35 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.True(outputFormatterContext.ActionContext.HttpContext.Response.Body.CanRead);
         }
 
-        [Fact]
-        public void XmlSerializer_CanWriteResult_ReturnsFalse_ForNonWritableType()
+        public static IEnumerable<object[]> TypesForCanWriteResult
         {
-            // Arrange
-            var formatter = new XmlSerializerOutputFormatter();
-            var outputFormatterContext = GetOutputFormatterContext(outputValue: null,
-                outputType: typeof(Dictionary<string, string>));
-
-            // Act & Assert
-            Assert.False(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
+            get
+            {
+                yield return new object[] { null, typeof(string), true };
+                yield return new object[] { null, null, false };
+                yield return new object[] { new DummyClass { SampleInt = 5 }, null, true };
+                yield return new object[] { new DummyClass { SampleInt = 5 }, typeof(object), true };
+                yield return new object[] { null, typeof(object), true };
+                yield return new object[] {
+                    new Dictionary<string, string> { { "Hello", "world" } }, typeof(object), false };
+                yield return new object[] {
+                    new Dictionary<string, string> { { "Hello", "world" } }, typeof(Dictionary<string,string>), false };
+            }
         }
 
-        [Fact]
-        public void XmlSerializer_CanWriteResult_ReturnsTrue_ForWritableType()
+        [Theory]
+        [MemberData(nameof(TypesForCanWriteResult))]
+        public void XmlSerializer_CanWriteResult(object input, Type declaredType, bool expectedOutput)
         {
             // Arrange
             var formatter = new XmlSerializerOutputFormatter();
-            var outputFormatterContext = GetOutputFormatterContext(outputValue: null,
-                outputType: typeof(string));
+            var outputFormatterContext = GetOutputFormatterContext(input, declaredType);
 
-            // Act & Assert
-            Assert.True(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
-        }
+            // Act
+            var result = formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml"));
 
-        [Fact]
-        public void XmlSerializer_CanWriteResult_ReturnsFalse_ForDictionaryTypes()
-        {
-            // Arrange
-            var dict = new Dictionary<string, string>();
-            dict.Add("Hello", "World");
-            var formatter = new XmlSerializerOutputFormatter();
-            var outputFormatterContext = GetOutputFormatterContext(dict, typeof(object));
-
-            // Act & Assert
-            Assert.False(formatter.CanWriteResult(outputFormatterContext, MediaTypeHeaderValue.Parse("application/xml")));
+            // Assert
+            Assert.Equal(expectedOutput, result);
         }
 
         [Fact]
@@ -258,6 +252,20 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Act & Assert
             await formatter.WriteAsync(outputFormatterContext);
+        }
+
+        [Fact]
+        public void XmlSerializer_GetSupportedContentTypes_Returns_SupportedTypes()
+        {
+            // Arrange
+            var formatter = new XmlSerializerOutputFormatter();
+
+            // Act
+            var resultArray = formatter.GetSupportedContentTypes(
+                typeof(DummyClass), typeof(DummyClass), MediaTypeHeaderValue.Parse("application/xml")).AsArray();
+
+            // Assert
+            Assert.Equal("application/xml", resultArray[0].RawValue);
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
