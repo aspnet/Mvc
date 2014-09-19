@@ -36,5 +36,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(sampleInputInt.ToString(), await response.Content.ReadAsStringAsync());
         }
+
+        [Fact]
+        public async Task XmlSerializerFormatter_ThrowsOnIncorrectInputNamespace()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var sampleInputInt = 10;
+            var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<DummyClas xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "i:type=\"DerivedDummyClass\" xmlns=\"http://schemas.datacontract.org/2004/07/XmlSerializerWebSite\">" +
+                "<SampleInt>" + sampleInputInt.ToString() + "</SampleInt></DummyClass>";
+            var content = new StringContent(input, Encoding.UTF8, "application/xml");
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await client.PostAsync("http://localhost/Home/Index", content));
+        }
     }
 }
