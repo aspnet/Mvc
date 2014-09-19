@@ -104,8 +104,5 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("dummy", result.ParameterName);
             Assert.Equal(expectedSource, result.Source);
         }
-
-        // TODO: By default XmlSerializerInputFormatter is called because of the order in which
-        // the formatters are registered. Add a test to call into DataContractSerializerInputFormatter.
     }
 }
