@@ -22,6 +22,7 @@ namespace XmlSerializerWebSite
 
                 services.SetupOptions<MvcOptions>(options =>
                     {
+                        options.InputFormatters.RemoveAll(formatter => formatter != null);
                         options.InputFormatters.Insert(0, new XmlSerializerInputFormatter());
                     });
             });
