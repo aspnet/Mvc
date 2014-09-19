@@ -254,18 +254,39 @@ namespace Microsoft.AspNet.Mvc.Core
             await formatter.WriteAsync(outputFormatterContext);
         }
 
-        [Fact]
-        public void XmlSerializer_GetSupportedContentTypes_Returns_SupportedTypes()
+        public static IEnumerable<object[]> TypesForGetSupportedContentTypes
+        {
+            get
+            {
+                yield return new object[] { typeof(DummyClass), typeof(DummyClass), "application/xml" };
+                yield return new object[] { typeof(DummyClass), typeof(object), "application/xml" };
+                yield return new object[] { null, typeof(DummyClass), "application/xml" };
+                yield return new object[] { typeof(DummyClass), null, "application/xml" };
+                yield return new object[] { typeof(object), null, "application/xml" };
+                yield return new object[] { null, null, null };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(TypesForGetSupportedContentTypes))]
+        public void XmlSerializer_GetSupportedContentTypes_Returns_SupportedTypes(Type declaredType, Type runtimeType, object expectedOutput)
         {
             // Arrange
             var formatter = new XmlSerializerOutputFormatter();
 
             // Act
-            var resultArray = formatter.GetSupportedContentTypes(
-                typeof(DummyClass), typeof(DummyClass), MediaTypeHeaderValue.Parse("application/xml")).AsArray();
-
+            var result = formatter.GetSupportedContentTypes(
+                declaredType, runtimeType, MediaTypeHeaderValue.Parse("application/xml"));
+            
             // Assert
-            Assert.Equal("application/xml", resultArray[0].RawValue);
+            if(expectedOutput != null)
+            {
+                Assert.Equal(expectedOutput, (result.AsArray())[0].RawValue);
+            }
+            else
+            {
+                Assert.Equal(expectedOutput, result);
+            }
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
