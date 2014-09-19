@@ -15,12 +15,23 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         {
             // Arrange
             var cache = new CompilerCache();
-            var fileInfo = Mock.Of<IFileInfo>();
+            var fileInfo = new Mock<IFileInfo>();
+
+            fileInfo
+                .SetupGet(i => i.LastModified)
+                .Returns(DateTime.FromFileTimeUtc(10000));
+
             var type = GetType();
             var expected = UncachedCompilationResult.Successful(type, "hello world");
 
+            var runtimeFileInfo = new RelativeFileInfo()
+            {
+                FileInfo = fileInfo.Object,
+                RelativePath = "ab",
+            };
+
             // Act
-            var actual = cache.GetOrAdd(fileInfo, () => expected);
+            var actual = cache.GetOrAdd(runtimeFileInfo, () => expected);
 
             // Assert
             Assert.Same(expected, actual);
@@ -42,10 +53,16 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var type = GetType();
             var uncachedResult = UncachedCompilationResult.Successful(type, "hello world");
 
+            var runtimeFileInfo = new RelativeFileInfo()
+            {
+                FileInfo = fileInfo.Object,
+                RelativePath = "test",
+            };
+
             // Act
-            cache.GetOrAdd(fileInfo.Object, () => uncachedResult);
-            var actual1 = cache.GetOrAdd(fileInfo.Object, () => uncachedResult);
-            var actual2 = cache.GetOrAdd(fileInfo.Object, () => uncachedResult);
+            cache.GetOrAdd(runtimeFileInfo, () => uncachedResult);
+            var actual1 = cache.GetOrAdd(runtimeFileInfo, () => uncachedResult);
+            var actual2 = cache.GetOrAdd(runtimeFileInfo, () => uncachedResult);
 
             // Assert
             Assert.NotSame(uncachedResult, actual1);
