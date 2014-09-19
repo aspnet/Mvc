@@ -26,8 +26,7 @@
         "RoutingWebSite": "",
         "RazorWebSite": "",
         "ValueProvidersSite": "",
-        "XmlSerializerWebSite": "",
-        "Xunit.KRunner": "1.0.0-*"
+		"XmlSerializerWebSite": "",		"UrlHelperWebSite": "",        "Xunit.KRunner": "1.0.0-*"
     },
     "commands": {
         "test": "Xunit.KRunner"

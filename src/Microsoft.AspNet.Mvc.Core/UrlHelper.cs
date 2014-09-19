@@ -36,17 +36,28 @@ namespace Microsoft.AspNet.Mvc
         {
             var valuesDictionary = TypeHelper.ObjectToDictionary(values);
 
+            return Action(action, controller, valuesDictionary, protocol, host, fragment);
+        }
+
+        protected virtual string Action(
+            string action,
+            string controller,
+            IDictionary<string, object> values,
+            string protocol,
+            string host,
+            string fragment)
+        {
             if (action != null)
             {
-                valuesDictionary["action"] = action;
+                values["action"] = action;
             }
 
             if (controller != null)
             {
-                valuesDictionary["controller"] = controller;
+                values["controller"] = controller;
             }
 
-            var path = GeneratePathFromRoute(valuesDictionary);
+            var path = GeneratePathFromRoute(values);
             if (path == null)
             {
                 return null;
@@ -55,7 +66,7 @@ namespace Microsoft.AspNet.Mvc
             return GenerateUrl(protocol, host, path, fragment);
         }
 
-        public bool IsLocalUrl(string url)
+        public virtual bool IsLocalUrl(string url)
         {
             return
                 !string.IsNullOrEmpty(url) &&
@@ -70,7 +81,13 @@ namespace Microsoft.AspNet.Mvc
         public string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
         {
             var valuesDictionary = TypeHelper.ObjectToDictionary(values);
-            var path = GeneratePathFromRoute(routeName, valuesDictionary);
+
+            return RouteUrl(routeName, valuesDictionary, protocol, host, fragment);
+        }
+
+        protected virtual string RouteUrl(string routeName, IDictionary<string, object> values, string protocol, string host, string fragment)
+        {
+            var path = GeneratePathFromRoute(routeName, values);
             if (path == null)
             {
                 return null;
@@ -110,7 +127,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public string Content([NotNull] string contentPath)
+        public virtual string Content([NotNull] string contentPath)
         {
             return GenerateClientUrl(_httpContext.Request.PathBase, contentPath);
         }
