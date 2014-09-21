@@ -1345,7 +1345,8 @@ namespace Microsoft.AspNet.Mvc
                 filterProvider.Object,
                 controllerFactory,
                 actionDescriptor,
-                inputFormattersProvider.Object);
+                inputFormattersProvider.Object,
+                new DefaultBodyModelValidator());
 
             return invoker;
         }
@@ -1390,7 +1391,8 @@ namespace Microsoft.AspNet.Mvc
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      Mock.Of<IControllerFactory>(),
                                                      actionDescriptor,
-                                                     inputFormattersProvider.Object);
+                                                     inputFormattersProvider.Object,
+                                                     new DefaultBodyModelValidator());
 
             var modelStateDictionary = new ModelStateDictionary();
 
@@ -1449,7 +1451,8 @@ namespace Microsoft.AspNet.Mvc
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      Mock.Of<IControllerFactory>(),
                                                      actionDescriptor,
-                                                     inputFormattersProvider.Object);
+                                                     inputFormattersProvider.Object,
+                                                     new DefaultBodyModelValidator());
 
             var modelStateDictionary = new ModelStateDictionary();
 
@@ -1503,7 +1506,8 @@ namespace Microsoft.AspNet.Mvc
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      controllerFactory.Object,
                                                      actionDescriptor,
-                                                     inputFormattersProvider.Object);
+                                                     inputFormattersProvider.Object,
+                                                     new DefaultBodyModelValidator());
 
 
             var modelStateDictionary = new ModelStateDictionary();
@@ -1570,7 +1574,8 @@ namespace Microsoft.AspNet.Mvc
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      controllerFactory.Object,
                                                      actionDescriptor,
-                                                     inputFormattersProvider.Object);
+                                                     inputFormattersProvider.Object,
+                                                     new DefaultBodyModelValidator());
 
             // Act
             await invoker.InvokeAsync();
