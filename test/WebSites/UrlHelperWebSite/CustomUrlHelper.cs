@@ -39,14 +39,12 @@ namespace UrlHelperWebSite
             return ConvertToLowercaseUrl(base.Content(contentPath));
         }
 
-        protected override string RouteUrl(string routeName, IDictionary<string, object> values, 
-                                        string protocol, string host, string fragment)
+        public override string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
         {
             return ConvertToLowercaseUrl(base.RouteUrl(routeName, values, protocol, host, fragment));
         }
 
-        protected override string Action(string action, string controller, IDictionary<string, object> values, 
-                                        string protocol, string host, string fragment)
+        public override string Action(string action, string controller, object values, string protocol, string host, string fragment)
         {
             return ConvertToLowercaseUrl(base.Action(action, controller, values, protocol, host, fragment));
         }

@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly IServiceProvider _services = TestHelper.CreateServices("UrlHelperWebSite",
                                                        applicationPath: Path.Combine("..", "WebSites"));
         private readonly Action<IApplicationBuilder> _app = new UrlHelperWebSite.Startup().Configure;
-        private const string _cdnServerBaseUrl = "http://testcdn.com";
+        private const string _cdnServerBaseUrl = "http://cdn.contoso.com";
 
         [Theory]
         [InlineData("http://localhost/Home/UrlContent")]
