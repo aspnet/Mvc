@@ -5,8 +5,14 @@ using System;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
+    /// <summary>
+    /// Represents a marker used to identify a particular binder applies to an artifact.
+    /// </summary>
     public interface IBinderMarker
     {
+        /// <summary>
+        /// Set this to true to force the binding to occur.
+        /// </summary>
         bool ForceBind { get; set; }
     }
 }

@@ -30,15 +30,18 @@ namespace Microsoft.AspNet.Mvc
 
         private ResultExecutingContext _resultExecutingContext;
         private ResultExecutedContext _resultExecutedContext;
+        private IActionInvocationInfoBinder _actionInvocationBinder;
 
         public FilterActionInvoker(
             [NotNull] ActionContext actionContext,
             [NotNull] IActionBindingContextProvider bindingContextProvider,
-            [NotNull] INestedProviderManager<FilterProviderContext> filterProvider)
+            [NotNull] INestedProviderManager<FilterProviderContext> filterProvider, 
+            [NotNull] IActionInvocationInfoBinder actionInvocationBinder)
         {
             ActionContext = actionContext;
             _bindingProvider = bindingContextProvider;
             _filterProvider = filterProvider;
+            _actionInvocationBinder = actionInvocationBinder;
         }
 
         protected ActionContext ActionContext { get; private set; }
@@ -217,79 +220,13 @@ namespace Microsoft.AspNet.Mvc
         private async Task InvokeActionMethodWithFilters()
         {
             _cursor.SetStage(FilterStage.ActionFilters);
-
-            var arguments = await GetActionArguments(ActionContext.ModelState);
+            var actionBindingContext = await _bindingProvider.GetActionBindingContextAsync(ActionContext);
+            var arguments = await _actionInvocationBinder.GetActionInvocationInfoAsync(actionBindingContext);
             _actionExecutingContext = new ActionExecutingContext(ActionContext, _filters, arguments);
-
             await InvokeActionMethodFilter();
         }
 
-        internal async Task<IDictionary<string, object>> GetActionArguments(ModelStateDictionary modelState)
-        {
-            var actionBindingContext = await _bindingProvider.GetActionBindingContextAsync(ActionContext);
-            var parameters = ActionContext.ActionDescriptor.Parameters;
-            var metadataProvider = actionBindingContext.MetadataProvider;
-            var parameterValues = new Dictionary<string, object>(parameters.Count, StringComparer.Ordinal);
-
-            for (var i = 0; i < parameters.Count; i++)
-            {
-                var parameter = parameters[i];
-                var parameterType = parameter.ParameterBindingInfo.ParameterType;
-                var modelMetadata = metadataProvider.GetMetadataForParameter(
-                    modelAccessor: null,
-                    parameterType: parameterType,
-                    parameterAttributes: parameter.ParameterBindingInfo.Attributes, 
-                    parameterName: parameter.Name);
-
-                var modelBindingContext = new ModelBindingContext
-                {
-                    ModelName = parameter.Name,
-                    ModelState = modelState,
-                    ModelMetadata = modelMetadata,
-                    ModelBinder = actionBindingContext.ModelBinder,
-                    ValueProvider = actionBindingContext.ValueProvider,
-                    OriginalValueProvider = actionBindingContext.ValueProvider,
-                    ValidatorProvider = actionBindingContext.ValidatorProvider,
-                    MetadataProvider = metadataProvider,
-                    HttpContext = actionBindingContext.ActionContext.HttpContext,
-                    FallbackToEmptyPrefix = false,
-                    EnableValueProviderBindingForProperties = true
-                };
-
-                if (await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext))
-                {
-                    parameterValues[parameter.Name] = modelBindingContext.Model;
-                }
-            }
-
-            // Activate controllerproperties.
-            var controllerType = ActionContext.Controller.GetType();
-            var controllerModelMetadata = metadataProvider.GetMetadataForType(
-                     modelAccessor: () => ActionContext.Controller,
-                     modelType: controllerType);
-
-            controllerModelMetadata.Marker = new BindAlwaysAttribute();
-            var controllerBindingContext = new ModelBindingContext
-            {
-                ModelName = controllerModelMetadata.DataTypeName,
-                ModelState = modelState,
-                ModelMetadata = controllerModelMetadata,
-                ModelBinder = actionBindingContext.ModelBinder,
-                ValueProvider = actionBindingContext.ValueProvider,
-                OriginalValueProvider = actionBindingContext.ValueProvider,
-                ValidatorProvider = actionBindingContext.ValidatorProvider,
-                MetadataProvider = metadataProvider,
-                HttpContext = actionBindingContext.ActionContext.HttpContext,
-                FallbackToEmptyPrefix = false,
-
-                // Bind only explicitly marked properties.
-                EnableValueProviderBindingForProperties = false,
-            };
-
-            // This will ensure that all properties explicitly bound by the marker will get activated.
-            await actionBindingContext.ModelBinder.BindModelAsync(controllerBindingContext);
-            return parameterValues;
-        }
+        
 
         private async Task<ActionExecutedContext> InvokeActionMethodFilter()
         {

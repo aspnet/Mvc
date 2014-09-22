@@ -40,6 +40,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IActionInvokerFactory, ActionInvokerFactory>();
             yield return describe.Transient<IControllerAssemblyProvider, DefaultControllerAssemblyProvider>();
             yield return describe.Transient<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
+            yield return describe.Transient<IActionInvocationInfoBinder, DefaultActionInvocationInfoBinder>();
 
             // The host is designed to be discarded after consumption and is very inexpensive to initialize.
             yield return describe.Transient<IMvcRazorHost, MvcRazorHost>();

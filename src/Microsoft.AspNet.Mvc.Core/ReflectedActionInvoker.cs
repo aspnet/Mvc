@@ -22,8 +22,9 @@ namespace Microsoft.AspNet.Mvc
                                       [NotNull] INestedProviderManager<FilterProviderContext> filterProvider,
                                       [NotNull] IControllerFactory controllerFactory,
                                       [NotNull] ReflectedActionDescriptor descriptor,
-                                      [NotNull] IInputFormattersProvider inputFormattersProvider)
-            : base(actionContext, bindingContextProvider, filterProvider)
+                                      [NotNull] IInputFormattersProvider inputFormattersProvider,
+                                      [NotNull] IActionInvocationInfoBinder actionInvocationBinder)
+            : base(actionContext, bindingContextProvider, filterProvider, actionInvocationBinder)
         {
             _descriptor = descriptor;
             _controllerFactory = controllerFactory;

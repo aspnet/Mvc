@@ -51,6 +51,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Marker = marker;
         }
 
+        /// <summary>
+        /// Gets or sets a binder marker for this model.
+        /// </summary>
         public IBinderMarker Marker { get; set; }
 
         public Type ContainerType
@@ -156,6 +159,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public virtual string NullDisplayText { get; set; }
 
+        /// <summary>
+        /// Returns true if there is an immediate property of a model that is marked as force bind,
+        /// OR if all properties are marked using IBinderMarker.
+        /// </summary>
         public bool ForceBindProperties
         {
             get

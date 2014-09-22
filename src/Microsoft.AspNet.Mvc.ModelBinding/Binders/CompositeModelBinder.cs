@@ -137,15 +137,5 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             return newBindingContext;
         }
-
-        private static IValueProvider GetValueProvider(IBinderMarker marker, ModelBindingContext context)
-        {
-            if (typeof(FromQueryAttribute) == marker?.GetType())
-            {
-                return new ReadableStringCollectionValueProvider(context.HttpContext.Request.Query, CultureInfo.InvariantCulture);
-            }
-
-            return context.ValueProvider;
-        }
     }
 }

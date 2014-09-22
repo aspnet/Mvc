@@ -7,7 +7,7 @@ using MvcSample.Web.Models;
 
 namespace MvcSample.Web.RandomNameSpace
 {
-    public class BindingController
+    public class BindingController : Controller
     {
         // This should not be model bound by default.
         public int Count { get; set; }
@@ -19,6 +19,16 @@ namespace MvcSample.Web.RandomNameSpace
         // Should be model bound from services.
         [Activate]
         public IModelMetadataProvider ModelMetadataProvider { get; set; }
+
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            if (!context.ActionArguments.ContainsKey("Count2"))
+            {
+                context.ActionArguments["Count2"] = 123;
+            }
+
+            base.OnActionExecuting(context);
+        }
 
         // Assuming no values from the value providers:
         // acceptHeader is non null because of FromHeaderMarker on the parameter.
