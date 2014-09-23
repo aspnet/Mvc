@@ -222,13 +222,14 @@ MyType1
             }
         }
 
-        private static CodeGeneratorContext CreateContext()
+        private static CodeBuilderContext CreateContext()
         {
-            return CodeGeneratorContext.Create(new MvcRazorHost(new TestFileSystem()),
-                                              "MyClass",
-                                              "MyNamespace",
-                                              string.Empty,
-                                              shouldGenerateLinePragmas: true);
+            return new CodeBuilderContext(
+                new CodeGeneratorContext(new MvcRazorHost(new TestFileSystem()),
+                                         "MyClass",
+                                         "MyNamespace",
+                                         string.Empty,
+                                         shouldGenerateLinePragmas: true));
         }
 
         private static LineMapping BuildLineMapping(int documentAbsoluteIndex,
