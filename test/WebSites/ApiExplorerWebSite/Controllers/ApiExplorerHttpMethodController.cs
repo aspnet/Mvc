@@ -25,7 +25,6 @@ namespace ApiExplorer
         [HttpPut("MultipleActions")]
         public void MultipleActions()
         {
-
         }
     }
 }

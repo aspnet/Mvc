@@ -258,6 +258,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("GetObject", "ApiExplorer.Product")]
         [InlineData("GetIActionResult", "System.String")]
         [InlineData("GetProduct", "ApiExplorer.Customer")]
+        [InlineData("GetTask", "System.Int32")]
         public async Task ApiExplorer_ResponseType_KnownWithAttribute(string action, string type)
         {
             // Arrange
@@ -317,9 +318,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(4, formats.Count);
 
             var textXml = Assert.Single(formats, f => f.MediaType == "text/xml");
+            Assert.Equal(typeof(XmlDataContractSerializerOutputFormatter).FullName, textXml.FormatterType);
             var applicationXml = Assert.Single(formats, f => f.MediaType == "application/xml");
+            Assert.Equal(typeof(XmlDataContractSerializerOutputFormatter).FullName, applicationXml.FormatterType);
+
             var textJson = Assert.Single(formats, f => f.MediaType == "text/json");
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, textJson.FormatterType);
             var applicationJson = Assert.Single(formats, f => f.MediaType == "application/json");
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, applicationJson.FormatterType);
         }
 
         // uses [Produces("*/*")]
@@ -343,9 +349,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(4, formats.Count);
 
             var textXml = Assert.Single(formats, f => f.MediaType == "text/xml");
+            Assert.Equal(typeof(XmlDataContractSerializerOutputFormatter).FullName, textXml.FormatterType);
             var applicationXml = Assert.Single(formats, f => f.MediaType == "application/xml");
+            Assert.Equal(typeof(XmlDataContractSerializerOutputFormatter).FullName, applicationXml.FormatterType);
+
             var textJson = Assert.Single(formats, f => f.MediaType == "text/json");
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, textJson.FormatterType);
             var applicationJson = Assert.Single(formats, f => f.MediaType == "application/json");
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, applicationJson.FormatterType);
         }
 
         [Fact]
@@ -368,7 +379,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(2, formats.Count);
 
             var textXml = Assert.Single(formats, f => f.MediaType == "text/xml");
+            Assert.Equal(typeof(XmlDataContractSerializerOutputFormatter).FullName, textXml.FormatterType);
+
             var textJson = Assert.Single(formats, f => f.MediaType == "text/json");
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, textJson.FormatterType);
         }
 
         [Fact]
@@ -390,7 +404,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formats = description.SupportedResponseFormats;
             Assert.Equal(1, formats.Count);
 
-            var textJson = Assert.Single(formats, f => f.MediaType == "application/json");
+            var applicationJson = Assert.Single(formats, f => f.MediaType == "application/json");
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, applicationJson.FormatterType);
         }
 
         [Fact]

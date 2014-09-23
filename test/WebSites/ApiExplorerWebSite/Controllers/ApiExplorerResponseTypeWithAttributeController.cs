@@ -30,6 +30,13 @@ namespace ApiExplorer
         }
 
         [HttpGet]
+        [Produces("application/json", Type = typeof(int))]
+        public Task GetTask()
+        {
+            return null;
+        }
+
+        [HttpGet]
         [ProducesType(typeof(Customer))] // It's possible to lie about what type you return
         public Product GetProduct()
         {
