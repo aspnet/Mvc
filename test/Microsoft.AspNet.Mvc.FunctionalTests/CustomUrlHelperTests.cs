@@ -10,47 +10,51 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
+    /// <summary>
+    /// The tests here verify the extensibility of <see cref="UrlHelper"/>.
+    /// 
+    /// Following are some of the scenarios exercised here:
+    /// 1. Based on configuration, generate Content urls pointing to local or a CDN server
+    /// 2. Based on configuration, generate lower case urls
+    /// </summary>
     public class CustomUrlHelperTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("UrlHelperWebSite",
-                                                       applicationPath: Path.Combine("..", "WebSites"));
+        private readonly IServiceProvider _services = TestHelper.CreateServices("UrlHelperWebSite");
         private readonly Action<IApplicationBuilder> _app = new UrlHelperWebSite.Startup().Configure;
         private const string _cdnServerBaseUrl = "http://cdn.contoso.com";
 
-        [Theory]
-        [InlineData("http://localhost/Home/UrlContent")]
-        [InlineData("http://localhost/SimplePoco/UrlContent")]
-        public async Task CustomUrlHelperGeneratesUrlFromController(string url)
+        [Fact]
+        public async Task CustomUrlHelperGeneratesUrlFromController()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await client.GetAsync("http://localhost/Home/UrlContent");
 
+            string responseData = await response.Content.ReadAsStringAsync();
+            
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(_cdnServerBaseUrl + "/bootstrap.min.css", await response.Content.ReadAsStringAsync(),
-                        ignoreCase: false);
+            Assert.Equal(_cdnServerBaseUrl + "/bootstrap.min.css", responseData);
         }
 
-        [Theory]
-        [InlineData("http://localhost/Home/Index")]
-        [InlineData("http://localhost/SimplePoco/Index")]
-        public async Task CustomUrlHelperGeneratesUrlFromView(string url)
+        [Fact]
+        public async Task CustomUrlHelperGeneratesUrlFromView()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await client.GetAsync("http://localhost/Home/Index");
+
+            string responseData = await response.Content.ReadAsStringAsync();
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains(_cdnServerBaseUrl + "/bootstrap.min.css",
-                            await response.Content.ReadAsStringAsync());
+            Assert.Contains(_cdnServerBaseUrl + "/bootstrap.min.css", responseData);
         }
 
         [Theory]
@@ -65,10 +69,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Act
             var response = await client.GetAsync(url);
 
+            string responseData = await response.Content.ReadAsStringAsync();
+
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedLink, await response.Content.ReadAsStringAsync(),
-                        ignoreCase: false);
+            Assert.Equal(expectedLink, responseData, ignoreCase: false);
         }
     }
 }

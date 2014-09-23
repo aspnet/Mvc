@@ -21,6 +21,14 @@ namespace Microsoft.AspNet.Mvc
         private readonly IDictionary<string, object> _ambientValues;
         private readonly IActionSelector _actionSelector;
 
+        /// <summary>
+        /// Initializes a new instance of the UrlHelper class using the specified action context and action selector.
+        /// </summary>
+        /// <param name="contextAccessor">The <see cref="IContextAccessor{TContext}"/> to access the action context
+        /// of the current request</param>
+        /// <param name="actionSelector">The <see cref="IActionSelector"/> to be used for verifying the correctness of
+        /// supplied parameters for a route.
+        /// </param>
         public UrlHelper(IContextAccessor<ActionContext> contextAccessor, IActionSelector actionSelector)
         {
             _httpContext = contextAccessor.Value.HttpContext;
@@ -114,7 +122,14 @@ namespace Microsoft.AspNet.Mvc
             return GeneratePathFromRoute(routeName: null, values: values);
         }
 
-        private string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
+        /// <summary>
+        /// Generates the absolute path of the url for the specified route values by 
+        /// using the specified route name.
+        /// </summary>
+        /// <param name="routeName">The name of the route that is used to generate the URL.</param>
+        /// <param name="values">A dictionary that contains the parameters for a route</param>
+        /// <returns>The fully qualified URL.</returns>
+        protected virtual string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
         {
             var context = new VirtualPathContext(_httpContext, _ambientValues, values, routeName);
             var path = _router.GetVirtualPath(context);

@@ -8,18 +8,13 @@ namespace UrlHelperWebSite.Controllers
         private readonly IUrlHelper _urlHelper;
 
         public SimplePocoController(IUrlHelper urlHelper)
-	    {
-            _urlHelper = urlHelper;
-	    }
-
-        public IActionResult Index()
         {
-            return new ViewResult();
+            _urlHelper = urlHelper;
         }
 
-        public string UrlContent()
+        public string Get(int id)
         {
-            return _urlHelper.Content("~/bootstrap.min.css");
+            return "value:" + id;
         }
     }
 }
