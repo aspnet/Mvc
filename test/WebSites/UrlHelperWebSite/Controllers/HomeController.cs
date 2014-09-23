@@ -24,7 +24,7 @@ namespace UrlHelperWebSite.Controllers
 
         public string LinkByUrlRouteUrl()
         {
-            return Url.RouteUrl("RestApi", new { controller = "SimplePoco", id = 10 });
+            return Url.RouteUrl("SimplePocoApi", new { id = 10 });
         }
     }
 }

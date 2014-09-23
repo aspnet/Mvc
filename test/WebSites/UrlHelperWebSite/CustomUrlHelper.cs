@@ -7,6 +7,11 @@ using Microsoft.Framework.OptionsModel;
 
 namespace UrlHelperWebSite
 {
+    /// <summary>
+    /// Following are some of the scenarios exercised here:
+    /// 1. Based on configuration, generate Content urls pointing to local or a CDN server
+    /// 2. Based on configuration, generate lower case urls
+    /// </summary>
     public class CustomUrlHelper : UrlHelper
     {
         private readonly IOptionsAccessor<AppOptions> _appOptions;

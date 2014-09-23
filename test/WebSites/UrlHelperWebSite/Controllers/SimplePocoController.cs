@@ -3,6 +3,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace UrlHelperWebSite.Controllers
 {
+    [Route("api/[controller]/{id?}", Name = "SimplePocoApi")]
     public class SimplePocoController
     {
         private readonly IUrlHelper _urlHelper;
@@ -12,7 +13,8 @@ namespace UrlHelperWebSite.Controllers
             _urlHelper = urlHelper;
         }
 
-        public string Get(int id)
+        [HttpGet]
+        public string GetById(int id)
         {
             return "value:" + id;
         }

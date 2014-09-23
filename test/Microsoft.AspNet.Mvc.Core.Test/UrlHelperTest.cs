@@ -629,10 +629,4 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return rt.Build();
         }
     }
-
-    public class Person
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
 }

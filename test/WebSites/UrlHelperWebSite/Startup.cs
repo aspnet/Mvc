@@ -34,8 +34,6 @@ namespace UrlHelperWebSite
             app.UseMvc(routes =>
             {
                 routes.MapRoute("Default", "{controller=Home}/{action=Index}");
-
-                routes.MapRoute("RestApi", "api/{controller}/{id?}");
             });
         }
     }

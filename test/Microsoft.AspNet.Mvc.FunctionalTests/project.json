@@ -9,7 +9,7 @@
         "BasicWebSite": "",
         "CompositeViewEngine": "",
         "ConnegWebsite": "",
-        "FiltersWebSite":  "",
+        "FiltersWebSite": "",
         "FormatterWebSite": "",
         "InlineConstraintsWebSite": "",
         "Microsoft.AspNet.TestHost": "1.0.0-*",
@@ -26,7 +26,9 @@
         "RoutingWebSite": "",
         "RazorWebSite": "",
         "ValueProvidersSite": "",
-		"XmlSerializerWebSite": "",		"UrlHelperWebSite": "",        "Xunit.KRunner": "1.0.0-*"
+        "XmlSerializerWebSite": "",
+        "UrlHelperWebSite": "",
+        "Xunit.KRunner": "1.0.0-*"
     },
     "commands": {
         "test": "Xunit.KRunner"
