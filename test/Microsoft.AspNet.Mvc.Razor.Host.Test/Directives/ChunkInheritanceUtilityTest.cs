@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.Razor.Host.TagHelpers;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Moq;
 using Xunit;
@@ -28,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 }
 
 ");
-            var host = new MvcRazorHost(fileSystem);
+            var host = new MvcRazorHost(fileSystem, new MvcTagHelperTypeResolver());
             var utility = new ChunkInheritanceUtility(new CodeTree(), new Chunk[0], "dynamic");
 
             // Act
@@ -57,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             fileSystem.AddFile(@"x:\myapproot\_viewstart.cs", string.Empty);
             fileSystem.AddFile(@"x:\myapproot\views\_Layout.cshtml", string.Empty);
             fileSystem.AddFile(@"x:\myapproot\views\home\_not-viewstart.cshtml", string.Empty);
-            var host = new MvcRazorHost(fileSystem);
+            var host = new MvcRazorHost(fileSystem, new MvcTagHelperTypeResolver());
             var utility = new ChunkInheritanceUtility(new CodeTree(), new Chunk[0], "dynamic");
 
             // Act
@@ -82,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 }
 
 ");
-            var host = new MvcRazorHost(fileSystem);
+            var host = new MvcRazorHost(fileSystem, new MvcTagHelperTypeResolver());
             var defaultChunks = new Chunk[]
             {
                 new InjectChunk("MyTestHtmlHelper", "Html"),

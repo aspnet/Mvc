@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.AspNet.Mvc.Razor.Directives;
+using Microsoft.AspNet.Mvc.Razor.Host.TagHelpers;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 #if ASPNET50 || ASPNETCORE50
 using Microsoft.Framework.Runtime;
@@ -45,8 +48,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="appEnvironment"/>.
         /// </summary>
         /// <param name="appEnvironment">Contains information about the executing application.</param>
-        public MvcRazorHost(IApplicationEnvironment appEnvironment)
-            : this(new PhysicalFileSystem(appEnvironment.ApplicationBasePath))
+        /// <param name="tagHelperTypeResolver">A <see cref="ITagHelperTypeResolver"/> used to locate valid
+        /// <see cref="TagHelper"/> types.</param>
+        public MvcRazorHost(IApplicationEnvironment appEnvironment, ITagHelperTypeResolver tagHelperTypeResolver)
+            : this(new PhysicalFileSystem(appEnvironment.ApplicationBasePath), tagHelperTypeResolver)
         {
         }
 #elif NET45
@@ -55,8 +60,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="root"/>.
         /// </summary>
         /// <param name="root">The path to the application base.</param>
-        public MvcRazorHost(string root) :
-            this(new PhysicalFileSystem(root))
+        /// <param name="tagHelperTypeResolver">A <see cref="ITagHelperTypeResolver"/> used to locate valid
+        /// <see cref="TagHelper"/> types.</param>
+        public MvcRazorHost(string root, ITagHelperTypeResolver tagHelperTypeResolver) :
+            this(new PhysicalFileSystem(root), tagHelperTypeResolver)
         {
 
         }
@@ -66,15 +73,23 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes a new instance of <see cref="MvcRazorHost"/> using the specified <paramref name="fileSystem"/>.
         /// </summary>
         /// <param name="fileSystem">A <see cref="IFileSystem"/> rooted at the application base path.</param>
-        protected internal MvcRazorHost([NotNull] IFileSystem fileSystem)
+        /// <param name="tagHelperTypeResolver">A <see cref="ITagHelperTypeResolver"/> used to locate valid
+        /// <see cref="TagHelper"/> types.</param>
+        protected internal MvcRazorHost([NotNull] IFileSystem fileSystem, 
+                                        [NotNull] ITagHelperTypeResolver tagHelperTypeResolver)
             : base(new CSharpRazorCodeLanguage())
         {
             _fileSystem = fileSystem;
             _baseType = BaseType;
 
+            TagHelperDescriptorResolver = new TagHelperDescriptorResolver(tagHelperTypeResolver);
             DefaultBaseClass = BaseType + '<' + DefaultModel + '>';
             DefaultNamespace = "Asp";
             GeneratedClassContext = new GeneratedClassContext(
+                new GeneratedTagHelperContext
+                {
+                    TagHelperManagerName = "Microsoft.AspNet.Razor.Runtime.TagHelpers.ITagHelperManager"
+                },
                 executeMethodName: "ExecuteAsync",
                 writeMethodName: "Write",
                 writeLiteralMethodName: "WriteLiteral",
@@ -83,6 +98,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 templateTypeName: "Microsoft.AspNet.Mvc.Razor.HelperResult",
                 defineSectionMethodName: "DefineSection")
             {
+                ActivateAttributeName = ActivateAttribute,
                 ResolveUrlMethodName = "Href"
             };
 
