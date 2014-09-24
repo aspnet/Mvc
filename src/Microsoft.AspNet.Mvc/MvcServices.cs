@@ -9,8 +9,11 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Mvc.Razor.Compilation;
+using Microsoft.AspNet.Mvc.Razor.Host.TagHelpers;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Security;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
@@ -29,6 +32,9 @@ namespace Microsoft.AspNet.Mvc
         public static IEnumerable<IServiceDescriptor> GetDefaultServices(IConfiguration configuration)
         {
             var describe = new ServiceDescriber(configuration);
+
+            yield return describe.Transient<ITagHelperManager, MvcTagHelperManager>();
+            yield return describe.Transient<ITagHelperTypeResolver, MvcTagHelperTypeResolver>();
 
             yield return describe.Transient<IOptionsSetup<MvcOptions>, MvcOptionsSetup>();
 
