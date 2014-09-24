@@ -20,10 +20,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         ViewLocationCacheResult Get(ViewLocationExpanderContext context);
 
         /// <summary>
-        /// Adds a cache entry for the specified <paramref name="key"/>.
+        /// Adds a cache entry for the specified <paramref name="cacheKey"/>.
         /// </summary>
-        /// <param name="key">The cache key</param>.
+        /// <param name="cacheKey">The cache key</param>.
         /// <param name="value">The view location that is to be cached.</param>
-        void Set(string key, string value);
+        void Set(object cacheKey, string value);
     }
 }

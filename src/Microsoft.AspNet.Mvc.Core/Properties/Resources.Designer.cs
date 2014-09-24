@@ -1401,6 +1401,7 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             return GetString("TemplatedExpander_ValueFactoryCannotReturnNull");
         }
+
         /// <summary>
         /// A method '{0}' that defines attribute routed actions must not have attributes that implement '{1}' and do not implement '{2}':{3}{4}
         /// </summary>
@@ -1479,6 +1480,22 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatAttributeRoute_NullTemplateRepresentation()
         {
             return GetString("AttributeRoute_NullTemplateRepresentation");
+        }
+
+        /// <summary>
+        /// '{0}' must be a {1} that is generated as result of the call to '{2}'.
+        /// </summary>
+        internal static string ViewLocationCache_KeyMustBeString
+        {
+            get { return GetString("ViewLocationCache_KeyMustBeString"); }
+        }
+
+        /// <summary>
+        /// '{0}' must be a {1} that is generated as result of the call to '{2}'.
+        /// </summary>
+        internal static string FormatViewLocationCache_KeyMustBeString(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewLocationCache_KeyMustBeString"), p0, p1, p2);
         }
 
         private static string GetString(string name, params string[] formatterNames)

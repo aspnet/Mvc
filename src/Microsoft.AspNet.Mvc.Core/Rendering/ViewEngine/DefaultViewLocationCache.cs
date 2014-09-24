@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -14,6 +15,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// </summary>
     public class DefaultViewLocationCache : IViewLocationCache
     {
+        // A mapping of keys generated from ViewLocationExpanderContext to view locations.
         private readonly ConcurrentDictionary<string, string> _cache;
 
         /// <summary>
@@ -59,10 +61,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public void Set([NotNull] string cacheKey,
+        public void Set([NotNull] object cacheKey,
                         [NotNull] string value)
         {
-            _cache.TryAdd(cacheKey, value);
+            var stringKey = cacheKey as string;
+            if (stringKey == null)
+            {
+                var message = Resources.FormatViewLocationCache_KeyMustBeString(nameof(cacheKey),
+                                                                                nameof(String),
+                                                                                nameof(Get));
+                throw new ArgumentException(message, nameof(cacheKey));
+            }
+            _cache.TryAdd(stringKey, value);
         }
 
         private static string GetRouteValue(IDictionary<string, object> routeValues, string key)

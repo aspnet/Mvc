@@ -11,14 +11,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// <summary>
     /// A <see cref="IViewLocationExpander"/> that replaces adds the language as an extension prefix to view names.
     /// </summary>
-    /// <remarks>
+    /// <example>
     /// For the default case with no areas, views are generated with the following patterns (assuming controller is
     /// "Home", action is "Index" and language is "en")
-    /// Views/Home/Action.en
+    /// Views/Home/en/Action
     /// Views/Home/Action
-    /// Views/Shared/Action.en
+    /// Views/Shared/en/Action
     /// Views/Shared/Action
-    /// </remarks>
+    /// </example>
     public class LanguageViewLocationExpander : IViewLocationExpander
     {
         private const string ValueKey = "language";
@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Initailizes a new instance of <see cref="LanguageViewLocationExpander"/>.
         /// </summary>
         /// <param name="valueFactory">A factory that provides</param>
-        public LanguageViewLocationExpander(Func<ActionContext, string> valueFactory)
+        public LanguageViewLocationExpander([NotNull] Func<ActionContext, string> valueFactory)
         {
             _valueFactory = valueFactory;
         }

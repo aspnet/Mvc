@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <summary>
         /// Gets the computed cache key for the lookup.
         /// </summary>
-        public string CacheKey { get; private set; }
+        public object CacheKey { get; private set; }
 
         /// <summary>
         /// Gets the location of the view if found in cache.

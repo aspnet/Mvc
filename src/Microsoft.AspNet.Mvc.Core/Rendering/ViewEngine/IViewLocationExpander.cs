@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// (1) <see cref="PopulateValues(ViewLocationExpanderContext)"/> is invoked and each expander
     /// adds values that it would later consume as part of 
     /// <see cref="ExpandViewLocations(ViewLocationExpanderContext, IEnumerable{string})"/>.
-    /// If the populated values are used to determine a cache key - if all values are identical to the last time 
+    /// The populated values are used to determine a cache key - if all values are identical to the last time
     /// <see cref="PopulateValues(ViewLocationExpanderContext)"/> was invoked, the cached result
     /// is used as the view location.
     /// (2) If no result was found in the cache or if a view was not found at the cached location, 

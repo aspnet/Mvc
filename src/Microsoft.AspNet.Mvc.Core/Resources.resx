@@ -402,4 +402,7 @@
   <data name="AttributeRoute_NullTemplateRepresentation" xml:space="preserve">
     <value>(none)</value>
   </data>
+  <data name="ViewLocationCache_KeyMustBeString" xml:space="preserve">
+    <value>'{0}' must be a {1} that is generated as result of the call to '{2}'.</value>
+  </data>
 </root>

@@ -52,7 +52,10 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Scoped<ICompositeViewEngine, CompositeViewEngine>();
             yield return describe.Singleton<IViewStartProvider, ViewStartProvider>();
             yield return describe.Transient<IRazorView, RazorView>();
+
+            // Transient since the IViewLocationExpanders returned by the instance is cached by view engines.
             yield return describe.Transient<IViewLocationExpanderProvider, DefaultViewLocationExpanderProvider>();
+            // Caches view locations that are valid for the lifetime of the application.
             yield return describe.Singleton<IViewLocationCache, DefaultViewLocationCache>();
 
             yield return describe.Singleton<IRazorPageActivator, RazorPageActivator>();

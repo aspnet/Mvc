@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Testing;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Rendering
@@ -79,12 +80,25 @@ namespace Microsoft.AspNet.Mvc.Rendering
             Assert.Equal(cacheKey, result.CacheKey);
         }
 
+        [Fact]
+        public void SetThrows_IfKeyIsNotAStringValue()
+        {
+            // Arrange
+            var expectedMessage = "'cacheKey' must be a String that is generated as result of the call to 'Get'.";
+            var cache = new DefaultViewLocationCache();
+
+            // Act and Assert
+            ExceptionAssert.ThrowsArgument(() => cache.Set(new object(), "value"),
+                                           "cacheKey",
+                                           expectedMessage);
+        }
+
         public static ActionContext GetActionContext(string controller = "mycontroller",
                                                      string area = null)
         {
             var routeData = new RouteData
             {
-                Values = new Dictionary<string, object>(StringComparer.Ordinal)
+                Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
             };
             routeData.Values["controller"] = controller;
             if (area != null)

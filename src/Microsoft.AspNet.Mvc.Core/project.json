@@ -5,7 +5,6 @@
   },
   "dependencies": {
     "Microsoft.AspNet.FileSystems": "1.0.0-*",
-    "Microsoft.AspNet.MemoryCache": "1.0.0-*",
     "Microsoft.AspNet.Http": "1.0.0-*",
     "Microsoft.AspNet.Mvc.HeaderValueAbstractions": "1.0.0-*",
     "Microsoft.AspNet.Mvc.Common": "",

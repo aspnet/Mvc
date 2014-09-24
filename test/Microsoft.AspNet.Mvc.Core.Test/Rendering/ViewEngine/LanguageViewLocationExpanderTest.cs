@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void ExpandViewLocations_ReturnsOriginalSequence_IfalueFactoryReturnsNullOrEmpty(string value)
+        public void ExpandViewLocations_ReturnsOriginalSequence_IfValueFactoryReturnsNullOrEmpty(string value)
         {
             // Arrange
             var expander = new LanguageViewLocationExpander(c => value);
