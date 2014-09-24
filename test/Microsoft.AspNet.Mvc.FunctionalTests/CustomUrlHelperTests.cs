@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private const string _cdnServerBaseUrl = "http://cdn.contoso.com";
 
         [Fact]
-        public async Task CustomUrlHelperGeneratesUrlFromController()
+        public async Task CustomUrlHelper_GeneratesUrlFromController()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task CustomUrlHelperGeneratesUrlFromView()
+        public async Task CustomUrlHelper_GeneratesUrlFromView()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Theory]
         [InlineData("http://localhost/Home/LinkByUrlRouteUrl", "/api/simplepoco/10")]
         [InlineData("http://localhost/Home/LinkByUrlAction", "/home/urlcontent")]
-        public async Task LowercaseUrlsLinkGeneration(string url, string expectedLink)
+        public async Task LowercaseUrls_LinkGeneration(string url, string expectedLink)
         {
             // Arrange
             var server = TestServer.Create(_services, _app);

@@ -38,7 +38,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData(null, "~/Home/About", "/Home/About")]
         [InlineData("/", "~/Home/About", "/Home/About")]
         [InlineData("/", "~/", "/")]
-        [InlineData("", "~/Home/About", "/Home/About")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
         [InlineData("", "~/Home/About", "/Home/About")]
         [InlineData("/myapproot", "~/Content/bootstrap.css", "/myapproot/Content/bootstrap.css")]
@@ -447,59 +446,46 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public void UrlAction_RouteValuesAsDictionary()
+        public void UrlAction_RouteValuesAsDictionary_CaseSensitive()
         {
             // Arrange
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
-            // NOTE: here the supplied dictionary is case-sensitive, but
-            // we still would like to do case-insenstive way of comparing the route values
             var dict = new Dictionary<string, object>();
-            string action = "contact";
-            string controller = "home";
-            string id = "suppliedid";
-            
-            dict["action"] = action;
-            dict["controller"] = controller;
-            dict["id"] = id;
+            dict["ID"] = "suppliedid";
 
             var url = urlHelper.Action(
-                                    action: null,
-                                    controller: null,
+                                    action: "contact",
+                                    controller: "home",
                                     values: dict);
 
             // Assert
-            Assert.Equal(3, dict.Count);
-            Assert.Same(action, dict["action"]);
-            Assert.Same(controller, dict["controller"]);
-            Assert.Same(id, dict["id"]);
+            Assert.Equal(1, dict.Count);
             Assert.Equal("/app/home/contact/suppliedid", url);
         }
 
         [Fact]
-        public void UrlRouteUrl_RouteValuesAsDictionary()
+        public void UrlRouteUrl_RouteValuesAsDictionary_CaseSensitive()
         {
             // Arrange
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
-            // NOTE: here the supplied dictionary is case-sensitive, but
-            // we still would like to do case-insenstive way of comparing the route values
             var dict = new Dictionary<string, object>();
             string action = "contact";
             string controller = "home";
             string id = "suppliedid";
             
-            dict["action"] = action;
-            dict["controller"] = controller;
-            dict["id"] = id;
+            dict["ACTION"] = action;
+            dict["Controller"] = controller;
+            dict["ID"] = id;
             
             var url = urlHelper.RouteUrl(routeName: "namedroute", values: dict);
-
+            
             // Assert
             Assert.Equal(3, dict.Count);
-            Assert.Same(action, dict["action"]);
-            Assert.Same(controller, dict["controller"]);
-            Assert.Same(id, dict["id"]);
+            Assert.Same(action, dict["ACTION"]);
+            Assert.Same(controller, dict["Controller"]);
+            Assert.Same(id, dict["ID"]);
             Assert.Equal("/app/named/home/contact/suppliedid", url);
         }
 
