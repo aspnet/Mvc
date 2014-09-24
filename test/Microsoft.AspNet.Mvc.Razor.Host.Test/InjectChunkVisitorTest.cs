@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNet.Mvc.Razor.Host.TagHelpers;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
@@ -150,7 +151,7 @@ MyType1
         public void InjectVisitor_GeneratesCorrectLineMappings()
         {
             // Arrange
-            var host = new MvcRazorHost(new TestFileSystem())
+            var host = new MvcRazorHost(new TestFileSystem(), new MvcTagHelperTypeResolver())
             {
                 DesignTimeMode = true
             };
@@ -182,7 +183,7 @@ MyType1
         public void InjectVisitorWithModel_GeneratesCorrectLineMappings()
         {
             // Arrange
-            var host = new MvcRazorHost(new TestFileSystem())
+            var host = new MvcRazorHost(new TestFileSystem(), new MvcTagHelperTypeResolver())
             {
                 DesignTimeMode = true
             };
@@ -225,7 +226,7 @@ MyType1
         private static CodeBuilderContext CreateContext()
         {
             return new CodeBuilderContext(
-                new CodeGeneratorContext(new MvcRazorHost(new TestFileSystem()),
+                new CodeGeneratorContext(new MvcRazorHost(new TestFileSystem(), new MvcTagHelperTypeResolver()),
                                          "MyClass",
                                          "MyNamespace",
                                          string.Empty,
