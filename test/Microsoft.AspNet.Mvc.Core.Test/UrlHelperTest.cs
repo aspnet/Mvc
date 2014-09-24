@@ -452,16 +452,22 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             var dict = new Dictionary<string, object>();
-            dict["ID"] = "suppliedid";
+            var id = "suppliedid";
+            var isprint = "true";
+            dict["ID"] = id;
+            dict["isprint"] = isprint;
 
+            // Act
             var url = urlHelper.Action(
                                     action: "contact",
                                     controller: "home",
                                     values: dict);
 
             // Assert
-            Assert.Equal(1, dict.Count);
-            Assert.Equal("/app/home/contact/suppliedid", url);
+            Assert.Equal(2, dict.Count);
+            Assert.Same(id, dict["ID"]);
+            Assert.Same(isprint, dict["isprint"]);
+            Assert.Equal("/app/home/contact/suppliedid?isprint=true", url);
         }
 
         [Fact]
@@ -471,14 +477,15 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
             var dict = new Dictionary<string, object>();
-            string action = "contact";
-            string controller = "home";
-            string id = "suppliedid";
+            var action = "contact";
+            var controller = "home";
+            var id = "suppliedid";
             
             dict["ACTION"] = action;
             dict["Controller"] = controller;
             dict["ID"] = id;
             
+            // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute", values: dict);
             
             // Assert
