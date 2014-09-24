@@ -451,6 +451,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
+            // We're using a dictionary with a case-sensitive comparer and loading it with data 
+            // using casings differently from the route. This should still successfully generate a link.
             var dict = new Dictionary<string, object>();
             var id = "suppliedid";
             var isprint = "true";
@@ -476,6 +478,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var urlHelper = CreateUrlHelperWithRouteCollection("/app");
 
+            // We're using a dictionary with a case-sensitive comparer and loading it with data 
+            // using casings differently from the route. This should still successfully generate a link.
             var dict = new Dictionary<string, object>();
             var action = "contact";
             var controller = "home";
