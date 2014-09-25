@@ -12,25 +12,28 @@ namespace Microsoft.AspNet.Mvc.Razor
             ViewType = viewType;
             RelativePath = info.RelativePath;
             Length = info.Length;
-            CompiledTimeStamp = info.LastModified;
+            LastModified = info.LastModified;
             Hash = info.Hash;
         }
 
-        public CompilerCacheEntry([NotNull] RelativeFileInfo info, [NotNull] Type viewType, string hash)
+        public CompilerCacheEntry([NotNull] RelativeFileInfo info, [NotNull] Type viewType)
         {
             ViewType = viewType;
             RelativePath = info.RelativePath;
             Length = info.FileInfo.Length;
-            CompiledTimeStamp = info.FileInfo.LastModified;
-            RuntimeTimeStamp = info.FileInfo.LastModified;
-            Hash = hash;
+            LastModified = info.FileInfo.LastModified;
         }
 
         public Type ViewType { get; set; }
         public string RelativePath { get; set; }
         public long Length { get; set; }
-        public DateTime CompiledTimeStamp { get; set; }
-        public DateTime? RuntimeTimeStamp { get; set; }
+        public DateTime LastModified { get; set; }
+
+        /// <summary>
+        /// The file hash, should only be available for pre compiled files.
+        /// </summary>
         public string Hash { get; set; }
+
+        public bool IsPreCompiled {  get { return Hash != null; } }
     }
 }

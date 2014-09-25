@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Runtime;
 
@@ -48,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var descriptors = CreateCompilationDescriptors(context);
             var collectionGenerator = new RazorFileInfoCollectionGenerator(
                                             descriptors,
-                                            ParseOptions.GetParseOptions(context.CSharpCompilation));
+                                            SyntaxTreeGenerator.GetParseOptions(context.CSharpCompilation));
 
             var tree = collectionGenerator.GenerateCollection();
             context.CSharpCompilation = context.CSharpCompilation.AddSyntaxTrees(tree);
@@ -113,29 +111,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (results.Success)
                 {
                     var syntaxTree = SyntaxTreeGenerator.Generate(results.GeneratedCode, fileInfo.FileInfo.PhysicalPath, options);
+                    var fullTypeName = results.GetMainClassName(_host, syntaxTree);
 
-                    // when we start generating more than one class per view, 
-                    // we could figure out a better way to deal with this.
-                    var classes = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>();
-                    var mainClass = classes.FirstOrDefault(c =>
-                        c.Identifier.ValueText.StartsWith(_host.MainClassNamePrefix, StringComparison.Ordinal));
-
-                    if (mainClass != null)
+                    if (fullTypeName != null)
                     {
                         context.CSharpCompilation = context.CSharpCompilation.AddSyntaxTrees(syntaxTree);
-
-                        var typeName = mainClass.Identifier.ValueText;
-
-                        if (!string.IsNullOrEmpty(_host.DefaultNamespace))
-                        {
-                            typeName = _host.DefaultNamespace + "." + typeName;
-                        }
 
                         var hash = RazorFileHash.GetHash(fileInfo.FileInfo);
 
                         return new RazorFileInfo()
                         {
-                            FullTypeName = typeName,
+                            FullTypeName = fullTypeName,
                             RelativePath = fileInfo.RelativePath,
                             LastModified = fileInfo.FileInfo.LastModified,
                             Length = fileInfo.FileInfo.Length,
@@ -154,7 +140,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             public CompilationContext(IBeforeCompileContext context)
             {
                 Context = context;
-                Options = ParseOptions.GetParseOptions(context.CSharpCompilation);
+                Options = SyntaxTreeGenerator.GetParseOptions(context.CSharpCompilation);
             }
 
             public List<RazorFileInfo> CompiledFiles { get; } = new List<RazorFileInfo>();

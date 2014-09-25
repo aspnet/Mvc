@@ -42,5 +42,11 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             return syntaxTree;
         }
+
+        public static CSharpParseOptions GetParseOptions(CSharpCompilation compilation)
+        {
+            return CSharpParseOptions.Default
+                              .WithLanguageVersion(compilation.LanguageVersion);
+        }
     }
 }

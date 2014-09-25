@@ -29,7 +29,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                     var viewType = containingAssembly.GetType(fileInfo.FullTypeName);
                     var cacheEntry = new CompilerCacheEntry(fileInfo, viewType);
 
-                    _cache.AddOrUpdate(fileInfo.RelativePath, cacheEntry, (a, b) => cacheEntry);
+                    // There shouldn't be any duplicates and if there are any the first will win.
+                    // If the result doesn't match the one on disk its going to recompile anyways.
+                    _cache.TryAdd(fileInfo.RelativePath, cacheEntry);
                 }
             }
         }
@@ -42,17 +44,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         internal static IEnumerable<RazorFileInfoCollection>
                             GetFileInfos(IEnumerable<Assembly> assemblies)
         {
-            var types = assemblies.SelectMany(a => a.ExportedTypes);
-            var preCompiledCollections =
-                types
-                .Where(Match);
-
-            foreach (var collectionType in preCompiledCollections)
-            {
-                var preCompiledCollection = (RazorFileInfoCollection)Activator.CreateInstance(collectionType);
-
-                yield return preCompiledCollection;
-            }
+            return assemblies.SelectMany(a => a.ExportedTypes)
+                    .Where(Match)
+                    .Select(c => (RazorFileInfoCollection)Activator.CreateInstance(c));
         }
 
         private static bool Match(Type t)
@@ -60,9 +54,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             var inAssemblyType = typeof(RazorFileInfoCollection);
             if (inAssemblyType.IsAssignableFrom(t))
             {
-                var hasContructor = t.GetConstructor(EmptyType) != null;
+                var hasParameterlessConstructor = t.GetConstructor(EmptyType) != null;
 
-                return hasContructor
+                return hasParameterlessConstructor
                     && !t.GetTypeInfo().IsAbstract
                     && !t.GetTypeInfo().ContainsGenericParameters;
             }
@@ -84,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     return OnCacheMiss(fileInfo, compile);
                 }
 
-                if (cacheEntry.RuntimeTimeStamp == fileInfo.FileInfo.LastModified)
+                if (cacheEntry.LastModified == fileInfo.FileInfo.LastModified)
                 {
                     // Match, not update needed
                     return CompilationResult.Successful(cacheEntry.ViewType);
@@ -92,9 +86,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 var hash = RazorFileHash.GetHash(fileInfo.FileInfo);
 
-                if (cacheEntry.CompiledTimeStamp == fileInfo.FileInfo.LastModified ||
-                    // Date doesn't match but it might be because of deployment, compare the hash
-                    (cacheEntry.Hash != null && cacheEntry.Hash == hash))
+                // Timestamp doesn't match but it might be because of deployment, compare the hash.
+                if (cacheEntry.IsPreCompiled &&
+                    string.Equals(cacheEntry.Hash, hash, StringComparison.Ordinal))
                 {
                     // Cache hit, but we need to update the entry
                     return OnCacheMiss(fileInfo, () => CompilationResult.Successful(cacheEntry.ViewType));
@@ -109,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             var result = compile();
 
-            var cacheEntry = new CompilerCacheEntry(file, result.CompiledType, hash:  null);
+            var cacheEntry = new CompilerCacheEntry(file, result.CompiledType);
             _cache.AddOrUpdate(file.RelativePath, cacheEntry, (a, b) => cacheEntry);
 
             return result;
