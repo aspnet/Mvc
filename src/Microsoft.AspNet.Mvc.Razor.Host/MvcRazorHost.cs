@@ -88,6 +88,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             GeneratedClassContext = new GeneratedClassContext(
                 new GeneratedTagHelperContext
                 {
+                    NewWritingScopeMethodName = "StartWritingScope",
+                    EndWritingScopeMethodName = "EndWritingScope",
                     TagHelperManagerName = "Microsoft.AspNet.Razor.Runtime.TagHelpers.ITagHelperManager"
                 },
                 executeMethodName: "ExecuteAsync",

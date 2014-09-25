@@ -17,6 +17,125 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class RazorPageTest
     {
         [Fact]
+        public async Task WritingScopesRedirectsContentWrittenToOutput()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.Write("Hello Prefix");
+                v.StartWritingScope();
+                v.Write("Hello In Scope");
+                var scopeValue = v.EndWritingScope();
+                v.Write("From Scope: " + scopeValue.ToString());
+            });
+
+            // Act
+            await page.ExecuteAsync();
+            var pageOutput = page.Output.ToString();
+
+            // Assert
+            Assert.Equal("Hello PrefixFrom Scope: Hello In Scope", pageOutput);
+        }
+
+        [Fact]
+        public async Task WritingScopesCanNest()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.Write("Hello Prefix");
+                v.StartWritingScope();
+                v.Write("Hello In Scope Pre Nest");
+
+                v.StartWritingScope();
+                v.Write("Hello In Nested Scope");
+                var scopeValue1 = v.EndWritingScope();
+
+                v.Write("Hello In Scope Post Nest");
+                var scopeValue2 = v.EndWritingScope();
+
+                v.Write("From Scopes: " + scopeValue2.ToString() + scopeValue1.ToString());
+            });
+
+            // Act
+            await page.ExecuteAsync();
+            var pageOutput = page.Output.ToString();
+
+            // Assert
+            Assert.Equal("Hello PrefixFrom Scopes: Hello In Scope Pre NestHello In Scope Post NestHello In Nested Scope", pageOutput);
+        }
+
+        [Fact]
+        public async Task WritingScopesCanTakeInWriter()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.Write("Hello Prefix");
+                var customWriter1 = new StringWriter();
+                v.StartWritingScope(customWriter1);
+                v.Write("Hello In Scope Pre Nest");
+
+                var customWriter2 = new StringWriter();
+                v.StartWritingScope(customWriter2);
+                v.Write("Hello In Nested Scope");
+                v.EndWritingScope();
+
+                v.Write("Hello In Scope Post Nest");
+                v.EndWritingScope();
+
+                v.Write("From Scopes: " + customWriter1.ToString() + customWriter2.ToString());
+            });
+
+            // Act
+            await page.ExecuteAsync();
+            var pageOutput = page.Output.ToString();
+
+            // Assert
+            Assert.Equal("Hello PrefixFrom Scopes: Hello In Scope Pre NestHello In Scope Post NestHello In Nested Scope", pageOutput);
+        }
+
+        [Fact]
+        public async Task StartNewWritingScope_CannotFlushInWritingScope()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.StartWritingScope();
+                v.FlushAsync();
+            });
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                                () => page.ExecuteAsync());
+
+            // Assert
+            Assert.Equal("You cannot flush while inside a writing scope.", ex.Message);
+        }
+
+        [Fact]
+        public async Task StartNewWritingScope_CannotEndWritingScopeWhenNoWritingScope()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.EndWritingScope();
+            });
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                                () => page.ExecuteAsync());
+
+            // Assert
+            Assert.Equal("There is no active writing scope to end.", ex.Message);
+        }
+
+        [Fact]
         public async Task DefineSection_ThrowsIfSectionIsAlreadyDefined()
         {
             // Arrange
