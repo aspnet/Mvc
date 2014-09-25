@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public virtual void CompileViews([NotNull] IBeforeCompileContext context)
         {
             var descriptors = CreateCompilationDescriptors(context);
-            var collectionGenerator = new ViewDescriptorCollectionGenerator(
+            var collectionGenerator = new RazorFileInfoCollectionGenerator(
                                             descriptors,
                                             ParseOptions.GetParseOptions(context.CSharpCompilation));
 

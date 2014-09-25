@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             _baseCompilationService = compilationService;
             _razorHost = razorHost;
             _appRoot = RelativePath.EnsureTrailingSlash(environment.ApplicationBasePath);
-            _cache = new CompilerCache(_controllerAssemblyProvider);
+            _cache = new CompilerCache(_controllerAssemblyProvider.CandidateAssemblies);
         }
 
         public CompilationResult Compile([NotNull] IFileInfo file)

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using Microsoft.AspNet.FileSystems;
 
@@ -14,15 +15,22 @@ namespace Microsoft.AspNet.Mvc.Razor
             try
             {
                 using (var stream = file.CreateReadStream())
-                using (var md5 = MD5.Create())
                 {
-                    return BitConverter.ToString(md5.ComputeHash(stream));
+                    return GetHash(stream);
                 }
             }
             catch (Exception)
             {
                 // Don't throw if reading the file fails.
                 return string.Empty;
+            }
+        }
+
+        internal static string GetHash(Stream stream)
+        {
+            using (var md5 = MD5.Create())
+            {
+                return BitConverter.ToString(md5.ComputeHash(stream));
             }
         }
     }

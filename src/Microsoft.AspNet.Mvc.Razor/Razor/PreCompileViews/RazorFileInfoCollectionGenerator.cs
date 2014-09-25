@@ -8,14 +8,14 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public class ViewDescriptorCollectionGenerator
+    public class RazorFileInfoCollectionGenerator
     {
         private string _fileFormat;
 
         protected IReadOnlyList<RazorFileInfo> FileInfos { get; private set; }
         protected CSharpParseOptions Options { get; private set; }
 
-        public ViewDescriptorCollectionGenerator([NotNull] IReadOnlyList<RazorFileInfo> fileInfos,
+        public RazorFileInfoCollectionGenerator([NotNull] IReadOnlyList<RazorFileInfo> fileInfos,
                                                  [NotNull] CSharpParseOptions options)
         {
             FileInfos = fileInfos;
@@ -66,12 +66,12 @@ using Microsoft.AspNet.Mvc.Razor;
 
 namespace __ASP_ASSEMBLY
 {
-    public class __PreGeneratedViewCollection : " + nameof(ViewDescriptorCollection) + @"
+    public class __PreGeneratedViewCollection : " + nameof(RazorFileInfoCollection) + @"
     {
         public __PreGeneratedViewCollection()
         {
             var fileInfos = new List<" + nameof(RazorFileInfo) + @">();
-            " + nameof(ViewDescriptorCollection.FileInfos) + @" = fileInfos;
+            " + nameof(RazorFileInfoCollection.FileInfos) + @" = fileInfos;
             " + nameof(RazorFileInfo) + @" info;
 
 ";

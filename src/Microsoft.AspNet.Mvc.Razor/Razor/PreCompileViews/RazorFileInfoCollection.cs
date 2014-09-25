@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public abstract class ViewDescriptorCollection
+    public abstract class RazorFileInfoCollection
     {
         public IReadOnlyList<RazorFileInfo> FileInfos { get; protected set; }
     }
