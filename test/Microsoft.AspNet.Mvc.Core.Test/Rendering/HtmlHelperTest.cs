@@ -1,9 +1,8 @@
-﻿using System;
-using Xunit;
-using Microsoft.AspNet.Mvc.Rendering;
+﻿using Microsoft.AspNet.Mvc.Core;
 using Moq;
+using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test.Rendering
+namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
     /// Tests the <see cref="HtmlHelper"/> class.

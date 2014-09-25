@@ -184,5 +184,28 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
+
+        [Theory]
+        [InlineData("ActionLink_ActionOnSameController", @"<a href=""/Links/Details"">linktext</a>")]
+        [InlineData("ActionLink_ActionOnOtherController", @"<a href=""/Products/Details?print=true"">linktext</a>")]
+        [InlineData("ActionLink_SecurePage_ImplicitHostName", @"<a href=""https://localhost/Products/Details?print=true"">linktext</a>")]
+        [InlineData("ActionLink_HostNameFragmentAttributes", @"<a href=""https://www.contoso.com:9000/Products/Details?print=true#details"" p1=""p1-value"">linktext</a>")]
+        [InlineData("RouteLink_RestLinkToOtherController", @"<a href=""/api/orders/10"">linktext</a>")]
+        [InlineData("RouteLink_SecureApi_ImplicitHostName", @"<a href=""https://localhost/api/orders/10"">linktext</a>")]
+        [InlineData("RouteLink_HostNameFragmentAttributes", @"<a href=""https://www.contoso.com:9000/api/orders/10?print=True#details"" p1=""p1-value"">linktext</a>")]
+        public async Task HtmlHelperLinkGeneration_RouteLink(string viewName, string expectedLink)
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = new HttpClient(server.CreateHandler(), false);
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Links/Index/?view=" + viewName);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseData = await response.Content.ReadAsStringAsync();
+            Assert.Contains(expectedLink, responseData, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
