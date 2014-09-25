@@ -52,24 +52,35 @@ namespace Microsoft.AspNet.Mvc.Razor
             context.CSharpCompilation = context.CSharpCompilation.AddSyntaxTrees(tree);
         }
 
-        protected virtual IReadOnlyList<RazorFileInfo>
-            CreateCompilationDescriptors([NotNull] IBeforeCompileContext context)
+        protected virtual IReadOnlyList<RazorFileInfo> CreateCompilationDescriptors(
+                                                            [NotNull] IBeforeCompileContext context)
         {
-            var state = new CompilationContext(context);
+            var options = SyntaxTreeGenerator.GetParseOptions(context.CSharpCompilation);
+            var list = new List<RazorFileInfo>();
 
-            CompileViews(state, string.Empty);
+            foreach (var info in GetFileInfosRecursive(string.Empty))
+            {
+                var descriptor = ParseView(info,
+                                           context,
+                                           options);
 
-            return state.CompiledFiles;
+                if (descriptor != null)
+                {
+                    list.Add(descriptor);
+                }
+            }
+
+            return list;
         }
 
-        private void CompileViews(CompilationContext compilationContext, string currentPath)
+        private IEnumerable<RelativeFileInfo> GetFileInfosRecursive(string currentPath)
         {
             IEnumerable<IFileInfo> fileInfos;
             string path = currentPath;
 
             if (!_fileSystem.TryGetDirectoryContents(path, out fileInfos))
             {
-                return;
+                yield break;
             }
 
             foreach (var fileInfo in fileInfos)
@@ -78,25 +89,21 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     var subPath = Path.Combine(path, fileInfo.Name);
 
-                    CompileViews(compilationContext, subPath);
+                    foreach (var info in GetFileInfosRecursive(subPath))
+                    {
+                        yield return info;
+                    }
                 }
                 else if (Path.GetExtension(fileInfo.Name)
                          .Equals(FileExtension, StringComparison.OrdinalIgnoreCase))
                 {
-                    var relativeFileInfo = new RelativeFileInfo()
+                    var info = new RelativeFileInfo()
                     {
                         FileInfo = fileInfo,
                         RelativePath = Path.Combine(currentPath, fileInfo.Name),
                     };
 
-                    var descriptor = ParseView(relativeFileInfo,
-                                               compilationContext.Context,
-                                               compilationContext.Options);
-
-                    if (descriptor != null)
-                    {
-                        compilationContext.CompiledFiles.Add(descriptor);
-                    }
+                    yield return info;
                 }
             }
         }
@@ -133,19 +140,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // TODO: Add diagnostics when view parsing/code generation failed.
             return null;
-        }
-
-        private class CompilationContext
-        {
-            public CompilationContext(IBeforeCompileContext context)
-            {
-                Context = context;
-                Options = SyntaxTreeGenerator.GetParseOptions(context.CSharpCompilation);
-            }
-
-            public List<RazorFileInfo> CompiledFiles { get; } = new List<RazorFileInfo>();
-            public IBeforeCompileContext Context { get; private set; }
-            public CSharpParseOptions Options { get; private set; }
         }
     }
 }
