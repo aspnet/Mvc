@@ -49,8 +49,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             foreach (var collectionType in preCompiledCollections)
             {
-                var preCompiledCollection = Activator.CreateInstance(collectionType)
-                                                    as RazorFileInfoCollection;
+                var preCompiledCollection = (RazorFileInfoCollection)Activator.CreateInstance(collectionType);
 
                 yield return preCompiledCollection;
             }
@@ -95,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 if (cacheEntry.CompiledTimeStamp == fileInfo.FileInfo.LastModified ||
                     // Date doesn't match but it might be because of deployment, compare the hash
-                    cacheEntry.Hash == hash)
+                    (cacheEntry.Hash != null && cacheEntry.Hash == hash))
                 {
                     // Cache hit, but we need to update the entry
                     return OnCacheMiss(fileInfo, () => CompilationResult.Successful(cacheEntry.ViewType));

@@ -20,18 +20,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        public static SyntaxTree Generate([NotNull] string text, [NotNull] IFileInfo fileInfo)
-        {
-            return GenerateCore(text, fileInfo.PhysicalPath, DefaultOptions);
-        }
-
-        public static SyntaxTree Generate([NotNull] string text,
-                                          [NotNull] IFileInfo fileInfo,
-                                          [NotNull] CSharpParseOptions options)
-        {
-            return GenerateCore(text, fileInfo.PhysicalPath, options);
-        }
-
         public static SyntaxTree Generate([NotNull] string text, [NotNull] string path)
         {
             return GenerateCore(text, path, DefaultOptions);

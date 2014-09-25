@@ -22,9 +22,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         public void CompileCoreCalculatesRootRelativePath(string appPath, string viewPath)
         {
             // Arrange
-            var env = new Mock<IApplicationEnvironment>();
-            env.SetupGet(e => e.ApplicationName).Returns("MyTestApplication");
-            env.SetupGet(e => e.ApplicationBasePath).Returns(appPath);
             var host = new Mock<IMvcRazorHost>();
             host.Setup(h => h.GenerateCode(@"views\index\home.cshtml", It.IsAny<Stream>()))
                 .Returns(new GeneratorResults(new Block(new BlockBuilder { Type = BlockType.Comment }), new RazorError[0], new CodeBuilderResult("", new LineMapping[0])))
@@ -41,10 +38,16 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var compiler = new Mock<ICompilationService>();
             compiler.Setup(c => c.Compile(fileInfo.Object, It.IsAny<string>()))
                     .Returns(CompilationResult.Successful(typeof(RazorCompilationServiceTest)));
-            var razorService = new RazorCompilationService(env.Object, compiler.Object, ap.Object, host.Object);
+            var razorService = new RazorCompilationService(compiler.Object, ap.Object, host.Object);
+
+            var relativeFileInfo = new RelativeFileInfo()
+            {
+                FileInfo = fileInfo.Object,
+                RelativePath = @"views\index\home.cshtml",
+            };
 
             // Act
-            razorService.CompileCore(fileInfo.Object, @"views\index\home.cshtml");
+            razorService.CompileCore(relativeFileInfo);
 
             // Assert
             host.Verify();

@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// <inheritdoc />
         public CompilationResult Compile(IFileInfo fileInfo, string compilationContent)
         {
-            var syntaxTrees = new[] { SyntaxTreeGenerator.Generate(compilationContent, fileInfo) };
+            var syntaxTrees = new[] { SyntaxTreeGenerator.Generate(compilationContent, fileInfo.PhysicalPath) };
 
             var references = _applicationReferences.Value;
 

@@ -19,7 +19,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IServiceProvider _serviceProvider;
         private readonly IFileSystem _fileSystem;
         private readonly IMvcRazorHost _host;
-        private readonly string _basePath;
 
         protected virtual string FileExtension
         {
@@ -39,8 +38,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             _serviceProvider = designTimeServiceProvider;
             _host = host;
+
             var appEnv = _serviceProvider.GetService<IApplicationEnvironment>();
-            _basePath = RelativePath.EnsureTrailingSlash(appEnv.ApplicationBasePath);
             _fileSystem = new PhysicalFileSystem(appEnv.ApplicationBasePath);
         }
 
@@ -83,9 +82,18 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                     CompileViews(compilationContext, subPath);
                 }
-                else if (Path.GetExtension(fileInfo.Name).Equals(FileExtension, StringComparison.OrdinalIgnoreCase))
+                else if (Path.GetExtension(fileInfo.Name)
+                         .Equals(FileExtension, StringComparison.OrdinalIgnoreCase))
                 {
-                    var descriptor = ParseView(fileInfo, compilationContext.Context, compilationContext.Options);
+                    var relativeFileInfo = new RelativeFileInfo()
+                    {
+                        FileInfo = fileInfo,
+                        RelativePath = Path.Combine(currentPath, fileInfo.Name),
+                    };
+
+                    var descriptor = ParseView(relativeFileInfo,
+                                               compilationContext.Context,
+                                               compilationContext.Options);
 
                     if (descriptor != null)
                     {
@@ -95,17 +103,16 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        protected virtual RazorFileInfo ParseView([NotNull] IFileInfo fileInfo,
+        protected virtual RazorFileInfo ParseView([NotNull] RelativeFileInfo fileInfo,
                                                   [NotNull] IBeforeCompileContext context,
                                                   [NotNull] CSharpParseOptions options)
         {
-            using (var stream = fileInfo.CreateReadStream())
+            using (var stream = fileInfo.FileInfo.CreateReadStream())
             {
-                var relativePath = RelativePath.GetRelativePath(_basePath, fileInfo);
-                var results = _host.GenerateCode(relativePath, stream);
+                var results = _host.GenerateCode(fileInfo.RelativePath, stream);
                 if (results.Success)
                 {
-                    var syntaxTree = SyntaxTreeGenerator.Generate(results.GeneratedCode, fileInfo, options);
+                    var syntaxTree = SyntaxTreeGenerator.Generate(results.GeneratedCode, fileInfo.FileInfo.PhysicalPath, options);
 
                     // when we start generating more than one class per view, 
                     // we could figure out a better way to deal with this.
@@ -124,14 +131,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                             typeName = _host.DefaultNamespace + "." + typeName;
                         }
 
-                        var hash = RazorFileHash.GetHash(fileInfo);
+                        var hash = RazorFileHash.GetHash(fileInfo.FileInfo);
 
                         return new RazorFileInfo()
                         {
                             FullTypeName = typeName,
-                            RelativePath = relativePath,
-                            LastModified = fileInfo.LastModified,
-                            Length = fileInfo.Length,
+                            RelativePath = fileInfo.RelativePath,
+                            LastModified = fileInfo.FileInfo.LastModified,
+                            Length = fileInfo.FileInfo.Length,
                             Hash = hash,
                         };
                     }
