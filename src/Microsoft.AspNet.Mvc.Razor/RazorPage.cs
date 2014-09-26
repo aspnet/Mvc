@@ -10,6 +10,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -19,10 +20,12 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public abstract class RazorPage : IRazorPage
     {
+        private static readonly Type ICanHasViewContextType = typeof(ICanHasViewContext);
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Stack<TextWriter> _writerScopes;
         private TextWriter _originalWriter;
         private IUrlHelper _urlHelper;
+        private ITypeActivator _typeActivator;
         private bool _renderedBody;
 
         public RazorPage()
@@ -105,6 +108,43 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <inheritdoc />
         public abstract Task ExecuteAsync();
+
+        private ITypeActivator TypeActivator
+        {
+            get
+            {
+                if(_typeActivator == null)
+                {
+                    _typeActivator = ViewContext.HttpContext.RequestServices.GetService<ITypeActivator>();
+                }
+
+                return _typeActivator;
+            }
+        }
+
+
+        /// <summary>
+        /// Creates and activates a <see cref="TagHelper"/>.
+        /// </summary>
+        /// <typeparam name="TTagHelper">A <see cref="TagHelper"/> type.</typeparam>
+        /// <returns>The activated <see cref="TagHelper"/>.</returns>
+        /// <remarks>
+        /// If the<see cref= "TagHelper" /> implements <see cref="ICanHasViewContext"/> the 
+        /// <see cref="ICanHasViewContext.Contextualize(ViewContext)"/> method is called with the current pages 
+        /// <see cref="ViewContext"/>.
+        /// </remarks>
+        public TTagHelper CreateTagHelper<TTagHelper>() where TTagHelper : TagHelper
+        {
+            var tagHelper = TypeActivator.CreateInstance<TTagHelper>(ViewContext.HttpContext.RequestServices);
+
+            // See if the tag helper needs the ViewContext
+            if (ICanHasViewContextType.IsAssignableFrom(typeof(TTagHelper)))
+            {
+                ((ICanHasViewContext)tagHelper).Contextualize(ViewContext);
+            }
+
+            return tagHelper;
+        }
 
         /// <summary>
         /// Starts a new writing scope.
