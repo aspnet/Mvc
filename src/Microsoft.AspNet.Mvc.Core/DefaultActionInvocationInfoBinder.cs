@@ -24,10 +24,15 @@ namespace Microsoft.AspNet.Mvc
             var parameterMetadatas = parameters.Select(parameter =>
             {
                 var parameterType = parameter.ParameterBindingInfo.ParameterType;
+
+                // TODO: Artifitially annotate the parameter with a BindAlwaysAttribute
+                // to ensure that the top level object is not null.
+                // This is to have compat with mvc. 
+                var parameterAttributes = parameter.ParameterBindingInfo.Attributes;
                 return metadataProvider.GetMetadataForParameter(
                     modelAccessor: null,
                     parameterType: parameterType,
-                    parameterAttributes: parameter.ParameterBindingInfo.Attributes,
+                    parameterAttributes: parameterAttributes,
                     parameterName: parameter.Name);
             });
 
@@ -51,13 +56,13 @@ namespace Microsoft.AspNet.Mvc
                     ModelMetadata = modelMetadata,
                     ModelState = actionBindingContext.ActionContext.ModelState,
                     ModelBinder = actionBindingContext.ModelBinder,
-                    ValueProvider = actionBindingContext.ValueProvider,
-                    OriginalValueProvider = actionBindingContext.ValueProvider,
+                    OriginalValueProviders = actionBindingContext.ValueProviders,
                     ValidatorProvider = actionBindingContext.ValidatorProvider,
                     MetadataProvider = actionBindingContext.MetadataProvider,
                     HttpContext = actionBindingContext.ActionContext.HttpContext,
-                    FallbackToEmptyPrefix = false,
-                    EnableValueProviderBindingForProperties = enableValueProviderBasedBinding
+                    FallbackToEmptyPrefix = true,
+                    EnableAutoValueBindingForUnmarkedModels = enableValueProviderBasedBinding,
+                    ValueProviders = actionBindingContext.ValueProviders,
                 };
 
                 if (await actionBindingContext.ModelBinder.BindModelAsync(modelBindingContext))

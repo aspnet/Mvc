@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public Task<bool> BindModelAsync(ModelBindingContext context)
         {
-            if(typeof(T) == context.ModelMetadata.Marker?.GetType())
+            if(context.ModelMetadata.Marker != null && typeof(T).IsAssignableFrom(context.ModelMetadata.Marker.GetType()))
             {
                 Marker = (T)context.ModelMetadata.Marker;
                 return BindAsync(context);

@@ -15,7 +15,5 @@ namespace Microsoft.AspNet.Mvc
         }
 
         public string HeaderKey { get; private set; }
-
-        public bool ForceBind { get; set; }
     }
 }

@@ -6,9 +6,9 @@ using System;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Represents a marker used to identify a particular binder applies to an artifact.
+    /// Represents a binder marker which identifies a binder which is based off of a value provider.
     /// </summary>
-    public interface IBinderMarker
+    public interface IValueBinderMarker : IBinderMarker
     {
     }
 }

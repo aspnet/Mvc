@@ -16,6 +16,10 @@ namespace MvcSample.Web.RandomNameSpace
         [FromQuery]
         public int Count2 { get; set; }
 
+        // Everything for this employee should be tried to be bound from query.
+        [FromQuery]
+        public Employer Employer { get; set; }
+
         // Should be model bound from services.
         [Activate]
         public IModelMetadataProvider ModelMetadataProvider { get; set; }
@@ -47,6 +51,21 @@ namespace MvcSample.Web.RandomNameSpace
 
             return stringBuilder.ToString();
         }
+
+        public string GetEmployerName(Employer emp)
+        {
+            return emp.Name;
+        }
+
+        public void InspectAddress([FromForm] Address add)
+        {
+        }
+
+        [HttpGet("/")]
+        public IActionResult Index()
+        {
+            return Json(new { key = "value" });
+        }
     }
 
     public class Address
@@ -55,9 +74,7 @@ namespace MvcSample.Web.RandomNameSpace
 
         public string State { get; set; }
 
-        // Without this flag turned on the address parameter in the bind method above
-        // will be null.
-        [FromQuery(ForceBind = true)]
+        [FromQuery]
         public string HouseNumber { get; set; }
 
         public string Zip { get; set; }
@@ -72,7 +89,7 @@ namespace MvcSample.Web.RandomNameSpace
 
     public class StockInfo
     {
-        [FromQuery(ForceBind = true)]
+        [FromForm]
         public string Symbol { get; set; }
     }
 

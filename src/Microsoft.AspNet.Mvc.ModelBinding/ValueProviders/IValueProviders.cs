@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -23,5 +24,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="key">The key of the value object to retrieve.</param>
         /// <returns>The value object for the specified key. If the exact key is not found, null.</returns>
         Task<ValueProviderResult> GetValueAsync(string key);
+
+        bool IsValidFor(Type valueProviderType);
+        
+ //        bool IsValidFor<T>() where T : IValueBinderMarker;
     }
 }

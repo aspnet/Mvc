@@ -38,13 +38,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (bindingContext != null)
             {
                 ModelState = bindingContext.ModelState;
-                ValueProvider = bindingContext.ValueProvider;
+                ValueProviders = bindingContext.ValueProviders;
                 MetadataProvider = bindingContext.MetadataProvider;
                 ModelBinder = bindingContext.ModelBinder;
                 ValidatorProvider = bindingContext.ValidatorProvider;
                 HttpContext = bindingContext.HttpContext;
-                EnableValueProviderBindingForProperties = EnableValueProviderBindingForProperties;
-                OriginalValueProvider = bindingContext.ValueProvider;
+                EnableAutoValueBindingForUnmarkedModels = bindingContext.EnableAutoValueBindingForUnmarkedModels;
+                OriginalValueProviders = bindingContext.OriginalValueProviders;
             }
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <summary>
         /// Tells the modelbinding system to also bind properties of a model without an explicit marker.
         /// </summary>
-        public bool EnableValueProviderBindingForProperties { get; set; }
+        public bool EnableAutoValueBindingForUnmarkedModels { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="HttpContext"/> for the current request.
@@ -143,12 +143,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets the unaltered value provider.
         /// Value providers can be filtered by specific model binders (like FromQuery).
         /// </summary>
-        public IValueProvider OriginalValueProvider { get; set; }
+        public IReadOnlyList<IValueProvider> OriginalValueProviders { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="IValueProvider"/> associated with this context.
+        /// Gets or sets the List of <see cref="IValueProvider"/> associated with this context.
         /// </summary>
-        public IValueProvider ValueProvider { get; set; }
+        public IReadOnlyList<IValueProvider> ValueProviders { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IModelBinder"/> associated with this context.

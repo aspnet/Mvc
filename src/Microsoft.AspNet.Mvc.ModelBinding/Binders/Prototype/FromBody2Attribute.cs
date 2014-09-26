@@ -9,6 +9,5 @@ namespace Microsoft.AspNet.Mvc
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
     public class FromBody2Attribute : Attribute, IBinderMarker
     {
-        public bool ForceBind { get; set; }
     }
 }

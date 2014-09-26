@@ -6,11 +6,8 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc
 {
-    /// <summary>
-    /// This attribute indicates that an artifact need to participate in model binding. 
-    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-    public class BindAlwaysAttribute : Attribute, IBinderMarker
+    public class FromFormAttribute : Attribute, IValueBinderMarker
     {
     }
 }

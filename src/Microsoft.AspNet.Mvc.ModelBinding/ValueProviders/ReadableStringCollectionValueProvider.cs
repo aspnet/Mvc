@@ -12,7 +12,8 @@ using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public class ReadableStringCollectionValueProvider : IEnumerableValueProvider
+    public class ReadableStringCollectionValueProvider<T> : MarkerAwareValueProvider<T>, IEnumerableValueProvider 
+        where T : IValueBinderMarker
     {
         private readonly CultureInfo _culture;
         private PrefixContainer _prefixContainer;
@@ -45,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        public virtual async Task<bool> ContainsPrefixAsync(string prefix)
+        public override async Task<bool> ContainsPrefixAsync(string prefix)
         {
             var prefixContainer = await GetPrefixContainerAsync();
             return prefixContainer.ContainsPrefix(prefix);
@@ -57,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return prefixContainer.GetKeysFromPrefix(prefix);
         }
 
-        public virtual async Task<ValueProviderResult> GetValueAsync([NotNull] string key)
+        public override async Task<ValueProviderResult> GetValueAsync([NotNull] string key)
         {
             var collection = await GetValueCollectionAsync();
             var values = collection.GetValues(key);

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -120,19 +121,31 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelMetadata = oldBindingContext.ModelMetadata,
                 ModelName = modelName,
                 ModelState = oldBindingContext.ModelState,
-                ValueProvider = oldBindingContext.ValueProvider,
-                OriginalValueProvider = oldBindingContext.OriginalValueProvider,
+                ValueProviders = oldBindingContext.ValueProviders,
+                OriginalValueProviders = oldBindingContext.OriginalValueProviders,
                 ValidatorProvider = oldBindingContext.ValidatorProvider,
                 MetadataProvider = oldBindingContext.MetadataProvider,
                 ModelBinder = oldBindingContext.ModelBinder,
-                HttpContext = oldBindingContext.HttpContext, 
-                EnableValueProviderBindingForProperties = oldBindingContext.EnableValueProviderBindingForProperties
+                HttpContext = oldBindingContext.HttpContext,
+                EnableAutoValueBindingForUnmarkedModels = oldBindingContext.EnableAutoValueBindingForUnmarkedModels,
             };
 
             // validation is expensive to create, so copy it over if we can
             if (reuseValidationNode)
             {
                 newBindingContext.ValidationNode = oldBindingContext.ValidationNode;
+            }
+
+            // look at the value providers and see if they need to be restricted. 
+            if(oldBindingContext.ModelMetadata.IsExplicitlyMarkedUsingAValueBinderMarker)
+            {
+                newBindingContext.ValueProviders = oldBindingContext.OriginalValueProviders
+                                                                    .Where(valueProvider => 
+                                                                            valueProvider.IsValidFor(oldBindingContext
+                                                                                                        .ModelMetadata
+                                                                                                        .Marker
+                                                                                                        .GetType()))
+                                                                    .ToList();
             }
 
             return newBindingContext;

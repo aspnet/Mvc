@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc
         /// results of model-binding validation.</param>
         /// <param name="metadataProvider">The provider used for reading metadata for the model type.</param>
         /// <param name="modelBinder">The model binder used for binding.</param>
-        /// <param name="valueProvider">The value provider used for looking up values.</param>
+        /// <param name="valueProviders">The value providers used for looking up values.</param>
         /// <param name="validatorProvider">The validator provider used for executing validation on the model
         /// instance.</param>
         /// <returns>A Task with a value representing if the the update is successful.</returns>
@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc
                 [NotNull] ModelStateDictionary modelState,
                 [NotNull] IModelMetadataProvider metadataProvider,
                 [NotNull] IModelBinder modelBinder,
-                [NotNull] IValueProvider valueProvider,
+                [NotNull] IReadOnlyList<IValueProvider> valueProviders,
                 [NotNull] IModelValidatorProvider validatorProvider)
             where TModel : class
         {
@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc
                 Model = model,
                 ModelState = modelState,
                 ModelBinder = modelBinder,
-                ValueProvider = valueProvider,
+                ValueProviders = valueProviders,
                 ValidatorProvider = validatorProvider,
                 MetadataProvider = metadataProvider,
                 FallbackToEmptyPrefix = true,

@@ -13,6 +13,5 @@ namespace Microsoft.AspNet.Mvc
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class ActivateAttribute : Attribute, IBinderMarker
     {
-        public bool ForceBind { get; set; }
     }
 }

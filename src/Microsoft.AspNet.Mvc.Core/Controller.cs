@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -495,7 +496,7 @@ namespace Microsoft.AspNet.Mvc
             }
 
             var bindingContext = await BindingContextProvider.GetActionBindingContextAsync(ActionContext);
-            return await TryUpdateModelAsync(model, prefix, bindingContext.ValueProvider);
+            return await TryUpdateModelAsync(model, prefix, bindingContext.ValueProviders);
         }
 
         /// <summary>
@@ -509,7 +510,7 @@ namespace Microsoft.AspNet.Mvc
         [NonAction]
         public virtual async Task<bool> TryUpdateModelAsync<TModel>([NotNull] TModel model,
                                                                     [NotNull] string prefix,
-                                                                    [NotNull] IValueProvider valueProvider)
+                                                                    [NotNull] IReadOnlyList<IValueProvider> valueProviders)
             where TModel : class
         {
             if (BindingContextProvider == null)
@@ -525,7 +526,7 @@ namespace Microsoft.AspNet.Mvc
                                                                 ModelState,
                                                                 bindingContext.MetadataProvider,
                                                                 bindingContext.ModelBinder,
-                                                                valueProvider,
+                                                                valueProviders,
                                                                 bindingContext.ValidatorProvider);
         }
     }

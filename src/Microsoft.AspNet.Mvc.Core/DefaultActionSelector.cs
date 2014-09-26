@@ -140,7 +140,7 @@ namespace Microsoft.AspNet.Mvc
                         continue;
                     }
 
-                    if (await actionBindingContext.ValueProvider.ContainsPrefixAsync(
+                    if (await actionBindingContext.ValueProviders.ContainsPrefixAsync(
                         parameter.ParameterBindingInfo.Prefix))
                     {
                         candidate.FoundParameters++;

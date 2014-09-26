@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             ModelBindingHelper.ValidateBindingContext(context);
 
-            var valueProviderResult = await context.ValueProvider.GetValueAsync(context.ModelName);
+            var valueProviderResult = await context.ValueProviders.GetValueAsync(context.ModelName);
             if (valueProviderResult == null)
             {
                 return null; // the value doesn't exist

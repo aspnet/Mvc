@@ -36,5 +36,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                 null;
             return Task.FromResult(result);
         }
+
+        public bool IsValidFor(Type valueProviderType)
+        {
+            // Always returns true.
+            return true;
+        }
     }
 }

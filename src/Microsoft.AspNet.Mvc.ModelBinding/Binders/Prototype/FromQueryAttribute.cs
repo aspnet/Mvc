@@ -7,8 +7,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 namespace Microsoft.AspNet.Mvc
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-    public class FromQueryAttribute : Attribute, IBinderMarker
+    public class FromQueryAttribute : Attribute, IValueBinderMarker
     {
-        public bool ForceBind { get; set; }
     }
 }

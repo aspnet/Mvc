@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return false;
             }
 
-            var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
+            var valueProviderResult = await bindingContext.ValueProviders.GetValueAsync(bindingContext.ModelName);
 
             // case 1: there was no <input ... /> element containing this data
             if (valueProviderResult == null)

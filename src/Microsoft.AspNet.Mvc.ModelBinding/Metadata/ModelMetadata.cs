@@ -30,7 +30,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private string _simpleDisplayText;
         private bool _showForDisplay = true;
         private bool _showForEdit = true;
-        private bool? forceBindProperties = null;
 
         public ModelMetadata([NotNull] IModelMetadataProvider provider,
                              Type containerType,
@@ -159,22 +158,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public virtual string NullDisplayText { get; set; }
 
-        /// <summary>
-        /// Returns true if there is an immediate property of a model that is marked as force bind,
-        /// OR if all properties are marked using IBinderMarker.
-        /// </summary>
-        public bool ForceBindProperties
+        public bool IsExplicitlyMarkedUsingAValueBinderMarker
         {
             get
             {
-                if (!forceBindProperties.HasValue)
-                {
-                    forceBindProperties = !Properties.Any(property => property.Marker == null) || 
-                                          Properties.Any(property => property.Marker != null && 
-                                                         property.Marker.ForceBind);
-                }
+                return Marker != null && typeof(IValueBinderMarker).IsAssignableFrom(Marker.GetType());
+            }
+        }
 
-                return forceBindProperties.Value;
+        public bool IsExplicitlyMarkedUsingANonValueBinderMarker
+        {
+            get
+            {
+                return Marker != null && 
+                       typeof(IBinderMarker).IsAssignableFrom(Marker.GetType()) &&
+                       !typeof(IValueBinderMarker).IsAssignableFrom(Marker.GetType());
             }
         }
 
