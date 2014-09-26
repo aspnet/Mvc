@@ -9,10 +9,8 @@ using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
-
-#if ASPNET50 || ASPNETCORE50
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Runtime;
-#endif
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -45,8 +43,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="appEnvironment"/>.
         /// </summary>
         /// <param name="appEnvironment">Contains information about the executing application.</param>
-        public MvcRazorHost(IApplicationEnvironment appEnvironment)
-            : this(new PhysicalFileSystem(appEnvironment.ApplicationBasePath))
+        /// <param name="libraryManager">The <see cref="ILibraryManager"/> used to locate assemblies.</param>
+        public MvcRazorHost(IApplicationEnvironment appEnvironment, ILibraryManager libraryManager)
+            : this(new PhysicalFileSystem(appEnvironment.ApplicationBasePath), libraryManager)
         {
         }
 #elif NET45
@@ -55,12 +54,25 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="root"/>.
         /// </summary>
         /// <param name="root">The path to the application base.</param>
-        public MvcRazorHost(string root) :
-            this(new PhysicalFileSystem(root))
+        /// <param name="libraryManager">The <see cref="ILibraryManager"/> used to locate assemblies.</param>
+        public MvcRazorHost(string root, ILibraryManager libraryManager) :
+            this(new PhysicalFileSystem(root), libraryManager)
         {
 
         }
 #endif
+
+        private MvcRazorHost([NotNull] IFileSystem fileSystem, ILibraryManager libraryManager)
+            : this(fileSystem)
+        {
+            // If the library manager is null then we cannot enable tag helpers.
+            if (libraryManager != null)
+            {
+                var tagHelperTypeResolver = new TagHelperTypeResolver(libraryManager);
+
+                TagHelperDescriptorResolver = new TagHelperDescriptorResolver(tagHelperTypeResolver);
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="MvcRazorHost"/> using the specified <paramref name="fileSystem"/>.
@@ -75,6 +87,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             DefaultBaseClass = BaseType + '<' + DefaultModel + '>';
             DefaultNamespace = "Asp";
             GeneratedClassContext = new GeneratedClassContext(
+                new GeneratedTagHelperContext
+                {
+                    TagHelperRunnerTypeName = typeof(ITagHelperRunner).FullName,
+                    TagHelperScopeManagerTypeName = typeof(ITagHelperScopeManager).FullName,
+                    TagHelperExecutionContextTypeName = typeof(TagHelpersExecutionContext).FullName
+                },
                 executeMethodName: "ExecuteAsync",
                 writeMethodName: "Write",
                 writeLiteralMethodName: "WriteLiteral",
@@ -83,6 +101,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 templateTypeName: "Microsoft.AspNet.Mvc.Razor.HelperResult",
                 defineSectionMethodName: "DefineSection")
             {
+                ActivateAttributeName = ActivateAttribute,
                 ResolveUrlMethodName = "Href"
             };
 
