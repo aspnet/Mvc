@@ -31,19 +31,16 @@ namespace Microsoft.AspNet.Mvc
         private readonly IActionDiscoveryConventions _conventions;
         private readonly IReadOnlyList<IFilter> _globalFilters;
         private readonly IEnumerable<IReflectedApplicationModelConvention> _modelConventions;
-        private readonly IInlineConstraintResolver _constraintResolver;
 
         public ReflectedActionDescriptorProvider(IControllerAssemblyProvider controllerAssemblyProvider,
                                                  IActionDiscoveryConventions conventions,
                                                  IGlobalFilterProvider globalFilters,
-                                                 IOptionsAccessor<MvcOptions> optionsAccessor,
-                                                 IInlineConstraintResolver constraintResolver)
+                                                 IOptionsAccessor<MvcOptions> optionsAccessor)
         {
             _controllerAssemblyProvider = controllerAssemblyProvider;
             _conventions = conventions;
             _globalFilters = globalFilters.Filters;
             _modelConventions = optionsAccessor.Options.ApplicationModelConventions;
-            _constraintResolver = constraintResolver;
         }
 
         public int Order
@@ -60,12 +57,7 @@ namespace Microsoft.AspNet.Mvc
         public IEnumerable<ReflectedActionDescriptor> GetDescriptors()
         {
             var model = BuildModel();
-
-            foreach (var convention in _modelConventions)
-            {
-                convention.OnModelCreated(model);
-            }
-
+            ApplyConventions(model);
             return Build(model);
         }
 
@@ -118,6 +110,62 @@ namespace Microsoft.AspNet.Mvc
             return applicationModel;
         }
 
+        public void ApplyConventions(ReflectedApplicationModel model)
+        {
+            // Conventions are applied from the outside-in to allow for scenarios where an action overrides
+            // a controller, etc.
+            foreach (var convention in _modelConventions)
+            {
+                convention.OnModelCreated(model);
+            }
+
+            // First apply the conventions from attributes in decreasing order of scope.
+            foreach (var controller in model.Controllers)
+            {
+                // ToArray is needed here to prevent issues with modifying the attributes collection
+                // while iterating it.
+                var controllerConventions = 
+                    controller.Attributes
+                        .OfType<IReflectedControllerModelConvention>()
+                        .ToArray();
+
+                foreach (var controllerConvention in controllerConventions)
+                {
+                    controllerConvention.OnModelCreated(controller);
+                }
+
+                foreach (var action in controller.Actions)
+                {
+                    // ToArray is needed here to prevent issues with modifying the attributes collection
+                    // while iterating it.
+                    var actionConventions =
+                        action.Attributes
+                            .OfType<IReflectedActionModelConvention>()
+                            .ToArray();
+
+                    foreach (var actionConvention in actionConventions)
+                    {
+                        actionConvention.OnModelCreated(action);
+                    }
+
+                    foreach (var parameter in action.Parameters)
+                    {
+                        // ToArray is needed here to prevent issues with modifying the attributes collection
+                        // while iterating it.
+                        var parameterConventions =
+                            parameter.Attributes
+                                .OfType<IReflectedParameterModelConvention>()
+                                .ToArray();
+
+                        foreach (var parameterConvention in parameterConventions)
+                        {
+                            parameterConvention.OnModelCreated(parameter);
+                        }
+                    }
+                }
+            }
+        }
+
         public List<ReflectedActionDescriptor> Build(ReflectedApplicationModel model)
         {
             var actions = new List<ReflectedActionDescriptor>();
@@ -133,6 +181,8 @@ namespace Microsoft.AspNet.Mvc
             foreach (var controller in model.Controllers)
             {
                 var controllerDescriptor = new ControllerDescriptor(controller.ControllerType);
+                controllerDescriptor.Name = controller.ControllerName;
+
                 foreach (var action in controller.Actions)
                 {
                     // Controllers with multiple [Route] attributes (or user defined implementation of

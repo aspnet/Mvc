@@ -3,8 +3,22 @@
 
 namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
 {
+    /// <summary>
+    /// Allows customization of the of the <see cref="ReflectedApplicationModel"/>.
+    /// </summary>
+    /// <remarks>
+    /// Implementaions of this interface can be registered in <see cref="MvcOptions.ApplicationModelConventions"/>
+    /// to customize metadata about the application.
+    /// 
+    /// <see cref="IReflectedApplicationModelConvention"/> run before other types of customizations to the
+    /// reflected model.
+    /// </remarks>
     public interface IReflectedApplicationModelConvention
     {
+        /// <summary>
+        /// Called when <see cref="ReflectedApplicationModel"/> is created.
+        /// </summary>
+        /// <param name="model">The <see cref="ReflectedApplicationModel"/>.</param>
         void OnModelCreated([NotNull] ReflectedApplicationModel model);
     }
 }
