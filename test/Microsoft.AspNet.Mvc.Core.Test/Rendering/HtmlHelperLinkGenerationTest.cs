@@ -44,20 +44,38 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             //Arrange
             string expectedLink = string.Format(@"<a href=""{0}{1}{2}{3}{4}{5}""{6}>Details</a>",
-                            protocol, hostname, controller, action, GetRouteValuesAsString(routeValues), fragment, 
-                            GetHtmlAttributesAsString(htmlAttributes));
+                                                                protocol, 
+                                                                hostname, 
+                                                                controller, 
+                                                                action, 
+                                                                GetRouteValuesAsString(routeValues), 
+                                                                fragment,
+                                                                GetHtmlAttributesAsString(htmlAttributes));
 
             var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(h => h.Action(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>(), 
-                                        It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                                        .Returns<string, string, object, string, string, string>(
-                                        (actn, cntrlr, rvalues, prtcl, hname, frgmt) => 
-                                        string.Format("{0}{1}{2}{3}{4}{5}", prtcl, hname, cntrlr, actn, GetRouteValuesAsString(rvalues), frgmt));
-            
+            urlHelper.Setup(
+                            h => h.Action(
+                                    It.IsAny<string>(),
+                                    It.IsAny<string>(),
+                                    It.IsAny<object>(),
+                                    It.IsAny<string>(),
+                                    It.IsAny<string>(),
+                                    It.IsAny<string>()))
+                     .Returns<string, string, object, string, string, string>(
+                            (actn, cntrlr, rvalues, prtcl, hname, frgmt) =>
+                                    string.Format("{0}{1}{2}{3}{4}{5}",
+                                    prtcl,
+                                    hname,
+                                    cntrlr,
+                                    actn,
+                                    GetRouteValuesAsString(rvalues),
+                                    frgmt));
+
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(urlHelper.Object);
 
             // Act
-            var actualLink = htmlHelper.ActionLink("Details",
+            var actualLink = htmlHelper.ActionLink(
+                                            linkText: "Details",
                                             actionName: action,
                                             controllerName: controller,
                                             protocol: protocol,
@@ -100,19 +118,34 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             //Arrange
             string expectedLink = string.Format(@"<a href=""{0}{1}{2}{3}""{4}>Details</a>",
-                            protocol, hostname, GetRouteValuesAsString(routeValues), fragment, GetHtmlAttributesAsString(htmlAttributes));
+                                                                    protocol,
+                                                                    hostname,
+                                                                    GetRouteValuesAsString(routeValues),
+                                                                    fragment,
+                                                                    GetHtmlAttributesAsString(htmlAttributes));
 
             var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(h => h.RouteUrl(It.IsAny<string>(), It.IsAny<object>(), 
-                                        It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                                        .Returns<string, object, string, string, string>(
-                                        (rname, rvalues, prtcl, hname, frgmt) =>
-                                        string.Format("{0}{1}{2}{3}", prtcl, hname, GetRouteValuesAsString(rvalues), frgmt));
+            urlHelper
+                .Setup(
+                    h => h.RouteUrl(
+                            It.IsAny<string>(),
+                            It.IsAny<object>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()))
+                .Returns<string, object, string, string, string>(
+                    (rname, rvalues, prtcl, hname, frgmt) =>
+                        string.Format("{0}{1}{2}{3}",
+                            prtcl,
+                            hname,
+                            GetRouteValuesAsString(rvalues),
+                            frgmt));
 
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(urlHelper.Object);
 
             // Act
-            var actualLink = htmlHelper.RouteLink("Details",
+            var actualLink = htmlHelper.RouteLink(
+                                            linkText: "Details",
                                             routeName: routeName,
                                             protocol: protocol,
                                             hostName: hostname,
