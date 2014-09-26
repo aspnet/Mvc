@@ -91,6 +91,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     TagHelperRunnerTypeName = typeof(ITagHelperRunner).FullName,
                     TagHelperScopeManagerTypeName = typeof(ITagHelperScopeManager).FullName,
+                    StartWritingScopeMethodName = "StartWritingScope",
+                    EndWritingScopeMethodName = "EndWritingScope",
                     TagHelperExecutionContextTypeName = typeof(TagHelpersExecutionContext).FullName
                 },
                 executeMethodName: "ExecuteAsync",
