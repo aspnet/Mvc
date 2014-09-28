@@ -17,15 +17,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class DefaultBodyModelValidator : IBodyModelValidator
     {
         /// <inheritdoc />
-        public bool Validate([NotNull] ModelValidationContext modelValidaitonContext, string keyPrefix)
+        public bool Validate([NotNull] ModelValidationContext modelValidationContext, string keyPrefix)
         {
-            var metadata = modelValidaitonContext.ModelMetadata;
+            var metadata = modelValidationContext.ModelMetadata;
             var validationContext = new ValidationContext()
             {
-                MetadataProvider = modelValidaitonContext.MetadataProvider,
-                ValidatorProvider = modelValidaitonContext.ValidatorProvider,
-                ModelState = modelValidaitonContext.ModelState,
-                ModelValidationContext = modelValidaitonContext,
+                MetadataProvider = modelValidationContext.MetadataProvider,
+                ValidatorProvider = modelValidationContext.ValidatorProvider,
+                ModelState = modelValidationContext.ModelState,
+                ModelValidationContext = modelValidationContext,
                 Visited = new HashSet<object>(ReferenceEqualityComparer.Instance),
                 KeyBuilders = new Stack<IKeyBuilder>(),
                 RootPrefix = keyPrefix
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             validationContext.Visited.Add(model);
 
             // Validate the children first - depth-first traversal
-            IEnumerable enumerableModel = model as IEnumerable;
+            var enumerableModel = model as IEnumerable;
             if (enumerableModel == null)
             {
                 isValid = ValidateProperties(metadata, validationContext);
@@ -182,15 +182,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return isValid;
             }
 
+            var modelValidationContext =
+                    new ModelValidationContext(validationContext.ModelValidationContext, metadata);
             foreach (var validator in validators)
             {
-                var modelValidationContext =
-                    new ModelValidationContext(validationContext.ModelValidationContext, metadata);
                 foreach (var error in validator.Validate(modelValidationContext))
                 {
                     if (modelKey == null)
                     {
                         modelKey = validationContext.RootPrefix;
+                        // This constructs the object heirarchy
+                        // Example: prefix.Parent.Child
                         foreach (var keyBuilder in validationContext.KeyBuilders.Reverse())
                         {
                             modelKey = keyBuilder.AppendTo(modelKey);

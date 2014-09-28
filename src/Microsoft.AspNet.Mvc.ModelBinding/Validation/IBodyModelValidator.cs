@@ -17,6 +17,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// and the validator providers.</param>
         /// <param name="keyPrefix">The <see cref="string"/> to append to the key for any validation errors.</param>
         /// <returns><c>true</c>if the model is valid, <c>false</c> otherwise.</returns>
-        bool Validate(ModelValidationContext modelValidaitonContext, string keyPrefix);
+        bool Validate(ModelValidationContext modelValidationContext, string keyPrefix);
     }
 }

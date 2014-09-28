@@ -240,10 +240,6 @@ namespace Microsoft.AspNet.Mvc
                 var parameterType = parameter.BodyParameterInfo != null ? 
                     parameter.BodyParameterInfo.ParameterType : parameter.ParameterBindingInfo.ParameterType;
 
-                var modelMetadata = metadataProvider.GetMetadataForType(
-                        modelAccessor: null,
-                        modelType: parameterType);
-
                 if (parameter.BodyParameterInfo != null)
                 {
                     var formatterContext = new InputFormatterContext(actionBindingContext.ActionContext,
@@ -259,6 +255,8 @@ namespace Microsoft.AspNet.Mvc
                     else
                     {
                         parameterValues[parameter.Name] = await inputFormatter.ReadAsync(formatterContext);
+                        var modelMetadata =
+                            metadataProvider.GetMetadataForType(modelAccessor: null, modelType: parameterType);
                         modelMetadata.Model = parameterValues[parameter.Name];
 
                         // Validate the generated object
@@ -272,6 +270,8 @@ namespace Microsoft.AspNet.Mvc
                 }
                 else
                 {
+                    var modelMetadata =
+                        metadataProvider.GetMetadataForType(modelAccessor: null, modelType: parameterType);
                     var modelBindingContext = new ModelBindingContext
                     {
                         ModelName = parameter.Name,
