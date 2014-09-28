@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 
 namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
 {
@@ -27,7 +28,10 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                 if (nameValuePair.Length > 1 && nameValuePair[0].Trim().Equals("q"))
                 {
                     // TODO: all extraneous parameters are ignored. Throw/return null if that is the case.
-                    if (!Double.TryParse(nameValuePair[1].Trim(), out quality))
+                    if (!double.TryParse(
+                            nameValuePair[1].Trim(),
+                            NumberStyles.Float | NumberStyles.AllowThousands,
+                            NumberFormatInfo.InvariantInfo, out quality))
                     {
                         return null;
                     }

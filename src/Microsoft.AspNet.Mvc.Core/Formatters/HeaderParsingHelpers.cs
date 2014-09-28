@@ -18,7 +18,14 @@ namespace Microsoft.AspNet.Mvc
             var acceptHeaderCollection = new List<MediaTypeWithQualityHeaderValue>();
             foreach (var item in acceptHeader.Split(','))
             {
-                acceptHeaderCollection.Add(MediaTypeWithQualityHeaderValue.Parse(item));
+                var parsedAcceptHeader = MediaTypeWithQualityHeaderValue.Parse(item);
+                // If we are unable to parse even one of the Accept Headers, we ignore them completely.
+                if (parsedAcceptHeader == null)
+                {
+                    return null;
+                }
+
+                acceptHeaderCollection.Add(parsedAcceptHeader);
             }
 
             return acceptHeaderCollection;
@@ -34,7 +41,14 @@ namespace Microsoft.AspNet.Mvc
             var acceptCharsetHeaderCollection = new List<StringWithQualityHeaderValue>();
             foreach (var item in acceptCharsetHeader.Split(','))
             {
-                acceptCharsetHeaderCollection.Add(StringWithQualityHeaderValue.Parse(item));
+                var parsedAcceptCharsetHeader = StringWithQualityHeaderValue.Parse(item);
+                // If we are unable to parse even one of the Accept-Charset Headers, we ignore them completely.
+                if (parsedAcceptCharsetHeader == null)
+                {
+                    return null;
+                }
+
+                acceptCharsetHeaderCollection.Add(parsedAcceptCharsetHeader);
             }
 
             return acceptCharsetHeaderCollection;

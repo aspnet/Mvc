@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
 {
@@ -22,7 +23,10 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             string qualityStringValue = null;
             if (mediaTypeHeaderValue.Parameters.TryGetValue("q", out qualityStringValue))
             {
-                if (!Double.TryParse(qualityStringValue, out quality))
+                if (!double.TryParse(
+                        qualityStringValue,
+                        NumberStyles.Float | NumberStyles.AllowThousands,
+                        NumberFormatInfo.InvariantInfo, out quality))
                 {
                     return null;
                 }
