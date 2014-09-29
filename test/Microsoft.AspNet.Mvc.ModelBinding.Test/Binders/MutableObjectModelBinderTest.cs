@@ -430,7 +430,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelError = modelState.Errors[0];
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("The Age field is required.", modelError.ErrorMessage);
+            var expected = ValidationAttributeUtil.GetRequiredErrorMessage("Age");
+            Assert.Equal(expected, modelError.ErrorMessage);
 
             // Check City error.
             Assert.True(modelStateDictionary.TryGetValue("theModel.City", out modelState));
@@ -439,7 +440,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             modelError = modelState.Errors[0];
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("The City field is required.", modelError.ErrorMessage);
+            expected = ValidationAttributeUtil.GetRequiredErrorMessage("City");
+            Assert.Equal(expected, modelError.ErrorMessage);
         }
 
         [Fact]
@@ -478,7 +480,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelError = modelState.Errors[0];
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("The City field is required.", modelError.ErrorMessage);
+            var expected = ValidationAttributeUtil.GetRequiredErrorMessage("City");
+            Assert.Equal(expected, modelError.ErrorMessage);
         }
 
         [Fact]
