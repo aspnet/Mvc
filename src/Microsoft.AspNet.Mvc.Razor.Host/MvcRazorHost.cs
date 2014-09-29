@@ -122,11 +122,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         public GeneratorResults GenerateCode(string rootRelativePath, Stream inputStream)
         {
             var className = ParserHelpers.SanitizeClassName(rootRelativePath);
-            using (var reader = new StreamReader(inputStream))
-            {
-                var engine = new RazorTemplateEngine(this);
-                return engine.GenerateCode(reader, className, DefaultNamespace, rootRelativePath);
-            }
+            var engine = new RazorTemplateEngine(this);
+            return engine.GenerateCode(inputStream, className, DefaultNamespace, rootRelativePath);
         }
 
         /// <inheritdoc />
