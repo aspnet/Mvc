@@ -1,14 +1,14 @@
 ﻿namespace Asp
 {
-#line 1 ""
-using MyNamespace
+    using System.Threading.Tasks;
+
+    public class TestFiles_Input_Model_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
+#line 1 "TestFiles/Input/Model.cshtml"
+       System.Collections.IEnumerable
 
 #line default
 #line hidden
-    ;
-    using System.Threading.Tasks;
-
-    public class __CompiledTemplate : Microsoft.AspNet.Mvc.Razor.RazorPage<dynamic>
+    >
     {
         private static object @__o;
         private void @__RazorDesignTimeHelpers__()
@@ -17,20 +17,12 @@ using MyNamespace
             #pragma warning restore 219
         }
         #line hidden
-        public __CompiledTemplate()
+        public TestFiles_Input_Model_cshtml()
         {
         }
         #line hidden
         [Microsoft.AspNet.Mvc.ActivateAttribute]
-        public
-#line 2 ""
-        MyApp MyPropertyName
-
-#line default
-#line hidden
-        { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
-        public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; }
+        public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<System.Collections.IEnumerable> Html { get; private set; }
         [Microsoft.AspNet.Mvc.ActivateAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
         [Microsoft.AspNet.Mvc.ActivateAttribute]

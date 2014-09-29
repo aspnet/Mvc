@@ -1,42 +1,29 @@
 ﻿namespace Asp
 {
+    using System;
+    using System.Linq;
+    using System.Collections.Generic;
+    using Microsoft.AspNet.Mvc;
+    using Microsoft.AspNet.Mvc.Rendering;
     using System.Threading.Tasks;
 
-    public class __CompiledTemplate : Microsoft.AspNet.Mvc.Razor.RazorPage<
-#line 1 ""
+    public class TestFiles_Input_InjectWithModel_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
+#line 1 "TestFiles/Input/InjectWithModel.cshtml"
        MyModel
 
 #line default
 #line hidden
     >
     {
-        private static object @__o;
-        private void @__RazorDesignTimeHelpers__()
-        {
-            #pragma warning disable 219
-            #pragma warning restore 219
-        }
         #line hidden
-        public __CompiledTemplate()
+        public TestFiles_Input_InjectWithModel_cshtml()
         {
         }
         #line hidden
         [Microsoft.AspNet.Mvc.ActivateAttribute]
-        public
-#line 2 ""
-        MyApp MyPropertyName
-
-#line default
-#line hidden
-        { get; private set; }
+        public MyApp MyPropertyName { get; private set; }
         [Microsoft.AspNet.Mvc.ActivateAttribute]
-        public
-#line 3 ""
-        MyService<MyModel> Html
-
-#line default
-#line hidden
-        { get; private set; }
+        public MyService<MyModel> Html { get; private set; }
         [Microsoft.AspNet.Mvc.ActivateAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
         [Microsoft.AspNet.Mvc.ActivateAttribute]
