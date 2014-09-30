@@ -1002,6 +1002,43 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(groupIds[0], groupIds[1]);
         }
 
+        [Fact]
+        public void AttributeRouting_GroupIdsAreAssigned_Correctly()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(GroupIdController).GetTypeInfo());
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            Assert.Equal(6, actions.Count());
+
+            var groupIds = actions.Select(a => GetRouteConstraintValue(a));
+
+            Assert.Equal(5, groupIds.Distinct().Count());
+
+            var index = Assert.Single(actions, a => a.Name == nameof(GroupIdController.Index));
+            var indexGroupId = GetRouteConstraintValue(index);
+            Assert.Single(groupIds, indexGroupId);
+
+            var edit = Assert.Single(actions, a => a.Name == nameof(GroupIdController.Edit));
+            var editGroupId = GetRouteConstraintValue(edit);
+            Assert.Single(groupIds, editGroupId);
+
+            var patch = actions.Where(a => a.Name == nameof(GroupIdController.Patch));
+            var patchGroupIds = patch.Select(p => GetRouteConstraintValue(p));
+            Assert.Equal(2, patchGroupIds.Distinct().Count());
+
+            var delete = Assert.Single(actions, a => a.Name == nameof(GroupIdController.Delete));
+            var deleteGroupId = GetRouteConstraintValue(delete);
+
+            var put = Assert.Single(actions, a => a.Name == nameof(GroupIdController.Put));
+            var putGroupId = GetRouteConstraintValue(put);
+
+            Assert.Equal(deleteGroupId, putGroupId);
+        }
+
         // Parameters are validated later. This action uses the forbidden {action} and {controller}
         [Fact]
         public void AttributeRouting_DoesNotValidateParameters()
@@ -1188,6 +1225,11 @@ namespace Microsoft.AspNet.Mvc.Test
                 null);
 
             return provider.GetDescriptors();
+        }
+
+        private static string GetRouteConstraintValue(ReflectedActionDescriptor index)
+        {
+            return index.RouteConstraints.Single(r => r.RouteKey == AttributeRouting.RouteGroupKey).RouteValue;
         }
 
         private class HttpMethodController
@@ -1501,6 +1543,25 @@ namespace Microsoft.AspNet.Mvc.Test
                     return _methods;
                 }
             }
+        }
+
+        public class GroupIdController
+        {
+            [HttpGet("Customers/Index")] // Action descriptor 1
+            public void Index() { }
+
+            [HttpGet("Customers/Edit")] // Action descriptor 2
+            public void Edit() { }
+
+            [HttpPut("Customers/{id}")] // Action descriptor 3
+            public void Put() { }
+
+            [HttpPatch("Customers/{id}", Order = 1)] // Action descriptor 4
+            [HttpPatch("Customers/UpdateCustomer/{id}")] // Action descriptor 5
+            public void Patch() { }
+
+            [HttpPut("Customers/{id}")] // Action descriptor 6
+            public void Delete() { }
         }
 
         private class PutOrPatchAttribute : HttpMethodAttribute
