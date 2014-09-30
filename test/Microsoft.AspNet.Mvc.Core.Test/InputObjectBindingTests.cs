@@ -130,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var sampleLead = "SampleLead";
             var sampleTeamSize = 15;
             var input = "{Id : " + sampleId + ", TeamName : '" + sampleTeamName +
-                "', Lead : '" + sampleLead + "', TeamSize : " + sampleTeamSize +", TeamDescription : 'Test Team'}";
+                "', Lead : '" + sampleLead + "', TeamSize : " + sampleTeamSize + ", TeamDescription : 'Test Team'}";
             var modelStateDictionary = new ModelStateDictionary();
             var invoker = GetReflectedActionInvoker(input, typeof(Team), new JsonInputFormatter(), "application/json");
 
@@ -186,7 +186,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var sampleTeamName = "HelloWorldTeam";
             var sampleLead = "SampleLead";
             var sampleTeamSize = 15;
-            var input = "{Id: " + sampleOrgId + ", OrgName: '" + sampleOrgName + 
+            var input = "{Id: " + sampleOrgId + ", OrgName: '" + sampleOrgName +
                 "', Dev: {Id : " + sampleDevTeamId + ", TeamName : '" + sampleTeamName +
                 "', Lead : '" + sampleLead + "', TeamSize : " + sampleTeamSize + ", TeamDescription : 'Test Team'}}";
             var modelStateDictionary = new ModelStateDictionary();
@@ -226,7 +226,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             var input = "{Id: " + sampleOrgId + ", OrgName: '" + sampleOrgName +
                 "', Dev: {Id : " + sampleDevTeamId + ", TeamName : '" + sampleDevTeamName +
-                "', Lead : '" + sampleDevLead + "', TeamSize : " + sampleDevTeamSize + ", TeamDescription : 'Test Team'}," + 
+                "', Lead : '" + sampleDevLead + "', TeamSize : " + sampleDevTeamSize + ", TeamDescription : 'Test Team'}," +
                 " test: {Id : " + sampleTestTeamId + ", TeamName : '" + sampleTestTeamName +
                 "', Lead : '" + sampleTestLead + "', TeamSize : " + sampleTestTeamSize + ", TeamDescription : 'Test Team'}}";
             var modelStateDictionary = new ModelStateDictionary();
@@ -278,7 +278,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var sampleFirstUserName = "fuser";
             var sampleSecondUser = "SecondUser";
             var sampleSecondUserName = "suser";
-            var input = "{'Users': [{Name : '" + sampleFirstUser +"', UserName: '" + sampleFirstUserName +
+            var input = "{'Users': [{Name : '" + sampleFirstUser + "', UserName: '" + sampleFirstUserName +
                 "'}, {Name: '" + sampleSecondUser + "', UserName: '" + sampleSecondUserName + "'}]}";
             var modelStateDictionary = new ModelStateDictionary();
             var invoker = GetReflectedActionInvoker(input, typeof(Customers), new JsonInputFormatter(), "application/xml");
@@ -347,6 +347,62 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(0, modelStateDictionary.ErrorCount);
             var model = result["foo"] as VariableTest;
             Assert.Equal(sampleInt, model.test);
+        }
+
+        // This case should be handled in a better way.
+        // Issue - https://github.com/aspnet/Mvc/issues/1206 tracks this.
+        [Fact]
+        public async Task GetArguments_UsingInputFormatter_HandlesPropertiesWhichThrowsOnGet()
+        {
+            // Arrange
+            var sampleInt = 20;
+            var input = "{'Dependent': " + sampleInt + "}";
+            var modelStateDictionary = new ModelStateDictionary();
+            var invoker = GetReflectedActionInvoker(input, typeof(PropertyThatThrows), new JsonInputFormatter(), "application/xml");
+
+            // Act & Assert
+            await Assert.ThrowsAsync(
+                typeof(InvalidOperationException),
+                async () => {
+                    await invoker.GetActionArguments(modelStateDictionary);
+                });
+        }
+
+        [Fact]
+        public void DefaultBodyModelValidator_HandlesCycles()
+        {
+            // Arrange
+            var student = new Student()
+                            {
+                                Name = "Stu"
+                            };
+            student.Friend = student;
+            var modelStateDictionary = new ModelStateDictionary();
+            var modelValidator = new DefaultBodyModelValidator();
+            var mvcOptions = new MvcOptions();
+            var setup = new MvcOptionsSetup();
+            setup.Setup(mvcOptions);
+            var accessor = new Mock<IOptionsAccessor<MvcOptions>>();
+            accessor.SetupGet(a => a.Options)
+                    .Returns(mvcOptions);
+            var modelMetadataProcider = new EmptyModelMetadataProvider();
+            var validationContext = new ModelValidationContext(
+                modelMetadataProcider,
+                new CompositeModelValidatorProvider(new DefaultModelValidatorProviderProvider(
+                accessor.Object, Mock.Of<ITypeActivator>(), Mock.Of<IServiceProvider>())),
+                modelStateDictionary,
+                new ModelMetadata(modelMetadataProcider, typeof(object), () => { return student; }, typeof(Student), null),
+                null);
+
+            // Act
+            var response = modelValidator.Validate(validationContext, "foo");
+
+            // Assert
+            // If it reaches this point with only one error, it confirms there was no infinite recursion.
+            Assert.False(modelStateDictionary.IsValid);
+            Assert.Equal(1, modelStateDictionary.ErrorCount);
+            Assert.Equal("The field Name must be a string with a minimum length of 4 and a maximum length of 20.",
+                modelStateDictionary["foo.Name"].Errors[0].ErrorMessage);
         }
 
         private static ReflectedActionInvoker GetReflectedActionInvoker(
@@ -486,7 +542,36 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
     public class VariableTest
     {
-        [Range(15,25)]
+        [Range(15, 25)]
         public int test;
+    }
+
+    public class Student
+    {
+        [StringLength(20, MinimumLength =4)]
+        public string Name { get; set; }
+
+        [Required]
+        public Student Friend { get; set; }
+    }
+
+    public class PropertyThatThrows
+    {
+        [Range(0, 100)]
+        public int Test
+        {
+            get
+            {
+                if (Dependent == 20)
+                {
+                    throw new InvalidOperationException("Random Error");
+                }
+
+                return 4;
+            }
+        }
+
+        [Range(15, 30)]
+        public int Dependent { get; set; }
     }
 }

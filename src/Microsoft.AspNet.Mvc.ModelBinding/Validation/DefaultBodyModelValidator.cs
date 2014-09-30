@@ -22,16 +22,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = modelValidationContext.ModelMetadata;
             var validationContext = new ValidationContext()
             {
-                MetadataProvider = modelValidationContext.MetadataProvider,
-                ValidatorProvider = modelValidationContext.ValidatorProvider,
-                ModelState = modelValidationContext.ModelState,
                 ModelValidationContext = modelValidationContext,
                 Visited = new HashSet<object>(ReferenceEqualityComparer.Instance),
                 KeyBuilders = new Stack<IKeyBuilder>(),
                 RootPrefix = keyPrefix
             };
 
-            return ValidateNodeAndChildren(metadata, validationContext, validators: null);
+            return ValidateNonVisitedNodeAndChildren(metadata, validationContext, validators: null);
         }
 
         private interface IKeyBuilder
@@ -39,55 +36,44 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             string AppendTo(string prefix);
         }
 
-        private bool ValidateNodeAndChildren(
+        private bool ValidateNonVisitedNodeAndChildren(
             ModelMetadata metadata, ValidationContext validationContext, IEnumerable<IModelValidator> validators)
         {
             // Recursion guard to avoid stack overflows
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
-            object model = null;
-            try
-            {
-                model = metadata.Model;
-            }
-            catch
-            {
-                // Retrieving the model failed - typically caused by a property getter throwing
-                // Being unable to retrieve a property is not a validation error - 
-                // many properties can only be retrieved if certain conditions are met
-                // Example: Uri.AbsoluteUri throws for relative URIs but it shouldn't be considered a validation error
-                return true;
-            }
-
             var isValid = true;
             if (validators == null)
             {
-                validators = validationContext.ValidatorProvider.GetValidators(metadata);
+                // The validators are not null in the case of validating an array. Since the validators are
+                // the same for all the elements of the array, we do not do GetValidators for each element,
+                // instead we just pass them over. See ValidateElements function.
+                validators = validationContext.ModelValidationContext.ValidatorProvider.GetValidators(metadata);
             }
 
             // We don't need to recursively traverse the graph for null values
-            if (model == null)
+            if (metadata.Model == null)
             {
                 return ShallowValidate(metadata, validationContext, validators);
             }
 
             // We don't need to recursively traverse the graph for types that shouldn't be validated
-            var modelType = model.GetType();
+            var modelType = metadata.Model.GetType();
             if (TypeHelper.IsSimpleType(modelType))
             {
                 return ShallowValidate(metadata, validationContext, validators);
             }
 
             // Check to avoid infinite recursion. This can happen with cycles in an object graph.
-            if (validationContext.Visited.Contains(model))
+            if (validationContext.Visited.Contains(metadata.Model))
             {
                 return true;
             }
 
-            validationContext.Visited.Add(model);
+            validationContext.Visited.Add(metadata.Model);
 
             // Validate the children first - depth-first traversal
-            var enumerableModel = model as IEnumerable;
+            var enumerableModel = metadata.Model as IEnumerable;
             if (enumerableModel == null)
             {
                 isValid = ValidateProperties(metadata, validationContext);
@@ -104,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             // Pop the object so that it can be validated again in a different path
-            validationContext.Visited.Remove(model);
+            validationContext.Visited.Remove(metadata.Model);
 
             return isValid;
         }
@@ -115,10 +101,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var propertyScope = new PropertyScope();
             validationContext.KeyBuilders.Push(propertyScope);
             foreach (var childMetadata in 
-                validationContext.MetadataProvider.GetMetadataForProperties(metadata.Model, metadata.RealModelType))
+                validationContext.ModelValidationContext.MetadataProvider.GetMetadataForProperties(
+                    metadata.Model, metadata.RealModelType))
             {
                 propertyScope.PropertyName = childMetadata.PropertyName;
-                if (!ValidateNodeAndChildren(childMetadata, validationContext, validators: null))
+                if (!ValidateNonVisitedNodeAndChildren(childMetadata, validationContext, validators: null))
                 {
                     isValid = false;
                 }
@@ -132,11 +119,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var isValid = true;
             var elementType = GetElementType(model.GetType());
-            var elementMetadata = validationContext.MetadataProvider.GetMetadataForType(null, elementType);
+            var elementMetadata =
+                validationContext.ModelValidationContext.MetadataProvider.GetMetadataForType(null, elementType);
 
             var elementScope = new ElementScope() { Index = 0 };
             validationContext.KeyBuilders.Push(elementScope);
-            var validators = validationContext.ValidatorProvider.GetValidators(elementMetadata);
+            var validators = validationContext.ModelValidationContext.ValidatorProvider.GetValidators(elementMetadata);
 
             // If there are no validators or the object is null we bail out quickly
             // when there are large arrays of null, this will save a significant amount of processing
@@ -151,7 +139,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     elementMetadata.Model = element;
 
-                    if (!ValidateNodeAndChildren(elementMetadata, validationContext, validators))
+                    if (!ValidateNonVisitedNodeAndChildren(elementMetadata, validationContext, validators))
                     {
                         isValid = false;
                     }
@@ -200,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     }
 
                     var errorKey = ModelBindingHelper.CreatePropertyModelName(modelKey, error.MemberName);
-                    validationContext.ModelState.AddModelError(errorKey, error.Message);
+                    validationContext.ModelValidationContext.ModelState.AddModelError(errorKey, error.Message);
                     isValid = false;
                 }
             }
@@ -250,9 +238,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private class ValidationContext
         {
-            public IModelMetadataProvider MetadataProvider { get; set; }
-            public IModelValidatorProvider ValidatorProvider { get; set; }
-            public ModelStateDictionary ModelState { get; set; }
             public ModelValidationContext ModelValidationContext { get; set; }
             public HashSet<object> Visited { get; set; }
             public Stack<IKeyBuilder> KeyBuilders { get; set; }
