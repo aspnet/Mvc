@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.AspNet.Mvc.Rendering
+namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// A context for containing information for <see cref="IViewLocationExpander"/>.

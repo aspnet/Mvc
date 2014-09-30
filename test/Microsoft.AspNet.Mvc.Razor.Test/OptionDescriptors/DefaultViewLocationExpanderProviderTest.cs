@@ -3,14 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.OptionDescriptors
+namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
 {
     public class DefaultViewLocationExpanderProviderTest
     {
@@ -19,16 +17,16 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         {
             // Arrange
             var service = Mock.Of<ITestService>();
-            var languageExpander = new LanguageViewLocationExpander(c => string.Empty);
+            var expander = Mock.Of<IViewLocationExpander>();
             var type = typeof(TestViewLocationExpander);
             var typeActivator = new TypeActivator();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var options = new MvcOptions();
+            var options = new RazorViewEngineOptions();
             options.ViewLocationExpanders.Add(type);
-            options.ViewLocationExpanders.Add(languageExpander);
-            var accessor = new Mock<IOptionsAccessor<MvcOptions>>();
+            options.ViewLocationExpanders.Add(expander);
+            var accessor = new Mock<IOptionsAccessor<RazorViewEngineOptions>>();
             accessor.SetupGet(a => a.Options)
                     .Returns(options);
             var provider = new DefaultViewLocationExpanderProvider(accessor.Object,
@@ -42,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             Assert.Equal(2, result.Count);
             var testExpander = Assert.IsType<TestViewLocationExpander>(result[0]);
             Assert.Same(service, testExpander.Service);
-            Assert.Same(languageExpander, result[1]);
+            Assert.Same(expander, result[1]);
         }
 
         private class TestViewLocationExpander : IViewLocationExpander

@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Razor;
 
-namespace Microsoft.AspNet.Mvc.Rendering
+namespace RazorWebSite
 {
     /// <summary>
     /// A <see cref="IViewLocationExpander"/> that replaces adds the language as an extension prefix to view names.
@@ -25,16 +25,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private readonly Func<ActionContext, string> _valueFactory;
 
         /// <summary>
-        /// Initailizes a new instance of <see cref="LanguageViewLocationExpander"/>.
+        /// Initializes a new instance of <see cref="LanguageViewLocationExpander"/>.
         /// </summary>
-        /// <param name="valueFactory">A factory that provides</param>
-        public LanguageViewLocationExpander([NotNull] Func<ActionContext, string> valueFactory)
+        /// <param name="valueFactory">A factory that provides tbe language to use for expansion.</param>
+        public LanguageViewLocationExpander(Func<ActionContext, string> valueFactory)
         {
             _valueFactory = valueFactory;
         }
 
         /// <inheritdoc />
-        public void PopulateValues([NotNull] ViewLocationExpanderContext context)
+        public void PopulateValues(ViewLocationExpanderContext context)
         {
             var value = _valueFactory(context.ActionContext);
             if (!string.IsNullOrEmpty(value))
@@ -44,8 +44,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public virtual IEnumerable<string> ExpandViewLocations([NotNull] ViewLocationExpanderContext context,
-                                                               [NotNull] IEnumerable<string> viewLocations)
+        public virtual IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context,
+                                                               IEnumerable<string> viewLocations)
         {
             if (context.Values.TryGetValue(ValueKey, out var value))
             {

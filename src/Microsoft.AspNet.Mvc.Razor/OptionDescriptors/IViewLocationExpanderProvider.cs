@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.AspNet.Mvc.Rendering
+namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
 {
     /// <summary>
     /// Provides an activated collection of <see cref="IViewLocationExpander"/> instances.

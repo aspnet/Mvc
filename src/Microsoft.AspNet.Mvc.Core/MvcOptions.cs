@@ -3,11 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.ReflectedModelBuilder;
-using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -17,7 +15,6 @@ namespace Microsoft.AspNet.Mvc
     public class MvcOptions
     {
         private AntiForgeryOptions _antiForgeryOptions = new AntiForgeryOptions();
-        private RazorViewEngineOptions _viewEngineOptions = new RazorViewEngineOptions();
         private int _maxModelStateErrors = 200;
 
         public MvcOptions()
@@ -73,29 +70,6 @@ namespace Microsoft.AspNet.Mvc
         public List<InputFormatterDescriptor> InputFormatters { get; private set; }
 
         /// <summary>
-        /// Provides programmatic configuration for the default <see cref="Rendering.IViewEngine" />.
-        /// </summary>
-        public RazorViewEngineOptions ViewEngineOptions
-        {
-            get
-            {
-                return _viewEngineOptions;
-            }
-
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value",
-                                                    Resources.FormatPropertyOfTypeCannotBeNull("ViewEngineOptions",
-                                                                                               typeof(MvcOptions)));
-                }
-
-                _viewEngineOptions = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the maximum number of validation errors that are allowed by this application before further
         /// errors are ignored.
         /// </summary>
@@ -126,12 +100,6 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         public List<ModelValidatorProviderDescriptor> ModelValidatorProviders { get; }
             = new List<ModelValidatorProviderDescriptor>();
-
-        /// <summary>
-        /// Get a list of descriptors for <see cref="IViewLocationExpander" />s used by this application.
-        /// </summary>
-        public List<ViewLocationExpanderDescriptor> ViewLocationExpanders { get; }
-            = new List<ViewLocationExpanderDescriptor>();
 
         /// <summary>
         /// Gets a list of descriptors that represent <see cref="Rendering.IViewEngine"/> used

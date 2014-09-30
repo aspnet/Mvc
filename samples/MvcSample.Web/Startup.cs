@@ -6,7 +6,7 @@ using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Razor;
 
 #if ASPNET50 
 using Autofac;
@@ -46,7 +46,7 @@ namespace MvcSample.Web
                     {
                         options.Filters.Add(typeof(PassThroughAttribute), order: 17);
                     });
-                    services.SetupOptions<MvcOptions>(options =>
+                    services.SetupOptions<RazorViewEngineOptions>(options =>
                     {
                         var expander = new LanguageViewLocationExpander(
                             context => context.HttpContext.Request.Query["language"]);

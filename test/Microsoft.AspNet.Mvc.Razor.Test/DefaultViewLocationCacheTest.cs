@@ -8,7 +8,7 @@ using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Rendering
+namespace Microsoft.AspNet.Mvc.Razor
 {
     public class DefaultViewLocationCacheTest
     {

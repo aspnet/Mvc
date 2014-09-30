@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 
-namespace Microsoft.AspNet.Mvc.OptionDescriptors
+namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
 {
     /// <inheritdoc />
     public class DefaultViewLocationExpanderProvider :
@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the 
         /// service collection.</param>
         public DefaultViewLocationExpanderProvider(
-            IOptionsAccessor<MvcOptions> optionsAccessor,
+            IOptionsAccessor<RazorViewEngineOptions> optionsAccessor,
             ITypeActivator typeActivator,
             IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.ViewLocationExpanders, typeActivator, serviceProvider)

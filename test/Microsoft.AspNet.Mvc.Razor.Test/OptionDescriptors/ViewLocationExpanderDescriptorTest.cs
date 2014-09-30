@@ -3,11 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Testing;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.OptionDescriptors
+namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
 {
     public class ViewLocationExpanderDescriptorTest
     {

@@ -6,9 +6,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.AspNet.Mvc.Core;
 
-namespace Microsoft.AspNet.Mvc.Rendering
+namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// Default implementation of <see cref="IViewLocationCache"/>.
@@ -46,12 +45,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             if (context.Values != null)
             {
                 var valuesDictionary = context.Values;
-                foreach (var key in valuesDictionary.Keys.OrderBy(k => k, StringComparer.Ordinal))
+                foreach (var item in valuesDictionary.OrderBy(k => k.Key, StringComparer.Ordinal))
                 {
                     keyBuilder.Append(':')
-                              .Append(key)
+                              .Append(item.Key)
                               .Append(':')
-                              .Append(valuesDictionary[key]);
+                              .Append(item.Value);
                 }
             }
 

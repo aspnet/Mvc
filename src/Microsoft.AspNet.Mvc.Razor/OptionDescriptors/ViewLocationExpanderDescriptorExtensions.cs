@@ -3,10 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.OptionDescriptors;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Razor.OptionDescriptors;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// Extension methods for adding view location expanders to a collection.
@@ -56,7 +55,7 @@ namespace Microsoft.AspNet.Mvc
         /// Adds an <see cref="IViewLocationExpander"/> to <paramref name="descriptors"/>.
         /// </summary>
         /// <param name="descriptors">A list of <see cref="ViewLocationExpanderDescriptor"/>.</param>
-        /// <param name="viewLocationExpander">An <see cref="IModelBinder"/> instance.</param>
+        /// <param name="viewLocationExpander">An <see cref="IViewLocationExpander"/> instance.</param>
         /// <returns>A <see cref="ViewLocationExpanderDescriptor"/> representing the added instance.</returns>
         public static ViewLocationExpanderDescriptor Add(
             [NotNull] this IList<ViewLocationExpanderDescriptor> descriptors,
@@ -74,7 +73,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="descriptors">A list of <see cref="ViewLocationExpanderDescriptor"/>.</param>
         /// <param name="index">The zero-based index at which <paramref name="viewLocationExpander"/> 
         /// should be inserted.</param>
-        /// <param name="viewLocationExpander">An <see cref="IModelBinder"/> instance.</param>
+        /// <param name="viewLocationExpander">An <see cref="IViewLocationExpander"/> instance.</param>
         /// <returns>A <see cref="ViewLocationExpanderDescriptor"/> representing the added instance.</returns>
         public static ViewLocationExpanderDescriptor Insert(
             [NotNull] this IList<ViewLocationExpanderDescriptor> descriptors,

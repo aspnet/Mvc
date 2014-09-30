@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNet.Mvc.Rendering
+namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// The result of a lookup in <see cref="IViewLocationCache"/>.
