@@ -8,18 +8,8 @@ namespace Microsoft.AspNet.Mvc
 {
     public class ControllerDescriptor
     {
-        public ControllerDescriptor(TypeInfo controllerTypeInfo)
-        {
-            if (controllerTypeInfo == null)
-            {
-                throw new ArgumentNullException("controllerTypeInfo");
-            }
-
-            ControllerTypeInfo = controllerTypeInfo;
-        }
-
         public string Name { get; set; }
 
-        public TypeInfo ControllerTypeInfo { get; private set; }
+        public TypeInfo ControllerTypeInfo { get; set; }
     }
 }

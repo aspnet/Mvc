@@ -72,7 +72,11 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var controllerType in controllerTypes)
             {
-                var controllerModel = new ReflectedControllerModel(controllerType);
+                var controllerModel = new ReflectedControllerModel(controllerType)
+                {
+                    Application = applicationModel,
+                };
+
                 applicationModel.Controllers.Add(controllerModel);
 
                 foreach (var methodInfo in controllerType.AsType().GetMethods())
@@ -85,10 +89,13 @@ namespace Microsoft.AspNet.Mvc
 
                     foreach (var actionInfo in actionInfos)
                     {
-                        var actionModel = new ReflectedActionModel(methodInfo);
+                        var actionModel = new ReflectedActionModel(methodInfo)
+                        {
+                            ActionName = actionInfo.ActionName,
+                            Controller = controllerModel,
+                            IsActionNameMatchRequired = actionInfo.RequireActionNameMatch,
+                        };
 
-                        actionModel.ActionName = actionInfo.ActionName;
-                        actionModel.IsActionNameMatchRequired = actionInfo.RequireActionNameMatch;
                         actionModel.HttpMethods.AddRange(actionInfo.HttpMethods ?? Enumerable.Empty<string>());
 
                         if (actionInfo.AttributeRoute != null)
@@ -99,7 +106,10 @@ namespace Microsoft.AspNet.Mvc
 
                         foreach (var parameter in methodInfo.GetParameters())
                         {
-                            actionModel.Parameters.Add(new ReflectedParameterModel(parameter));
+                            actionModel.Parameters.Add(new ReflectedParameterModel(parameter)
+                            {
+                                Action = actionModel,
+                            });
                         }
 
                         controllerModel.Actions.Add(actionModel);
@@ -124,7 +134,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 // ToArray is needed here to prevent issues with modifying the attributes collection
                 // while iterating it.
-                var controllerConventions = 
+                var controllerConventions =
                     controller.Attributes
                         .OfType<IReflectedControllerModelConvention>()
                         .ToArray();
@@ -180,8 +190,11 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var controller in model.Controllers)
             {
-                var controllerDescriptor = new ControllerDescriptor(controller.ControllerType);
-                controllerDescriptor.Name = controller.ControllerName;
+                var controllerDescriptor = new ControllerDescriptor()
+                {
+                    ControllerTypeInfo = controller.ControllerType,
+                    Name = controller.ControllerName,
+                };
 
                 foreach (var action in controller.Actions)
                 {
@@ -401,7 +414,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static void AddApiExplorerInfo(
             ReflectedActionDescriptor actionDescriptor,
-            ReflectedActionModel action, 
+            ReflectedActionModel action,
             ReflectedControllerModel controller)
         {
             var apiExplorerIsVisible = action.ApiExplorerIsVisible ?? controller.ApiExplorerIsVisible ?? false;
@@ -410,7 +423,7 @@ namespace Microsoft.AspNet.Mvc
                 var apiExplorerActionData = new ApiDescriptionActionData()
                 {
                     GroupName = action.ApiExplorerGroupName ?? controller.ApiExplorerGroupName,
-                };  
+                };
 
                 actionDescriptor.SetProperty(apiExplorerActionData);
             }
