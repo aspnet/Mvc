@@ -28,7 +28,7 @@ namespace ReflectedModelWebSite
                 _actionName = actionName;
             }
 
-            public void OnModelCreated(ReflectedActionModel model)
+            public void Apply(ReflectedActionModel model)
             {
                 model.ActionName = _actionName;
             }

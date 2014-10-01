@@ -1139,22 +1139,22 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var applicationConvention = new Mock<IReflectedApplicationModelConvention>();
             applicationConvention
-                .Setup(c => c.OnModelCreated(It.IsAny<ReflectedApplicationModel>()))
+                .Setup(c => c.Apply(It.IsAny<ReflectedApplicationModel>()))
                 .Callback(() => { Assert.Equal(0, sequence++); });
 
             var controllerConvention = new Mock<IReflectedControllerModelConvention>();
             controllerConvention
-                .Setup(c => c.OnModelCreated(It.IsAny<ReflectedControllerModel>()))
+                .Setup(c => c.Apply(It.IsAny<ReflectedControllerModel>()))
                 .Callback(() => { Assert.Equal(1, sequence++); });
 
             var actionConvention = new Mock<IReflectedActionModelConvention>();
             actionConvention
-                .Setup(c => c.OnModelCreated(It.IsAny<ReflectedActionModel>()))
+                .Setup(c => c.Apply(It.IsAny<ReflectedActionModel>()))
                 .Callback(() => { Assert.Equal(2, sequence++); });
 
             var parameterConvention = new Mock<IReflectedParameterModelConvention>();
             parameterConvention
-                .Setup(c => c.OnModelCreated(It.IsAny<ReflectedParameterModel>()))
+                .Setup(c => c.Apply(It.IsAny<ReflectedParameterModel>()))
                 .Callback(() => { Assert.Equal(3, sequence++); });
 
             var options = new MockMvcOptionsAccessor();

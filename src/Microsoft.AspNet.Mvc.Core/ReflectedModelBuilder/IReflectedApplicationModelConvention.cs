@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
     public interface IReflectedApplicationModelConvention
     {
         /// <summary>
-        /// Called when <see cref="ReflectedApplicationModel"/> is created.
+        /// Called to apply the convention to the <see cref="ReflectedApplicationModel"/>.
         /// </summary>
         /// <param name="model">The <see cref="ReflectedApplicationModel"/>.</param>
-        void OnModelCreated([NotNull] ReflectedApplicationModel model);
+        void Apply([NotNull] ReflectedApplicationModel model);
     }
 }

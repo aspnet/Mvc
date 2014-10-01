@@ -28,7 +28,7 @@ namespace ReflectedModelWebSite
                 _controllerName = controllerName;
             }
 
-            public void OnModelCreated(ReflectedControllerModel model)
+            public void Apply(ReflectedControllerModel model)
             {
                 model.ControllerName = _controllerName;
             }

@@ -19,7 +19,7 @@ namespace ReflectedModelWebSite
 
         private class OptionalAttribute : Attribute, IReflectedParameterModelConvention
         {
-            public void OnModelCreated(ReflectedParameterModel model)
+            public void Apply(ReflectedParameterModel model)
             {
                 model.IsOptional = true;
             }

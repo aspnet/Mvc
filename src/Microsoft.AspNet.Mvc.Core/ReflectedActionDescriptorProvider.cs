@@ -116,7 +116,7 @@ namespace Microsoft.AspNet.Mvc
             // a controller, etc.
             foreach (var convention in _modelConventions)
             {
-                convention.OnModelCreated(model);
+                convention.Apply(model);
             }
 
             // First apply the conventions from attributes in decreasing order of scope.
@@ -131,7 +131,7 @@ namespace Microsoft.AspNet.Mvc
 
                 foreach (var controllerConvention in controllerConventions)
                 {
-                    controllerConvention.OnModelCreated(controller);
+                    controllerConvention.Apply(controller);
                 }
 
                 foreach (var action in controller.Actions)
@@ -145,7 +145,7 @@ namespace Microsoft.AspNet.Mvc
 
                     foreach (var actionConvention in actionConventions)
                     {
-                        actionConvention.OnModelCreated(action);
+                        actionConvention.Apply(action);
                     }
 
                     foreach (var parameter in action.Parameters)
@@ -159,7 +159,7 @@ namespace Microsoft.AspNet.Mvc
 
                         foreach (var parameterConvention in parameterConventions)
                         {
-                            parameterConvention.OnModelCreated(parameter);
+                            parameterConvention.Apply(parameter);
                         }
                     }
                 }

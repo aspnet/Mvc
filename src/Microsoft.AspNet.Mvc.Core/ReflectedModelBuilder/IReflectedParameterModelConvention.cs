@@ -11,14 +11,14 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
     /// place it on an action method parameter.
     /// 
     /// <see cref="IReflectedParameterModelConvention"/> customizations run after 
-    /// <see cref="IReflectedActionModelConvention"/> customications.
+    /// <see cref="IReflectedActionModelConvention"/> customizations.
     /// </remarks>
     public interface IReflectedParameterModelConvention
     {
         /// <summary>
-        /// Called when <see cref="ReflectedParameterModel"/> is created.
+        /// Called to apply the convention to the <see cref="ReflectedParameterModel"/>.
         /// </summary>
         /// <param name="model">The <see cref="ReflectedParameterModel"/>.</param>
-        void OnModelCreated([NotNull] ReflectedParameterModel model);
+        void Apply([NotNull] ReflectedParameterModel model);
     }
 }

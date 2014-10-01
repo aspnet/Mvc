@@ -11,15 +11,15 @@ namespace Microsoft.AspNet.Mvc.ReflectedModelBuilder
     /// place it on a controller class.
     /// 
     /// <see cref="IReflectedControllerModelConvention"/> customizations run after 
-    /// <see cref="IReflectedApplicationModelConvention"/> customications and before 
+    /// <see cref="IReflectedApplicationModelConvention"/> customizations and before 
     /// <see cref="IReflectedActionModelConvention"/> customizations.
     /// </remarks>
     public interface IReflectedControllerModelConvention
     {
         /// <summary>
-        /// Called when <see cref="ReflectedControllerModel"/> is created.
+        /// Called to apply the convention to the <see cref="ReflectedControllerModel"/>.
         /// </summary>
         /// <param name="model">The <see cref="ReflectedControllerModel"/>.</param>
-        void OnModelCreated([NotNull] ReflectedControllerModel model);
+        void Apply([NotNull] ReflectedControllerModel model);
     }
 }
