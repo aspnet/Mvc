@@ -57,7 +57,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                                          double quality,
                                          string rawValue)
         {
-            var parsedValue = MediaTypeWithQualityHeaderValue.Parse(rawValue);
+            MediaTypeWithQualityHeaderValue parsedValue;
+            MediaTypeWithQualityHeaderValue.TryParse(rawValue, out parsedValue);
             // Act and Assert
             Assert.Equal(rawValue, parsedValue.RawValue);
             Assert.Equal(mediaType, parsedValue.MediaType);
@@ -88,8 +89,10 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                                                         string mediaType2,
                                                         bool isMediaType1Subset)
         {
-            var parsedMediaType1 = MediaTypeWithQualityHeaderValue.Parse(mediaType1);
-            var parsedMediaType2 = MediaTypeWithQualityHeaderValue.Parse(mediaType2);
+            MediaTypeWithQualityHeaderValue parsedMediaType1;
+            MediaTypeWithQualityHeaderValue.TryParse(mediaType1, out parsedMediaType1);
+            MediaTypeWithQualityHeaderValue parsedMediaType2;
+            MediaTypeWithQualityHeaderValue.TryParse(mediaType2, out parsedMediaType2);
 
             // Act
             var isSubset = parsedMediaType1.IsSubsetOf(parsedMediaType2);

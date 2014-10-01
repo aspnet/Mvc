@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
@@ -287,11 +286,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // can write is called twice once for the request media type and once for the type match pass. 
             // For each additional accept header, it is called once. 
             // Arrange
+            MediaTypeWithQualityHeaderValue headerValue;
             var acceptHeaderCollection = string.IsNullOrEmpty(acceptHeader) ? 
-                                         null :
-                                         acceptHeader?.Split(',')
-                                                      .Select(header => MediaTypeWithQualityHeaderValue.Parse(header))
-                                                      .ToArray();
+                null :
+                acceptHeader?.Split(',')
+                             .Select(header => MediaTypeWithQualityHeaderValue.TryParse(header, out headerValue))
+                             .ToArray();
             var stream = new MemoryStream();
             var httpResponse = new Mock<HttpResponse>();
             httpResponse.SetupProperty<string>(o => o.ContentType);

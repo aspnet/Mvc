@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 
 namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
@@ -11,12 +9,13 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
     {
         public double? Quality { get; private set; }
 
-        public static new MediaTypeWithQualityHeaderValue Parse(string input)
+        public static bool TryParse(string input, out MediaTypeWithQualityHeaderValue headerValue)
         {
             MediaTypeHeaderValue mediaTypeHeaderValue;
-            if (!MediaTypeHeaderValue.TryParse(input, out mediaTypeHeaderValue))
+            if (!TryParse(input, out mediaTypeHeaderValue))
             {
-                return null;
+                headerValue = null;
+                return false;
             }
 
             var quality = HttpHeaderUtilitites.Match;
@@ -25,15 +24,17 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             {
                 if (!double.TryParse(
                         qualityStringValue,
-                        NumberStyles.Float | NumberStyles.AllowThousands,
-                        NumberFormatInfo.InvariantInfo, out quality))
+                        NumberStyles.AllowLeadingWhite | NumberStyles.AllowDecimalPoint |
+                            NumberStyles.AllowTrailingWhite,
+                        NumberFormatInfo.InvariantInfo,
+                        out quality))
                 {
-                    return null;
+                    headerValue = null;
+                    return false;
                 }
             }
 
-            return
-                new MediaTypeWithQualityHeaderValue()
+            headerValue = new MediaTypeWithQualityHeaderValue()
                 {
                     MediaType = mediaTypeHeaderValue.MediaType,
                     MediaSubType = mediaTypeHeaderValue.MediaSubType,
@@ -42,6 +43,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                     Parameters = mediaTypeHeaderValue.Parameters,
                     Quality = quality,
                 };
+
+            return true;
         } 
     }
 }

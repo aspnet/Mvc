@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Globalization;
 
 namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
@@ -14,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
 
         public string Value { get; set; }
 
-        public static StringWithQualityHeaderValue Parse(string input)
+        public static bool TryParse(string input, out StringWithQualityHeaderValue headerValue)
         {
             var inputArray = input.Split(new[] { ';' }, 2);
             var value = inputArray[0].Trim();
@@ -29,11 +28,14 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                 {
                     // TODO: all extraneous parameters are ignored. Throw/return null if that is the case.
                     if (!double.TryParse(
-                            nameValuePair[1].Trim(),
-                            NumberStyles.Float | NumberStyles.AllowThousands,
-                            NumberFormatInfo.InvariantInfo, out quality))
+                            nameValuePair[1],
+                            NumberStyles.AllowLeadingWhite | NumberStyles.AllowDecimalPoint |
+                                NumberStyles.AllowTrailingWhite,
+                            NumberFormatInfo.InvariantInfo,
+                            out quality))
                     {
-                        return null;
+                        headerValue = null;
+                        return false;
                     }
                 }
             }
@@ -45,7 +47,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                 RawValue = input
             };
 
-            return stringWithQualityHeader;
+            headerValue = stringWithQualityHeader;
+            return false;
         }
     }
 }

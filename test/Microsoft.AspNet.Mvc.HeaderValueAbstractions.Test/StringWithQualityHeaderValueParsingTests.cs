@@ -19,7 +19,10 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                                          double quality,
                                          string rawValue)
         {
-            var parsedValue = StringWithQualityHeaderValue.Parse(rawValue);
+            // Arrange
+            StringWithQualityHeaderValue parsedValue;
+            StringWithQualityHeaderValue.TryParse(rawValue, out parsedValue);
+
             // Act and Assert
             Assert.Equal(rawValue, parsedValue.RawValue);
             Assert.Equal(value, parsedValue.Value);
