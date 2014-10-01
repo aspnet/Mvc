@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 
@@ -11,20 +12,20 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly IModelMetadataProvider _modelMetadataProvider;
         private readonly ICompositeModelBinder _compositeModelBinder;
-        private readonly IValueProviderFactory _compositeValueProviderFactory;
+        private readonly IValueProviderFactoryProvider _valueProviderFactoryProvider;
         private readonly IInputFormatterSelector _inputFormatterSelector;
         private readonly ICompositeModelValidatorProvider _validatorProvider;
         private Tuple<ActionContext, ActionBindingContext> _bindingContext;
 
         public DefaultActionBindingContextProvider(IModelMetadataProvider modelMetadataProvider,
                                                    ICompositeModelBinder compositeModelBinder,
-                                                   ICompositeValueProviderFactory compositeValueProviderFactory,
+                                                   IValueProviderFactoryProvider valueProviderFactoryProvider,
                                                    IInputFormatterSelector inputFormatterProvider,
                                                    ICompositeModelValidatorProvider validatorProvider)
         {
             _modelMetadataProvider = modelMetadataProvider;
             _compositeModelBinder = compositeModelBinder;
-            _compositeValueProviderFactory = compositeValueProviderFactory;
+            _valueProviderFactoryProvider = valueProviderFactoryProvider;
             _inputFormatterSelector = inputFormatterProvider;
             _validatorProvider = validatorProvider;
         }
@@ -43,13 +44,15 @@ namespace Microsoft.AspNet.Mvc
                                     actionContext.HttpContext,
                                     actionContext.RouteData.Values);
 
-            var valueProvider = _compositeValueProviderFactory.GetValueProvider(factoryContext);
+            var valueProviders = _valueProviderFactoryProvider.ValueProviderFactories
+                                                              .Select(factory => factory.GetValueProvider(factoryContext))
+                                                              .Where(vp => vp != null);
 
             var context = new ActionBindingContext(
                 actionContext,
                 _modelMetadataProvider,
                 _compositeModelBinder,
-                valueProvider,
+                valueProviders.ToList(),
                 _inputFormatterSelector,
                 _validatorProvider);
 

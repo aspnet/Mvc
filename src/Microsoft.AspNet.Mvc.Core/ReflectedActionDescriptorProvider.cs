@@ -321,7 +321,8 @@ namespace Microsoft.AspNet.Mvc
                 {
                     paramDescriptor.ParameterBindingInfo = new ParameterBindingInfo(
                             parameter.ParameterName,
-                            parameter.ParameterInfo.ParameterType);
+                            parameter.ParameterInfo.ParameterType, 
+                            parameter.Attributes.OfType<Attribute>());
                 }
 
                 parameterDescriptors.Add(paramDescriptor);

@@ -133,14 +133,14 @@ namespace Microsoft.AspNet.Mvc
                 var actionContext = new ActionContext(context, action);
                 var actionBindingContext = await _bindingProvider.GetActionBindingContextAsync(actionContext);
 
-                foreach (var parameter in action.Parameters.Where(p => p.ParameterBindingInfo != null))
+                foreach (var parameter in action.Parameters.Where(p => p.ParameterBindingInfo != null && p.ParameterBindingInfo.Attributes.Any(attr => attr.GetType().IsAssignableFrom(typeof(IBinderMarker)))))
                 {
                     if (!ValueProviderResult.CanConvertFromString(parameter.ParameterBindingInfo.ParameterType))
                     {
                         continue;
                     }
 
-                    if (await actionBindingContext.ValueProvider.ContainsPrefixAsync(
+                    if (await actionBindingContext.ValueProviders.ContainsPrefixAsync(
                         parameter.ParameterBindingInfo.Prefix))
                     {
                         candidate.FoundParameters++;

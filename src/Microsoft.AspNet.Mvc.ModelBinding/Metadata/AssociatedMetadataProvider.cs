@@ -46,6 +46,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return CreateMetadataFromPrototype(prototype, modelAccessor);
         }
 
+        public ModelMetadata GetMetadataForParameter(Func<object> modelAccessor, Type parameterType, IEnumerable<Attribute> parameterAttributes, string parameterName)
+        {
+            var parameterInfo = CreateParameterInfo(parameterType, parameterAttributes, parameterName);
+            var typePrototype = GetTypeInformation(parameterType).Prototype;
+            parameterInfo.Prototype.Marker = parameterInfo.Prototype.Marker ?? typePrototype.Marker;
+
+            return CreateMetadataFromPrototype(parameterInfo.Prototype, modelAccessor);
+        }
+
         // Override for creating the prototype metadata (without the accessor)
         protected abstract TModelMetadata CreateMetadataPrototype(IEnumerable<Attribute> attributes,
                                                                   Type containerType,
@@ -67,6 +76,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     modelAccessor = () => propertyInfo.PropertyHelper.GetValue(container);
                 }
+
                 yield return CreatePropertyMetadata(modelAccessor, propertyInfo);
             }
         }
@@ -78,6 +88,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 metadata.IsReadOnly = true;
             }
+
+            // If there is no metadata associated with the property itself get it from the type. 
+            if (metadata.Marker == null)
+            {
+                var typeInfo = GetTypeInformation(propertyInfo.Prototype.ModelType);
+                if (typeInfo.Prototype.Marker != null)
+                {
+                    metadata.Marker = typeInfo.Prototype.Marker;
+                }
+            }
+
             return metadata;
         }
 
@@ -136,6 +157,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                     property.Name),
                 IsReadOnly = !property.CanWrite || property.SetMethod.IsPrivate
             };
+        }
+
+        private ParameterInformation CreateParameterInfo(Type parameterType, IEnumerable<Attribute> parameterAttributes, string parameterName)
+        {
+            return new ParameterInformation
+            {
+                Prototype = CreateMetadataPrototype(parameterAttributes,
+                                                    containerType: null,
+                                                    modelType: parameterType,
+                                                    propertyName: parameterName)
+
+            };
+        }
+
+        private sealed class ParameterInformation
+        {
+            public TModelMetadata Prototype { get; set; }
         }
 
         private sealed class TypeInformation

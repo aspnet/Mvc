@@ -34,7 +34,6 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IOptionsSetup<MvcOptions>, MvcOptionsSetup>();
 
             yield return describe.Transient<IControllerFactory, DefaultControllerFactory>();
-            yield return describe.Singleton<IControllerActivator, DefaultControllerActivator>();
 
             yield return describe.Singleton<IActionSelectorDecisionTreeProvider, ActionSelectorDecisionTreeProvider>();
             yield return describe.Scoped<IActionSelector, DefaultActionSelector>();
@@ -42,6 +41,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IActionInvokerFactory, ActionInvokerFactory>();
             yield return describe.Transient<IControllerAssemblyProvider, DefaultControllerAssemblyProvider>();
             yield return describe.Transient<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
+            yield return describe.Transient<IActionInvocationInfoBinder, DefaultActionInvocationInfoBinder>();
 
             // The host is designed to be discarded after consumption and is very inexpensive to initialize.
             yield return describe.Transient<IMvcRazorHost, MvcRazorHost>();
@@ -74,7 +74,6 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IModelBinderProvider, DefaultModelBindersProvider>();
             yield return describe.Scoped<ICompositeModelBinder, CompositeModelBinder>();
             yield return describe.Transient<IValueProviderFactoryProvider, DefaultValueProviderFactoryProvider>();
-            yield return describe.Scoped<ICompositeValueProviderFactory, CompositeValueProviderFactory>();
             yield return describe.Transient<IOutputFormattersProvider, DefaultOutputFormattersProvider>();
 
             yield return describe.Instance<JsonOutputFormatter>(

@@ -12,16 +12,19 @@ namespace Microsoft.AspNet.Mvc
         private readonly IActionBindingContextProvider _bindingProvider;
         private readonly IInputFormattersProvider _inputFormattersProvider;
         private readonly INestedProviderManager<FilterProviderContext> _filterProvider;
+        private readonly IActionInvocationInfoBinder _actionInvocationBinder;
 
         public ReflectedActionInvokerProvider(IControllerFactory controllerFactory,
                                               IActionBindingContextProvider bindingProvider,
                                               IInputFormattersProvider inputFormattersProvider,
-                                              INestedProviderManager<FilterProviderContext> filterProvider)
+                                              INestedProviderManager<FilterProviderContext> filterProvider,
+                                              [NotNull] IActionInvocationInfoBinder actionInvocationBinder)
         {
             _controllerFactory = controllerFactory;
             _bindingProvider = bindingProvider;
             _inputFormattersProvider = inputFormattersProvider;
             _filterProvider = filterProvider;
+            _actionInvocationBinder = actionInvocationBinder;
         }
 
         public int Order
@@ -41,7 +44,8 @@ namespace Microsoft.AspNet.Mvc
                                     _filterProvider,
                                     _controllerFactory,
                                     actionDescriptor,
-                                    _inputFormattersProvider);
+                                    _inputFormattersProvider,
+                                    _actionInvocationBinder);
             }
 
             callNext();

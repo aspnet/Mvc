@@ -49,7 +49,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                    prototype.ContainerType,
                    modelAccessor,
                    prototype.ModelType,
-                   prototype.PropertyName)
+                   prototype.PropertyName,
+                   prototype.Marker)
         {
             CacheKey = prototype.CacheKey;
             PrototypeCache = prototype.PrototypeCache;

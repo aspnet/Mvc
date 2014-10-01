@@ -17,12 +17,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext);
 
-            if (!await bindingContext.ValueProvider.ContainsPrefixAsync(bindingContext.ModelName))
+            if (!await bindingContext.ValueProviders.ContainsPrefixAsync(bindingContext.ModelName))
             {
                 return false;
             }
 
-            var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
+            var valueProviderResult = await bindingContext.ValueProviders.GetValueAsync(bindingContext.ModelName);
             var bindCollectionTask = valueProviderResult != null ?
                     BindSimpleCollection(bindingContext, valueProviderResult.RawValue, valueProviderResult.Culture) :
                     BindComplexCollection(bindingContext);
@@ -47,16 +47,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
             {
+                var valueProviders = new List<IValueProvider>(bindingContext.ValueProviders);
+
+                // our temporary provider goes at the front of the list
+                valueProviders.Insert(0, new ElementalValueProvider(bindingContext.ModelName, rawValueElement, culture));
                 var innerBindingContext = new ModelBindingContext(bindingContext)
                 {
                     ModelMetadata = bindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
                     ModelName = bindingContext.ModelName,
-                    ValueProvider = new CompositeValueProvider
-                    {
-                        // our temporary provider goes at the front of the list
-                        new ElementalValueProvider(bindingContext.ModelName, rawValueElement, culture),
-                        bindingContext.ValueProvider
-                    }
+                    ValueProviders = valueProviders
                 };
 
                 object boundValue = null;
@@ -75,7 +74,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private async Task<List<TElement>> BindComplexCollection(ModelBindingContext bindingContext)
         {
             var indexPropertyName = ModelBindingHelper.CreatePropertyModelName(bindingContext.ModelName, "index");
-            var valueProviderResultIndex = await bindingContext.ValueProvider.GetValueAsync(indexPropertyName);
+            var valueProviderResultIndex = await bindingContext.ValueProviders.GetValueAsync(indexPropertyName);
             var indexNames = CollectionModelBinderUtil.GetIndexNamesFromValueProviderResult(valueProviderResultIndex);
             return await BindComplexCollectionFromIndexes(bindingContext, indexNames);
         }

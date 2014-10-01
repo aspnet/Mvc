@@ -35,7 +35,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                              Type containerType,
                              Func<object> modelAccessor,
                              [NotNull] Type modelType,
-                             string propertyName)
+                             string propertyName, 
+                             IBinderMarker marker = null)
         {
             Provider = provider;
 
@@ -46,7 +47,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             _convertEmptyStringToNull = true;
             _isRequired = !modelType.AllowsNullValue();
+            Marker = marker;
         }
+
+        /// <summary>
+        /// Gets or sets a binder marker for this model.
+        /// </summary>
+        public IBinderMarker Marker { get; set; }
 
         public Type ContainerType
         {
@@ -150,6 +157,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         public virtual string NullDisplayText { get; set; }
+
+        public bool IsExplicitlyMarkedUsingAValueBinderMarker
+        {
+            get
+            {
+                return Marker != null && typeof(IValueBinderMarker).IsAssignableFrom(Marker.GetType());
+            }
+        }
+
+        public bool IsExplicitlyMarkedUsingANonValueBinderMarker
+        {
+            get
+            {
+                return Marker != null && 
+                       typeof(IBinderMarker).IsAssignableFrom(Marker.GetType()) &&
+                       !typeof(IValueBinderMarker).IsAssignableFrom(Marker.GetType());
+            }
+        }
 
         public virtual IEnumerable<ModelMetadata> Properties
         {
