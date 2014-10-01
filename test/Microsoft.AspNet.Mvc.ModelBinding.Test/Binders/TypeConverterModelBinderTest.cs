@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Testing;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
@@ -62,6 +63,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_Error_FormatExceptionsTurnedIntoStringsInModelState()
         {
             // Arrange
+            var message = TestPlatformHelper.IsMono ? "Input string was not in the correct format" :
+                                                      "Input string was not in a correct format.";
             ModelBindingContext bindingContext = GetBindingContext(typeof(int));
             bindingContext.ValueProvider = new SimpleHttpValueProvider
             {
@@ -77,7 +80,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.True(retVal);
             Assert.Null(bindingContext.Model);
             Assert.Equal(false, bindingContext.ModelState.IsValid);
-            Assert.Single(bindingContext.ModelState["theModelName"].Errors);
+            var error = Assert.Single(bindingContext.ModelState["theModelName"].Errors);
+            Assert.Equal(message, error.ErrorMessage);
         }
 
         [Fact]
