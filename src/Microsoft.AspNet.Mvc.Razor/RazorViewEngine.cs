@@ -16,6 +16,8 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class RazorViewEngine : IViewEngine
     {
         private const string ViewExtension = ".cshtml";
+        internal const string ControllerKey = "controller";
+        internal const string AreaKey = "area";
 
         private static readonly IEnumerable<string> _viewLocationFormats = new[]
         {
@@ -47,9 +49,21 @@ namespace Microsoft.AspNet.Mvc.Razor
             _viewLocationCache = viewLocationCache;
         }
 
-        public IEnumerable<string> ViewLocationFormats
+        /// <summary>
+        /// Gets the locations where this instance of <see cref="RazorViewEngine"/> will search for views.
+        /// </summary>
+        public virtual IEnumerable<string> ViewLocationFormats
         {
             get { return _viewLocationFormats; }
+        }
+
+        /// <summary>
+        /// Gets the locations where this instance of <see cref="RazorViewEngine"/> will search for views within an
+        /// area.
+        /// </summary>
+        public virtual IEnumerable<string> AreaViewLocationFormats
+        {
+            get { return _areaViewLocationFormats; }
         }
 
         /// <inheritdoc />
@@ -96,11 +110,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Initialize the dictionary for the typical case of having controller and action tokens.
             var routeValues = context.RouteData.Values;
-            var areaName = routeValues.GetValueOrDefault<string>("area");
+            var areaName = routeValues.GetValueOrDefault<string>(AreaKey);
 
             // Only use the area view location formats if we have an area token.
-            var viewLocations = !string.IsNullOrEmpty(areaName) ? _areaViewLocationFormats :
-                                                                  _viewLocationFormats;
+            var viewLocations = !string.IsNullOrEmpty(areaName) ? AreaViewLocationFormats :
+                                                                  ViewLocationFormats;
 
             var expanderContext = new ViewLocationExpanderContext(context, viewName);
             if (_viewLocationExpanders.Count > 0)
@@ -115,10 +129,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // 2. With the values that we've accumumlated so far, check if we have a cached result.
-            var cachedResult = _viewLocationCache.Get(expanderContext);
-            if (!string.IsNullOrEmpty(cachedResult.ViewLocation))
+            var viewLocation = _viewLocationCache.Get(expanderContext);
+            if (!string.IsNullOrEmpty(viewLocation))
             {
-                var page = _pageFactory.CreateInstance(cachedResult.ViewLocation);
+                var page = _pageFactory.CreateInstance(viewLocation);
 
                 if (page != null)
                 {
@@ -134,9 +148,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 viewLocations = expander.ExpandViewLocations(expanderContext, viewLocations);
             }
 
-            var controllerName = routeValues.GetValueOrDefault<string>("controller");
-            var searchedLocations = new List<string>();
             // 3. Use the expanded locations to look up a page.
+            var controllerName = routeValues.GetValueOrDefault<string>(ControllerKey);
+            var searchedLocations = new List<string>();
             foreach (var path in viewLocations)
             {
                 var transformedPath = string.Format(CultureInfo.InvariantCulture,
@@ -147,14 +161,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var page = _pageFactory.CreateInstance(transformedPath);
                 if (page != null)
                 {
-                    _viewLocationCache.Set(cachedResult.CacheKey, transformedPath);
+                    // 3a. We found a page. Cache the set of values that produced it and return a found result.
+                    _viewLocationCache.Set(expanderContext, transformedPath);
                     return CreateFoundResult(context, page, transformedPath, partial);
                 }
 
                 searchedLocations.Add(transformedPath);
             }
 
-            // 4. We did not find a page for any of the paths.
+            // 3b. We did not find a page for any of the paths.
             return ViewEngineResult.NotFound(viewName, searchedLocations);
         }
 

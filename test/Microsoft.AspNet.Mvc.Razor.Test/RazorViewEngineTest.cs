@@ -197,6 +197,48 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             Assert.Equal("/Views/bar/test-view.cshtml", result.ViewName);
         }
 
+        [Fact]
+        public void FindView_UsesViewLocationFormat_IfRouteDoesNotContainArea()
+        {
+            // Arrange
+            var pageFactory = new Mock<IRazorPageFactory>();
+            var page = Mock.Of<IRazorPage>();
+            pageFactory.Setup(p => p.CreateInstance("fake-path1/bar/test-view.rzr"))
+                       .Returns(Mock.Of<IRazorPage>())
+                       .Verifiable();
+            var viewEngine = new OverloadedLocationViewEngine(pageFactory.Object,
+                                                              GetViewLocationExpanders(),
+                                                              GetViewLocationCache());
+            var context = GetActionContext(_controllerTestContext);
+
+            // Act
+            var result = viewEngine.FindView(context, "test-view");
+
+            // Assert
+            pageFactory.Verify();
+        }
+
+        [Fact]
+        public void FindView_UsesAreaViewLocationFormat_IfRouteContainsArea()
+        {
+            // Arrange
+            var pageFactory = new Mock<IRazorPageFactory>();
+            var page = Mock.Of<IRazorPage>();
+            pageFactory.Setup(p => p.CreateInstance("fake-area-path/foo/bar/test-view2.rzr"))
+                       .Returns(Mock.Of<IRazorPage>())
+                       .Verifiable();
+            var viewEngine = new OverloadedLocationViewEngine(pageFactory.Object,
+                                                              GetViewLocationExpanders(),
+                                                              GetViewLocationCache());
+            var context = GetActionContext(_areaTestContext);
+
+            // Act
+            var result = viewEngine.FindView(context, "test-view2");
+
+            // Assert
+            pageFactory.Verify();
+        }
+
         public static IEnumerable<object[]> FindView_UsesViewLocationExpandersToLocateViewsData
         {
             get
@@ -291,7 +333,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var cache = GetViewLocationCache();
             var cacheMock = Mock.Get<IViewLocationCache>(cache);
 
-            cacheMock.Setup(c => c.Set("some-key", "/Views/Shared/baz.cshtml"))
+            cacheMock.Setup(c => c.Set(It.IsAny<ViewLocationExpanderContext>(), "/Views/Shared/baz.cshtml"))
                      .Verifiable();
 
             var viewEngine = CreateViewEngine(pageFactory.Object, cache: cache);
@@ -319,7 +361,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                     .Verifiable();
             var cacheMock = new Mock<IViewLocationCache>();
             cacheMock.Setup(c => c.Get(It.IsAny<ViewLocationExpanderContext>()))
-                     .Returns(new ViewLocationCacheResult("some-key", "some-view-location"))
+                     .Returns("some-view-location")
                      .Verifiable();
 
             var viewEngine = CreateViewEngine(pageFactory.Object,
@@ -350,7 +392,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                        .Verifiable();
             var cacheMock = new Mock<IViewLocationCache>();
             cacheMock.Setup(c => c.Get(It.IsAny<ViewLocationExpanderContext>()))
-                     .Returns(new ViewLocationCacheResult("some-key", "expired-location"));
+                     .Returns("expired-location");
 
             var expander = new Mock<IViewLocationExpander>();
             expander.Setup(v => v.PopulateValues(It.IsAny<ViewLocationExpanderContext>()))
@@ -381,29 +423,31 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                                              IViewLocationCache cache = null)
         {
             pageFactory = pageFactory ?? Mock.Of<IRazorPageFactory>();
+            cache = cache ?? GetViewLocationCache();
+            var viewLocationExpanderProvider = GetViewLocationExpanders(expanders);
 
+            var viewEngine = new RazorViewEngine(pageFactory,
+                                                 viewLocationExpanderProvider,
+                                                 cache);
+
+            return viewEngine;
+        }
+
+        private static IViewLocationExpanderProvider GetViewLocationExpanders(
+            IEnumerable<IViewLocationExpander> expanders = null)
+        {
             expanders = expanders ?? Enumerable.Empty<IViewLocationExpander>();
             var viewLocationExpander = new Mock<IViewLocationExpanderProvider>();
             viewLocationExpander.Setup(v => v.ViewLocationExpanders)
                                 .Returns(expanders.ToList());
-
-            if (cache == null)
-            {
-                cache = GetViewLocationCache();
-            }
-
-            var viewEngine = new RazorViewEngine(pageFactory,
-                                                 viewLocationExpander.Object,
-                                                 cache);
-
-            return viewEngine;
+            return viewLocationExpander.Object;
         }
 
         private static IViewLocationCache GetViewLocationCache()
         {
             var cacheMock = new Mock<IViewLocationCache>();
             cacheMock.Setup(c => c.Get(It.IsAny<ViewLocationExpanderContext>()))
-                     .Returns(new ViewLocationCacheResult("some-key", null));
+                     .Returns<string>(null);
 
             return cacheMock.Object;
         }
@@ -419,6 +463,32 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             httpContext.RequestServices = serviceProvider.Object;
             var routeData = new RouteData { Values = routeValues };
             return new ActionContext(httpContext, routeData, new ActionDescriptor());
+        }
+
+        private class OverloadedLocationViewEngine : RazorViewEngine
+        {
+            public OverloadedLocationViewEngine(IRazorPageFactory pageFactory,
+                                                IViewLocationExpanderProvider expanderProvider,
+                                                IViewLocationCache cache)
+                : base(pageFactory, expanderProvider, cache)
+            {
+            }
+
+            public override IEnumerable<string> ViewLocationFormats
+            {
+                get
+                {
+                    return new[] { "fake-path1/{1}/{0}.rzr" };
+                }
+            }
+
+            public override IEnumerable<string> AreaViewLocationFormats
+            {
+                get
+                {
+                    return new[] { "fake-area-path/{2}/{1}/{0}.rzr" };
+                }
+            }
         }
     }
 }

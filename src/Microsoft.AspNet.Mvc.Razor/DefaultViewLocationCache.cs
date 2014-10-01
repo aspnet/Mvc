@@ -14,6 +14,8 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class DefaultViewLocationCache : IViewLocationCache
     {
+        private const char CacheKeySeparator = ':';
+
         // A mapping of keys generated from ViewLocationExpanderContext to view locations.
         private readonly ConcurrentDictionary<string, string> _cache;
 
@@ -26,19 +28,36 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public ViewLocationCacheResult Get([NotNull] ViewLocationExpanderContext context)
+        public string Get([NotNull] ViewLocationExpanderContext context)
+        {
+            var cacheKey = GenerateKey(context);
+            _cache.TryGetValue(cacheKey, out var result);
+            return result;
+        }
+
+        /// <inheritdoc />
+        public void Set([NotNull] ViewLocationExpanderContext context,
+                        [NotNull] string value)
+        {
+            var cacheKey = GenerateKey(context);
+            _cache.TryAdd(cacheKey, value);
+        }
+
+        internal static string GenerateKey(ViewLocationExpanderContext context)
         {
             var keyBuilder = new StringBuilder();
             var routeValues = context.ActionContext.RouteData.Values;
+            var controller = routeValues.GetValueOrDefault<string>(RazorViewEngine.ControllerKey);
+
             // format is "{viewName}:{controllerName}:{areaName}:"
             keyBuilder.Append(context.ViewName)
-                      .Append(':')
-                      .Append(GetRouteValue(routeValues, "controller"));
+                      .Append(CacheKeySeparator)
+                      .Append(controller);
 
-            var area = GetRouteValue(routeValues, "area");
+            var area = routeValues.GetValueOrDefault<string>(RazorViewEngine.AreaKey);
             if (!string.IsNullOrEmpty(area))
             {
-                keyBuilder.Append(':')
+                keyBuilder.Append(CacheKeySeparator)
                           .Append(area);
             }
 
@@ -47,37 +66,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var valuesDictionary = context.Values;
                 foreach (var item in valuesDictionary.OrderBy(k => k.Key, StringComparer.Ordinal))
                 {
-                    keyBuilder.Append(':')
+                    keyBuilder.Append(CacheKeySeparator)
                               .Append(item.Key)
-                              .Append(':')
+                              .Append(CacheKeySeparator)
                               .Append(item.Value);
                 }
             }
 
             var cacheKey = keyBuilder.ToString();
-            _cache.TryGetValue(cacheKey, out var result);
-            return new ViewLocationCacheResult(cacheKey, result);
-        }
-
-        /// <inheritdoc />
-        public void Set([NotNull] object cacheKey,
-                        [NotNull] string value)
-        {
-            var stringKey = cacheKey as string;
-            if (stringKey == null)
-            {
-                var message = Resources.FormatViewLocationCache_KeyMustBeString(nameof(cacheKey),
-                                                                                nameof(String),
-                                                                                nameof(Get));
-                throw new ArgumentException(message, nameof(cacheKey));
-            }
-            _cache.TryAdd(stringKey, value);
-        }
-
-        private static string GetRouteValue(IDictionary<string, object> routeValues, string key)
-        {
-            routeValues.TryGetValue(key, out var value);
-            return value as string;
+            return cacheKey;
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
@@ -16,14 +13,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="context">The <see cref="ViewLocationExpanderContext"/> for the current view location 
         /// expansion.</param>
-        /// <returns>A <see cref="ViewLocationCacheResult"/> that contains the cached location, if available.</returns>
-        ViewLocationCacheResult Get(ViewLocationExpanderContext context);
+        /// <returns>The cached location, if available, <c>null</c> otherwise.</returns>
+        string Get(ViewLocationExpanderContext context);
 
         /// <summary>
-        /// Adds a cache entry for the specified <paramref name="cacheKey"/>.
+        /// Adds a cache entry for values specified by <paramref name="context"/>.
         /// </summary>
-        /// <param name="cacheKey">The cache key</param>.
+        /// <param name="context">The <see cref="ViewLocationExpanderContext"/> for the current view location 
+        /// expansion.</param>
         /// <param name="value">The view location that is to be cached.</param>
-        void Set(object cacheKey, string value);
+        void Set(ViewLocationExpanderContext context, string value);
     }
 }
