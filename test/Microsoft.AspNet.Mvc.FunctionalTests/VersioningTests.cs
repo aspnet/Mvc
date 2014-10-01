@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
-using Newtonsoft.Json;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.TestHost;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -111,10 +114,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Equal("Tickets", result.Controller);
             Assert.Equal("Get", result.Action);
-
-            Assert.DoesNotContain("id", result.RouteValues.Keys);
         }
-
 
         [Fact]
         public async Task VersionedApi_CanReachV1OperationsWithParameters_OnTheSameController()
@@ -134,12 +134,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
             Assert.Equal("Tickets", result.Controller);
-            Assert.Equal("Get", result.Action);
-            Assert.NotEmpty(result.RouteValues);
-
-            Assert.Contains(
-               new KeyValuePair<string, object>("id", "5"),
-               result.RouteValues);
+            Assert.Equal("GetById", result.Action);
         }
 
         [Fact]
@@ -160,7 +155,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
             Assert.Equal("Tickets", result.Controller);
-            Assert.Equal("Get", result.Action);
+            Assert.Equal("GetById", result.Action);
             Assert.NotEmpty(result.RouteValues);
 
             Assert.Contains(

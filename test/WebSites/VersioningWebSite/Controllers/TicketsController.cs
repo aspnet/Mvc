@@ -24,7 +24,7 @@ namespace VersioningWebSite
         }
 
         [HttpGet("/Tickets/{id}")]
-        public IActionResult Get(int id)
+        public IActionResult GetById(int id)
         {
             return _generator.Generate();
         }
