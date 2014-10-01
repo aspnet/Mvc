@@ -18,9 +18,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             foreach (var item in acceptHeader.Split(','))
             {
                 MediaTypeWithQualityHeaderValue parsedAcceptHeader;
-                MediaTypeWithQualityHeaderValue.TryParse(item, out parsedAcceptHeader);
-                // If we are unable to parse even one of the Accept Headers, we ignore them completely.
-                if (parsedAcceptHeader == null)
+                // If we are unable to parse any of the Accept Headers, we ignore them completely.
+                if (!MediaTypeWithQualityHeaderValue.TryParse(item, out parsedAcceptHeader))
                 {
                     return null;
                 }
@@ -42,9 +41,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             foreach (var item in acceptCharsetHeader.Split(','))
             {
                 StringWithQualityHeaderValue parsedAcceptCharsetHeader;
-                StringWithQualityHeaderValue.TryParse(item, out parsedAcceptCharsetHeader);
-                // If we are unable to parse even one of the Accept-Charset Headers, we ignore them completely.
-                if (parsedAcceptCharsetHeader == null)
+                // If we are unable to parse any of the Accept-Charset Headers, we ignore them completely.
+                if (!StringWithQualityHeaderValue.TryParse(item, out parsedAcceptCharsetHeader))
                 {
                     return null;
                 }

@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
             };
 
             headerValue = stringWithQualityHeader;
-            return false;
+            return true;
         }
     }
 }
