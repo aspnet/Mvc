@@ -120,7 +120,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var isValid = true;
             var elementType = GetElementType(model.GetType());
             var elementMetadata =
-                validationContext.ModelValidationContext.MetadataProvider.GetMetadataForType(null, elementType);
+                validationContext.ModelValidationContext.MetadataProvider.GetMetadataForType(
+                    modelAccessor: null, modelType: elementType);
 
             var elementScope = new ElementScope() { Index = 0 };
             validationContext.KeyBuilders.Push(elementScope);
