@@ -53,7 +53,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
             var query = "?version=" + version;
-
             var message = new HttpRequestMessage(HttpMethod.Get, "http://localhost/api/Addresses/All" + query);
 
             // Act

@@ -17,19 +17,19 @@ namespace VersioningWebSite
             _generator = generator;
         }
 
-        [VersionRoute("api/Addresses", minVersion: "1", maxVersion: "1")]
+        [VersionRoute("api/Addresses", versionRange: "[1]")]
         public IActionResult GetV1()
         {
             return _generator.Generate("api/addresses");
         }
 
-        [VersionRoute("api/Addresses", minVersion: "2", maxVersion: "2")]
+        [VersionRoute("api/Addresses", versionRange: "[2]")]
         public IActionResult GetV2()
         {
             return _generator.Generate("api/addresses");
         }
 
-        [VersionRoute("api/addresses/all", minVersion: "1", maxVersion: "1")]
+        [VersionRoute("api/addresses/all", versionRange: "[1]")]
         public IActionResult GetAllV1(string version)
         {
             return _generator.Generate(
@@ -37,7 +37,7 @@ namespace VersioningWebSite
                 new { version = version }), Url.RouteUrl(new { version = version }));
         }
 
-        [VersionRoute("api/addresses/all", "1", "2", Order = 1)]
+        [VersionRoute("api/addresses/all", versionRange: "[1-2]", Order = 1)]
         public IActionResult GetAllV2(string version)
         {
             return _generator.Generate(

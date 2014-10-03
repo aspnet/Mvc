@@ -14,7 +14,7 @@ namespace VersioningWebSite
             _generator = generator;
         }
 
-        [VersionPut("Movies/{id}", "2", null)]
+        [VersionPut("Movies/{id}", versionRange: "2")]
         public IActionResult Put(int id)
         {
             return _generator.Generate();

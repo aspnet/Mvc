@@ -17,13 +17,13 @@ namespace VersioningWebSite
             _generator = generator;
         }
 
-        [VersionGet("Books", "1", "6", Order = 1)]
+        [VersionGet("Books", versionRange: "[1-6]", Order = 1)]
         public IActionResult Get()
         {
             return _generator.Generate();
         }
 
-        [VersionGet("Books", "3", "5", Order = 0)]
+        [VersionGet("Books", versionRange: "[3-5]", Order = 0)]
         public IActionResult GetBreakingChange()
         {
             return _generator.Generate();

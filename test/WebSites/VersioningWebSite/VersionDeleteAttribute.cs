@@ -13,8 +13,8 @@ namespace VersioningWebSite
         {
         }
 
-        public VersionDeleteAttribute(string template, string minVersion, string maxVersion)
-            : base(template, minVersion, maxVersion)
+        public VersionDeleteAttribute(string template, string versionRange)
+            : base(template, versionRange)
         {
         }
 

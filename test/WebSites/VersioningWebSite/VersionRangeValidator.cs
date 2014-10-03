@@ -7,7 +7,7 @@ using Microsoft.AspNet.Routing;
 
 namespace VersioningWebSite
 {
-    public class RangeVersionValidator : IActionConstraint
+    public class VersionRangeValidator : IActionConstraint
     {
         private readonly int? _minVersion;
         private readonly int? _maxVersion;
@@ -20,7 +20,7 @@ namespace VersioningWebSite
             }
         }
 
-        public RangeVersionValidator(int? minVersion, int? maxVersion)
+        public VersionRangeValidator(int? minVersion, int? maxVersion)
         {
             _minVersion = minVersion;
             _maxVersion = maxVersion;
@@ -31,10 +31,10 @@ namespace VersioningWebSite
             return request.Query.Get("version");
         }
 
-        private bool Accept(RouteContext context)
+        public bool Accept(ActionConstraintContext context)
         {
             int version;
-            if (int.TryParse(GetVersion(context.HttpContext.Request), out version))
+            if (int.TryParse(GetVersion(context.RouteContext.HttpContext.Request), out version))
             {
                 return (_minVersion == null || _minVersion <= version) &&
                     (_maxVersion == null || _maxVersion >= version);
@@ -43,11 +43,6 @@ namespace VersioningWebSite
             {
                 return false;
             }
-        }
-
-        public bool Accept(ActionConstraintContext context)
-        {
-            return Accept(context.RouteContext);
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.AspNet.Mvc;
 namespace VersioningWebSite
 {
     // This is the version 2 for an API. The version 1 is unconstrained
-    [VersionRoute("Items/{id}", "2", maxVersion: null)]
+    [VersionRoute("Items/{id}", versionRange: "2")]
     public class ItemsV2Controller : Controller
     {
         private readonly TestResponseGenerator _generator;
@@ -16,7 +16,7 @@ namespace VersioningWebSite
             _generator = generator;
         }
 
-        [VersionGet("/Items", "2", maxVersion: null)]
+        [VersionGet("/Items", versionRange: "2")]
         public IActionResult Get()
         {
             return _generator.Generate();
@@ -28,7 +28,7 @@ namespace VersioningWebSite
             return _generator.Generate();
         }
 
-        [VersionPost("/Items", "2", maxVersion: null, Order = -1)]
+        [VersionPost("/Items", versionRange: "2")]
         public IActionResult Post()
         {
             return _generator.Generate();

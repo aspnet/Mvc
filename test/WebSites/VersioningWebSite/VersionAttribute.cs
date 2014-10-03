@@ -25,7 +25,7 @@ namespace VersioningWebSite
 
         public IActionConstraint CreateInstance(IServiceProvider services)
         {
-            return new RangeVersionValidator(_minVersion, _maxVersion);
+            return new VersionRangeValidator(_minVersion, _maxVersion);
         }
     }
 }

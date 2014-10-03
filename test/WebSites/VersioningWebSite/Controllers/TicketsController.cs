@@ -29,19 +29,19 @@ namespace VersioningWebSite
             return _generator.Generate();
         }
 
-        [VersionPost("/Tickets", "2", maxVersion: null)]
+        [VersionPost("/Tickets", versionRange: "2")]
         public IActionResult Post()
         {
             return _generator.Generate();
         }
 
-        [VersionPut("/Tickets/{id}", "2", maxVersion: null)]
+        [VersionPut("/Tickets/{id}", versionRange: "2")]
         public IActionResult Put(int id)
         {
             return _generator.Generate();
         }
 
-        [VersionDelete("/Tickets/{id}", "2", maxVersion: null)]
+        [VersionDelete("/Tickets/{id}", versionRange: "2")]
         public IActionResult Delete(int id)
         {
             return _generator.Generate();

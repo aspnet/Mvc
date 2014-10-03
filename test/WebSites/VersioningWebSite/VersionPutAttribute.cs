@@ -13,8 +13,8 @@ namespace VersioningWebSite
         {
         }
 
-        public VersionPutAttribute(string template, string minVersion, string maxVersion)
-            : base(template, minVersion, maxVersion)
+        public VersionPutAttribute(string template, string versionRange)
+            : base(template, versionRange)
         {
         }
 
