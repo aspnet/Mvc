@@ -22,8 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets or sets the action invoked to render the body.
         /// </summary>
-        // TODO: https://github.com/aspnet/Mvc/issues/845 tracks making this async
-        Action<TextWriter> RenderBodyDelegate { get; set; }
+        public Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <summary>
         /// Gets or sets a flag that determines if the layout of this page is being rendered.
@@ -53,12 +52,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets or sets the sections that can be rendered by this page.
         /// </summary>
-        Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
+        Dictionary<string, RenderAsyncDelegate> PreviousSectionWriters { get; set; }
 
         /// <summary>
         /// Gets the sections that are defined by this page.
         /// </summary>
-        Dictionary<string, HelperResult> SectionWriters { get; }
+        Dictionary<string, RenderAsyncDelegate> SectionWriters { get; }
 
         /// <summary>
         /// Renders the page and writes the output to the <see cref="ViewContext.Writer"/>.

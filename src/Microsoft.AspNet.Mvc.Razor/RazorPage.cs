@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public RazorPage()
         {
-            SectionWriters = new Dictionary<string, HelperResult>(StringComparer.OrdinalIgnoreCase);
+            SectionWriters = new Dictionary<string, RenderAsyncDelegate>(StringComparer.OrdinalIgnoreCase);
 
             _writerScopes = new Stack<TextWriter>();
         }
@@ -105,10 +105,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         public bool IsLayoutBeingRendered { get; set; }
 
         /// <inheritdoc />
-        public Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
+        public Dictionary<string, RenderAsyncDelegate> PreviousSectionWriters { get; set; }
 
         /// <inheritdoc />
-        public Dictionary<string, HelperResult> SectionWriters { get; private set; }
+        public Dictionary<string, RenderAsyncDelegate> SectionWriters { get; private set; }
 
         /// <inheritdoc />
         public abstract Task ExecuteAsync();
@@ -215,7 +215,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </remarks>
         public virtual void WriteTo(TextWriter writer, object value)
         {
-            if (value != null)
+            if (value != null && value != HtmlString.Empty)
             {
                 var helperResult = value as HelperResult;
                 if (helperResult != null)
@@ -424,11 +424,11 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <summary>
         /// Creates a named content section in the page that can be invoked in a Layout page using 
-        /// <see cref="RenderSection(string)"/> or <see cref="RenderSection(string, bool)"/>.
+        /// <see cref="RenderSection(string)"/> or <see cref="RenderSectionAsync(string, bool)"/>.
         /// </summary>
         /// <param name="name">The name of the section to create.</param>
-        /// <param name="section">The <see cref="HelperResult"/> to execute when rendering the section.</param>
-        public void DefineSection(string name, HelperResult section)
+        /// <param name="section">The <see cref="RenderAsyncDelegate"/> to execute when rendering the section.</param>
+        public void DefineSection(string name, RenderAsyncDelegate section)
         {
             if (SectionWriters.ContainsKey(name))
             {
@@ -443,12 +443,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             return PreviousSectionWriters.ContainsKey(name);
         }
 
-        public HelperResult RenderSection([NotNull] string name)
+        public Task<HtmlString> RenderSectionAsync([NotNull] string name)
         {
-            return RenderSection(name, required: true);
+            return RenderSectionAsync(name, required: true);
         }
 
-        public HelperResult RenderSection([NotNull] string name, bool required)
+        public async Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
         {
             EnsureMethodCanBeInvoked("RenderSection");
             if (_renderedSections.Contains(name))
@@ -456,11 +456,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(Resources.FormatSectionAlreadyRendered("RenderSection", name));
             }
 
-            HelperResult action;
-            if (PreviousSectionWriters.TryGetValue(name, out action))
+            RenderAsyncDelegate renderDelegate;
+            if (PreviousSectionWriters.TryGetValue(name, out renderDelegate))
             {
                 _renderedSections.Add(name);
-                return action;
+                await renderDelegate(Output);
+
+                // We need to return a value for the surrounding Write operation.
+                return HtmlString.Empty;
             }
             else if (required)
             {
