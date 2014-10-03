@@ -100,7 +100,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var isValid = true;
             var propertyScope = new PropertyScope();
             validationContext.KeyBuilders.Push(propertyScope);
-            foreach (var childMetadata in 
+            foreach (var childMetadata in
                 validationContext.ModelValidationContext.MetadataProvider.GetMetadataForProperties(
                     metadata.Model, metadata.RealModelType))
             {

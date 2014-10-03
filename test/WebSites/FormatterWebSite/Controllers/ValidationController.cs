@@ -10,7 +10,7 @@ namespace FormatterWebSite
         [HttpPost]
         public IActionResult Index([FromBody]User user)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return Content(ModelState["user.Id"].Errors[0].ErrorMessage + "," +
                     ModelState["user.Name"].Errors[0].ErrorMessage + "," +

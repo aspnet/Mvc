@@ -237,7 +237,7 @@ namespace Microsoft.AspNet.Mvc
             for (var i = 0; i < parameters.Count; i++)
             {
                 var parameter = parameters[i];
-                var parameterType = parameter.BodyParameterInfo != null ? 
+                var parameterType = parameter.BodyParameterInfo != null ?
                     parameter.BodyParameterInfo.ParameterType : parameter.ParameterBindingInfo.ParameterType;
 
                 if (parameter.BodyParameterInfo != null)

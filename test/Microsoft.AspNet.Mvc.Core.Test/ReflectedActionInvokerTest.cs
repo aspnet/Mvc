@@ -1635,13 +1635,15 @@ namespace Microsoft.AspNet.Mvc
                 INestedProviderManager<FilterProviderContext> filterProvider,
                 Mock<IControllerFactory> controllerFactoryMock,
                 ReflectedActionDescriptor descriptor,
-                IInputFormattersProvider inputFormattersProvider) :
+                IInputFormattersProvider inputFormattersProvider,
+                IBodyModelValidator bodyModelValidator) :
                     base(actionContext,
                         bindingContextProvider,
                         filterProvider,
                         controllerFactoryMock.Object,
                         descriptor,
-                        inputFormattersProvider)
+                        inputFormattersProvider,
+                        bodyModelValidator)
             {
                 _factoryMock = controllerFactoryMock;
             }

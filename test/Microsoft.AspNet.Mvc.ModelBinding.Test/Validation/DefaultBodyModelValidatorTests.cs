@@ -28,6 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             get
             {
+                // returns an array of model, type of model and expected errors.
                 // Primitives
                 yield return new object[] { null, typeof(Person), new Dictionary<string, string>() };
                 yield return new object[] { 14, typeof(int), new Dictionary<string, string>() };
@@ -129,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                             }
                 };
 
-                // Testing we don't validate variables
+                // Testing we don't validate fields
                 yield return new object[] { new VariableTest() { test = 5 }, typeof(VariableTest), new Dictionary<string, string>() };
 
                 // Testing we don't blow up on cycles
@@ -144,7 +145,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         [Theory]
         [ReplaceCulture]
-        [MemberData("ValidationErrors")]
+        [MemberData(nameof(ValidationErrors))]
         public void ExpectedValidationErrorsRaised(object model, Type type, Dictionary<string, string> expectedErrors)
         {
             // Arrange
@@ -152,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act
             Assert.DoesNotThrow(() =>
-                new DefaultBodyModelValidator().Validate(validationContext, string.Empty)
+                new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty)
             );
 
             // Assert
@@ -176,7 +177,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // This case should be handled in a better way.
         // Issue - https://github.com/aspnet/Mvc/issues/1206 tracks this.
         [Fact]
-        public void HandlesPropertiesWhichThrowsOnGet()
+        [ReplaceCulture]
+        public void BodyValidator_Throws_IfPropertyAccessorThrows()
         {
             // Arrange
             var validationContext = GetModelValidationContext(new Uri("/api/values", UriKind.Relative), typeof(Uri));
@@ -186,11 +188,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 typeof(InvalidOperationException),
                 () =>
                 {
-                    new DefaultBodyModelValidator().Validate(validationContext, string.Empty);
+                    new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty);
                 });
         }
 
         [Fact]
+        [ReplaceCulture]
         public void MultipleValidationErrorsOnSameMemberReported()
         {
             // Arrange
@@ -199,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act
             Assert.DoesNotThrow(() =>
-                new DefaultBodyModelValidator().Validate(validationContext, string.Empty)
+                new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty)
             );
 
             // Assert
@@ -226,29 +229,33 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act & Assert
             Assert.DoesNotThrow(
-                () => new DefaultBodyModelValidator().Validate(validationContext, string.Empty));
+                () => new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty));
         }
 
         private ModelValidationContext GetModelValidationContext(object model, Type type)
         {
             var modelStateDictionary = new ModelStateDictionary();
-            var modelValidator = new DefaultBodyModelValidator();
             var mvcOptions = new MvcOptions();
             var setup = new MvcOptionsSetup();
             setup.Setup(mvcOptions);
             var accessor = new Mock<IOptionsAccessor<MvcOptions>>();
             accessor.SetupGet(a => a.Options)
                     .Returns(mvcOptions);
-            var modelMetadataProcider = new EmptyModelMetadataProvider();
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
             return new ModelValidationContext(
-                modelMetadataProcider,
+                modelMetadataProvider,
                 new CompositeModelValidatorProvider(
                     new DefaultModelValidatorProviderProvider(
                         accessor.Object, Mock.Of<ITypeActivator>(),
                         Mock.Of<IServiceProvider>())),
                 modelStateDictionary,
-                new ModelMetadata(modelMetadataProcider, typeof(object), () => { return model; }, type, null),
-                null);
+                new ModelMetadata(
+                    provider: modelMetadataProvider,
+                    containerType: typeof(object),
+                    modelAccessor: () => { return model; },
+                    modelType: type,
+                    propertyName: null),
+                containerMetadata: null);
         }
 
         public class Person
