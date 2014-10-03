@@ -565,6 +565,33 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Delete", result.Action);
         }
 
+        [Theory]
+        [InlineData("1")]
+        [InlineData("2")]
+        public async Task VersionedApi_MultipleVersionsUsingAttributeRouting_OnTheSameMethod(string version)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var url = "http://localhost/" + version + "Vouchers?version=" + version;
+
+            // Act
+            var message = new HttpRequestMessage(HttpMethod.Get, url);
+            var response = await client.SendAsync(message);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Vouchers", result.Controller);
+            Assert.Equal("GetVouchersMultipleVersions", result.Action);
+
+            var actualUrl = Assert.Single(result.ExpectedUrls);
+            Assert.Equal(url, actualUrl);
+        }
+
         // See TestResponseGenerator in RoutingWebSite for the code that generates this data.
         private class RoutingResult
         {

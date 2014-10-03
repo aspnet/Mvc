@@ -22,6 +22,7 @@ namespace VersioningWebSite
         // [3-5]
         // [35-56]
         // Parses the above version formats and captures lb (lower bound), range, and hb (higher bound)
+        // We filter out (5), (5], [5) manually after we do the parsing.
         private static readonly Regex _versionParser = new Regex(@"^(?<lb>[\(\[])?(?<range>\d+(-\d+)?)(?<hb>[\)\]])?$");
 
         public VersionRoute(string template)
