@@ -523,6 +523,48 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(actionName, result.Action);
         }
 
+        [Fact]
+        public async Task VersionedApi_ConstraintOrder_IsRespected()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var message = new HttpRequestMessage(HttpMethod.Post, "http://localhost/" + "Customers?version=2");
+            var response = await client.SendAsync(message);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Customers", result.Controller);
+            Assert.Equal("AnyV2OrHigher", result.Action);
+        }
+
+        [Fact]
+        public async Task VersionedApi_CanUseConstraintOrder_ToChangeSelectedAction()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var message = new HttpRequestMessage(HttpMethod.Delete, "http://localhost/" + "Customers/5?version=2");
+            var response = await client.SendAsync(message);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("Customers", result.Controller);
+            Assert.Equal("Delete", result.Action);
+        }
+
         // See TestResponseGenerator in RoutingWebSite for the code that generates this data.
         private class RoutingResult
         {

@@ -6,7 +6,7 @@ using Microsoft.AspNet.Mvc;
 namespace VersioningWebSite
 {
     // Scenario
-    // Same template disjunct version sets.
+    // Same template disjoint version sets.
     // Same template overlapping version sets disambiguated by order.
     public class AddressController : Controller
     {

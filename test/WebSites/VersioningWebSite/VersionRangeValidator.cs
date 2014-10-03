@@ -12,13 +12,7 @@ namespace VersioningWebSite
         private readonly int? _minVersion;
         private readonly int? _maxVersion;
 
-        public int Order
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public int Order { get; set; }
 
         public VersionRangeValidator(int? minVersion, int? maxVersion)
         {

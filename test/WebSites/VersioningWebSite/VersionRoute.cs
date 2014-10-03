@@ -59,7 +59,7 @@ namespace VersioningWebSite
             var rangeValues = range.Split('-');
             if (rangeValues.Length == 1)
             {
-                return GetSingleVersionOrHigherUnboundedVersionConstraint(lowerBound, higherBound, rangeValues);
+                return GetSingleVersionOrUnboundedHigherVersionConstraint(lowerBound, higherBound, rangeValues);
             }
             else
             {
@@ -93,7 +93,7 @@ namespace VersioningWebSite
             return new VersionRangeValidator(minVersion, maxVersion);
         }
 
-        private static IActionConstraint GetSingleVersionOrHigherUnboundedVersionConstraint(
+        private static IActionConstraint GetSingleVersionOrUnboundedHigherVersionConstraint(
             string lowerBound,
             string higherBound,
             string[] rangeValues)

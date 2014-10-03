@@ -31,5 +31,30 @@ namespace VersioningWebSite
         {
             return _generator.Generate();
         }
+
+        [Version(MinVersion = 2)]
+        public IActionResult AnyV2OrHigher()
+        {
+            return _generator.Generate();
+        }
+
+        [HttpPost]
+        public IActionResult Post()
+        {
+            return _generator.Generate();
+        }
+
+        [Version(MinVersion = 2, Order = int.MaxValue)]
+        [Route("{id}")]
+        public IActionResult AnyV2OrHigherWithId()
+        {
+            return _generator.Generate();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete()
+        {
+            return _generator.Generate();
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace VersioningWebSite
     {
         private int? _maxVersion;
         private int? _minVersion;
+        private int? _order;
 
         public int MinVersion
         {
@@ -23,9 +24,15 @@ namespace VersioningWebSite
             set { _maxVersion = value; }
         }
 
+        public int Order
+        {
+            get { return _order ?? -1; }
+            set { _order = value; }
+        }
+
         public IActionConstraint CreateInstance(IServiceProvider services)
         {
-            return new VersionRangeValidator(_minVersion, _maxVersion);
+            return new VersionRangeValidator(_minVersion, _maxVersion) { Order = _order ?? 0 };
         }
     }
 }
