@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Globalization;
 
 namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
@@ -49,6 +50,17 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
 
             headerValue = stringWithQualityHeader;
             return true;
+        }
+
+        public static StringWithQualityHeaderValue Parse(string input)
+        {
+            StringWithQualityHeaderValue headerValue;
+            if(!TryParse(input, out headerValue))
+            {
+                throw new ArgumentException(Resources.FormatInvalidAcceptCharset(input));
+            }
+
+            return headerValue;
         }
     }
 }

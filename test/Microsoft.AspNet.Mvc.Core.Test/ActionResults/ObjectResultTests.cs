@@ -286,11 +286,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // can write is called twice once for the request media type and once for the type match pass. 
             // For each additional accept header, it is called once. 
             // Arrange
-            MediaTypeWithQualityHeaderValue headerValue;
             var acceptHeaderCollection = string.IsNullOrEmpty(acceptHeader) ? 
                 null :
                 acceptHeader?.Split(',')
-                             .Select(header => MediaTypeWithQualityHeaderValue.TryParse(header, out headerValue))
+                             .Select(header => MediaTypeWithQualityHeaderValue.Parse(header))
                              .ToArray();
             var stream = new MemoryStream();
             var httpResponse = new Mock<HttpResponse>();

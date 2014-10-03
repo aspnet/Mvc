@@ -58,15 +58,40 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                                          string rawValue)
         {
             // Arrange
-            MediaTypeWithQualityHeaderValue parsedValue;
-            MediaTypeWithQualityHeaderValue.TryParse(rawValue, out parsedValue);
+            var parsedValue = MediaTypeWithQualityHeaderValue.Parse(rawValue);
             // Act and Assert
             Assert.Equal(rawValue, parsedValue.RawValue);
             Assert.Equal(mediaType, parsedValue.MediaType);
             Assert.Equal(mediaSubType, parsedValue.MediaSubType);
             Assert.Equal(charset, parsedValue.Charset);
             Assert.Equal(range, parsedValue.MediaTypeRange);
+            Assert.Equal(quality, parsedValue.Quality);
             ValidateParametes(parameters, parsedValue.Parameters);
+        }
+
+        [Theory]
+        [InlineData(false, "text", "plain", null, "text /plain;q=1,9")]
+        [InlineData(true, "text", "plain", 0.9, "text/plain;q=0.9")]
+        public void MediaTypeWithQualityHeaderValue_TryParse_ReturnsApproperiateResults(
+            bool result,
+            string mediaType,
+            string mediaSubType,
+            double quality,
+            string rawValue)
+        {
+            // Arrange
+            MediaTypeWithQualityHeaderValue parsedValue;
+            var isValid = MediaTypeWithQualityHeaderValue.TryParse(rawValue, out parsedValue);
+
+            // Act and Assert
+            Assert.Equal(result, isValid);
+            if(result)
+            {
+                Assert.Equal(rawValue, parsedValue.RawValue);
+                Assert.Equal(mediaType, parsedValue.MediaType);
+                Assert.Equal(mediaSubType, parsedValue.MediaSubType);
+                Assert.Equal(quality, parsedValue.Quality);
+            }
         }
 
         [Theory]
@@ -91,10 +116,8 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                                                         bool isMediaType1Subset)
         {
             // Arrange
-            MediaTypeWithQualityHeaderValue parsedMediaType1;
-            MediaTypeWithQualityHeaderValue.TryParse(mediaType1, out parsedMediaType1);
-            MediaTypeWithQualityHeaderValue parsedMediaType2;
-            MediaTypeWithQualityHeaderValue.TryParse(mediaType2, out parsedMediaType2);
+            var parsedMediaType1 = MediaTypeWithQualityHeaderValue.Parse(mediaType1);
+            var parsedMediaType2 = MediaTypeWithQualityHeaderValue.Parse(mediaType2);
 
             // Act
             var isSubset = parsedMediaType1.IsSubsetOf(parsedMediaType2);

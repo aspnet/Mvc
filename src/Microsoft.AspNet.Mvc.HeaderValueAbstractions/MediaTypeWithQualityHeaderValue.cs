@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Globalization;
 
 namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
@@ -12,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
         public static bool TryParse(string input, out MediaTypeWithQualityHeaderValue headerValue)
         {
             MediaTypeHeaderValue mediaTypeHeaderValue;
-            if (!TryParse(input, out mediaTypeHeaderValue))
+            if (!MediaTypeHeaderValue.TryParse(input, out mediaTypeHeaderValue))
             {
                 headerValue = null;
                 return false;
@@ -45,6 +46,17 @@ namespace Microsoft.AspNet.Mvc.HeaderValueAbstractions
                 };
 
             return true;
-        } 
+        }
+
+        public static new MediaTypeWithQualityHeaderValue Parse(string input)
+        {
+            MediaTypeWithQualityHeaderValue headerValue = null;
+            if (!MediaTypeWithQualityHeaderValue.TryParse(input, out headerValue))
+            {
+                throw new ArgumentException(Resources.FormatInvalidAcceptHeader(input));
+            }
+
+            return headerValue;
+        }
     }
 }
