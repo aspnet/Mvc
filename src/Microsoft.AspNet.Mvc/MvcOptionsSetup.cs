@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public void Setup(MvcOptions options)
+        public void Setup(string name, MvcOptions options)
         {
             // Set up ViewEngines
             options.ViewEngines.Add(typeof(RazorViewEngine));
