@@ -12,6 +12,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     // is correct.
     public class CachedDataAnnotationsModelMetadata : CachedModelMetadata<CachedDataAnnotationsMetadataAttributes>
     {
+        private static readonly string HtmlName = DataType.Html.ToString();
         private bool _isEditFormatStringFromCache;
 
         public CachedDataAnnotationsModelMetadata(CachedDataAnnotationsModelMetadata prototype, 
@@ -47,6 +48,31 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                        : base.ComputeNullDisplayText();
         }
 
+        /// <summary>
+        /// Calculate <see cref="ModelMetadata.DataTypeName"/> based on presence of a <see cref="DataTypeAttribute"/>
+        /// and its <see cref="DataTypeAttribute.GetDataTypeName()"/> method.
+        /// </summary>
+        /// <returns>
+        /// Calculated <see cref="ModelMetadata.DataTypeName"/> value.
+        /// <see cref="DataTypeAttribute.GetDataTypeName()"/> value if a <see cref="DataTypeAttribute"/> exists.
+        /// <c>"Html"</c> if a <see cref="DisplayFormatAttribute"/> exists with its
+        /// <see cref="DisplayFormatAttribute.HtmlEncode"/> value <c>false</c>. <c>null</c> otherwise.
+        /// </returns>
+        protected override string ComputeDataTypeName()
+        {
+            if (PrototypeCache.DataType != null)
+            {
+                return PrototypeCache.DataType.GetDataTypeName();
+            }
+
+            if (PrototypeCache.DisplayFormat != null && !PrototypeCache.DisplayFormat.HtmlEncode)
+            {
+                return HtmlName;
+            }
+
+            return base.ComputeDataTypeName();
+        }
+
         protected override string ComputeDescription()
         {
             return PrototypeCache.Display != null
@@ -55,19 +81,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Calculate <see cref="ModelMetadata.DisplayFormatString"/> based on presence of an
+        /// Calculate <see cref="ModelMetadata.DisplayFormatString"/> based on presence of a
         /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.DataFormatString"/> value.
         /// </summary>
         /// <returns>
         /// Calculated <see cref="ModelMetadata.DisplayFormatString"/> value.
-        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if an <see cref="DisplayFormatAttribute"/> exists.
+        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if a <see cref="DisplayFormatAttribute"/> exists.
         /// <c>null</c> otherwise.
         /// </returns>
         protected override string ComputeDisplayFormatString()
         {
             return PrototypeCache.DisplayFormat != null
                 ? PrototypeCache.DisplayFormat.DataFormatString
-                : base.ComputeEditFormatString();
+                : base.ComputeDisplayFormatString();
         }
 
         protected override string ComputeDisplayName()
@@ -88,13 +114,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Calculate <see cref="ModelMetadata.EditFormatString"/> based on presence of an
+        /// Calculate <see cref="ModelMetadata.EditFormatString"/> based on presence of a
         /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.ApplyFormatInEditMode"/> and
         /// <see cref="DisplayFormatAttribute.DataFormatString"/> values.
         /// </summary>
         /// <returns>
         /// Calculated <see cref="ModelMetadata.DisplayFormatString"/> value.
-        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if an <see cref="DisplayFormatAttribute"/> exists and
+        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if a <see cref="DisplayFormatAttribute"/> exists and
         /// its <see cref="DisplayFormatAttribute.ApplyFormatInEditMode"/> is <c>true</c>; <c>null</c> otherwise.
         /// </returns>
         /// <remarks>

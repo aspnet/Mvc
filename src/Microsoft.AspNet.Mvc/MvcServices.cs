@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Internal;
@@ -40,6 +39,11 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Singleton<IActionSelectorDecisionTreeProvider, ActionSelectorDecisionTreeProvider>();
             yield return describe.Scoped<IActionSelector, DefaultActionSelector>();
 
+            // This provider needs access to the per-request services, but might be used many times for a given
+            // request.
+            yield return describe.Scoped<INestedProvider<ActionConstraintProviderContext>, 
+                DefaultActionConstraintProvider>();
+
             yield return describe.Transient<IActionInvokerFactory, ActionInvokerFactory>();
             yield return describe.Transient<IControllerAssemblyProvider, DefaultControllerAssemblyProvider>();
             yield return describe.Transient<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
@@ -49,7 +53,10 @@ namespace Microsoft.AspNet.Mvc
 
             yield return describe.Singleton<ICompilationService, RoslynCompilationService>();
             yield return describe.Singleton<IRazorCompilationService, RazorCompilationService>();
-            yield return describe.Singleton<IViewEngineProvider, DefaultViewEngineProvider>();
+
+            // The provider is inexpensive to initialize and provides ViewEngines that may require request
+            // specific services.
+            yield return describe.Transient<IViewEngineProvider, DefaultViewEngineProvider>();
             yield return describe.Scoped<ICompositeViewEngine, CompositeViewEngine>();
             yield return describe.Singleton<IViewStartProvider, ViewStartProvider>();
             yield return describe.Transient<IRazorView, RazorView>();
@@ -112,7 +119,7 @@ namespace Microsoft.AspNet.Mvc
 
             yield return describe.Singleton<IApiDescriptionGroupCollectionProvider,
                 ApiDescriptionGroupCollectionProvider>();
-            yield return describe.Transient<INestedProvider<ApiDescriptionProviderContext>, 
+            yield return describe.Transient<INestedProvider<ApiDescriptionProviderContext>,
                 DefaultApiDescriptionProvider>();
 
             yield return

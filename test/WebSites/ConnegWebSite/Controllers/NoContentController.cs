@@ -27,5 +27,14 @@ namespace ConnegWebsite
         {
             return null;
         }
+
+        public Task ReturnTask()
+        {
+            return Task.FromResult<bool>(true);
+        }
+
+        public void ReturnVoid()
+        {
+        }
     }
 }
