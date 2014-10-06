@@ -6,7 +6,7 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\AspNet\Microsoft.Web.AspNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>c2ef54f8-8886-4260-a322-44f76245f95d</ProjectGuid>
+    <ProjectGuid>ee26dc53-63f5-4432-9b1e-c2ea1501a4f2</ProjectGuid>
     <OutputType>Web</OutputType>
     <RootNamespace>ReflectedModelWebSite</RootNamespace>
   </PropertyGroup>
