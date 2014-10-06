@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ReflectedActionInvokerTest
+    public class ControllerActionInvokerTest
     {
         // Intentionally choosing an uncommon exception type.
         private readonly Exception _actionException = new TimeZoneNotFoundException();
@@ -1212,7 +1212,7 @@ namespace Microsoft.AspNet.Mvc
             var mockActionResult = new Mock<IActionResult>();
 
             // Assert
-            var result = ReflectedActionInvoker.CreateActionResult(
+            var result = ControllerActionInvoker.CreateActionResult(
                 mockActionResult.Object.GetType(), mockActionResult.Object);
 
             // Act
@@ -1225,7 +1225,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange, Act & Assert
             ExceptionAssert.Throws<InvalidOperationException>(
-                () => ReflectedActionInvoker.CreateActionResult(typeof(IActionResult), null),
+                () => ControllerActionInvoker.CreateActionResult(typeof(IActionResult), null),
                 "Cannot return null from an action method with a return type of '"
                     + typeof(IActionResult)
                     + "'.");
@@ -1237,7 +1237,7 @@ namespace Microsoft.AspNet.Mvc
         public void CreateActionResult_Types_ReturnsObjectResultForTaskAndVoidReturnTypes(Type type)
         {
             // Arrange & Act
-            var result = ReflectedActionInvoker.CreateActionResult(type, null);
+            var result = ControllerActionInvoker.CreateActionResult(type, null);
 
             // Assert
             var objectResult = Assert.IsType<ObjectResult>(result);
@@ -1269,21 +1269,21 @@ namespace Microsoft.AspNet.Mvc
         public void CreateActionResult_ReturnsObjectContentResult(Type type, object input)
         {
             // Arrange & Act
-            var actualResult = ReflectedActionInvoker.CreateActionResult(type, input);
+            var actualResult = ControllerActionInvoker.CreateActionResult(type, input);
 
             // Assert
             var contentResult = Assert.IsType<ObjectResult>(actualResult);
             Assert.Same(input, contentResult.Value);
         }
 
-        private TestReflectedActionInvoker CreateInvoker(IFilter filter, bool actionThrows = false)
+        private TestControllerActionInvoker CreateInvoker(IFilter filter, bool actionThrows = false)
         {
             return CreateInvoker(new[] { filter }, actionThrows);
         }
 
-        private TestReflectedActionInvoker CreateInvoker(IFilter[] filters, bool actionThrows = false)
+        private TestControllerActionInvoker CreateInvoker(IFilter[] filters, bool actionThrows = false)
         {
-            var actionDescriptor = new ReflectedActionDescriptor()
+            var actionDescriptor = new ControllerActionDescriptor()
             {
                 FilterDescriptors = new List<FilterDescriptor>(),
                 Parameters = new List<ParameterDescriptor>(),
@@ -1291,11 +1291,11 @@ namespace Microsoft.AspNet.Mvc
 
             if (actionThrows)
             {
-                actionDescriptor.MethodInfo = typeof(ReflectedActionInvokerTest).GetMethod("ThrowingActionMethod");
+                actionDescriptor.MethodInfo = typeof(ControllerActionInvokerTest).GetMethod("ThrowingActionMethod");
             }
             else
             {
-                actionDescriptor.MethodInfo = typeof(ReflectedActionInvokerTest).GetMethod("ActionMethod");
+                actionDescriptor.MethodInfo = typeof(ControllerActionInvokerTest).GetMethod("ActionMethod");
             }
 
             var httpContext = new Mock<HttpContext>(MockBehavior.Loose);
@@ -1339,7 +1339,7 @@ namespace Microsoft.AspNet.Mvc
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
 
-            var invoker = new TestReflectedActionInvoker(
+            var invoker = new TestControllerActionInvoker(
                 actionContext,
                 actionBindingContextProvider.Object,
                 filterProvider.Object,
@@ -1355,7 +1355,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             Func<object, int> method = x => 1;
-            var actionDescriptor = new ReflectedActionDescriptor
+            var actionDescriptor = new ControllerActionDescriptor
             {
                 MethodInfo = method.Method,
                 Parameters = new List<ParameterDescriptor>
@@ -1385,7 +1385,7 @@ namespace Microsoft.AspNet.Mvc
             var inputFormattersProvider = new Mock<IInputFormattersProvider>();
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
-            var invoker = new ReflectedActionInvoker(actionContext,
+            var invoker = new ControllerActionInvoker(actionContext,
                                                      actionBindingContextProvider.Object,
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      Mock.Of<IControllerFactory>(),
@@ -1406,7 +1406,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             Func<object, int> method = x => 1;
-            var actionDescriptor = new ReflectedActionDescriptor
+            var actionDescriptor = new ControllerActionDescriptor
             {
                 MethodInfo = method.Method,
                 Parameters = new List<ParameterDescriptor>
@@ -1444,7 +1444,7 @@ namespace Microsoft.AspNet.Mvc
             var inputFormattersProvider = new Mock<IInputFormattersProvider>();
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
-            var invoker = new ReflectedActionInvoker(actionContext,
+            var invoker = new ControllerActionInvoker(actionContext,
                                                      actionBindingContextProvider.Object,
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      Mock.Of<IControllerFactory>(),
@@ -1464,7 +1464,7 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public async Task GetActionArguments_NoInputFormatterFound_SetsModelStateError()
         {
-            var actionDescriptor = new ReflectedActionDescriptor
+            var actionDescriptor = new ControllerActionDescriptor
             {
                 MethodInfo = typeof(TestController).GetTypeInfo().GetMethod("ActionMethodWithDefaultValues"),
                 Parameters = new List<ParameterDescriptor>
@@ -1498,7 +1498,7 @@ namespace Microsoft.AspNet.Mvc
             var inputFormattersProvider = new Mock<IInputFormattersProvider>();
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
-            var invoker = new ReflectedActionInvoker(actionContext,
+            var invoker = new ControllerActionInvoker(actionContext,
                                                      actionBindingContextProvider.Object,
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      controllerFactory.Object,
@@ -1523,7 +1523,7 @@ namespace Microsoft.AspNet.Mvc
         public async Task Invoke_UsesDefaultValuesIfNotBound()
         {
             // Arrange
-            var actionDescriptor = new ReflectedActionDescriptor
+            var actionDescriptor = new ControllerActionDescriptor
             {
                 MethodInfo = typeof(TestController).GetTypeInfo()
                                                                .DeclaredMethods
@@ -1565,7 +1565,7 @@ namespace Microsoft.AspNet.Mvc
             var inputFormattersProvider = new Mock<IInputFormattersProvider>();
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
-            var invoker = new ReflectedActionInvoker(actionContext,
+            var invoker = new ControllerActionInvoker(actionContext,
                                                      actionBindingContextProvider.Object,
                                                      Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                                                      controllerFactory.Object,
@@ -1620,16 +1620,16 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public class TestReflectedActionInvoker : ReflectedActionInvoker
+        public class TestControllerActionInvoker : ControllerActionInvoker
         {
             private Mock<IControllerFactory> _factoryMock;
 
-            public TestReflectedActionInvoker(
+            public TestControllerActionInvoker(
                 ActionContext actionContext,
                 IActionBindingContextProvider bindingContextProvider,
                 INestedProviderManager<FilterProviderContext> filterProvider,
                 Mock<IControllerFactory> controllerFactoryMock,
-                ReflectedActionDescriptor descriptor,
+                ControllerActionDescriptor descriptor,
                 IInputFormattersProvider inputFormattersProvider) :
                     base(actionContext,
                         bindingContextProvider,
