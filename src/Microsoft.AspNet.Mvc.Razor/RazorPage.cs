@@ -415,7 +415,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (RenderBodyDelegate == null)
             {
-                throw new InvalidOperationException(Resources.FormatRenderBodyCannotBeCalled("RenderBody"));
+                var message = Resources.FormatRazorPage_MethodCannotBeCalled(nameof(RenderBody));
+                throw new InvalidOperationException(message);
             }
 
             _renderedBody = true;
@@ -439,36 +440,82 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public bool IsSectionDefined([NotNull] string name)
         {
-            EnsureMethodCanBeInvoked("IsSectionDefined");
+            EnsureMethodCanBeInvoked(nameof(IsSectionDefined));
             return PreviousSectionWriters.ContainsKey(name);
         }
 
-        public Task<HtmlString> RenderSectionAsync([NotNull] string name)
+        /// <summary>
+        /// In layout pages, renders the content of the section named <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the section to render.</param>
+        /// <returns>Returns a token value to allow the Write method to succeed.</returns>
+        public object RenderSection([NotNull] string name)
+        {
+            return RenderSection(name, required: true);
+        }
+
+        /// <summary>
+        /// In layout pages, renders the content of the section named <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The section to render.</param>
+        /// <param name="required">Indicates if this section must be rendered.</param>
+        /// <returns>Returns a token value to allow the Write method to succeed.</returns>
+        public object RenderSection([NotNull] string name, bool required)
+        {
+            EnsureMethodCanBeInvoked(nameof(RenderSection));
+
+            var task = RenderSectionAsyncCore(name, required);
+            return TaskHelper.WaitAndThrowIfFaulted(task);
+        }
+
+        /// <summary>
+        /// In layout pages, asynchronously renders the content of the section named <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The section to render.</param>
+        /// <returns>A <see cref="Task{TResult}"/> that represents the results of rendering.</returns>
+        public Task<object> RenderSectionAsync([NotNull] string name)
         {
             return RenderSectionAsync(name, required: true);
         }
 
-        public async Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
+        /// <summary>
+        /// In layout pages, asynchronously renders the content of the section named <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The section to render.</param>
+        /// <returns>A <see cref="Task{TResult}"/> that represents the results of rendering.</returns>
+        /// <exception cref="InvalidOperationException">if <paramref name="required"/> is <c>true</c> and the section
+        /// was not registered using the <c>@section</c> in the Razor page.</exception>
+        public async Task<object> RenderSectionAsync([NotNull] string name, bool required)
         {
-            EnsureMethodCanBeInvoked("RenderSection");
-            if (_renderedSections.Contains(name))
+            EnsureMethodCanBeInvoked(nameof(RenderSectionAsync));
+            return await RenderSectionAsyncCore(name, required);
+        }
+
+        private async Task<object> RenderSectionAsyncCore(string sectionName, bool required)
+        {
+            if (_renderedSections.Contains(sectionName))
             {
-                throw new InvalidOperationException(Resources.FormatSectionAlreadyRendered("RenderSection", name));
+                var message = Resources.FormatSectionAlreadyRendered(sectionName);
+                throw new InvalidOperationException(message);
             }
 
             RenderAsyncDelegate renderDelegate;
-            if (PreviousSectionWriters.TryGetValue(name, out renderDelegate))
+            if (PreviousSectionWriters.TryGetValue(sectionName, out renderDelegate))
             {
-                _renderedSections.Add(name);
+                _renderedSections.Add(sectionName);
                 await renderDelegate(Output);
 
-                // We need to return a value for the surrounding Write operation.
+                // Temporary workaround - we need to change Razor to convert @await RenderSectionAsync() to become
+                // await Write(RenderSectionAsync()) rather than Write(await RenderSectionAsync());
+                // This is tracked via https://github.com/aspnet/Razor/issues/85. Until we sort this out, we cannot
+                // return a HelperResult that represents the operation of rendering the section. We'll instead return
+                // a token value to allow the wrapping Write method to succeed.
                 return HtmlString.Empty;
             }
             else if (required)
             {
                 // If the section is not found, and it is not optional, throw an error.
-                throw new InvalidOperationException(Resources.FormatSectionNotDefined(name));
+                throw new InvalidOperationException(Resources.FormatSectionNotDefined(sectionName));
             }
             else
             {
@@ -521,7 +568,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (RenderBodyDelegate != null && !_renderedBody)
             {
                 // If a body was defined, then RenderBody should have been called.
-                throw new InvalidOperationException(Resources.FormatRenderBodyNotCalled("RenderBody"));
+                var message = Resources.FormatRenderBodyNotCalled(nameof(RenderBody));
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -539,7 +587,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (PreviousSectionWriters == null)
             {
-                throw new InvalidOperationException(Resources.FormatView_MethodCannotBeCalled(methodName));
+                throw new InvalidOperationException(Resources.FormatRazorPage_MethodCannotBeCalled(methodName));
             }
         }
     }
