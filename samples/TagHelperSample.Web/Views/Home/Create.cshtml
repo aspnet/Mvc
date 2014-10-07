@@ -1,0 +1,65 @@
+﻿
+@using TagHelperSample.Web.Models
+@model User
+
+<h2>Create</h2>
+
+<form>
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <validation-summary tag="div"/>
+
+        @* element will have correct name and id attributes for Id property. but will submit a constant value. *@
+        <input type="hidden" for="Id" value="0" />
+
+        <div class="form-group">
+            <label for="Name" class="control-label col-md-2" />
+            <div class="col-md-10">
+                <input type="text" for="Name" />
+                <validation-message for="Name" tag="div" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="DateOfBirth" class="control-label col-md-2" />
+            <div class="col-md-10">
+                <input type="date" for="DateOfBirth" format="{0:d}" />
+                <validation-message for="DateOfBirth">How old are you?</validation-message>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="YearsEmployeed" class="control-label col-md-2" />
+            <div class="col-md-10">
+                <select for="YearsEmployeed" items="(IEnumerable<SelectListItem>)ViewBag.Items" size="2" class="form-control">
+                    <optgroup label="Newby">
+                        <option value="0">Less than 1</option>
+                        <option value="1">1</option>
+                    </optgroup>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+                <validation-message for="YearsEmployeed" tag="div" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="Blurb" class="control-label col-md-2" />
+            <div class="col-md-10">
+                <textarea rows="4" for="Blurb"></textarea>
+                <validation-message for="Blurb" tag="div" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a action="Index">Back to list</a>
+</div>
