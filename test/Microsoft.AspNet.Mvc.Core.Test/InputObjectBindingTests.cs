@@ -131,7 +131,7 @@ namespace Microsoft.AspNet.Mvc
             var mvcOptions = new MvcOptions();
             var setup = new MvcOptionsSetup();
 
-            setup.Configure(optionsName: null, options: mvcOptions);
+            setup.Invoke(mvcOptions);
             var accessor = new Mock<IOptionsAccessor<MvcOptions>>();
             accessor.SetupGet(a => a.Options)
                     .Returns(mvcOptions);
