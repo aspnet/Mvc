@@ -42,44 +42,44 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 yield return new object[] { new Person() { Name = "Rick", Profession = "Astronaut" }, typeof(Person), new Dictionary<string, string>() };
                 yield return new object[] { new Person(), typeof(Person), new Dictionary<string, string>()
                         {
-                            { "Name", "The Name field is required." },
-                            { "Profession", "The Profession field is required." }
+                            { "Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
                         }
                     };
 
                 yield return new object[] { new Person() { Name = "Rick", Friend = new Person() }, typeof(Person), new Dictionary<string, string>()
                         {
-                            { "Profession", "The Profession field is required." },
-                            { "Friend.Name", "The Name field is required." },
-                            { "Friend.Profession", "The Profession field is required." }
+                            { "Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") },
+                            { "Friend.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "Friend.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
                         }
                     };
 
                 // Collections
                 yield return new object[] { new Person[] { new Person(), new Person() }, typeof(Person[]), new Dictionary<string, string>()
                         {
-                            { "[0].Name", "The Name field is required." },
-                            { "[0].Profession", "The Profession field is required." },
-                            { "[1].Name", "The Name field is required." },
-                            { "[1].Profession", "The Profession field is required." }
+                            { "[0].Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[0].Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") },
+                            { "[1].Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[1].Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
                         }
                     };
 
                 yield return new object[] { new List<Person> { new Person(), new Person() }, typeof(Person[]), new Dictionary<string, string>()
                         {
-                            { "[0].Name", "The Name field is required." },
-                            { "[0].Profession", "The Profession field is required." },
-                            { "[1].Name", "The Name field is required." },
-                            { "[1].Profession", "The Profession field is required." }
+                            { "[0].Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[0].Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") },
+                            { "[1].Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[1].Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
                         }
                     };
 
                 yield return new object[] { new Dictionary<string, Person> { { "Joe", new Person() } , { "Mark", new Person() } }, typeof(Dictionary<string, Person>), new Dictionary<string, string>()
                         {
-                            { "[0].Value.Name", "The Name field is required." },
-                            { "[0].Value.Profession", "The Profession field is required." },
-                            { "[1].Value.Name", "The Name field is required." },
-                            { "[1].Value.Profession", "The Profession field is required." }
+                            { "[0].Value.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[0].Value.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") },
+                            { "[1].Value.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[1].Value.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
                         }
                     };
 
@@ -122,11 +122,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                             }
                         }, typeof(Org), new Dictionary<string, string>()
                             {
-                                { "OrgName", "The field OrgName must be a string with a minimum length of 4 and a maximum length of 20." },
-                                { "Dev.Lead", "The field Lead must be a string or array type with a maximum length of '10'." },
-                                { "Dev.TeamSize", "The field TeamSize must be between 3 and 100." },
-                                { "Test.TeamName", "The field TeamName must be a string with a minimum length of 4 and a maximum length of 20." },
-                                { "Test.Lead", "The field Lead must be a string or array type with a maximum length of '10'." }
+                                { "OrgName", ValidationAttributeUtil.GetStringLengthErrorMessage(4, 20, "OrgName") },
+                                { "Dev.Lead", ValidationAttributeUtil.GetMaxLengthErrorMessage(10, "Lead") },
+                                { "Dev.TeamSize", ValidationAttributeUtil.GetRangeErrorMessage(3, 100, "TeamSize") },
+                                { "Test.TeamName", ValidationAttributeUtil.GetStringLengthErrorMessage(4, 20, "TeamName") },
+                                { "Test.Lead", ValidationAttributeUtil.GetMaxLengthErrorMessage(10, "Lead") }
                             }
                 };
 
@@ -136,8 +136,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // Testing we don't blow up on cycles
                 yield return new object[] { LonelyPerson, typeof(Person), new Dictionary<string, string>()
                         {
-                            { "Name", "The field Name must be a string with a maximum length of 10." },
-                            { "Profession", "The Profession field is required." }
+                            { "Name", ValidationAttributeUtil.GetStringLengthErrorMessage(null, 10, "Name") },
+                            { "Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
                         }
                     };
             }
@@ -210,10 +210,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var streetState = validationContext.ModelState["Street"];
             Assert.Equal(2, streetState.Errors.Count);
             Assert.Equal(
-                "The field Street must be a string with a maximum length of 5.",
+                ValidationAttributeUtil.GetStringLengthErrorMessage(null, 5, "Street"),
                 streetState.Errors[0].ErrorMessage);
             Assert.Equal(
-                "The field Street must match the regular expression 'hehehe'.",
+                ValidationAttributeUtil.GetRegExErrorMessage("hehehe", "Street"),
                 streetState.Errors[1].ErrorMessage);
         }
 
