@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Testing;
 using Microsoft.Framework.DependencyInjection;
@@ -105,18 +106,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     }
                 };
 
-                yield return new object[]
+                if (!TestPlatformHelper.IsMono)
                 {
-                    new Dictionary<string, Person> { { "Joe", new Person() } , { "Mark", new Person() } },
-                    typeof(Dictionary<string, Person>),
-                    new Dictionary<string, string>()
+                    yield return new object[]
                     {
-                        { "[0].Value.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
-                        { "[0].Value.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") },
-                        { "[1].Value.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
-                        { "[1].Value.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
-                    }
-                };
+                        new Dictionary<string, Person> { { "Joe", new Person() } , { "Mark", new Person() } },
+                        typeof(Dictionary<string, Person>),
+                        new Dictionary<string, string>()
+                        {
+                            { "[0].Value.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[0].Value.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") },
+                            { "[1].Value.Name", ValidationAttributeUtil.GetRequiredErrorMessage("Name") },
+                            { "[1].Value.Profession", ValidationAttributeUtil.GetRequiredErrorMessage("Profession") }
+                        }
+                    };
+                }
 
                 // IValidatableObject's
                 yield return new object[]
@@ -266,12 +270,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Contains("Street", validationContext.ModelState.Keys);
             var streetState = validationContext.ModelState["Street"];
             Assert.Equal(2, streetState.Errors.Count);
-            Assert.Equal(
-                ValidationAttributeUtil.GetStringLengthErrorMessage(null, 5, "Street"),
-                streetState.Errors[0].ErrorMessage);
-            Assert.Equal(
-                ValidationAttributeUtil.GetRegExErrorMessage("hehehe", "Street"),
-                streetState.Errors[1].ErrorMessage);
+            var errorCollection = streetState.Errors.Select(e => e.ErrorMessage);
+            Assert.Contains(ValidationAttributeUtil.GetStringLengthErrorMessage(null, 5, "Street"), errorCollection);
+            Assert.Contains(ValidationAttributeUtil.GetRegExErrorMessage("hehehe", "Street"), errorCollection);
         }
 
         [Fact]

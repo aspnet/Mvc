@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static string GetStringLengthErrorMessage(int? minimumLength, int maximumLength, string field)
         {
             var attr = new StringLengthAttribute(maximumLength);
-            if(minimumLength != null)
+            if (minimumLength != null)
             {
                 attr.MinimumLength = (int)minimumLength;
             }
