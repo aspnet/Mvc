@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ApplicationModel;
 
-namespace ModelBuilderWebSite
+namespace ApplicationModelWebSite
 {
     // This controller uses an reflected model attribute to change an action name, and thus
     // the URL.

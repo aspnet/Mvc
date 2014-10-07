@@ -12,8 +12,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ModelBuilderTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(ModelBuilderWebSite));
-        private readonly Action<IApplicationBuilder> _app = new ModelBuilderWebSite.Startup().Configure;
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(ApplicationModelWebSite));
+        private readonly Action<IApplicationBuilder> _app = new ApplicationModelWebSite.Startup().Configure;
 
         [Fact]
         public async Task ControllerModel_CustomizedWithAttribute()
