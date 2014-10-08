@@ -157,7 +157,7 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public async Task WriteAsync([NotNull] OutputFormatterContext context)
         {
-            WriteResponseContentHeaders(context);
+            WriteResponseHeaders(context);
             await WriteResponseBodyAsync(context);
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.AspNet.Mvc
         /// Sets the content-type headers with charset value to the HttpResponse.
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>
-        public virtual void WriteResponseContentHeaders([NotNull] OutputFormatterContext context)
+        public virtual void WriteResponseHeaders([NotNull] OutputFormatterContext context)
         {
             var selectedMediaType = context.SelectedContentType;
 
