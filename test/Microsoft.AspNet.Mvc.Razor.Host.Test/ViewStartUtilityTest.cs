@@ -3,6 +3,7 @@
 
 using System.IO;
 using Microsoft.AspNet.FileSystems;
+using Microsoft.AspNet.Mvc.Test.Common;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
 using Xunit;

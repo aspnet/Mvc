@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNet.Mvc.Test.Common;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Text;

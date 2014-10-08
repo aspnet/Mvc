@@ -7,13 +7,11 @@
         "Microsoft.AspNet.Mvc.ModelBinding": "6.0.0-*",
         "Microsoft.AspNet.PipelineCore": "1.0.0-*",
         "Microsoft.AspNet.Routing": "1.0.0-*",
-        "Microsoft.AspNet.Testing": "1.0.0-*",
         "Microsoft.AspNet.WebUtilities": "1.0.0-*",
         "Microsoft.DataAnnotations": "1.0.0-*",
         "Microsoft.Framework.DependencyInjection": "1.0.0-*",
-        "Moq": "4.2.1312.1622",
         "Newtonsoft.Json": "6.0.4",
-        "Xunit.KRunner": "1.0.0-*"
+        "Microsoft.AspNet.Mvc.Test.Common": "1.0.0"
     },
     "commands": {
         "test": "Xunit.KRunner"

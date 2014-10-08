@@ -1,0 +1,16 @@
+﻿{
+    "version": "1.0.0",
+    "resources": "TestFiles\\**",
+    "dependencies": {
+        "Microsoft.AspNet.Testing": "1.0.0-*",
+        "Xunit.KRunner": "1.0.0-*",
+        "Microsoft.AspNet.FileSystems": "1.0.0-*"
+    },
+    "frameworks": {
+        "aspnet50": {
+            "dependencies": {
+                "Moq": "4.2.1312.1622"
+            }
+        }
+    }
+}

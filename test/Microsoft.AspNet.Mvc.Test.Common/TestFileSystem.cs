@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.AspNet.FileSystems;
 using Moq;
 
-namespace Microsoft.AspNet.Mvc.Razor
+namespace Microsoft.AspNet.Mvc.Test.Common
 {
     public class TestFileSystem : IFileSystem
     {
