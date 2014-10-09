@@ -5,24 +5,22 @@
 <h2>Edit</h2>
 
 <form>
-    @Html.AntiForgeryToken()
-
     <div class="form-horizontal">
-        <validation-summary tag="div"/>
+        <div validation-summary="true"/>
         <input type="hidden" for="Id" />
 
         <div class="form-group">
             <label for="Name" class="control-label col-md-2" />
             <div class="col-md-10">
                 <input type="text" for="Name" />
-                <validation-message for="Name" tag="div" />
+                <span validation-for="Name" />
             </div>
         </div>
         <div class="form-group">
             <label for="DateOfBirth" class="control-label col-md-2" />
             <div class="col-md-10">
                 <input type="date" for="DateOfBirth" format="{0:d}" />
-                <validation-message for="DateOfBirth">How old are you?</validation-message>
+                <span validation-for="DateOfBirth">How old are you?</span>
             </div>
         </div>
         <div class="form-group">
@@ -39,14 +37,14 @@
                     <option value="5">5</option>
                     <option value="6">6</option>
                 </select>
-                <validation-message for="YearsEmployeed" tag="div" />
+                <span validation-for="YearsEmployeed" />
             </div>
         </div>
         <div class="form-group">
             <label for="Blurb" class="control-label col-md-2" />
             <div class="col-md-10">
                 <textarea rows="4" for="Blurb"></textarea>
-                <validation-message for="Blurb" tag="div" />
+                <span validation-for="Blurb" />
             </div>
         </div>
 
