@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class MvcServices
     {
+
         public static IEnumerable<IServiceDescriptor> GetDefaultServices()
         {
             return GetDefaultServices(new Configuration());

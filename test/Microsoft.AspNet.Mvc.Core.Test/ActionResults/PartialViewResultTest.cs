@@ -11,12 +11,12 @@ using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test
+namespace Microsoft.AspNet.Mvc.Core
 {
-    public class ViewResultTest
+    public class PartialViewResultTest
     {
-        // The buffer size of the StreamWriter used in ViewResult.
-        private const int ViewResultStreamWriterBufferSize = 1024;
+        // The buffer size of the StreamWriter used in ViewResultBase.
+        private const int StreamWriterBufferSize = 1024;
 
         [Fact]
         public async Task ExecuteResultAsync_WritesOutputWithoutBOM()
@@ -56,11 +56,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                   new RouteData() { Values = routeDictionary },
                                                   new ActionDescriptor());
 
-            viewEngine.Setup(v => v.FindView(actionContext, It.IsAny<string>()))
-                      .Returns(ViewEngineResult.Found("MyView", view.Object));
+            viewEngine.Setup(v => v.FindPartialView(actionContext, It.IsAny<string>()))
+                      .Returns(ViewEngineResult.Found("MyPartialView", view.Object));
 
 
-            var viewResult = new ViewResult();
+            var viewResult = new PartialViewResult();
 
             // Act
             await viewResult.ExecuteResultAsync(actionContext);
@@ -109,11 +109,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                   new RouteData() { Values = routeDictionary },
                                                   new ActionDescriptor());
 
-            goodViewEngine.Setup(v => v.FindView(actionContext, It.IsAny<string>()))
-                          .Returns(ViewEngineResult.Found("MyView", view.Object));
+            goodViewEngine.Setup(v => v.FindPartialView(actionContext, It.IsAny<string>()))
+                          .Returns(ViewEngineResult.Found("MyPartialView", view.Object));
 
 
-            var viewResult = new ViewResult()
+            var viewResult = new PartialViewResult()
             {
                 ViewEngine = goodViewEngine.Object,
             };
@@ -134,11 +134,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 if (PlatformHelper.IsMono)
                 {
                     // The StreamWriter in Mono buffers 2x the buffer size before flushing.
-                    yield return new object[] { ViewResultStreamWriterBufferSize * 2 + 30, ViewResultStreamWriterBufferSize };
+                    yield return new object[] { StreamWriterBufferSize * 2 + 30, StreamWriterBufferSize };
                 }
                 else
                 {
-                    yield return new object[] { ViewResultStreamWriterBufferSize + 30, ViewResultStreamWriterBufferSize };
+                    yield return new object[] { StreamWriterBufferSize + 30, StreamWriterBufferSize };
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                   new RouteData() { Values = routeDictionary },
                                                   new ActionDescriptor());
 
-            var viewResult = new ViewResult();
+            var viewResult = new PartialViewResult();
 
             // Act
             await Record.ExceptionAsync(() => viewResult.ExecuteResultAsync(actionContext));
