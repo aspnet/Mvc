@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -18,6 +19,25 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class RazorPageCreateTagHelperTest
     {
         [Fact]
+        public void CreateTagHelper_ThrowsIfNoParameterlessConstructor()
+        {
+            // Arrange
+            var instance = CreateTestRazorPage();
+            var expectedErrorMessage = string.Format(
+                CultureInfo.InvariantCulture,
+                "Tag helper `{0}` must have a public paramterless constructor.",
+                typeof(NoParameterlessConstructor).FullName);
+
+            // Act & Assert
+            var ex = Assert.Throws<MissingMethodException>(() =>
+            {
+                instance.CreateTagHelper<NoParameterlessConstructor>();
+            });
+
+            Assert.Equal(expectedErrorMessage, ex.Message);
+        }
+
+        [Fact]
         public void CreateTagHelper_CreatesProvidedTagHelperType()
         {
             // Arrange
@@ -31,43 +51,16 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
-        public void CreateTagHelper_ActivatesProvidedTagHelperType_Constructor()
+        public void CreateTagHelper_ActivatesProvidedTagHelperType()
         {
             // Arrange
             var instance = CreateTestRazorPage();
 
             // Act
-            var tagHelper = instance.CreateTagHelper<ConstructorServiceTagHelper>();
-
-            // Assert
-            Assert.NotNull(tagHelper.PassedInService);
-        }
-
-        [Fact]
-        public void CreateTagHelper_ActivatesProvidedTagHelperType_Property()
-        {
-            // Arrange
-            var instance = CreateTestRazorPage();
-
-            // Act
-            var tagHelper = instance.CreateTagHelper<ActivateAttributeServiceTagHelper>();
+            var tagHelper = instance.CreateTagHelper<ServiceTagHelper>();
 
             // Assert
             Assert.NotNull(tagHelper.ActivatedService);
-        }
-
-        [Fact]
-        public void CreateTagHelper_ActivatesProvidedTagHelperType_PropertyAndConstructor()
-        {
-            // Arrange
-            var instance = CreateTestRazorPage();
-
-            // Act
-            var tagHelper = instance.CreateTagHelper<AttributeConstructorServiceTagHelper>();
-
-            // Assert
-            Assert.NotNull(tagHelper.ActivatedService);
-            Assert.NotNull(tagHelper.PassedInService);
         }
 
         [Fact]
@@ -94,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // Assert
             Assert.NotNull(tagHelper.ViewContext);
-            Assert.NotNull(tagHelper.PassedInService);
+            Assert.NotNull(tagHelper.ActivatedService);
         }
 
         private static TestRazorPage CreateTestRazorPage()
@@ -138,33 +131,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
         }
 
-        private class ConstructorServiceTagHelper : TagHelper
-        {
-            public MyService PassedInService { get; set; }
-
-            public ConstructorServiceTagHelper(MyService service)
-            {
-                PassedInService = service;
-            }
-        }
-
-        private class ActivateAttributeServiceTagHelper : TagHelper
+        private class ServiceTagHelper : TagHelper
         {
             [Activate]
             public MyService ActivatedService { get; set; }
-        }
-
-        private class AttributeConstructorServiceTagHelper : TagHelper
-        {
-            [Activate]
-            public MyService ActivatedService { get; set; }
-
-            public MyService PassedInService { get; set; }
-
-            public AttributeConstructorServiceTagHelper(MyService service)
-            {
-                PassedInService = service;
-            }
         }
 
         private class ViewContextTagHelper : TagHelper
@@ -175,11 +145,14 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private class ViewContextServiceTagHelper : ViewContextTagHelper
         {
-            public MyService PassedInService { get; set; }
+            [Activate]
+            public MyService ActivatedService { get; set; }
+        }
 
-            public ViewContextServiceTagHelper(MyService service)
+        private class NoParameterlessConstructor : TagHelper
+        {
+            public NoParameterlessConstructor(string a)
             {
-                PassedInService = service;
             }
         }
 
