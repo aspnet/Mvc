@@ -29,7 +29,7 @@
                 <textarea rows="4" for="@item.Blurb" disabled="disabled" readonly="readonly" />
             </div>
 
-            <a action="Edit" controller="Home" routevalues="new { id=item.Id }">Edit</a>
+            <a action="Edit" controller="Home" route="MyRouteName" route-id="@item.Id">Edit</a>
         }
     </div>
 }
