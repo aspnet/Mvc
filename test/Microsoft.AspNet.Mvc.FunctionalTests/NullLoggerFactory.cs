@@ -29,7 +29,6 @@ namespace Microsoft.AspNet.Mvc
 
         public void Write(TraceType eventType, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
         {
-            return;
         }
 
         public bool IsEnabled(TraceType eventType)
