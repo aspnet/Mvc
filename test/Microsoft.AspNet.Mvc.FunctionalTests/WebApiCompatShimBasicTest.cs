@@ -79,6 +79,75 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expected, formatters);
+
+            // Assert
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            Assert.Equal(1, json.Count);
+            Assert.Equal("The field ID must be between 0 and 100.", json["ID"]);
+        }
+
+        [Fact]
+        public async Task ApiController_CanValidateCustomObjectWithPrefix_Fails()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync(
+                "http://localhost/BasicApi/ValidateObjectWithPrefixFails?prefix=prefix");
+
+            // Assert
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            Assert.Equal(1, json.Count);
+            Assert.Equal("The field ID must be between 0 and 100.", json["prefix.ID"]);
+        }
+        
+        [Fact]
+        public async Task ApiController_CanValidateCustomObject_IsSuccessFul()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/BasicApi/ValidateObject_Passes");
+
+            // Assert
+            Assert.Equal("true", response);
+        }
+
+        [Fact]
+        public async Task ApiController_CanValidateCustomObject_Fails()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/BasicApi/ValidateObjectFails");
+
+            // Assert
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            Assert.Equal(1, json.Count);
+            Assert.Equal("The field ID must be between 0 and 100.", json["ID"]);
+        }
+
+        [Fact]
+        public async Task ApiController_CanValidateCustomObjectWithPrefix_Fails()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync(
+                "http://localhost/BasicApi/ValidateObjectWithPrefixFails?prefix=prefix");
+
+            // Assert
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            Assert.Equal(1, json.Count);
+            Assert.Equal("The field ID must be between 0 and 100.", json["prefix.ID"]);
         }
 
         [Fact]
