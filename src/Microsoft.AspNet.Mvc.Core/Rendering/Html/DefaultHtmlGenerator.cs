@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private const string HiddenListItem = @"<li style=""display:none""></li>";
 
         private readonly IActionBindingContextProvider _actionBindingContextProvider;
+        private readonly AntiForgery _antiForgery;
         private readonly IModelMetadataProvider _metadataProvider;
         private readonly IUrlHelper _urlHelper;
 
@@ -32,10 +33,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </summary>
         public DefaultHtmlGenerator(
             [NotNull] IActionBindingContextProvider actionBindingContextProvider,
+            [NotNull] AntiForgery antiForgery,
             [NotNull] IModelMetadataProvider metadataProvider,
             [NotNull] IUrlHelper urlHelper)
         {
             _actionBindingContextProvider = actionBindingContextProvider;
+            _antiForgery = antiForgery;
             _metadataProvider = metadataProvider;
             _urlHelper = urlHelper;
         }
@@ -71,6 +74,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             var url = _urlHelper.Action(actionName, controllerName, routeValues, protocol, hostname, fragment);
             return GenerateLink(linkText, url, htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateAntiForgery([NotNull] ViewContext viewContext)
+        {
+            var tagBuilder = _antiForgery.GetHtml(viewContext.HttpContext);
+            return tagBuilder;
         }
 
         /// <inheritdoc />
