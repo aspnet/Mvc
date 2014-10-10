@@ -34,9 +34,8 @@ namespace Microsoft.AspNet.Mvc
             //
             // Options and core services.
             //
-            yield return describe.Transient<IOptionsAction<MvcOptions>, MvcOptionsSetup>();
-            yield return describe.Transient<IOptionsAction<RazorViewEngineOptions>, RazorViewEngineOptionsSetup>();
-
+            yield return describe.Transient<IConfigureOptions<MvcOptions>, MvcOptionsSetup>();
+            yield return describe.Transient<IConfigureOptions<RazorViewEngineOptions>, RazorViewEngineOptionsSetup>();
             yield return describe.Transient<IAssemblyProvider, DefaultAssemblyProvider>();
             yield return describe.Transient(typeof(INestedProviderManager<>), typeof(NestedProviderManager<>));
             yield return describe.Transient(typeof(INestedProviderManagerAsync<>), typeof(NestedProviderManagerAsync<>));
