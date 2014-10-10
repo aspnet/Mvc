@@ -12,8 +12,6 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using Newtonsoft.Json;
 using Xunit;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {

@@ -86,18 +86,17 @@ namespace System.Web.Http
 
         /// <summary>
         /// Validates the given entity and adds the validation errors to the <see cref="ApiController.ModelState"/>
-        /// under the empty prefix, if any.
+        /// under an empty prefix.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity to be validated.</typeparam>
         /// <param name="entity">The entity being validated.</param>
         public void Validate<TEntity>(TEntity entity)
         {
-            Validate(entity, keyPrefix: String.Empty);
+            Validate(entity, keyPrefix: string.Empty);
         }
 
         /// <summary>
-        /// Validates the given entity and adds the validation errors to the <see cref="ApiController.ModelState"/>,
-        /// if any.
+        /// Validates the given entity and adds the validation errors to the <see cref="ApiController.ModelState"/>.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity to be validated.</typeparam>
         /// <param name="entity">The entity being validated.</param>
@@ -108,18 +107,15 @@ namespace System.Web.Http
         public void Validate<TEntity>(TEntity entity, string keyPrefix)
         {
             var validator = Context.RequestServices.GetService<IBodyModelValidator>();
-            if (validator != null)
-            {
-                var metadataProvider = Context.RequestServices.GetService<IModelMetadataProvider>();
-                var modelMetadata = metadataProvider.GetMetadataForType(() => entity, typeof(TEntity));
-                var validatorProvider = Context.RequestServices.GetService<ICompositeModelValidatorProvider>();
-                var modelValidationContext = new ModelValidationContext(metadataProvider,
-                                                                        validatorProvider,
-                                                                        ModelState,
-                                                                        modelMetadata,
-                                                                        containerMetadata: null);
-                validator.Validate(modelValidationContext, keyPrefix);
-            }
+            var metadataProvider = Context.RequestServices.GetService<IModelMetadataProvider>();
+            var modelMetadata = metadataProvider.GetMetadataForType(() => entity, typeof(TEntity));
+            var validatorProvider = Context.RequestServices.GetService<ICompositeModelValidatorProvider>();
+            var modelValidationContext = new ModelValidationContext(metadataProvider,
+                                                                    validatorProvider,
+                                                                    ModelState,
+                                                                    modelMetadata,
+                                                                    containerMetadata: null);
+            validator.Validate(modelValidationContext, keyPrefix);
         }
 
         protected virtual void Dispose(bool disposing)
