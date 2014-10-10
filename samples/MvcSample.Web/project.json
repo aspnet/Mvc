@@ -22,5 +22,5 @@
         "aspnetcore50": {
             "dependencies": { }
         }
-    }
+    }, "webroot": "."
 }
