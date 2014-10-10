@@ -25,10 +25,10 @@ namespace WebApiCompatShimWebSite
             {
                 // Tests include different styles of WebAPI conventional routing and action selection - the prefix keeps
                 // them from matching too eagerly.
-                routes.MapRoute("named-action", "api/Blog/{controller}/{action}/{id?}");
-                routes.MapRoute("unnamed-action", "api/Admin/{controller}/{id?}");
-                routes.MapRoute("name-as-parameter", "api/Store/{controller}/{name?}");
-                routes.MapRoute("extra-parameter", "api/Support/{extra}/{controller}/{id?}");
+                routes.MapWebApiRoute("named-action", "api/Blog/{controller}/{action}/{id?}");
+                routes.MapWebApiRoute("unnamed-action", "api/Admin/{controller}/{id?}");
+                routes.MapWebApiRoute("name-as-parameter", "api/Store/{controller}/{name?}");
+                routes.MapWebApiRoute("extra-parameter", "api/Support/{extra}/{controller}/{id?}");
             });
         }
     }

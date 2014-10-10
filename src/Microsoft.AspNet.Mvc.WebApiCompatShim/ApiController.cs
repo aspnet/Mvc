@@ -10,6 +10,7 @@ using Microsoft.AspNet.Mvc.WebApiCompatShim;
 
 namespace System.Web.Http
 {
+    [UseWebApiRoutes]
     [UseWebApiActionConventions]
     [UseWebApiOverloading]
     public abstract class ApiController : IDisposable
