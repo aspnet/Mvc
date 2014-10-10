@@ -289,6 +289,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [Theory]
         [InlineData(new object[] { new[] { 1, 0 } })]
         [InlineData(new object[] { new[] { "Value1", "Value0" } })]
+        [InlineData(new object[] { new[] { "Value1", "value0" } })]
         public void ConvertTo_ConvertsEnumArrays(object value)
         {
             // Arrange
@@ -318,16 +319,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Theory]
-        [InlineData(typeof(int), typeof(FormatException))]
-        [InlineData(typeof(double?), typeof(FormatException))]
-        [InlineData(typeof(MyEnum?), typeof(ArgumentException))]
-        public void ConvertToThrowsIfConverterThrows(Type destinationType, Type exceptionType)
+        [InlineData(typeof(int), typeof(InvalidOperationException), typeof(Exception))]
+        [InlineData(typeof(double?), typeof(InvalidOperationException), null)]
+        [InlineData(typeof(MyEnum?), typeof(InvalidOperationException), typeof(FormatException))]
+        public void ConvertToThrowsIfConverterThrows(Type destinationType, Type exceptionType, Type innerExceptionType)
         {
             // Arrange
             var vpr = new ValueProviderResult("this-is-not-a-valid-value", null, CultureInfo.InvariantCulture);
 
             // Act & Assert
-            Assert.Throws(exceptionType, () => vpr.ConvertTo(destinationType));
+            var ex = Assert.Throws(exceptionType, () => vpr.ConvertTo(destinationType));
+            if (innerExceptionType != null)
+            {
+                Assert.Equal(innerExceptionType, ex.InnerException.GetType());
+            }
         }
 
         [Fact]
@@ -355,11 +360,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act
             var cultureResult = (decimal)vpr.ConvertTo(typeof(decimal), frCulture);
-            var result = (decimal)vpr.ConvertTo(typeof(decimal));
 
             // Assert
             Assert.Equal(12.5M, cultureResult);
-            Assert.Equal(125, result);
+            Assert.Throws(typeof(InvalidOperationException), () => (decimal)vpr.ConvertTo(typeof(decimal)));
         }
 
         [Fact]
@@ -387,14 +391,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             get
             {
-                yield return new object[] { 42, 42M };
                 yield return new object[] { 42, 42L };
+                yield return new object[] { 42, (short)42 };
                 yield return new object[] { 42, (float)42.0 };
                 yield return new object[] { 42, (double)42.0 };
                 yield return new object[] { 42M, 42 };
                 yield return new object[] { 42L, 42 };
+                yield return new object[] { 42, (byte)42 };
+                yield return new object[] { (short)42, 42 };
                 yield return new object[] { (float)42.0, 42 };
                 yield return new object[] { (double)42.0, 42 };
+                yield return new object[] { (byte)42, 42 };
                 yield return new object[] { "2008-01-01", new DateTime(2008, 01, 01) };
                 yield return new object[] { "00:00:20", TimeSpan.FromSeconds(20) };
                 yield return new object[]
