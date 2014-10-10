@@ -38,6 +38,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object routeValues,
             object htmlAttributes);
 
+        TagBuilder GenerateAntiForgery([NotNull] ViewContext viewContext);
+
         TagBuilder GenerateCheckBox(
             [NotNull] ViewContext viewContext,
             ModelMetadata metadata,
