@@ -2,13 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Formatting;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using System.Net;
-using System.Net.Http.Formatting;
 
 namespace WebApiCompatShimWebSite
 {
@@ -92,6 +94,40 @@ namespace WebApiCompatShimWebSite
         {
             // This will perform content negotation
             return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "It failed.");
+        }
+
+        [HttpGet]
+        public HttpResponseMessage ReturnByteArrayContent()
+        {
+            var response = new HttpResponseMessage();
+            response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("Hello from ByteArrayContent!!"));
+            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+            return response;
+        }
+
+        [HttpGet]
+        public HttpResponseMessage ReturnStreamContent()
+        {
+            var response = new HttpResponseMessage();
+            response.Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("Hello from StreamContent!!")));
+            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            return response;
+        }
+
+        [HttpGet]
+        public HttpResponseMessage ReturnPushStreamContent()
+        {
+            var response = new HttpResponseMessage();
+            response.Headers.Add("Multiple", new[] { "value1", "value2" });
+            response.Content = new PushStreamContent(async (responseStream, httpContent, transportContext) =>
+            {
+                using (var streamWriter = new StreamWriter(responseStream))
+                {
+                    await streamWriter.WriteAsync("Hello from PushStreamContent!!");
+                }
+            });
+            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            return response;
         }
 
         private async Task Echo(HttpRequestMessage request)

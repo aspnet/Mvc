@@ -434,6 +434,71 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(expected, response.StatusCode);
         }
+
+        [Fact]
+        public async Task ApiController_Returns_ByteArrayContent()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+            var expectedMediaType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("text/plain");
+            string expectedBody = "Hello from ByteArrayContent!!";
+
+            // Act
+            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/ReturnByteArrayContent");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(response.Content);
+            Assert.Equal(response.Content.Headers.ContentType.ToString(), expectedMediaType.ToString());
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody);
+        }
+
+        [Fact]
+        public async Task ApiController_Returns_StreamContent()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+            var expectedMediaType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/octet-stream");
+            string expectedBody = "Hello from StreamContent!!";
+
+            // Act
+            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/ReturnStreamContent");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(response.Content);
+            Assert.Equal(response.Content.Headers.ContentType.ToString(), expectedMediaType.ToString());
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody);
+        }
+
+        [Fact]
+        public async Task ApiController_Returns_PushStreamContent()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+            var expectedMediaType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/octet-stream");
+            string expectedBody = "Hello from PushStreamContent!!";
+            var multipleValues = new[] { "value1", "value2" };
+
+            // Act
+            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/ReturnPushStreamContent");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(response.Content);
+            Assert.Equal(response.Content.Headers.ContentType.ToString(), expectedMediaType.ToString());
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody);
+            Assert.Equal(multipleValues, response.Headers.GetValues("Multiple"));
+        }
     }
 }
 #endif
