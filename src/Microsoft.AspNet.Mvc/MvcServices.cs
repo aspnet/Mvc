@@ -134,6 +134,10 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IHtmlHelper, HtmlHelper>();
             yield return describe.Transient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>));
 
+            // DefaultHtmlGenerator is pretty much stateless but depends on Scoped services such as `IUrlHelper` and
+            // IActionBindingContextProvider. Therefore it too is scoped.
+            yield return describe.Transient<IHtmlGenerator, DefaultHtmlGenerator>();
+
             yield return describe.Transient<MvcMarkerService, MvcMarkerService>();
         }
     }
