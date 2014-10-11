@@ -267,7 +267,7 @@ namespace System.Web.Http
             var options = new MvcOptions();
 
             var setup = new WebApiCompatShimOptionsSetup();
-            setup.Invoke(options);
+            setup.Configure(options);
 
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor
