@@ -448,8 +448,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// In layout pages, renders the content of the section named <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the section to render.</param>
-        /// <returns>Returns a token value to allow the Write method to succeed.</returns>
-        public object RenderSection([NotNull] string name)
+        /// <returns>Returns a HtmlString that contains the rendered HTML.</returns>
+        public HtmlString RenderSection([NotNull] string name)
         {
             return RenderSection(name, required: true);
         }
@@ -459,8 +459,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="name">The section to render.</param>
         /// <param name="required">Indicates if this section must be rendered.</param>
-        /// <returns>Returns a token value to allow the Write method to succeed.</returns>
-        public object RenderSection([NotNull] string name, bool required)
+        /// <returns>Returns a HtmlString that contains the rendered HTML.</returns>
+        public HtmlString RenderSection([NotNull] string name, bool required)
         {
             EnsureMethodCanBeInvoked(nameof(RenderSection));
 
@@ -472,8 +472,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// In layout pages, asynchronously renders the content of the section named <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The section to render.</param>
-        /// <returns>A <see cref="Task{TResult}"/> that represents the results of rendering.</returns>
-        public Task<object> RenderSectionAsync([NotNull] string name)
+        /// <returns>A <see cref="Task{TResult}"/> that on completion returns a <see cref="HtmlString"/> containing
+        /// the rendered HTML.</returns>
+        public Task<HtmlString> RenderSectionAsync([NotNull] string name)
         {
             return RenderSectionAsync(name, required: true);
         }
@@ -482,16 +483,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// In layout pages, asynchronously renders the content of the section named <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The section to render.</param>
-        /// <returns>A <see cref="Task{TResult}"/> that represents the results of rendering.</returns>
+        /// <returns>A <see cref="Task{TResult}"/> that on completion returns a <see cref="HtmlString"/> containing
+        /// the rendered HTML.</returns>
         /// <exception cref="InvalidOperationException">if <paramref name="required"/> is <c>true</c> and the section
         /// was not registered using the <c>@section</c> in the Razor page.</exception>
-        public async Task<object> RenderSectionAsync([NotNull] string name, bool required)
+        public async Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
         {
             EnsureMethodCanBeInvoked(nameof(RenderSectionAsync));
             return await RenderSectionAsyncCore(name, required);
         }
 
-        private async Task<object> RenderSectionAsyncCore(string sectionName, bool required)
+        private async Task<HtmlString> RenderSectionAsyncCore(string sectionName, bool required)
         {
             if (_renderedSections.Contains(sectionName))
             {
@@ -503,14 +505,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (PreviousSectionWriters.TryGetValue(sectionName, out renderDelegate))
             {
                 _renderedSections.Add(sectionName);
-                await renderDelegate(Output);
 
-                // Temporary workaround - we need to change Razor to convert @await RenderSectionAsync() to become
-                // await Write(RenderSectionAsync()) rather than Write(await RenderSectionAsync());
-                // This is tracked via https://github.com/aspnet/Razor/issues/85. Until we sort this out, we cannot
-                // return a HelperResult that represents the operation of rendering the section. We'll instead return
-                // a token value to allow the wrapping Write method to succeed.
-                return HtmlString.Empty;
+                using (var writer = new StringCollectionTextWriter(Output.Encoding))
+                {
+                    await renderDelegate(writer);
+
+                    // Returning a disposed StringCollectionTextWriter is safe.
+                    return new HtmlString(writer);
+                }
             }
             else if (required)
             {
