@@ -69,34 +69,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public static bool CanConvertFromString(Type destinationType)
         {
-            return GetConverterDelegate(typeof(string), destinationType) != null;
-        }
-
-        private object ConvertSimpleType(CultureInfo culture, object value, Type destinationType)
-        {
-            if (value == null || value.GetType().IsAssignableFrom(destinationType))
-            {
-                return value;
-            }
-
-            // In case of a Nullable object, we try again with its underlying type.
-            destinationType = UnwrapNullableType(destinationType);
-
-            // if this is a user-input value but the user didn't type anything, return no value
-            var valueAsString = value as string;
-            if (valueAsString != null && string.IsNullOrWhiteSpace(valueAsString))
-            {
-                return null;
-            }
-
-            var converter = GetConverterDelegate(value.GetType(), destinationType);
-            if (converter == null)
-            {
-                var message = Resources.FormatValueProviderResult_NoConverterExists(value.GetType(), destinationType);
-                throw new InvalidOperationException(message);
-            }
-
-            return converter(value, culture);
+            return TypeHelper.IsSimpleUnderlyingType(destinationType) ||
+                TypeHelper.HasStringConverter(destinationType);
         }
 
         private object UnwrapPossibleArrayType(CultureInfo culture, object value, Type destinationType)
@@ -145,53 +119,59 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return ConvertSimpleType(culture, value, destinationType);
         }
 
-        private static Func<object, CultureInfo, object> GetConverterDelegate(Type sourceType, Type destinationType)
+        private object ConvertSimpleType(CultureInfo culture, object value, Type destinationType)
         {
-            destinationType = UnwrapNullableType(destinationType);
-            var converter = TypeDescriptor.GetConverter(destinationType);
-            var canConvertFrom = converter.CanConvertFrom(sourceType);
-            if (!canConvertFrom)
+            if (value == null || value.GetType().IsAssignableFrom(destinationType))
             {
-                converter = TypeDescriptor.GetConverter(sourceType);
+                return value;
             }
-            if (!(canConvertFrom || converter.CanConvertTo(destinationType)))
+
+            // In case of a Nullable object, we try again with its underlying type.
+            destinationType = UnwrapNullableType(destinationType);
+
+            // if this is a user-input value but the user didn't type anything, return no value
+            var valueAsString = value as string;
+            if (valueAsString != null && string.IsNullOrWhiteSpace(valueAsString))
             {
-                if (destinationType.IsEnum())
-                {
-                    return (value, culture) =>
-                    {
-                        // EnumConverter cannot convert integer, so we verify manually
-                        if ((value is int))
-                        {
-                            if (Enum.IsDefined(destinationType, value))
-                            {
-                                return Enum.ToObject(destinationType, (int)value);
-                            }
-
-                            throw new FormatException(
-                                Resources.FormatValueProviderResult_CannotConvertEnum(value, destinationType));
-                        }
-
-                        throw new InvalidOperationException(
-                            Resources.FormatValueProviderResult_NoConverterExists(sourceType, destinationType));
-                    };
-                }
-
                 return null;
             }
 
-            return (value, culture) =>
+            var converter = TypeDescriptor.GetConverter(destinationType);
+            var canConvertFrom = converter.CanConvertFrom(value.GetType());
+            if (!canConvertFrom)
             {
-                try
+                converter = TypeDescriptor.GetConverter(value.GetType());
+            }
+            if (!(canConvertFrom || converter.CanConvertTo(destinationType)))
+            {
+                // EnumConverter cannot convert integer, so we verify manually
+                if (destinationType.IsEnum() && (value is int))
                 {
-                    return canConvertFrom ? converter.ConvertFrom(null, culture, value) : converter.ConvertTo(null, culture, value, destinationType);
+                    return Enum.ToObject(destinationType, (int)value);
                 }
-                catch (Exception ex)
+
+                // In case of a Nullable object, we try again with its underlying type.
+                Type underlyingType = Nullable.GetUnderlyingType(destinationType);
+                if (underlyingType != null)
                 {
-                    throw new InvalidOperationException(
-                        Resources.FormatValueProviderResult_ConversionThrew(sourceType, destinationType), ex);
+                    return ConvertSimpleType(culture, value, underlyingType);
                 }
-            };
+
+                throw new InvalidOperationException(
+                    Resources.FormatValueProviderResult_NoConverterExists(value.GetType(), destinationType));
+            }
+
+            try
+            {
+                return canConvertFrom
+                           ? converter.ConvertFrom(null, culture, value)
+                           : converter.ConvertTo(null, culture, value, destinationType);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatValueProviderResult_ConversionThrew(value.GetType(), destinationType), ex);
+            }
         }
 
         private static Type UnwrapNullableType(Type destinationType)
