@@ -118,24 +118,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 .Setup(o => o.RequestServices)
                 .Returns(serviceProvider.Object);
 
-            var viewContext = new ViewContext(actionContext, Mock.Of<IView>(), viewData, new StringWriter());
+            var htmlGenerator = new DefaultHtmlGenerator(
+                actionBindingContextProvider.Object,
+                GetAntiForgeryInstance(),
+                provider,
+                urlHelper);
 
             // TemplateRenderer will Contextualize this transient service.
             serviceProvider
                 .Setup(s => s.GetService(typeof(IHtmlHelper)))
-                .Returns(() => new HtmlHelper(
-                    viewEngine,
-                    provider,
-                    urlHelper,
-                    GetAntiForgeryInstance(),
-                    actionBindingContextProvider.Object));
+                .Returns(() => new HtmlHelper(htmlGenerator, viewEngine, provider));
 
-            var htmlHelper = new HtmlHelper<TModel>(
-                viewEngine,
-                provider,
-                urlHelper,
-                GetAntiForgeryInstance(),
-                actionBindingContextProvider.Object);
+            var htmlHelper = new HtmlHelper<TModel>(htmlGenerator, viewEngine, provider);
+            var viewContext = new ViewContext(actionContext, Mock.Of<IView>(), viewData, new StringWriter());
             htmlHelper.Contextualize(viewContext);
 
             return htmlHelper;
