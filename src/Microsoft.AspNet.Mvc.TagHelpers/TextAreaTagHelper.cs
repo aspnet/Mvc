@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -9,6 +10,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;textarea&gt; elements.
     /// </summary>
+    [ContentBehavior(ContentBehavior.Replace)]
     public class TextAreaTagHelper : TagHelper
     {
         [Activate]
@@ -38,9 +40,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
                 if (tagBuilder != null)
                 {
+                    output.SelfClosing = false;
+
+                    // TODO: Use infrastructure from PR #1322 to copy from tagBuilder.
                     foreach (var attribute in tagBuilder.Attributes)
                     {
-                        // TODO: Should special-case the "class" attribute.
                         if (!output.Attributes.ContainsKey(attribute.Key))
                         {
                             output.Attributes.Add(attribute.Key, attribute.Value);
@@ -48,7 +52,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     }
 
                     output.Content = tagBuilder.InnerHtml;
-                    output.SelfClosing = false;
                     output.TagName = tagBuilder.TagName;
                 }
             }
