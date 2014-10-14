@@ -36,19 +36,19 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
         {
             // Arrange
             var person = new User() { Name = "John", Age = 35 };
-            string expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
+            var expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 Formatting = Formatting.Indented
             });
 
-            var jsonFrmtr = new JsonOutputFormatter();
-            jsonFrmtr.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            jsonFrmtr.SerializerSettings.Formatting = Formatting.Indented;
+            var jsonFormatter = new JsonOutputFormatter();
+            jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
             var outputFormatterContext = GetOutputFormatterContext(person, typeof(User));
 
             // Act
-            await jsonFrmtr.WriteResponseBodyAsync(outputFormatterContext);
+            await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
@@ -59,11 +59,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
         }
 
         [Fact]
-        public async Task CustomSerializerSettingsObect_TakesEffect()
+        public async Task CustomSerializerSettingsObject_TakesEffect()
         {
             // Arrange
             var person = new User() { Name = "John", Age = 35 };
-            string expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
+            var expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 Formatting = Formatting.Indented
@@ -84,9 +84,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
             outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
-            Assert.Equal(expectedOutput,
-                new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8)
-                        .ReadToEnd());
+
+            var streamReader = new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8);
+            Assert.Equal(expectedOutput, streamReader.ReadToEnd());
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,

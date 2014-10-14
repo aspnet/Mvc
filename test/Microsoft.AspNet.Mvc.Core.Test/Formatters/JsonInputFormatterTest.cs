@@ -3,6 +3,7 @@
 
 #if ASPNET50
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -174,10 +175,10 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             // Act
-            var jsonFrmtr = new JsonInputFormatter();
+            var jsonFormatter = new JsonInputFormatter();
 
             // Assert
-            Assert.NotNull(jsonFrmtr.SerializerSettings);
+            Assert.NotNull(jsonFormatter.SerializerSettings);
         }
 
         [Fact]
@@ -187,44 +188,52 @@ namespace Microsoft.AspNet.Mvc
             // missing password property here
             var contentBytes = Encoding.UTF8.GetBytes("{ \"UserName\" : \"John\"}");
 
-            var jsonFrmtr = new JsonInputFormatter() { CaptureDeserilizationErrors = true };
+            var jsonFormatter = new JsonInputFormatter() { CaptureDeserilizationErrors = true };
             // by default we ignore missing members, so here explicitly changing it
-            jsonFrmtr.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Error;
+            jsonFormatter.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Error;
 
             var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(modelAccessor: null, modelType: typeof(UserLogin));
-            var inputFrmtrContext = new InputFormatterContext(actionContext, metadata.ModelType);
+            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(modelAccessor: null, 
+                                                                                modelType: typeof(UserLogin));
+            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
 
             // Act
-            object obj = await jsonFrmtr.ReadAsync(inputFrmtrContext);
+            var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
             Assert.False(actionContext.ModelState.IsValid);
+
+            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            Assert.Contains("Required property 'Password' not found in JSON", modelErrorMessage);
         }
 
         [Fact]
-        public async Task CustomSerializerSettingsObect_TakesEffect()
+        public async Task CustomSerializerSettingsObject_TakesEffect()
         {
             // Arrange
             // missing password property here
             var contentBytes = Encoding.UTF8.GetBytes("{ \"UserName\" : \"John\"}");
 
-            var jsonFrmtr = new JsonInputFormatter() { CaptureDeserilizationErrors = true };
+            var jsonFormatter = new JsonInputFormatter() { CaptureDeserilizationErrors = true };
             // by default we ignore missing members, so here explicitly changing it
-            jsonFrmtr.SerializerSettings = new JsonSerializerSettings()
+            jsonFormatter.SerializerSettings = new JsonSerializerSettings()
             {
                 MissingMemberHandling = MissingMemberHandling.Error
             };
 
             var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(modelAccessor: null, modelType: typeof(UserLogin));
-            var inputFrmtrContext = new InputFormatterContext(actionContext, metadata.ModelType);
+            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(modelAccessor: null, 
+                                                                            modelType: typeof(UserLogin));
+            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
 
             // Act
-            object obj = await jsonFrmtr.ReadAsync(inputFrmtrContext);
+            var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
             Assert.False(actionContext.ModelState.IsValid);
+
+            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            Assert.Contains("Required property 'Password' not found in JSON", modelErrorMessage);
         }
 
         private static ActionContext GetActionContext(byte[] contentBytes,

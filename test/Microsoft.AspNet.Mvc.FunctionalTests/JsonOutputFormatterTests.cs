@@ -27,13 +27,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var serializerSettings = new JsonSerializerSettings();
             serializerSettings.Formatting = Formatting.Indented;
-            string expectedBody = JsonConvert.SerializeObject(user, serializerSettings);
+            var expectedBody = JsonConvert.SerializeObject(user, serializerSettings);
 
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync("http://localhost/JsonFormattter/ReturnsIndentedJson");
+            var response = await client.GetAsync("http://localhost/JsonFormatter/ReturnsIndentedJson");
 
             // Assert
             var actualBody = await response.Content.ReadAsStringAsync();

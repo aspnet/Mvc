@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace FormatterWebSite.Controllers
 {
-    public class JsonFormattterController : Controller
+    public class JsonFormatterController : Controller
     {
         public IActionResult ReturnsIndentedJson()
         {
@@ -17,13 +17,13 @@ namespace FormatterWebSite.Controllers
                 Name = "John Williams"
             };
 
-            var jsonFrmtr = new JsonOutputFormatter();
-            jsonFrmtr.SerializerSettings.Formatting = Formatting.Indented;
+            var jsonFormatter = new JsonOutputFormatter();
+            jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
 
-            var objResult = new ObjectResult(user);
-            objResult.Formatters.Add(jsonFrmtr);
+            var objectResult = new ObjectResult(user);
+            objectResult.Formatters.Add(jsonFormatter);
 
-            return objResult;
+            return objectResult;
         }
     }
 }

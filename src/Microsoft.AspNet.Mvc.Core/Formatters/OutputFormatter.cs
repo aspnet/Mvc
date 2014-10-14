@@ -162,7 +162,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Sets the content-type headers with charset value to the HttpResponse.
+        /// Sets the headers on <see cref="Microsoft.AspNet.Http.HttpResponse"/> object.
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>
         public virtual void WriteResponseHeaders([NotNull] OutputFormatterContext context)
