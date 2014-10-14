@@ -320,7 +320,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         [Theory]
         [InlineData(typeof(int), typeof(InvalidOperationException), typeof(Exception))]
-        [InlineData(typeof(double?), typeof(InvalidOperationException), null)]
+        [InlineData(typeof(double?), typeof(InvalidOperationException), typeof(Exception))]
         [InlineData(typeof(MyEnum?), typeof(InvalidOperationException), typeof(FormatException))]
         public void ConvertToThrowsIfConverterThrows(Type destinationType, Type exceptionType, Type innerExceptionType)
         {
@@ -329,10 +329,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act & Assert
             var ex = Assert.Throws(exceptionType, () => vpr.ConvertTo(destinationType));
-            if (innerExceptionType != null)
-            {
-                Assert.Equal(innerExceptionType, ex.InnerException.GetType());
-            }
+            Assert.IsType(innerExceptionType, ex.InnerException);
         }
 
         [Fact]
@@ -359,11 +356,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var frCulture = new CultureInfo("fr-FR");
 
             // Act
-            var cultureResult = (decimal)vpr.ConvertTo(typeof(decimal), frCulture);
+            var cultureResult = vpr.ConvertTo(typeof(decimal), frCulture);
 
             // Assert
             Assert.Equal(12.5M, cultureResult);
-            Assert.Throws(typeof(InvalidOperationException), () => (decimal)vpr.ConvertTo(typeof(decimal)));
+            Assert.Throws<InvalidOperationException>(() => vpr.ConvertTo(typeof(decimal)));
         }
 
         [Fact]

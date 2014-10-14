@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public static bool CanConvertFromString(Type destinationType)
         {
-            return TypeHelper.IsSimpleUnderlyingType(destinationType) ||
+            return TypeHelper.IsSimpleType(UnwrapNullableType(destinationType)) ||
                 TypeHelper.HasStringConverter(destinationType);
         }
 
@@ -148,13 +148,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 if (destinationType.IsEnum() && (value is int))
                 {
                     return Enum.ToObject(destinationType, (int)value);
-                }
-
-                // In case of a Nullable object, we try again with its underlying type.
-                Type underlyingType = Nullable.GetUnderlyingType(destinationType);
-                if (underlyingType != null)
-                {
-                    return ConvertSimpleType(culture, value, underlyingType);
                 }
 
                 throw new InvalidOperationException(

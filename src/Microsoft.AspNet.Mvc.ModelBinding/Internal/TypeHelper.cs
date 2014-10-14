@@ -24,10 +24,5 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             return TypeDescriptor.GetConverter(type).CanConvertFrom(typeof(string));
         }
-
-        internal static bool IsSimpleUnderlyingType(Type type)
-        {
-            return IsSimpleType(Nullable.GetUnderlyingType(type) ?? type);
-        }
     }
 }
