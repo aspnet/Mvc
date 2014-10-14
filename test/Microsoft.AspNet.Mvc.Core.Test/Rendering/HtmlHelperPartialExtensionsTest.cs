@@ -16,13 +16,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
             get
             {
                 var vdd = new ViewDataDictionary(new EmptyModelMetadataProvider());
-                var data = new TheoryData<Func<IHtmlHelper, HtmlString>>();
-                data.Add(helper => helper.Partial("test"));
-                data.Add(helper => helper.Partial("test", new object()));
-                data.Add(helper => helper.Partial("test", vdd));
-                data.Add(helper => helper.Partial("test", new object(), vdd));
-
-                return data;
+                return new TheoryData<Func<IHtmlHelper, HtmlString>>
+                {
+                    helper => helper.Partial("test"),
+                    helper => helper.Partial("test", new object()),
+                    helper => helper.Partial("test", vdd),
+                    helper => helper.Partial("test", new object(), vdd)
+                };
             }
         }
 
@@ -36,6 +36,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             helper.Setup(h => h.PartialAsync("test", It.IsAny<object>(), It.IsAny<ViewDataDictionary>()))
                   .Callback(() =>
                   {
+                      // Workaround for compilation issue with Moq.
                       helper.ToString();
                       throw expected;
                   });
@@ -135,6 +136,60 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Assert
             Assert.Same(expected, actual);
             helper.Verify();
+        }
+
+        [Fact]
+        public void Partial_InvokesAndRendersPartialAsyncOnHtmlHelperOfT()
+        {
+            // Arrange
+            var model = new TestModel();
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
+            var expected = DefaultTemplatesUtilities.FormatOutput(helper, model);
+
+            // Act
+            var actual = helper.Partial("some-partial");
+
+            // Assert
+            Assert.Equal(expected, actual.ToString());
+        }
+
+        [Fact]
+        public void PartialWithModel_InvokesAndRendersPartialAsyncOnHtmlHelperOfT()
+        {
+            // Arrange
+            var model = new TestModel();
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper();
+            var expected = DefaultTemplatesUtilities.FormatOutput(helper, model);
+
+            // Act
+            var actual = helper.Partial("some-partial", model);
+
+            // Assert
+            Assert.Equal(expected, actual.ToString());
+        }
+
+        [Fact]
+        public void PartialWithViewData_InvokesAndRendersPartialAsyncOnHtmlHelperOfT()
+        {
+            // Arrange
+            var model = new TestModel();
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
+            var viewData = new ViewDataDictionary(helper.MetadataProvider);
+            var expected = DefaultTemplatesUtilities.FormatOutput(helper, model);
+
+            // Act
+            var actual = helper.Partial("some-partial", viewData);
+
+            // Assert
+            Assert.Equal(expected, actual.ToString());
+        }
+
+        private sealed class TestModel
+        {
+            public override string ToString()
+            {
+                return "test-model-content";
+            }
         }
     }
 }

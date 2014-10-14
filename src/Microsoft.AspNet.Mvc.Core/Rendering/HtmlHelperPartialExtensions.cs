@@ -86,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             [NotNull] this IHtmlHelper htmlHelper,
             [NotNull] string partialViewName)
         {
-            return htmlHelper.Partial(partialViewName, htmlHelper.ViewData.Model, viewData: null);
+            return Partial(htmlHelper, partialViewName, htmlHelper.ViewData.Model, viewData: null);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             [NotNull] string partialViewName,
             ViewDataDictionary viewData)
         {
-            return htmlHelper.Partial(partialViewName, htmlHelper.ViewData.Model, viewData: viewData);
+            return Partial(htmlHelper, partialViewName, htmlHelper.ViewData.Model, viewData);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             [NotNull] string partialViewName,
             object model)
         {
-            return htmlHelper.Partial(partialViewName, model, viewData: null);
+            return Partial(htmlHelper, partialViewName, model, viewData: null);
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object model,
             ViewDataDictionary viewData)
         {
-            var result = htmlHelper.PartialAsync(partialViewName, model, viewData: viewData);
+            var result = htmlHelper.PartialAsync(partialViewName, model, viewData);
             return TaskHelper.WaitAndThrowIfFaulted(result);
         }
 
