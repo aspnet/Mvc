@@ -55,5 +55,161 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 },
                 filters);
         }
+
+        // Authorize Filter
+        [Fact]
+        public async Task AnonymousUsersAreBlocked()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Anonymous/GetHelloWorld");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CanAuthorizeParticularUsers()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/FakeUser/ReturnHelloWorldOnlyForFakeUser");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Hello World!", await response.Content.ReadAsStringAsync());
+        }
+
+        // Exception Filters
+        [Fact]
+        public async Task ExceptionFilterHandlesAnException()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Exception/GetError?error=RandError");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("GlobalExceptionFilter.OnException", await response.Content.ReadAsStringAsync());
+        }
+
+        // Service Filter
+        [Fact]
+        public async Task ServiceFilterUsesRegisteredServicesAsFilter()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/RandomNumber/GetRandomNumber");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("4", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ServiceFilterThrowsIfServiceIsNotRegistered()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act & Assert
+            await Assert.ThrowsAsync(
+                typeof(Exception),
+                async () => await client.GetAsync("http://localhost/RandomNumber/GetFakeRandomNumber"));
+        }
+
+        // Type Filter
+        [Fact]
+        public async Task TypeFilterInitializesArguments()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/RandomNumber/GetModifiedRandomNumber?randomNumber=10");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("22", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task TypeFilterThrowsIfServicesAreNotRegistered()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act & Assert
+            await Assert.ThrowsAsync(
+                typeof(Exception),
+                async () => await client.GetAsync("http://localhost/RandomNumber/GetFakeModifiedRandomNumber?randomNumber=3"));
+        }
+
+        // Action Filter
+        [Fact]
+        public async Task ActionFilterOverridesActionExecuted()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/XmlSerializer/GetDummyClass?sampleInput=10");
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>",
+                await response.Content.ReadAsStringAsync());
+        }
+
+        // Result Filter
+        [Fact]
+        public async Task ResultFilterOverridesOnResultExecuting()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/DummyClass/GetDummyClass");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>120</SampleInt></DummyClass>",
+                await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ResultFilterOverridesOnResultExecuted()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/DummyClass/GetEmptyActionResult");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var result = response.Headers.GetValues("OnResultExecuted");
+            Assert.Equal(new string[] { "ResultExecutedSuccessfully" }, result);
+        }
     }
 }
