@@ -24,10 +24,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
         {
             // Arrange
             // Act
-            var jsonFrmtr = new JsonOutputFormatter();
+            var jsonFormatter = new JsonOutputFormatter();
 
             // Assert
-            Assert.NotNull(jsonFrmtr.SerializerSettings);
+            Assert.NotNull(jsonFormatter.SerializerSettings);
         }
 
 
@@ -69,8 +69,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
                 Formatting = Formatting.Indented
             });
 
-            var jsonFrmtr = new JsonOutputFormatter();
-            jsonFrmtr.SerializerSettings = new JsonSerializerSettings()
+            var jsonFormatter = new JsonOutputFormatter();
+            jsonFormatter.SerializerSettings = new JsonSerializerSettings()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 Formatting = Formatting.Indented
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
             var outputFormatterContext = GetOutputFormatterContext(person, typeof(User));
 
             // Act
-            await jsonFrmtr.WriteResponseBodyAsync(outputFormatterContext);
+            await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext);
 
             // Assert
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
