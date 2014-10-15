@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -101,7 +102,8 @@ namespace WebApiCompatShimWebSite
         {
             var response = new HttpResponseMessage();
             response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("Hello from ByteArrayContent!!"));
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+
             return response;
         }
 
@@ -109,8 +111,31 @@ namespace WebApiCompatShimWebSite
         public HttpResponseMessage ReturnStreamContent()
         {
             var response = new HttpResponseMessage();
-            response.Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("Hello from StreamContent!!")));
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            response.Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("This content is from a file")));
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+            response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
+
+            return response;
+        }
+
+        // NOTE: PushStreamContent's contract is to close the stream in order to signal
+        // that the user has done writing to it. However, the stream that is provided here is
+        // a wrapper delegating stream which actually doesn't close the actual response stream.
+
+        [HttpGet]
+        public HttpResponseMessage ReturnPushStreamContentSync()
+        {
+            var response = new HttpResponseMessage();
+            // Here we are using a non-Task returning action delegate
+            response.Content = new PushStreamContent((responseStream, httpContent, transportContext) =>
+            {
+                using (var streamWriter = new StreamWriter(responseStream))
+                {
+                    streamWriter.Write("Hello from PushStreamContent Sync!!");
+                }
+            });
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+
             return response;
         }
 
@@ -118,7 +143,6 @@ namespace WebApiCompatShimWebSite
         public HttpResponseMessage ReturnPushStreamContent()
         {
             var response = new HttpResponseMessage();
-            response.Headers.Add("Multiple", new[] { "value1", "value2" });
             response.Content = new PushStreamContent(async (responseStream, httpContent, transportContext) =>
             {
                 using (var streamWriter = new StreamWriter(responseStream))
@@ -126,7 +150,24 @@ namespace WebApiCompatShimWebSite
                     await streamWriter.WriteAsync("Hello from PushStreamContent!!");
                 }
             });
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+
+            return response;
+        }
+
+        [HttpGet]
+        public HttpResponseMessage ReturnPushStreamContentWithCustomHeaders()
+        {
+            var response = new HttpResponseMessage();
+            response.Headers.Add("Multiple", new[] { "value1", "value2" });
+            response.Content = new PushStreamContent(async (responseStream, httpContent, transportContext) =>
+            {
+                using (var streamWriter = new StreamWriter(responseStream))
+                {
+                    await streamWriter.WriteAsync("Hello from PushStreamContent with custom headers!!");
+                }
+            });
+
             return response;
         }
 
