@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -292,7 +293,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private ModelValidationContext GetModelValidationContext(object model, Type type)
         {
             var modelStateDictionary = new ModelStateDictionary();
-<<<<<<< HEAD
             var provider = new Mock<IModelValidatorProviderProvider>();
             provider.SetupGet(p => p.ModelValidatorProviders)
                     .Returns(new IModelValidatorProvider[]
@@ -300,12 +300,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                        new DataAnnotationsModelValidatorProvider(),
                        new DataMemberModelValidatorProvider()
                     });
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-            setup.Configure(mvcOptions);
-            var accessor = new Mock<IOptions<MvcOptions>>();
-            accessor.SetupGet(a => a.Options)
-                    .Returns(mvcOptions);
             var modelMetadataProvider = new EmptyModelMetadataProvider();
             return new ModelValidationContext(
                 modelMetadataProvider,
