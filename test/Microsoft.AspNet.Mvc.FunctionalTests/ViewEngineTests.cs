@@ -49,6 +49,12 @@ ViewWithNestedLayout-Content
 </nested-layout>
 </layout>"
                 };
+
+                yield return new[]
+                {
+                    "ViewWithDataFromController",
+                    "<h1>hello from controller</h1>"
+                };
             }
         }
 
@@ -152,7 +158,7 @@ component-content";
                 };
                 yield return new[]
                 {
-                    "ViewWithLayout", @"ViewWithLayout-Content"
+                    "PartialViewWithNamePassedIn", @"ViewWithLayout-Content"
                 };
                 yield return new[]
                 {
@@ -161,6 +167,17 @@ component-content";
                 yield return new[]
                 {
                     "ViewWithNestedLayout", "ViewWithNestedLayout-Content"
+                };
+                yield return new[]
+                {
+                    "PartialWithDataFromController", "<h1>hello from controller</h1>"
+                };
+                yield return new[]
+                {
+                    "PartialWithModel", string.Join(Environment.NewLine,
+                                                    "my name is judge",
+                                                    "<partial>98052",
+                                                    "</partial>")
                 };
             }
         }
