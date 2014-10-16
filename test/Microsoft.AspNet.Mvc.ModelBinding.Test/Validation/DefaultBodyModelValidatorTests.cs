@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
-using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -214,8 +213,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act
             Assert.DoesNotThrow(() =>
-                new DefaultBodyModelValidator().Validate(
-                    validationContext, keyPrefix: string.Empty)
+                new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty)
             );
 
             // Assert
@@ -248,8 +246,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 typeof(InvalidOperationException),
                 () =>
                 {
-                    new DefaultBodyModelValidator().Validate(
-                        validationContext, keyPrefix: string.Empty);
+                    new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty);
                 });
         }
 
@@ -287,8 +284,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.DoesNotThrow(
                 () =>
                 {
-                    new DefaultBodyModelValidator().Validate(
-                        validationContext, keyPrefix: string.Empty);
+                    new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty);
                 });
             Assert.True(validationContext.ModelState.IsValid);
         }
@@ -305,8 +301,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Throws<InvalidOperationException>(
                 () =>
                 {
-                    new DefaultBodyModelValidator().Validate(
-                        validationContext, keyPrefix: string.Empty);
+                    new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty);
                 });
             Assert.True(validationContext.ModelState.IsValid);
         }
@@ -321,8 +316,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act
             Assert.DoesNotThrow(() =>
-                new DefaultBodyModelValidator().Validate(
-                    validationContext, keyPrefix: string.Empty)
+                new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty)
             );
 
             // Assert
@@ -346,8 +340,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Act & Assert
             Assert.DoesNotThrow(
-                () => new DefaultBodyModelValidator().Validate(
-                    validationContext, keyPrefix: string.Empty));
+                () => new DefaultBodyModelValidator().Validate(validationContext, keyPrefix: string.Empty));
         }
 
         private ModelValidationContext GetModelValidationContext(

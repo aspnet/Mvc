@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Extensions for <see cref="MvcOptions.ExcludedValidationTypesPredicates"/>.
@@ -12,8 +13,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public static class ExcludeFromValidationDelegateExtensions
     {
         /// <summary>
-        /// Adds a delegate to the specified <paramref name="list" /> that excludes all the specified
-        /// <paramref name="type" />'s children from validation.
+        /// Adds a delegate to the specified <paramref name="list" /> that excludes the properties of the specified type
+        /// and and it's derived types from validation.
         /// </summary>
         /// <param name="list"><see cref="IList{T}"/> of <see cref="ExcludeFromValidationDelegate"/>.</param>
         /// <param name="type"><see cref="Type"/> which should be excluded from validation.</param>

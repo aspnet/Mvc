@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                   modelState,
                   metadata,
                   containerMetadata,
-                  null)
+                  excludeFromValidationDelegate: null)
         {
         }
 

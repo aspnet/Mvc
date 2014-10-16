@@ -6,9 +6,9 @@ using System;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// The delegate checks whether a particular type is excluded from validation.
+    /// Delegate that determines if the specified type is excluded from validation.
     /// </summary>
     /// <param name="type"><see cref="Type"/> which needs to be checked.</param>
-    /// <returns><see cref="true"/> if excluded. <see cref="false"/> otherwise.</returns>
+    /// <returns><see cref="true"/> if excluded, <see cref="false"/> otherwise.</returns>
     public delegate bool ExcludeFromValidationDelegate(Type type);
 }
