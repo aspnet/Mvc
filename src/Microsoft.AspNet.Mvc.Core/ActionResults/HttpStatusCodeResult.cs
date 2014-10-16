@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
+using System.Net;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -20,6 +19,16 @@ namespace Microsoft.AspNet.Mvc
         public HttpStatusCodeResult(int statusCode)
         {
             StatusCode = statusCode;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HttpStatusCodeResult"/> class
+        /// with the given <paramref name="statusCode"/>.
+        /// </summary>
+        /// <param name="statusCode">The HTTP status code of the response.</param>
+        public HttpStatusCodeResult(HttpStatusCode statusCode)
+            : this((int)statusCode)
+        {
         }
 
         /// <summary>
