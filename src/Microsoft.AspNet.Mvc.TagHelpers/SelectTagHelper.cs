@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
@@ -34,9 +35,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// Specifies that multiple options can be selected at once.
         /// </summary>
         /// <remarks>
-        /// Passed through to the generated HTML if value is "multiple". Converted to "multiple" or absent if value is
-        /// "true" or "false". Other values are not acceptable. Also used to determine the correct "selected"
-        /// attributes for generated &lt;option&gt; elements.
+        /// Passed through to the generated HTML if value is <c>multiple</c>. Converted to <c>multiple</c> or absent if
+        /// value is <c>true</c> or <c>false</c>. Other values are not acceptable. Also used to determine the correct
+        /// "selected" attributes for generated &lt;option&gt; elements.
         /// </remarks>
         public string Multiple { get; set; }
 
@@ -70,20 +71,25 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
             else
             {
+                // Note null or empty For.Name is allowed because TemplateInfo.HtmlFieldPrefix may be sufficient.
+                // IHtmlGenerator will enforce name requirements.
+                var metadata = For.Metadata;
+                if (metadata == null)
+                {
+                    throw new InvalidOperationException(Resources.FormatTagHelpers_NoProvidedMetadata(
+                        "<select>",
+                        nameof(For).ToLowerInvariant(),
+                        nameof(IModelMetadataProvider),
+                        For.Name));
+                }
+
                 bool allowMultiple;
                 if (string.IsNullOrEmpty(Multiple))
                 {
                     // Base allowMultiple on the instance or declared type of the expression.
                     var realModelType = For.Metadata.RealModelType;
-                    if (typeof(string).IsAssignableFrom(realModelType) ||
-                        !typeof(IEnumerable).IsAssignableFrom(realModelType))
-                    {
-                        allowMultiple = false;
-                    }
-                    else
-                    {
-                        allowMultiple = true;
-                    }
+                    allowMultiple =
+                        typeof(string) != realModelType && typeof(IEnumerable).IsAssignableFrom(realModelType);
                 }
                 else if (string.Equals(Multiple, "multiple", StringComparison.OrdinalIgnoreCase))
                 {
