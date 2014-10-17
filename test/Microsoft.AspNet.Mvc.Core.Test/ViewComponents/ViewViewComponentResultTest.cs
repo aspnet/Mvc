@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var view = new Mock<IView>();
             view.Setup(v => v.RenderAsync(It.IsAny<ViewContext>()))
-                .Returns(Task.FromResult(1))
+                .Returns(Task.FromResult(result: true))
                 .Verifiable();
             var viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
             viewEngine.Setup(e => e.FindPartialView(It.IsAny<ActionContext>(), It.IsAny<string>()))
