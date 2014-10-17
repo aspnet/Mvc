@@ -50,36 +50,36 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// Return valid HTML 4.0.1 "id" attribute for an element with the given <paramref name="originalId"/>.
+        /// Return valid HTML 4.01 "id" attribute for an element with the given <paramref name="name"/>.
         /// </summary>
-        /// <param name="originalId">The original element name.</param>
+        /// <param name="name">The original element name.</param>
         /// <param name="invalidCharReplacement">
         /// The <see cref="string"/> (normally a single <see cref="char"/>) to substitute for invalid characters in
-        /// <paramref name="originalId"/>.
+        /// <paramref name="name"/>.
         /// </param>
         /// <returns>
-        /// Valid HTML 4.0.1 "id" attribute for an element with the given <paramref name="originalId"/>.
+        /// Valid HTML 4.01 "id" attribute for an element with the given <paramref name="name"/>.
         /// </returns>
         /// <remarks>Valid "id" attributes are defined in http://www.w3.org/TR/html401/types.html#type-id</remarks>
-        public static string CreateSanitizedId(string originalId, [NotNull] string invalidCharReplacement)
+        public static string CreateSanitizedId(string name, [NotNull] string invalidCharReplacement)
         {
-            if (string.IsNullOrEmpty(originalId))
+            if (string.IsNullOrEmpty(name))
             {
                 return string.Empty;
             }
 
-            var firstChar = originalId[0];
-            if (!Html401IdUtil.IsLetter(firstChar))
+            var firstChar = name[0];
+            if (!Html401IdUtil.IsAsciiLetter(firstChar))
             {
-                // The first character must be a letter in HTML 4.0.1.
+                // The first character must be a letter according to the HTML 4.01 specification.
                 firstChar = 'z';
             }
 
-            var stringBuffer = new StringBuilder(originalId.Length);
+            var stringBuffer = new StringBuilder(name.Length);
             stringBuffer.Append(firstChar);
-            for (var index = 1; index < originalId.Length; index++)
+            for (var index = 1; index < name.Length; index++)
             {
-                var thisChar = originalId[index];
+                var thisChar = name[index];
                 if (Html401IdUtil.IsValidIdCharacter(thisChar))
                 {
                     stringBuffer.Append(thisChar);
@@ -214,17 +214,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private static class Html401IdUtil
         {
-            public static bool IsLetter(char testChar)
+            public static bool IsAsciiLetter(char testChar)
             {
                 return (('A' <= testChar && testChar <= 'Z') || ('a' <= testChar && testChar <= 'z'));
             }
 
             public static bool IsValidIdCharacter(char testChar)
             {
-                return (IsLetter(testChar) || IsDigit(testChar) || IsAllowableSpecialCharacter(testChar));
+                return (IsAsciiLetter(testChar) || IsAsciiDigit(testChar) || IsAllowableSpecialCharacter(testChar));
             }
 
-            private static bool IsDigit(char testChar)
+            private static bool IsAsciiDigit(char testChar)
             {
                 return ('0' <= testChar && testChar <= '9');
             }
@@ -236,7 +236,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 case '-':
                 case '_':
                 case ':':
-                    // Note that we're specifically excluding the '.' character.
+                    // Note '.' is valid according to the HTML 4.01 specification. Disallowed here to avoid confusion
+                    // with CSS class selectors or when using jQuery.
                     return true;
 
                 default:
