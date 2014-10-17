@@ -49,6 +49,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
+        /// <summary>
+        /// Return valid HTML 4.0.1 "id" attribute for an element with the given <paramref name="originalId"/>.
+        /// </summary>
+        /// <param name="originalId">The original element name.</param>
+        /// <param name="invalidCharReplacement">
+        /// The <see cref="string"/> (normally a single <see cref="char"/>) to substitute for invalid characters in
+        /// <paramref name="originalId"/>.
+        /// </param>
+        /// <returns>
+        /// Valid HTML 4.0.1 "id" attribute for an element with the given <paramref name="originalId"/>.
+        /// </returns>
+        /// <remarks>Valid "id" attributes are defined in http://www.w3.org/TR/html401/types.html#type-id</remarks>
         public static string CreateSanitizedId(string originalId, [NotNull] string invalidCharReplacement)
         {
             if (string.IsNullOrEmpty(originalId))
@@ -57,24 +69,28 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var firstChar = originalId[0];
-
-            var sb = new StringBuilder(originalId.Length);
-            sb.Append(firstChar);
-
-            for (var i = 1; i < originalId.Length; i++)
+            if (!Html401IdUtil.IsLetter(firstChar))
             {
-                var thisChar = originalId[i];
-                if (!char.IsWhiteSpace(thisChar))
+                // The first character must be a letter in HTML 4.0.1.
+                firstChar = 'z';
+            }
+
+            var stringBuffer = new StringBuilder(originalId.Length);
+            stringBuffer.Append(firstChar);
+            for (var index = 1; index < originalId.Length; index++)
+            {
+                var thisChar = originalId[index];
+                if (Html401IdUtil.IsValidIdCharacter(thisChar))
                 {
-                    sb.Append(thisChar);
+                    stringBuffer.Append(thisChar);
                 }
                 else
                 {
-                    sb.Append(invalidCharReplacement);
+                    stringBuffer.Append(invalidCharReplacement);
                 }
             }
 
-            return sb.ToString();
+            return stringBuffer.ToString();
         }
 
         public void GenerateId(string name, [NotNull] string idAttributeDotReplacement)
@@ -194,6 +210,39 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             return sb.ToString();
+        }
+
+        private static class Html401IdUtil
+        {
+            public static bool IsLetter(char testChar)
+            {
+                return (('A' <= testChar && testChar <= 'Z') || ('a' <= testChar && testChar <= 'z'));
+            }
+
+            public static bool IsValidIdCharacter(char testChar)
+            {
+                return (IsLetter(testChar) || IsDigit(testChar) || IsAllowableSpecialCharacter(testChar));
+            }
+
+            private static bool IsDigit(char testChar)
+            {
+                return ('0' <= testChar && testChar <= '9');
+            }
+
+            private static bool IsAllowableSpecialCharacter(char testChar)
+            {
+                switch (testChar)
+                {
+                case '-':
+                case '_':
+                case ':':
+                    // Note that we're specifically excluding the '.' character.
+                    return true;
+
+                default:
+                    return false;
+                }
+            }
         }
     }
 }
