@@ -51,7 +51,10 @@ namespace Microsoft.AspNet.Mvc
                    new TemplateInfo(source.TemplateInfo))
         {
             _modelMetadata = source.ModelMetadata;
-            SetModel(model);
+            if(model != null)
+            {
+                SetModel(model);
+            }
         }
 
         private ViewDataDictionary(IModelMetadataProvider metadataProvider,
