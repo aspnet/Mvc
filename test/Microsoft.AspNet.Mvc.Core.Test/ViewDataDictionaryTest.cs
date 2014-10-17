@@ -130,8 +130,28 @@ namespace Microsoft.AspNet.Mvc.Core
             // Assert
             Assert.NotNull(viewData.ModelState);
             Assert.NotNull(viewData.TemplateInfo);
-            Assert.Same(null, viewData.Model);
+            Assert.Null(viewData.Model);
             Assert.Null(viewData.ModelMetadata);
+            Assert.Equal("value1", viewData["key1"]);
+            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
+        }
+
+        [Fact]
+        public void CopyConstructorDoesNotThrowOnNullModel_WithValueTypeTModel()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var source = new ViewDataDictionary(metadataProvider);
+            source["key1"] = "value1";
+
+            // Act
+            var viewData = new ViewDataDictionary<int>(source, null);
+
+            // Assert
+            Assert.NotNull(viewData.ModelState);
+            Assert.NotNull(viewData.TemplateInfo);
+            Assert.Throws<NullReferenceException>(() => viewData.Model);
+            Assert.NotNull(viewData.ModelMetadata);
             Assert.Equal("value1", viewData["key1"]);
             Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
         }

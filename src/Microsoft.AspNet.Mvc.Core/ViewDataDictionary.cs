@@ -51,7 +51,8 @@ namespace Microsoft.AspNet.Mvc
                    new TemplateInfo(source.TemplateInfo))
         {
             _modelMetadata = source.ModelMetadata;
-            if(model != null)
+            // There can be a case when the source model is absent. We should not throw in that case.
+            if (model != null)
             {
                 SetModel(model);
             }
