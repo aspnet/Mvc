@@ -69,6 +69,11 @@ namespace Microsoft.AspNet.Mvc
 
         internal static ModelBindingContext GetModelBindingContext(ModelMetadata modelMetadata, ActionBindingContext actionBindingContext)
         {
+            Predicate<string> propertyFilter =
+                propertyName => BindAttribute.IsPropertyAllowed(propertyName,
+                                                                modelMetadata.IncludedProperties,
+                                                                modelMetadata.ExcludedProperties);
+
             var modelBindingContext = new ModelBindingContext
             {
                 ModelName = modelMetadata.ModelName ?? modelMetadata.PropertyName,
@@ -78,7 +83,7 @@ namespace Microsoft.AspNet.Mvc
                 ValidatorProvider = actionBindingContext.ValidatorProvider,
                 MetadataProvider = actionBindingContext.MetadataProvider,
                 HttpContext = actionBindingContext.ActionContext.HttpContext,
-
+                PropertyFilter = propertyFilter,
                 // Fallback only if there is no explicit model name set.
                 FallbackToEmptyPrefix = modelMetadata.ModelName == null,
                 ValueProvider = actionBindingContext.ValueProvider,
