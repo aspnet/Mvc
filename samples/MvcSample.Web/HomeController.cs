@@ -73,22 +73,6 @@ namespace MvcSample.Web
             return View("Create");
         }
 
-        public void Action(Person p)
-        {
-
-        }
-
-        public class Person
-        {
-            public Person2 MyProperty1 { get; set; }
-        }
-
-        [Bind]
-        public class Person2
-        {
-            public int MyProperty2 { get; set; }
-        }
-
         /// <summary>
         /// Action that exercises query\form based model binding.
         /// </summary>

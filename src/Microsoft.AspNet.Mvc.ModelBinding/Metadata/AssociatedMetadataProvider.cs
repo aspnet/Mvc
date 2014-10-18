@@ -93,10 +93,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 CreateParameterInfo(parameter.ParameterType,
                                     parameter.GetCustomAttributes(),
                                     parameterName);
-
-            //var typeInfo = GetTypeInformation(parameter.ParameterType);
-            //UpdateMetadataWithTypeInfo(parameterInfo.Prototype, typeInfo);
-
             return CreateMetadataFromPrototype(parameterInfo.Prototype, modelAccessor);
         }
 

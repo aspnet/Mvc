@@ -43,9 +43,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             EnsureModel(bindingContext);
-
             var propertyMetadatas = GetMetadataForProperties(bindingContext).ToArray();
-
             var dto = CreateAndPopulateDto(bindingContext, propertyMetadatas);
 
             // post-processing, e.g. property setters and hooking up validation
