@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
                 // We only consider parameters that are bound from the URL.
                 if ((parameter.BinderMarker is IRouteDataMarker || parameter.BinderMarker is IQueryBinderMarker) &&
                     !parameter.IsOptional &&
-                    ValueProviderResult.CanConvertFromString(parameter.ParameterBindingInfo.ParameterType))
+                    ValueProviderResult.CanConvertFromString(parameter.ParameterType))
                 {
                     var prefix = (parameter.BinderMarker as IModelNameProvider).Name ?? parameter.Name;
 
