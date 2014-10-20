@@ -102,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
                 else if (!bool.TryParse(Multiple.ToLowerInvariant(), out allowMultiple))
                 {
-                    throw new InvalidOperationException(Resources.FormatSelectSummaryTagHelper_InvalidMultipleValue(
+                    throw new InvalidOperationException(Resources.FormatTagHelpers_InvalidValue_ThreeAcceptableValues(
                         "<select>",
                         nameof(Multiple).ToLowerInvariant(),
                         Multiple,

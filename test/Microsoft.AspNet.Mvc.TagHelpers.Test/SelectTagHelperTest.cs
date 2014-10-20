@@ -88,8 +88,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        // Items value, expected value (passed to generator)
-        public static TheoryData<IEnumerable<SelectListItem>, IEnumerable<SelectListItem>> ItemsDataSet
+        // Items value, Multiple value, expected items value (passed to generator), expected allowMultiple.
+        // Provides cross product of Items and Multiple values. These attribute values should not interact.
+        public static TheoryData<IEnumerable<SelectListItem>, string, IEnumerable<SelectListItem>, bool>
+            ItemsAndMultipleDataSet
         {
             get
             {
@@ -97,15 +99,36 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 var listItems = new List<SelectListItem>();
                 var multiItems = new MultiSelectList(Enumerable.Range(0, 5));
                 var selectItems = new SelectList(Enumerable.Range(0, 5));
-
-                return new TheoryData<IEnumerable<SelectListItem>, IEnumerable<SelectListItem>>
+                var itemsData = new[]
                 {
-                    { null, Enumerable.Empty<SelectListItem>() },
-                    { arrayItems, arrayItems },
-                    { listItems, listItems },
-                    { multiItems, multiItems },
-                    { selectItems, selectItems },
+                    new[] { (IEnumerable<SelectListItem>)null, Enumerable.Empty<SelectListItem>() },
+                    new[] { arrayItems, arrayItems },
+                    new[] { listItems, listItems },
+                    new[] { multiItems, multiItems },
+                    new[] { selectItems, selectItems },
                 };
+                var mutlipleData = new[]
+                {
+                    new Tuple<string, bool>(null, false), // allowMultiple determined by string datatype.
+                    new Tuple<string, bool>("", false),   // allowMultiple determined by string datatype.
+                    new Tuple<string, bool>("true", true),
+                    new Tuple<string, bool>("false", false),
+                    new Tuple<string, bool>("multiple", true),
+                    new Tuple<string, bool>("Multiple", true),
+                    new Tuple<string, bool>("MULTIPLE", true),
+                };
+
+                var theoryData =
+                    new TheoryData<IEnumerable<SelectListItem>, string, IEnumerable<SelectListItem>, bool>();
+                foreach (var items in itemsData)
+                {
+                    foreach (var multiples in mutlipleData)
+                    {
+                        theoryData.Add(items[0], multiples.Item1, items[1], multiples.Item2);
+                    }
+                }
+
+                return theoryData;
             }
         }
 
@@ -258,17 +281,23 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Theory]
-        [MemberData(nameof(ItemsDataSet))]
-        public async Task TagHelper_CallsGeneratorWithExpectedValues_Items(
+        [MemberData(nameof(ItemsAndMultipleDataSet))]
+        public async Task ProcessAsync_CallsGeneratorWithExpectedValues_ItemsAndMultiple(
             IEnumerable<SelectListItem> inputItems,
-            IEnumerable<SelectListItem> expectedItems)
+            string multiple,
+            IEnumerable<SelectListItem> expectedItems,
+            bool expectedAllowMultiple)
         {
             // Arrange
-            var contextAttributes = new Dictionary<string, object>();
+            var contextAttributes = new Dictionary<string, object>
+            {
+                // Attribute will be restored if value matches "multiple".
+                { "multiple", multiple },
+            };
             var originalAttributes = new Dictionary<string, string>();
             var content = "original content";
             var propertyName = "Property1";
-            var tagName = "original tag name";
+            var tagName = "not-select";
 
             var tagHelperContext = new TagHelperContext(contextAttributes);
             var output = new TagHelperOutput(tagName, originalAttributes, content);
@@ -290,7 +319,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     null,         // optionLabel
                     propertyName, // name
                     expectedItems,
-                    false,
+                    expectedAllowMultiple,
                     null))        // htmlAttributes
                 .Returns((TagBuilder)null)
                 .Verifiable();
@@ -299,63 +328,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 For = modelExpression,
                 Items = inputItems,
-                Generator = htmlGenerator.Object,
-                ViewContext = viewContext,
-            };
-
-            // Act
-            await tagHelper.ProcessAsync(tagHelperContext, output);
-
-            // Assert
-            htmlGenerator.Verify();
-        }
-
-        [Theory]
-        [InlineData(null, false)] // allowMultiple determined by string datatype.
-        [InlineData("", false)]   // allowMultiple determined by string datatype.
-        [InlineData("true", true)]
-        [InlineData("false", false)]
-        [InlineData("multiple", true)]
-        [InlineData("Multiple", true)]
-        [InlineData("MULTIPLE", true)]
-        public async Task TagHelper_CallsGeneratorWithExpectedValues_Multiple(string multiple, bool allowMultiple)
-        {
-            // Arrange
-            var contextAttributes = new Dictionary<string, object>
-            {
-                // Attribute will be restored if value matches "multiple".
-                { "multiple", multiple },
-            };
-            var originalAttributes = new Dictionary<string, string>();
-            var content = "original content";
-            var propertyName = "Property1";
-            var tagName = "original tag name";
-
-            var tagHelperContext = new TagHelperContext(contextAttributes);
-            var output = new TagHelperOutput(tagName, originalAttributes, content);
-
-            var metadataProvider = new EmptyModelMetadataProvider();
-            string model = null;
-            var metadata = metadataProvider.GetMetadataForType(() => model, typeof(string));
-            var modelExpression = new ModelExpression(propertyName, metadata);
-
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
-            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator.Object, metadataProvider);
-            htmlGenerator
-                .Setup(real => real.GenerateSelect(
-                    viewContext,
-                    metadata,
-                    null,         // optionLabel
-                    propertyName, // name
-                    It.IsAny<IEnumerable<SelectListItem>>(),
-                    allowMultiple,
-                    null))        // htmlAttributes
-                .Returns((TagBuilder)null)
-                .Verifiable();
-
-            var tagHelper = new SelectTagHelper
-            {
-                For = modelExpression,
                 Generator = htmlGenerator.Object,
                 Multiple = multiple,
                 ViewContext = viewContext,
@@ -380,7 +352,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var originalAttributes = new Dictionary<string, string>();
             var content = "original content";
             var propertyName = "Property1";
-            var tagName = "original tag name";
+            var tagName = "not-select";
 
             var tagHelperContext = new TagHelperContext(contextAttributes);
             var output = new TagHelperOutput(tagName, originalAttributes, content);
@@ -421,7 +393,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [InlineData("multiple")]
         [InlineData("mUlTiPlE")]
         [InlineData("MULTIPLE")]
-        public async Task TagHelper_RestoresMultiple_IfForNotBound(string attributeName)
+        public async Task ProcessAsync_RestoresMultiple_IfForNotBound(string attributeName)
         {
             // Arrange
             var contextAttributes = new Dictionary<string, object>
@@ -436,7 +408,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedAttributes = new Dictionary<string, string>(originalAttributes);
             expectedAttributes[attributeName] = (string)contextAttributes[attributeName];
             var expectedContent = "original content";
-            var expectedTagName = "original tag name";
+            var expectedTagName = "not-select";
 
             var tagHelperContext = new TagHelperContext(contextAttributes);
             var output = new TagHelperOutput(expectedTagName, originalAttributes, expectedContent)
@@ -444,22 +416,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 SelfClosing = true,
             };
 
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
-            {
-                ValidationAttributes =
-                {
-                    {  "valid", "from validation attributes" },
-                }
-            };
-
-            Model model = null;
-            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
             var tagHelper = new SelectTagHelper
             {
-                Generator = htmlGenerator,
                 Multiple = "I'm more than one",
-                ViewContext = viewContext,
             };
 
             // Act
@@ -473,28 +432,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Fact]
-        public async Task TagHelper_Throws_IfForNotBoundButItemsIs()
+        public async Task ProcessAsync_Throws_IfForNotBoundButItemsIs()
         {
             // Arrange
             var contextAttributes = new Dictionary<string, object>();
             var originalAttributes = new Dictionary<string, string>();
             var content = "original content";
-            var tagName = "original tag name";
+            var tagName = "not-select";
             var expectedMessage = "Cannot determine body for <select>. 'items' must be null if 'for' is null.";
 
             var tagHelperContext = new TagHelperContext(contextAttributes);
             var output = new TagHelperOutput(tagName, originalAttributes, content);
-
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
-
-            Model model = null;
-            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
             var tagHelper = new SelectTagHelper
             {
-                Generator = htmlGenerator,
                 Items = Enumerable.Empty<SelectListItem>(),
-                ViewContext = viewContext,
             };
 
             // Act & Assert
@@ -511,13 +462,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [InlineData("false__")]
         [InlineData("__Multiple")]
         [InlineData("Multiple__")]
-        public async Task TagHelper_Throws_IfMultipleInvalid(string multiple)
+        public async Task ProcessAsync_Throws_IfMultipleInvalid(string multiple)
         {
             // Arrange
             var contextAttributes = new Dictionary<string, object>();
             var originalAttributes = new Dictionary<string, string>();
             var content = "original content";
-            var tagName = "original tag name";
+            var tagName = "not-select";
             var expectedMessage = "Cannot parse 'multiple' value '" + multiple +
                 "' for <select>. Acceptable values are 'false', 'true' and 'multiple'.";
 
@@ -525,19 +476,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var output = new TagHelperOutput(tagName, originalAttributes, content);
 
             var metadataProvider = new EmptyModelMetadataProvider();
-            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
-
             string model = null;
             var metadata = metadataProvider.GetMetadataForType(() => model, typeof(string));
             var modelExpression = new ModelExpression("Property1", metadata);
 
-            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
             var tagHelper = new SelectTagHelper
             {
                 For = modelExpression,
-                Generator = htmlGenerator,
                 Multiple = multiple,
-                ViewContext = viewContext,
             };
 
             // Act & Assert
