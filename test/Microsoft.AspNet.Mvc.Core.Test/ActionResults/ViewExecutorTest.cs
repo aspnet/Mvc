@@ -12,7 +12,7 @@ using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class ViewExecutorTest
     {
@@ -34,15 +34,7 @@ namespace Microsoft.AspNet.Mvc.Core
                  })
                  .Returns(Task.FromResult(0));
 
-            var viewEngine = Mock.Of<ICompositeViewEngine>();
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(sp => sp.GetService(typeof(ICompositeViewEngine)))
-                           .Returns(viewEngine);
-
-            var context = new DefaultHttpContext
-            {
-                RequestServices = serviceProvider.Object,
-            };
+            var context = new DefaultHttpContext();
             var memoryStream = new MemoryStream();
             context.Response.Body = memoryStream;
 
@@ -52,10 +44,33 @@ namespace Microsoft.AspNet.Mvc.Core
             var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider());
 
             // Act
-            await ViewExecutor.ExecuteAsync(view.Object, actionContext, viewData);
+            await ViewExecutor.ExecuteAsync(view.Object, actionContext, viewData, contentType: null);
 
             // Assert
             Assert.Equal(expected, memoryStream.ToArray());
+            Assert.Equal("text/html; charset=utf-8", context.Response.ContentType);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_UsesSpecifiedContentType()
+        {
+            // Arrange
+            var contentType = "some-content-type";
+            var view = Mock.Of<IView>();
+            var context = new DefaultHttpContext();
+            var memoryStream = new MemoryStream();
+            context.Response.Body = memoryStream;
+
+            var actionContext = new ActionContext(context,
+                                                  new RouteData(),
+                                                  new ActionDescriptor());
+            var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider());
+
+            // Act
+            await ViewExecutor.ExecuteAsync(view, actionContext, viewData, contentType);
+
+            // Assert
+            Assert.Equal(contentType, context.Response.ContentType);
         }
 
         public static IEnumerable<object[]> ExecuteAsync_DoesNotWriteToResponse_OnceExceptionIsThrownData
@@ -104,7 +119,8 @@ namespace Microsoft.AspNet.Mvc.Core
             var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider());
 
             // Act
-            await Record.ExceptionAsync(() => ViewExecutor.ExecuteAsync(view.Object, actionContext, viewData));
+            await Record.ExceptionAsync(
+                () => ViewExecutor.ExecuteAsync(view.Object, actionContext, viewData, contentType: null));
 
             // Assert
             Assert.Equal(expectedLength, memoryStream.Length);

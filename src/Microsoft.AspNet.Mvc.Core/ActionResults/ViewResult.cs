@@ -14,8 +14,11 @@ namespace Microsoft.AspNet.Mvc
     public class ViewResult : ActionResult
     {
         /// <summary>
-        /// Gets or sets the name of the view to render.
+        /// /// Gets or sets the name of the view to render.
         /// </summary>
+        /// <remarks>
+        /// When <c>null</c>, defaults to <see cref="ActionDescriptor.Name"/>.
+        /// </remarks>
         public string ViewName { get; set; }
 
         /// <summary>
@@ -43,7 +46,7 @@ namespace Microsoft.AspNet.Mvc
 
             using (view as IDisposable)
             {
-                await ViewExecutor.ExecuteAsync(view, context, ViewData);
+                await ViewExecutor.ExecuteAsync(view, context, ViewData, contentType: null);
             }
         }
     }

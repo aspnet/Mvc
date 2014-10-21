@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// Utility type for rendering a <see cref="IView"/> to the response.
     /// </summary>
-    public class ViewExecutor
+    public static class ViewExecutor
     {
         private const int BufferSize = 1024;
         private const string ContentType = "text/html; charset=utf-8";
@@ -24,9 +24,15 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>A <see cref="Task"/> that represents the asychronous rendering.</returns>
         public static async Task ExecuteAsync([NotNull] IView view,
                                               [NotNull] ActionContext actionContext,
-                                              [NotNull] ViewDataDictionary viewData)
+                                              [NotNull] ViewDataDictionary viewData,
+                                              string contentType)
         {
-            actionContext.HttpContext.Response.ContentType = ContentType;
+            if (string.IsNullOrEmpty(contentType))
+            {
+                contentType = ContentType;
+            }
+
+            actionContext.HttpContext.Response.ContentType = contentType;
             var wrappedStream = new StreamWrapper(actionContext.HttpContext.Response.Body);
             var encoding = Encodings.UTF8EncodingWithoutBOM;
             using (var writer = new StreamWriter(wrappedStream, encoding, BufferSize, leaveOpen: true))
