@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ApplicationModel;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Internal;
@@ -44,7 +45,8 @@ namespace Microsoft.AspNet.Mvc
             //
             // Core action discovery, filters and action execution.
             //
-            yield return describe.Transient<IActionDiscoveryConventions, DefaultActionDiscoveryConventions>();
+            yield return describe.Transient<IControllerModelBuilder, DefaultControllerModelBuilder>();
+            yield return describe.Transient<IActionModelBuilder, DefaultActionModelBuilder>();
             yield return describe.Transient<IControllerFactory, DefaultControllerFactory>();
             yield return describe.Singleton<IControllerActivator, DefaultControllerActivator>();
             yield return describe.Transient<IActionInvokerFactory, ActionInvokerFactory>();
