@@ -13,11 +13,20 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
+    /// <summary>
+    /// Functional tests that verify if names returned by HtmlHelper.NameFor get model bound correctly.
+    /// Each test works in three steps -
+    /// 1) The result of an HtmlHelper.NameFor invocation for a specific expression is retrieved.
+    /// 2) A form URL encoded value is posted for the retrieved expression.
+    /// 3) The server returns the bounded object. We verify if the property specified by the expression in step 1
+    /// has the right value.
+    /// </summary>
     public class RoundTripTests
     {
         private readonly IServiceProvider _services = TestHelper.CreateServices("ModelBindingWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
+        // Uses the expression p => p.Name
         [Fact]
         public async Task RoundTrippedValues_GetsModelBound_ForSimpleExpressions()
         {
@@ -39,6 +48,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expected, result.Name);
         }
 
+        // Uses the expression p => p.Parent.Age
         [Fact]
         public async Task RoundTrippedValues_GetsModelBound_ForSubPropertyExpressions()
         {
@@ -60,6 +70,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expected, result.Parent.Age);
         }
 
+        // Uses the expression p => p.Dependents[0].Age
         [Fact]
         public async Task RoundTrippedValues_GetsModelBound_ForNumericIndexedProperties()
         {
@@ -81,6 +92,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expected, result.Dependents[0].Age);
         }
 
+        // Uses the expression p => p.Parent.Attributes["height"]
         [Fact(Skip = "Requires resolution for https://github.com/aspnet/Mvc/issues/1418")]
         public async Task RoundTrippedValues_GetsModelBound_ForStringIndexedProperties()
         {
@@ -102,6 +114,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expected, result.Parent.Attributes["height"]);
         }
 
+        // Uses the expression p => p.Dependents[0].Dependents[0].Name
         [Fact]
         public async Task RoundTrippedValues_GetsModelBound_ForNestedNumericIndexedProperties()
         {
