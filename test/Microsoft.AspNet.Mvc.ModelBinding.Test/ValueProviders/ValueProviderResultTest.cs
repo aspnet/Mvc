@@ -296,13 +296,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var vpr = new ValueProviderResult(value, null, CultureInfo.InvariantCulture);
 
             // Act
-            var outValue = (MyEnum[])vpr.ConvertTo(typeof(MyEnum[]));
+            var outValue = vpr.ConvertTo(typeof(MyEnum[]));
 
             // Assert
-            Assert.IsType<MyEnum[]>(outValue);
-            Assert.Equal(2, outValue.Length);
-            Assert.Equal(MyEnum.Value1, outValue[0]);
-            Assert.Equal(MyEnum.Value0, outValue[1]);
+            var result = Assert.IsType<MyEnum[]>(outValue);
+            Assert.Equal(2, result.Length);
+            Assert.Equal(MyEnum.Value1, result[0]);
+            Assert.Equal(MyEnum.Value0, result[1]);
         }
 
         [Theory]
@@ -315,13 +315,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var vpr = new ValueProviderResult(value, null, CultureInfo.InvariantCulture);
 
             // Act
-            var outValue = (FlagsEnum[])vpr.ConvertTo(typeof(FlagsEnum[]));
+            var outValue = vpr.ConvertTo(typeof(FlagsEnum[]));
 
             // Assert
-            Assert.IsType<FlagsEnum[]>(outValue);
-            Assert.Equal(2, outValue.Length);
-            Assert.Equal(expected[0], outValue[0]);
-            Assert.Equal(expected[1], outValue[1]);
+            var result = Assert.IsType<FlagsEnum[]>(outValue);
+            Assert.Equal(2, result.Length);
+            Assert.Equal(expected[0], result[0]);
+            Assert.Equal(expected[1], result[1]);
         }
 
         [Fact]
@@ -475,6 +475,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData(new object[] { 16, (FlagsEnum)16 })]
         [InlineData(new object[] { 0, (FlagsEnum)0 })]
         [InlineData(new object[] { null, (FlagsEnum)0 })]
+        [InlineData(new object[] { "Value1,Value2", (FlagsEnum)3 })]
+        [InlineData(new object[] { "Value1,Value2,value4, value8", (FlagsEnum)15 })]
         public void ConvertTo_ConvertsEnumFlags(object value, object expected)
         {
             // Arrange
