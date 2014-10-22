@@ -299,6 +299,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var outValue = (MyEnum[])vpr.ConvertTo(typeof(MyEnum[]));
 
             // Assert
+            Assert.IsType<MyEnum[]>(outValue);
             Assert.Equal(2, outValue.Length);
             Assert.Equal(MyEnum.Value1, outValue[0]);
             Assert.Equal(MyEnum.Value0, outValue[1]);
@@ -317,6 +318,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var outValue = (FlagsEnum[])vpr.ConvertTo(typeof(FlagsEnum[]));
 
             // Assert
+            Assert.IsType<FlagsEnum[]>(outValue);
             Assert.Equal(2, outValue.Length);
             Assert.Equal(expected[0], outValue[0]);
             Assert.Equal(expected[1], outValue[1]);
@@ -469,6 +471,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [Theory]
         [InlineData(new object[] { 2, FlagsEnum.Value2 })]
         [InlineData(new object[] { 5, FlagsEnum.Value1 | FlagsEnum.Value4 })]
+        [InlineData(new object[] { 15, FlagsEnum.Value1 | FlagsEnum.Value2 | FlagsEnum.Value4 | FlagsEnum.Value8 })]
+        [InlineData(new object[] { 16, (FlagsEnum)16 })]
+        [InlineData(new object[] { 0, (FlagsEnum)0 })]
+        [InlineData(new object[] { null, (FlagsEnum)0 })]
         public void ConvertTo_ConvertsEnumFlags(object value, object expected)
         {
             // Arrange
