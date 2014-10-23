@@ -5,16 +5,12 @@ using Microsoft.AspNet.Mvc;
 
 namespace ViewComponentWebSite
 {
-    public class IntegerViewComponent : ViewComponent
+    // The full name is different here from the other view component with the same short name.
+    public class FullNameViewComponent : ViewComponent
     {
-        public IViewComponentResult Invoke()
+        public string Invoke()
         {
-            return Invoke(17);
-        }
-
-        public IViewComponentResult Invoke(int valueFromView)
-        {
-            return View(valueFromView);
+            return "ViewComponentWebSite.FullName";
         }
     }
 }
