@@ -661,7 +661,7 @@ namespace Microsoft.AspNet.Mvc
             var result = await InvokeActionSelector(routeContext);
 
             // Assert
-            Assert.Equal(null, result);
+            Assert.Null(result);
         }
 
         [Theory]

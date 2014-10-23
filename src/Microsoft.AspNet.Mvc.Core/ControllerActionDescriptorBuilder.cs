@@ -534,11 +534,11 @@ namespace Microsoft.AspNet.Mvc
             IEnumerable<string> namedRoutedErrors)
         {
             return namedRoutedErrors
-                .Select((nre, i) =>
+                .Select((error, i) =>
                             Resources.FormatAttributeRoute_AggregateErrorMessage_ErrorNumber(
                                 i + 1,
                                 Environment.NewLine,
-                                nre))
+                                error))
                 .ToList();
         }
 
@@ -755,9 +755,11 @@ namespace Microsoft.AspNet.Mvc
                         ad.DisplayName,
                         ad.AttributeRouteInfo != null ? ad.AttributeRouteInfo.Template : nullTemplate));
 
-            var methodFullName = string.Format("{0}.{1}",
-                    actionDescriptor.MethodInfo.DeclaringType.FullName,
-                    actionDescriptor.MethodInfo.Name);
+            var methodFullName = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}.{1}",
+                actionDescriptor.MethodInfo.DeclaringType.FullName,
+                actionDescriptor.MethodInfo.Name);
 
             // Sample error message:
             // A method 'MyApplication.CustomerController.Index' must not define attributed actions and
