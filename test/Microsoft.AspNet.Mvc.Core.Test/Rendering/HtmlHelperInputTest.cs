@@ -352,6 +352,215 @@ namespace Microsoft.AspNet.Mvc.Rendering
             Assert.Equal(expected, html.ToString());
         }
 
+        // Hidden
+
+        [Fact]
+        public void HiddenWithBinaryArrayValueRendersBase64EncodedValue()
+        {
+            // Arrange
+            var expected = @"<input id=""ProductName"" name=""ProductName"" type=""hidden"" value=""Fys1"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper();
+
+            // Act
+            var result = helper.Hidden("ProductName", new byte[] { 23, 43, 53 }, htmlAttributes: null);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        public static IEnumerable<object[]> HiddenWithAttributesData
+        {
+            get
+            {
+                var expected1 = @"<input baz=""BazValue"" id=""Property1"" name=""Property1"" type=""hidden"" value=""test"" />";
+                yield return new object[] { new Dictionary<string, object> { { "baz", "BazValue" } }, expected1 };
+                yield return new object[] { new { baz = "BazValue" }, expected1 };
+
+                var expected2 = @"<input foo-baz=""BazValue"" id=""Property1"" name=""Property1"" type=""hidden"" " +
+                                @"value=""test"" />";
+                yield return new object[] { new Dictionary<string, object> { { "foo-baz", "BazValue" } }, expected2 };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(HiddenWithAttributesData))]
+        public void HiddenWithExplicitValueAndAttributesDictionary(object attributes, string expected)
+        {
+            // Arrange
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+
+            // Act
+            var result = helper.Hidden("Property1", "test", attributes);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenUsesValueFromViewDataDictionaryIfValuePropertyIsNull()
+        {
+            // Arrange
+            var expected = @"<input id=""Property1"" name=""Property1"" type=""hidden"" value=""VDDValue"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+
+            // Act
+            var result = helper.Hidden("Property1", value: null, htmlAttributes: null);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenReturnsEmptyValueIfPropertyIsNotFound()
+        {
+            // Arrange
+            var expected = @"<input baz=""BazValue"" id=""keyNotFound"" name=""keyNotFound"" type=""hidden"" " +
+                           @"value="""" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            var attributes = new Dictionary<string, object> { { "baz", "BazValue" } };
+
+            // Act
+            var result = helper.Hidden("keyNotFound", value: null, htmlAttributes: attributes);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenWithPrefix()
+        {
+            // Arrange
+            var expected = @"<input id=""MyPrefix_Property1"" name=""MyPrefix.Property1"" type=""hidden"" " +
+                           @"value=""PropValue"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
+
+            // Act
+            var result = helper.Hidden("Property1", "PropValue", htmlAttributes: null);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenWithPrefixAndEmptyName()
+        {
+            // Arrange
+            var expected = @"<input id=""MyPrefix"" name=""MyPrefix"" type=""hidden"" value=""fooValue"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
+
+            // Act
+            var result = helper.Hidden(string.Empty, "fooValue", htmlAttributes: null);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenWithViewDataErrors()
+        {
+            // Arrange
+            var expected = @"<input baz=""BazValue"" class=""input-validation-error some-class"" id=""Property1""" +
+                           @" name=""Property1"" type=""hidden"" value=""AttemptedValueFoo"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewDataWithErrors());
+            var attributes = new Dictionary<string, object>
+            {
+                { "baz", "BazValue" },
+                { "class", "some-class"}
+            };
+
+            // Act
+            var result = helper.Hidden("Property1", value: null, htmlAttributes: attributes);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        // HiddenFor
+
+        [Fact]
+        public void HiddenForWithStringValue()
+        {
+            // Arrange
+            var expected = @"<input id=""Property1"" name=""Property1"" type=""hidden"" value=""DefaultValue"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            helper.ViewData.Model.Property1 = "DefaultValue";
+
+            // Act
+            var result = helper.HiddenFor(m => m.Property1, htmlAttributes: null);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenForWithByteArrayValueRendersBase64EncodedValue()
+        {
+            // Arrange
+            var expected = @"<input id=""Bytes"" name=""Bytes"" type=""hidden"" value=""Fys1"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            helper.ViewData.Model.Bytes = new byte[] { 23, 43, 53 };
+
+            // Act
+            var result = helper.HiddenFor(m => m.Bytes);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Theory]
+        [MemberData(nameof(HiddenWithAttributesData))]
+        public void HiddenForWithAttributes(object htmlAttributes, string expected)
+        {
+            // Arrange
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            helper.ViewData.Model.Property1 = "test";
+
+            // Act
+            var result = helper.HiddenFor(m => m.Property1, htmlAttributes);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenForWithPrefix()
+        {
+            // Arrange
+            var expected = @"<input id=""MyPrefix_Property1"" name=""MyPrefix.Property1"" type=""hidden"" " +
+                           @"value=""propValue"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewData());
+            helper.ViewData.Model.Property1 = "propValue";
+            helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
+
+            // Act
+            var result = helper.HiddenFor(m => m.Property1);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Fact]
+        public void HiddenForWithViewDataErrors()
+        {
+            // Arrange
+            var expected = @"<input baz=""BazValue"" class=""input-validation-error some-class"" id=""Property1"" " +
+                           @"name=""Property1"" type=""hidden"" value=""AttemptedValueFoo"" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelperForViewData(GetHiddenViewDataWithErrors());
+            var attributes = new Dictionary<string, object>
+            {
+                { "baz", "BazValue" },
+                { "class", "some-class"}
+            };
+
+            // Act
+            var result = helper.HiddenFor(m => m.Property1, attributes);
+
+            // Assert
+            Assert.Equal(expected, result.ToString());
+        }
+
         private static ViewDataDictionary<TestModel> GetTestModelViewData()
         {
             return new ViewDataDictionary<TestModel>(new EmptyModelMetadataProvider())
@@ -374,6 +583,35 @@ namespace Microsoft.AspNet.Mvc.Rendering
             viewData.Model = new ModelWithValidation();
 
             return viewData;
+        }
+
+        private static ViewDataDictionary<HiddenModel> GetHiddenViewData()
+        {
+            return new ViewDataDictionary<HiddenModel>(new EmptyModelMetadataProvider())
+            {
+                Model = new HiddenModel(),
+                ["Property1"] = "VDDValue",
+            };
+        }
+
+        private static ViewDataDictionary<HiddenModel> GetHiddenViewDataWithErrors()
+        {
+            var viewData = GetHiddenViewData();
+            var modelState = new ModelState();
+
+            modelState.Errors.Add("error 1");
+            modelState.Errors.Add("error 2");
+            modelState.Value = new ValueProviderResult("AttemptedValueFoo", "AttemptedValueFoo", CultureInfo.InvariantCulture);
+
+            viewData.ModelState.Add("Property1", modelState);
+            return viewData;
+        }
+
+        private class HiddenModel
+        {
+            public string Property1 { get; set; }
+
+            public byte[] Bytes { get; set; }
         }
 
         private class TestModel
