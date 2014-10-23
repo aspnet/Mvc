@@ -786,7 +786,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static string GetRouteGroupValue(int order, string template)
         {
-            var group = string.Format("{0}-{1}", order, template);
+            var group = string.Format(CultureInfo.InvariantCulture, "{0}-{1}", order, template);
             return ("__route__" + group).ToUpperInvariant();
         }
 
