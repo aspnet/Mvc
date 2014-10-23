@@ -10,6 +10,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ApplicationModel;
 using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.NestedProviders;
@@ -703,7 +704,7 @@ namespace Microsoft.AspNet.Mvc
             var result = await InvokeActionSelector(routeContext);
 
             // Assert
-            Assert.Equal(null, result);
+            Assert.Null(result);
         }
 
         [Theory]
@@ -786,13 +787,9 @@ namespace Microsoft.AspNet.Mvc
 
         private static HttpContext GetHttpContext(string httpMethod)
         {
-            var request = new Mock<HttpRequest>();
-            var headers = new Mock<IHeaderDictionary>();
-            request.SetupGet(r => r.Headers).Returns(headers.Object);
-            request.SetupGet(x => x.Method).Returns(httpMethod);
-            var httpContext = new Mock<HttpContext>();
-            httpContext.SetupGet(c => c.Request).Returns(request.Object);
-            return httpContext.Object;
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Method = httpMethod;
+            return httpContext;
         }
 
 
@@ -964,8 +961,6 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        #region Controller Classes
-
         private class NonActionController
         {
             [NonAction]
@@ -1039,7 +1034,5 @@ namespace Microsoft.AspNet.Mvc
         private class HttpMethodAttributeTests_DerivedController : HttpMethodAttributeTests_RestOnlyController
         {
         }
-
-        #endregion Controller Classes
     }
 }

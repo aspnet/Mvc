@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
             }
 
             // CoreCLR returns IEnumerable<Attribute> from GetCustomAttributes - the OfType<object>
-            // is needed to so that the result of ToList() is List<object>
+            // is needed to so that the result of ToArray() is object
             var attributes = methodInfo.GetCustomAttributes(inherit: true).OfType<object>().ToArray();
 
             // Route attributes create multiple actions, we want to split the set of
@@ -161,8 +161,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
         /// <returns>An <see cref="ActionModel"/> for the given <see cref="MethodInfo"/>.</returns>
         /// <remarks>
         /// An action-method in code may expand into multiple <see cref="ActionModel"/> instances depending on how
-        /// the action is routed. In the case of multiple routing attributes, this method will be once for each action
-        /// that can be created.
+        /// the action is routed. In the case of multiple routing attributes, this method will invoked be once for 
+        /// each action that can be created.
         /// 
         /// If overriding this method, use the provided <paramref name="attributes"/> list to find metadata related to
         /// the action being created.
@@ -182,7 +182,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
             actionModel.Filters.AddRange(attributes.OfType<IFilter>());
 
             var actionName = attributes.OfType<ActionNameAttribute>().FirstOrDefault();
-            if (actionName != null && actionName.Name != null)
+            if (actionName?.Name != null)
             {
                 actionModel.ActionName = actionName.Name;
             }
@@ -219,7 +219,6 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
             return actionModel;
         }
 
-
         /// <summary>
         /// Creates a <see cref="ParameterModel"/> for the given <see cref="ParameterInfo"/>.
         /// </summary>
@@ -230,7 +229,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
             var parameterModel = new ParameterModel(parameterInfo);
 
             // CoreCLR returns IEnumerable<Attribute> from GetCustomAttributes - the OfType<object>
-            // is needed to so that the result of ToList() is List<object>
+            // is needed to so that the result of ToArray() is object
             var attributes = parameterInfo.GetCustomAttributes(inherit: true).OfType<object>().ToArray();
             parameterModel.Attributes.AddRange(attributes);
 

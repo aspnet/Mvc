@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.ApplicationModel;
@@ -25,7 +26,7 @@ namespace Microsoft.AspNet.Mvc
         /// Creates instances of <see cref="ControllerActionDescriptor"/> from <see cref="GlobalModel"/>.
         /// </summary>
         /// <param name="application">The <see cref="GlobalModel"/>.</param>
-        /// <returns>The set of <see cref="ControllerActionDescriptor"/>.</returns>
+        /// <returns>The list of <see cref="ControllerActionDescriptor"/>.</returns>
         public static IList<ControllerActionDescriptor> Build(GlobalModel application)
         {
             var actions = new List<ControllerActionDescriptor>();
@@ -144,7 +145,7 @@ namespace Microsoft.AspNet.Mvc
                     {
                         if (!actionDescriptor.RouteValueDefaults.ContainsKey(key))
                         {
-                            actionDescriptor.RouteValueDefaults.Add(key, null);
+                            actionDescriptor.RouteValueDefaults.Add(key, value: null);
                         }
                     }
                 }
@@ -270,6 +271,7 @@ namespace Microsoft.AspNet.Mvc
             };
 
             actionDescriptor.DisplayName = string.Format(
+                CultureInfo.InvariantCulture,
                 "{0}.{1}",
                 action.ActionMethod.DeclaringType.FullName,
                 action.ActionMethod.Name);
@@ -464,6 +466,8 @@ namespace Microsoft.AspNet.Mvc
             }
             catch (InvalidOperationException ex)
             {
+                // Routing will throw an InvalidOperationException here if we can't parse/replace tokens
+                // in the template.
                 var message = Resources.FormatAttributeRoute_IndividualErrorMessage(
                     actionDescriptor.DisplayName,
                     Environment.NewLine,
@@ -523,8 +527,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static bool IsAttributeRoutedAction(ControllerActionDescriptor actionDescriptor)
         {
-            return actionDescriptor.AttributeRouteInfo != null &&
-                actionDescriptor.AttributeRouteInfo.Template != null;
+            return actionDescriptor.AttributeRouteInfo?.Template != null;
         }
 
         private static IList<string> AddErrorNumbers(
@@ -717,7 +720,9 @@ namespace Microsoft.AspNet.Mvc
                 }
             }
 
-            var methodFullName = string.Format("{0}.{1}",
+            var methodFullName = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}.{1}",
                 actionDescriptor.MethodInfo.DeclaringType.FullName,
                 actionDescriptor.MethodInfo.Name);
 

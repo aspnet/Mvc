@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
         {
             // Arrange
             var builder = new AccessibleActionModelBuilder();
-            var method = typeof(BaseController).GetMethod("Redirect");
+            var method = typeof(BaseController).GetMethod(nameof(BaseController.Redirect));
             Assert.NotNull(method);
 
             // Act

@@ -86,17 +86,17 @@ namespace Microsoft.AspNet.Mvc.ApplicationModel
         /// </summary>
         /// <param name="typeInfo">The <see cref="TypeInfo"/>.</param>
         /// <returns>A <see cref="ControllerModel"/> for the given <see cref="TypeInfo"/>.</returns>
-        protected virtual ControllerModel CreateControllerModel([NotNull]TypeInfo typeInfo)
+        protected virtual ControllerModel CreateControllerModel([NotNull] TypeInfo typeInfo)
         {
             var controllerModel = new ControllerModel(typeInfo);
 
             // CoreCLR returns IEnumerable<Attribute> from GetCustomAttributes - the OfType<object>
-            // is needed to so that the result of ToList() is List<object>
+            // is needed to so that the result of ToArray() is object
             var attributes = typeInfo.GetCustomAttributes(inherit: true).OfType<object>().ToArray();
             controllerModel.Attributes.AddRange(attributes);
 
             controllerModel.ControllerName =
-                typeInfo.Name.EndsWith("Controller", StringComparison.Ordinal) ?
+                typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ?
                     typeInfo.Name.Substring(0, typeInfo.Name.Length - "Controller".Length) :
                     typeInfo.Name;
 
