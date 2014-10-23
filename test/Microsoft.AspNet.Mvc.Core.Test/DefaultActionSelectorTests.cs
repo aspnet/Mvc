@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ApplicationModel;
 using Microsoft.AspNet.Mvc.Logging;
@@ -17,7 +18,6 @@ using Microsoft.Framework.DependencyInjection.NestedProviders;
 using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
-using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -791,7 +791,6 @@ namespace Microsoft.AspNet.Mvc
             httpContext.Request.Method = httpMethod;
             return httpContext;
         }
-
 
         private static ActionDescriptor[] GetActions()
         {
