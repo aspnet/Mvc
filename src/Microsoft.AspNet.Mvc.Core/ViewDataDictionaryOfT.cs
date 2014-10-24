@@ -26,14 +26,12 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        /// <remarks>Called for example when creating a <see cref="ViewViewComponentResult"/> instance.</remarks>
         public ViewDataDictionary([NotNull] ViewDataDictionary source)
             : this(source, source.Model)
         {
         }
 
         /// <inheritdoc />
-        /// <remarks>Currently called only from the above copy constructor.</remarks>
         public ViewDataDictionary([NotNull] ViewDataDictionary source, object model)
             : base(source, model)
         {

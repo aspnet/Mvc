@@ -36,10 +36,6 @@ namespace Microsoft.AspNet.Mvc
         /// <see cref="ViewDataDictionary"/> copy constructor for use when model type does not change or caller will
         /// immediately set the <see cref="Model"/> property.
         /// </summary>
-        /// <remarks>
-        /// Called for example when activating a <see cref="ViewComponent"/> instance or executing a
-        /// <see cref="Rendering.IHtmlHelper.Display"/> or <see cref="Rendering.IHtmlHelper.Editor"/> template.
-        /// </remarks>
         public ViewDataDictionary([NotNull] ViewDataDictionary source)
             : this(source, source.Model)
         {
@@ -49,20 +45,15 @@ namespace Microsoft.AspNet.Mvc
         /// <see cref="ViewDataDictionary"/> copy constructor for use when model type may change. This avoids
         /// exceptions a derived class may throw when <see cref="SetModel"/> is called.
         /// </summary>
-        /// <remarks>
-        /// Called for example when rendering a partial view and from other copy constructors.
-        /// </remarks>
         public ViewDataDictionary([NotNull] ViewDataDictionary source, object model)
             : this(source.MetadataProvider,
                    new ModelStateDictionary(source.ModelState),
                    new CopyOnWriteDictionary<string, object>(source, StringComparer.OrdinalIgnoreCase),
                    new TemplateInfo(source.TemplateInfo))
         {
-            // Slightly optimize SetModel and avoid creating unnecessary new ModelMetadata instances. Tests also depend
-            // on ModelMetadata being copied along when the model type does not change.
-            // But avoid copying information about the object type. To do so when model==null would confuse the
+            // Avoid copying information about the object type. To do so when model==null would confuse the
             // ViewDataDictionary<TModel>.ModelMetadata getter.
-            if (source.ModelMetadata != null && typeof(object) != source.ModelMetadata.ModelType)
+            if (typeof(object) != source.ModelMetadata?.ModelType)
             {
                 _modelMetadata = source.ModelMetadata;
             }
