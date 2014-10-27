@@ -103,6 +103,7 @@ namespace Microsoft.AspNet.Mvc
                 // Fallback only if there is no explicit model name set.
                 FallbackToEmptyPrefix = modelMetadata.ModelName == null,
                 ValueProvider = actionBindingContext.ValueProvider,
+                OriginalValueProvider = actionBindingContext.ValueProvider,
             };
 
             return modelBindingContext;

@@ -41,6 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 ModelState = bindingContext.ModelState;
                 ValueProvider = bindingContext.ValueProvider;
+                OriginalValueProvider = bindingContext.OriginalValueProvider;
                 MetadataProvider = bindingContext.MetadataProvider;
                 ModelBinder = bindingContext.ModelBinder;
                 ValidatorProvider = bindingContext.ValidatorProvider;
@@ -133,6 +134,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets or sets the <see cref="HttpContext"/> for the current request.
         /// </summary>
         public HttpContext HttpContext { get; set; }
+
+        /// <summary>
+        /// Gets unaltered value provider collection.
+        /// Value providers can be filtered by specific model binders.
+        /// </summary>
+        public IValueProvider OriginalValueProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IValueProvider"/> associated with this context.

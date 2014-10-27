@@ -64,6 +64,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task NonExistingModelBinder_ForABinderMetadata_DoesNotRecurseInfinitely()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act & Assert
+            var response = await client.GetStringAsync("http://localhost/WithMetadata/EchoDocument");
+
+            var document = JsonConvert.DeserializeObject<Document>
+                          (response);
+
+            Assert.NotNull(document);
+            Assert.Null(document.Version);
+            Assert.Null(document.SubDocument);
+        }
+
+        [Fact]
         public async Task ParametersWithNoValueProviderMetadataUseTheAvailableValueProviders()
         {
             // Arrange
@@ -86,7 +104,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ParametersAreAlwaysCreated()
+        public async Task ParametersAreAlwaysCreated_IfValuesAreProvidedWithoutModelName()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -105,6 +123,136 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.NotNull(person);
             Assert.Equal("somename", person.Name);
             Assert.Equal(12, person.Age);
+        }
+
+        [Fact]
+        public async Task ParametersAreAlwaysCreated_IfValueIsProvidedForModelName()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/WithoutMetadata" +
+                     "/GetPersonParameter?p="); // here p is the model name.
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var person = JsonConvert.DeserializeObject<Person>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(person);
+            Assert.Null(person.Name);
+            Assert.Equal(0, person.Age);
+        }
+
+        [Fact]
+        public async Task ParametersAreAlwaysCreated_IfNoValuesAreProvided()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/WithoutMetadata" +
+                     "/GetPersonParameter");
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var person = JsonConvert.DeserializeObject<Person>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(person);
+            Assert.Null(person.Name);
+            Assert.Equal(0, person.Age);
+        }
+
+        [Fact]
+        public async Task PropertiesAreBound_IfTheyAreProvidedByValueProviders()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/Properties" +
+                     "/GetCompany?Employees[0].Name=somename&Age=12");
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var company = JsonConvert.DeserializeObject<Company>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(company);
+            Assert.NotNull(company.Employees);
+            Assert.Equal(1, company.Employees.Count);
+            Assert.NotNull(company.Employees[0].Name);
+        }
+
+        [Fact]
+        public async Task PropertiesAreBound_IfTheyAreMarkedExplicitly()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/Properties" +
+                     "/GetCompany");
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var company = JsonConvert.DeserializeObject<Company>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(company);
+            Assert.NotNull(company.CEO);
+            Assert.Null(company.CEO.Name);
+        }
+
+        [Fact]
+        public async Task PropertiesAreBound_IfTheyArePocoMetadataMarkedTypes()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/Properties" +
+                     "/GetCompany");
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var company = JsonConvert.DeserializeObject<Company>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(company);
+
+            // Department property is not null because it was a marker poco.
+            Assert.NotNull(company.Department);
+
+            // beacause no value is provided.
+            Assert.Null(company.Department.Name);
+        }
+
+        [Fact]
+        public async Task PropertiesAreNotBound_ByDefault()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/Properties" +
+                     "/GetCompany");
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var company = JsonConvert.DeserializeObject<Company>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(company);
+            Assert.Null(company.Employees);
         }
 
         [Theory]
