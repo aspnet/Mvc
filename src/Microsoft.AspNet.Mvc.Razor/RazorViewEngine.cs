@@ -11,9 +11,9 @@ using Microsoft.AspNet.Mvc.Rendering;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents a view engine that is used to render a page that uses the Razor syntax.
+    /// Default implementation of <see cref="IRazorViewEngine"/>.
     /// </summary>
-    public class RazorViewEngine : IViewEngine
+    public class RazorViewEngine : IRazorViewEngine
     {
         private const string ViewExtension = ".cshtml";
         internal const string ControllerKey = "controller";
@@ -78,7 +78,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(viewName));
             }
 
-            return CreateViewEngineResult(context, viewName, partial: false);
+            var pageResult = GetRazorPageResult(context, viewName);
+            return CreateViewEngineResult(pageResult, _viewFactory, isPartial: false);
         }
 
         /// <inheritdoc />
@@ -90,36 +91,50 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(partialViewName));
             }
 
-            return CreateViewEngineResult(context, partialViewName, partial: true);
+            var pageResult = GetRazorPageResult(context, partialViewName);
+            return CreateViewEngineResult(pageResult, _viewFactory, isPartial: true);
         }
 
-        private ViewEngineResult CreateViewEngineResult(ActionContext context,
-                                                        string viewName,
-                                                        bool partial)
+        /// <inheritdoc />
+        public RazorPageResult FindPage([NotNull] ActionContext context,
+                                        string pageName)
         {
-            var nameRepresentsPath = IsSpecificPath(viewName);
+            if (string.IsNullOrEmpty(pageName))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(pageName));
+            }
+
+            return GetRazorPageResult(context, pageName);
+        }
+
+        private RazorPageResult GetRazorPageResult(ActionContext context,
+                                                   string pageName)
+        {
+            var nameRepresentsPath = IsSpecificPath(pageName);
 
             if (nameRepresentsPath)
             {
-                if (viewName.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase))
+                if (!pageName.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase))
                 {
-                    var page = _pageFactory.CreateInstance(viewName);
-                    if (page != null)
-                    {
-                        return CreateFoundResult(context, page, viewName, partial);
-                    }
+                    pageName = pageName + ViewExtension;
                 }
-                return ViewEngineResult.NotFound(viewName, new[] { viewName });
+
+                var page = _pageFactory.CreateInstance(pageName);
+                if (page != null)
+                {
+                    return new RazorPageResult(pageName, page);
+                }
+
+                return new RazorPageResult(pageName, new[] { pageName });
             }
             else
             {
-                return LocateViewFromViewLocations(context, viewName, partial);
+                return LocateViewFromViewLocations(context, pageName);
             }
         }
 
-        private ViewEngineResult LocateViewFromViewLocations(ActionContext context,
-                                                             string viewName,
-                                                             bool partial)
+        private RazorPageResult LocateViewFromViewLocations(ActionContext context,
+                                                            string viewName)
         {
             // Initialize the dictionary for the typical case of having controller and action tokens.
             var routeValues = context.RouteData.Values;
@@ -150,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (page != null)
                 {
                     // 2a. We found a IRazorPage at the cached location.
-                    return CreateFoundResult(context, page, viewName, partial);
+                    return new RazorPageResult(viewLocation, page);
                 }
             }
 
@@ -176,29 +191,27 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     // 3a. We found a page. Cache the set of values that produced it and return a found result.
                     _viewLocationCache.Set(expanderContext, transformedPath);
-                    return CreateFoundResult(context, page, transformedPath, partial);
+                    return new RazorPageResult(transformedPath, page);
                 }
 
                 searchedLocations.Add(transformedPath);
             }
 
             // 3b. We did not find a page for any of the paths.
-            return ViewEngineResult.NotFound(viewName, searchedLocations);
+            return new RazorPageResult(viewName, searchedLocations);
         }
 
-        private ViewEngineResult CreateFoundResult(ActionContext actionContext,
-                                                   IRazorPage page,
-                                                   string viewName,
-                                                   bool partial)
+        private ViewEngineResult CreateViewEngineResult(RazorPageResult result,
+                                                        IRazorViewFactory razorViewFactory,
+                                                        bool isPartial)
         {
-            // A single request could result in creating multiple IRazorView instances (for partials, view components)
-            // and might store state. We'll use the service container to create new instances as we require.
+            if (result.SearchedLocations != null)
+            {
+                return ViewEngineResult.NotFound(result.Name, result.SearchedLocations);
+            }
 
-            var services = actionContext.HttpContext.RequestServices;
-
-            var view = _viewFactory.GetView(page, partial);
-
-            return ViewEngineResult.Found(viewName, view);
+            var view = razorViewFactory.GetView(this, result.Page, isPartial);
+            return ViewEngineResult.Found(result.Name, view);
         }
 
         private static bool IsSpecificPath(string name)
