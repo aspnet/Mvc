@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             };
 
             // Act
-            var actual = cache.GetOrAdd(runtimeFileInfo, false, () => expected);
+            var actual = cache.GetOrAdd(runtimeFileInfo, () => expected);
 
             // Assert
             Assert.Same(expected, actual);
@@ -140,8 +140,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Act
             var actual = cache.GetOrAdd(runtimeFileInfo,
-                                        enableInstrumentation: false,
-                                        compile: () => CompilationResult.Successful(resultViewType));
+                compile: () => CompilationResult.Successful(resultViewType));
 
             // Assert
             if (swapsPreCompile)
@@ -175,9 +174,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             };
 
             // Act
-            cache.GetOrAdd(runtimeFileInfo, false, () => uncachedResult);
-            var actual1 = cache.GetOrAdd(runtimeFileInfo, false, () => uncachedResult);
-            var actual2 = cache.GetOrAdd(runtimeFileInfo, false, () => uncachedResult);
+            cache.GetOrAdd(runtimeFileInfo, () => uncachedResult);
+            var actual1 = cache.GetOrAdd(runtimeFileInfo, () => uncachedResult);
+            var actual2 = cache.GetOrAdd(runtimeFileInfo, () => uncachedResult);
 
             // Assert
             Assert.NotSame(uncachedResult, actual1);
@@ -214,9 +213,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             };
 
             // Act
-            cache.GetOrAdd(runtimeFileInfo, false, () => uncachedResult1);
-            var actual1 = cache.GetOrAdd(runtimeFileInfo, true, () => uncachedResult2);
-            var actual2 = cache.GetOrAdd(runtimeFileInfo, false, () => uncachedResult3);
+            cache.GetOrAdd(runtimeFileInfo, () => uncachedResult1);
+            var actual1 = cache.GetOrAdd(runtimeFileInfo, () => uncachedResult2);
+            var actual2 = cache.GetOrAdd(runtimeFileInfo, () => uncachedResult3);
 
             // Assert
             Assert.Same(uncachedResult2, actual1);

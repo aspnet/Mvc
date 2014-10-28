@@ -25,10 +25,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public CompilationResult Compile([NotNull] RelativeFileInfo file, bool isInstrumented)
+        public CompilationResult Compile([NotNull] RelativeFileInfo file)
         {
-            _razorHost.EnableInstrumentation = isInstrumented;
-
             GeneratorResults results;
             using (var inputStream = file.FileInfo.CreateReadStream())
             {
