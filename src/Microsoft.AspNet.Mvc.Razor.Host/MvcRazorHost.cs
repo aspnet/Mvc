@@ -32,6 +32,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         };
 
         private readonly IFileSystem _fileSystem;
+        private readonly ICompilerCache _compilerCache;
 
         // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>. 
         // This field holds the type name without the generic decoration (MyBaseType)
@@ -45,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="root">The path to the application base.</param>
         public MvcRazorHost(string root) :
-            this(new PhysicalFileSystem(root))
+            this(new PhysicalFileSystem(root), new CompilerCache())
         {
         }
 #endif
@@ -53,10 +54,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes a new instance of <see cref="MvcRazorHost"/> using the specified <paramref name="fileSystem"/>.
         /// </summary>
         /// <param name="fileSystem">A <see cref="IFileSystem"/> rooted at the application base path.</param>
-        public MvcRazorHost(IFileSystem fileSystem)
+        public MvcRazorHost(IFileSystem fileSystem,
+                            ICompilerCache compilerCache)
             : base(new CSharpRazorCodeLanguage())
         {
             _fileSystem = fileSystem;
+            _compilerCache = compilerCache;
             _baseType = BaseType;
 
             TagHelperDescriptorResolver = new TagHelperDescriptorResolver();
@@ -164,7 +167,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (_chunkInheritanceUtility == null)
                 {
                     // This needs to be lazily evaluated to support DefaultInheritedChunks being virtual.
-                    _chunkInheritanceUtility = new ChunkInheritanceUtility(this, _fileSystem, DefaultInheritedChunks);
+                    _chunkInheritanceUtility = new ChunkInheritanceUtility(this,
+                                                                           _compilerCache,
+                                                                           _fileSystem,
+                                                                           DefaultInheritedChunks);
                 }
 
                 return _chunkInheritanceUtility;

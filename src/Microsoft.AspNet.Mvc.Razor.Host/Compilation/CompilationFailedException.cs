@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.FileSystems;
+using Microsoft.AspNet.Mvc.Razor.Host;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {

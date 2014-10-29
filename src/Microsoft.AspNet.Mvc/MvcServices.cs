@@ -112,22 +112,33 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IViewLocationExpanderProvider, DefaultViewLocationExpanderProvider>();
             // Caches view locations that are valid for the lifetime of the application.
             yield return describe.Singleton<IViewLocationCache, DefaultViewLocationCache>();
-            yield return describe.Singleton<IFileInfoCache, ExpiringFileInfoCache>();
+            yield return describe.Singleton<ICachedFileSystem, CachedFileSystem>();
 
             // The host is designed to be discarded after consumption and is very inexpensive to initialize.
             yield return describe.Transient<IMvcRazorHost>(serviceProvider =>
             {
                 var optionsAccessor = serviceProvider.GetRequiredService<IOptions<RazorViewEngineOptions>>();
-                return new MvcRazorHost(optionsAccessor.Options.FileSystem);
+                var compilerCache = serviceProvider.GetRequiredService<ICompilerCache>();
+                return new MvcRazorHost(optionsAccessor.Options.FileSystem, compilerCache);
             });
 
-            yield return describe.Singleton<ICompilerCache, CompilerCache>();
-            yield return describe.Singleton<ICompilationService, RoslynCompilationService>();
+            yield return describe.Singleton<ICompilerCache>(serviceProvider =>
+            {
+                var assemblyProvider = serviceProvider.GetRequiredService<IAssemblyProvider>();
+                var cache = new CompilerCache();
+                PrecompiledViewsProvider.PopulateCache(cache, assemblyProvider);
+
+                return cache;
+            });
 
             // Both the compiler cache and roslyn compilation service hold on the compilation related
             // caches. RazorCompilation service is just an adapter service, and it is scoped
             // since it will typically be resolved multiple times per request.
             yield return describe.Scoped<IRazorCompilationService, RazorCompilationService>();
+
+            // This caches on to compilation related details that is valid across the lifetime of the application
+            // and is required to be a singleton.
+            yield return describe.Singleton<ICompilationService, RoslynCompilationService>();
 
             // The ViewStartProvider needs to be able to consume scoped instances of IRazorPageFactory
             yield return describe.Scoped<IViewStartProvider, ViewStartProvider>();

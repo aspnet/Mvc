@@ -43,6 +43,22 @@ namespace Microsoft.AspNet.Mvc.Razor.Host
         }
 
         /// <summary>
+        /// Compilation for '{0}' failed:
+        /// </summary>
+        internal static string CompilationFailed
+        {
+            get { return GetString("CompilationFailed"); }
+        }
+
+        /// <summary>
+        /// Compilation for '{0}' failed:
+        /// </summary>
+        internal static string FormatCompilationFailed(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CompilationFailed"), p0);
+        }
+
+        /// <summary>
         /// The 'inherits' keyword is not allowed when a '{0}' keyword is used.
         /// </summary>
         internal static string MvcRazorCodeParser_CannotHaveModelAndInheritsKeyword

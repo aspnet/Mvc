@@ -120,9 +120,6 @@
   <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="CompilationFailed" xml:space="preserve">
-    <value>Compilation for '{0}' failed:</value>
-  </data>
   <data name="FlushPointCannotBeInvoked" xml:space="preserve">
     <value>'{0}' cannot be invoked when a Layout page is set to be executed.</value>
   </data>

@@ -19,14 +19,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                     return GetHash(stream);
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Don't throw if reading the file fails.
                 return string.Empty;
             }
         }
 
-        internal static string GetHash(Stream stream)
+        public static string GetHash([NotNull] Stream stream)
         {
             using (var md5 = MD5.Create())
             {

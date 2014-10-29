@@ -7,7 +7,13 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public class RelativeFileInfo
     {
-        public IFileInfo FileInfo { get; set; }
-        public string RelativePath { get; set; }
+        public RelativeFileInfo(IFileInfo fileInfo, string relativePath)
+        {
+            FileInfo = fileInfo;
+            RelativePath = relativePath;
+        }
+
+        public IFileInfo FileInfo { get; }
+        public string RelativePath { get; }
     }
 }

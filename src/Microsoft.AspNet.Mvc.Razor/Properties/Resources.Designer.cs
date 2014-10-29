@@ -27,22 +27,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Compilation for '{0}' failed:
-        /// </summary>
-        internal static string CompilationFailed
-        {
-            get { return GetString("CompilationFailed"); }
-        }
-
-        /// <summary>
-        /// Compilation for '{0}' failed:
-        /// </summary>
-        internal static string FormatCompilationFailed(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("CompilationFailed"), p0);
-        }
-
-        /// <summary>
         /// '{0}' cannot be invoked when a Layout page is set to be executed.
         /// </summary>
         internal static string FlushPointCannotBeInvoked

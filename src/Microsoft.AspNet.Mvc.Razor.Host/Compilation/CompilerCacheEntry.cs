@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -67,5 +68,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets a flag that indicates if the file is precompiled.
         /// </summary>
         public bool IsPreCompiled {  get { return Hash != null; } }
+
+        public IDictionary<object, object> Metadata { get; } = new Dictionary<object, object>();
     }
 }
