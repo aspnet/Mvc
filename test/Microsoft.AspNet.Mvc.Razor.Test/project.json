@@ -1,4 +1,5 @@
 {
+    "code" : ["**/*.cs", "../Microsoft.AspNet.Mvc.Razor.Host.Test/Infrastructure/*.cs"],
     "dependencies": {
         "Microsoft.AspNet.Mvc.Razor": "6.0.0-*",
         "Microsoft.AspNet.Testing": "1.0.0-*",

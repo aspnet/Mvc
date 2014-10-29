@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.Framework.Expiration.Interfaces;
 using Microsoft.Framework.OptionsModel;
@@ -12,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public class ExpiringFileInfoCacheTest
+    public class CachedFileSystemTest
     {
         private const string FileName = "myView.cshtml";
 
@@ -85,10 +86,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             CreateFile(FileName);
 
             // Act
-            var fileInfo1 = cache.GetFileInfo(FileName);
-            var fileInfo2 = cache.GetFileInfo(FileName);
+            IFileInfo fileInfo1;
+            IFileInfo fileInfo2;
+            var result1 = cache.TryGetFileInfo(FileName, out fileInfo1);
+            var result2 = cache.TryGetFileInfo(FileName, out fileInfo2);
 
             // Assert
+            Assert.True(result1);
+            Assert.True(result2);
+
             Assert.Same(fileInfo1, fileInfo2);
 
             Assert.Equal(FileName, fileInfo1.Name);
@@ -306,7 +312,65 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Equal(FileName, fileInfo1.Name);
         }
 
-        public class ControllableExpiringFileInfoCache : ExpiringFileInfoCache
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TryGetDirectoryInfo_PassesThroughToUnderlyingFileSystem(bool expected)
+        {
+            // Arrange
+            var fileSystem = new Mock<IFileSystem>();
+            var contents = Enumerable.Empty<IFileInfo>();
+            fileSystem.Setup(f => f.TryGetDirectoryContents("/test-path", out contents))
+                      .Returns(expected)
+                      .Verifiable();
+            var options = new RazorViewEngineOptions
+            {
+                FileSystem = fileSystem.Object
+            };
+            var accessor = new Mock<IOptions<RazorViewEngineOptions>>();
+            accessor.SetupGet(a => a.Options)
+                    .Returns(options);
+
+            var cachedFileSystem = new CachedFileSystem(accessor.Object);
+
+            // Act
+            var result = cachedFileSystem.TryGetDirectoryContents("/test-path", out contents);
+
+            // Assert
+            Assert.Equal(expected, result);
+            fileSystem.Verify();
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TryGetParentPath_PassesThroughToUnderlyingFileSystem(bool expected)
+        {
+            // Arrange
+            var fileSystem = new Mock<IFileSystem>();
+            var parentPath = "/";
+            fileSystem.Setup(f => f.TryGetParentPath("/test-path", out parentPath))
+                      .Returns(expected)
+                      .Verifiable();
+            var options = new RazorViewEngineOptions
+            {
+                FileSystem = fileSystem.Object
+            };
+            var accessor = new Mock<IOptions<RazorViewEngineOptions>>();
+            accessor.SetupGet(a => a.Options)
+                    .Returns(options);
+
+            var cachedFileSystem = new CachedFileSystem(accessor.Object);
+
+            // Act
+            var result = cachedFileSystem.TryGetParentPath("/test-path", out parentPath);
+
+            // Assert
+            Assert.Equal(expected, result);
+            fileSystem.Verify();
+        }
+
+        public class ControllableExpiringFileInfoCache : CachedFileSystem
         {
             public ControllableExpiringFileInfoCache(IOptions<RazorViewEngineOptions> optionsAccessor)
                 : base(optionsAccessor)
@@ -336,6 +400,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 _internalUtcNow = UtcNow.AddMilliseconds(milliSeconds);
+            }
+
+            public IFileInfo GetFileInfo(string subpath)
+            {
+                IFileInfo fileInfo;
+                if (TryGetFileInfo(subpath, out fileInfo))
+                {
+                    return fileInfo;
+                }
+
+                return null;
             }
         }
 

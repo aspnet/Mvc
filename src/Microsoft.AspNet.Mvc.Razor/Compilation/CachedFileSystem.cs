@@ -3,23 +3,24 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// A default implementation for the <see cref="IFileInfoCache"/> interface.
+    /// A default implementation for the <see cref="ICachedFileSystem"/> interface.
     /// </summary>
-    public class ExpiringFileInfoCache : IFileInfoCache
+    public class CachedFileSystem : ICachedFileSystem
     {
         private readonly ConcurrentDictionary<string, ExpiringFileInfo> _fileInfoCache =
-            new ConcurrentDictionary<string, ExpiringFileInfo>(StringComparer.Ordinal);
+            new ConcurrentDictionary<string, ExpiringFileInfo>(StringComparer.OrdinalIgnoreCase);
 
         private readonly IFileSystem _fileSystem;
         private readonly TimeSpan _offset;
 
-        public ExpiringFileInfoCache(IOptions<RazorViewEngineOptions> optionsAccessor)
+        public CachedFileSystem(IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _fileSystem = optionsAccessor.Options.FileSystem;
             _offset = optionsAccessor.Options.ExpirationBeforeCheckingFilesOnDisk;
@@ -34,17 +35,23 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public IFileInfo GetFileInfo([NotNull] string virtualPath)
+        public bool TryGetDirectoryContents(string subpath, out IEnumerable<IFileInfo> contents)
         {
-            IFileInfo fileInfo;
+            return _fileSystem.TryGetDirectoryContents(subpath, out contents);
+        }
+
+        /// <inheritdoc />
+        public bool TryGetFileInfo(string subpath, out IFileInfo fileInfo)
+        {
             ExpiringFileInfo expiringFileInfo;
 
             var utcNow = UtcNow;
 
-            if (_fileInfoCache.TryGetValue(virtualPath, out expiringFileInfo)
-                && expiringFileInfo.ValidUntil > utcNow)
+            if (_fileInfoCache.TryGetValue(subpath, out expiringFileInfo) &&
+                expiringFileInfo.ValidUntil > utcNow)
             {
                 fileInfo = expiringFileInfo.FileInfo;
+                return fileInfo != null;
             }
             else
             {
@@ -56,10 +63,16 @@ namespace Microsoft.AspNet.Mvc.Razor
                     ValidUntil = _offset == TimeSpan.MaxValue ? DateTime.MaxValue : utcNow.Add(_offset),
                 };
 
-                _fileInfoCache.AddOrUpdate(virtualPath, expiringFileInfo, (a, b) => expiringFileInfo);
-            }
+                _fileInfoCache[subpath] = expiringFileInfo;
 
-            return fileInfo;
+                return result;
+            }
+        }
+
+        /// <inheritdoc />
+        public bool TryGetParentPath(string subpath, out string parentPath)
+        {
+            return _fileSystem.TryGetParentPath(subpath, out parentPath);
         }
 
         private class ExpiringFileInfo
