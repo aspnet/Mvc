@@ -1,4 +1,5 @@
 {
+  "description": "Contains a default set of Tag Helpers for building MVC applications.",
   "version": "6.0.0-*",
   "compilationOptions": {
     "warningsAsErrors": true
