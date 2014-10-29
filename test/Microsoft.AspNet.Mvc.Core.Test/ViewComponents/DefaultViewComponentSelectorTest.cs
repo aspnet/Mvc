@@ -151,7 +151,6 @@ namespace Microsoft.AspNet.Mvc
 
         private class ByNamingConventionViewComponent
         {
-
         }
 
         [ViewComponent]
@@ -187,7 +186,7 @@ namespace Microsoft.AspNet.Mvc
 
             protected override bool IsViewComponentType([NotNull] TypeInfo typeInfo)
             {
-                return AllowedTypes.Contains(typeInfo.AsType()) && base.IsViewComponentType(typeInfo);
+                return AllowedTypes.Contains(typeInfo.AsType());
             }
         }
     }

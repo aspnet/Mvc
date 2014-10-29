@@ -3,14 +3,14 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace ViewComponentWebSite
+namespace ViewComponentWebSite.Namespace1
 {
     // The full name is different here from the other view component with the same short name.
-    public class FullNameViewComponent : ViewComponent
+    public class SameNameViewComponent : ViewComponent
     {
         public string Invoke()
         {
-            return "ViewComponentWebSite.FullName";
+            return "ViewComponentWebSite.Namespace1.SameName";
         }
     }
 }

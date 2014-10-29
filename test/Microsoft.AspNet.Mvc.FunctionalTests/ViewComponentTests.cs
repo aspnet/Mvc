@@ -66,8 +66,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData("ViewComponentWebSite.FullName")]
-        [InlineData("ViewComponentWebSite.Explicit.FullName")]
+        [InlineData("ViewComponentWebSite.Namespace1.SameName")]
+        [InlineData("ViewComponentWebSite.Namespace2.SameName")]
         public async Task ViewComponents_FullName(string name)
         {
             var server = TestServer.Create(_provider, _app);

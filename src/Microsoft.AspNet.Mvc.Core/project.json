@@ -18,8 +18,7 @@
     "aspnet50": {},
     "aspnetcore50": {
       "dependencies": {
-        "Microsoft.CSharp": "4.0.0-beta-*",
-        "System.Xml.ReaderWriter": "4.0.10-beta-*"
+        "Microsoft.CSharp": "4.0.0-beta-*"
       }
     }
   }

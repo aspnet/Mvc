@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
             var candidates =
                 types
                 .Where(t => IsViewComponentType(t))
-                .Select(t => CreateCandidate(t));
+                .Select(CreateCandidate);
 
             // ViewComponent names can either be fully-qualified, or refer to the 'short-name'. If the provided
             // name contains a '.' - then it's a fully-qualified name.

@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc
         public static string GetComponentFullName([NotNull] TypeInfo componentType)
         {
             var attribute = componentType.GetCustomAttribute<ViewComponentAttribute>();
-            if (attribute != null && !string.IsNullOrEmpty(attribute.Name))
+            if (!string.IsNullOrEmpty(attribute?.Name))
             {
                 return attribute.Name;
             }
