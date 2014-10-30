@@ -13,6 +13,7 @@ namespace FiltersWebSite
     public class ProductsController : Controller
     {
         [PassThroughActionFilter]
+        [AuthorizeUser]
         public decimal GetPrice(int id)
         {
             return 19.95m;

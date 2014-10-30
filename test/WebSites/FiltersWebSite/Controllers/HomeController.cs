@@ -51,5 +51,36 @@ namespace FiltersWebSite.Controllers
                 Content = "Hello World"
             };
         }
+
+        [ThrowingResultFilter]
+        public string ThrowingResultFilter()
+        {
+            return "Throwing Result Filter";
+        }
+
+        [ThrowingActionFilter]
+        public string ThrowingActionFilter()
+        {
+            return "Throwing Action Filter";
+        }
+
+        [ThrowingExceptionFilter]
+        public string ThrowingExceptionFilter()
+        {
+            return "Throwing Exception Filter";
+        }
+
+        [ThrowingAuthorizationFilter]
+        public string ThrowingAuthorizationFilter()
+        {
+            return "Throwing Authorization Filter";
+        }
+
+        [HandleInvalidOperationExceptionFilter]
+        [ShortCircuitExceptionFilter]
+        public IActionResult ThrowRandomExcpetion()
+        {
+            throw new InvalidOperationException("Controller threw.");
+        }
     }
 }

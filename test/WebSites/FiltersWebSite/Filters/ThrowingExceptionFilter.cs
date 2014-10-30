@@ -6,14 +6,11 @@ using Microsoft.AspNet.Mvc;
 
 namespace FiltersWebSite
 {
-    public class ControllerExceptionFilter : ExceptionFilterAttribute
+    public class ThrowingExceptionFilter : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
         {
-            if (context.Exception.GetType() == typeof(InvalidOperationException))
-            {
-                context.Result = Helpers.GetContentResult(context.Result, "ControllerExceptionFilter.OnException");
-            }
+            throw new InvalidProgramException("Exception Filter threw");
         }
     }
 }

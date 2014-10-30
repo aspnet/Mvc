@@ -20,10 +20,8 @@ namespace FiltersWebSite
         {
             if(context.ActionDescriptor.DisplayName == "FiltersWebSite.ActionFilterController.GetHelloWorld")
             {
-                context.ActionArguments["fromGlobalActionFilter"] = new List<ContentResult>()
-                {
-                    Helpers.GetContentResult(null, "GlobalActionFilter.OnActionExecuting")
-                };
+                (context.ActionArguments["fromGlobalActionFilter"] as List<ContentResult>)
+                    .Add(Helpers.GetContentResult(null, "GlobalActionFilter.OnActionExecuting"));
             }
         }
     }
