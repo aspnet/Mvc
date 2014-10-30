@@ -13,7 +13,10 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class JsonResult : ActionResult
     {
-        private static readonly MediaTypeHeaderValue[] _defaultSupportedContentTypes = new MediaTypeHeaderValue[]
+        /// <summary>
+        /// The list of content-types used for formatting when <see cref="ContentTypes"/> is null or empty.
+        /// </summary>
+        public static readonly IReadOnlyList<MediaTypeHeaderValue> DefaultContentTypes = new MediaTypeHeaderValue[]
         {
             MediaTypeHeaderValue.Parse("application/json"),
             MediaTypeHeaderValue.Parse("text/json"),
@@ -65,7 +68,10 @@ namespace Microsoft.AspNet.Mvc
             // if the user has not already set it.
             if (ContentTypes == null || ContentTypes.Count == 0)
             {
-                objectResult.ContentTypes = _defaultSupportedContentTypes;
+                foreach (var contentType in DefaultContentTypes)
+                {
+                    objectResult.ContentTypes.Add(contentType);
+                }
             }
             else
             {
