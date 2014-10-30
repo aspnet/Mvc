@@ -6,6 +6,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace FiltersWebSite
 {
+    [AllowAnonymous]
     [HandleInvalidOperationExceptionFilter]
     public class RandomNumberController : Controller
     {

@@ -9,6 +9,11 @@ namespace FiltersWebSite
     {
         public void OnResultExecuted(ResultExecutedContext context)
         {
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "Global Result Filter - OnResultExecuted");
+            }
         }
 
         public void OnResultExecuting(ResultExecutingContext context)
@@ -16,6 +21,12 @@ namespace FiltersWebSite
             if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ResultFilterController.GetHelloWorld")
             {
                 context.Result = Helpers.GetContentResult(context.Result, "GlobalResultFilter.OnResultExecuting");
+            }
+
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "Global Result Filter - OnResultExecuted");
             }
         }
     }

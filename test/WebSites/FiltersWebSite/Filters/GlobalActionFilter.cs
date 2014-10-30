@@ -14,6 +14,12 @@ namespace FiltersWebSite
             {
                 context.Result = Helpers.GetContentResult(context.Result, "GlobalActionFilter.OnActionExecuted");
             }
+
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "Global Action Filter - OnActionExecuted");
+            }
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
@@ -22,6 +28,12 @@ namespace FiltersWebSite
             {
                 (context.ActionArguments["fromGlobalActionFilter"] as List<ContentResult>)
                     .Add(Helpers.GetContentResult(null, "GlobalActionFilter.OnActionExecuting"));
+            }
+
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "Global Action Filter - OnActionExecuting");
             }
         }
     }

@@ -7,5 +7,22 @@ namespace FiltersWebSite
 {
     public class PassThroughResultFilter : ResultFilterAttribute
     {
+        public override void OnResultExecuting(ResultExecutingContext context)
+        {
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "On Action Result Filter - OnResultExecuting");
+            }
+        }
+
+        public override void OnResultExecuted(ResultExecutedContext context)
+        {
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "On Action Result Filter - OnResultExecuted");
+            }
+        }
     }
 }

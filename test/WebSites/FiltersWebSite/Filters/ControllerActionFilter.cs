@@ -10,11 +10,25 @@ namespace FiltersWebSite
     {
         public override void OnActionExecuted(ActionExecutedContext context)
         {
-            context.Result = Helpers.GetContentResult(context.Result, "Controller Action filter - OnActionExecuted");
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "On Controller Action Filter - OnActionExecuted");
+            }
+            else
+            {
+                context.Result = Helpers.GetContentResult(context.Result, "Controller Action filter - OnActionExecuted");
+            }
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "On Controller Action Filter - OnActionExecuting");
+            }
+
             if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ActionFilterController.GetHelloWorld")
             {
                 (context.ActionArguments["fromGlobalActionFilter"] as List<ContentResult>)

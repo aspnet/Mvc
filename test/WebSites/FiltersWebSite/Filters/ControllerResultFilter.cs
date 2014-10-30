@@ -9,7 +9,24 @@ namespace FiltersWebSite
     {
         public override void OnResultExecuting(ResultExecutingContext context)
         {
-            context.Result = Helpers.GetContentResult(context.Result, "Controller Result filter");
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "On Controller Result Filter - OnResultExecuting");
+            }
+            else
+            {
+                context.Result = Helpers.GetContentResult(context.Result, "Controller Result filter");
+            }
+        }
+
+        public override void OnResultExecuted(ResultExecutedContext context)
+        {
+            if (context.ActionDescriptor.DisplayName == "FiltersWebSite.ProductsController.GetPrice")
+            {
+                context.HttpContext.Response.Headers.Append("filters",
+                    "On Controller Result Filter - OnResultExecuted");
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -30,39 +29,30 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var body = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<decimal>(body);
-
-            Assert.Equal(19.95m, result);
 
             var filters = response.Headers.GetValues("filters");
             Assert.Equal(
-                new string[]
-                {
-                    // The controller itself
-                    "FiltersWebSite.ProductsController",
-
-                    // This one uses order to set itself 'first' even though it appears on the controller
-                    "FiltersWebSite.PassThroughActionFilter",
-
-                    // Configured as global with default order
-                    "FiltersWebSite.GlobalExceptionFilter",
-
-                    // Configured as global with default order
-                    "FiltersWebSite.GlobalActionFilter",
-
-                    // Configured as global with default order
-                    "FiltersWebSite.GlobalResultFilter",
-
-                    // Configured on the controller with default order
-                    "FiltersWebSite.PassThroughResultFilter",
-
-                    // Configured on the action with default order
-                    "FiltersWebSite.PassThroughActionFilter",
-                    
-                    // Configured on the action with default order
-                    "FiltersWebSite.AuthorizeUserAttribute"
-                },
-                filters);
+                "Controller Override - OnAuthorization," +
+                "On Controller Authorization Filter - OnAuthorization," +
+                "Authorize Filter On Action - OnAuthorization," +
+                "Controller Override - OnActionExecuting," +
+                "Global Action Filter - OnActionExecuting," +
+                "On Controller Action Filter - OnActionExecuting," +
+                "On Action Action Filter - OnActionExecuting," +
+                "Executing Action," +
+                "On Action Action Filter - OnActionExecuted," +
+                "On Controller Action Filter - OnActionExecuted," +
+                "Global Action Filter - OnActionExecuted," +
+                "Controller Override - OnActionExecuted," +
+                "Controller Override - OnResultExecuting," +
+                "Global Result Filter - OnResultExecuted," +
+                "On Controller Result Filter - OnResultExecuting," +
+                "On Action Result Filter - OnResultExecuting," +
+                "On Action Result Filter - OnResultExecuted," +
+                "On Controller Result Filter - OnResultExecuted," +
+                "Global Result Filter - OnResultExecuted," +
+                "Controller Override - OnResultExecuted",
+                (filters as string[])[0]);
         }
 
         [Fact]
@@ -77,6 +67,21 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task AllowsAnonymousUsersToAccessController()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/RandomNumber/GetRandomNumber");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("4", await response.Content.ReadAsStringAsync());
         }
 
         [Fact]
