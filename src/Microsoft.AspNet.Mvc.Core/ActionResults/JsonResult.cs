@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="value">The value to format as JSON.</param>
         public JsonResult(object value)
-            : this(value, null)
+            : this(value, formatter: null)
         {
         }
 
