@@ -33,6 +33,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var filters = response.Headers.GetValues("filters");
             Assert.Equal(
                 "Controller Override - OnAuthorization," +
+                "Global Authorization Filter - OnAuthorization," +
                 "On Controller Authorization Filter - OnAuthorization," +
                 "Authorize Filter On Action - OnAuthorization," +
                 "Controller Override - OnActionExecuting," +
