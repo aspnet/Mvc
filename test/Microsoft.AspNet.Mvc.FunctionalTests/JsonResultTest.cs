@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("{\"Message\":\"hello\"}", content);
         }
 
-        // If the object is null, it will get picked up by the nocontent formatter.
+        // If the object is null, it will get formatted as JSON. NOT as a 204/NoContent
         [Fact]
         public async Task JsonResult_Null()
         {
@@ -83,7 +83,31 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = await response.Content.ReadAsStringAsync();
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("null", content);
+        }
+
+        // If the object is a string, it will get formatted as JSON. NOT as text/plain.
+        [Fact]
+        public async Task JsonResult_String()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            var url = "http://localhost/JsonResult/String";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            var response = await client.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("\"hello\"", content);
         }
 
         [Theory]

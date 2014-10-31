@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Microsoft.Framework.DependencyInjection;
@@ -99,7 +100,9 @@ namespace Microsoft.AspNet.Mvc
                     .HttpContext
                     .RequestServices
                     .GetRequiredService<IOutputFormattersProvider>()
-                    .OutputFormatters;
+                    .OutputFormatters
+                    .OfType<IJsonOutputFormatter>()
+                    .ToArray();
 
                 var formatter = objectResult.SelectFormatter(formatterContext, formatters);
                 if (formatter == null)

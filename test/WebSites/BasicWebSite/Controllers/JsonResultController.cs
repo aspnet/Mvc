@@ -36,5 +36,10 @@ namespace BasicWebSite.Controllers
         {
             return Json(null);
         }
+
+        public JsonResult String()
+        {
+            return Json("hello");
+        }
     }
 }
