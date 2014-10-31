@@ -373,7 +373,6 @@ namespace System.Web.Http
             return new HttpStatusCodeResult((int)status);
         }
 
-        [NonAction]
         public void Dispose()
         {
             Dispose(true);
