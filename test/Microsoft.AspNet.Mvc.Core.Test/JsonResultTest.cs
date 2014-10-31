@@ -9,10 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
-using Microsoft.AspNet.PipelineCore;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -35,6 +35,32 @@ namespace Microsoft.AspNet.Mvc
 
             var context = GetHttpContext(optionsFormatters);
             var actionContext = new ActionContext(context,  new RouteData(), new ActionDescriptor());
+
+            var result = new JsonResult(new { foo = "abcd" });
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+            var written = GetWrittenBytes(context);
+
+            // Assert
+            Assert.Equal(expected, written);
+            Assert.Equal("application/json;charset=utf-8", context.Response.ContentType);
+        }
+
+        [Fact]
+        public async Task ExecuteResultAsync_Null()
+        {
+            // Arrange
+            var expected = _abcdUTF8Bytes;
+
+            var optionsFormatters = new List<IOutputFormatter>()
+            {
+                new XmlDataContractSerializerOutputFormatter(), // This won't be used
+                new JsonOutputFormatter(),
+            };
+
+            var context = GetHttpContext(optionsFormatters);
+            var actionContext = new ActionContext(context, new RouteData(), new ActionDescriptor());
 
             var result = new JsonResult(new { foo = "abcd" });
 

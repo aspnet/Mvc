@@ -66,6 +66,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("{\"Message\":\"hello\"}", content);
         }
 
+        // If the object is null, it will get picked up by the nocontent formatter.
+        [Fact]
+        public async Task JsonResult_Null()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            var url = "http://localhost/JsonResult/Null";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            var response = await client.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
         [Theory]
         [InlineData("application/json")]
         [InlineData("text/json")]

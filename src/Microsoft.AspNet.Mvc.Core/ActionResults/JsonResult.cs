@@ -81,6 +81,7 @@ namespace Microsoft.AspNet.Mvc
             var formatterContext = new OutputFormatterContext()
             {
                 ActionContext = context,
+                DeclaredType = objectResult.DeclaredType,
                 Object = Value,
             };
 

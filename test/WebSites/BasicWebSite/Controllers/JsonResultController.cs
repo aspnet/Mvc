@@ -31,5 +31,10 @@ namespace BasicWebSite.Controllers
             result.ContentTypes.Add(MediaTypeHeaderValue.Parse("application/message+json"));
             return result;
         }
+
+        public JsonResult Null()
+        {
+            return Json(null);
+        }
     }
 }
