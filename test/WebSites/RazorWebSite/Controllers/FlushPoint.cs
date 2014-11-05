@@ -17,9 +17,16 @@ namespace RazorWebSite
             return View();
         }
 
+        // This uses RenderSection
         public ViewResult PageWithPartialsAndViewComponents()
         {
             return View();
+        }
+
+        // This uses RenderSectionAsync
+        public ViewResult PageWithRenderSectionAsync()
+        {
+            return View("PageWithSectionInvokedViaRenderSectionAsync");
         }
     }
 }
