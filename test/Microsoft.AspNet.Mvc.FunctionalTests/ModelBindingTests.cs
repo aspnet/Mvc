@@ -356,5 +356,96 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
             Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync());
         }
+
+        [Fact]
+        public async Task TryUpdateModel_IncludeTopLevelProperty_IncludesAllSubProperties()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetUserAsync_IncludesAllSubProperties" +
+                "?id=123&Address.Street=123&Address.Country.Name=USA&" +
+                "Address.State=WA&Address.Country.Cities[0].CityName=Seattle&Address.Country.Cities[0].CityCode=SEA");
+
+            // Assert
+            var user = JsonConvert.DeserializeObject<User>(response);
+
+            // Should not update non-included properties.
+            Assert.Equal(123, user.Address.Street); // Included by default as sub properties are included.
+            Assert.Equal("WA", user.Address.State); // Included by default as sub properties of address are included.
+
+            // Should update included porperties. In this case everything under Company
+            Assert.Equal("USA", user.Address.Country.Name); // Included by default.
+            Assert.Equal("Seattle", user.Address.Country.Cities[0].CityName); // Included by default.
+            Assert.Equal("SEA", user.Address.Country.Cities[0].CityCode); // Included by default.
+        }
+
+        [Fact]
+        public async Task TryUpdateModel_FailsToUpdateProperties()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "TryUpdateModelFails" +
+                "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
+
+            // Assert
+            var result = JsonConvert.DeserializeObject<bool>(response);
+
+            // Act
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task TryUpdateModelExcludeSpecfic_Properties()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetUserAsync_ExcludeSpecificProperties" +
+                "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
+
+            // Assert
+            var user = JsonConvert.DeserializeObject<User>(response);
+
+            // Should not update excluded properties.
+            Assert.NotEqual(123, user.Key);
+
+            // Should Update all explicitly included properties.
+            Assert.Equal("March", user.RegisterationMonth);
+            Assert.Equal("SomeName", user.UserName);
+        }
+
+        [Fact]
+        public async Task TryUpdateModelIncludeSpecfic_Properties()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetUserAsync_IncludeSpecificProperties" +
+                "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
+
+            // Assert
+            var user = JsonConvert.DeserializeObject<User>(response);
+
+            // Should not update any not explicitly mentioned properties. 
+            Assert.NotEqual("SomeName", user.UserName);
+            Assert.NotEqual(123, user.Key);
+
+            // Should Update all included properties.
+            Assert.Equal("March", user.RegisterationMonth);
+        }
     }
 }
