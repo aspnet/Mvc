@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 
 namespace Microsoft.AspNet.Mvc
@@ -39,6 +40,12 @@ namespace Microsoft.AspNet.Mvc
                                string typeFullName)
         {
             var filter = new DefaultTypeNameBasedExcludeFilter(typeFullName);
+            excludeBodyValidationDescriptorCollection.Add(new ExcludeValidationDescriptor(filter));
+        }
+
+        public static void Add(this IList<ExcludeValidationDescriptor> excludeBodyValidationDescriptorCollection,
+                               IExcludeTypeValidationFilter filter)
+        {
             excludeBodyValidationDescriptorCollection.Add(new ExcludeValidationDescriptor(filter));
         }
     }

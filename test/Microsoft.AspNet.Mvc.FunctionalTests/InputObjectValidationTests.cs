@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -16,6 +17,28 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         private readonly IServiceProvider _services = TestHelper.CreateServices("FormatterWebSite");
         private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
+
+        // Parameters: Request Content, Expected status code, Expected model state error message
+        public static IEnumerable<object[]> SimpleTypePropertiesModelRequestData
+        {
+            get
+            {
+                yield return new object[] {
+                    "{\"ByteProperty\":1, \"NullableByteProperty\":5, \"ByteArrayProperty\":[1,2,3]}",
+                    400,
+                    "The field ByteProperty must be between 2 and 8."};
+
+                yield return new object[] {
+                    "{\"ByteProperty\":8, \"NullableByteProperty\":1, \"ByteArrayProperty\":[1,2,3]}",
+                    400,
+                    "The field NullableByteProperty must be between 2 and 8."};
+
+                yield return new object[] {
+                    "{\"ByteProperty\":8, \"NullableByteProperty\":2, \"ByteArrayProperty\":[1]}",
+                    400,
+                    "The field ByteArrayProperty must be a string or array type with a minimum length of '2'."};
+            }
+        }
 
         [Fact]
         public async Task CheckIfObjectIsDeserializedWithoutErrors()
@@ -87,6 +110,51 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("No model validation for developer, even though developer.Name is empty.", await response.Content.ReadAsStringAsync());
         }
 
+        [Fact]
+        public async Task ShallowValidation_HappensOnExcluded_ComplexTypeProperties()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var requestData = "{\"Name\":\"Library Manager\", \"Suppliers\": [{\"Name\":\"Contoso Corp\"}]}";
+            var content = new StringContent(requestData, Encoding.UTF8, "application/json");
+            var expectedModelStateErrorMessage = "The field Suppliers must be a string or array type with a minimum length of '2'.";
+            var shouldNotContainMessage = "The field Name must be a string or array type with a maximum length of '5'.";
+
+            // Act
+            var response = await client.PostAsync("http://localhost/Validation/CreateProject", content);
+
+            //Assert
+            Assert.Equal(400, (int)response.StatusCode);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Contains(expectedModelStateErrorMessage, responseContent);
+
+            // verifies that the excluded type is not validated
+            Assert.DoesNotContain(shouldNotContainMessage, responseContent);
+        }
+        
+        [Theory]
+        [MemberData(nameof(SimpleTypePropertiesModelRequestData))]
+        public async Task ShallowValidation_HappensOnExlcuded_SimpleTypeProperties(
+                                                            string requestContent,
+                                                            int expectedStatusCode,
+                                                            string expectedModelStateErrorMessage)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var content = new StringContent(requestContent, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await client.PostAsync("http://localhost/Validation/CreateSimpleTypePropertiesModel", content);
+
+            //Assert
+            Assert.Equal(expectedStatusCode, (int)response.StatusCode);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Contains(expectedModelStateErrorMessage, responseContent);
+        }
 
         [Fact]
         public async Task CheckIfExcludedField_IsValidatedForNonBodyBoundModels()

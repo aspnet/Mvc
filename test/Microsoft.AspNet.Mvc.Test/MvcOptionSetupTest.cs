@@ -133,15 +133,13 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(5, mvcOptions.ValidationExcludeFilters.Count);
 
             // Verify if the delegates registered by default exclude the given types.
-            Assert.Equal(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[0].OptionType);
-            var instance = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[0].Instance);
-            Assert.Equal(instance.ExcludedType, typeof(XObject));
+            Assert.Equal(typeof(SimpleTypesExcludeFilter), mvcOptions.ValidationExcludeFilters[0].OptionType);
             Assert.Equal(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[1].OptionType);
-            var instance2 = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[1].Instance);
-            Assert.Equal(instance2.ExcludedType, typeof(Type));
+            var instance = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[1].Instance);
+            Assert.Equal(instance.ExcludedType, typeof(XObject));
             Assert.Equal(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[2].OptionType);
-            var instance3 = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[2].Instance);
-            Assert.Equal(instance3.ExcludedType, typeof(byte[]));
+            var instance2 = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[2].Instance);
+            Assert.Equal(instance2.ExcludedType, typeof(Type));
             Assert.Equal(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[3].OptionType);
             var instance4 = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[3].Instance);
             Assert.Equal(instance4.ExcludedType, typeof(JToken));
