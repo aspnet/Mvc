@@ -635,6 +635,38 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
+        /// The passed expression of expression node type '{0}' is invalid. Only member access expressions of member type property are supported.
+        /// </summary>
+        internal static string Invalid_IncludePropertyExpression
+        {
+            get { return GetString("Invalid_IncludePropertyExpression"); }
+        }
+
+        /// <summary>
+        /// The passed expression of expression node type '{0}' is invalid. Only member access expressions of member type property are supported.
+        /// </summary>
+        internal static string FormatInvalid_IncludePropertyExpression(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Invalid_IncludePropertyExpression"), p0);
+        }
+
+        /// <summary>
+        /// Chained member access expression is not supported for include property expression.
+        /// </summary>
+        internal static string Chained_IncludePropertyExpression_NotSupported
+        {
+            get { return GetString("Chained_IncludePropertyExpression_NotSupported"); }
+        }
+
+        /// <summary>
+        /// Chained member access expression is not supported for include property expression.
+        /// </summary>
+        internal static string FormatChained_IncludePropertyExpression_NotSupported()
+        {
+            return GetString("Chained_IncludePropertyExpression_NotSupported");
+        }
+
+        /// <summary>
         /// The IModelMetadataProvider was unable to provide metadata for expression '{0}'.
         /// </summary>
         internal static string HtmlHelper_NullModelMetadata
