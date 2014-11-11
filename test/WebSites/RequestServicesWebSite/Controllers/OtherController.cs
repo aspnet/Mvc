@@ -8,9 +8,6 @@ namespace RequestServicesWebSite
     [Route("Other/[action]")]
     public class OtherController : Controller
     {
-        [Activate]
-        public RequestIdService RequestIdService { get; set; }
-
         // This only matches a specific requestId value
         [HttpGet]
         [RequestScopedActionConstraint("b40f6ec1-8a6b-41c1-b3fe-928f581ebaf5")]
