@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <summary>
         /// The file extension of minified JavaScript files.
-        /// Set to <see cref="System.String.Empty"/> to disable min file replacement.
+        /// Set to <see cref="string.Empty"/> to disable min file replacement.
         /// Defaults to ".min.js".
         /// </summary>
         [HtmlAttributeName("min-extension")]
@@ -58,6 +58,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 return null;
             }
+
+            src = src.Trim();
 
             string srcPath;
 
