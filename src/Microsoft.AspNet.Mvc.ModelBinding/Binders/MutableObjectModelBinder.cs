@@ -16,19 +16,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public virtual async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext);
+            if (!CanBindType(bindingContext.ModelType))
+            {
+                return false;
+            }
+
             var mutableObjectBinderContext = new MutableObjectBinderContext()
             {
                 ModelBindingContext = bindingContext,
                 PropertyMetadata = GetMetadataForProperties(bindingContext),
             };
 
-            if (!CanBindType(bindingContext.ModelType) || !(await CanCreateModel(mutableObjectBinderContext)))
+            if (!(await CanCreateModel(mutableObjectBinderContext)))
             {
                 return false;
             }
 
             EnsureModel(bindingContext);
-            var dto = CreateAndPopulateDto(bindingContext, mutableObjectBinderContext.PropertyMetadata);
+            var dto = await CreateAndPopulateDto(bindingContext, mutableObjectBinderContext.PropertyMetadata);
 
             // post-processing, e.g. property setters and hooking up validation
             ProcessDto(bindingContext, dto);
@@ -205,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return true;
         }
 
-        private ComplexModelDto CreateAndPopulateDto(ModelBindingContext bindingContext,
+        private async Task<ComplexModelDto> CreateAndPopulateDto(ModelBindingContext bindingContext,
                                                      IEnumerable<ModelMetadata> propertyMetadatas)
         {
             // create a DTO and call into the DTO binder
@@ -217,7 +222,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelName = bindingContext.ModelName
             };
 
-            bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(dtoBindingContext);
+            await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(dtoBindingContext);
             return (ComplexModelDto)dtoBindingContext.Model;
         }
 

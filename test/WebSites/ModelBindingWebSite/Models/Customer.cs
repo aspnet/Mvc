@@ -3,12 +3,13 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace ModelBindingWebSite.Controllers
+namespace ModelBindingWebSite
 {
-    public class MultipleParametersFromBodyController : Controller
+    public class Customer : Person
     {
-        public void MultipleParametersFromBodyThrows([FromBody] int i, [FromBody] string emp)
-        {
-        }
+        public int Id { get; set; }
+
+        [FromBody]
+        public Department Department { get; set; }
     }
 }

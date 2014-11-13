@@ -157,7 +157,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(null, typeof(int)),
-                ModelState = new ModelStateDictionary()
+                ModelState = new ModelStateDictionary(),
+                OperationBindingContext = Mock.Of<OperationBindingContext>(),
             };
 
             // Act

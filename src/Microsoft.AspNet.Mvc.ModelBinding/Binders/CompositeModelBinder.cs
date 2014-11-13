@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -88,6 +89,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
             }
 
+            bindingContext.OperationBindingContext = newBindingContext.OperationBindingContext;
             bindingContext.Model = newBindingContext.Model;
             return true;
         }
@@ -138,8 +140,31 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 newBindingContext.ValidationNode = oldBindingContext.ValidationNode;
             }
 
+            var binderMetadata = oldBindingContext.ModelMetadata.BinderMetadata;
+            bool oldIsFormatterBasedMetadataFound = oldBindingContext.OperationBindingContext.IsFormatterBasedMetadataFound;
+            bool oldIsFormBasedMetadataFound = oldBindingContext.OperationBindingContext.IsFormBasedMetadataFound;
+            bool newIsFormatterBasedMetadataFound = binderMetadata is IFormatterBinderMetadata;
+            bool newIsFormBasedMetadataFound = binderMetadata is IFormDataValueProviderMetadata;
+
+            var currentModelNeedsToReadBody = newIsFormatterBasedMetadataFound || newIsFormBasedMetadataFound;
+            if (oldIsFormatterBasedMetadataFound && currentModelNeedsToReadBody ||
+                oldIsFormBasedMetadataFound && newIsFormatterBasedMetadataFound)
+            {
+                throw new InvalidOperationException(Resources.MultipleBodyParametersOrPropertiesAreNotAllowed);
+            }
+
+            if (!oldIsFormBasedMetadataFound)
+            {
+                newBindingContext.OperationBindingContext.IsFormBasedMetadataFound = newIsFormBasedMetadataFound;
+            }
+
+            if (!oldIsFormatterBasedMetadataFound)
+            {
+                newBindingContext.OperationBindingContext.IsFormatterBasedMetadataFound = newIsFormatterBasedMetadataFound;
+            }
+
             // look at the value providers and see if they need to be restricted.
-            var metadata = oldBindingContext.ModelMetadata.BinderMetadata as IValueProviderMetadata;
+            var metadata = binderMetadata as IValueProviderMetadata;
             if (metadata != null)
             {
                 // ValueProvider property might contain a filtered list of value providers. 

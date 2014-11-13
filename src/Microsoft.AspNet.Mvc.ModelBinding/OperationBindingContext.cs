@@ -6,7 +6,8 @@ using Microsoft.AspNet.Http;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// A context that contains operating information for model binding and validation.
+    /// A context that contains information specific to the current request and the action whose parameters
+    /// are being model bound.
     /// </summary>
     public class OperationBindingContext
     {
@@ -21,9 +22,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Initializes a new instance of the <see cref="OperationBindingContext"/> class using the
         /// <param name="bindingContext" />.
         // </summary>
+        /// <param name="bindingContext">Existing binding context.</param>
         /// <remarks>
-        /// This constructor copies certain values that won't change between parent and child objects,
-        /// e.g. ValueProvider, ModelState
+        /// This constructor copies certain values that won't change between model binding two un related models.
         /// </remarks>
         public OperationBindingContext(OperationBindingContext bindingContext)
         {
@@ -34,8 +35,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelBinder = bindingContext.ModelBinder;
                 ValidatorProvider = bindingContext.ValidatorProvider;
                 HttpContext = bindingContext.HttpContext;
+                IsFormBasedMetadataFound = bindingContext.IsFormBasedMetadataFound;
+                IsFormatterBasedMetadataFound = bindingContext.IsFormatterBasedMetadataFound;
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value which represents if there is a <see cref="IFormatterBinderMetadata"/> that
+        /// has been found during the current model binding process.
+        /// </summary>
+        public bool IsFormatterBasedMetadataFound { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value which represents if there is a <see cref="IFormDataValueProviderMetadata"/> that
+        /// has been found during the current model binding process.
+        /// </summary>
+        public bool IsFormBasedMetadataFound { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="HttpContext"/> for the current request.

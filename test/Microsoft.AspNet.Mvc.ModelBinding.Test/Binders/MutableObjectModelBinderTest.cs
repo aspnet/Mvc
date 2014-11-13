@@ -49,7 +49,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             bindingContext.ModelBindingContext.ModelMetadata.ModelName = isPrefixProvided ? "prefix" : null;
-            var mutableBinder = new MutableObjectModelBinder();
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+                                                                bindingContext.ModelBindingContext);
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -87,7 +89,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             bindingContext.ModelBindingContext.ModelName = emptyModelName ? string.Empty : "dummyModelName";
-            var mutableBinder = new MutableObjectModelBinder();
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+                                                                bindingContext.ModelBindingContext);
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -170,10 +174,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                     // Setting it to empty ensures that model does not get created becasue of no model name.
                     ModelName = "dummyModelName",
-                }
+                },
             };
 
-            var mutableBinder = new MutableObjectModelBinder();
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+                                                                bindingContext.ModelBindingContext);
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -214,7 +220,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             };
 
-            var mutableBinder = new MutableObjectModelBinder();
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+                                                                bindingContext.ModelBindingContext);
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -265,7 +273,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             };
 
-            var mutableBinder = new MutableObjectModelBinder();
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+                                                                bindingContext.ModelBindingContext);
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -306,7 +316,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             };
 
-            var mutableBinder = new MutableObjectModelBinder();
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+                                                                bindingContext.ModelBindingContext);
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
