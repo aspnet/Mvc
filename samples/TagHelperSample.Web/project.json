@@ -1,16 +1,17 @@
 ﻿{
-  "webroot": ".",
+  "webroot": "wwwroot",
   "compilationOptions": {
     "warningsAsErrors": true
   },
   "dependencies": {
     "Microsoft.AspNet.Mvc": "6.0.0-*",
+    "Microsoft.AspNet.StaticFiles": "1.0.0-*",
     "Microsoft.AspNet.Server.IIS": "1.0.0-*",
     "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
     "Microsoft.AspNet.Mvc.TagHelpers": ""
   },
   "commands": {
-    "web": "Microsoft.AspNet.Hosting server=Microsoft.AspNet.Server.WebListener server.urls=http://localhost:5001"
+    "web": "Microsoft.AspNet.Hosting server=Microsoft.AspNet.Server.WebListener server.urls=http://localhost:5001/foo"
   },
   "frameworks": {
     "aspnet50": {},
