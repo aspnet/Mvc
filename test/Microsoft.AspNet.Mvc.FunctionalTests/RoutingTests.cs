@@ -1324,6 +1324,52 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Null(result.Link);
         }
 
+        [Theory]
+        [InlineData("/Bank/Deposit", "PUT")]
+        [InlineData("/Bank/Deposit", "POST")]
+        [InlineData("/Bank/Deposit/5", "PUT")]
+        [InlineData("/Bank/Deposit/5", "POST")]
+        public async Task AttributeRouting_MixedAcceptVerbsAndRoute_Reachable(string path, string verb)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(new HttpMethod(verb), "http://localhost" + path);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Contains(path, result.ExpectedUrls);
+            Assert.Equal("Banks", result.Controller);
+            Assert.Equal("Deposit", result.Action);
+        }
+
+        // These verbs don't match
+        [Theory]
+        [InlineData("/Bank/Deposit", "GET")]
+        [InlineData("/Bank/Deposit/5", "DELETE")]
+        public async Task AttributeRouting_MixedAcceptVerbsAndRoute_Unreachable(string path, string verb)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(new HttpMethod(verb), "http://localhost" + path);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
         private static LinkBuilder LinkFrom(string url)
         {
             return new LinkBuilder(url);
