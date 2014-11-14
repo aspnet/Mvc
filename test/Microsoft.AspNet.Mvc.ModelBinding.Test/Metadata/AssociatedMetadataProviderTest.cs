@@ -109,6 +109,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.IsType<TestBinderMetadataAttribute>(propertyMetadata.BinderMetadata);
         }
 
+#if ASPNET50
         [Fact]
         public void GetMetadataForParameter_WithNoBinderMetadata_GetsItFromType()
         {
@@ -125,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.NotNull(parameterMetadata.BinderMetadata);
             Assert.IsType<TestBinderMetadataAttribute>(parameterMetadata.BinderMetadata);
         }
-
+#endif
         public class TestBinderMetadataAttribute : Attribute, IBinderMetadata
         {
         }

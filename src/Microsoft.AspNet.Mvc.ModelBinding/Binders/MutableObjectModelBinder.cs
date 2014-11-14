@@ -139,7 +139,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (valueProviderMetadata != null)
             {
                 // if there is a binder metadata and since the property can be bound using a value provider.
-                var metadataAwareValueProvider = bindingContext.OriginalValueProvider as IMetadataAwareValueProvider;
+                var metadataAwareValueProvider = bindingContext.OperationBindingContext.OriginalValueProvider as IMetadataAwareValueProvider;
                 if (metadataAwareValueProvider != null)
                 {
                     valueProvider = metadataAwareValueProvider.Filter(valueProviderMetadata);
@@ -212,12 +212,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var originalDto = new ComplexModelDto(bindingContext.ModelMetadata, propertyMetadatas);
             var dtoBindingContext = new ModelBindingContext(bindingContext)
             {
-                ModelMetadata = bindingContext.MetadataProvider.GetMetadataForType(() => originalDto,
+                ModelMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(() => originalDto,
                                                                                    typeof(ComplexModelDto)),
                 ModelName = bindingContext.ModelName
             };
 
-            bindingContext.ModelBinder.BindModelAsync(dtoBindingContext);
+            bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(dtoBindingContext);
             return (ComplexModelDto)dtoBindingContext.Model;
         }
 
@@ -264,8 +264,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         protected virtual IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
         {
             var validationInfo = GetPropertyValidationInfo(bindingContext);
-            var propertyTypeMetadata = bindingContext.MetadataProvider
-                                                       .GetMetadataForType(null, bindingContext.ModelType);
+            var propertyTypeMetadata = bindingContext.OperationBindingContext
+                                                     .MetadataProvider
+                                                     .GetMetadataForType(null, bindingContext.ModelType);
             Predicate<string> newPropertyFilter =
                 propertyName => bindingContext.PropertyFilter(propertyName) &&
                                 BindAttribute.IsPropertyAllowed(
@@ -297,7 +298,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 var propertyName = property.Name;
                 var propertyMetadata = bindingContext.PropertyMetadata[propertyName];
-                var requiredValidator = bindingContext.ValidatorProvider
+                var requiredValidator = bindingContext.OperationBindingContext
+                                                      .ValidatorProvider
                                                       .GetValidators(propertyMetadata)
                                                       .FirstOrDefault(v => v != null && v.IsRequired);
                 if (requiredValidator != null)

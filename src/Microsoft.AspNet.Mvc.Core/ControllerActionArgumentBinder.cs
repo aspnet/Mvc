@@ -89,21 +89,25 @@ namespace Microsoft.AspNet.Mvc
                 propertyName => BindAttribute.IsPropertyAllowed(propertyName,
                                                                 modelMetadata.IncludedProperties,
                                                                 modelMetadata.ExcludedProperties);
+            var operationBindingContext = new OperationBindingContext
+            {
+                ModelBinder = actionBindingContext.ModelBinder,
+                ValidatorProvider = actionBindingContext.ValidatorProvider,
+                MetadataProvider = actionBindingContext.MetadataProvider,
+                HttpContext = actionBindingContext.ActionContext.HttpContext,
+                OriginalValueProvider = actionBindingContext.ValueProvider,
+            };
 
             var modelBindingContext = new ModelBindingContext
             {
                 ModelName = modelMetadata.ModelName ?? modelMetadata.PropertyName,
                 ModelMetadata = modelMetadata,
                 ModelState = actionBindingContext.ActionContext.ModelState,
-                ModelBinder = actionBindingContext.ModelBinder,
-                ValidatorProvider = actionBindingContext.ValidatorProvider,
-                MetadataProvider = actionBindingContext.MetadataProvider,
-                HttpContext = actionBindingContext.ActionContext.HttpContext,
                 PropertyFilter = propertyFilter,
                 // Fallback only if there is no explicit model name set.
                 FallbackToEmptyPrefix = modelMetadata.ModelName == null,
                 ValueProvider = actionBindingContext.ValueProvider,
-                OriginalValueProvider = actionBindingContext.ValueProvider,
+                OperationBindingContext = operationBindingContext,
             };
 
             return modelBindingContext;

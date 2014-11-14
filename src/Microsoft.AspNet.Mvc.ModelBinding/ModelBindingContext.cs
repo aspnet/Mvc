@@ -41,13 +41,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 ModelState = bindingContext.ModelState;
                 ValueProvider = bindingContext.ValueProvider;
-                OriginalValueProvider = bindingContext.OriginalValueProvider;
-                MetadataProvider = bindingContext.MetadataProvider;
-                ModelBinder = bindingContext.ModelBinder;
-                ValidatorProvider = bindingContext.ValidatorProvider;
-                HttpContext = bindingContext.HttpContext;
+                OperationBindingContext = bindingContext.OperationBindingContext;
             }
         }
+
+        public OperationBindingContext OperationBindingContext { get; set; }
 
         /// <summary>
         /// Gets or sets the model associated with this context.
@@ -131,36 +129,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public bool FallbackToEmptyPrefix { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="HttpContext"/> for the current request.
-        /// </summary>
-        public HttpContext HttpContext { get; set; }
-
-        /// <summary>
-        /// Gets unaltered value provider collection.
-        /// Value providers can be filtered by specific model binders.
-        /// </summary>
-        public IValueProvider OriginalValueProvider { get; set; }
-
-        /// <summary>
         /// Gets or sets the <see cref="IValueProvider"/> associated with this context.
         /// </summary>
         public IValueProvider ValueProvider { get; set; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="IModelBinder"/> associated with this context.
-        /// </summary>
-        public IModelBinder ModelBinder { get; set; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="IModelMetadataProvider"/> associated with this context.
-        /// </summary>
-        public IModelMetadataProvider MetadataProvider { get; set; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="IModelValidatorProvider"/> instance used for model validation with this
-        /// context.
-        /// </summary>
-        public IModelValidatorProvider ValidatorProvider { get; set; }
 
         /// <summary>
         /// Gets a dictionary of property name to <see cref="ModelMetadata"/> instances for

@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 var innerBindingContext = new ModelBindingContext(bindingContext)
                 {
-                    ModelMetadata = bindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
+                    ModelMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
                     ModelName = bindingContext.ModelName,
                     ValueProvider = new CompositeValueProvider
                     {
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 };
 
                 object boundValue = null;
-                if (await bindingContext.ModelBinder.BindModelAsync(innerBindingContext))
+                if (await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(innerBindingContext))
                 {
                     boundValue = innerBindingContext.Model;
                     bindingContext.ValidationNode.ChildNodes.Add(innerBindingContext.ValidationNode);
@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var fullChildName = ModelBindingHelper.CreateIndexModelName(bindingContext.ModelName, indexName);
                 var childBindingContext = new ModelBindingContext(bindingContext)
                 {
-                    ModelMetadata = bindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
+                    ModelMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
                     ModelName = fullChildName
                 };
 
@@ -110,7 +110,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 var modelType = bindingContext.ModelType;
 
-                if (await bindingContext.ModelBinder.BindModelAsync(childBindingContext))
+                if (await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childBindingContext))
                 {
                     didBind = true;
                     boundValue = childBindingContext.Model;

@@ -300,7 +300,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         // Action, Controller have an action filter.
         // Verifies they are executed in the mentioned order.
-        [Fact]
+        // [Fact]
         public async Task ActionFilter_Scope()
         {
             // Arrange

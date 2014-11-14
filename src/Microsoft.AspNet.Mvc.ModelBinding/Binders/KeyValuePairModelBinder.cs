@@ -30,12 +30,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var propertyBindingContext = new ModelBindingContext(parentBindingContext)
             {
-                ModelMetadata = parentBindingContext.MetadataProvider.GetMetadataForType(modelAccessor: null,
+                ModelMetadata = parentBindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(modelAccessor: null,
                                                                                         modelType: typeof(TModel)),
                 ModelName = ModelBindingHelper.CreatePropertyModelName(parentBindingContext.ModelName, propertyName)
             };
 
-            if (await propertyBindingContext.ModelBinder.BindModelAsync(propertyBindingContext))
+            if (await propertyBindingContext.OperationBindingContext.ModelBinder.BindModelAsync(propertyBindingContext))
             {
                 var untypedModel = propertyBindingContext.Model;
                 var model = ModelBindingHelper.CastOrDefault<TModel>(untypedModel);
