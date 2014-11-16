@@ -18,6 +18,7 @@ namespace FiltersWebSite
                 services.AddMvc(configuration);
                 services.AddSingleton<RandomNumberFilter>();
                 services.AddSingleton<RandomNumberService>();
+                services.AddSingleton<IParametrizedFilter<ParametrizedRandomNumberAttribute>, ParametrizedRandomNumberFilter>();
 
                 services.Configure<MvcOptions>(options =>
                 {

@@ -21,7 +21,7 @@ namespace FiltersWebSite
         public void OnActionExecuting(ActionExecutingContext context)
         {
             var paramterValue = (int)context.ActionArguments["randomNumber"];
-            context.ActionArguments["randomNumber"] = paramterValue + _random.GetRandamNumber();
+            context.ActionArguments["randomNumber"] = paramterValue + _random.GetRandomNumber();
         }
     }
 }

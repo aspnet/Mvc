@@ -41,6 +41,11 @@ namespace FiltersWebSite
             return randomNumber;
         }
 
+        [ParametrizedRandomNumber( MinValue = 100, MaxValue = 500)]
+        public int GetMultipliedRandomNumber(int randomNumber) {
+            return randomNumber;
+        }
+
         public string ThrowException()
         {
             throw new InvalidOperationException();
