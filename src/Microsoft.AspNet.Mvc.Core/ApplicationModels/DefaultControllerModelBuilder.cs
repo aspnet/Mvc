@@ -5,7 +5,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Description;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -15,14 +17,16 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     public class DefaultControllerModelBuilder : IControllerModelBuilder
     {
         private readonly IActionModelBuilder _actionModelBuilder;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a new <see cref="DefaultControllerModelBuilder"/>.
         /// </summary>
         /// <param name="actionModelBuilder">The <see cref="IActionModelBuilder"/> used to create actions.</param>
-        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder)
+        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder, ILoggerFactory loggerFactory)
         {
             _actionModelBuilder = actionModelBuilder;
+            _logger = loggerFactory.Create<DefaultControllerModelBuilder>();
         }
 
         /// <inheritdoc />
@@ -34,6 +38,15 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             }
 
             var controllerModel = CreateControllerModel(typeInfo);
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                _logger.Write(
+                    LogLevel.Verbose, 
+                    0, 
+                    new ControllerModelValues(controllerModel), 
+                    null, 
+                    (state, error) => ((ILoggerStructure)state).Format());
+            }
 
             foreach (var methodInfo in typeInfo.AsType().GetMethods())
             {

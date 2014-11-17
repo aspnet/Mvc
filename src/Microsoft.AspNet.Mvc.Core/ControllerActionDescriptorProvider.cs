@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc
@@ -16,16 +18,19 @@ namespace Microsoft.AspNet.Mvc
         private readonly IAssemblyProvider _assemblyProvider;
         private readonly IReadOnlyList<IFilter> _globalFilters;
         private readonly IEnumerable<IApplicationModelConvention> _modelConventions;
+        private readonly ILogger _logger;
 
-        public ControllerActionDescriptorProvider(IAssemblyProvider assemblyProvider,
-                                                 IControllerModelBuilder applicationModelBuilder,
-                                                 IGlobalFilterProvider globalFilters,
-                                                 IOptions<MvcOptions> optionsAccessor)
+        public ControllerActionDescriptorProvider([NotNull] IAssemblyProvider assemblyProvider,
+                                                  [NotNull] IControllerModelBuilder applicationModelBuilder,
+                                                  [NotNull] IGlobalFilterProvider globalFilters,
+                                                  [NotNull] IOptions<MvcOptions> optionsAccessor,
+                                                  [NotNull] ILoggerFactory loggerFactory)
         {
             _assemblyProvider = assemblyProvider;
             _applicationModelBuilder = applicationModelBuilder;
             _globalFilters = globalFilters.Filters;
             _modelConventions = optionsAccessor.Options.ApplicationModelConventions;
+            _logger = loggerFactory.Create<ControllerActionDescriptorProvider>();
         }
 
         public int Order
@@ -43,7 +48,20 @@ namespace Microsoft.AspNet.Mvc
         {
             var applicationModel = BuildModel();
             ApplicationModelConventions.ApplyConventions(applicationModel, _modelConventions);
-            return ControllerActionDescriptorBuilder.Build(applicationModel);
+            var result = ControllerActionDescriptorBuilder.Build(applicationModel);
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                foreach (var controllerActionDescriptor in result)
+                {
+                    _logger.Write(
+                        LogLevel.Verbose,
+                        0,
+                        new ControllerActionDescriptorValues(controllerActionDescriptor),
+                        null,
+                        (state, error) => ((ILoggerStructure)state).Format());
+                }
+            }
+            return result;
         }
 
         public ApplicationModel BuildModel()
@@ -53,6 +71,18 @@ namespace Microsoft.AspNet.Mvc
 
             var assemblies = _assemblyProvider.CandidateAssemblies;
             var types = assemblies.SelectMany(a => a.DefinedTypes);
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                foreach (var assembly in assemblies)
+                {
+                    _logger.Write(
+                        LogLevel.Verbose,
+                        0,
+                        new AssemblyValues(assembly),
+                        null,
+                        (state, error) => ((ILoggerStructure)state).Format());
+                }
+            }
 
             foreach (var type in types)
             {

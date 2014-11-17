@@ -767,7 +767,8 @@ namespace Microsoft.AspNet.Mvc
                                         assemblyProvider,
                                         modelBuilder,
                                         new TestGlobalFilterProvider(),
-                                        new MockMvcOptionsAccessor());
+                                        new MockMvcOptionsAccessor(),
+                                        new NullLoggerFactory());
         }
 
         private static HttpContext GetHttpContext(string httpMethod)
