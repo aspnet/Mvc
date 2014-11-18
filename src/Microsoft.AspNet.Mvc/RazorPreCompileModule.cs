@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc
             sc.AddInstance<IOptions<RazorViewEngineOptions>>(accessor);
             sc.Add(MvcServices.GetDefaultServices());
 
-            var sp = sc.BuildFallbackServiceProvider();
+            var sp = sc.BuildServiceProvider();
 
             var viewCompiler = new RazorPreCompiler(sp);
             viewCompiler.CompileViews(context);
