@@ -6,6 +6,7 @@ using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.Fallback;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
 
@@ -56,19 +57,20 @@ namespace MvcSample.Web
                     });
 
                     // Create the autofac container 
-                    ContainerBuilder builder = new ContainerBuilder();
+                    //ContainerBuilder builder = new ContainerBuilder();
 
-                    // Create the container and use the default application services as a fallback 
-                    AutofacRegistration.Populate(
-                        builder,
-                        services,
-                        fallbackServiceProvider: app.ApplicationServices);
+                    //// Create the container and use the default application services as a fallback 
+                    //AutofacRegistration.Populate(
+                    //    builder,
+                    //    services);
 
-                    builder.RegisterModule<MonitoringModule>();
+                    //builder.RegisterModule<MonitoringModule>();
 
-                    IContainer container = builder.Build();
+                    //IContainer container = builder.Build();
 
-                    return container.Resolve<IServiceProvider>();
+                    //return container.Resolve<IServiceProvider>();
+
+                    return services.BuildServiceProvider();
                 });
             }
             else

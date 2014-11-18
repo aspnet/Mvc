@@ -9,12 +9,13 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using Xunit;
 using Newtonsoft.Json;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ApiExplorerTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("ApiExplorerWebSite");
+        private readonly IServiceCollection _provider = TestHelper.CreateServices("ApiExplorerWebSite");
         private readonly Action<IApplicationBuilder> _app = new ApiExplorer.Startup().Configure;
 
         [Fact]

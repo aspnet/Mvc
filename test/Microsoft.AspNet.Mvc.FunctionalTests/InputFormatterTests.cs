@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class InputFormatterTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("FormatterWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("FormatterWebSite");
         private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
 
         [Fact]

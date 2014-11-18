@@ -9,13 +9,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class AntiForgeryTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("AntiForgeryWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("AntiForgeryWebSite");
         private readonly Action<IApplicationBuilder> _app = new AntiForgeryWebSite.Startup().Configure;
 
         [Fact]

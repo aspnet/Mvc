@@ -68,8 +68,8 @@ namespace Microsoft.AspNet.Mvc
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = new ServiceCollection()
-                .AddInstance<IHostingEnvironment>(appEnvironment.Object)
-                .BuildServiceProvider();
+                .AddInstance(appEnvironment.Object)
+                .BuildFallbackServiceProvider();
 
             var context = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 

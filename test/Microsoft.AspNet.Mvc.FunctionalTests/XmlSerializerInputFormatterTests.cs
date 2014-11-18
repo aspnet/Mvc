@@ -8,13 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class XmlSerializerInputFormatterTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("XmlSerializerWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("XmlSerializerWebSite");
         private readonly Action<IApplicationBuilder> _app = new XmlSerializerWebSite.Startup().Configure;
 
         [Fact]

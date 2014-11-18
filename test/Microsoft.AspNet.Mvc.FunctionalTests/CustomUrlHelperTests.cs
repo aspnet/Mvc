@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     /// </summary>
     public class CustomUrlHelperTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("UrlHelperWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("UrlHelperWebSite");
         private readonly Action<IApplicationBuilder> _app = new UrlHelperWebSite.Startup().Configure;
         private const string _cdnServerBaseUrl = "http://cdn.contoso.com";
 

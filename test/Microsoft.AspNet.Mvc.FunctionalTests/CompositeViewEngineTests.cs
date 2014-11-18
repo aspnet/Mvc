@@ -5,13 +5,14 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class CompositeViewEngineTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("CompositeViewEngine");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("CompositeViewEngine");
         private readonly Action<IApplicationBuilder> _app = new CompositeViewEngine.Startup().Configure;
 
         [Fact]

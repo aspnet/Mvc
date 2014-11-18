@@ -7,13 +7,14 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class PrecompilationTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("PrecompilationWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("PrecompilationWebSite");
         private readonly Action<IApplicationBuilder> _app = new PrecompilationWebSite.Startup().Configure;
 
         [Fact]

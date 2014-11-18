@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class JsonOutputFormatterTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("FormatterWebSite");
+        private readonly IServiceCollection _provider = TestHelper.CreateServices("FormatterWebSite");
         private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
 
         [Fact]

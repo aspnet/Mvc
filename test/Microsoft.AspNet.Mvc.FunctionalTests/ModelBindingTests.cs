@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using ModelBindingWebSite;
 using Newtonsoft.Json;
 using Xunit;
@@ -17,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ModelBindingTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("ModelBindingWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("ModelBindingWebSite");
         private readonly Action<IApplicationBuilder> _app = new ModelBindingWebSite.Startup().Configure;
 
         [Theory]

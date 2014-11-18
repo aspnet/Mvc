@@ -8,13 +8,14 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class LinkGenerationTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("BasicWebSite");
+        private readonly IServiceCollection _provider = TestHelper.CreateServices("BasicWebSite");
         private readonly Action<IApplicationBuilder> _app = new BasicWebSite.Startup().Configure;
 
         // Some tests require comparing the actual response body against an expected response baseline

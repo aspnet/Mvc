@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using ValueProvidersSite;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ValueProviderTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("ValueProvidersSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("ValueProvidersSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         [Fact]

@@ -17,12 +17,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // Path from Mvc\\test\\Microsoft.AspNet.Mvc.FunctionalTests
         private static readonly string WebsitesDirectoryPath = Path.Combine("..", "WebSites");
 
-        public static IServiceProvider CreateServices(string applicationWebSiteName)
+        public static IServiceCollection CreateServices(string applicationWebSiteName)
         {
             return CreateServices(applicationWebSiteName, WebsitesDirectoryPath);
         }
 
-        public static IServiceProvider CreateServices(string applicationWebSiteName, string applicationPath)
+        public static IServiceCollection CreateServices(string applicationWebSiteName, string applicationPath)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             var appEnvironment = originalProvider.GetRequiredService<IApplicationEnvironment>();
@@ -37,6 +37,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var appBasePath =  CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, applicationPath);
 
             var services = new ServiceCollection();
+            services.Import(originalProvider);
             services.AddInstance(
                 typeof(IApplicationEnvironment),
                 new TestApplicationEnvironment(appEnvironment, appBasePath));
@@ -58,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 typeof(ILoggerFactory),
                 NullLoggerFactory.Instance);
 
-            return services.BuildServiceProvider(originalProvider);
+            return services;
         }
 
         // Calculate the path relative to the application base path.
@@ -76,9 +77,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         /// </summary>
         /// <remarks>This is required for config since it uses the static property to get to
         /// <see cref="IApplicationEnvironment"/>.</remarks>
-        public static IDisposable ReplaceCallContextServiceLocationService(IServiceProvider serviceProvider)
+        public static IDisposable ReplaceCallContextServiceLocationService(IServiceCollection services)
         {
-            return new CallContextProviderAction(serviceProvider);
+            return new CallContextProviderAction(services.BuildServiceProvider());
         }
 
         private static Type CreateAssemblyProviderType(string siteName)

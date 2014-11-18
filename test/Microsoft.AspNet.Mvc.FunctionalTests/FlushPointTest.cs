@@ -16,15 +16,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class FlushPointTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("RazorWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("RazorWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         [Fact]
         public async Task FlushPointsAreExecutedForPagesWithLayouts()
         {
             var waitService = new WaitService();
-            var serviceProvider = GetServiceProvider(waitService);
-            var server = TestServer.Create(serviceProvider, _app);
+            _services.AddInstance(waitService);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
@@ -47,9 +47,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FlushPointsAreExecutedForPagesWithoutLayouts()
         {
             var waitService = new WaitService();
-            var serviceProvider = GetServiceProvider(waitService);
+            _services.AddInstance(waitService);
 
-            var server = TestServer.Create(serviceProvider, _app);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
@@ -73,9 +73,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FlushPointsAreExecutedForPagesWithComponentsPartialsAndSections(string action, string title)
         {
             var waitService = new WaitService();
-            var serviceProvider = GetServiceProvider(waitService);
+            _services.AddInstance(waitService);
 
-            var server = TestServer.Create(serviceProvider, _app);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
@@ -104,13 +104,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "    <span>Content that takes time to produce</span>",
                 "",
                 "More content from layout"), GetTrimmedString(stream));
-        }
-
-        private IServiceProvider GetServiceProvider(WaitService waitService)
-        {
-            var services = new ServiceCollection();
-            services.AddInstance(waitService);
-            return services.BuildServiceProvider(_provider);
         }
 
         private string GetTrimmedString(Stream stream)

@@ -27,13 +27,15 @@ namespace Microsoft.AspNet.Mvc
         public virtual void BeforeCompile(IBeforeCompileContext context)
         {
             var sc = new ServiceCollection();
+            sc.Import(_appServices);
             var appEnv = _appServices.GetRequiredService<IApplicationEnvironment>();
 
             var setup = new RazorViewEngineOptionsSetup(appEnv);
             var accessor = new OptionsManager<RazorViewEngineOptions>(new[] { setup });
             sc.AddInstance<IOptions<RazorViewEngineOptions>>(accessor);
             sc.Add(MvcServices.GetDefaultServices());
-            var sp = sc.BuildServiceProvider(_appServices);
+
+            var sp = sc.BuildFallbackServiceProvider();
 
             var viewCompiler = new RazorPreCompiler(sp);
             viewCompiler.CompileViews(context);

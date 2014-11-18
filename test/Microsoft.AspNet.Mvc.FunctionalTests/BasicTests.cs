@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using BasicWebSite;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class BasicTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("BasicWebSite");
+        private readonly IServiceCollection _provider = TestHelper.CreateServices("BasicWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         // Some tests require comparing the actual response body against an expected response baseline
