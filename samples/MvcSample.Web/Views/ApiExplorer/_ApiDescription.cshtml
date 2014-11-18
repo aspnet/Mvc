@@ -15,7 +15,7 @@
             {
                 <li>
                     @parameter.Name - @(parameter?.Type?.FullName ?? "Unknown") - @parameter.Source.ToString()
-                    - Constraint: @(parameter?.Constraint?.GetType()?.Name?.Replace("RouteConstraint", "") ?? " none")
+                    - Constraint: @(parameter?.Constraints?.Select(c => c.GetType()?.Name?.Replace("RouteConstraint", "")) ?? " none")
                     - Default value: @(parameter?.DefaultValue ?? " none")
                 </li>
             }
