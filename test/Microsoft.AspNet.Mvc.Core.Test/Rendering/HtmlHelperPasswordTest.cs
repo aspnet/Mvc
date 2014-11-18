@@ -27,27 +27,28 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var attributes2 = new { baz = "BazValue", value = "attribute-value" };
 
                 var vdd = GetViewDataWithModelStateAndModelAndViewDataValues();
-                vdd.Model.Prop1 = "does-not-get-used";
+                vdd.Model.Property1 = "does-not-get-used";
                 yield return new object[] { vdd, attributes1 };
                 yield return new object[] { vdd, attributes2 };
 
-                yield return new object[] { GetViewDataWithNullModelAndNonNullViewData(), attributes1 };
-                yield return new object[] { GetViewDataWithNullModelAndNonNullViewData(), attributes2 };
+                var nullModelVdd = GetViewDataWithNullModelAndNonEmptyViewData();
+                yield return new object[] { nullModelVdd, attributes1 };
+                yield return new object[] { nullModelVdd, attributes2 };
             }
         }
 
         [Theory]
         [MemberData(nameof(PasswordWithViewDataAndAttributesData))]
-        public void Password_UsesArgumentValueWhenValueArgumentIsNull(ViewDataDictionary<PasswordModel> vdd,
+        public void Password_UsesAttributeValueWhenValueArgumentIsNull(ViewDataDictionary<PasswordModel> vdd,
                                                                       object attributes)
         {
             // Arrange
-            var expected = @"<input baz=""BazValue"" id=""Prop1"" name=""Prop1"" type=""password"" " +
-                            @"value=""attribute-value"" />";
+            var expected = @"<input baz=""BazValue"" id=""Property1"" name=""Property1"" type=""password"" " +
+                           @"value=""attribute-value"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(vdd);
 
             // Act
-            var result = helper.Password("Prop1", value: null, htmlAttributes: attributes);
+            var result = helper.Password("Property1", value: null, htmlAttributes: attributes);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -59,12 +60,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                            object attributes)
         {
             // Arrange
-            var expected = @"<input baz=""BazValue"" id=""Prop1"" name=""Prop1"" type=""password"" " +
+            var expected = @"<input baz=""BazValue"" id=""Property1"" name=""Property1"" type=""password"" " +
                            @"value=""explicit-value"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(vdd);
 
             // Act
-            var result = helper.Password("Prop1", "explicit-value", attributes);
+            var result = helper.Password("Property1", "explicit-value", attributes);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -74,13 +75,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void PasswordWithPrefix_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input id=""MyPrefix_Prop1"" name=""MyPrefix.Prop1"" type=""password"" " +
+            var expected = @"<input id=""MyPrefix_Property1"" name=""MyPrefix.Property1"" type=""password"" " +
                            @"value=""explicit-value"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
 
             // Act
-            var result = helper.Password("Prop1", "explicit-value", htmlAttributes: null);
+            var result = helper.Password("Property1", "explicit-value", htmlAttributes: null);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -90,14 +91,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void PasswordWithPrefix_UsesIdDotReplacementToken()
         {
             // Arrange
-            var expected = @"<input id=""MyPrefix$Prop1"" name=""MyPrefix.Prop1"" type=""password"" " +
+            var expected = @"<input id=""MyPrefix$Property1"" name=""MyPrefix.Property1"" type=""password"" " +
                            @"value=""explicit-value"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
             helper.IdAttributeDotReplacement = "$";
 
             // Act
-            var result = helper.Password("Prop1", "explicit-value", htmlAttributes: null);
+            var result = helper.Password("Property1", "explicit-value", htmlAttributes: null);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -110,9 +111,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var expected = @"<input id=""MyPrefix"" name=""MyPrefix"" type=""password"" value=""explicit-value"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
+            var name = string.Empty;
 
             // Act
-            var result = helper.Password(string.Empty, "explicit-value", htmlAttributes: null);
+            var result = helper.Password(name, "explicit-value", htmlAttributes: null);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -123,23 +125,23 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
-            var attributes = new Dictionary<string, object>
-            {
-                { "class", "some-class"}
-            };
+            var name = string.Empty;
+            var value = string.Empty;
 
             // Act and Assert
-            ExceptionAssert.ThrowsArgumentNullOrEmpty(() => helper.Password(string.Empty, string.Empty, attributes),
+            ExceptionAssert.ThrowsArgumentNullOrEmpty(() => helper.Password(name, value, htmlAttributes: null),
                                                       "name");
         }
 
         [Fact]
-        public void PasswordWithViewDataErrors_GeneratesExpectedValue()
+        public void Password_UsesModelStateErrors_ButDoesNotUseModelOrViewDataOrModelStateForValueAttribute()
         {
             // Arrange
-            var expected = @"<input baz=""BazValue"" class=""input-validation-error some-class"" id=""Prop1""" +
-                           @" name=""Prop1"" type=""password"" />";
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
+            var expected = @"<input baz=""BazValue"" class=""input-validation-error some-class"" id=""Property1""" +
+                           @" name=""Property1"" type=""password"" />";
+            var vdd = GetViewDataWithErrors();
+            vdd.Model.Property1 = "property-value";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(vdd);
             var attributes = new Dictionary<string, object>
             {
                 { "baz", "BazValue" },
@@ -147,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             };
 
             // Act
-            var result = helper.Password("Prop1", value: null, htmlAttributes: attributes);
+            var result = helper.Password("Property1", value: null, htmlAttributes: attributes);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -157,12 +159,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void PasswordGeneratesUnobtrusiveValidation()
         {
             // Arrange
-            var expected = @"<input data-val=""true"" data-val-required=""The Prop2 field is required."" " +
-                           @"id=""Prop2"" name=""Prop2"" type=""password"" />";
+            var expected = @"<input data-val=""true"" data-val-required=""The Property2 field is required."" " +
+                           @"id=""Property2"" name=""Property2"" type=""password"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
 
             // Act
-            var result = helper.Password("Prop2", value: null, htmlAttributes: null);
+            var result = helper.Password("Property2", value: null, htmlAttributes: null);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -174,15 +176,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 yield return new object[]
                 {
-                    "Prop4.Prop5",
-                    @"<input data-test=""val"" id=""Prop4$$Prop5"" name=""Prop4.Prop5"" " +
+                    "Property4.Property5",
+                    @"<input data-test=""val"" id=""Property4$$Property5"" name=""Property4.Property5"" " +
                     @"type=""password"" />",
                 };
 
                 yield return new object[]
                {
-                    "Prop4.Prop6[0]",
-                    @"<input data-test=""val"" id=""Prop4$$Prop6$$0$$"" name=""Prop4.Prop6[0]"" " +
+                    "Property4.Property6[0]",
+                    @"<input data-test=""val"" id=""Property4$$Property6$$0$$"" name=""Property4.Property6[0]"" " +
                     @"type=""password"" />",
                };
             }
@@ -211,13 +213,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                                      object htmlAttributes)
         {
             // Arrange
-            var expected = @"<input baz=""BazValue"" id=""Prop1"" name=""Prop1"" type=""password"" " +
+            var expected = @"<input baz=""BazValue"" id=""Property1"" name=""Property1"" type=""password"" " +
                            @"value=""attribute-value"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
-            helper.ViewData.Model.Prop1 = "test";
+            helper.ViewData.Model.Property1 = "test";
 
             // Act
-            var result = helper.PasswordFor(m => m.Prop1, htmlAttributes);
+            var result = helper.PasswordFor(m => m.Property1, htmlAttributes);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -227,24 +229,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void PasswordForWithPrefix_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input id=""MyPrefix_Prop1"" name=""MyPrefix.Prop1"" type=""password"" />";
+            var expected = @"<input id=""MyPrefix_Property1"" name=""MyPrefix.Property1"" type=""password"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
 
             // Act
-            var result = helper.PasswordFor(m => m.Prop1);
+            var result = helper.PasswordFor(m => m.Property1, htmlAttributes: null);
 
             // Assert
             Assert.Equal(expected, result.ToString());
         }
 
         [Fact]
-        public void PasswordForWithViewDataErrors_GeneratesExpectedValue()
+        public void PasswordFor_UsesModelStateErrors_ButDoesNotUseModelOrViewDataOrModelStateForValueAttribute()
         {
             // Arrange
-            var expected = @"<input baz=""BazValue"" class=""input-validation-error some-class"" id=""Prop1"" " +
-                           @"name=""Prop1"" type=""password"" />";
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
+            var expected = @"<input baz=""BazValue"" class=""input-validation-error some-class"" id=""Property1"" " +
+                           @"name=""Property1"" type=""password"" />";
+            var vdd = GetViewDataWithErrors();
+            vdd.Model.Property1 = "prop1-value";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(vdd);
             var attributes = new Dictionary<string, object>
             {
                 { "baz", "BazValue" },
@@ -252,7 +256,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             };
 
             // Act
-            var result = helper.PasswordFor(m => m.Prop1, attributes);
+            var result = helper.PasswordFor(m => m.Property1, attributes);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -262,12 +266,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void PasswordFor_GeneratesUnobtrusiveValidationAttributes()
         {
             // Arrange
-            var expected = @"<input data-val=""true"" data-val-required=""The Prop2 field is required."" " +
-                           @"id=""Prop2"" name=""Prop2"" type=""password"" />";
+            var expected = @"<input data-val=""true"" data-val-required=""The Property2 field is required."" " +
+                           @"id=""Property2"" name=""Property2"" type=""password"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
 
             // Act
-            var result = helper.PasswordFor(m => m.Prop2, htmlAttributes: null);
+            var result = helper.PasswordFor(m => m.Property2, htmlAttributes: null);
 
             // Assert
             Assert.Equal(expected, result.ToString());
@@ -280,19 +284,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return new TheoryData<Expression<Func<PasswordModel, string>>, string>
                 {
                     {
-                        model => model.Prop3["key"],
-                        @"<input data-val=""true"" id=""pre_Prop3_key_"" name=""pre.Prop3[key]"" " +
+                        model => model.Property3["key"],
+                        @"<input data-val=""true"" id=""pre_Property3_key_"" name=""pre.Property3[key]"" " +
                         @"type=""password"" value=""attr-value"" />"
                     },
                     {
-                        model => model.Prop4.Prop5,
-                        @"<input data-val=""true"" id=""pre_Prop4_Prop5"" name=""pre.Prop4.Prop5"" " +
+                        model => model.Property4.Property5,
+                        @"<input data-val=""true"" id=""pre_Property4_Property5"" name=""pre.Property4.Property5"" " +
                         @"type=""password"" value=""attr-value"" />"
                     },
                     {
-                        model => model.Prop4.Prop6[0],
-                        @"<input data-val=""true"" id=""pre_Prop4_Prop6_0_"" " +
-                        @"name=""pre.Prop4.Prop6[0]"" type=""password"" value=""attr-value"" />"
+                        model => model.Property4.Property6[0],
+                        @"<input data-val=""true"" id=""pre_Property4_Property6_0_"" " +
+                        @"name=""pre.Property4.Property6[0]"" type=""password"" value=""attr-value"" />"
                     }
                 };
             }
@@ -306,15 +310,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var viewData = GetViewDataWithModelStateAndModelAndViewDataValues();
-            viewData.ModelState.Add("pre.Prop3[key]", GetModelState("Prop3Val"));
-            viewData.ModelState.Add("pre.Prop4.Prop5", GetModelState("Prop5Val"));
-            viewData.ModelState.Add("pre.Prop4.Prop6[0]", GetModelState("Prop6Val"));
-            viewData["pre.Prop3[key]"] = "vdd-value1";
-            viewData["pre.Prop4.Prop5"] = "vdd-value2";
-            viewData["pre.Prop4.Prop6[0]"] = "vdd-value3";
-            viewData.Model.Prop3["key"] = "prop-value1";
-            viewData.Model.Prop4.Prop5 = "prop-value2";
-            viewData.Model.Prop4.Prop6.Add("prop-value3");
+            viewData.ModelState.Add("pre.Property3[key]", GetModelState("Property3Val"));
+            viewData.ModelState.Add("pre.Property4.Property5", GetModelState("Property5Val"));
+            viewData.ModelState.Add("pre.Property4.Property6[0]", GetModelState("Property6Val"));
+            viewData["pre.Property3[key]"] = "vdd-value1";
+            viewData["pre.Property4.Property5"] = "vdd-value2";
+            viewData["pre.Property4.Property6[0]"] = "vdd-value3";
+            viewData.Model.Property3["key"] = "prop-value1";
+            viewData.Model.Property4.Property5 = "prop-value2";
+            viewData.Model.Property4.Property6.Add("prop-value3");
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(viewData);
             viewData.TemplateInfo.HtmlFieldPrefix = "pre";
@@ -327,22 +331,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
             Assert.Equal(expected, result.ToString());
         }
 
-        private static ViewDataDictionary<PasswordModel> GetViewDataWithNullModelAndNonNullViewData()
+        private static ViewDataDictionary<PasswordModel> GetViewDataWithNullModelAndNonEmptyViewData()
         {
             return new ViewDataDictionary<PasswordModel>(new EmptyModelMetadataProvider())
             {
-                ["Prop1"] = "view-data-val",
+                ["Property1"] = "view-data-val",
             };
         }
 
         private static ViewDataDictionary<PasswordModel> GetViewDataWithModelStateAndModelAndViewDataValues()
         {
-            var viewData = new ViewDataDictionary<PasswordModel>(new EmptyModelMetadataProvider())
-            {
-                Model = new PasswordModel(),
-                ["Prop1"] = "view-data-val",
-            };
-            viewData.ModelState.Add("Prop1", GetModelState("ModelStateValue"));
+            var viewData = GetViewDataWithNullModelAndNonEmptyViewData();
+            viewData.Model = new PasswordModel();
+            viewData.ModelState.Add("Property1", GetModelState("ModelStateValue"));
 
             return viewData;
         }
@@ -350,8 +351,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private static ViewDataDictionary<PasswordModel> GetViewDataWithErrors()
         {
             var viewData = GetViewDataWithModelStateAndModelAndViewDataValues();
-            viewData.ModelState.AddModelError("Prop1", "error 1");
-            viewData.ModelState.AddModelError("Prop1", "error 2");
+            viewData.ModelState.AddModelError("Property1", "error 1");
+            viewData.ModelState.AddModelError("Property1", "error 2");
             return viewData;
         }
 
@@ -365,21 +366,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public class PasswordModel
         {
-            public string Prop1 { get; set; }
+            public string Property1 { get; set; }
 
             [Required]
-            public string Prop2 { get; set; }
+            public string Property2 { get; set; }
 
-            public Dictionary<string, string> Prop3 { get; } = new Dictionary<string, string>();
+            public Dictionary<string, string> Property3 { get; } = new Dictionary<string, string>();
 
-            public NestedClass Prop4 { get; } = new NestedClass();
+            public NestedClass Property4 { get; } = new NestedClass();
         }
 
         public class NestedClass
         {
-            public string Prop5 { get; set; }
+            public string Property5 { get; set; }
 
-            public List<string> Prop6 { get; } = new List<string>();
+            public List<string> Property6 { get; } = new List<string>();
         }
     }
 }
