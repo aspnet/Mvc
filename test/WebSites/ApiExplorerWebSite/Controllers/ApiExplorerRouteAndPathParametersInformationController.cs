@@ -26,7 +26,7 @@ namespace ApiExplorer
         [HttpGet("MultipleParametersInSegment/{month:range(1,12)}-{day:int}-{year:int}")]
         public void GetMultipleParametersInSegment(string month, string day, string year) { }
 
-        [HttpGet("MultipleParametersInMultipleSegments/{month:range(1,12)}/{day:int?}/{year:int?}")]
+        [HttpGet("MultipleParametersInMultipleSegments/{month:range(1,12)}/{day:int?}/{year:int}")]
         public void GetMultipleParametersInMultipleSegments(string month, string day, string year = "") { }
 
         [HttpGet("MultipleTypesOfParameters/{path}/{pathAndQuery}/{pathAndFromBody}")]
