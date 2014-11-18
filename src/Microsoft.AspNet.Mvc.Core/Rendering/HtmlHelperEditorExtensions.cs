@@ -24,7 +24,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/>'s value.
+        /// elements for each property in the <paramref name="expression"/>'s value. The template should be located
+        /// under the <c>EditorTemplates</c> folder. 
+        /// The folder name is case-sensitive to support case-sensitive file systems.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
@@ -55,7 +57,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/>'s value.
+        /// elements for each property in the <paramref name="expression"/>'s value. The template should be located
+        /// under the <c>EditorTemplates</c> folder. 
+        /// The folder name is case-sensitive to support case-sensitive file systems.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
@@ -83,7 +87,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/>'s value.
+        /// elements for each property in the <paramref name="expression"/>'s value. The template should be located
+        /// under the <c>EditorTemplates</c> folder. 
+        /// The folder name is case-sensitive to support case-sensitive file systems.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
@@ -115,7 +121,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/>'s value.
+        /// elements for each property in the <paramref name="expression"/>'s value. The template should be located
+        /// under the <c>EditorTemplates</c> folder. 
+        /// The folder name is case-sensitive to support case-sensitive file systems.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
@@ -147,7 +155,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/>'s value.
+        /// elements for each property in the <paramref name="expression"/>'s value. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive 
+        /// file systems.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
@@ -171,7 +181,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/> result.
+        /// elements for each property in the <paramref name="expression"/> result. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
             [NotNull] Expression<Func<TModel, TValue>> expression)
@@ -196,7 +208,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/> result.
+        /// elements for each property in the <paramref name="expression"/> result. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
             [NotNull] Expression<Func<TModel, TValue>> expression, object additionalViewData)
@@ -218,7 +232,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/> result.
+        /// elements for each property in the <paramref name="expression"/> result. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
             [NotNull] Expression<Func<TModel, TValue>> expression, string templateName)
@@ -244,7 +260,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/> result.
+        /// elements for each property in the <paramref name="expression"/> result. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
             [NotNull] Expression<Func<TModel, TValue>> expression, string templateName, object additionalViewData)
@@ -270,7 +288,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/> result.
+        /// elements for each property in the <paramref name="expression"/> result. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
             [NotNull] Expression<Func<TModel, TValue>> expression, string templateName, string htmlFieldName)
@@ -286,7 +306,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the <paramref name="expression"/> result.
+        /// elements for each property in the <paramref name="expression"/> result. The template should be located
+        /// under the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorForModel([NotNull] this IHtmlHelper html)
         {
@@ -306,7 +328,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the current model.
+        /// elements for each property in the current model. The template should be located under
+        /// the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorForModel([NotNull] this IHtmlHelper html, object additionalViewData)
         {
@@ -323,7 +347,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the current model.
+        /// elements for each property in the current model. The template should be located under
+        /// the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorForModel([NotNull] this IHtmlHelper html, string templateName)
         {
@@ -346,7 +372,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the current model.
+        /// elements for each property in the current model. The template should be located under
+        /// the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorForModel([NotNull] this IHtmlHelper html, string templateName,
             object additionalViewData)
@@ -369,7 +397,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the current model.
+        /// elements for each property in the current model. The template should be located under
+        /// the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorForModel([NotNull] this IHtmlHelper html, string templateName,
             string htmlFieldName)
@@ -397,7 +427,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
-        /// elements for each property in the current model.
+        /// elements for each property in the current model. The template should be located under
+        /// the <c>EditorTemplates</c> folder. The folder name is case-sensitive to support the case-sensitive
+        /// file systems.
         /// </remarks>
         public static HtmlString EditorForModel([NotNull] this IHtmlHelper html, string templateName,
             string htmlFieldName, object additionalViewData)

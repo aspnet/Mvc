@@ -684,6 +684,24 @@ Environment.NewLine;
             Assert.Equal(expectedMessage, ex.Message);
         }
 
+        [Fact]
+        public void DefaultEditorTemplates_DefaultPathNameCase()
+        {
+            // Arrange
+            var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
+            viewEngine
+                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), 
+                                              It.Is<string>(view => String.Equals(view, 
+                                                                                  "EditorTemplates/String"))))
+                .Returns(ViewEngineResult.Found(string.Empty, new Mock<IView>().Object))
+                .Verifiable();
+            var html = DefaultTemplatesUtilities.GetHtmlHelper(new object(), viewEngine: viewEngine.Object);
+
+            // Act & Assert
+            html.EditorForModel(string.Empty);
+            viewEngine.Verify();
+        }
+
         private class StubbyHtmlHelper : IHtmlHelper, ICanHasViewContext
         {
             private readonly IHtmlHelper _innerHelper;

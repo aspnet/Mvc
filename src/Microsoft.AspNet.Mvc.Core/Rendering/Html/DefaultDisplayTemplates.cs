@@ -13,6 +13,13 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
+    /// <summary>
+    /// Contains methods used to locate and render HTML display templates.
+    /// </summary>
+    /// <remarks>
+    /// The user-provided display templates should be located under the <c>DisplayTemplates</c> folder.
+    /// The folder name is case-sensitive to support case-sensitive file systems.
+    /// </remarks>
     public static class DefaultDisplayTemplates
     {
         public static string BooleanTemplate(IHtmlHelper html)

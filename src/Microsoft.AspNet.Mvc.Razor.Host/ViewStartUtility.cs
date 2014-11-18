@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public static class ViewStartUtility
     {
-        private const string ViewStartFileName = "_viewstart.cshtml";
+        private const string ViewStartFileName = "_ViewStart.cshtml";
 
         /// <summary>
         /// Determines if the given path represents a view start file.
