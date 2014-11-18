@@ -57,20 +57,18 @@ namespace MvcSample.Web
                     });
 
                     // Create the autofac container 
-                    //ContainerBuilder builder = new ContainerBuilder();
+                    ContainerBuilder builder = new ContainerBuilder();
 
-                    //// Create the container and use the default application services as a fallback 
-                    //AutofacRegistration.Populate(
-                    //    builder,
-                    //    services);
+                    // Create the container and use the default application services as a fallback 
+                    AutofacRegistration.Populate(
+                        builder,
+                        services);
 
-                    //builder.RegisterModule<MonitoringModule>();
+                    builder.RegisterModule<MonitoringModule>();
 
-                    //IContainer container = builder.Build();
+                    IContainer container = builder.Build();
 
-                    //return container.Resolve<IServiceProvider>();
-
-                    return services.BuildServiceProvider();
+                    return container.Resolve<IServiceProvider>();
                 });
             }
             else
