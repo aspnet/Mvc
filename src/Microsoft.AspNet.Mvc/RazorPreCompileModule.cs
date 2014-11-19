@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public static IServiceProvider BuildFallbackServiceProvider(IEnumerable<IServiceDescriptor> services, IServiceProvider fallback)
+        private static IServiceProvider BuildFallbackServiceProvider(IEnumerable<IServiceDescriptor> services, IServiceProvider fallback)
         {
             var sc = new ServiceCollection();
             sc.Import(fallback);
