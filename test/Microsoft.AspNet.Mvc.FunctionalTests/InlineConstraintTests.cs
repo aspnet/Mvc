@@ -15,27 +15,21 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class InlineConstraintTests
     {
-        private readonly IServiceProvider _provider;
+        private readonly IServiceCollection _services = TestHelper.CreateServices("InlineConstraintsWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
-
-        public InlineConstraintTests()
-        {
-            _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
-            _provider = new ServiceCollection()
-                         .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>()
-                         .BuildServiceProvider(_provider);
-        }
 
         [Fact]
         public async Task RoutingToANonExistantArea_WithExistConstraint_RoutesToCorrectAction()
         {
-            var svc = _provider.GetRequiredService<ICommandLineArgumentBuilder>();
+            var svc = new DefaultCommandLineArgumentBuilder();
             svc.AddArgument("--TemplateCollection:areaRoute:TemplateValue=" +
                             "{area:exists}/{controller=Home}/{action=Index}");
             svc.AddArgument("--TemplateCollection:actionAsMethod:TemplateValue=" +
                             "{controller=Home}/{action=Index}");
 
-            var server = TestServer.Create(_provider, _app);
+            _services.AddInstance<ICommandLineArgumentBuilder>(svc);
+
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
@@ -51,13 +45,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RoutingToANonExistantArea_WithoutExistConstraint_RoutesToIncorrectAction()
         {
             // Arrange
-            var svc = _provider.GetRequiredService<ICommandLineArgumentBuilder>();
+            var svc = new DefaultCommandLineArgumentBuilder();
             svc.AddArgument("--TemplateCollection:areaRoute:TemplateValue=" +
                             "{area}/{controller=Home}/{action=Index}");
             svc.AddArgument("--TemplateCollection:actionAsMethod:TemplateValue" +
                             "={controller=Home}/{action=Index}");
+            _services.AddInstance<ICommandLineArgumentBuilder>(svc);
 
-            var server = TestServer.Create(_provider, _app);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act & Assert

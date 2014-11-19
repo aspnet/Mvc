@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.Fallback;
 using RazorInstrumentationWebSite;
 using Xunit;
 
@@ -15,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RazorInstrumentationTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("RazorInstrumentationWebsite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("RazorInstrumentationWebsite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         public static IEnumerable<object[]> InstrumentationData
@@ -101,8 +100,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var context = new TestPageExecutionContext();
-            var services = GetServiceProvider(context);
-            var server = TestServer.Create(services, _app);
+            _services.AddInstance(context);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act
@@ -121,8 +120,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var context = new TestPageExecutionContext();
-            var services = GetServiceProvider(context);
-            var server = TestServer.Create(services, _app);
+            _services.AddInstance(context);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
             client.DefaultRequestHeaders.Add("ENABLE-RAZOR-INSTRUMENTATION", "true");
 
@@ -142,8 +141,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange - 1
             var context = new TestPageExecutionContext();
-            var services = GetServiceProvider(context);
-            var server = TestServer.Create(services, _app);
+            _services.AddInstance(context);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act - 1
@@ -185,8 +184,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Tuple.Create(35, 8, true),
             };
             var context = new TestPageExecutionContext();
-            var services = GetServiceProvider(context);
-            var server = TestServer.Create(services, _app);
+            _services.AddInstance(context);
+            var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
             // Act - 1
@@ -203,13 +202,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert - 2
             Assert.Equal(expectedLineMappings, context.Values);
-        }
-
-        private IServiceProvider GetServiceProvider(TestPageExecutionContext pageExecutionContext)
-        {
-            var services = new ServiceCollection();
-            services.AddInstance(pageExecutionContext);
-            return services.BuildServiceProvider(_services);
         }
     }
 }

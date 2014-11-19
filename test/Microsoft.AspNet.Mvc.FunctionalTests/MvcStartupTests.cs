@@ -4,13 +4,14 @@
 using System;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class MvcStartupTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("AddServicesWebSite");
+        private readonly IServiceCollection _provider = TestHelper.CreateServices("AddServicesWebSite");
         private readonly Action<IApplicationBuilder> _app = new AddServicesWebSite.Startup().Configure;
 
         [Fact]

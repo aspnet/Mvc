@@ -7,12 +7,13 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using Xunit;
 using System.Net;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ApplicationModelTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(ApplicationModelWebSite));
+        private readonly IServiceCollection _services = TestHelper.CreateServices(nameof(ApplicationModelWebSite));
         private readonly Action<IApplicationBuilder> _app = new ApplicationModelWebSite.Startup().Configure;
 
         [Fact]

@@ -9,6 +9,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     public class MvcSampleTests
     {
         // Path relative to Mvc\\test\Microsoft.AspNet.Mvc.FunctionalTests
-        private readonly IServiceProvider _services =
+        private readonly IServiceCollection _services =
             TestHelper.CreateServices("MvcSample.Web", Path.Combine("..", "..", "samples"));
         private readonly Action<IApplicationBuilder> _app = new MvcSample.Web.Startup().Configure;
 

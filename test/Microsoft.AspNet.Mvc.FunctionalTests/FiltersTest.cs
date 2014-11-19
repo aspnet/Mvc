@@ -6,13 +6,14 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class FiltersTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("FiltersWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("FiltersWebSite");
         private readonly Action<IApplicationBuilder> _app = new FiltersWebSite.Startup().Configure;
 
         [Fact]

@@ -9,13 +9,14 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class XmlOutputFormatterTests
     {
-        private readonly IServiceProvider _services;
+        private readonly IServiceCollection _services;
         private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
 
         public XmlOutputFormatterTests()

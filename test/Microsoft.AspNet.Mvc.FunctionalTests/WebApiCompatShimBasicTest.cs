@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class WebApiCompatShimBasicTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(WebApiCompatShimWebSite));
+        private readonly IServiceCollection _provider = TestHelper.CreateServices(nameof(WebApiCompatShimWebSite));
         private readonly Action<IApplicationBuilder> _app = new WebApiCompatShimWebSite.Startup().Configure;
 
         [Fact]

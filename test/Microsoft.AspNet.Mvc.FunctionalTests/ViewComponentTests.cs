@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using ViewComponentWebSite;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ViewComponentTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("ViewComponentWebSite");
+        private readonly IServiceCollection _provider = TestHelper.CreateServices("ViewComponentWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         public static IEnumerable<object[]> ViewViewComponents_AreRenderedCorrectlyData

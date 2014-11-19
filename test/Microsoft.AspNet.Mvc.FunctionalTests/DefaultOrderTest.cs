@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     // Tests that various MVC services have the correct order.
     public class DefaultOrderTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(BasicWebSite));
+        private readonly IServiceCollection _provider = TestHelper.CreateServices(nameof(BasicWebSite));
         private readonly Action<IApplicationBuilder> _app = new BasicWebSite.Startup().Configure;
 
         [Theory]

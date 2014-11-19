@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -17,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RoutingTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("RoutingWebSite");
+        private readonly IServiceCollection _services = TestHelper.CreateServices("RoutingWebSite");
         private readonly Action<IApplicationBuilder> _app = new RoutingWebSite.Startup().Configure;
 
         [Fact]

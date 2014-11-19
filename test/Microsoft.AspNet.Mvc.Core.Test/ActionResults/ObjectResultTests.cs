@@ -526,7 +526,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             optionsAccessor.SetupGet(o => o.Options).Returns(options);
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddInstance<IOptions<MvcOptions>>(optionsAccessor.Object);
+            serviceCollection.AddInstance(optionsAccessor.Object);
             return serviceCollection.BuildServiceProvider();
         }
 

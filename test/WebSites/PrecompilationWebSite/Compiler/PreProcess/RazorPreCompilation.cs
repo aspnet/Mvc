@@ -36,9 +36,9 @@ namespace PrecompilationWebSite
                 newPath);
 
             var collection = new ServiceCollection();
+            collection.Import(provider);
             collection.AddInstance<IApplicationEnvironment>(precompilationApplicationEnvironment);
-
-            return collection.BuildServiceProvider(provider);
+            return collection.BuildFallbackServiceProvider();
         }
 
         private class PrecompilationApplicationEnvironment : IApplicationEnvironment
