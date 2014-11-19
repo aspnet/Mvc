@@ -37,7 +37,6 @@ namespace Microsoft.AspNet.Mvc
             sc.AddInstance<IOptions<RazorViewEngineOptions>>(accessor);
             sc.Add(MvcServices.GetDefaultServices());
 
-            //var viewCompiler = new RazorPreCompiler(new DelegatingServiceProvider(_appServices, sc.BuildServiceProvider()));
             var viewCompiler = new RazorPreCompiler(BuildFallbackServiceProvider(sc, _appServices));
             viewCompiler.CompileViews(context);
         }
