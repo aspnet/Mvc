@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                                                bindingContext.ModelName);
                 }
 
-                var validationContext = new ModelValidationContext( bindingContext.OperationBindingContext.MetadataProvider,
+                var validationContext = new ModelValidationContext(bindingContext.OperationBindingContext.MetadataProvider,
                                                                    bindingContext.OperationBindingContext.ValidatorProvider,
                                                                    bindingContext.ModelState,
                                                                    bindingContext.ModelMetadata,
@@ -89,7 +89,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 newBindingContext.ValidationNode.Validate(validationContext, parentNode: null);
             }
 
-            bindingContext.OperationBindingContext = newBindingContext.OperationBindingContext;
+            bindingContext.OperationBindingContext.ModelBinderMetadataState = 
+                newBindingContext.OperationBindingContext.ModelBinderMetadataState;
             bindingContext.Model = newBindingContext.Model;
             return true;
         }
@@ -130,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelName = modelName,
                 ModelState = oldBindingContext.ModelState,
                 ValueProvider = oldBindingContext.ValueProvider,
-                OperationBindingContext = oldBindingContext.OperationBindingContext,
+                OperationBindingContext = GetNewOperationBindingContext(oldBindingContext),
                 PropertyFilter = oldBindingContext.PropertyFilter,
             };
 
@@ -140,31 +141,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 newBindingContext.ValidationNode = oldBindingContext.ValidationNode;
             }
 
-            var binderMetadata = oldBindingContext.ModelMetadata.BinderMetadata;
-            bool oldIsFormatterBasedMetadataFound = oldBindingContext.OperationBindingContext.IsFormatterBasedMetadataFound;
-            bool oldIsFormBasedMetadataFound = oldBindingContext.OperationBindingContext.IsFormBasedMetadataFound;
-            bool newIsFormatterBasedMetadataFound = binderMetadata is IFormatterBinderMetadata;
-            bool newIsFormBasedMetadataFound = binderMetadata is IFormDataValueProviderMetadata;
-
-            var currentModelNeedsToReadBody = newIsFormatterBasedMetadataFound || newIsFormBasedMetadataFound;
-            if (oldIsFormatterBasedMetadataFound && currentModelNeedsToReadBody ||
-                oldIsFormBasedMetadataFound && newIsFormatterBasedMetadataFound)
-            {
-                throw new InvalidOperationException(Resources.MultipleBodyParametersOrPropertiesAreNotAllowed);
-            }
-
-            if (!oldIsFormBasedMetadataFound)
-            {
-                newBindingContext.OperationBindingContext.IsFormBasedMetadataFound = newIsFormBasedMetadataFound;
-            }
-
-            if (!oldIsFormatterBasedMetadataFound)
-            {
-                newBindingContext.OperationBindingContext.IsFormatterBasedMetadataFound = newIsFormatterBasedMetadataFound;
-            }
-
             // look at the value providers and see if they need to be restricted.
-            var metadata = binderMetadata as IValueProviderMetadata;
+            var metadata = oldBindingContext.ModelMetadata.BinderMetadata as IValueProviderMetadata;
             if (metadata != null)
             {
                 // ValueProvider property might contain a filtered list of value providers. 
@@ -173,7 +151,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // of all value providers. This is so that every artifact that is explicitly marked using an
                 // IValueProviderMetadata can restrict model binding to only use value providers which support this 
                 // IValueProviderMetadata.
-                var valueProvider = oldBindingContext.OperationBindingContext.OriginalValueProvider as IMetadataAwareValueProvider;
+                var valueProvider = oldBindingContext.OperationBindingContext.ValueProvider as IMetadataAwareValueProvider;
                 if (valueProvider != null)
                 {
                     newBindingContext.ValueProvider = valueProvider.Filter(metadata);
@@ -181,6 +159,37 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return newBindingContext;
+        }
+
+        private static OperationBindingContext GetNewOperationBindingContext(ModelBindingContext oldBindingContext)
+        {
+            var binderMetadata = oldBindingContext.ModelMetadata.BinderMetadata;
+            var newIsFormatterBasedMetadataFound = binderMetadata is IFormatterBinderMetadata;
+            var newIsFormBasedMetadataFound = binderMetadata is IFormDataValueProviderMetadata;
+            var currentModelNeedsToReadBody = newIsFormatterBasedMetadataFound || newIsFormBasedMetadataFound;
+            var oldState = oldBindingContext.OperationBindingContext.ModelBinderMetadataState;
+
+            // We need to throw if there are multiple models which can cause body to be read multiple times. 
+            // Reading form data multiple times is ok since we cache form data. For the models marked to read using
+            // formatters, multiple reads are not allowed.
+            if (oldState == ModelBinderMetadataState.FormatterBased && currentModelNeedsToReadBody ||
+                oldState == ModelBinderMetadataState.FormBased && newIsFormatterBasedMetadataFound)
+            {
+                throw new InvalidOperationException(Resources.MultipleBodyParametersOrPropertiesAreNotAllowed);
+            }
+            
+            var newOperationBindingContext = new OperationBindingContext(oldBindingContext.OperationBindingContext);
+            if (newIsFormatterBasedMetadataFound)
+            {
+                newOperationBindingContext.ModelBinderMetadataState = ModelBinderMetadataState.FormatterBased;
+            }
+            else if (newIsFormBasedMetadataFound && oldState != ModelBinderMetadataState.FormatterBased)
+            {
+                // Only update the model binding state if we have not discovered formatter based state already. 
+                newOperationBindingContext.ModelBinderMetadataState = ModelBinderMetadataState.FormBased;
+            }
+
+            return newOperationBindingContext;
         }
     }
 }

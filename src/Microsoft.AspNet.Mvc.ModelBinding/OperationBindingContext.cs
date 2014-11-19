@@ -26,31 +26,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <remarks>
         /// This constructor copies certain values that won't change between model binding two un related models.
         /// </remarks>
-        public OperationBindingContext(OperationBindingContext bindingContext)
+        public OperationBindingContext([NotNull] OperationBindingContext bindingContext)
         {
-            if (bindingContext != null)
-            {
-                OriginalValueProvider = bindingContext.OriginalValueProvider;
-                MetadataProvider = bindingContext.MetadataProvider;
-                ModelBinder = bindingContext.ModelBinder;
-                ValidatorProvider = bindingContext.ValidatorProvider;
-                HttpContext = bindingContext.HttpContext;
-                IsFormBasedMetadataFound = bindingContext.IsFormBasedMetadataFound;
-                IsFormatterBasedMetadataFound = bindingContext.IsFormatterBasedMetadataFound;
-            }
+            ValueProvider = bindingContext.ValueProvider;
+            MetadataProvider = bindingContext.MetadataProvider;
+            ModelBinder = bindingContext.ModelBinder;
+            ValidatorProvider = bindingContext.ValidatorProvider;
+            HttpContext = bindingContext.HttpContext;
+            ModelBinderMetadataState = bindingContext.ModelBinderMetadataState;
         }
 
         /// <summary>
-        /// Gets or sets a value which represents if there is a <see cref="IFormatterBinderMetadata"/> that
-        /// has been found during the current model binding process.
+        /// Represents if there has been a body bound model found during the current model binding process.
         /// </summary>
-        public bool IsFormatterBasedMetadataFound { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value which represents if there is a <see cref="IFormDataValueProviderMetadata"/> that
-        /// has been found during the current model binding process.
-        /// </summary>
-        public bool IsFormBasedMetadataFound { get; set; }
+        public ModelBinderMetadataState ModelBinderMetadataState { get; set; } = ModelBinderMetadataState.NotBodyBased;
 
         /// <summary>
         /// Gets or sets the <see cref="HttpContext"/> for the current request.
@@ -61,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets unaltered value provider collection.
         /// Value providers can be filtered by specific model binders.
         /// </summary>
-        public IValueProvider OriginalValueProvider { get; set; }
+        public IValueProvider ValueProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IModelBinder"/> associated with this context.

@@ -144,7 +144,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (valueProviderMetadata != null)
             {
                 // if there is a binder metadata and since the property can be bound using a value provider.
-                var metadataAwareValueProvider = bindingContext.OperationBindingContext.OriginalValueProvider as IMetadataAwareValueProvider;
+                var metadataAwareValueProvider = bindingContext.OperationBindingContext.ValueProvider as IMetadataAwareValueProvider;
                 if (metadataAwareValueProvider != null)
                 {
                     valueProvider = metadataAwareValueProvider.Filter(valueProviderMetadata);

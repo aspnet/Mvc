@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     ValueProvider = mockValueProvider.Object,
                     OperationBindingContext = new OperationBindingContext
                     {
-                        OriginalValueProvider = mockValueProvider.Object,
+                        ValueProvider = mockValueProvider.Object,
                         MetadataProvider = new DataAnnotationsModelMetadataProvider(),
                         ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
                     },
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             bindingContext.ModelBindingContext.ModelMetadata.ModelName = isPrefixProvided ? "prefix" : null;
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);
 
             // Act
@@ -82,7 +82,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     OperationBindingContext = new OperationBindingContext
                     {
                         ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                        OriginalValueProvider = mockValueProvider.Object,
+                        ValueProvider = mockValueProvider.Object,
                         MetadataProvider = new DataAnnotationsModelMetadataProvider()
                     }
                 }
@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             bindingContext.ModelBindingContext.ModelName = emptyModelName ? string.Empty : "dummyModelName";
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);
 
             // Act
@@ -168,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     OperationBindingContext = new OperationBindingContext
                     {
                         ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                        OriginalValueProvider = mockValueProvider.Object,
+                        ValueProvider = mockValueProvider.Object,
                         MetadataProvider = new DataAnnotationsModelMetadataProvider(),
                     },
 
@@ -178,7 +178,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);
 
             // Act
@@ -212,7 +212,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     OperationBindingContext = new OperationBindingContext
                     {
                         ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                        OriginalValueProvider = mockValueProvider.Object,
+                        ValueProvider = mockValueProvider.Object,
                         MetadataProvider = new DataAnnotationsModelMetadataProvider(),
                     },
                     // Setting it to empty ensures that model does not get created becasue of no model name.
@@ -221,7 +221,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);
 
             // Act
@@ -263,7 +263,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     ValueProvider = mockValueProvider.Object,
                     OperationBindingContext = new OperationBindingContext
                     {
-                        OriginalValueProvider = mockOriginalValueProvider.Object,
+                        ValueProvider = mockOriginalValueProvider.Object,
                         MetadataProvider = new DataAnnotationsModelMetadataProvider(),
                         ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
                     },
@@ -274,7 +274,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);
 
             // Act
@@ -308,7 +308,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     OperationBindingContext = new OperationBindingContext
                     {
                         ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                        OriginalValueProvider = mockOriginalValueProvider.Object,
+                        ValueProvider = mockOriginalValueProvider.Object,
                         MetadataProvider = new DataAnnotationsModelMetadataProvider(),
                     },
                     // Setting it to empty ensures that model does not get created becasue of no model name.
@@ -317,7 +317,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForPropertiesPublic(
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);
 
             // Act
@@ -359,7 +359,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder.Setup(o => o.EnsureModelPublic(bindingContext)).Verifiable();
-            testableBinder.Setup(o => o.GetMetadataForPropertiesPublic(bindingContext))
+            testableBinder.Setup(o => o.GetMetadataForProperties(bindingContext))
                               .Returns(new ModelMetadata[0]).Verifiable();
 
             // Act
@@ -404,7 +404,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder.Setup(o => o.EnsureModelPublic(bindingContext)).Verifiable();
-            testableBinder.Setup(o => o.GetMetadataForPropertiesPublic(bindingContext))
+            testableBinder.Setup(o => o.GetMetadataForProperties(bindingContext))
                               .Returns(new ModelMetadata[0]).Verifiable();
 
             // Act
@@ -563,7 +563,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            var propertyMetadatas = testableBinder.GetMetadataForPropertiesPublic(bindingContext);
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
             var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
 
             // Assert
@@ -596,7 +596,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            var propertyMetadatas = testableBinder.GetMetadataForPropertiesPublic(bindingContext);
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
             var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
 
             // Assert
@@ -632,7 +632,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            var propertyMetadatas = testableBinder.GetMetadataForPropertiesPublic(bindingContext);
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
             var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
 
             // Assert
@@ -669,7 +669,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            var propertyMetadatas = testableBinder.GetMetadataForPropertiesPublic(bindingContext);
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
             var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
 
             // Assert
@@ -1460,14 +1460,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 EnsureModelPublic(bindingContext);
             }
 
-            public virtual IEnumerable<ModelMetadata> GetMetadataForPropertiesPublic(ModelBindingContext bindingContext)
+            public new IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
             {
                 return base.GetMetadataForProperties(bindingContext);
-            }
-
-            protected override IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
-            {
-                return GetMetadataForPropertiesPublic(bindingContext);
             }
 
             public virtual void SetPropertyPublic(ModelBindingContext bindingContext,

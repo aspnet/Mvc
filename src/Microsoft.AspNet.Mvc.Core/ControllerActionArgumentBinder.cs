@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc
                 ValidatorProvider = actionBindingContext.ValidatorProvider,
                 MetadataProvider = actionBindingContext.MetadataProvider,
                 HttpContext = actionBindingContext.ActionContext.HttpContext,
-                OriginalValueProvider = actionBindingContext.ValueProvider,
+                ValueProvider = actionBindingContext.ValueProvider,
             };
 
             foreach (var parameter in parameterMetadata)

@@ -174,7 +174,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task CanBind_MultiplePoperties_UsingFromForm()
+        public async Task CanBind_MultipleProperties_UsingFromForm()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
