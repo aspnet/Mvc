@@ -20,7 +20,7 @@ namespace FiltersWebSite
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            context.ActionArguments["randomNumber"] = _random.GetRandamNumber();
+            context.ActionArguments["randomNumber"] = _random.GetRandomNumber();
         }
     }
 }

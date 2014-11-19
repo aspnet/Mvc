@@ -222,7 +222,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 .Verify(f => f.OnResultExecuted(It.IsAny<ResultExecutedContext>()), Times.Never());
         }
 
-        private static ActionExecutingContext CreateActionExecutingContext(IFilter filter)
+        public static ActionExecutingContext CreateActionExecutingContext(IFilter filter)
         {
             return new ActionExecutingContext(
                 CreateActionContext(),
@@ -230,7 +230,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 new Dictionary<string, object>());
         }
 
-        private static ActionExecutedContext CreateActionExecutedContext(ActionExecutingContext context)
+        public static ActionExecutedContext CreateActionExecutedContext(ActionExecutingContext context)
         {
             return new ActionExecutedContext(context, context.Filters)
             {
@@ -238,7 +238,7 @@ namespace Microsoft.AspNet.Mvc.Test
             };
         }
 
-        private static ResultExecutingContext CreateResultExecutingContext(IFilter filter)
+        public static ResultExecutingContext CreateResultExecutingContext(IFilter filter)
         {
             return new ResultExecutingContext(
                 CreateActionContext(),
@@ -246,12 +246,12 @@ namespace Microsoft.AspNet.Mvc.Test
                 new NoOpResult());
         }
 
-        private static ResultExecutedContext CreateResultExecutedContext(ResultExecutingContext context)
+        public static ResultExecutedContext CreateResultExecutedContext(ResultExecutingContext context)
         {
             return new ResultExecutedContext(context, context.Filters, context.Result);
         }
 
-        private static ActionContext CreateActionContext()
+        public static ActionContext CreateActionContext()
         {
             return new ActionContext(Mock.Of<HttpContext>(), new RouteData(), new ActionDescriptor());
         }
