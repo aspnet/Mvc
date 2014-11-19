@@ -31,17 +31,35 @@ namespace Microsoft.AspNet.Mvc
 
             var setup = new RazorViewEngineOptionsSetup(appEnv);
             var accessor = new OptionsManager<RazorViewEngineOptions>(new[] { setup });
+            sc.Import(_appServices);
             sc.AddInstance<IOptions<RazorViewEngineOptions>>(accessor);
             sc.Add(MvcServices.GetDefaultServices());
-            var sp = sc.BuildServiceProvider(_appServices);
 
-            var viewCompiler = new RazorPreCompiler(sp);
+            var viewCompiler = new RazorPreCompiler(new DelegatingServiceProvider(_appServices, sc.BuildServiceProvider()));
             viewCompiler.CompileViews(context);
         }
 
         public void AfterCompile(IAfterCompileContext context)
         {
         }
+
+        private class DelegatingServiceProvider : IServiceProvider
+        {
+            private readonly IServiceProvider _fallback;
+            private readonly IServiceProvider _services;
+
+            public DelegatingServiceProvider(IServiceProvider fallback, IServiceProvider services)
+            {
+                _fallback = fallback;
+                _services = services;
+            }
+
+            public object GetService(Type serviceType)
+            {
+                return _services.GetService(serviceType) ?? _fallback.GetService(serviceType);
+            }
+        }
+
     }
 }
 

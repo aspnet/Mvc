@@ -37,6 +37,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var appBasePath =  CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, applicationPath);
 
             var services = new ServiceCollection();
+            services.Import(originalProvider);
             services.AddInstance(
                 typeof(IApplicationEnvironment),
                 new TestApplicationEnvironment(appEnvironment, appBasePath));
@@ -58,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 typeof(ILoggerFactory),
                 NullLoggerFactory.Instance);
 
-            return services.BuildServiceProvider(originalProvider);
+            return new DelegatingServiceProvider(originalProvider, services.BuildServiceProvider());
         }
 
         // Calculate the path relative to the application base path.

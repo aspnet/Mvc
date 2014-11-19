@@ -19,8 +19,7 @@ namespace AutofacWebSite
 
                 var builder = new ContainerBuilder();
                 AutofacRegistration.Populate(builder, 
-                                             services, 
-                                             fallbackServiceProvider: app.ApplicationServices);
+                                             services);
 
                 var container = builder.Build();
 

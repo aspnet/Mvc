@@ -36,9 +36,10 @@ namespace PrecompilationWebSite
                 newPath);
 
             var collection = new ServiceCollection();
+            collection.Import(provider);
             collection.AddInstance<IApplicationEnvironment>(precompilationApplicationEnvironment);
 
-            return collection.BuildServiceProvider(provider);
+            return new DelegatingServiceProvider(provider, collection.BuildServiceProvider());
         }
 
         private class PrecompilationApplicationEnvironment : IApplicationEnvironment
@@ -80,5 +81,23 @@ namespace PrecompilationWebSite
                 get { return _originalApplicationEnvironment.RuntimeFramework; }
             }
         }
+
+        private class DelegatingServiceProvider : IServiceProvider
+        {
+            private readonly IServiceProvider _fallback;
+            private readonly IServiceProvider _services;
+
+            public DelegatingServiceProvider(IServiceProvider fallback, IServiceProvider services)
+            {
+                _fallback = fallback;
+                _services = services;
+            }
+
+            public object GetService(Type serviceType)
+            {
+                return _services.GetService(serviceType) ?? _fallback.GetService(serviceType);
+            }
+        }
+
     }
 }

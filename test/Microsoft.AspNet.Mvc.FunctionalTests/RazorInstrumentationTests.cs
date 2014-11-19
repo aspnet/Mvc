@@ -209,7 +209,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var services = new ServiceCollection();
             services.AddInstance(pageExecutionContext);
-            return services.BuildServiceProvider(_services);
+            return new DelegatingServiceProvider(_services, services.BuildServiceProvider());
         }
     }
 }
