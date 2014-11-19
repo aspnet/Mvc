@@ -110,7 +110,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var services = new ServiceCollection();
             services.AddInstance(waitService);
-            return new DelegatingServiceProvider(_provider, services.BuildServiceProvider());
+            return TestHelper.BuildFallbackServiceProvider(services, _provider);
         }
 
         private string GetTrimmedString(Stream stream)

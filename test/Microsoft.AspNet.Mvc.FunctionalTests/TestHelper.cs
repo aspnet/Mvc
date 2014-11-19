@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
+using Microsoft.Framework.DependencyInjection.ServiceLookup;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
@@ -34,10 +37,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // To compensate for this, we need to calculate the original path and override the application
             // environment value so that components like the view engine work properly in the context of the
             // test.
-            var appBasePath =  CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, applicationPath);
+            var appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, applicationPath);
 
             var services = new ServiceCollection();
-            services.Import(originalProvider);
             services.AddInstance(
                 typeof(IApplicationEnvironment),
                 new TestApplicationEnvironment(appEnvironment, appBasePath));
@@ -59,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 typeof(ILoggerFactory),
                 NullLoggerFactory.Instance);
 
-            return new DelegatingServiceProvider(originalProvider, services.BuildServiceProvider());
+            return BuildFallbackServiceProvider(services, originalProvider);
         }
 
         // Calculate the path relative to the application base path.
@@ -106,6 +108,35 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 CallContextServiceLocator.Locator.ServiceProvider = _originalProvider;
             }
+        }
+
+        public static IServiceProvider BuildFallbackServiceProvider(IEnumerable<IServiceDescriptor> services, IServiceProvider fallback)
+        {
+            var sc = new ServiceCollection();
+            sc.Import(fallback);
+            sc.Add(services);
+
+            // Build the manifest
+            var manifestTypes = services.Where(t => t.ServiceType.GetTypeInfo().GenericTypeParameters.Length == 0
+                    && t.ServiceType != typeof(IServiceManifest)
+                    && t.ServiceType != typeof(IServiceProvider))
+                    .Select(t => t.ServiceType).Distinct();
+            sc.AddInstance<IServiceManifest>(new ServiceManifest(manifestTypes, fallback.GetRequiredService<IServiceManifest>()));
+            return new DelegatingServiceProvider(fallback, sc.BuildServiceProvider());
+        }
+
+        private class ServiceManifest : IServiceManifest
+        {
+            public ServiceManifest(IEnumerable<Type> services, IServiceManifest fallback = null)
+            {
+                Services = services;
+                if (fallback != null)
+                {
+                    Services = Services.Concat(fallback.Services).Distinct();
+                }
+            }
+
+            public IEnumerable<Type> Services { get; private set; }
         }
     }
 }

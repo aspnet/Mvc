@@ -21,9 +21,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public InlineConstraintTests()
         {
             var services = new ServiceCollection()
-                .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>()
-                .BuildServiceProvider();
-            _provider = new DelegatingServiceProvider(TestHelper.CreateServices("InlineConstraintsWebSite"), services);
+                .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>();
+            _provider = TestHelper.BuildFallbackServiceProvider(services,
+                TestHelper.CreateServices("InlineConstraintsWebSite"));
         }
 
         [Fact]

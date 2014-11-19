@@ -22,7 +22,7 @@ namespace RoutingWebSite
             // we explicitly use "v1" to generate a v1 route.
             return _generator.Generate(
                 Url.Action(),
-                Url.RouteUrl("v10"),
+                Url.RouteUrl("v1"),
                 Url.RouteUrl(new { }));
         }
 
