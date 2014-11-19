@@ -29,22 +29,30 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelBindingContext"/> class using the
-        /// <param name="bindingContext" />.
-        // </summary>
+        /// <paramref name="bindingContext" />.
+        /// </summary>
+        /// <param name="bindingContext">Existing <see cref="ModelBindingContext"/>.</param>
+        /// <param name="modelName">Model name of associated with the new <see cref="ModelBindingContext"/>.</param>
+        /// <param name="modelMetadata">Model metadata of associated with the new <see cref="ModelBindingContext"/>.
+        /// </param>
         /// <remarks>
         /// This constructor copies certain values that won't change between parent and child objects,
         /// e.g. ValueProvider, ModelState
         /// </remarks>
-        public ModelBindingContext(ModelBindingContext bindingContext)
+        public ModelBindingContext([NotNull] ModelBindingContext bindingContext,
+                                   [NotNull] string modelName,
+                                   [NotNull] ModelMetadata modelMetadata)
         {
-            if (bindingContext != null)
-            {
-                ModelState = bindingContext.ModelState;
-                ValueProvider = bindingContext.ValueProvider;
-                OperationBindingContext = bindingContext.OperationBindingContext;
-            }
+            ModelName = modelName;
+            ModelMetadata = modelMetadata;
+            ModelState = bindingContext.ModelState;
+            ValueProvider = bindingContext.ValueProvider;
+            OperationBindingContext = bindingContext.OperationBindingContext;
         }
 
+        /// <summary>
+        /// Represents the <see cref="OperationBindingContext"/> associated with this context. 
+        /// </summary>
         public OperationBindingContext OperationBindingContext { get; set; }
 
         /// <summary>

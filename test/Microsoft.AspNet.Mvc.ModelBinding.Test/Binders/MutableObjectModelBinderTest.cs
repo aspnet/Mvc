@@ -360,7 +360,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder.Setup(o => o.EnsureModelPublic(bindingContext)).Verifiable();
             testableBinder.Setup(o => o.GetMetadataForProperties(bindingContext))
-                              .Returns(new ModelMetadata[0]).Verifiable();
+                              .Returns(new ModelMetadata[0]);
 
             // Act
             var retValue = await testableBinder.Object.BindModelAsync(bindingContext);
@@ -405,7 +405,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder.Setup(o => o.EnsureModelPublic(bindingContext)).Verifiable();
             testableBinder.Setup(o => o.GetMetadataForProperties(bindingContext))
-                              .Returns(new ModelMetadata[0]).Verifiable();
+                              .Returns(new ModelMetadata[0]);
 
             // Act
             var retValue = await testableBinder.Object.BindModelAsync(bindingContext);
@@ -1460,7 +1460,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 EnsureModelPublic(bindingContext);
             }
 
-            public new IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
+            public virtual new IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
             {
                 return base.GetMetadataForProperties(bindingContext);
             }

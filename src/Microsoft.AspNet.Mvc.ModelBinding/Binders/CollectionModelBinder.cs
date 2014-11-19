@@ -47,10 +47,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
             {
-                var innerBindingContext = new ModelBindingContext(bindingContext)
+                var innerModelMetadata = 
+                    bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement));
+                var innerBindingContext = new ModelBindingContext(bindingContext,
+                                                                  bindingContext.ModelName,
+                                                                  innerModelMetadata)
                 {
-                    ModelMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
-                    ModelName = bindingContext.ModelName,
                     ValueProvider = new CompositeValueProvider
                     {
                         // our temporary provider goes at the front of the list
@@ -99,11 +101,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelBindingHelper.CreateIndexModelName(bindingContext.ModelName, indexName);
-                var childBindingContext = new ModelBindingContext(bindingContext)
-                {
-                    ModelMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement)),
-                    ModelName = fullChildName
-                };
+                var childModelMetadata = 
+                    bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement));
+                var childBindingContext = new ModelBindingContext(bindingContext, fullChildName, childModelMetadata);
 
                 var didBind = false;
                 object boundValue = null;

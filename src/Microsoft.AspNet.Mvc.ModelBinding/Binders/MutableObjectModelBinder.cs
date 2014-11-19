@@ -215,12 +215,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // create a DTO and call into the DTO binder
             var originalDto = new ComplexModelDto(bindingContext.ModelMetadata, propertyMetadatas);
-            var dtoBindingContext = new ModelBindingContext(bindingContext)
-            {
-                ModelMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(() => originalDto,
-                                                                                   typeof(ComplexModelDto)),
-                ModelName = bindingContext.ModelName
-            };
+            var complexModelDtoMetadata =
+                bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(() => originalDto,
+                                                                                   typeof(ComplexModelDto));
+            var dtoBindingContext = 
+                new ModelBindingContext(bindingContext, bindingContext.ModelName, complexModelDtoMetadata);
 
             await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(dtoBindingContext);
             return (ComplexModelDto)dtoBindingContext.Model;
