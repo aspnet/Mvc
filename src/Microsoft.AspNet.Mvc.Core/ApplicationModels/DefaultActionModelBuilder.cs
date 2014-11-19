@@ -34,8 +34,12 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // The set of route attributes are split into those that 'define' a route versus those that are
             // 'silent'.
             //
-            // We need to define from action for each attribute that 'defines' a route, and a single action
+            // We need to define an action for each attribute that 'defines' a route, and a single action
             // for all of the ones that don't (if any exist).
+            //
+            // If the attribute that 'defines' a route is NOT an IActionHttpMethodProvider, then we'll include with
+            // it, any IActionHttpMethodProvider that are 'silent' IRouteTemplateProviders. In this case the 'extra'
+            // action for silent route providers isn't needed.
             // 
             // Ex:
             // [HttpGet]
@@ -49,9 +53,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             //
             // Note that having a route attribute that doesn't define a route template _might_ be an error. We
             // don't have enough context to really know at this point so we just pass it on.
-            var splitAttributes = new List<object>();
-
-            var hasSilentRouteAttribute = false;
+            var routeProviders = new List<object>();
+            
+            var createActionForSilentRouteProviders = false;
             foreach (var attribute in attributes)
             {
                 var routeTemplateProvider = attribute as IRouteTemplateProvider;
@@ -59,34 +63,67 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 {
                     if (IsSilentRouteAttribute(routeTemplateProvider))
                     {
-                        hasSilentRouteAttribute = true;
+                        createActionForSilentRouteProviders = true;
                     }
                     else
                     {
-                        splitAttributes.Add(attribute);
+                        routeProviders.Add(attribute);
                     }
                 }
             }
 
+            foreach (var routeProvider in routeProviders)
+            {
+                // If we see an attribute like
+                // [Route(...)]
+                //
+                // Then we want to group any attributes like [HttpGet] with it.
+                //
+                // Basically...
+                //
+                // [HttpGet]
+                // [HttpPost("Products")]
+                // public void Foo() { }
+                // 
+                // Is two actions. And...
+                //
+                // [HttpGet]
+                // [Route("Products")]
+                // public void Foo() { }
+                //
+                // Is one action.
+                if (!(routeProvider is IActionHttpMethodProvider))
+                {
+                    createActionForSilentRouteProviders = false;
+                }
+            }
+
             var actionModels = new List<ActionModel>();
-            if (splitAttributes.Count == 0 && !hasSilentRouteAttribute)
+            if (routeProviders.Count == 0 && !createActionForSilentRouteProviders)
             {
                 actionModels.Add(CreateActionModel(methodInfo, attributes));
             }
             else
             {
-                foreach (var splitAttribute in splitAttributes)
+                foreach (var routeProvider in routeProviders)
                 {
                     var filteredAttributes = new List<object>();
                     foreach (var attribute in attributes)
                     {
-                        if (attribute == splitAttribute)
+                        if (attribute == routeProvider)
                         {
                             filteredAttributes.Add(attribute);
                         }
-                        else if (attribute is IRouteTemplateProvider)
+                        else if (routeProviders.Contains(attribute))
                         {
                             // Exclude other route template providers
+                        }
+                        else if (
+                            routeProvider is IActionHttpMethodProvider &&
+                            attribute is IActionHttpMethodProvider)
+                        {
+                            // Exclude other http method providers if this route is an
+                            // http method provider.
                         }
                         else
                         {
@@ -97,12 +134,12 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                     actionModels.Add(CreateActionModel(methodInfo, filteredAttributes));
                 }
 
-                if (hasSilentRouteAttribute)
+                if (createActionForSilentRouteProviders)
                 {
                     var filteredAttributes = new List<object>();
                     foreach (var attribute in attributes)
                     {
-                        if (!splitAttributes.Contains(attribute))
+                        if (!routeProviders.Contains(attribute))
                         {
                             filteredAttributes.Add(attribute);
                         }
@@ -252,8 +289,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                     .SelectMany(a => a.HttpMethods)
                     .Distinct());
 
-            var routeTemplateProvider = attributes.OfType<IRouteTemplateProvider>().FirstOrDefault();
-            if (routeTemplateProvider != null && !IsSilentRouteAttribute(routeTemplateProvider))
+            var routeTemplateProvider = 
+                attributes
+                .OfType<IRouteTemplateProvider>()
+                .Where(a => !IsSilentRouteAttribute(a))
+                .FirstOrDefault();
+
+            if (routeTemplateProvider != null)
             {
                 actionModel.AttributeRouteModel = new AttributeRouteModel(routeTemplateProvider);
             }
