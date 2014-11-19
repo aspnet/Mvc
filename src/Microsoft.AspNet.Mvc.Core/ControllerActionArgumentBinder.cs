@@ -43,9 +43,9 @@ namespace Microsoft.AspNet.Mvc
                 var metadata = metadataProvider.GetMetadataForParameter(
                     modelAccessor: null,
                     methodInfo: actionDescriptor.MethodInfo,
-                    parameterName: parameter.Name,
-                    binderMetadata: parameter.BinderMetadata);
+                    parameterName: parameter.Name);
 
+                UpdateParameterMetadata(metadata, parameter.BinderMetadata);
                 if (metadata != null)
                 {
                     parameterMetadata.Add(metadata);
@@ -55,6 +55,20 @@ namespace Microsoft.AspNet.Mvc
             var actionArguments = new Dictionary<string, object>(StringComparer.Ordinal);
             await PopulateArgumentAsync(actionBindingContext, actionArguments, parameterMetadata);
             return actionArguments;
+        }
+
+        private void UpdateParameterMetadata(ModelMetadata metadata, IBinderMetadata binderMetadata)
+        {
+            if (binderMetadata != null)
+            {
+                metadata.BinderMetadata = binderMetadata;
+            }
+
+            var nameProvider = binderMetadata as IModelNameProvider;
+            if (nameProvider != null && nameProvider.Name != null)
+            {
+                metadata.BinderModelNamePrefix = nameProvider.Name;
+            }
         }
 
         private async Task PopulateArgumentAsync(
@@ -82,23 +96,23 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        internal static ModelBindingContext GetModelBindingContext(ModelMetadata modelMetadata, 
+        internal static ModelBindingContext GetModelBindingContext(ModelMetadata modelMetadata,
                                                                    ActionBindingContext actionBindingContext,
                                                                    OperationBindingContext operationBindingContext)
         {
             Predicate<string> propertyFilter =
                 propertyName => BindAttribute.IsPropertyAllowed(propertyName,
-                                                                modelMetadata.IncludedProperties,
-                                                                modelMetadata.ExcludedProperties);
+                                                                modelMetadata.BinderIncludeProperties,
+                                                                modelMetadata.BinderExcludeProperties);
 
             var modelBindingContext = new ModelBindingContext
             {
-                ModelName = modelMetadata.ModelName ?? modelMetadata.PropertyName,
+                ModelName = modelMetadata.BinderModelNamePrefix ?? modelMetadata.PropertyName,
                 ModelMetadata = modelMetadata,
                 ModelState = actionBindingContext.ActionContext.ModelState,
                 PropertyFilter = propertyFilter,
                 // Fallback only if there is no explicit model name set.
-                FallbackToEmptyPrefix = modelMetadata.ModelName == null,
+                FallbackToEmptyPrefix = modelMetadata.BinderModelNamePrefix == null,
                 ValueProvider = actionBindingContext.ValueProvider,
                 OperationBindingContext = operationBindingContext,
             };

@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var bindingContext = context.ModelBindingContext;
             var isTopLevelObject = bindingContext.ModelMetadata.ContainerType == null;
-            var isThereAnExplicitAlias = bindingContext.ModelMetadata.ModelName != null;
+            var isThereAnExplicitAlias = bindingContext.ModelMetadata.BinderModelNamePrefix != null;
             
             // The fact that this has reached here, 
             // it is a complex object which was not directly bound by any previous model binders. 
@@ -268,19 +268,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         protected virtual IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
         {
             var validationInfo = GetPropertyValidationInfo(bindingContext);
-            var propertyTypeMetadata = bindingContext.OperationBindingContext
-                                                     .MetadataProvider
-                                                     .GetMetadataForType(null, bindingContext.ModelType);
-            Predicate<string> newPropertyFilter =
-                propertyName => bindingContext.PropertyFilter(propertyName) &&
-                                BindAttribute.IsPropertyAllowed(
-                                                propertyName,
-                                                propertyTypeMetadata.IncludedProperties,
-                                                propertyTypeMetadata.ExcludedProperties);
-
             return bindingContext.ModelMetadata.Properties
                                  .Where(propertyMetadata =>
-                                    newPropertyFilter(propertyMetadata.PropertyName) &&
+                                    bindingContext.PropertyFilter(propertyMetadata.PropertyName) &&
                                     (validationInfo.RequiredProperties.Contains(propertyMetadata.PropertyName) ||
                                     !validationInfo.SkipProperties.Contains(propertyMetadata.PropertyName)) &&
                                     CanUpdateProperty(propertyMetadata));

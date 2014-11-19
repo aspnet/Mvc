@@ -119,8 +119,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Act
             var parameterMetadata = provider.GetMetadataForParameter(null, 
                                                                     typeof(Person).GetMethod("Update"),
-                                                                    "person",
-                                                                    null);
+                                                                    "person");
 
             // Assert
             Assert.NotNull(parameterMetadata.BinderMetadata);
@@ -310,7 +309,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             public ModelMetadata CreateMetadataPrototypeReturnValue = null;
             public ModelMetadata CreateMetadataFromPrototypeReturnValue = null;
 
-            protected override ModelMetadata CreateMetadataPrototype(IEnumerable<Attribute> attributes, Type containerType, Type modelType, string propertyName)
+            protected override ModelMetadata CreateMetadataPrototype(IEnumerable<object> attributes, Type containerType, Type modelType, string propertyName)
             {
                 CreateMetadataPrototypeLog.Add(new CreateMetadataPrototypeParams
                 {
@@ -337,7 +336,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private class CreateMetadataPrototypeParams
         {
-            public IEnumerable<Attribute> Attributes { get; set; }
+            public IEnumerable<object> Attributes { get; set; }
             public Type ContainerType { get; set; }
             public Type ModelType { get; set; }
             public string PropertyName { get; set; }

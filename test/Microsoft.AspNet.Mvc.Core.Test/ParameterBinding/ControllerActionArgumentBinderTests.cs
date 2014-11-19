@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -20,6 +21,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         [Bind(Prefix = "TypePrefix")]
         public class MySimpleModelWithTypeBasedBind
+        {
+        }
+
+        public void ParameterWithNoBindAttribute(MySimpleModelWithTypeBasedBind foo)
         {
         }
 
@@ -42,6 +47,87 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
         }
 
+        [Fact]
+        public void GetMetadataForProperties_DoesNotReturn_ExcludedProperties()
+        {
+                // Arrange
+                var actionContext = new ActionContext(new RouteContext(Mock.Of<HttpContext>()),
+                                                  Mock.Of<ActionDescriptor>());
+
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var modelMetadata = metadataProvider.GetMetadataForType(
+                modelAccessor: null, modelType: typeof(TypeWithExcludedPropertiesUsingBindAttribute));
+
+            var actionBindingContext = new ActionBindingContext(actionContext,
+                                                          Mock.Of<IModelMetadataProvider>(),
+                                                          Mock.Of<IModelBinder>(),
+                                                          Mock.Of<IValueProvider>(),
+                                                          Mock.Of<IInputFormatterSelector>(),
+                                                          Mock.Of<IModelValidatorProvider>());
+            // Act
+            var context = DefaultControllerActionArgumentBinder.GetModelBindingContext(
+                modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
+
+            // Assert
+            Assert.False(context.PropertyFilter("Excluded1"));
+            Assert.False(context.PropertyFilter("Excluded2"));
+        }
+
+        [Fact]
+        public void GetMetadataForProperties_ReturnsOnlyWhiteListedProperties_UsingBindAttributeInclude()
+        {
+            // Arrange
+            var actionContext = new ActionContext(new RouteContext(Mock.Of<HttpContext>()),
+                                                  Mock.Of<ActionDescriptor>());
+
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var modelMetadata = metadataProvider.GetMetadataForType(
+                modelAccessor: null, modelType: typeof(TypeWithIncludedPropertiesUsingBindAttribute));
+
+            var actionBindingContext = new ActionBindingContext(actionContext,
+                                                          Mock.Of<IModelMetadataProvider>(),
+                                                          Mock.Of<IModelBinder>(),
+                                                          Mock.Of<IValueProvider>(),
+                                                          Mock.Of<IInputFormatterSelector>(),
+                                                          Mock.Of<IModelValidatorProvider>());
+            // Act
+            var context = DefaultControllerActionArgumentBinder.GetModelBindingContext(
+                modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
+
+            // Assert
+            Assert.True(context.PropertyFilter("IncludedExplicitly1"));
+            Assert.True(context.PropertyFilter("IncludedExplicitly2"));
+        }
+
+        [Fact]
+        public void GetModelBindingContext_UsesBindAttributeOnType_IfNoBindAttributeOnParameter_ForPrefix()
+        {
+            // Arrange
+            var type = typeof(ControllerActionArgumentBinderTests);
+            var methodInfo = type.GetMethod("ParameterWithNoBindAttribute");
+            var actionContext = new ActionContext(new RouteContext(Mock.Of<HttpContext>()),
+                                                  Mock.Of<ActionDescriptor>());
+
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var modelMetadata = metadataProvider.GetMetadataForParameter(modelAccessor: null,
+                                                                         methodInfo: methodInfo,
+                                                                         parameterName: "foo");
+
+
+            var actionBindingContext = new ActionBindingContext(actionContext,
+                                                          Mock.Of<IModelMetadataProvider>(),
+                                                          Mock.Of<IModelBinder>(),
+                                                          Mock.Of<IValueProvider>(),
+                                                          Mock.Of<IInputFormatterSelector>(),
+                                                          Mock.Of<IModelValidatorProvider>());
+            // Act
+            var context = DefaultControllerActionArgumentBinder.GetModelBindingContext(
+                modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
+
+            // Assert
+            Assert.Equal("TypePrefix", context.ModelName);
+        }
+
         [Theory]
         [InlineData("ParameterHasFieldPrefix", false, "bar")]
         [InlineData("ParameterHasEmptyFieldPrefix", false, "")]
@@ -59,8 +145,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var modelMetadata = metadataProvider.GetMetadataForParameter(modelAccessor: null,
                                                                          methodInfo: methodInfo,
-                                                                         parameterName: "foo",
-                                                                         binderMetadata: null);
+                                                                         parameterName: "foo");
 
 
             var actionBindingContext = new ActionBindingContext(actionContext,
@@ -70,8 +155,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                           Mock.Of<IInputFormatterSelector>(),
                                                           Mock.Of<IModelValidatorProvider>());
             // Act
-            var context = DefaultControllerActionArgumentBinder
-                            .GetModelBindingContext(modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
+            var context = DefaultControllerActionArgumentBinder.GetModelBindingContext(
+                modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
 
             // Assert
             Assert.Equal(expectedFallToEmptyPrefix, context.FallbackToEmptyPrefix);
@@ -94,8 +179,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var modelMetadata = metadataProvider.GetMetadataForParameter(modelAccessor: null,
                                                                          methodInfo: methodInfo,
-                                                                         parameterName: "foo1",
-                                                                         binderMetadata: null);
+                                                                         parameterName: "foo1");
 
 
             var actionBindingContext = new ActionBindingContext(actionContext,
@@ -105,8 +189,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                           Mock.Of<IInputFormatterSelector>(),
                                                           Mock.Of<IModelValidatorProvider>());
             // Act
-            var context = DefaultControllerActionArgumentBinder
-                            .GetModelBindingContext(modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
+            var context = DefaultControllerActionArgumentBinder.GetModelBindingContext(
+                modelMetadata, actionBindingContext, Mock.Of<OperationBindingContext>());
 
             // Assert
             Assert.Equal(expectedFallToEmptyPrefix, context.FallbackToEmptyPrefix);
@@ -212,6 +296,21 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(value, result["foo"]);
         }
 
+        private static ModelMetadata GetMetadataForType(Type t)
+        {
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            return metadataProvider.GetMetadataForType(null, t);
+        }
+
+        private static ModelMetadata GetMetadataForParameter(MethodInfo methodInfo, string parameterName)
+        {
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            return metadataProvider.GetMetadataForParameter(
+                modelAccessor: null,
+                methodInfo: methodInfo,
+                parameterName: parameterName);
+        }
+
         private class TestController
         {
             public string UnmarkedProperty { get; set; }
@@ -233,13 +332,35 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             }
         }
 
-
         private class NonValueProviderBinderMetadataAttribute : Attribute, IBinderMetadata
         {
         }
 
         private class ValueProviderMetadataAttribute : Attribute, IValueProviderMetadata
         {
+        }
+
+        [Bind(Exclude = nameof(Excluded1) + "," + nameof(Excluded2))]
+        private class TypeWithExcludedPropertiesUsingBindAttribute
+        {
+            public int Excluded1 { get; set; }
+
+            public int Excluded2 { get; set; }
+
+            public int IncludedByDefault1 { get; set; }
+            public int IncludedByDefault2 { get; set; }
+        }
+
+        [Bind(Include = nameof(IncludedExplicitly1) + "," + nameof(IncludedExplicitly2))]
+        private class TypeWithIncludedPropertiesUsingBindAttribute
+        {
+            public int ExcludedByDefault1 { get; set; }
+
+            public int ExcludedByDefault2 { get; set; }
+
+            public int IncludedExplicitly1 { get; set; }
+
+            public int IncludedExplicitly2 { get; set; }
         }
     }
 }

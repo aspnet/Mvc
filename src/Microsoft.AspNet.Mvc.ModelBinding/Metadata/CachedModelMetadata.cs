@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -30,6 +31,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private bool _isRequired;
         private bool _showForDisplay;
         private bool _showForEdit;
+        private IBinderMetadata _binderMetadata;
+        private string _binderModelNamePrefix;
+        private IReadOnlyList<string> _binderIncludeProperties;
+        private IReadOnlyList<string> _binderExcludeProperties;
 
         private bool _convertEmptyStringToNullComputed;
         private bool _nullDisplayTextComputed;
@@ -46,6 +51,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private bool _isRequiredComputed;
         private bool _showForDisplayComputed;
         private bool _showForEditComputed;
+        private bool _isBinderMetadataComputed;
+        private bool _isBinderIncludePropertiesComputed;
+        private bool _isBinderModelNamePrefixComputed;
+        private bool _isBinderExcludePropertiesComputed;
 
         // Constructor for creating real instances of the metadata class based on a prototype
         protected CachedModelMetadata(CachedModelMetadata<TPrototypeCache> prototype, Func<object> modelAccessor)
@@ -57,10 +66,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             CacheKey = prototype.CacheKey;
             PrototypeCache = prototype.PrototypeCache;
-            BinderMetadata = prototype.BinderMetadata;
-            IncludedProperties = prototype.IncludedProperties;
-            ExcludedProperties = prototype.ExcludedProperties;
-            ModelName = prototype.ModelName;
             _isComplexType = prototype.IsComplexType;
             _isComplexTypeComputed = true;
         }
@@ -169,6 +174,86 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 _displayFormatString = value;
                 _displayFormatStringComputed = true;
+            }
+        }
+
+        public sealed override IBinderMetadata BinderMetadata
+        {
+            get
+            {
+                if (!_isBinderMetadataComputed)
+                {
+                    _binderMetadata = ComputeBinderMetadata();
+                    _isBinderMetadataComputed = true;
+                }
+
+                return _binderMetadata;
+            }
+
+            set
+            {
+                _binderMetadata = value;
+                _isBinderMetadataComputed = true;
+            }
+        }
+
+        public sealed override IReadOnlyList<string> BinderIncludeProperties
+        {
+            get
+            {
+                if (!_isBinderIncludePropertiesComputed)
+                {
+                    _binderIncludeProperties = ComputeBinderIncludeProperties();
+                    _isBinderIncludePropertiesComputed = true;
+                }
+
+                return _binderIncludeProperties;
+            }
+
+            set
+            {
+                _binderIncludeProperties = value;
+                _isBinderIncludePropertiesComputed = true;
+            }
+        }
+
+        public sealed override IReadOnlyList<string> BinderExcludeProperties
+        {
+            get
+            {
+                if (!_isBinderExcludePropertiesComputed)
+                {
+                    _binderExcludeProperties = ComputeBinderExcludeProperties();
+                    _isBinderExcludePropertiesComputed = true;
+                }
+
+                return _binderExcludeProperties;
+            }
+
+            set
+            {
+                _binderExcludeProperties = value;
+                _isBinderExcludePropertiesComputed = true;
+            }
+        }
+
+        public sealed override string BinderModelNamePrefix
+        {
+            get
+            {
+                if (!_isBinderModelNamePrefixComputed)
+                {
+                    _binderModelNamePrefix = ComputeBinderModelNamePrefix();
+                    _isBinderModelNamePrefixComputed = true;
+                }
+
+                return _binderModelNamePrefix;
+            }
+
+            set
+            {
+                _binderModelNamePrefix = value;
+                _isBinderModelNamePrefixComputed = true;
             }
         }
 
@@ -376,6 +461,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         protected TPrototypeCache PrototypeCache { get; set; }
+
+        protected virtual IBinderMetadata ComputeBinderMetadata()
+        {
+            return base.BinderMetadata;
+        }
+
+        protected virtual IReadOnlyList<string> ComputeBinderIncludeProperties()
+        {
+            return base.BinderIncludeProperties;
+        }
+
+        protected virtual IReadOnlyList<string> ComputeBinderExcludeProperties()
+        {
+            return base.BinderExcludeProperties;
+        }
+
+        protected virtual string ComputeBinderModelNamePrefix()
+        {
+            return base.BinderModelNamePrefix;
+        }
 
         protected virtual bool ComputeConvertEmptyStringToNull()
         {

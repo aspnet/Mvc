@@ -45,12 +45,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = provider.GetMetadataForType(null, type);
 
             // Assert
-            Assert.Equal(expectedIncludedPropertyNames.ToList(), metadata.IncludedProperties);
-            Assert.Equal(expectedExcludedPropertyNames.ToList(), metadata.ExcludedProperties);
+            Assert.Equal(expectedIncludedPropertyNames.ToList(), metadata.BinderIncludeProperties);
+            Assert.Equal(expectedExcludedPropertyNames.ToList(), metadata.BinderExcludeProperties);
         }
 
         [Fact]
-        public void ModelMetadataProvider_ReadsIncludedAndExcludedProperties_OnlyAtParameterLevel_ForParameters()
+        public void ModelMetadataProvider_ReadsIncludedAndExcludedProperties_AtParameterAndType_ForParameters()
         {
             // Arrange
             var type = typeof(TypeWithExludedAndIncludedPropertiesUsingBindAttribute);
@@ -58,20 +58,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new DataAnnotationsModelMetadataProvider();
 
             // Note it does an intersection for included and a union for excluded.
-            var expectedIncludedPropertyNames = new[] { "Property1", "Property2", "IncludedAndExcludedExplicitly1" };
+            var expectedIncludedPropertyNames = new[] { "IncludedAndExcludedExplicitly1" };
             var expectedExcludedPropertyNames = new[] {
-                "Property3", "Property4", "IncludedAndExcludedExplicitly1" };
+                "Property3", "Property4", "IncludedAndExcludedExplicitly1", "ExcludedExplicitly1" };
 
             // Act
             var metadata = provider.GetMetadataForParameter(
                 modelAccessor: null,
                 methodInfo: methodInfo,
-                parameterName: "param",
-                binderMetadata: null);
+                parameterName: "param");
 
             // Assert
-            Assert.Equal(expectedIncludedPropertyNames.ToList(), metadata.IncludedProperties);
-            Assert.Equal(expectedExcludedPropertyNames.ToList(), metadata.ExcludedProperties);
+            Assert.Equal(expectedIncludedPropertyNames.ToList(), metadata.BinderIncludeProperties);
+            Assert.Equal(expectedExcludedPropertyNames.ToList(), metadata.BinderExcludeProperties);
         }
 
         [Fact]
@@ -86,11 +85,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = provider.GetMetadataForParameter(
                 modelAccessor: null,
                 methodInfo: methodInfo,
-                parameterName: "param",
-                binderMetadata: null);
+                parameterName: "param");
 
             // Assert
-            Assert.Equal("ParameterPrefix", metadata.ModelName);
+            Assert.Equal("ParameterPrefix", metadata.BinderModelNamePrefix);
         }
 
         [Fact]
@@ -104,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = provider.GetMetadataForType(null, type);
 
             // Assert
-            Assert.Equal("TypePrefix", metadata.ModelName);
+            Assert.Equal("TypePrefix", metadata.BinderModelNamePrefix);
         }
 
         [Fact]
@@ -119,11 +117,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = provider.GetMetadataForParameter(
                 modelAccessor: null,
                 methodInfo: methodInfo,
-                parameterName: "param",
-                binderMetadata: null);
+                parameterName: "param");
 
             // Assert
-            Assert.Equal("ParameterPrefix", metadata.ModelName);
+            Assert.Equal("ParameterPrefix", metadata.BinderModelNamePrefix);
         }
 
         [Fact]
