@@ -33,13 +33,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ModelBinder = bindingContext.ModelBinder;
             ValidatorProvider = bindingContext.ValidatorProvider;
             HttpContext = bindingContext.HttpContext;
-            ModelBinderMetadataState = bindingContext.ModelBinderMetadataState;
+            BodyBindingState = bindingContext.BodyBindingState;
         }
 
         /// <summary>
         /// Represents if there has been a body bound model found during the current model binding process.
         /// </summary>
-        public ModelBinderMetadataState ModelBinderMetadataState { get; set; } = ModelBinderMetadataState.NotBodyBased;
+        public BodyBindingState BodyBindingState { get; set; } = BodyBindingState.NotBodyBased;
 
         /// <summary>
         /// Gets or sets the <see cref="HttpContext"/> for the current request.
