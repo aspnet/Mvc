@@ -95,10 +95,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private async Task<bool> TryBind(ModelBindingContext bindingContext)
         {
-            // TODO: RuntimeHelpers.EnsureSufficientExecutionStack does not exist in the CoreCLR.
-            // Protects against stack overflow for deeply nested model binding
-            // RuntimeHelpers.EnsureSufficientExecutionStack();
-
             foreach (var binder in ModelBinders)
             {
                 if (await binder.BindModelAsync(bindingContext))

@@ -157,26 +157,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal(culture, vpResult.Culture);
         }
 
-        // TODO: Determine if this is still relevant. Right now the lookup returns null while
-        // we expect a ValueProviderResult that wraps a null value.
-        //[Theory]
-        //[InlineData("null_value")]
-        //[InlineData("prefix.null_value")]
-        //public async Task GetValue_NullValue(string key)
-        //{
-        //    // Arrange
-        //    var culture = new CultureInfo("fr-FR");
-        //    var valueProvider = new ReadableStringCollectionValueProvider(_backingStore, culture);
+        [Theory]
+        [InlineData("null_value")]
+        [InlineData("prefix.null_value")]
+        public async Task GetValue_NullValue(string key)
+        {
+            // Arrange
+            var culture = new CultureInfo("fr-FR");
+            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, culture);
 
-        //    // Act
-        //    ValueProviderResult vpResult = valueProvider.GetValue(key);
+            // Act
+            var vpResult = await valueProvider.GetValueAsync(key);
 
-        //    // Assert
-        //    Assert.NotNull(vpResult);
-        //    Assert.Equal(null, vpResult.RawValue);
-        //    Assert.Equal(null, vpResult.AttemptedValue);
-        //    Assert.Equal(culture, vpResult.Culture);
-        //}
+            // Assert
+            Assert.NotNull(vpResult);
+            Assert.Equal(null, vpResult.RawValue);
+            Assert.Equal(null, vpResult.AttemptedValue);
+            Assert.Equal(culture, vpResult.Culture);
+        }
 
         [Fact]
         public async Task GetValueAsync_NullMultipleValue()

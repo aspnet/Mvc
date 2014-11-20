@@ -48,12 +48,10 @@ namespace BasicWebSite.Controllers
             return new HttpStatusCodeResult(200);
         }
 
-        public async Task ActionReturningTask()
+        public async Task<IActionResult> AsyncAction()
         {
-            // TODO: #1077. With HttpResponseMessage, there seems to be a race between the write operation setting the
-            // header to 200 and HttpNoContentOutputFormatter which sets the header to 204.
-            Context.Response.StatusCode = 204;
             await Context.Response.WriteAsync("Hello world");
+            return new EmptyResult();
         }
 
         public IActionResult JsonTextInView()
