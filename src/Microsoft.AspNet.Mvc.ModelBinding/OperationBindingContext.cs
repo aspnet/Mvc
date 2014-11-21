@@ -12,31 +12,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class OperationBindingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OperationBindingContext"/> class.
-        /// </summary>
-        public OperationBindingContext()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OperationBindingContext"/> class using the
-        /// <param name="bindingContext" />.
-        // </summary>
-        /// <param name="bindingContext">Existing binding context.</param>
-        /// <remarks>
-        /// This constructor copies certain values that won't change between model binding two un related models.
-        /// </remarks>
-        public OperationBindingContext([NotNull] OperationBindingContext bindingContext)
-        {
-            ValueProvider = bindingContext.ValueProvider;
-            MetadataProvider = bindingContext.MetadataProvider;
-            ModelBinder = bindingContext.ModelBinder;
-            ValidatorProvider = bindingContext.ValidatorProvider;
-            HttpContext = bindingContext.HttpContext;
-            BodyBindingState = bindingContext.BodyBindingState;
-        }
-
-        /// <summary>
         /// Represents if there has been a body bound model found during the current model binding process.
         /// </summary>
         public BodyBindingState BodyBindingState { get; set; } = BodyBindingState.NotBodyBased;
