@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Runtime.Versioning;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Hosting;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
 using Microsoft.Framework.Runtime;
@@ -35,8 +36,7 @@ namespace PrecompilationWebSite
                 originalEnvironment,
                 newPath);
 
-            var collection = new ServiceCollection();
-            collection.Import(provider);
+            var collection = HostingServices.Create(provider);
             collection.AddInstance<IApplicationEnvironment>(precompilationApplicationEnvironment);
 
             return new DelegatingServiceProvider(provider, collection.BuildServiceProvider());

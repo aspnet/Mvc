@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
+using Microsoft.Framework.DependencyInjection.ServiceLookup;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
@@ -18,12 +21,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // Path from Mvc\\test\\Microsoft.AspNet.Mvc.FunctionalTests
         private static readonly string WebsitesDirectoryPath = Path.Combine("..", "WebSites");
 
-        public static IServiceProvider CreateServices(string applicationWebSiteName)
+        public static IServiceProvider CreateServices(string applicationWebSiteName, IServiceCollection newServices = null)
         {
             return CreateServices(applicationWebSiteName, WebsitesDirectoryPath, newServices);
         }
 
-        public static IServiceProvider CreateServices(string applicationWebSiteName, string applicationPath)
+        public static IServiceProvider CreateServices(string applicationWebSiteName, string applicationPath, IServiceCollection newServices = null)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             var appEnvironment = originalProvider.GetRequiredService<IApplicationEnvironment>();
@@ -37,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // test.
             var appBasePath = CalculateApplicationBasePath(appEnvironment, applicationWebSiteName, applicationPath);
 
-            var services = HostingServices.Create(originalProvider);
+            var services = new ServiceCollection();
             services.AddInstance(
                 typeof(IApplicationEnvironment),
                 new TestApplicationEnvironment(appEnvironment, appBasePath));
@@ -59,7 +62,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 typeof(ILoggerFactory),
                 NullLoggerFactory.Instance);
 
-            return services.BuildServiceProvider();
+            if (newServices != null)
+            {
+                services.Add(newServices);
+            }
+
+            return BuildFallbackServiceProvider(services, originalProvider);
         }
 
         // Calculate the path relative to the application base path.
@@ -106,6 +114,35 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 CallContextServiceLocator.Locator.ServiceProvider = _originalProvider;
             }
+        }
+
+        // TODO: Kill this code
+        private static IServiceProvider BuildFallbackServiceProvider(IEnumerable<IServiceDescriptor> services, IServiceProvider fallback)
+        {
+            var sc = HostingServices.Create(fallback);
+            sc.Add(services);
+
+            // Build the manifest
+            var manifestTypes = services.Where(t => t.ServiceType.GetTypeInfo().GenericTypeParameters.Length == 0
+                    && t.ServiceType != typeof(IServiceManifest)
+                    && t.ServiceType != typeof(IServiceProvider))
+                    .Select(t => t.ServiceType).Distinct();
+            sc.AddInstance<IServiceManifest>(new ServiceManifest(manifestTypes, fallback.GetRequiredService<IServiceManifest>()));
+            return sc.BuildServiceProvider();
+        }
+
+        private class ServiceManifest : IServiceManifest
+        {
+            public ServiceManifest(IEnumerable<Type> services, IServiceManifest fallback = null)
+            {
+                Services = services;
+                if (fallback != null)
+                {
+                    Services = Services.Concat(fallback.Services).Distinct();
+                }
+            }
+
+            public IEnumerable<Type> Services { get; private set; }
         }
     }
 }

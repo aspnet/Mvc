@@ -21,8 +21,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var services = new ServiceCollection()
                 .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>();
-            // TODO: broken no way to add services
-            _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
+            _provider = TestHelper.CreateServices("InlineConstraintsWebSite", services);
         }
 
         [Fact]

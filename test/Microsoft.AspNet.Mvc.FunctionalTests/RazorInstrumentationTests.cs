@@ -208,8 +208,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var services = new ServiceCollection();
             services.AddInstance(pageExecutionContext);
-            // TODO: this be broken, cannot replace services like this anymore
-            return _services;
+            return TestHelper.CreateServices("RazorInstrumentationWebsite", services);
         }
     }
 }

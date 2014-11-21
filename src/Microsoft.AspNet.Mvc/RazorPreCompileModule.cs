@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,11 +30,11 @@ namespace Microsoft.AspNet.Mvc
 
         public virtual void BeforeCompile(IBeforeCompileContext context)
         {
-            var sc = new ServiceCollection();
             var appEnv = _appServices.GetRequiredService<IApplicationEnvironment>();
 
             var setup = new RazorViewEngineOptionsSetup(appEnv);
             var accessor = new OptionsManager<RazorViewEngineOptions>(new[] { setup });
+            var sc = new ServiceCollection();
             sc.AddInstance<IOptions<RazorViewEngineOptions>>(accessor);
             sc.Add(MvcServices.GetDefaultServices());
 
@@ -45,27 +46,10 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        private class DelegatingServiceProvider : IServiceProvider
-        {
-            private readonly IServiceProvider _fallback;
-            private readonly IServiceProvider _services;
-
-            public DelegatingServiceProvider(IServiceProvider fallback, IServiceProvider services)
-            {
-                _fallback = fallback;
-                _services = services;
-            }
-
-            public object GetService(Type serviceType)
-            {
-                return _services.GetService(serviceType) ?? _fallback.GetService(serviceType);
-            }
-        }
-
+        // TODO: KILL THIS
         private static IServiceProvider BuildFallbackServiceProvider(IEnumerable<IServiceDescriptor> services, IServiceProvider fallback)
         {
-            var sc = new ServiceCollection();
-            sc.Import(fallback);
+            var sc = HostingServices.Create(fallback);
             sc.Add(services);
 
             // Build the manifest
@@ -74,7 +58,7 @@ namespace Microsoft.AspNet.Mvc
                     && t.ServiceType != typeof(IServiceProvider))
                     .Select(t => t.ServiceType).Distinct();
             sc.AddInstance<IServiceManifest>(new ServiceManifest(manifestTypes, fallback.GetRequiredService<IServiceManifest>()));
-            return new DelegatingServiceProvider(fallback, sc.BuildServiceProvider());
+            return sc.BuildServiceProvider();
         }
 
         private class ServiceManifest : IServiceManifest
