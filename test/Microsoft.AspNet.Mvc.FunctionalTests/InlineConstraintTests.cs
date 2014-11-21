@@ -14,30 +14,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class InlineConstraintTests
     {
-        private readonly IServiceProvider _provider;
+        private readonly IServiceProvider _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         public InlineConstraintTests()
         {
-            var services = new ServiceCollection()
-                .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>();
-            _provider = TestHelper.CreateServices("InlineConstraintsWebSite", services);
+            _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
+            _provider = new ServiceCollection()
+                         .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>()
+                         .BuildServiceProvider(_provider);
         }
 
         [Fact]
         public async Task RoutingToANonExistantArea_WithExistConstraint_RoutesToCorrectAction()
         {
-            var svc = _provider.GetRequiredService<ICommandLineArgumentBuilder>();
-            svc.AddArgument("--TemplateCollection:areaRoute:TemplateValue=" +
-                            "{area:exists}/{controller=Home}/{action=Index}");
-            svc.AddArgument("--TemplateCollection:actionAsMethod:TemplateValue=" +
-                            "{controller=Home}/{action=Index}");
-
+            // Arrange
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync("http://localhost/Users");
+            var response = await client.GetAsync("http://localhost/area-exists/Users");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -49,17 +45,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RoutingToANonExistantArea_WithoutExistConstraint_RoutesToIncorrectAction()
         {
             // Arrange
-            var svc = _provider.GetRequiredService<ICommandLineArgumentBuilder>();
-            svc.AddArgument("--TemplateCollection:areaRoute:TemplateValue=" +
-                            "{area}/{controller=Home}/{action=Index}");
-            svc.AddArgument("--TemplateCollection:actionAsMethod:TemplateValue" +
-                            "={controller=Home}/{action=Index}");
-
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => client.GetAsync("http://localhost/Users"));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => client.GetAsync("http://localhost/area-noexists/Users"));
 
             Assert.Equal("The view 'Index' was not found." +
                          " The following locations were searched:\r\n/Areas/Users/Views/Home/Index.cshtml\r\n" +
