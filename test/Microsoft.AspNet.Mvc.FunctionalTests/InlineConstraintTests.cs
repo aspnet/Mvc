@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using InlineConstraints;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
-using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -16,14 +15,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         private readonly IServiceProvider _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
-
-        public InlineConstraintTests()
-        {
-            _provider = TestHelper.CreateServices("InlineConstraintsWebSite");
-            _provider = new ServiceCollection()
-                         .AddScoped<ICommandLineArgumentBuilder, DefaultCommandLineArgumentBuilder>()
-                         .BuildServiceProvider(_provider);
-        }
 
         [Fact]
         public async Task RoutingToANonExistantArea_WithExistConstraint_RoutesToCorrectAction()
@@ -49,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => client.GetAsync("http://localhost/area-noexists/Users"));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => client.GetAsync("http://localhost/area-withoutexists/Users"));
 
             Assert.Equal("The view 'Index' was not found." +
                          " The following locations were searched:\r\n/Areas/Users/Views/Home/Index.cshtml\r\n" +

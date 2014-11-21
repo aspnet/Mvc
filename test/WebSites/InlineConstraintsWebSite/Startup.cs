@@ -26,8 +26,8 @@ namespace InlineConstraints
                 // Used by tests for the 'exists' constraint.
                 routes.MapRoute("areaExists-area", "area-exists/{area:exists}/{controller=Home}/{action=Index}");
                 routes.MapRoute("areaExists", "area-exists/{controller=Home}/{action=Index}");
-                routes.MapRoute("areaWithoutExists-area", "area-noexists/{area}/{controller=Home}/{action=Index}");
-                routes.MapRoute("areaWithoutExists", "area-noexists/{controller=Home}/{action=Index}");
+                routes.MapRoute("areaWithoutExists-area", "area-withoutexists/{area}/{controller=Home}/{action=Index}");
+                routes.MapRoute("areaWithoutExists", "area-withoutexists/{controller=Home}/{action=Index}");
             });
         }
     }
