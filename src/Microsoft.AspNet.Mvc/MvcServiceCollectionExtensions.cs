@@ -24,8 +24,10 @@ namespace Microsoft.Framework.DependencyInjection
 
         private static void ConfigureDefaultServices(IServiceCollection services)
         {
-            services.Add(DataProtectionServices.GetDefaultServices());
-            services.Add(RoutingServices.GetDefaultServices());
+            services.AddOptions();
+            services.AddDataProtection();
+            services.AddRouting();
+            services.AddContextAccessor();
             services.Configure<RouteOptions>(routeOptions =>
                                                     routeOptions.ConstraintMap
                                                          .Add("exists",
