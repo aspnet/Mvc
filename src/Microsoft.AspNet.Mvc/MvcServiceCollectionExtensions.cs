@@ -10,16 +10,11 @@ namespace Microsoft.Framework.DependencyInjection
 {
     public static class MvcServiceCollectionExtensions
     {
-        public static IServiceCollection AddMvc(this IServiceCollection services)
+        public static IServiceCollection AddMvc(this IServiceCollection services, IConfiguration configuration = null)
         {
             ConfigureDefaultServices(services);
-            return services.Add(MvcServices.GetDefaultServices());
-        }
-
-        public static IServiceCollection AddMvc(this IServiceCollection services, IConfiguration configuration)
-        {
-            ConfigureDefaultServices(services);
-            return services.Add(MvcServices.GetDefaultServices(configuration));
+            services.TryAdd(MvcServices.GetDefaultServices(configuration));
+            return services;
         }
 
         private static void ConfigureDefaultServices(IServiceCollection services)
