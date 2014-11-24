@@ -238,8 +238,8 @@
   <data name="Invalid_IncludePropertyExpression" xml:space="preserve">
     <value>The passed expression of expression node type '{0}' is invalid. Only member access expressions of member type property are supported.</value>
   </data>
-  <data name="Chained_IncludePropertyExpression_NotSupported" xml:space="preserve">
-    <value>Chained member access expression is not supported for include property expression.</value>
+  <data name="ChainedAndNonParameterBased_IncludePropertyExpression_NotSupported" xml:space="preserve">
+    <value>Chained member access expression and expressions not based on parameters are not supported for include property expression.</value>
   </data>
   <data name="HtmlHelper_NullModelMetadata" xml:space="preserve">
     <value>The IModelMetadataProvider was unable to provide metadata for expression '{0}'.</value>

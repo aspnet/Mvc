@@ -651,19 +651,19 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Chained member access expression is not supported for include property expression.
+        /// Chained member access expression and expressions not based on parameters are not supported for include property expression.
         /// </summary>
-        internal static string Chained_IncludePropertyExpression_NotSupported
+        internal static string ChainedAndNonParameterBased_IncludePropertyExpression_NotSupported
         {
-            get { return GetString("Chained_IncludePropertyExpression_NotSupported"); }
+            get { return GetString("ChainedAndNonParameterBased_IncludePropertyExpression_NotSupported"); }
         }
 
         /// <summary>
-        /// Chained member access expression is not supported for include property expression.
+        /// Chained member access expression and expressions not based on parameters are not supported for include property expression.
         /// </summary>
-        internal static string FormatChained_IncludePropertyExpression_NotSupported()
+        internal static string FormatChainedAndNonParameterBased_IncludePropertyExpression_NotSupported()
         {
-            return GetString("Chained_IncludePropertyExpression_NotSupported");
+            return GetString("ChainedAndNonParameterBased_IncludePropertyExpression_NotSupported");
         }
 
         /// <summary>
@@ -1451,7 +1451,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
+        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
         /// </summary>
         internal static string AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod
         {
@@ -1459,7 +1459,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
+        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
         /// </summary>
         internal static string FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod(object p0, object p1, object p2)
         {

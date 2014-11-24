@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             };
 
             Func<ModelBindingContext, string, bool> includePredicate =
-                (context, propertyName) => 
+                (context, propertyName) =>
                                 string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
 
@@ -353,7 +353,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             Expression<Func<User, object>> expression = m => m.Address;
 
-            // Act 
+            // Act
             var propertyName = ModelBindingHelper.GetPropertyName(expression.Body);
 
             // Assert
@@ -370,8 +370,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var ex = Assert.Throws<InvalidOperationException>(() =>
                         ModelBindingHelper.GetPropertyName(expression.Body));
 
-            Assert.Equal("Chained member access expression is not supported for include property expression.",
-                         ex.Message); 
+            Assert.Equal("Chained member access expression and expressions not based on parameters are not supported" +
+                         " for include property expression.",
+                         ex.Message);
         }
 
         public static IEnumerable<object[]> InvalidExpressionDataSet
@@ -403,7 +404,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [MemberData(nameof(InvalidExpressionDataSet))]
         public void GetPropertyName_ExpressionsOtherThanMemberAccess_Throws(Expression<Func<User, object>> expression)
         {
-            // Act & Assert
+            // Arrange Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(() =>
                         ModelBindingHelper.GetPropertyName(expression.Body));
 
@@ -414,8 +415,43 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
+        public void GetPropertyName_NonParameterBasedExpression_Throws()
+        {
+            // Arrange
+            var someUser = new User();
+
+            // PropertyAccessor with a property name invalid as it originates from a variable accessor.
+            Expression<Func<User, object>> expression = m => someUser.Address;
+
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                        ModelBindingHelper.GetPropertyName(expression.Body));
+
+            Assert.Equal("Chained member access expression and expressions not based on parameters are not supported" +
+                         " for include property expression.",
+                         ex.Message);
+        }
+
+        [Fact]
+        public void GetPropertyName_TopLevelCollectionIndexer_Throws()
+        {
+            // Arrange
+            Expression<Func<UserCollection, object>> expression = m => m[0];
+
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                        ModelBindingHelper.GetPropertyName(expression.Body));
+
+            Assert.Equal(string.Format("The passed expression of expression node type '{0}' is invalid." +
+                                       " Only member access expressions of member type property are supported.",
+                                        expression.Body.NodeType),
+                         ex.Message);
+        }
+
+        [Fact]
         public void GetPropertyName_FieldExpression_Throws()
         {
+            // Arrange
             Expression<Func<User, object>> expression = m => m._userId;
 
             // Act & Assert
@@ -436,7 +472,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return new CompositeModelBinder(binderProvider.Object);
         }
 
-        public class User 
+        public class UserCollection : List<User>
+        {
+        }
+
+        public class User
         {
             public string _userId;
 
