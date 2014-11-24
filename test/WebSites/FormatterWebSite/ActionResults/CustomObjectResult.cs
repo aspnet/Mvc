@@ -8,8 +8,7 @@ namespace FormatterWebSite
 {
     public class CustomObjectResult : ObjectResult
     {
-        public CustomObjectResult(object value, int statusCode) 
-                : base(value)
+        public CustomObjectResult(object value, int statusCode) : base(value)
         {
             StatusCode = statusCode;
         }
