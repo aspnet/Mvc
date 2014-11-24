@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
             var setup = new RazorViewEngineOptionsSetup(appEnv);
             var sc = new ServiceCollection();
             sc.ConfigureOptions(setup);
-            sc.Add(MvcServices.GetDefaultServices());
+            sc.AddMvc();
 
             var viewCompiler = new RazorPreCompiler(BuildFallbackServiceProvider(sc, _appServices));
             viewCompiler.CompileViews(context);
