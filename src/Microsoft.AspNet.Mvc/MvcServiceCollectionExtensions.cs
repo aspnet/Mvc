@@ -12,17 +12,17 @@ namespace Microsoft.Framework.DependencyInjection
     {
         public static IServiceCollection AddMvc(this IServiceCollection services, IConfiguration configuration = null)
         {
-            ConfigureDefaultServices(services);
+            ConfigureDefaultServices(services, configuration);
             services.TryAdd(MvcServices.GetDefaultServices(configuration));
             return services;
         }
 
-        private static void ConfigureDefaultServices(IServiceCollection services)
+        private static void ConfigureDefaultServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddOptions();
-            services.AddDataProtection();
-            services.AddRouting();
-            services.AddContextAccessor();
+            services.AddOptions(configuration);
+            services.AddDataProtection(configuration);
+            services.AddRouting(configuration);
+            services.AddContextAccessor(configuration);
             services.Configure<RouteOptions>(routeOptions =>
                                                     routeOptions.ConstraintMap
                                                          .Add("exists",
