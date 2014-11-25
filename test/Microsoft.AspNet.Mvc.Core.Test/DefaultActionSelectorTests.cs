@@ -735,7 +735,7 @@ namespace Microsoft.AspNet.Mvc
             serviceContainer.AddService(typeof(INestedProviderManager<ActionDescriptorProviderContext>),
                                         descriptorProvider);
 
-            var actionCollectionDescriptorProvider = new DefaultActionDescriptorsCollectionProvider(serviceContainer);
+            var actionCollectionDescriptorProvider = new DefaultActionDescriptorsCollectionProvider(serviceContainer, new NullLoggerFactory());
             var decisionTreeProvider = new ActionSelectorDecisionTreeProvider(actionCollectionDescriptorProvider);
 
             var actionConstraintProvider = new NestedProviderManager<ActionConstraintProviderContext>(

@@ -8,39 +8,38 @@ using Microsoft.AspNet.Mvc.ApplicationModels;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
-    public class ControllerModelValues : ILoggerStructure
+    public class ControllerModelValues : LoggerStructureBase
     {
-        public ControllerModel Inner { get; }
-
-        public Dictionary<string, object> _values { get; private set; }
-
-        public ControllerModelValues(ControllerModel inner)
+        public ControllerModelValues([NotNull] ControllerModel inner)
         {
-            Inner = inner;
+            ControllerName = inner.ControllerName;
+            Type = inner.ControllerType.Name;
+            Attributes = string.Join(", ", inner.Attributes);
+            Filters = string.Join(", ", inner.Filters);
+            ActionContraints = string.Join(", ", inner.ActionConstraints);
+            RouteConstraints = inner.RouteConstraints.Select(
+                r => new RouteConstraintAttributeValues(r)).ToList();
+            AttributeRoutes = inner.AttributeRoutes.Select(
+                a => new AttributeRouteModelValues(a)).ToList();
         }
 
-        public string Format()
+        public string ControllerName { get; set; }
+
+        public string Type { get; set; }
+
+        public string Attributes { get; set; }
+
+        public string Filters { get; set; }
+
+        public string ActionContraints { get; set; }
+
+        public List<RouteConstraintAttributeValues> RouteConstraints { get; set; }
+
+        public List<AttributeRouteModelValues> AttributeRoutes { get; set; }
+
+        public override string Format()
         {
             return LogFormatter.FormatStructure(this);
-        }
-
-        public IEnumerable<KeyValuePair<string, object>> GetValues()
-        {
-            if (_values == null)
-            {
-                _values = new Dictionary<string, object> {
-                    { "ControllerName", Inner.ControllerName },
-                    { "Type", Inner.ControllerType.Name },
-                    { "Attributes", string.Join(", ", Inner.Attributes) },
-                    { "Filters", string.Join(", ", Inner.Filters) },
-                    { "ActionConstraints", string.Join(", ", Inner.ActionConstraints) },
-                    { "RouteConstraints", Inner.RouteConstraints.Select(
-                        r => new RouteConstraintAttributeValues(r)).ToList() },
-                    { "AttributeRoutes", Inner.AttributeRoutes.Select(
-                        a => new AttributeRouteModelValues(a)).ToList() }
-                };
-            }
-            return _values;
         }
     }
 }

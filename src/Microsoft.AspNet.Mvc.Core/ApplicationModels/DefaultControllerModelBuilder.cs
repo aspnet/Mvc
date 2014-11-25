@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Description;
-using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.Framework.Logging;
 
@@ -38,15 +37,6 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             }
 
             var controllerModel = CreateControllerModel(typeInfo);
-            if (_logger.IsEnabled(LogLevel.Verbose))
-            {
-                _logger.Write(
-                    LogLevel.Verbose, 
-                    0, 
-                    new ControllerModelValues(controllerModel), 
-                    null, 
-                    (state, error) => ((ILoggerStructure)state).Format());
-            }
 
             foreach (var methodInfo in typeInfo.AsType().GetMethods())
             {
@@ -90,8 +80,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 return false;
             }
 
-            return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
-                   typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
+            var endsWithController = typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase);
+            var isAssignable = typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
+            if (!endsWithController)
+            {
+                _logger.WriteVerbose("Cannot create controller because {0} does not end with \"Controller\"", typeInfo.Name);
+            }
+            return endsWithController || isAssignable;
         }
 
         /// <summary>

@@ -48,20 +48,14 @@ namespace Microsoft.AspNet.Mvc
         {
             var applicationModel = BuildModel();
             ApplicationModelConventions.ApplyConventions(applicationModel, _modelConventions);
-            var result = ControllerActionDescriptorBuilder.Build(applicationModel);
             if (_logger.IsEnabled(LogLevel.Verbose))
             {
-                foreach (var controllerActionDescriptor in result)
+                foreach (var controller in applicationModel.Controllers)
                 {
-                    _logger.Write(
-                        LogLevel.Verbose,
-                        0,
-                        new ControllerActionDescriptorValues(controllerActionDescriptor),
-                        null,
-                        (state, error) => ((ILoggerStructure)state).Format());
+                    _logger.WriteStructure(new ControllerModelValues(controller));
                 }
             }
-            return result;
+            return ControllerActionDescriptorBuilder.Build(applicationModel);
         }
 
         public ApplicationModel BuildModel()
@@ -75,12 +69,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var assembly in assemblies)
                 {
-                    _logger.Write(
-                        LogLevel.Verbose,
-                        0,
-                        new AssemblyValues(assembly),
-                        null,
-                        (state, error) => ((ILoggerStructure)state).Format());
+                    _logger.WriteStructure(new AssemblyValues(assembly));
                 }
             }
 

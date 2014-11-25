@@ -1,36 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
-    public class RouteDataActionConstraintValues : ILoggerStructure
+    public class RouteDataActionConstraintValues : LoggerStructureBase
     {
-        public RouteDataActionConstraint Inner { get; }
-
-        private Dictionary<string, object> _values;
-
-        public RouteDataActionConstraintValues(RouteDataActionConstraint inner)
+        public RouteDataActionConstraintValues([NotNull] RouteDataActionConstraint inner)
         {
-            Inner = inner;
+            RouteKey = inner.RouteKey;
+            RouteValue = inner.RouteValue;
+            RouteKeyHandling = inner.KeyHandling;
         }
 
-        public string Format()
+        public string RouteKey { get; set; }
+
+        public string RouteValue { get; set; }
+
+        public RouteKeyHandling RouteKeyHandling { get; set; }
+
+        public override string Format()
         {
             return LogFormatter.FormatStructure(this);
-        }
-
-        public IEnumerable<KeyValuePair<string, object>> GetValues()
-        {
-            if (_values == null)
-            {
-                _values = new Dictionary<string, object> {
-                    { "RouteKey", Inner.RouteKey },
-                    { "RouteValue", Inner.RouteValue },
-                    { "RouteKeyHandling", Inner.KeyHandling }
-                };
-            }
-            return _values;
         }
     }
 }

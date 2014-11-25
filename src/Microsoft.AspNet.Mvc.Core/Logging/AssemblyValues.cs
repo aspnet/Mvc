@@ -1,42 +1,35 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
-    public class AssemblyValues : ILoggerStructure
+    public class AssemblyValues : LoggerStructureBase
     {
-        public Assembly Inner { get; }
-
-        private Dictionary<string, object> _values;
-
-        public AssemblyValues(Assembly inner)
+        public AssemblyValues([NotNull] Assembly inner)
         {
-            Inner = inner;
+            AssemblyName = inner.FullName;
+#if ASPNET50
+            Location = inner.Location;
+            IsFullyTrusted = inner.IsFullyTrusted;
+#endif
+            IsDynamic = inner.IsDynamic;
         }
 
-        public string Format()
+        public string AssemblyName { get; set; }
+
+#if ASPNET50
+        public string Location { get; set; }
+
+        public bool IsFullyTrusted { get; set; }
+#endif
+        public bool IsDynamic { get; set; }
+
+        public override string Format()
         {
             return LogFormatter.FormatStructure(this);
-        }
-
-        public IEnumerable<KeyValuePair<string, object>> GetValues()
-        {
-            if (_values == null)
-            {
-                _values = new Dictionary<string, object> {
-                    { "AssemblyName", Inner.FullName },
-#if ASPNET50
-                    { "Location", Inner.Location },
-                    { "IsFullyTrusted", Inner.IsFullyTrusted },
-#endif
-                    { "IsDynamic", Inner.IsDynamic }
-                };
-            }
-            return _values;
         }
     }
 }
