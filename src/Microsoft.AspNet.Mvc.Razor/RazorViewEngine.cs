@@ -110,16 +110,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         private RazorPageResult GetRazorPageResult(ActionContext context,
                                                    string pageName)
         {
-            var nameRepresentsPath = IsSpecificPath(pageName);
-
-            if (nameRepresentsPath)
+            if (IsApplicationRelativePath(pageName))
             {
+                var applicationRelativePath = pageName;
                 if (!pageName.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase))
                 {
-                    pageName = pageName + ViewExtension;
+                    applicationRelativePath += ViewExtension;
                 }
 
-                var page = _pageFactory.CreateInstance(pageName);
+                var page = _pageFactory.CreateInstance(applicationRelativePath);
                 if (page != null)
                 {
                     return new RazorPageResult(pageName, page);
@@ -129,12 +128,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
             else
             {
-                return LocateViewFromViewLocations(context, pageName);
+                return LocatePageFromViewLocations(context, pageName);
             }
         }
 
-        private RazorPageResult LocateViewFromViewLocations(ActionContext context,
-                                                            string viewName)
+        private RazorPageResult LocatePageFromViewLocations(ActionContext context,
+                                                            string pageName)
         {
             // Initialize the dictionary for the typical case of having controller and action tokens.
             var routeValues = context.RouteData.Values;
@@ -144,7 +143,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var viewLocations = !string.IsNullOrEmpty(areaName) ? AreaViewLocationFormats :
                                                                   ViewLocationFormats;
 
-            var expanderContext = new ViewLocationExpanderContext(context, viewName);
+            var expanderContext = new ViewLocationExpanderContext(context, pageName);
             if (_viewLocationExpanders.Count > 0)
             {
                 expanderContext.Values = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -157,15 +156,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // 2. With the values that we've accumumlated so far, check if we have a cached result.
-            var viewLocation = _viewLocationCache.Get(expanderContext);
-            if (!string.IsNullOrEmpty(viewLocation))
+            var pageLocation = _viewLocationCache.Get(expanderContext);
+            if (!string.IsNullOrEmpty(pageLocation))
             {
-                var page = _pageFactory.CreateInstance(viewLocation);
+                var page = _pageFactory.CreateInstance(pageLocation);
 
                 if (page != null)
                 {
                     // 2a. We found a IRazorPage at the cached location.
-                    return new RazorPageResult(viewLocation, page);
+                    return new RazorPageResult(pageName, page);
                 }
             }
 
@@ -183,7 +182,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 var transformedPath = string.Format(CultureInfo.InvariantCulture,
                                                     path,
-                                                    viewName,
+                                                    pageName,
                                                     controllerName,
                                                     areaName);
                 var page = _pageFactory.CreateInstance(transformedPath);
@@ -198,7 +197,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // 3b. We did not find a page for any of the paths.
-            return new RazorPageResult(viewName, searchedLocations);
+            return new RazorPageResult(pageName, searchedLocations);
         }
 
         private ViewEngineResult CreateViewEngineResult(RazorPageResult result,
@@ -214,7 +213,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             return ViewEngineResult.Found(result.Name, view);
         }
 
-        private static bool IsSpecificPath(string name)
+        private static bool IsApplicationRelativePath(string name)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             return name[0] == '~' || name[0] == '/';

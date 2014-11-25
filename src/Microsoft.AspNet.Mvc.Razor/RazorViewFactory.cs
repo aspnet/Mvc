@@ -17,7 +17,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Initializes a new instance of RazorViewFactory
         /// </summary>
-        /// <param name="pageFactory">The page factory used to instantiate layout and _ViewStart pages.</param>
         /// <param name="pageActivator">The <see cref="IRazorPageActivator"/> used to activate pages.</param>
         /// <param name="viewStartProvider">The <see cref="IViewStartProvider"/> used for discovery of _ViewStart
         /// pages</param>

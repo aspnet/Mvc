@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class RazorLayoutTests
+    public class RazorViewLocationSpecificationTests
     {
         private const string BaseUrl = "http://localhost/ViewNameSpecification_Home/";
         private readonly IServiceProvider _provider = TestHelper.CreateServices("RazorWebSite");

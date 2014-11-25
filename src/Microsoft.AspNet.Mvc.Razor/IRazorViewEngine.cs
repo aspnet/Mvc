@@ -6,17 +6,17 @@ using Microsoft.AspNet.Mvc.Rendering;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents a <see cref="IViewEngine"/> view engine that is used to render pages that use the Razor syntax.
+    /// A <see cref="IViewEngine"/> view engine used to render pages that use the Razor syntax.
     /// </summary>
     public interface IRazorViewEngine : IViewEngine
     {
         /// <summary>
-        /// Finds a <see cref="IRazorPage"/> using the same view discovery semantics used in
+        /// Finds an <see cref="IRazorPage"/> instance using the same view discovery semantics as
         /// <see cref="IViewEngine.FindPartialView(ActionContext, string)"/>.
         /// </summary>
         /// <param name="context">The <see cref="ActionContext"/>.</param>
-        /// <param name="viewName">The name or full path to the view.</param>
-        /// <returns>A result representing the result of locating the <see cref="IRazorPage"/>.</returns>
+        /// <param name="page">The name or full path to the page.</param>
+        /// <returns>A <see cref="RazorPageResult"/> describing the location operation.</returns>
         RazorPageResult FindPage(ActionContext context, string page);
     }
 }

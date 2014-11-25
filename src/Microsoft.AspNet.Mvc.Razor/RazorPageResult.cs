@@ -11,9 +11,9 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class RazorPageResult
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="RazorPageResult"/> for a successful match.
+        /// Initializes a new instance of <see cref="RazorPageResult"/> for a successful discovery.
         /// </summary>
-        /// <param name="name">The name of the page being located.</param>
+        /// <param name="name">The name of the page that was located.</param>
         /// <param name="page">The located <see cref="IRazorPage"/>.</param>
         public RazorPageResult([NotNull] string name, [NotNull] IRazorPage page)
         {
@@ -22,9 +22,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RazorPageResult"/> for an unsuccessful match.
+        /// Initializes a new instance of <see cref="RazorPageResult"/> for an unsuccessful discovery.
         /// </summary>
-        /// <param name="name">The name of the page being located.</param>
+        /// <param name="name">The name of the page that was located.</param>
         /// <param name="page">The locations that were searched.</param>
         public RazorPageResult([NotNull] string name, [NotNull] IEnumerable<string> searchedLocations)
         {
@@ -35,16 +35,20 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the name of the page being located.
         /// </summary>
+        /// <remarks>This property maps to the <c>name</c> parameter of
+        /// <see cref="IRazorViewEngine.FindPage(ActionContext, string)"/>.</remarks>
         public string Name { get; }
 
         /// <summary>
         /// Gets the <see cref="IRazorPage"/> if found.
         /// </summary>
+        /// <remarks>This property would be null if the page was not found.</remarks>
         public IRazorPage Page { get; }
 
         /// <summary>
         /// Gets the locations that were searched when <see cref="Page"/> could not be located.
         /// </summary>
+        /// <remarks>This property would be null if the page was found.</remarks>
         public IEnumerable<string> SearchedLocations { get; }
     }
 }
