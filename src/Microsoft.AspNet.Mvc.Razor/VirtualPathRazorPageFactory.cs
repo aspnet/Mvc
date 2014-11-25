@@ -17,14 +17,14 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly ITypeActivator _activator;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ICachedFileSystem _cachedFileSystem;
+        private readonly IRazorFileSystemCache _cachedFileSystem;
         private readonly ICompilerCache _compilerCache;
         private IRazorCompilationService _razorcompilationService;
 
         public VirtualPathRazorPageFactory(ITypeActivator typeActivator,
                                            IServiceProvider serviceProvider,
                                            ICompilerCache compilerCache,
-                                           ICachedFileSystem cachedFileSystem)
+                                           IRazorFileSystemCache cachedFileSystem)
         {
             _activator = typeActivator;
             _serviceProvider = serviceProvider;

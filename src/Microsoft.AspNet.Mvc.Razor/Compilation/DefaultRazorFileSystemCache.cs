@@ -10,17 +10,22 @@ using Microsoft.Framework.OptionsModel;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// A default implementation for the <see cref="ICachedFileSystem"/> interface.
+    /// Default implementation for the <see cref="IRazorFileSystemCache"/> interface that caches
+    /// the results of <see cref="RazorViewEngineOptions.FileSystem"/>.
     /// </summary>
-    public class CachedFileSystem : ICachedFileSystem
+    public class DefaultRazorFileSystemCache : IRazorFileSystemCache
     {
         private readonly ConcurrentDictionary<string, ExpiringFileInfo> _fileInfoCache =
-            new ConcurrentDictionary<string, ExpiringFileInfo>(StringComparer.OrdinalIgnoreCase);
+            new ConcurrentDictionary<string, ExpiringFileInfo>(StringComparer.Ordinal);
 
         private readonly IFileSystem _fileSystem;
         private readonly TimeSpan _offset;
 
-        public CachedFileSystem(IOptions<RazorViewEngineOptions> optionsAccessor)
+        /// <summary>
+        /// Initializes a new instance of <see cref="DefaultRazorFileSystemCache"/>.
+        /// </summary>
+        /// <param name="optionsAccessor">Accessor to <see cref="RazorViewEngineOptions"/>.</param>
+        public DefaultRazorFileSystemCache(IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _fileSystem = optionsAccessor.Options.FileSystem;
             _offset = optionsAccessor.Options.ExpirationBeforeCheckingFilesOnDisk;

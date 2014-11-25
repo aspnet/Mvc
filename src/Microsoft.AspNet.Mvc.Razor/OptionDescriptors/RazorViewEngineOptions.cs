@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <summary>
         /// Gets or sets the <see cref="TimeSpan"/> that specifies the duration for which results of
-        /// <see cref="FileSystem"/> are cached by <see cref="CachedFileSystem"/>. <see cref="CachedFileSystem"/>
+        /// <see cref="FileSystem"/> are cached by <see cref="DefaultRazorFileSystemCache"/>. <see cref="DefaultRazorFileSystemCache"/>
         /// is used to query for file changes during Razor compilation.
         /// </summary>
         /// <remarks>

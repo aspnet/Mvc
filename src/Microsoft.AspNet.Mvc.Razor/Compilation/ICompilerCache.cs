@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         /// <summary>
         /// Get an existing compilation result, or create and add a new one if it is
-        /// not available in the cache or is invalid.
+        /// not available in the cache or expired.
         /// </summary>
         /// <param name="fileInfo">A <see cref="RelativeFileInfo"/> representing the file.</param>
         /// <param name="compile">An delegate that will generate a compilation result.</param>

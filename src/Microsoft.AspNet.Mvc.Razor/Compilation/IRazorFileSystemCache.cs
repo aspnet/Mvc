@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <see cref="IFileSystem.TryGetFileInfo(string, out IFileInfo)"/> for a duration specified by
     /// <see cref="RazorViewEngineOptions.ExpirationBeforeCheckingFilesOnDisk"/>.
     /// </summary>
-    public interface ICachedFileSystem : IFileSystem
+    public interface IRazorFileSystemCache : IFileSystem
     {
     }
 }

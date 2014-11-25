@@ -17,16 +17,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IFileSystem _fileSystem;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CompilerCache"/> that is populated with precompiled views
+        /// Initializes a new instance of <see cref="CompilerCache"/> populated with precompiled views
         /// discovered using <paramref name="provider"/>.
         /// </summary>
         /// <param name="provider">
         /// An <see cref="IAssemblyProvider"/> representing the assemblies
         /// used to search for pre-compiled views.
         /// </param>
-        /// <param name="fileSystem">An <see cref="ICachedFileSystem"/> that represents application's file system.
+        /// <param name="fileSystem">An <see cref="IRazorFileSystemCache"/> instance that represents application's
+        /// file system.
         /// </param>
-        public CompilerCache(IAssemblyProvider provider, ICachedFileSystem fileSystem)
+        public CompilerCache(IAssemblyProvider provider, IRazorFileSystemCache fileSystem)
             : this (GetFileInfos(provider.CandidateAssemblies), fileSystem)
         {
         }
@@ -96,13 +97,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                                           [NotNull] Func<RelativeFileInfo, CompilationResult> compile)
         {
             CompilationResult result;
-            var entry = GetOrAddEntry(fileInfo, compile, out result);
+            var entry = GetOrAdd(fileInfo, compile, out result);
             return result;
         }
 
-        private CompilerCacheEntry GetOrAddEntry(RelativeFileInfo relativeFileInfo,
-                                                 Func<RelativeFileInfo, CompilationResult> compile,
-                                                 out CompilationResult result)
+        private CompilerCacheEntry GetOrAdd(RelativeFileInfo relativeFileInfo,
+                                            Func<RelativeFileInfo, CompilationResult> compile,
+                                            out CompilationResult result)
         {
             CompilerCacheEntry cacheEntry;
             var normalizedPath = NormalizePath(relativeFileInfo.RelativePath);
@@ -136,6 +137,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                     string.Equals(cacheEntry.Hash, RazorFileHash.GetHash(fileInfo), StringComparison.Ordinal))
                 {
                     // Cache hit, but we need to update the entry.
+                    // Assigning to LastModified is an atomic operation and will result in a safe race if it is
+                    // being concurrently read and written or updated concurrently.
                     cacheEntry.LastModified = fileInfo.LastModified;
                     result = CompilationResult.Successful(cacheEntry.CompiledType);
 
@@ -170,11 +173,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             return entry.AssociatedViewStartEntry != viewStartEntry;
         }
 
-        /// <remarks>
-        /// Returns the entry for the nearest _ViewStart that the file inherits directives from. Since _ViewStart
-        /// entries are affected by other _ViewStart entries that are in the path hierarchy, the returned value
-        /// represents the compositie result of performing a cache check on individual _ViewStart entries.
-        /// </remarks>
+        
+        // Returns the entry for the nearest _ViewStart that the file inherits directives from. Since _ViewStart
+        // entries are affected by other _ViewStart entries that are in the path hierarchy, the returned value
+        // represents the composite result of performing a cache check on individual _ViewStart entries.
         private CompilerCacheEntry GetCompositeViewStartEntry(string relativePath,
                                                               Func<RelativeFileInfo, CompilationResult> compile)
         {
@@ -186,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     var relativeFileInfo = new RelativeFileInfo(viewStartFileInfo, viewStartLocation);
                     CompilationResult result;
-                    return GetOrAddEntry(relativeFileInfo, compile, out result);
+                    return GetOrAdd(relativeFileInfo, compile, out result);
                 }
             }
 
