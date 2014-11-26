@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 #if ASPNET50
 using Moq;
@@ -84,6 +87,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.False(metadata.HideSurroundingHtml);
             Assert.True(metadata.HtmlEncode);
             Assert.False(metadata.IsComplexType);
+            Assert.False(metadata.IsCollectionType);
             Assert.False(metadata.IsNullableValueType);
             Assert.False(metadata.IsReadOnly);
             Assert.False(metadata.IsRequired);
@@ -149,6 +153,51 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             Assert.True(modelMetadata.IsComplexType);
+        }
+
+        [Theory]
+        [InlineData(typeof(object))]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(NonCollectionType))]
+        [InlineData(typeof(string))]
+        public void IsCollectionType_NonCollectionTypes(Type type)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+
+            // Act
+            var modelMetadata = new ModelMetadata(provider, null, null, type, null);
+
+            // Assert
+            Assert.False(modelMetadata.IsCollectionType);
+        }
+
+        [Theory]
+        [InlineData(typeof(int[]))]
+        [InlineData(typeof(List<string>))]
+        [InlineData(typeof(DerivedList))]
+        [InlineData(typeof(IEnumerable))]
+        [InlineData(typeof(IEnumerable<string>))]
+        [InlineData(typeof(Collection<int>))]
+        [InlineData(typeof(Dictionary<object, object>))]
+        public void IsCollectionType_CollectionTypes(Type type)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+
+            // Act
+            var modelMetadata = new ModelMetadata(provider, null, null, type, null);
+
+            // Assert
+            Assert.True(modelMetadata.IsCollectionType);
+        }
+
+        private class NonCollectionType
+        {
+        }
+
+        private class DerivedList : List<int>
+        {
         }
 
         // IsNullableValueType
