@@ -6,6 +6,11 @@ using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
+    /// <summary>
+    /// Represents the state of a <see cref="AttributeRouteInfo"/>. Logged as a substructure of
+    /// <see cref="ActionDescriptorValues"/>, this contains the template, order, and name of the
+    /// given <see cref="AttributeRouteInfo"/>.
+    /// </summary>
     public class AttributeRouteInfoValues : LoggerStructureBase
     {
         public AttributeRouteInfoValues(AttributeRouteInfo inner)
@@ -15,11 +20,11 @@ namespace Microsoft.AspNet.Mvc.Logging
             Name = inner?.Name;
         }
 
-        public string Template { get; set; }
+        public string Template { get; }
 
-        public int? Order { get; set; }
+        public int? Order { get; }
 
-        public string Name { get; set; }
+        public string Name { get; }
 
         public override string Format()
         {

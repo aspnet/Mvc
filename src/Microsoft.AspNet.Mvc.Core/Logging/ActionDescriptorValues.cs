@@ -2,20 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.Framework.Logging;
 using System.Linq;
+using System.Reflection;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
     /// <summary>
-    /// Represents the state of an <see cref="ActionDescriptor"/> or <see cref="ControllerActionDescriptor"/>.
+    /// Represents the state of an <see cref="ActionDescriptor"/> or <see cref="ControllerActionDescriptor"/>. 
+    /// Logged during action discovery, this contains the name, parameters, constraints and filters, and if it is a
+    /// <see cref="ControllerActionDescriptor"/>, the controller, method, and type
     /// </summary>
     public class ActionDescriptorValues : LoggerStructureBase
     {
         public ActionDescriptorValues(ActionDescriptor inner)
         {
-            ActionName = inner.Name;
-            Parameters = inner.Parameters.Select(p => new ParameterDescriptorValues(p)).ToList();
+            Name = inner.Name;
+            Parameters = inner.Parameters.Select(p => new ParameterValues(p)).ToList();
             FilterDescriptors = inner.FilterDescriptors.Select(f => new FilterDescriptorValues(f)).ToList();
             RouteConstraints = inner.RouteConstraints.Select(r => new RouteDataActionConstraintValues(r)).ToList();
             AttributeRouteInfo = new AttributeRouteInfoValues(inner.AttributeRouteInfo);
@@ -23,15 +26,15 @@ namespace Microsoft.AspNet.Mvc.Logging
             var controllerActionDescriptor = inner as ControllerActionDescriptor;
             if (controllerActionDescriptor != null)
             {
-                Method = controllerActionDescriptor.MethodInfo.Name;
-                Controller = controllerActionDescriptor.ControllerName;
-                Type = controllerActionDescriptor.ControllerDescriptor.ControllerTypeInfo.FullName;
+                MethodInfo = controllerActionDescriptor.MethodInfo;
+                ControllerName = controllerActionDescriptor.ControllerName;
+                ControllerTypeInfo = controllerActionDescriptor.ControllerTypeInfo;
             }
         }
 
-        public string ActionName { get; }
+        public string Name { get; }
 
-        public List<ParameterDescriptorValues> Parameters { get; }
+        public List<ParameterValues> Parameters { get; }
 
         public List<FilterDescriptorValues> FilterDescriptors { get; }
 
@@ -41,11 +44,11 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public string ActionConstraints { get; }
 
-        public string Method { get; }
+        public MethodInfo MethodInfo { get; }
 
-        public string Controller { get; }
+        public string ControllerName { get; }
 
-        public string Type { get; }
+        public TypeInfo ControllerTypeInfo { get; }
 
         public override string Format()
         {

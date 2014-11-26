@@ -5,20 +5,24 @@ using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
+    /// <summary>
+    /// Represents the state of a <see cref="RouteDataActionConstraint"/>. Logged as a substructure of
+    /// <see cref="ActionDescriptorValues"/>.
+    /// </summary>
     public class RouteDataActionConstraintValues : LoggerStructureBase
     {
         public RouteDataActionConstraintValues([NotNull] RouteDataActionConstraint inner)
         {
             RouteKey = inner.RouteKey;
             RouteValue = inner.RouteValue;
-            RouteKeyHandling = inner.KeyHandling;
+            KeyHandling = inner.KeyHandling;
         }
 
-        public string RouteKey { get; set; }
+        public string RouteKey { get; }
 
-        public string RouteValue { get; set; }
+        public string RouteValue { get; }
 
-        public RouteKeyHandling RouteKeyHandling { get; set; }
+        public RouteKeyHandling KeyHandling { get; }
 
         public override string Format()
         {

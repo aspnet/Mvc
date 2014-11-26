@@ -1,49 +1,28 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
+    /// <summary>
+    /// Represents the state of a <see cref="FilterDescriptor"/>. Logged as a substructure of
+    /// <see cref="ActionDescriptorValues"/>.
+    /// </summary>
     public class FilterDescriptorValues : LoggerStructureBase
     {
         public FilterDescriptorValues(FilterDescriptor inner)
         {
-            if (inner.Filter is IFilterFactory)
-            {
-                IsFactory = true;
-                if (inner.Filter is ServiceFilterAttribute)
-                {
-                    FilterType = ((ServiceFilterAttribute)inner.Filter).ServiceType;
-                }
-                else if (inner.Filter is TypeFilterAttribute)
-                {
-                    FilterType = ((TypeFilterAttribute)inner.Filter).ImplementationType;
-                }
-                if (FilterType != null)
-                {
-                    FilterInterfaces = FilterType.GetInterfaces().ToList();
-                }
-            }
-            FilterMetadataType = inner.Filter.GetType();
+            Filter = new FilterValues(inner.Filter);
             Order = inner.Order;
             Scope = inner.Scope;
         }
 
-        public bool IsFactory { get; set; }
+        public FilterValues Filter { get; }
 
-        public Type FilterMetadataType { get; set; }
+        public int Order { get; }
 
-        public Type FilterType { get; set; }
-
-        public List<Type> FilterInterfaces { get; set; }
-
-        public int Order { get; set; }
-
-        public int Scope { get; set; }
+        public int Scope { get; }
 
         public override string Format()
         {

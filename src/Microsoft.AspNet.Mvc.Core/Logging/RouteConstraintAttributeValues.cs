@@ -5,6 +5,10 @@ using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
+    /// <summary>
+    /// Represents a <see cref="RouteConstraintAttribute"/>. Logged as a substructure of
+    /// <see cref="ControllerModelValues"/>
+    /// </summary>
     public class RouteConstraintAttributeValues : LoggerStructureBase
     {
         public RouteConstraintAttributeValues([NotNull] RouteConstraintAttribute inner)
@@ -15,13 +19,13 @@ namespace Microsoft.AspNet.Mvc.Logging
             BlockNonAttributedActions = inner.BlockNonAttributedActions;
         }
 
-        public string RouteKey { get; set; }
+        public string RouteKey { get; }
 
-        public string RouteValue { get; set; }
+        public string RouteValue { get; }
 
-        public RouteKeyHandling RouteKeyHandling { get; set; }
+        public RouteKeyHandling RouteKeyHandling { get; }
 
-        public bool BlockNonAttributedActions { get; set; }
+        public bool BlockNonAttributedActions { get; }
 
         public override string Format()
         {

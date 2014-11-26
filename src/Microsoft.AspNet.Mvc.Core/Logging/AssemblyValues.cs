@@ -6,6 +6,9 @@ using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
+    /// <summary>
+    /// Represents the state of an <see cref="Assembly"/>. Logged during Assembly discovery in startup
+    /// </summary>
     public class AssemblyValues : LoggerStructureBase
     {
         public AssemblyValues([NotNull] Assembly inner)
@@ -18,14 +21,14 @@ namespace Microsoft.AspNet.Mvc.Logging
             IsDynamic = inner.IsDynamic;
         }
 
-        public string AssemblyName { get; set; }
+        public string AssemblyName { get; }
 
 #if ASPNET50
-        public string Location { get; set; }
+        public string Location { get; }
 
-        public bool IsFullyTrusted { get; set; }
+        public bool IsFullyTrusted { get; }
 #endif
-        public bool IsDynamic { get; set; }
+        public bool IsDynamic { get; }
 
         public override string Format()
         {
