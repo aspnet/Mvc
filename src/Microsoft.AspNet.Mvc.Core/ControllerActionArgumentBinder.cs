@@ -45,9 +45,9 @@ namespace Microsoft.AspNet.Mvc
                     methodInfo: actionDescriptor.MethodInfo,
                     parameterName: parameter.Name);
 
-                UpdateParameterMetadata(metadata, parameter.BinderMetadata);
                 if (metadata != null)
                 {
+                    UpdateParameterMetadata(metadata, parameter.BinderMetadata);
                     parameterMetadata.Add(metadata);
                 }
             }
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc
             var nameProvider = binderMetadata as IModelNameProvider;
             if (nameProvider != null && nameProvider.Name != null)
             {
-                metadata.BinderModelNamePrefix = nameProvider.Name;
+                metadata.BinderModelName = nameProvider.Name;
             }
         }
 
@@ -107,12 +107,12 @@ namespace Microsoft.AspNet.Mvc
 
             var modelBindingContext = new ModelBindingContext
             {
-                ModelName = modelMetadata.BinderModelNamePrefix ?? modelMetadata.PropertyName,
+                ModelName = modelMetadata.BinderModelName ?? modelMetadata.PropertyName,
                 ModelMetadata = modelMetadata,
                 ModelState = actionBindingContext.ActionContext.ModelState,
                 PropertyFilter = propertyFilter,
                 // Fallback only if there is no explicit model name set.
-                FallbackToEmptyPrefix = modelMetadata.BinderModelNamePrefix == null,
+                FallbackToEmptyPrefix = modelMetadata.BinderModelName == null,
                 ValueProvider = actionBindingContext.ValueProvider,
                 OperationBindingContext = operationBindingContext,
             };

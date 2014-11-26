@@ -13,6 +13,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class ModelMetadataTest
     {
+
+#if ASPNET50
         public static TheoryData<Action<ModelMetadata>, Func<ModelMetadata, object>, object> MetadataModifierData
         {
             get
@@ -21,6 +23,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var contactModel = new DummyContactModel { FirstName = "test" };
                 var nonEmptycontainerModel = new DummyModelContainer { Model = contactModel };
 
+                var binderMetadata = Mock.Of<IBinderMetadata>();
+                var emptyPropertyList = new List<string>();
+                var nonEmptyPropertyList = new List<string>() { "SomeProperty" };
                 return new TheoryData<Action<ModelMetadata>, Func<ModelMetadata, object>, object>
                 {
                     { m => m.ConvertEmptyStringToNull = false, m => m.ConvertEmptyStringToNull, false },
@@ -45,11 +50,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     { m => m.Container = null, m => m.Container, null },
                     { m => m.Container = emptycontainerModel, m => m.Container, emptycontainerModel },
                     { m => m.Container = nonEmptycontainerModel, m => m.Container, nonEmptycontainerModel },
+
+                    { m => m.BinderMetadata = null, m => m.BinderMetadata, null },
+                    { m => m.BinderMetadata = binderMetadata, m => m.BinderMetadata, binderMetadata },
+                    { m => m.BinderModelName = null, m => m.BinderModelName, null },
+                    { m => m.BinderModelName = "newModelName", m => m.BinderModelName, "newModelName" },
+                    { m => m.BinderModelName = string.Empty, m => m.BinderModelName, string.Empty },
+                    { m => m.BinderIncludeProperties = null, m => m.BinderIncludeProperties, null },
+                    {
+                      m => m.BinderIncludeProperties = emptyPropertyList,
+                      m => m.BinderIncludeProperties,
+                      emptyPropertyList
+                    },
+                    {
+                      m => m.BinderIncludeProperties = nonEmptyPropertyList,
+                      m => m.BinderIncludeProperties,
+                      nonEmptyPropertyList
+                    },
+                    { m => m.BinderExcludeProperties = null, m => m.BinderExcludeProperties, null },
+                    {
+                        m => m.BinderExcludeProperties = emptyPropertyList,
+                        m => m.BinderExcludeProperties,
+                        emptyPropertyList
+                    },
+                    {
+                        m => m.BinderExcludeProperties = nonEmptyPropertyList,
+                        m => m.BinderExcludeProperties,
+                        nonEmptyPropertyList
+                    },
                 };
             }
         }
 
-#if ASPNET50
         // Constructor
 
         [Fact]
@@ -91,6 +123,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal("propertyName", metadata.PropertyName);
 
             Assert.Equal(ModelMetadata.DefaultOrder, metadata.Order);
+
+            Assert.Null(metadata.BinderModelName);
+            Assert.Null(metadata.BinderMetadata);
+            Assert.Null(metadata.BinderIncludeProperties);
+            Assert.Null(metadata.BinderExcludeProperties);
         }
 #endif
 
@@ -213,6 +250,61 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(propertyMetadata, result.ToList());
             provider.Verify();
         }
+
+        [Theory]
+        [MemberData(nameof(MetadataModifierData))]
+        public void PropertiesPropertyChangesPersist(
+            Action<ModelMetadata> setter,
+            Func<ModelMetadata, object> getter,
+            object expected)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = new ModelMetadata(
+                provider,
+                containerType: null,
+                modelAccessor: () => new Class1(),
+                modelType: typeof(Class1),
+                propertyName: null);
+
+            // Act
+            foreach (var property in metadata.Properties)
+            {
+                setter(property);
+            }
+
+            // Assert
+            foreach (var property in metadata.Properties)
+            {
+                // Due to boxing of structs, can't Assert.Same().
+                Assert.Equal(expected, getter(property));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(MetadataModifierData))]
+        public void PropertyChangesPersist(
+            Action<ModelMetadata> setter,
+            Func<ModelMetadata, object> getter,
+            object expected)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = new ModelMetadata(
+                provider,
+                containerType: null,
+                modelAccessor: () => new Class1(),
+                modelType: typeof(Class1),
+                propertyName: null);
+
+            // Act
+            setter(metadata);
+            var result = getter(metadata);
+
+            // Assert
+            // Due to boxing of structs, can't Assert.Same().
+            Assert.Equal(expected, result);
+        }
 #endif
 
         [Fact]
@@ -276,36 +368,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             // Identical ModelMetadata objects every time we run through the Properties collection.
             Assert.Equal(firstPropertiesEvaluation, secondPropertiesEvaluation);
-        }
-
-        [Theory]
-        [MemberData(nameof(MetadataModifierData))]
-        public void PropertiesPropertyChangesPersist(
-            Action<ModelMetadata> setter,
-            Func<ModelMetadata, object> getter,
-            object expected)
-        {
-            // Arrange
-            var provider = new EmptyModelMetadataProvider();
-            var metadata = new ModelMetadata(
-                provider,
-                containerType: null,
-                modelAccessor: () => new Class1(),
-                modelType: typeof(Class1),
-                propertyName: null);
-
-            // Act
-            foreach (var property in metadata.Properties)
-            {
-                setter(property);
-            }
-
-            // Assert
-            foreach (var property in metadata.Properties)
-            {
-                // Due to boxing of structs, can't Assert.Same().
-                Assert.Equal(expected, getter(property));
-            }
         }
 
         private class Class1
@@ -435,33 +497,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             public Class1 Prop1 { get; set; }
         }
 
-        [Theory]
-        [MemberData(nameof(MetadataModifierData))]
-        public void PropertyChangesPersist(
-            Action<ModelMetadata> setter,
-            Func<ModelMetadata, object> getter,
-            object expected)
-        {
-            // Arrange
-            var provider = new EmptyModelMetadataProvider();
-            var metadata = new ModelMetadata(
-                provider,
-                containerType: null,
-                modelAccessor: () => new Class1(),
-                modelType: typeof(Class1),
-                propertyName: null);
-
-            // Act
-            setter(metadata);
-            var result = getter(metadata);
-
-            // Assert
-            // Due to boxing of structs, can't Assert.Same().
-            Assert.Equal(expected, result);
-        }
-
         // Helpers
-
         private class DummyContactModel
         {
             public int IntField = 0;

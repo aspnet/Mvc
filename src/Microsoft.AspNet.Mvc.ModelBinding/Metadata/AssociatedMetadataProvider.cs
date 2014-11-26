@@ -51,6 +51,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             [NotNull] MethodInfo methodInfo,
             [NotNull] string parameterName)
         {
+            if (string.IsNullOrEmpty(parameterName))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "parameterName");
+            }
+
             var parameter = methodInfo.GetParameters().FirstOrDefault(
                 param => StringComparer.Ordinal.Equals(param.Name, parameterName));
             if (parameter == null)
@@ -71,13 +76,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // Override for applying the prototype + modelAccess to yield the final metadata
         protected abstract TModelMetadata CreateMetadataFromPrototype(TModelMetadata prototype,
                                                                       Func<object> modelAccessor);
+
         private ModelMetadata GetMetadataForParameterCore(Func<object> modelAccessor,
                                                           string parameterName,
                                                           ParameterInfo parameter)
         {
             var parameterInfo =
                 CreateParameterInfo(parameter.ParameterType,
-                                    ModelMetadataProviderHelper.GetAttributesForParameter(parameter),
+                                    ModelAttributes.GetAttributesForParameter(parameter),
                                     parameterName);
 
             var metadata = CreateMetadataFromPrototype(parameterInfo.Prototype, modelAccessor);
@@ -165,7 +171,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return new PropertyInformation
             {
                 PropertyHelper = helper,
-                Prototype = CreateMetadataPrototype(ModelMetadataProviderHelper.GetAttributesForProperty(property),
+                Prototype = CreateMetadataPrototype(ModelAttributes.GetAttributesForProperty(property),
                                                     containerType,
                                                     property.PropertyType,
                                                     property.Name),

@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             };
 
-            bindingContext.ModelBindingContext.ModelMetadata.BinderModelNamePrefix = isPrefixProvided ? "prefix" : null;
+            bindingContext.ModelBindingContext.ModelMetadata.BinderModelName = isPrefixProvided ? "prefix" : null;
             var mutableBinder = new TestableMutableObjectModelBinder();
             bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
                                                                 bindingContext.ModelBindingContext);

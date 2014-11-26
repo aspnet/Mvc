@@ -50,15 +50,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <summary>
         /// Represents the name of a model if specified explicitly using <see cref="IModelNameProvider"/>.
         /// </summary>
-        public virtual string BinderModelNamePrefix { get; set; }
+        public virtual string BinderModelName { get; set; }
 
         /// <summary>
-        /// Properties which are marked as Included for this model.
+        /// Properties which are to be included while binding this model.
         /// </summary>
         public virtual IReadOnlyList<string> BinderIncludeProperties { get; set; }
 
         /// <summary>
-        /// Properties which are marked as Excluded for this model.
+        /// Properties which are to be excluded while binding this model.
         /// </summary>
         public virtual IReadOnlyList<string> BinderExcludeProperties { get; set; }
 

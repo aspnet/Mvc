@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc
     /// This attribute can be used on action parameters and types, to indicate model level metadata.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-    public sealed class BindAttribute : Attribute, IModelNameProvider, IModelPropertyBindingInfo
+    public sealed class BindAttribute : Attribute, IModelNameProvider, IPropertyBindingInfo
     {
         /// <summary>
         /// Comma separated set of properties which are to be excluded during model binding.
@@ -46,7 +46,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // We allow a property to be bound if its both in the include list AND not in the exclude list.
             // An empty exclude list implies no properties are disallowed.
-            var includeProperty = includeProperties.Contains(propertyName, StringComparer.OrdinalIgnoreCase);
+            var includeProperty = (includeProperties != null) &&
+                                   includeProperties.Contains(propertyName, StringComparer.OrdinalIgnoreCase);
             var excludeProperty = (excludeProperties != null) &&
                                   excludeProperties.Contains(propertyName, StringComparer.OrdinalIgnoreCase);
 

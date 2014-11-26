@@ -21,8 +21,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Required = attributes.OfType<RequiredAttribute>().FirstOrDefault();
             ScaffoldColumn = attributes.OfType<ScaffoldColumnAttribute>().FirstOrDefault();
             BinderMetadata = attributes.OfType<IBinderMetadata>().FirstOrDefault();
-            BinderPropertyBindingInfo = attributes.OfType<IModelPropertyBindingInfo>().ToList();
-            BinderModelNamePrefixProvider = attributes.OfType<IModelNameProvider>().FirstOrDefault();
+            PropertyBindingInfo = attributes.OfType<IPropertyBindingInfo>();
+            BinderModelNameProvider = attributes.OfType<IModelNameProvider>().FirstOrDefault();
 
             // Special case the [DisplayFormat] attribute hanging off an applied [DataType] attribute. This property is
             // non-null for DataType.Currency, DataType.Date, DataType.Time, and potentially custom [DataType]
@@ -42,17 +42,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public IBinderMetadata BinderMetadata { get; protected set; }
 
         /// <summary>
-        /// Gets (or sets in subclasses) <see cref="IReadOnlyList{IModelPropertyBindingInfo}"/> found in collection
-        /// passed to the <see cref="CachedDataAnnotationsMetadataAttributes(IEnumerable{object})"/> constructor,
-        /// if any.
-        /// </summary>
-        public IReadOnlyList<IModelPropertyBindingInfo> BinderPropertyBindingInfo { get; protected set; }
-
-        /// <summary>
         /// Gets (or sets in subclasses) <see cref="IModelNameProvider"/> found in collection passed to the
         /// <see cref="CachedDataAnnotationsMetadataAttributes(IEnumerable{object})"/> constructor, if any.
         /// </summary>
-        public IModelNameProvider BinderModelNamePrefixProvider { get; protected set; }
+        public IModelNameProvider BinderModelNameProvider { get; protected set; }
 
         /// <summary>
         /// Gets (or sets in subclasses) <see cref="DataTypeAttribute"/> found in collection passed to the
@@ -79,6 +72,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <see cref="CachedDataAnnotationsMetadataAttributes(IEnumerable{object})"/> constructor, if any.
         /// </summary>
         public HiddenInputAttribute HiddenInput { get; protected set; }
+
+        /// <summary>
+        /// Gets (or sets in subclasses) <see cref="IEnumerable{IModelPropertyBindingInfo}"/> found in collection
+        /// passed to the <see cref="CachedDataAnnotationsMetadataAttributes(IEnumerable{object})"/> constructor,
+        /// if any.
+        /// </summary>
+        public IEnumerable<IPropertyBindingInfo> PropertyBindingInfo { get; protected set; }
 
         public RequiredAttribute Required { get; protected set; }
 

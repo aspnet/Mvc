@@ -24,34 +24,35 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
         }
 
-        public void ParameterWithNoBindAttribute(MySimpleModelWithTypeBasedBind foo)
+        public void ParameterWithNoBindAttribute(MySimpleModelWithTypeBasedBind parameter)
         {
         }
 
-        public void ParameterHasFieldPrefix([Bind(Prefix = "bar")] string foo)
+        public void ParameterHasFieldPrefix([Bind(Prefix = "simpleModelPrefix")] string parameter)
         {
         }
 
-        public void ParameterHasEmptyFieldPrefix([Bind(Prefix = "")] MySimpleModel foo,
-                                                 [Bind(Prefix = "")] MySimpleModelWithTypeBasedBind foo1)
+        public void ParameterHasEmptyFieldPrefix([Bind(Prefix = "")] MySimpleModel parameter,
+                                                 [Bind(Prefix = "")] MySimpleModelWithTypeBasedBind parameter1)
         {
         }
 
-        public void ParameterHasPrefixAndComplexType([Bind(Prefix = "bar")] MySimpleModel foo,
-                                                     [Bind(Prefix = "bar")] MySimpleModelWithTypeBasedBind foo1)
+        public void ParameterHasPrefixAndComplexType(
+            [Bind(Prefix = "simpleModelPrefix")] MySimpleModel parameter,
+            [Bind(Prefix = "simpleModelPrefix")] MySimpleModelWithTypeBasedBind parameter1)
         {
         }
 
-        public void ParameterHasEmptyBindAttribute([Bind] MySimpleModel foo,
-                                                   [Bind] MySimpleModelWithTypeBasedBind foo1)
+        public void ParameterHasEmptyBindAttribute([Bind] MySimpleModel parameter,
+                                                   [Bind] MySimpleModelWithTypeBasedBind parameter1)
         {
         }
 
         [Fact]
-        public void GetMetadataForProperties_DoesNotReturn_ExcludedProperties()
+        public void GetModelBindingContext_DoesNotReturn_ExcludedProperties()
         {
-                // Arrange
-                var actionContext = new ActionContext(new RouteContext(Mock.Of<HttpContext>()),
+            // Arrange
+            var actionContext = new ActionContext(new RouteContext(Mock.Of<HttpContext>()),
                                                   Mock.Of<ActionDescriptor>());
 
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
@@ -74,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public void GetMetadataForProperties_ReturnsOnlyWhiteListedProperties_UsingBindAttributeInclude()
+        public void GetModelBindingContext_ReturnsOnlyWhiteListedProperties_UsingBindAttributeInclude()
         {
             // Arrange
             var actionContext = new ActionContext(new RouteContext(Mock.Of<HttpContext>()),
@@ -111,8 +112,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var modelMetadata = metadataProvider.GetMetadataForParameter(modelAccessor: null,
                                                                          methodInfo: methodInfo,
-                                                                         parameterName: "foo");
-
+                                                                         parameterName: "parameter");
 
             var actionBindingContext = new ActionBindingContext(actionContext,
                                                           Mock.Of<IModelMetadataProvider>(),
@@ -129,10 +129,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Theory]
-        [InlineData("ParameterHasFieldPrefix", false, "bar")]
+        [InlineData("ParameterHasFieldPrefix", false, "simpleModelPrefix")]
         [InlineData("ParameterHasEmptyFieldPrefix", false, "")]
-        [InlineData("ParameterHasPrefixAndComplexType", false, "bar")]
-        [InlineData("ParameterHasEmptyBindAttribute", true, "foo")]
+        [InlineData("ParameterHasPrefixAndComplexType", false, "simpleModelPrefix")]
+        [InlineData("ParameterHasEmptyBindAttribute", true, "parameter")]
         public void GetModelBindingContext_ModelBindingContextIsSetWithModelName_ForParameters(
             string actionMethodName, bool expectedFallToEmptyPrefix, string expectedModelName)
         {
@@ -145,7 +145,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var modelMetadata = metadataProvider.GetMetadataForParameter(modelAccessor: null,
                                                                          methodInfo: methodInfo,
-                                                                         parameterName: "foo");
+                                                                         parameterName: "parameter");
 
 
             var actionBindingContext = new ActionBindingContext(actionContext,
@@ -165,8 +165,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         [Theory]
         [InlineData("ParameterHasEmptyFieldPrefix", false, "")]
-        [InlineData("ParameterHasPrefixAndComplexType", false, "bar")]
-        [InlineData("ParameterHasEmptyBindAttribute", true, "foo1")]
+        [InlineData("ParameterHasPrefixAndComplexType", false, "simpleModelPrefix")]
+        [InlineData("ParameterHasEmptyBindAttribute", true, "parameter1")]
         public void GetModelBindingContext_ModelBindingContextIsNotSet_ForTypes(
             string actionMethodName, bool expectedFallToEmptyPrefix, string expectedModelName)
         {
@@ -179,7 +179,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var modelMetadata = metadataProvider.GetMetadataForParameter(modelAccessor: null,
                                                                          methodInfo: methodInfo,
-                                                                         parameterName: "foo1");
+                                                                         parameterName: "parameter1");
 
 
             var actionBindingContext = new ActionBindingContext(actionContext,
@@ -296,21 +296,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(value, result["foo"]);
         }
 
-        private static ModelMetadata GetMetadataForType(Type t)
-        {
-            var metadataProvider = new DataAnnotationsModelMetadataProvider();
-            return metadataProvider.GetMetadataForType(null, t);
-        }
-
-        private static ModelMetadata GetMetadataForParameter(MethodInfo methodInfo, string parameterName)
-        {
-            var metadataProvider = new DataAnnotationsModelMetadataProvider();
-            return metadataProvider.GetMetadataForParameter(
-                modelAccessor: null,
-                methodInfo: methodInfo,
-                parameterName: parameterName);
-        }
-
         private class TestController
         {
             public string UnmarkedProperty { get; set; }
@@ -348,6 +333,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             public int Excluded2 { get; set; }
 
             public int IncludedByDefault1 { get; set; }
+
             public int IncludedByDefault2 { get; set; }
         }
 

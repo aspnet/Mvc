@@ -5,6 +5,9 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Xunit;
+#if ASPNET50
+using Moq;
+#endif
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -49,13 +52,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Null(metadata.TemplateHint);
 
             Assert.Equal(ModelMetadata.DefaultOrder, metadata.Order);
+
+            Assert.Null(metadata.BinderModelName);
+            Assert.Null(metadata.BinderMetadata);
+            Assert.Empty(metadata.BinderIncludeProperties);
+            Assert.Null(metadata.BinderExcludeProperties);
         }
 
-        public static TheoryData<Attribute, Func<ModelMetadata, string>> ExpectedAttributeDataStrings
+        public static TheoryData<object, Func<ModelMetadata, string>> ExpectedAttributeDataStrings
         {
             get
             {
-                return new TheoryData<Attribute, Func<ModelMetadata, string>>
+#if ASPNET50
+                var mockModelNameProvider = new Mock<IModelNameProvider>();
+                mockModelNameProvider.SetupGet(o => o.Name)
+                                     .Returns("value");
+#endif
+
+                return new TheoryData<object, Func<ModelMetadata, string>>
                 {
                     {
                         new DataTypeAttribute("value"), metadata => metadata.DataTypeName
@@ -91,13 +105,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     {
                         new DisplayFormatAttribute { NullDisplayText = "value" }, metadata => metadata.NullDisplayText
                     },
+#if ASPNET50
+
+                    {
+                        mockModelNameProvider.Object, metadata => metadata.BinderModelName
+                    },
+#endif
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ExpectedAttributeDataStrings))]
-        public void AttributesOverrideMetadataStrings(Attribute attribute, Func<ModelMetadata, string> accessor)
+        public void AttributesOverrideMetadataStrings(object attribute, Func<ModelMetadata, string> accessor)
         {
             // Arrange
             var attributes = new[] { attribute };
@@ -220,6 +240,29 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.Equal(expectedResult, result);
         }
+#if ASPNET50
+
+        [Fact]
+        public void BinderMetadataIfPresent_Overrides_DefaultBinderMetadata()
+        {
+            // Arrange
+            var firstBinderMetadata = Mock.Of<IBinderMetadata>();
+            var secondBinderMetadata = Mock.Of<IBinderMetadata>();
+            var provider = new DataAnnotationsModelMetadataProvider();
+            var metadata = new CachedDataAnnotationsModelMetadata(
+                provider,
+                containerType: null,
+                modelType: typeof(object),
+                propertyName: null,
+                attributes: new object[] { firstBinderMetadata, secondBinderMetadata });
+
+            // Act
+            var result = metadata.BinderMetadata;
+
+            // Assert
+            Assert.Same(firstBinderMetadata, result);
+        }
+#endif
 
         [Fact]
         public void DataTypeName_Null_IfHtmlEncodeTrue()

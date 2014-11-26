@@ -44,28 +44,28 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         protected override string ComputeBinderModelNamePrefix()
         {
-            return PrototypeCache.BinderModelNamePrefixProvider != null
-                      ? PrototypeCache.BinderModelNamePrefixProvider.Name
+            return PrototypeCache.BinderModelNameProvider != null
+                      ? PrototypeCache.BinderModelNameProvider.Name
                       : base.ComputeBinderModelNamePrefix();
         }
 
         protected override IReadOnlyList<string> ComputeBinderIncludeProperties()
         {
-            if (PrototypeCache.BinderPropertyBindingInfo != null &&
-                PrototypeCache.BinderPropertyBindingInfo.Count != 0)
+            var propertyBindingInfo = PrototypeCache.PropertyBindingInfo?.ToList();
+            if (propertyBindingInfo != null && propertyBindingInfo.Count != 0)
             {
-                if (string.IsNullOrEmpty(PrototypeCache.BinderPropertyBindingInfo[0].Include))
+                if (string.IsNullOrEmpty(propertyBindingInfo[0].Include))
                 {
                     return Properties.Select(property => property.PropertyName).ToList();
                 }
 
-                var includeFirst = SplitString(PrototypeCache.BinderPropertyBindingInfo[0].Include).ToList();
-                if (PrototypeCache.BinderPropertyBindingInfo.Count != 2)
+                var includeFirst = SplitString(propertyBindingInfo[0].Include).ToList();
+                if (propertyBindingInfo.Count != 2)
                 {
                     return includeFirst;
                 }
 
-                var includedAtType = SplitString(PrototypeCache.BinderPropertyBindingInfo[1].Include).ToList();
+                var includedAtType = SplitString(propertyBindingInfo[1].Include).ToList();
 
                 if (includeFirst.Count == 0 && includedAtType.Count == 0)
                 {
@@ -84,17 +84,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         protected override IReadOnlyList<string> ComputeBinderExcludeProperties()
         {
-            if (PrototypeCache.BinderPropertyBindingInfo != null &&
-                PrototypeCache.BinderPropertyBindingInfo.Count != 0)
+            var propertyBindingInfo = PrototypeCache.PropertyBindingInfo?.ToList();
+            if (propertyBindingInfo != null && propertyBindingInfo.Count != 0)
             {
-                var excludeFirst = SplitString(PrototypeCache.BinderPropertyBindingInfo[0].Exclude).ToList();
+                var excludeFirst = SplitString(propertyBindingInfo[0].Exclude).ToList();
 
-                if (PrototypeCache.BinderPropertyBindingInfo.Count != 2)
+                if (propertyBindingInfo.Count != 2)
                 {
                     return excludeFirst;
                 }
 
-                var excludedAtType = SplitString(PrototypeCache.BinderPropertyBindingInfo[1].Exclude).ToList();
+                var excludedAtType = SplitString(propertyBindingInfo[1].Exclude).ToList();
                 return excludeFirst.Union(excludedAtType).ToList();
             }
 
