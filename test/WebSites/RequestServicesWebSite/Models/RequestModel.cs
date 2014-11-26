@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNet.Mvc;
 
-namespace MvcSample.Web
+namespace RequestServicesWebSite
 {
-    public class RazorPreCompilation : RazorPreCompileModule
+    public class RequestModel
     {
-        public RazorPreCompilation(IServiceProvider provider) : base(provider)
-        {
-        }
+        [FromServices]
+        public RequestIdService RequestIdService { get; set; }
     }
 }
