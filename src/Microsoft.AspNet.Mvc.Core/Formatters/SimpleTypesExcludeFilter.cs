@@ -13,48 +13,42 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class SimpleTypesExcludeFilter : IExcludeTypeValidationFilter
     {
-        private static HashSet<Type> _collections = null;
-        static SimpleTypesExcludeFilter()
-        {
-            _collections = new HashSet<Type>()
-            {
-                typeof(List<>),
-                typeof(Dictionary<,>),
-                typeof(LinkedList<>),
-                typeof(SortedSet<>),
-                typeof(SortedDictionary<,>),
-                typeof(Queue<>),
-                typeof(Stack<>),
-                typeof(HashSet<>)
-            };
-        }
-
         /// <summary>
         /// Returns true if the given type will be excluded from the default model validation. 
         /// </summary>
         public bool IsTypeExcluded(Type type)
         {
-            Type actualType = null;
-            if (type.IsArray)
+            Type[] actualTypes;
+
+            var enumerable = type.ExtractGenericInterface(typeof(IEnumerable<>));
+            if (null == enumerable)
             {
-                actualType = type.GetElementType();
-            }
-            else if (type.IsGenericType && _collections.Contains(type.GetGenericTypeDefinition()))
-            {
-                var types = type.GenericTypeArguments;
-                actualType = types[types.Length - 1];
+                actualTypes = new Type[] { type };
             }
             else
             {
-                actualType = type;
+                actualTypes = enumerable.GenericTypeArguments;
+
+                if (actualTypes[0].IsGenericType()
+                    && actualTypes.Length == 1
+                    && actualTypes[0].GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+                {
+                    actualTypes = actualTypes[0].GenericTypeArguments;
+                }
             }
 
-            if(actualType.IsNullableValueType())
+            foreach (var actualType in actualTypes)
             {
-                actualType = Nullable.GetUnderlyingType(actualType);
+                var underlingType = actualType.IsNullableValueType() ? Nullable.GetUnderlyingType(actualType)
+                                                                       : actualType;
+
+                if (!IsSimpleType(underlingType))
+                {
+                    return false;
+                }
             }
 
-            return IsSimpleType(actualType);
+            return true;
         }
 
         protected virtual bool IsSimpleType(Type type)

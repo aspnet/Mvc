@@ -11,11 +11,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
     {
         [Theory]
         [InlineData(typeof(int[]))]
+        [InlineData(typeof(int?[]))]
         [InlineData(typeof(int?))]
         [InlineData(typeof(int))]
-        [InlineData(typeof(List<int>))]
         [InlineData(typeof(SortedSet<int>))]
-        [InlineData(typeof(Dictionary<TestType, int>))]
+        [InlineData(typeof(SortedSet<int?>))]
+        [InlineData(typeof(Dictionary<int, string>))]
+        [InlineData(typeof(IReadOnlyDictionary<int?, char?>))]
         public void SimpleTypeExcluceFilter_ExcludedTypes(Type type)
         {
             // Arrange
@@ -30,6 +32,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData(typeof(TestType[]))]
         [InlineData(typeof(SortedSet<TestType>))]
         [InlineData(typeof(Dictionary<int, TestType>))]
+        [InlineData(typeof(Dictionary<TestType, int>))]
         public void SimpleTypeExcluceFilter_IncludedTypes(Type type)
         {
             // Arrange
