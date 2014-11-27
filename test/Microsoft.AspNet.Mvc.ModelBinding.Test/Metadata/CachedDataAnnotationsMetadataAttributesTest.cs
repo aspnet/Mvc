@@ -5,9 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-#if ASPNET50
-using Moq;
-#endif
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -54,10 +51,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     { new EditableAttribute(allowEdit: false), cache => cache.Editable },
                     { new HiddenInputAttribute(), cache => cache.HiddenInput },
                     { new RequiredAttribute(), cache => cache.Required },
-#if ASPNET50
-                    { Mock.Of<IBinderMetadata>(), cache => cache.BinderMetadata },
-                    { Mock.Of<IModelNameProvider>(), cache => cache.BinderModelNameProvider },
-#endif
+                    { new TestBinderMetadata(), cache => cache.BinderMetadata },
+                    { new TestModelNameProvider(), cache => cache.BinderModelNameProvider },
                 };
             }
         }
@@ -79,13 +74,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Same(attribute, result);
         }
 
-#if ASPNET50
         [Fact]
         public void Constructor_FindsPropertyBindingInfo()
         {
             // Arrange
             var propertyBindingInfos =
-                new[] { Mock.Of<IPropertyBindingInfo>(), Mock.Of<IPropertyBindingInfo>() };
+                new[] { new TestPropertyBindingInfo(), new TestPropertyBindingInfo() };
 
             // Act
             var cache = new CachedDataAnnotationsMetadataAttributes(propertyBindingInfos);
@@ -97,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 Assert.Same(propertyBindingInfos[index], result[index]);
             }
         }
-#endif
+
         [Fact]
         public void Constructor_FindsDisplayFormat_FromDataType()
         {

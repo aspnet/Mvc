@@ -5,9 +5,6 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Xunit;
-#if ASPNET50
-using Moq;
-#endif
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -63,12 +60,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             get
             {
-#if ASPNET50
-                var mockModelNameProvider = new Mock<IModelNameProvider>();
-                mockModelNameProvider.SetupGet(o => o.Name)
-                                     .Returns("value");
-#endif
-
                 return new TheoryData<object, Func<ModelMetadata, string>>
                 {
                     {
@@ -105,12 +96,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     {
                         new DisplayFormatAttribute { NullDisplayText = "value" }, metadata => metadata.NullDisplayText
                     },
-#if ASPNET50
-
                     {
-                        mockModelNameProvider.Object, metadata => metadata.BinderModelName
+                        new TestModelNameProvider() { Name = "value" }, metadata => metadata.BinderModelName
                     },
-#endif
                 };
             }
         }
@@ -240,14 +228,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.Equal(expectedResult, result);
         }
-#if ASPNET50
 
         [Fact]
         public void BinderMetadataIfPresent_Overrides_DefaultBinderMetadata()
         {
             // Arrange
-            var firstBinderMetadata = Mock.Of<IBinderMetadata>();
-            var secondBinderMetadata = Mock.Of<IBinderMetadata>();
+            var firstBinderMetadata = new TestBinderMetadata();
+            var secondBinderMetadata = new TestBinderMetadata();
             var provider = new DataAnnotationsModelMetadataProvider();
             var metadata = new CachedDataAnnotationsModelMetadata(
                 provider,
@@ -262,7 +249,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.Same(firstBinderMetadata, result);
         }
-#endif
 
         [Fact]
         public void DataTypeName_Null_IfHtmlEncodeTrue()
