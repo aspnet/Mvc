@@ -9,6 +9,7 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -517,7 +518,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var viewEngine = new RazorViewEngine(pageFactory,
                                                  viewFactory,
                                                  viewLocationExpanderProvider,
-                                                 cache);
+                                                 cache,
+                                                 new NullLoggerFactory());
 
             return viewEngine;
         }
@@ -564,7 +566,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                                                 IRazorViewFactory viewFactory,
                                                 IViewLocationExpanderProvider expanderProvider,
                                                 IViewLocationCache cache)
-                : base(pageFactory, viewFactory, expanderProvider, cache)
+                : base(pageFactory, viewFactory, expanderProvider, cache, new NullLoggerFactory())
             {
             }
 
