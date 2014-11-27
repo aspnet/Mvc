@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -128,12 +130,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(400, (int)response.StatusCode);
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            Assert.Contains(expectedModelStateErrorMessage, responseContent);
+            var errorMessage = JsonConvert.DeserializeObject<ResponseContent>(responseContent).Suppliers.Errors.First().ErrorMessage;
+
+            Assert.Equal(expectedModelStateErrorMessage, errorMessage);
 
             // verifies that the excluded type is not validated
-            Assert.DoesNotContain(shouldNotContainMessage, responseContent);
+            Assert.NotEqual(shouldNotContainMessage, errorMessage);
         }
-        
+
         [Theory]
         [MemberData(nameof(SimpleTypePropertiesModelRequestData))]
         public async Task ShallowValidation_HappensOnExlcuded_SimpleTypeProperties(
@@ -170,6 +174,34 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("The Name field is required.", await response.Content.ReadAsStringAsync());
+        }
+
+        private class ResponseContent
+        {
+            [Newtonsoft.Json.JsonProperty(PropertyName = "project.Suppliers")]
+            public Suppliers Suppliers
+            {
+                get;
+                set;
+            }
+        }
+
+        private class Suppliers
+        {
+            public IEnumerable<Error> Errors
+            {
+                get;
+                set;
+            }
+        }
+
+        private class Error
+        {
+            public string ErrorMessage
+            {
+                get;
+                set;
+            }
         }
     }
 }
