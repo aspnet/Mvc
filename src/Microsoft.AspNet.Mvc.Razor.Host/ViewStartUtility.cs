@@ -27,7 +27,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the view start locations that are applicable to the specified path.
         /// </summary>
-        /// <param name="applicationBase">The base of the application.</param>
         /// <param name="path">The path to locate view starts for.</param>
         /// <returns>A sequence of paths that represent potential view start locations.</returns>
         /// <remarks>
@@ -46,24 +45,30 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 path = path.Substring(1);
             }
+            if (path.StartsWith("/", StringComparison.Ordinal))
+            {
+                path = path.Substring(1);
+            }
 
             if (string.Equals(ViewStartFileName, Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))
             {
                 // If the specified path is a ViewStart file, then the first view start that applies to it is the
                 // parent view start.
-                if (!fileSystem.TryGetParentPath(path, out path))
+                if (string.IsNullOrEmpty((path = Path.GetDirectoryName(path))))
                 {
                     return Enumerable.Empty<string>();
                 }
             }
 
             var viewStartLocations = new List<string>();
-
-            while (fileSystem.TryGetParentPath(path, out path))
+            
+            while (!string.IsNullOrEmpty((path = Path.GetDirectoryName(path))))
             {
                 var viewStartPath = Path.Combine(path, ViewStartFileName);
                 viewStartLocations.Add(viewStartPath);
             }
+
+            viewStartLocations.Add(ViewStartFileName);
 
             return viewStartLocations;
         }
