@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNet.Mvc.ModelBinding;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
     /// Identifies the simple types that the default model binding validation will exclude. 

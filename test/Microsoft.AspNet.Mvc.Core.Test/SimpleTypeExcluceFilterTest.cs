@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
