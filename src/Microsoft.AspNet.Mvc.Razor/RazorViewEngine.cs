@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Razor.OptionDescriptors;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -36,6 +38,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IRazorViewFactory _viewFactory;
         private readonly IReadOnlyList<IViewLocationExpander> _viewLocationExpanders;
         private readonly IViewLocationCache _viewLocationCache;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorViewEngine" /> class.
@@ -44,12 +47,14 @@ namespace Microsoft.AspNet.Mvc.Razor
         public RazorViewEngine(IRazorPageFactory pageFactory,
                                IRazorViewFactory viewFactory,
                                IViewLocationExpanderProvider viewLocationExpanderProvider,
-                               IViewLocationCache viewLocationCache)
+                               IViewLocationCache viewLocationCache,
+                               ILoggerFactory loggerFactory)
         {
             _pageFactory = pageFactory;
             _viewFactory = viewFactory;
             _viewLocationExpanders = viewLocationExpanderProvider.ViewLocationExpanders;
             _viewLocationCache = viewLocationCache;
+            _logger = loggerFactory.Create<RazorViewEngine>();
         }
 
         /// <summary>
@@ -106,8 +111,20 @@ namespace Microsoft.AspNet.Mvc.Razor
                     var page = _pageFactory.CreateInstance(viewName);
                     if (page != null)
                     {
+                        if (_logger.IsEnabled(LogLevel.Verbose))
+                        {
+                            _logger.WriteVerbose(new ViewEngineValues(
+                                viewName, partial, typeof(RazorViewEngine).FullName,
+                                context, new[] { viewName }, found: true));
+                        }
                         return CreateFoundResult(context, page, viewName, partial);
                     }
+                }
+                if (_logger.IsEnabled(LogLevel.Verbose))
+                {
+                    _logger.WriteVerbose(new ViewEngineValues(
+                        viewName, partial, typeof(RazorViewEngine).FullName,
+                        context, new[] { viewName }, found: false));
                 }
                 return ViewEngineResult.NotFound(viewName, new[] { viewName });
             }
@@ -150,6 +167,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (page != null)
                 {
                     // 2a. We found a IRazorPage at the cached location.
+                    if (_logger.IsEnabled(LogLevel.Verbose))
+                    {
+                        _logger.WriteVerbose(new ViewEngineValues(
+                            viewName, partial, typeof(RazorViewEngine).FullName,
+                            context, new string[] { viewLocation }, found: true, cached: true));
+                    }
                     return CreateFoundResult(context, page, viewName, partial);
                 }
             }
@@ -176,6 +199,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     // 3a. We found a page. Cache the set of values that produced it and return a found result.
                     _viewLocationCache.Set(expanderContext, transformedPath);
+                    if (_logger.IsEnabled(LogLevel.Verbose))
+                    {
+                        _logger.WriteVerbose(new ViewEngineValues(
+                            viewName, partial, typeof(RazorViewEngine).FullName,
+                            context, searchedLocations, found: true, cached: false));
+                    }
                     return CreateFoundResult(context, page, transformedPath, partial);
                 }
 
@@ -183,6 +212,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // 3b. We did not find a page for any of the paths.
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                _logger.WriteVerbose(new ViewEngineValues(
+                    viewName, partial, typeof(RazorViewEngine).FullName,
+                    context, searchedLocations, found: false, cached: false));
+            }
             return ViewEngineResult.NotFound(viewName, searchedLocations);
         }
 
