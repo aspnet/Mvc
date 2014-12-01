@@ -32,24 +32,30 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             var chunks = utility.GetInheritedChunks(@"Views\home\Index.cshtml");
 
             // Assert
-            Assert.Equal(8, chunks.Count);
-            Assert.IsType<LiteralChunk>(chunks[0]);
+            Assert.Equal(2, chunks.Count);
 
-            var usingChunk = Assert.IsType<UsingChunk>(chunks[1]);
+            var viewStartChunks = chunks[@"x:\myapproot\views\home\_viewstart.cshtml"];
+            Assert.Equal(3, viewStartChunks.Count);
+
+            Assert.IsType<LiteralChunk>(viewStartChunks[0]);
+            var usingChunk = Assert.IsType<UsingChunk>(viewStartChunks[1]);
             Assert.Equal("MyNamespace", usingChunk.Namespace);
+            Assert.IsType<LiteralChunk>(viewStartChunks[2]);
 
-            Assert.IsType<LiteralChunk>(chunks[2]);
-            Assert.IsType<LiteralChunk>(chunks[3]);
+            viewStartChunks = chunks[@"x:\myapproot\views\_viewstart.cshtml"];
+            Assert.Equal(5, viewStartChunks.Count);
 
-            var injectChunk = Assert.IsType<InjectChunk>(chunks[4]);
+            Assert.IsType<LiteralChunk>(viewStartChunks[0]);
+
+            var injectChunk = Assert.IsType<InjectChunk>(viewStartChunks[1]);
             Assert.Equal("MyHelper<TModel>", injectChunk.TypeName);
             Assert.Equal("Helper", injectChunk.MemberName);
 
-            var setBaseTypeChunk = Assert.IsType<SetBaseTypeChunk>(chunks[5]);
+            var setBaseTypeChunk = Assert.IsType<SetBaseTypeChunk>(viewStartChunks[2]);
             Assert.Equal("MyBaseType", setBaseTypeChunk.TypeName);
 
-            Assert.IsType<StatementChunk>(chunks[6]);
-            Assert.IsType<LiteralChunk>(chunks[7]);
+            Assert.IsType<StatementChunk>(viewStartChunks[3]);
+            Assert.IsType<LiteralChunk>(viewStartChunks[4]);
         }
 
         [Fact]
@@ -89,13 +95,15 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             var chunks = utility.GetInheritedChunks(@"Views\Home\Index.cshtml");
 
             // Assert
-            Assert.Equal(4, chunks.Count);
-            var injectChunk = Assert.IsType<InjectChunk>(chunks[1]);
+            Assert.Equal(2, chunks.Count);
+            var viewStartChunks = chunks[@"x:\myapproot\views\_viewstart.cshtml"];
+            Assert.Equal(2, viewStartChunks.Count);
+            Assert.IsType<LiteralChunk>(viewStartChunks[0]);
+            var injectChunk = Assert.IsType<InjectChunk>(viewStartChunks[1]);
             Assert.Equal("DifferentHelper<TModel>", injectChunk.TypeName);
             Assert.Equal("Html", injectChunk.MemberName);
 
-            Assert.Same(defaultChunks[0], chunks[2]);
-            Assert.Same(defaultChunks[1], chunks[3]);
+            Assert.Equal(defaultChunks, chunks[""]);
         }
     }
 }
