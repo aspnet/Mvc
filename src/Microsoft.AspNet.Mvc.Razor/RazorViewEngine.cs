@@ -113,18 +113,28 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         if (_logger.IsEnabled(LogLevel.Verbose))
                         {
-                            _logger.WriteVerbose(new ViewEngineValues(
-                                viewName, partial, typeof(RazorViewEngine).FullName,
-                                context, new[] { viewName }, found: true));
+                            _logger.WriteVerbose(
+                                new ViewEngineValues(
+                                    viewName, 
+                                    partial, 
+                                    typeof(RazorViewEngine).FullName,
+                                    context, 
+                                    new[] { viewName }, 
+                                    found: true));
                         }
                         return CreateFoundResult(context, page, viewName, partial);
                     }
                 }
                 if (_logger.IsEnabled(LogLevel.Verbose))
                 {
-                    _logger.WriteVerbose(new ViewEngineValues(
-                        viewName, partial, typeof(RazorViewEngine).FullName,
-                        context, new[] { viewName }, found: false));
+                    _logger.WriteVerbose(
+                        new ViewEngineValues(
+                            viewName, 
+                            partial, 
+                            typeof(RazorViewEngine).FullName,
+                            context, 
+                            new[] { viewName }, 
+                            found: false));
                 }
                 return ViewEngineResult.NotFound(viewName, new[] { viewName });
             }
@@ -169,9 +179,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // 2a. We found a IRazorPage at the cached location.
                     if (_logger.IsEnabled(LogLevel.Verbose))
                     {
-                        _logger.WriteVerbose(new ViewEngineValues(
-                            viewName, partial, typeof(RazorViewEngine).FullName,
-                            context, new string[] { viewLocation }, found: true, cached: true));
+                        _logger.WriteVerbose(
+                            new ViewEngineValues(
+                                viewName, 
+                                partial, 
+                                typeof(RazorViewEngine).FullName,
+                                context, 
+                                new string[] { viewLocation }, 
+                                found: true, 
+                                cached: true));
                     }
                     return CreateFoundResult(context, page, viewName, partial);
                 }
@@ -181,7 +197,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             // The cached value has expired and we need to look up the page.
             foreach (var expander in _viewLocationExpanders)
             {
+                var locationsToExpand = viewLocations;
                 viewLocations = expander.ExpandViewLocations(expanderContext, viewLocations);
+                if (_logger.IsEnabled(LogLevel.Verbose))
+                {
+                    _logger.WriteWarning(new ViewLocationExpanderValues(locationsToExpand, viewLocations));
+                }
             }
 
             // 3. Use the expanded locations to look up a page.
@@ -201,9 +222,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                     _viewLocationCache.Set(expanderContext, transformedPath);
                     if (_logger.IsEnabled(LogLevel.Verbose))
                     {
-                        _logger.WriteVerbose(new ViewEngineValues(
-                            viewName, partial, typeof(RazorViewEngine).FullName,
-                            context, searchedLocations, found: true, cached: false));
+                        _logger.WriteVerbose(
+                            new ViewEngineValues(
+                                viewName, 
+                                partial, 
+                                typeof(RazorViewEngine).FullName,
+                                context, 
+                                searchedLocations, 
+                                found: true, 
+                                cached: false));
                     }
                     return CreateFoundResult(context, page, transformedPath, partial);
                 }
@@ -214,9 +241,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             // 3b. We did not find a page for any of the paths.
             if (_logger.IsEnabled(LogLevel.Verbose))
             {
-                _logger.WriteVerbose(new ViewEngineValues(
-                    viewName, partial, typeof(RazorViewEngine).FullName,
-                    context, searchedLocations, found: false, cached: false));
+                _logger.WriteVerbose(
+                    new ViewEngineValues(
+                        viewName, 
+                        partial, 
+                        typeof(RazorViewEngine).FullName,
+                        context, 
+                        searchedLocations, 
+                        found: false, 
+                        cached: false));
             }
             return ViewEngineResult.NotFound(viewName, searchedLocations);
         }
