@@ -16,15 +16,5 @@ namespace Microsoft.AspNet.Mvc.Logging
                 exception: null,
                 formatter: LogFormatter.Formatter);
         }
-
-        public static void WriteStructure([NotNull] this ILogger logger, ILoggerStructure structure)
-        {
-            logger.Write(
-                logLevel: LogLevel.Verbose,
-                eventId: 0,
-                state: structure,
-                exception: null,
-                formatter: (state, error) => ((ILoggerStructure)state).Format());
-        }
     }
 }

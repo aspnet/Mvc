@@ -9,21 +9,13 @@ namespace Microsoft.AspNet.Mvc.Logging
     /// </summary>
     public enum ControllerStatus
     {
-        IsController = 0,
-
-        IsNotAClass = 1,
-
-        IsNotPublicOrTopLevel = 2,
-
-        IsAbstract = 3,
-
-        ContainsGenericParameters = 4,
-
+        IsController,
+        IsNotAClass,
+        IsNotPublicOrTopLevel,
+        IsAbstract,
+        ContainsGenericParameters,
         // The name of the controller class is "Controller"
-        NameIsController = 5,
-
-        DoesNotEndWithController = 6,
-
-        IsNotAssignable = 7,
+        NameIsController,
+        DoesNotEndWithControllerAndIsNotAssignable
     }
 }

@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var actionDescriptor in actionDescriptorProviderContext.Results)
                 {
-                    _logger.WriteStructure(new ActionDescriptorValues(actionDescriptor));
+                    _logger.WriteVerbose(new ActionDescriptorValues(actionDescriptor));
                 }
             }
 

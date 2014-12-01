@@ -15,14 +15,14 @@ namespace Microsoft.AspNet.Mvc.Logging
     /// </summary>
     public class ActionDescriptorValues : LoggerStructureBase
     {
-        public ActionDescriptorValues(ActionDescriptor inner)
+        public ActionDescriptorValues([NotNull] ActionDescriptor inner)
         {
             Name = inner.Name;
-            Parameters = inner.Parameters.Select(p => new ParameterValues(p)).ToList();
+            Parameters = inner.Parameters.Select(p => new ParameterDescriptorValues(p)).ToList();
             FilterDescriptors = inner.FilterDescriptors.Select(f => new FilterDescriptorValues(f)).ToList();
             RouteConstraints = inner.RouteConstraints.Select(r => new RouteDataActionConstraintValues(r)).ToList();
             AttributeRouteInfo = new AttributeRouteInfoValues(inner.AttributeRouteInfo);
-            ActionConstraints = inner.ActionConstraints == null ? string.Empty : string.Join(", ", inner.ActionConstraints);
+            ActionConstraints = inner.ActionConstraints?.Select(a => new ActionConstraintValues(a))?.ToList();
             var controllerActionDescriptor = inner as ControllerActionDescriptor;
             if (controllerActionDescriptor != null)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public string Name { get; }
 
-        public List<ParameterValues> Parameters { get; }
+        public List<ParameterDescriptorValues> Parameters { get; }
 
         public List<FilterDescriptorValues> FilterDescriptors { get; }
 
@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public AttributeRouteInfoValues AttributeRouteInfo { get; }
 
-        public string ActionConstraints { get; }
+        public List<ActionConstraintValues> ActionConstraints { get; }
 
         public MethodInfo MethodInfo { get; }
 

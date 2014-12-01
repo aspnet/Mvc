@@ -52,7 +52,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var controller in applicationModel.Controllers)
                 {
-                    _logger.WriteStructure(new ControllerModelValues(controller));
+                    _logger.WriteVerbose(new ControllerModelValues(controller));
                 }
             }
             return ControllerActionDescriptorBuilder.Build(applicationModel);
@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var assembly in assemblies)
                 {
-                    _logger.WriteStructure(new AssemblyValues(assembly));
+                    _logger.WriteVerbose(new AssemblyValues(assembly));
                 }
             }
 

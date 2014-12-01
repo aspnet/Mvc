@@ -8,20 +8,13 @@ using Microsoft.Framework.Logging;
 namespace Microsoft.AspNet.Mvc.Logging
 {
     /// <summary>
-    /// Represents a <see cref="ParameterModel"/> or <see cref="ParameterDescriptor"/>. Logged as a substructre of
-    /// <see cref="ActionModelValues"/> and <see cref="ActionDescriptorValues"/>, this contains the name, type,
-    /// and binder metadata of the parameter.
+    /// Represents a <see cref="ParameterModel"/>. Logged as a substructure of
+    /// <see cref="ActionModelValues"/>, this contains the name, type, and
+    /// binder metadata of the parameter.
     /// </summary>
-    public class ParameterValues : LoggerStructureBase
+    public class ParameterModelValues : LoggerStructureBase
     {
-        public ParameterValues([NotNull] ParameterDescriptor inner)
-        {
-            ParameterName = inner.Name;
-            ParameterType = inner.ParameterType;
-            BinderMetadata = inner.BinderMetadata?.ToString();
-        }
-
-        public ParameterValues([NotNull] ParameterModel inner)
+        public ParameterModelValues([NotNull] ParameterModel inner)
         {
             ParameterName = inner.ParameterName;
             ParameterType = inner.ParameterInfo.ParameterType;

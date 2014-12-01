@@ -23,8 +23,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Actions = inner.Actions.Select(a => new ActionModelValues(a)).ToList();
             Attributes = string.Join(", ", inner.Attributes);
             Filters = inner.Filters.Select(f => new FilterValues(f)).ToList();
-            // TODO: better representation of IActionContraintMetadata
-            ActionConstraints = string.Join(", ", inner.ActionConstraints);
+            ActionConstraints = inner.ActionConstraints?.Select(a => new ActionConstraintValues(a))?.ToList();
             RouteConstraints = inner.RouteConstraints.Select(
                 r => new RouteConstraintAttributeValues(r)).ToList();
             AttributeRoutes = inner.AttributeRoutes.Select(
@@ -41,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public List<FilterValues> Filters { get; }
 
-        public string ActionConstraints { get; }
+        public List<ActionConstraintValues> ActionConstraints { get; }
 
         public List<RouteConstraintAttributeValues> RouteConstraints { get; set; }
 
