@@ -65,10 +65,6 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         /// </remarks>
         protected virtual bool IsController([NotNull] TypeInfo typeInfo)
         {
-            if (_logger.IsEnabled(LogLevel.Verbose))
-            {
-                _logger.WriteVerbose(new IsControllerValues(typeInfo));
-            }
             if (!typeInfo.IsClass ||
                 typeInfo.IsAbstract ||
 
@@ -77,16 +73,46 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 !typeInfo.IsPublic ||
                 typeInfo.ContainsGenericParameters)
             {
+                if (_logger.IsEnabled(LogLevel.Verbose))
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(typeInfo.AsType(), ControllerStatus.NotAnEligibleClass));
+                }
                 return false;
             }
 
             if (typeInfo.Name.Equals("Controller", StringComparison.OrdinalIgnoreCase))
             {
+                if (_logger.IsEnabled(LogLevel.Verbose))
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(typeInfo.AsType(), ControllerStatus.NotAnEligibleClass));
+                }
                 return false;
             }
 
-            return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
+            var result = typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
                    typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
+
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                if (result)
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(
+                            typeInfo.AsType(), 
+                            ControllerStatus.IsController));
+                }
+                else
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(
+                            typeInfo.AsType(), 
+                            ControllerStatus.DoesNotEndWithControllerAndIsNotAssignable));
+                }
+            }
+
+            return result;
         }
 
         /// <summary>

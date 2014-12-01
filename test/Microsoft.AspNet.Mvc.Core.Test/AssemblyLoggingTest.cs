@@ -1,10 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.ApplicationModels;
 using Microsoft.AspNet.Mvc.Logging;
-using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.NestedProviders;
 using Microsoft.Framework.Logging;
@@ -16,77 +17,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
     public class AssemblyLoggingTest
     {
         [Fact]
-        public void ActionDescriptorValuesProperties()
-        {
-            // Arrange
-            string[] exclude = { "DisplayName", "Properties", "RouteValueDefaults" };
-
-            // Assert
-            TestProperties(typeof(ControllerActionDescriptor), typeof(ActionDescriptorValues), exclude);
-        }
-
-        [Fact]
-        public void ActionModelValuesProperties()
-        {
-            // Arrange
-            string[] exclude = { "ApiExplorer", "Controller", "Attributes" };
-
-            // Assert
-            TestProperties(typeof(ActionModel), typeof(ActionModelValues), exclude);
-        }
-
-        [Fact]
-        public void AttributeRouteInfoValuesProperties()
-        {
-            // Assert
-            TestProperties(typeof(AttributeRouteInfo), typeof(AttributeRouteInfoValues));
-        }
-
-        [Fact]
-        public void AttributeRouteModelValuesProperties()
-        {
-            // Arrange
-            string[] exclude = { "Attribute" };
-
-            // Assert
-            TestProperties(typeof(AttributeRouteModel), typeof(AttributeRouteModelValues), exclude);
-        }
-
-        [Fact]
-        public void ControllerModelValuesProperties()
-        {
-            // Arrange
-            string[] exclude = { "ApiExplorer", "Application" };
-
-            // Assert
-            TestProperties(typeof(ControllerModel), typeof(ControllerModelValues), exclude);
-        }
-
-        [Fact]
-        public void FilterDescriptorValuesProperties()
-        {
-            // Assert
-            TestProperties(typeof(FilterDescriptor), typeof(FilterDescriptorValues));
-        }
-
-        [Fact]
-        public void RouteConstraintAttributeValuesProperties()
-        {
-            // Arrange
-            string[] exclude = { "TypeId" };
-
-            // Assert
-            TestProperties(typeof(RouteConstraintAttribute), typeof(RouteConstraintAttributeValues), exclude);
-        }
-
-        [Fact]
-        public void RouteDataActionConstraintProperties()
-        {
-            // Assert
-            TestProperties(typeof(RouteDataActionConstraint), typeof(RouteDataActionConstraintValues));
-        }
-
-        [Fact]
         public void SimpleController_LogsCorrectStructures()
         {
             // Arrange
@@ -94,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var loggerFactory = new TestLoggerFactory(sink);
 
             // Act
-            ActionDescriptors(loggerFactory, typeof(SimpleController).GetTypeInfo());
+            CreateActionDescriptors(loggerFactory, typeof(SimpleController).GetTypeInfo());
 
             // Assert
             Assert.Equal(3, sink.Writes.Count);
@@ -119,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal("Simple", actionDescriptorValues.ControllerName);
             Assert.Equal(typeof(SimpleController), actionDescriptorValues.ControllerTypeInfo);
             Assert.Null(actionDescriptorValues.AttributeRouteInfo.Name);
-            Assert.Empty(actionDescriptorValues.ActionConstraints);
+            Assert.Null(actionDescriptorValues.ActionConstraints);
             Assert.Empty(actionDescriptorValues.FilterDescriptors);
             Assert.Empty(actionDescriptorValues.Parameters);
         }
@@ -132,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var loggerFactory = new TestLoggerFactory(sink);
 
             // Act
-            ActionDescriptors(loggerFactory, typeof(BasicController).GetTypeInfo());
+            CreateActionDescriptors(loggerFactory, typeof(BasicController).GetTypeInfo());
 
             // Assert
             Assert.Equal(4, sink.Writes.Count);
@@ -175,23 +105,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Single(actionDescriptorValues.Parameters);
         }
 
-        /// <summary>
-        /// Given two types, compares their properties and asserts true if they have the same property names
-        /// </summary>
-        /// <param name="original">The original type to compare against</param>
-        /// <param name="shadow">The shadow type whose properties will be compared against the original</param>
-        /// <param name="exclude">Any properties that should be ignored (exists in the original type but not the shadow)</param>
-        private void TestProperties(Type original, Type shadow, string[] exclude = null)
-        {
-            var originalProperties = original.GetProperties().Where(p => !exclude?.Contains(p.Name) ?? true)
-                .Select(p => p.Name).OrderBy(n => n);
-            var shadowProperties = shadow.GetProperties()
-                .Select(p => p.Name).OrderBy(n => n);
-
-            Assert.True(originalProperties.SequenceEqual(shadowProperties));
-        }
-
-        private void ActionDescriptors(ILoggerFactory loggerFactory, params TypeInfo[] controllerTypeInfo)
+        private void CreateActionDescriptors(ILoggerFactory loggerFactory, params TypeInfo[] controllerTypeInfo)
         {
             var actionDescriptorProvider = GetProvider(loggerFactory, controllerTypeInfo);
             var descriptorProvider =

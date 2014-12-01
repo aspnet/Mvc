@@ -16,7 +16,6 @@ namespace Microsoft.AspNet.Mvc.Logging
             AssemblyName = inner.FullName;
 #if ASPNET50
             Location = inner.Location;
-            IsFullyTrusted = inner.IsFullyTrusted;
 #endif
             IsDynamic = inner.IsDynamic;
         }
@@ -25,9 +24,8 @@ namespace Microsoft.AspNet.Mvc.Logging
 
 #if ASPNET50
         public string Location { get; }
-
-        public bool IsFullyTrusted { get; }
 #endif
+
         public bool IsDynamic { get; }
 
         public override string Format()

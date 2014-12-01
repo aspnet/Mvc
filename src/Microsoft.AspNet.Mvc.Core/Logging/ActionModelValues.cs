@@ -19,15 +19,14 @@ namespace Microsoft.AspNet.Mvc.Logging
         {
             ActionName = inner.ActionName;
             ActionMethod = inner.ActionMethod;
-            Parameters = inner.Parameters.Select(p => new ParameterValues(p)).ToList();
+            Parameters = inner.Parameters.Select(p => new ParameterModelValues(p)).ToList();
             Filters = inner.Filters.Select(f => new FilterValues(f)).ToList();
             if (inner.AttributeRouteModel != null)
             {
                 AttributeRouteModel = new AttributeRouteModelValues(inner.AttributeRouteModel);
             }
             HttpMethods = inner.HttpMethods;
-            ActionConstraints = inner.ActionConstraints ==
-                null ? string.Empty : string.Join(", ", inner.ActionConstraints);
+            ActionConstraints = inner.ActionConstraints?.Select(a => new ActionConstraintValues(a))?.ToList();
             IsActionNameMatchRequired = inner.IsActionNameMatchRequired;
         }
 
@@ -36,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public MethodInfo ActionMethod { get; }
 
-        public List<ParameterValues> Parameters { get; }
+        public List<ParameterModelValues> Parameters { get; }
 
         public List<FilterValues> Filters { get; }
 
@@ -44,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public List<string> HttpMethods { get; }
 
-        public string ActionConstraints { get; }
+        public List<ActionConstraintValues> ActionConstraints { get; }
 
         public bool IsActionNameMatchRequired { get; }
 
