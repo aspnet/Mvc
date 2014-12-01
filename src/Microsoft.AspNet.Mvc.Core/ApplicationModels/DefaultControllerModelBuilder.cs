@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Description;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.Framework.Logging;
 
@@ -64,6 +65,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         /// </remarks>
         protected virtual bool IsController([NotNull] TypeInfo typeInfo)
         {
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                _logger.WriteVerbose(new IsControllerValues(typeInfo));
+            }
             if (!typeInfo.IsClass ||
                 typeInfo.IsAbstract ||
 
@@ -80,13 +85,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 return false;
             }
 
-            var endsWithController = typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase);
-            var isAssignable = typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
-            if (!endsWithController)
-            {
-                _logger.WriteVerbose("Cannot create controller because {0} does not end with \"Controller\"", typeInfo.Name);
-            }
-            return endsWithController || isAssignable;
+            return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
+                   typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
         }
 
         /// <summary>
