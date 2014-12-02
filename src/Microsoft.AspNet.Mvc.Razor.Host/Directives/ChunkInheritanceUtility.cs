@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             var inheritedChunks = new List<Chunk>();
 
             var templateEngine = new RazorTemplateEngine(_razorHost);
-            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(_fileSystem, pagePath))
+            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(pagePath))
             {
                 CodeTree codeTree;
 

@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public IFileInfo GetFileInfo(string subpath)
         {
-            if(_lookup.ContainsKey(subpath))
+            if (_lookup.ContainsKey(subpath))
             {
                 return _lookup[subpath];
             }
