@@ -60,5 +60,11 @@ namespace RazorWebSite.Controllers
             ViewData["data-from-controller"] = "hello from controller";
             return View("ViewWithDataFromController");
         }
+
+        public ViewResult ViewWithComponentThatHasLayout()
+        {
+            ViewData["Title"] = "View With Component With Layout";
+            return View();
+        }
     }
 }
