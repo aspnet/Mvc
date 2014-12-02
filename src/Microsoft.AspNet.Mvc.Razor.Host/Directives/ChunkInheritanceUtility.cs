@@ -49,20 +49,23 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             var inheritedChunks = new List<Chunk>();
 
             var templateEngine = new RazorTemplateEngine(_razorHost);
-            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(_fileSystem, pagePath))
+            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(pagePath))
             {
                 CodeTree codeTree;
-                IFileInfo fileInfo;
 
                 if (_parsedCodeTrees.TryGetValue(viewStart, out codeTree))
                 {
                     inheritedChunks.AddRange(codeTree.Chunks);
                 }
-                else if (_fileSystem.TryGetFileInfo(viewStart, out fileInfo))
+                else
                 {
-                    codeTree = ParseViewFile(templateEngine, fileInfo);
-                    _parsedCodeTrees.Add(viewStart, codeTree);
-                    inheritedChunks.AddRange(codeTree.Chunks);
+                    var fileInfo = _fileSystem.GetFileInfo(viewStart);
+                    if (fileInfo.Exists)
+                    {
+                        codeTree = ParseViewFile(templateEngine, fileInfo);
+                        _parsedCodeTrees.Add(viewStart, codeTree);
+                        inheritedChunks.AddRange(codeTree.Chunks);
+                    }
                 }
             }
 
