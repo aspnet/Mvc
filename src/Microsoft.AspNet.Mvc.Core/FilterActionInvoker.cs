@@ -64,6 +64,7 @@ namespace Microsoft.AspNet.Mvc
 
             // If Exception Filters provide a result, it's a short-circuit due to an exception.
             // We don't execute Result Filters around the result.
+            Debug.Assert(_exceptionContext != null);
             if (_exceptionContext.Result != null)
             {
                 await _exceptionContext.Result.ExecuteResultAsync(ActionContext);
@@ -84,6 +85,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 // We have a successful 'result' from the action or an Action Filter, so run
                 // Result Filters.
+                Debug.Assert(_actionExecutedContext != null);
                 var result = _actionExecutedContext.Result;
 
                 // >> ResultFilters >> (Result)
