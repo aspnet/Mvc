@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -29,11 +30,15 @@ namespace Microsoft.AspNet.Mvc
                       .Returns(ViewEngineResult.NotFound("MyView", new[] { "Location1", "Location2" }))
                        .Verifiable();
 
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
+                    .Returns(new NullLoggerFactory());
+            actionContext.HttpContext.RequestServices = serviceProvider.Object;
+
             var viewResult = new ViewResult
             {
                 ViewEngine = viewEngine.Object,
                 ViewName = "MyView",
-                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act and Assert
@@ -48,23 +53,30 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewName = "myview";
-            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+            var actionContext = new ActionContext(new DefaultHttpContext(),
+                                                  new RouteData(),
+                                                  new ActionDescriptor());
+
             var viewEngine = new Mock<IViewEngine>();
             var view = Mock.Of<IView>();
 
-            viewEngine.Setup(e => e.FindView(context, "myview"))
+            viewEngine.Setup(e => e.FindView(actionContext, "myview"))
                       .Returns(ViewEngineResult.Found("myview", view))
                       .Verifiable();
 
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
+                    .Returns(new NullLoggerFactory());
+
+            actionContext.HttpContext.RequestServices = serviceProvider.Object;
             var viewResult = new ViewResult
             {
                 ViewName = viewName,
                 ViewEngine = viewEngine.Object,
-                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act
-            await viewResult.ExecuteResultAsync(context);
+            await viewResult.ExecuteResultAsync(actionContext);
 
             // Assert
             viewEngine.Verify();
@@ -75,22 +87,27 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewName = "some-view-name";
-            var context = new ActionContext(new DefaultHttpContext(),
-                                            new RouteData(),
-                                            new ActionDescriptor { Name = viewName });
+            var actionContext = new ActionContext(new DefaultHttpContext(),
+                                                  new RouteData(),
+                                                  new ActionDescriptor { Name = viewName });
+
             var viewEngine = new Mock<ICompositeViewEngine>();
-            viewEngine.Setup(e => e.FindView(context, viewName))
+            viewEngine.Setup(e => e.FindView(actionContext, viewName))
                       .Returns(ViewEngineResult.Found(viewName, Mock.Of<IView>()))
                       .Verifiable();
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
+                    .Returns(new NullLoggerFactory());
+            actionContext.HttpContext.RequestServices = serviceProvider.Object;
 
             var viewResult = new ViewResult
             {
                 ViewEngine = viewEngine.Object,
-                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act
-            await viewResult.ExecuteResultAsync(context);
+            await viewResult.ExecuteResultAsync(actionContext);
 
             // Assert
             viewEngine.Verify();
@@ -101,27 +118,34 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewName = "some-view-name";
-            var context = new ActionContext(new DefaultHttpContext(),
-                                            new RouteData(),
-                                            new ActionDescriptor { Name = viewName });
+            var services = new Mock<IServiceProvider>();
+            services.Setup(s => s.GetService(typeof(ILoggerFactory)))
+                    .Returns(new NullLoggerFactory());
+            var context = new DefaultHttpContext();
+            context.ApplicationServices = services.Object;
+            var actionContext = new ActionContext(context,
+                                                  new RouteData(),
+                                                  new ActionDescriptor { Name = viewName });
+
             var viewEngine = new Mock<ICompositeViewEngine>();
-            viewEngine.Setup(e => e.FindView(context, viewName))
+            viewEngine.Setup(e => e.FindView(actionContext, viewName))
                       .Returns(ViewEngineResult.Found(viewName, Mock.Of<IView>()))
                       .Verifiable();
 
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ICompositeViewEngine)))
                            .Returns(viewEngine.Object);
-            context.HttpContext.RequestServices = serviceProvider.Object;
+            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
+                    .Returns(new NullLoggerFactory());
+            actionContext.HttpContext.RequestServices = serviceProvider.Object;
 
             var viewResult = new ViewResult
             {
                 ViewName = viewName,
-                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act
-            await viewResult.ExecuteResultAsync(context);
+            await viewResult.ExecuteResultAsync(actionContext);
 
             // Assert
             viewEngine.Verify();

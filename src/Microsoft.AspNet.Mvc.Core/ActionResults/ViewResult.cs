@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class ViewResult : ActionResult
     {
-        private ILogger _logger;
+        private static ILogger _logger;
 
         /// <summary>
         /// Gets or sets the name of the view to render.
@@ -37,9 +37,6 @@ namespace Microsoft.AspNet.Mvc
         /// <c>ActionContext.HttpContext.RequestServices</c> is used.</remarks>
         public IViewEngine ViewEngine { get; set; }
 
-        /// For unit testing
-        internal ILoggerFactory LoggerFactory { get; set; }
-
         /// <inheritdoc />
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
@@ -51,8 +48,7 @@ namespace Microsoft.AspNet.Mvc
                                  .EnsureSuccessful()
                                  .View;
 
-            var loggerFactory = LoggerFactory ??
-                                context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
             if (_logger == null)
             {
                 _logger = loggerFactory.Create<ViewResult>();
