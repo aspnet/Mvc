@@ -15,6 +15,8 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class ViewResult : ActionResult
     {
+        private ILogger _logger;
+
         /// <summary>
         /// Gets or sets the name of the view to render.
         /// </summary>
@@ -35,10 +37,8 @@ namespace Microsoft.AspNet.Mvc
         /// <c>ActionContext.HttpContext.RequestServices</c> is used.</remarks>
         public IViewEngine ViewEngine { get; set; }
 
-        /// <summary>
-        /// Gets or sets the <see cref="ILoggerFactory"/> used to create loggers.
-        /// </summary>
-        public ILoggerFactory LoggerFactory { get; set; }
+        /// For unit testing
+        internal ILoggerFactory LoggerFactory { get; set; }
 
         /// <inheritdoc />
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
@@ -52,11 +52,14 @@ namespace Microsoft.AspNet.Mvc
                                  .View;
 
             var loggerFactory = LoggerFactory ??
-                         context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.Create<ViewResult>();
-            if (logger.IsEnabled(LogLevel.Verbose))
+                                context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            if (_logger == null)
             {
-                logger.WriteVerbose(new ViewDataValues(ViewData));
+                _logger = loggerFactory.Create<ViewResult>();
+            }
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                _logger.WriteVerbose(new ViewDataValues(ViewData));
             }
 
             using (view as IDisposable)

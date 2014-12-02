@@ -201,7 +201,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 viewLocations = expander.ExpandViewLocations(expanderContext, viewLocations);
                 if (_logger.IsEnabled(LogLevel.Verbose))
                 {
-                    _logger.WriteWarning(new ViewLocationExpanderValues(locationsToExpand, viewLocations));
+                    _logger.WriteVerbose(new ViewLocationExpanderValues(locationsToExpand, viewLocations));
                 }
             }
 
@@ -241,7 +241,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // 3b. We did not find a page for any of the paths.
             if (_logger.IsEnabled(LogLevel.Verbose))
             {
-                _logger.WriteVerbose(
+                _logger.WriteError(
                     new ViewEngineValues(
                         viewName, 
                         partial, 
