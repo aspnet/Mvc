@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -21,6 +22,7 @@ namespace System.Web.Http
             // Arrange
             var httpContext = new DefaultHttpContext();
             httpContext.RequestServices = CreateServices();
+            httpContext.ApplicationServices = CreateApplicationServices();
 
             var stream = new MemoryStream();
             httpContext.Response.Body = stream;
@@ -41,6 +43,7 @@ namespace System.Web.Http
             // Arrange
             var httpContext = new DefaultHttpContext();
             httpContext.RequestServices = CreateServices();
+            httpContext.ApplicationServices = CreateApplicationServices();
 
             var stream = new MemoryStream();
             httpContext.Response.Body = stream;
@@ -72,6 +75,17 @@ namespace System.Web.Http
             services
                 .Setup(s => s.GetService(typeof(IOutputFormattersProvider)))
                 .Returns(formatters.Object);
+
+            return services.Object;
+        }
+
+        private IServiceProvider CreateApplicationServices()
+        {
+            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
+
+            services
+                .Setup(s => s.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
 
             return services.Object;
         }

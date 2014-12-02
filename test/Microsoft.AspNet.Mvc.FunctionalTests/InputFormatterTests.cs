@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.Logging;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -16,8 +17,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class InputFormatterTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("FormatterWebSite");
-        private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
+        private static readonly TestSink _sink = new TestSink();
+        private static readonly ILoggerFactory _factory = new TestLoggerFactory(_sink, true);
+        private readonly IServiceProvider _services = TestHelper.CreateServices("FormatterWebSite", _factory);
+        private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup(_factory).Configure;
 
         [Fact]
         public async Task CheckIfXmlInputFormatterIsBeingCalled()
