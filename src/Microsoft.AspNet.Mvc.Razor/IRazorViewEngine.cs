@@ -6,7 +6,7 @@ using Microsoft.AspNet.Mvc.Rendering;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// A <see cref="IViewEngine"/> view engine used to render pages that use the Razor syntax.
+    /// An <see cref="IViewEngine"/> used to render pages that use the Razor syntax.
     /// </summary>
     public interface IRazorViewEngine : IViewEngine
     {

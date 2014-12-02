@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class RazorViewLocationSpecificationTests
+    public class RazorViewLocationSpecificationTest
     {
         private const string BaseUrl = "http://localhost/ViewNameSpecification_Home/";
         private readonly IServiceProvider _provider = TestHelper.CreateServices("RazorWebSite");
@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("LayoutSpecifiedWithPartialPathInViewStart_ForViewSpecifiedWithAppRelativePathWithExtension")]
         public async Task PartialLayoutPaths_SpecifiedInViewStarts_GetResolvedByViewEngine(string action)
         {
-            var expected = 
+            var expected =
 @"<layout>
 _ViewStart that specifies partial Layout
 </layout>";

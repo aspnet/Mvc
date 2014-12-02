@@ -42,13 +42,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the <see cref="IRazorPage"/> if found.
         /// </summary>
-        /// <remarks>This property would be null if the page was not found.</remarks>
+        /// <remarks>This property is null if the page was not found.</remarks>
         public IRazorPage Page { get; }
 
         /// <summary>
         /// Gets the locations that were searched when <see cref="Page"/> could not be located.
         /// </summary>
-        /// <remarks>This property would be null if the page was found.</remarks>
+        /// <remarks>This property is null if the page was found.</remarks>
         public IEnumerable<string> SearchedLocations { get; }
     }
 }
