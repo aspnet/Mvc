@@ -1,4 +1,5 @@
 {
+    "resources": "EmbeddedResources/**",
     "dependencies": {
         "Microsoft.AspNet.Mvc": "6.0.0-*",
         "Microsoft.AspNet.Mvc.TestConfiguration": "1.0.0",
@@ -8,5 +9,5 @@
         "aspnet50": { },
         "aspnetcore50": { }
     },
-    "webroot" :  "."
+    "webroot": "."
 }

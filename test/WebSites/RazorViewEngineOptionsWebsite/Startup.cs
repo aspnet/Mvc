@@ -12,8 +12,6 @@ namespace RazorViewEngineOptionsWebsite
 {
     public class Startup
     {
-        public static readonly string ViewFileSystemRoot = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
         public void Configure(IApplicationBuilder app)
         {
             var configuration = app.GetTestConfiguration();
@@ -24,7 +22,7 @@ namespace RazorViewEngineOptionsWebsite
 
                 services.Configure<RazorViewEngineOptions>(options =>
                 {
-                    options.FileSystem = new PhysicalFileSystem(ViewFileSystemRoot);
+                    options.FileSystem = new EmbeddedResourceFileSystem(GetType().Assembly, "EmbeddedResources");
                 });
             });
 

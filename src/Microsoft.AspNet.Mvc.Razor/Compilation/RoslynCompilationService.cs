@@ -54,9 +54,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         }
 
         /// <inheritdoc />
-        public CompilationResult Compile(IFileInfo fileInfo, string compilationContent)
+        public CompilationResult Compile([NotNull] IFileInfo fileInfo, [NotNull] string compilationContent)
         {
-            var syntaxTrees = new[] { SyntaxTreeGenerator.Generate(compilationContent, fileInfo.PhysicalPath) };
+            // IFileInfo.PhysicalPath can be null. In this case fall back to the file name.
+            var path = fileInfo.PhysicalPath ?? fileInfo.Name;
+            var syntaxTrees = new[] { SyntaxTreeGenerator.Generate(compilationContent, path) };
 
             var references = _applicationReferences.Value;
 

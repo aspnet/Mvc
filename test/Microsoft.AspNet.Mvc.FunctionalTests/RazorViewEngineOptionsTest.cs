@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
@@ -13,76 +12,38 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RazorViewEngineOptionsTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("RazorViewEngineOptionsWebsite");
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(RazorViewEngineOptionsWebsite));
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         [Fact]
         public async Task RazorViewEngine_UsesFileSystemOnViewEngineOptionsToLocateViews()
         {
             // Arrange
-            var expectedMessage = "The time is " + DateTime.UtcNow;
-            var viewsDir = Path.Combine(Startup.ViewFileSystemRoot, "Views", "RazorViewEngineOptions_Home");
-            Directory.CreateDirectory(viewsDir);
-            File.WriteAllText(Path.Combine(viewsDir, "Index.cshtml"), expectedMessage);
-
+            var expectedMessage = "Hello test-user, this is /RazorViewEngineOptions_Home";
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            try
-            {
-                // Act
-                var response = await client.GetStringAsync("http://localhost/RazorViewEngineOptions_Home");
+            // Act
+            var response = await client.GetStringAsync("http://localhost/RazorViewEngineOptions_Home?User=test-user");
 
-                // Assert
-                Assert.Equal(expectedMessage, response);
-            }
-            finally
-            {
-                TryDeleteDirectory(Startup.ViewFileSystemRoot);
-            }
+            // Assert
+            Assert.Equal(expectedMessage, response);
         }
 
         [Fact]
         public async Task RazorViewEngine_UsesFileSystemOnViewEngineOptionsToLocateAreaViews()
         {
             // Arrange
-            var expectedMessage = "The time is " + DateTime.UtcNow;
-            var viewsDir = Path.Combine(Startup.ViewFileSystemRoot, 
-                                        "Areas", 
-                                        "Restricted", 
-                                        "Views", 
-                                        "RazorViewEngineOptions_Admin");
-            Directory.CreateDirectory(viewsDir);
-            File.WriteAllText(Path.Combine(viewsDir, "Login.cshtml"), expectedMessage);
-
+            var expectedMessage = "Hello admin-user, this is /Restricted/RazorViewEngineOptions_Admin/Login";
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var target = "http://localhost/Restricted/RazorViewEngineOptions_Admin/Login";
+            var target = "http://localhost/Restricted/RazorViewEngineOptions_Admin/Login?AdminUser=admin-user";
 
-            try
-            {
-                // Act
-                var response = await client.GetStringAsync(target);
+            // Act
+            var response = await client.GetStringAsync(target);
 
-                // Assert
-                Assert.Equal(expectedMessage, response);
-            }
-            finally
-            {
-                TryDeleteDirectory(Startup.ViewFileSystemRoot);
-            }
-        }
-
-        private static void TryDeleteDirectory(string viewsDir)
-        {
-            try
-            {
-                Directory.Delete(viewsDir, recursive: true);
-            }
-            catch
-            {
-                // Ignore failures
-            }
+            // Assert
+            Assert.Equal(expectedMessage, response);
         }
     }
 }
