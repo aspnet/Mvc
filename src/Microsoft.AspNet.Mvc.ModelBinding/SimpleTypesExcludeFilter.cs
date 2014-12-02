@@ -27,8 +27,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             else
             {
                 actualTypes = enumerable.GenericTypeArguments;
-                // The following special case is for IEnumerable<KeyValuePair<K,V>>
-                // , supertype of IDictionary<K,V>, and IReadOnlyDictionary<K,V>  
+                // The following special case is for IEnumerable<KeyValuePair<K,V>>,
+                // supertype of IDictionary<K,V>, and IReadOnlyDictionary<K,V>.
                 if (actualTypes[0].IsGenericType()
                     && actualTypes.Length == 1
                     && actualTypes[0].GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
@@ -39,9 +39,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             foreach (var actualType in actualTypes)
             {
-                var underlyngType = Nullable.GetUnderlyingType(actualType) ??  actualType;
+                var underlyingType = Nullable.GetUnderlyingType(actualType) ?? actualType;
 
-                if (!IsSimpleType(underlyngType))
+                if (!IsSimpleType(underlyingType))
                 {
                     return false;
                 }

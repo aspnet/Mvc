@@ -130,12 +130,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(400, (int)response.StatusCode);
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            var errorMessage = JsonConvert.DeserializeObject<ResponseContent>(responseContent).Suppliers.Errors.First().ErrorMessage;
-
-            Assert.Equal(expectedModelStateErrorMessage, errorMessage);
+            var responseObject = JsonConvert.DeserializeObject<ResponseContent>(responseContent);
+            var error = Assert.Single(responseObject.Suppliers.Errors);
+            Assert.Equal(expectedModelStateErrorMessage, error.ErrorMessage);
 
             // verifies that the excluded type is not validated
-            Assert.NotEqual(shouldNotContainMessage, errorMessage);
+            Assert.NotEqual(shouldNotContainMessage, error.ErrorMessage);
         }
 
         [Theory]
@@ -151,7 +151,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = new StringContent(requestContent, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await client.PostAsync("http://localhost/Validation/CreateSimpleTypePropertiesModel", content);
+            var response = await client.PostAsync("http://localhost/Validation/CreateSimpleTypePropertiesModel",
+                                                  content);
 
             //Assert
             Assert.Equal(expectedStatusCode, (int)response.StatusCode);
@@ -177,16 +178,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         private class ResponseContent
-        {
-            [Newtonsoft.Json.JsonProperty(PropertyName = "project.Suppliers")]
-            public Suppliers Suppliers
+        { 
+            [JsonProperty(PropertyName = "project.Suppliers")]
+            public ErrorCollection Suppliers
             {
                 get;
                 set;
             }
         }
 
-        private class Suppliers
+        private class ErrorCollection
         {
             public IEnumerable<Error> Errors
             {
