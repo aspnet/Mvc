@@ -735,7 +735,7 @@ namespace Microsoft.AspNet.Mvc
             serviceContainer.AddService(typeof(INestedProviderManager<ActionDescriptorProviderContext>),
                                         descriptorProvider);
 
-            var actionCollectionDescriptorProvider = new DefaultActionDescriptorsCollectionProvider(serviceContainer);
+            var actionCollectionDescriptorProvider = new DefaultActionDescriptorsCollectionProvider(serviceContainer, new NullLoggerFactory());
             var decisionTreeProvider = new ActionSelectorDecisionTreeProvider(actionCollectionDescriptorProvider);
 
             var actionConstraintProvider = new NestedProviderManager<ActionConstraintProviderContext>(
@@ -767,7 +767,8 @@ namespace Microsoft.AspNet.Mvc
                                         assemblyProvider,
                                         modelBuilder,
                                         new TestGlobalFilterProvider(),
-                                        new MockMvcOptionsAccessor());
+                                        new MockMvcOptionsAccessor(),
+                                        new NullLoggerFactory());
         }
 
         private static HttpContext GetHttpContext(string httpMethod)

@@ -32,7 +32,8 @@ namespace Microsoft.AspNet.Mvc
             var viewResult = new ViewResult
             {
                 ViewEngine = viewEngine.Object,
-                ViewName = "MyView"
+                ViewName = "MyView",
+                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act and Assert
@@ -58,7 +59,8 @@ namespace Microsoft.AspNet.Mvc
             var viewResult = new ViewResult
             {
                 ViewName = viewName,
-                ViewEngine = viewEngine.Object
+                ViewEngine = viewEngine.Object,
+                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act
@@ -83,7 +85,8 @@ namespace Microsoft.AspNet.Mvc
 
             var viewResult = new ViewResult
             {
-                ViewEngine = viewEngine.Object
+                ViewEngine = viewEngine.Object,
+                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act
@@ -113,7 +116,8 @@ namespace Microsoft.AspNet.Mvc
 
             var viewResult = new ViewResult
             {
-                ViewName = viewName
+                ViewName = viewName,
+                LoggerFactory = new NullLoggerFactory()
             };
 
             // Act

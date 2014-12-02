@@ -3,8 +3,10 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -33,6 +35,11 @@ namespace Microsoft.AspNet.Mvc
         /// <c>ActionContext.HttpContext.RequestServices</c> is used.</remarks>
         public IViewEngine ViewEngine { get; set; }
 
+        /// <summary>
+        /// Gets or sets the <see cref="ILoggerFactory"/> used to create loggers.
+        /// </summary>
+        public ILoggerFactory LoggerFactory { get; set; }
+
         /// <inheritdoc />
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
@@ -43,6 +50,14 @@ namespace Microsoft.AspNet.Mvc
             var view = viewEngine.FindPartialView(context, viewName)
                                  .EnsureSuccessful()
                                  .View;
+
+            var loggerFactory = LoggerFactory ??
+                         context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.Create<ViewResult>();
+            if (logger.IsEnabled(LogLevel.Verbose))
+            {
+                logger.WriteVerbose(new ViewDataValues(ViewData));
+            }
 
             using (view as IDisposable)
             {

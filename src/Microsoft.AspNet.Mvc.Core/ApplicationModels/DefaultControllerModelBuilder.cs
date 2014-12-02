@@ -5,7 +5,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Description;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -15,14 +17,16 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     public class DefaultControllerModelBuilder : IControllerModelBuilder
     {
         private readonly IActionModelBuilder _actionModelBuilder;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a new <see cref="DefaultControllerModelBuilder"/>.
         /// </summary>
         /// <param name="actionModelBuilder">The <see cref="IActionModelBuilder"/> used to create actions.</param>
-        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder)
+        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder, ILoggerFactory loggerFactory)
         {
             _actionModelBuilder = actionModelBuilder;
+            _logger = loggerFactory.Create<DefaultControllerModelBuilder>();
         }
 
         /// <inheritdoc />
@@ -69,16 +73,46 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 !typeInfo.IsPublic ||
                 typeInfo.ContainsGenericParameters)
             {
+                if (_logger.IsEnabled(LogLevel.Verbose))
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(typeInfo.AsType(), ControllerStatus.NotAnEligibleClass));
+                }
                 return false;
             }
 
             if (typeInfo.Name.Equals("Controller", StringComparison.OrdinalIgnoreCase))
             {
+                if (_logger.IsEnabled(LogLevel.Verbose))
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(typeInfo.AsType(), ControllerStatus.NotAnEligibleClass));
+                }
                 return false;
             }
 
-            return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
+            var result = typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
                    typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo);
+
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                if (result)
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(
+                            typeInfo.AsType(), 
+                            ControllerStatus.IsController));
+                }
+                else
+                {
+                    _logger.WriteVerbose(
+                        new IsControllerValues(
+                            typeInfo.AsType(), 
+                            ControllerStatus.DoesNotEndWithControllerAndIsNotAssignable));
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
