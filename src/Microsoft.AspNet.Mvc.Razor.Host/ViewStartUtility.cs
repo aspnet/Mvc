@@ -40,9 +40,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 return Enumerable.Empty<string>();
             }
-            if (applicationRelativePath.StartsWith("~", StringComparison.Ordinal))
+            if (applicationRelativePath.StartsWith("~/", StringComparison.Ordinal))
             {
-                applicationRelativePath = applicationRelativePath.Substring(1);
+                applicationRelativePath = applicationRelativePath.Substring(2);
             }
             if (applicationRelativePath.StartsWith("/", StringComparison.Ordinal))
             {
