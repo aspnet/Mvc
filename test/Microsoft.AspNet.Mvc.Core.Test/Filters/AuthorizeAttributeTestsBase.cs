@@ -21,6 +21,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     new Claim[] {
                         new Claim("Permission", "CanViewPage"),
                         new Claim(ClaimTypes.Role, "Administrator"),
+                        new Claim(ClaimTypes.Role, "User"),
                         new Claim(ClaimTypes.NameIdentifier, "John")},
                         "Basic"));
 

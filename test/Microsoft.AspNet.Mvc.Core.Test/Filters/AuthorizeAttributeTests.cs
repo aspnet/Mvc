@@ -123,6 +123,108 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
+        public async Task Invoke_RequireAdminRoleWithNoPolicyShouldSucceed()
+        {
+            // Arrange
+            var authorizationOptions = new AuthorizationOptions();
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute { Roles = "Administrator" };
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.Null(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task Invoke_RequireAdminAndUserRoleWithNoPolicyShouldSucceed()
+        {
+            // Arrange
+            var authorizationOptions = new AuthorizationOptions();
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute { Roles = "Administrator,User" };
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.Null(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task Invoke_RequireUnknownRoleShouldFail()
+        {
+            // Arrange
+            var authorizationOptions = new AuthorizationOptions();
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute { Roles = "Wut" };
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.NotNull(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task Invoke_RequireAdminUserAndUberRoleShouldFail()
+        {
+            // Arrange
+            var authorizationOptions = new AuthorizationOptions();
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute { Roles = "Administrator,User,Uber" };
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.NotNull(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task Invoke_RequireAdminRoleButFailPolicyShouldFail()
+        {
+            // Arrange
+            var policy = new AuthorizationPolicy("Basic").Requires("Permission", "CanViewComment");
+            var authorizationOptions = new AuthorizationOptions();
+            authorizationOptions.Policies["CanViewComment"] = policy;
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute { Roles = "Administrator", Policy = "Basic" };
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.Null(authorizationContext.Result);
+        }
+
+        [Fact]
         public async Task Invoke_InvalidClaimShouldFail()
         {
             // Arrange
