@@ -75,22 +75,22 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             {
                 if (_logger.IsEnabled(LogLevel.Verbose))
                 {
-                    ControllerStatus status;
+                    ControllerStatus status = ControllerStatus.IsController;
                     if (!typeInfo.IsClass)
                     {
-                        status = ControllerStatus.IsNotAClass;
+                        status |= ControllerStatus.IsNotAClass;
                     }
-                    else if (typeInfo.IsAbstract)
+                    if (typeInfo.IsAbstract)
                     {
-                        status = ControllerStatus.IsAbstract;
+                        status |= ControllerStatus.IsAbstract;
                     }
-                    else if (!typeInfo.IsPublic)
+                    if (!typeInfo.IsPublic)
                     {
-                        status = ControllerStatus.IsNotPublicOrTopLevel;
+                        status |= ControllerStatus.IsNotPublicOrTopLevel;
                     }
-                    else
+                    if (typeInfo.ContainsGenericParameters)
                     {
-                        status = ControllerStatus.ContainsGenericParameters;
+                        status |= ControllerStatus.ContainsGenericParameters;
                     }
                     _logger.WriteVerbose(
                         new IsControllerValues(typeInfo.AsType(), status));
