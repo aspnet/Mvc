@@ -56,7 +56,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// <inheritdoc />
         public CompilationResult Compile([NotNull] IFileInfo fileInfo, [NotNull] string compilationContent)
         {
-            // IFileInfo.PhysicalPath can be null. In this case fall back to the file name.
+            // The path passed to SyntaxTreeGenerator.Generate is used by the compiler to generate symbols (pdb) that
+            // map to the source file. If a file does not exist on a physical file system, PhysicalPath will be null.
+            // This prevents files that exist in a non-physical file system from being debugged.
             var path = fileInfo.PhysicalPath ?? fileInfo.Name;
             var syntaxTrees = new[] { SyntaxTreeGenerator.Generate(compilationContent, path) };
 
