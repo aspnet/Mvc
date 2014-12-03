@@ -130,8 +130,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(400, (int)response.StatusCode);
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            var responseObject = JsonConvert.DeserializeObject<ResponseContent>(responseContent);
-            var error = Assert.Single(responseObject.Suppliers.Errors);
+            var responseObject = JsonConvert.DeserializeObject<Dictionary<string, ErrorCollection>>(responseContent);
+            var error = Assert.Single(responseObject.Single().Value.Errors);
             Assert.Equal(expectedModelStateErrorMessage, error.ErrorMessage);
 
             // verifies that the excluded type is not validated
@@ -158,7 +158,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedStatusCode, (int)response.StatusCode);
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            Assert.Contains(expectedModelStateErrorMessage, responseContent);
+            var responseObject = JsonConvert.DeserializeObject<Dictionary<string, ErrorCollection>>(responseContent);
+            var error = Assert.Single(responseObject.Single().Value.Errors);
+            Assert.Equal(expectedModelStateErrorMessage, error.ErrorMessage);
         }
 
         [Fact]
@@ -175,16 +177,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("The Name field is required.", await response.Content.ReadAsStringAsync());
-        }
-
-        private class ResponseContent
-        { 
-            [JsonProperty(PropertyName = "project.Suppliers")]
-            public ErrorCollection Suppliers
-            {
-                get;
-                set;
-            }
         }
 
         private class ErrorCollection
