@@ -10,7 +10,6 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -22,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_ActivatesAndContextualizesPropertiesOnViews()
         {
             // Arrange
-            var activator = new RazorPageActivator(Mock.Of<ITypeActivator>(), NullLoggerFactory.Instance);
+            var activator = new RazorPageActivator(Mock.Of<ITypeActivator>());
             var instance = new TestRazorPage();
 
             var myService = new MyService();
@@ -56,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_ThrowsIfTheViewDoesNotDeriveFromRazorViewOfT()
         {
             // Arrange
-            var activator = new RazorPageActivator(Mock.Of<ITypeActivator>(), NullLoggerFactory.Instance);
+            var activator = new RazorPageActivator(Mock.Of<ITypeActivator>());
             var instance = new DoesNotDeriveFromRazorPageOfT();
 
             var myService = new MyService();
@@ -87,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator, NullLoggerFactory.Instance);
+            var activator = new RazorPageActivator(typeActivator);
             var instance = new TestRazorPage();
 
             var myService = new MyService();
@@ -123,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator, NullLoggerFactory.Instance);
+            var activator = new RazorPageActivator(typeActivator);
             var instance = new TestRazorPage();
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
@@ -158,7 +157,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator, NullLoggerFactory.Instance);
+            var activator = new RazorPageActivator(typeActivator);
             var instance = new DoesNotDeriveFromRazorPageOfTButHasModelProperty();
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();

@@ -519,7 +519,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                                                  viewFactory,
                                                  viewLocationExpanderProvider,
                                                  cache,
-                                                 new NullLoggerFactory());
+                                                 NullLoggerFactory.Instance);
 
             return viewEngine;
         }
@@ -566,7 +566,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                                                 IRazorViewFactory viewFactory,
                                                 IViewLocationExpanderProvider expanderProvider,
                                                 IViewLocationCache cache)
-                : base(pageFactory, viewFactory, expanderProvider, cache, new NullLoggerFactory())
+                : base(pageFactory, viewFactory, expanderProvider, cache, NullLoggerFactory.Instance)
             {
             }
 

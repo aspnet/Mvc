@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -18,7 +19,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var factory = new RazorViewFactory(
                 Mock.Of<IRazorPageFactory>(),
                 Mock.Of<IRazorPageActivator>(),
-                Mock.Of<IViewStartProvider>());
+                Mock.Of<IViewStartProvider>(),
+                NullLoggerFactory.Instance);
 
             // Act
             var view = factory.GetView(Mock.Of<IRazorPage>(), isPartial);
@@ -35,7 +37,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var factory = new RazorViewFactory(
                 Mock.Of<IRazorPageFactory>(),
                 Mock.Of<IRazorPageActivator>(),
-                Mock.Of<IViewStartProvider>());
+                Mock.Of<IViewStartProvider>(),
+                NullLoggerFactory.Instance);
 
             var page = Mock.Of<IRazorPage>();
 

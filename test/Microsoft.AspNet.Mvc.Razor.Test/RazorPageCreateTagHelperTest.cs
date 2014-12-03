@@ -10,7 +10,6 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -74,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private static TestRazorPage CreateTestRazorPage()
         {
             var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator, NullLoggerFactory.Instance);
+            var activator = new RazorPageActivator(typeActivator);
             var serviceProvider = new Mock<IServiceProvider>();
             var myService = new MyService();
             serviceProvider.Setup(mock => mock.GetService(typeof(MyService)))

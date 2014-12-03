@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.PipelineCore;
+using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -31,6 +32,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: true);
             var viewContext = CreateViewContext(view);
@@ -58,6 +60,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: true);
 
@@ -90,6 +93,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: true);
             var viewContext = CreateViewContext(view);
@@ -113,6 +117,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      viewStartProvider,
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: true);
             var viewContext = CreateViewContext(view);
@@ -138,6 +143,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -162,6 +168,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -188,6 +195,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -230,6 +238,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      activator.Object,
                                      CreateViewStartProvider(viewStart1, viewStart2),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -285,6 +294,7 @@ foot-content";
             var view = new RazorView(pageFactory.Object,
                                      activator.Object,
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -319,6 +329,7 @@ foot-content";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -346,6 +357,7 @@ foot-content";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -398,6 +410,7 @@ body-content";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -445,6 +458,7 @@ section-content-2";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -490,6 +504,7 @@ section-content-2";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -517,6 +532,7 @@ section-content-2";
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -556,6 +572,7 @@ section-content-2";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -629,6 +646,7 @@ section-content-2";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      viewStartProvider.Object,
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -673,6 +691,7 @@ section-content-2";
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      Mock.Of<IViewStartProvider>(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: true);
             var viewContext = CreateViewContext(view);
@@ -704,6 +723,7 @@ section-content-2";
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      Mock.Of<IViewStartProvider>(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial);
             var viewContext = CreateViewContext(view);
@@ -743,6 +763,7 @@ section-content-2";
             var view = new RazorView(pageFactory,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(viewStart1, viewStart2),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -780,6 +801,7 @@ section-content-2";
             var view = new RazorView(pageFactory,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(viewStart1, viewStart2),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -820,6 +842,7 @@ section-content-2";
             var view = new RazorView(pageFactory.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(viewStart),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
@@ -845,6 +868,7 @@ section-content-2";
             var view = new RazorView(Mock.Of<IRazorPageFactory>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
+                                     NullLoggerFactory.Instance,
                                      page,
                                      isPartial: true);
             var viewContext = CreateViewContext(view);
