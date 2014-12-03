@@ -4,8 +4,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -18,6 +20,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IRazorPageFactory _pageFactory;
         private readonly IRazorPageActivator _pageActivator;
         private readonly IViewStartProvider _viewStartProvider;
+        private readonly ILogger _logger;
         private IPageExecutionListenerFeature _pageExecutionFeature;
 
         /// <summary>
@@ -32,6 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public RazorView(IRazorPageFactory pageFactory,
                          IRazorPageActivator pageActivator,
                          IViewStartProvider viewStartProvider,
+                         ILoggerFactory loggerFactory,
                          IRazorPage razorPage,
                          bool isPartial
             )
@@ -39,6 +43,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             _pageFactory = pageFactory;
             _pageActivator = pageActivator;
             _viewStartProvider = viewStartProvider;
+            _logger = loggerFactory.Create<RazorView>();
             RazorPage = razorPage;
             IsPartial = isPartial;
         }
@@ -147,6 +152,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             _pageActivator.Activate(page, context);
+
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                _logger.WriteVerbose(new ViewDataValues(context.ViewData, page.GetType()));
+            }
+
             await page.ExecuteAsync();
         }
 
