@@ -185,7 +185,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                                 partial, 
                                 typeof(RazorViewEngine).FullName,
                                 context, 
-                                new string[] { viewLocation }, 
+                                new[] { viewLocation }, 
                                 found: true, 
                                 cached: true));
                     }
@@ -241,7 +241,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // 3b. We did not find a page for any of the paths.
             if (_logger.IsEnabled(LogLevel.Verbose))
             {
-                _logger.WriteError(
+                _logger.WriteVerbose(
                     new ViewEngineValues(
                         viewName, 
                         partial, 

@@ -21,12 +21,12 @@ namespace Microsoft.AspNet.Mvc.Logging
         }
 
         /// <summary>
-        /// An enumerable of the view locations to be expanded
+        /// An enumerable of the view locations to be expanded.
         /// </summary>
         public IEnumerable<string> ViewLocationsToExpand { get; }
 
         /// <summary>
-        /// An enumerable of the expanded view locations
+        /// An enumerable of the expanded view locations.
         /// </summary>
         public IEnumerable<string> ExpandedViewLocations { get; }
 

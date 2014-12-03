@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
 
@@ -22,7 +21,6 @@ namespace Microsoft.AspNet.Mvc
                                        "The view 'MyView' was not found. The following locations were searched:",
                                        "Location1",
                                        "Location2.");
-
             var actionContext = new ActionContext(new DefaultHttpContext(),
                                                   new RouteData(),
                                                   new ActionDescriptor());
@@ -31,15 +29,10 @@ namespace Microsoft.AspNet.Mvc
                       .Returns(ViewEngineResult.NotFound("MyView", new[] { "Location1", "Location2" }))
                        .Verifiable();
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
-                    .Returns(new NullLoggerFactory());
-            actionContext.HttpContext.RequestServices = serviceProvider.Object;
-
             var viewResult = new PartialViewResult
             {
                 ViewEngine = viewEngine.Object,
-                ViewName = "MyView",
+                ViewName = "MyView"
             };
 
             // Act and Assert
@@ -54,21 +47,13 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewName = "myview";
-            var actionContext = new ActionContext(new DefaultHttpContext(),
-                                                  new RouteData(),
-                                                  new ActionDescriptor());
-
+            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
             var viewEngine = new Mock<IViewEngine>();
             var view = Mock.Of<IView>();
 
-            viewEngine.Setup(e => e.FindPartialView(actionContext, "myview"))
+            viewEngine.Setup(e => e.FindPartialView(context, "myview"))
                       .Returns(ViewEngineResult.Found("myview", view))
                       .Verifiable();
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
-                    .Returns(new NullLoggerFactory());
-            actionContext.HttpContext.RequestServices = serviceProvider.Object;
 
             var viewResult = new PartialViewResult
             {
@@ -77,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
             };
 
             // Act
-            await viewResult.ExecuteResultAsync(actionContext);
+            await viewResult.ExecuteResultAsync(context);
 
             // Assert
             viewEngine.Verify();
@@ -88,27 +73,21 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewName = "some-view-name";
-            var actionContext = new ActionContext(new DefaultHttpContext(),
-                                                  new RouteData(),
-                                                  new ActionDescriptor { Name = viewName });
-
+            var context = new ActionContext(new DefaultHttpContext(),
+                                            new RouteData(),
+                                            new ActionDescriptor { Name = viewName });
             var viewEngine = new Mock<ICompositeViewEngine>();
-            viewEngine.Setup(e => e.FindPartialView(actionContext, viewName))
+            viewEngine.Setup(e => e.FindPartialView(context, viewName))
                       .Returns(ViewEngineResult.Found(viewName, Mock.Of<IView>()))
                       .Verifiable();
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
-                    .Returns(new NullLoggerFactory());
-            actionContext.HttpContext.RequestServices = serviceProvider.Object;
-
             var viewResult = new PartialViewResult
             {
-                ViewEngine = viewEngine.Object,
+                ViewEngine = viewEngine.Object
             };
 
             // Act
-            await viewResult.ExecuteResultAsync(actionContext);
+            await viewResult.ExecuteResultAsync(context);
 
             // Assert
             viewEngine.Verify();
@@ -119,10 +98,9 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var viewName = "partial-view-name";
-
-            var actionContext = new ActionContext(new DefaultHttpContext(),
-                                                  new RouteData(),
-                                                  new ActionDescriptor { Name = viewName });
+            var context = new ActionContext(new DefaultHttpContext(),
+                                            new RouteData(),
+                                            new ActionDescriptor { Name = viewName });
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine.Setup(e => e.FindPartialView(It.IsAny<ActionContext>(), viewName))
                       .Returns(ViewEngineResult.Found(viewName, Mock.Of<IView>()))
@@ -131,17 +109,15 @@ namespace Microsoft.AspNet.Mvc
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ICompositeViewEngine)))
                            .Returns(viewEngine.Object);
-            serviceProvider.Setup(p => p.GetService(typeof(ILoggerFactory)))
-                    .Returns(new NullLoggerFactory());
-            actionContext.HttpContext.RequestServices = serviceProvider.Object;
+            context.HttpContext.RequestServices = serviceProvider.Object;
 
             var viewResult = new PartialViewResult
             {
-                ViewName = viewName,
+                ViewName = viewName
             };
 
             // Act
-            await viewResult.ExecuteResultAsync(actionContext);
+            await viewResult.ExecuteResultAsync(context);
 
             // Assert
             viewEngine.Verify();

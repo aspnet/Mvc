@@ -3,10 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -15,8 +13,6 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class ViewResult : ActionResult
     {
-        private static ILogger _logger;
-
         /// <summary>
         /// Gets or sets the name of the view to render.
         /// </summary>
@@ -47,16 +43,6 @@ namespace Microsoft.AspNet.Mvc
             var view = viewEngine.FindView(context, viewName)
                                  .EnsureSuccessful()
                                  .View;
-
-            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            if (_logger == null)
-            {
-                _logger = loggerFactory.Create<ViewResult>();
-            }
-            if (_logger.IsEnabled(LogLevel.Verbose))
-            {
-                _logger.WriteVerbose(new ViewDataValues(ViewData));
-            }
 
             using (view as IDisposable)
             {

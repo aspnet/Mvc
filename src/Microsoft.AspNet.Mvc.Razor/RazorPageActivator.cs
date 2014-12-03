@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -16,14 +18,16 @@ namespace Microsoft.AspNet.Mvc.Razor
         private const string ModelPropertyName = "Model";
         private readonly ITypeActivator _typeActivator;
         private readonly ConcurrentDictionary<Type, PageActivationInfo> _activationInfo;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorPageActivator"/> class.
         /// </summary>
-        public RazorPageActivator(ITypeActivator typeActivator)
+        public RazorPageActivator(ITypeActivator typeActivator, ILoggerFactory loggerFactory)
         {
             _typeActivator = typeActivator;
             _activationInfo = new ConcurrentDictionary<Type, PageActivationInfo>();
+            _logger = loggerFactory.Create<RazorPageActivator>();
         }
 
         /// <inheritdoc />
@@ -33,6 +37,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                                                           CreateViewActivationInfo);
 
             context.ViewData = CreateViewDataDictionary(context, activationInfo);
+
+            if (_logger.IsEnabled(LogLevel.Verbose))
+            {
+                _logger.WriteVerbose(new ViewDataValues(context.ViewData, page.GetType()));
+            }
 
             for (var i = 0; i < activationInfo.PropertyActivators.Length; i++)
             {
