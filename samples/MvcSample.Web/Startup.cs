@@ -7,6 +7,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Security;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using MvcSample.Web.Filters;
@@ -38,6 +39,12 @@ namespace MvcSample.Web
 
                 app.UseServices(services =>
                 {
+                    services.Configure<AuthorizationOptions>(o =>
+                    {
+                        o.Policies["CanViewPage"] = new AuthorizationPolicy().Requires("Permission", "CanViewPage", "CanViewAnything");
+                        o.Policies["CanViewAnything"] = new AuthorizationPolicy().Requires("Permission", "CanViewAnything");
+                    });
+
                     services.AddMvc();
                     services.AddSingleton<PassThroughAttribute>();
                     services.AddSingleton<UserNameService>();
