@@ -49,27 +49,20 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             var inheritedChunks = new List<Chunk>();
 
             var templateEngine = new RazorTemplateEngine(_razorHost);
-            foreach (var viewStartPath in ViewStartUtility.GetViewStartLocations(pagePath))
+            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(_fileSystem, pagePath))
             {
                 CodeTree codeTree;
+                IFileInfo fileInfo;
 
-                if (_parsedCodeTrees.TryGetValue(viewStartPath, out codeTree))
+                if (_parsedCodeTrees.TryGetValue(viewStart, out codeTree))
                 {
                     inheritedChunks.AddRange(codeTree.Chunks);
                 }
-                else
+                else if (_fileSystem.TryGetFileInfo(viewStart, out fileInfo))
                 {
-                    var fileInfo = _fileSystem.GetFileInfo(viewStartPath);
-                    if (fileInfo.Exists)
-                    {
-                        // viewStartPath contains the app-relative path of the ViewStart.
-                        // Since the parsing of a _ViewStart would cause parent _ViewStarts to be parsed
-                        // we need to ensure the paths are app-relative to allow the GetViewStartLocations
-                        // for the current _ViewStart to succeed.
-                        codeTree = ParseViewFile(templateEngine, fileInfo, viewStartPath);
-                        _parsedCodeTrees.Add(viewStartPath, codeTree);
-                        inheritedChunks.AddRange(codeTree.Chunks);
-                    }
+                    codeTree = ParseViewFile(templateEngine, fileInfo);
+                    _parsedCodeTrees.Add(viewStart, codeTree);
+                    inheritedChunks.AddRange(codeTree.Chunks);
                 }
             }
 
@@ -125,19 +118,18 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         private static CodeTree ParseViewFile(RazorTemplateEngine engine,
-                                              IFileInfo fileInfo,
-                                              string viewStartPath)
+                                              IFileInfo fileInfo)
         {
             using (var stream = fileInfo.CreateReadStream())
             {
                 using (var streamReader = new StreamReader(stream))
                 {
-                    var parseResults = engine.ParseTemplate(streamReader, viewStartPath);
+                    var parseResults = engine.ParseTemplate(streamReader, fileInfo.PhysicalPath);
                     var className = ParserHelpers.SanitizeClassName(fileInfo.Name);
                     var language = engine.Host.CodeLanguage;
                     var codeGenerator = language.CreateCodeGenerator(className,
                                                                      engine.Host.DefaultNamespace,
-                                                                     viewStartPath,
+                                                                     fileInfo.PhysicalPath,
                                                                      engine.Host);
                     codeGenerator.Visit(parseResults);
 

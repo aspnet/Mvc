@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.FileSystems;
-using Microsoft.Framework.Expiration.Interfaces;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -355,25 +354,28 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
             }
 
-            public IDirectoryContents GetDirectoryContents(string subpath)
+            public bool TryGetDirectoryContents(string subpath, out IEnumerable<IFileInfo> contents)
             {
                 throw new NotImplementedException();
             }
 
-            public IFileInfo GetFileInfo(string subpath)
+            public bool TryGetFileInfo(string subpath, out IFileInfo fileInfo)
             {
                 IFileInfo knownInfo;
                 if (_fileInfos.TryGetValue(subpath, out knownInfo))
                 {
-                    return new DummyFileInfo()
+                    fileInfo = new DummyFileInfo()
                     {
                         Name = knownInfo.Name,
                         LastModified = knownInfo.LastModified,
                     };
+
+                    return true;
                 }
                 else
                 {
-                    return new NotFoundFileInfo(subpath);
+                    fileInfo = null;
+                    return false;
                 }
             }
 
@@ -391,39 +393,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             public long Length { get { throw new NotImplementedException(); } }
             public bool IsDirectory { get { throw new NotImplementedException(); } }
             public string PhysicalPath { get { throw new NotImplementedException(); } }
-
-            public bool Exists
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public bool IsReadOnly
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
             public Stream CreateReadStream() { throw new NotImplementedException(); }
-
-            public void WriteContent(byte[] content)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Delete()
-            {
-                throw new NotImplementedException();
-            }
-
-            public IExpirationTrigger CreateFileChangeTrigger()
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }
