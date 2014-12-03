@@ -77,10 +77,10 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private IEnumerable<RelativeFileInfo> GetFileInfosRecursive(string currentPath)
         {
+            IEnumerable<IFileInfo> fileInfos;
             string path = currentPath;
 
-            var fileInfos = _fileSystem.GetDirectoryContents(path);
-            if (!fileInfos.Exists)
+            if (!_fileSystem.TryGetDirectoryContents(path, out fileInfos))
             {
                 yield break;
             }
