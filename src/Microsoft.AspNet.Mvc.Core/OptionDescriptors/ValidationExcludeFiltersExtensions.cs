@@ -41,6 +41,15 @@ namespace Microsoft.AspNet.Mvc
             descriptorCollection.Add(new ExcludeValidationDescriptor(filter));
         }
 
+        /// <summary>
+        /// Adds a descriptor to the specified <paramref name="descriptorCollection" /> that excludes the properties of 
+        /// the type specified and it's derived types from validaton.
+        /// </summary>
+        /// <param name="descriptorCollection">A list of <see cref="ExcludeValidationDescriptor"/> which are used to
+        /// get a collection of exclude filters to be applied for filtering model properties during validation.
+        /// </param>
+        /// <param name="filter"><see cref="IExcludeTypeValidationFilter"/> which should be excluded from validation.
+        /// </param>
         public static void Add(this IList<ExcludeValidationDescriptor> descriptorCollection, 
                                IExcludeTypeValidationFilter filter)
         {

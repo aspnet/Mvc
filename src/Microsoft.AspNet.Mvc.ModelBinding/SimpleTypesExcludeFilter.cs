@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Type[] actualTypes;
 
             var enumerable = type.ExtractGenericInterface(typeof(IEnumerable<>));
-            if (null == enumerable)
+            if (enumerable == null)
             {
                 actualTypes = new Type[] { type };
             }
@@ -29,8 +29,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 actualTypes = enumerable.GenericTypeArguments;
                 // The following special case is for IEnumerable<KeyValuePair<K,V>>,
                 // supertype of IDictionary<K,V>, and IReadOnlyDictionary<K,V>.
-                if (actualTypes[0].IsGenericType()
-                    && actualTypes.Length == 1
+                if (actualTypes.Length == 1
+                    && actualTypes[0].IsGenericType() 
                     && actualTypes[0].GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
                 {
                     actualTypes = actualTypes[0].GenericTypeArguments;
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                             type.Equals(typeof(DateTime)) ||
                             type.Equals(typeof(Guid)) ||
                             type.Equals(typeof(DateTimeOffset)) ||
-                            type.Equals(typeof(TimeSpan));
+                            type.Equals(typeof(Uri));
 
             return result;
         }

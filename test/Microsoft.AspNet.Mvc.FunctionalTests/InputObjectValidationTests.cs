@@ -109,7 +109,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("No model validation for developer, even though developer.Name is empty.", await response.Content.ReadAsStringAsync());
+            Assert.Equal("No model validation for developer, even though developer.Name is empty.", 
+                         await response.Content.ReadAsStringAsync());
         }
 
         [Fact]
@@ -120,8 +121,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             var requestData = "{\"Name\":\"Library Manager\", \"Suppliers\": [{\"Name\":\"Contoso Corp\"}]}";
             var content = new StringContent(requestData, Encoding.UTF8, "application/json");
-            var expectedModelStateErrorMessage = "The field Suppliers must be a string or array type with a minimum length of '2'.";
-            var shouldNotContainMessage = "The field Name must be a string or array type with a maximum length of '5'.";
+            var expectedModelStateErrorMessage 
+                                 = "The field Suppliers must be a string or array type with a minimum length of '2'.";
+            var shouldNotContainMessage 
+                                 = "The field Name must be a string or array type with a maximum length of '5'.";
 
             // Act
             var response = await client.PostAsync("http://localhost/Validation/CreateProject", content);
