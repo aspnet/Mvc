@@ -58,6 +58,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                             type.Equals(typeof(DateTime)) ||
                             type.Equals(typeof(Guid)) ||
                             type.Equals(typeof(DateTimeOffset)) ||
+                            type.Equals(typeof(TimeSpan)) ||
                             type.Equals(typeof(Uri));
 
             return result;
