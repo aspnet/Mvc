@@ -30,6 +30,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString Display([NotNull] this IHtmlHelper html, string expression)
         {
@@ -55,13 +59,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/>'s value. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
-        /// </remarks>
+        /// <paramref name="expression"/>'s value. 
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// case-sensitive file systems.
         /// </para>
         /// </remarks>
         public static HtmlString Display(
@@ -88,12 +94,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/>'s value. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/>'s value. 
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// case-sensitive file systems.
         /// </para>
         /// </remarks>
         public static HtmlString Display(
@@ -124,12 +133,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/>'s value. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/>'s value.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// case-sensitive file systems.
         /// </para>
         /// </remarks>
         public static HtmlString Display(
@@ -160,12 +172,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/>'s value. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/>'s value.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
         /// </para>
         /// </remarks>
         public static HtmlString Display(
@@ -187,9 +202,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <typeparam name="TValue">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/> result. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/> result.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression)
@@ -214,9 +234,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <typeparam name="TValue">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/> result. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/> result.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression,
@@ -238,9 +263,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <typeparam name="TValue">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/> result. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/> result.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression,
@@ -266,9 +296,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <typeparam name="TValue">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/> result. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/> result.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression,
@@ -295,9 +330,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <typeparam name="TValue">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/> result. The template should be located under the <c>DisplayTemplates</c>
-        /// folder. The folder name is case-sensitive to support case-sensitive file systems.
+        /// <paramref name="expression"/> result.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayFor<TModel, TValue>([NotNull] this IHtmlHelper<TModel> html,
                                                             [NotNull] Expression<Func<TModel, TValue>> expression,
@@ -315,9 +355,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="html">The <see cref="IHtmlHelper"/> instance this method extends.</param>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder. The folder name is
-        /// case-sensitive to support case-sensitive file systems.
+        /// current model. The template should be located under the <c>DisplayTemplates</c> folder.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayForModel([NotNull] this IHtmlHelper html)
         {
@@ -336,9 +381,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder. The folder name is
-        /// case-sensitive to support case-sensitive file systems.
+        /// current model.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayForModel([NotNull] this IHtmlHelper html, object additionalViewData)
         {
@@ -354,9 +404,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="templateName">The name of the template used to create the HTML markup.</param>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder. The folder name is
-        /// case-sensitive to support case-sensitive file systems.
+        /// current model.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayForModel([NotNull] this IHtmlHelper html, string templateName)
         {
@@ -378,9 +433,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder. The folder name is
-        /// case-sensitive to support case-sensitive file systems.
+        /// current model.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayForModel(
             [NotNull] this IHtmlHelper html,
@@ -404,9 +464,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder. The folder name is
-        /// case-sensitive to support case-sensitive file systems.
+        /// current model.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayForModel(
             [NotNull] this IHtmlHelper html,
@@ -435,9 +500,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
         /// <remarks>
+        /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder. The folder name is
-        /// case-sensitive to support case-sensitive file systems.
+        /// current model.
+        /// </para>
+        /// <para>
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
+        /// case-sensitive file systems.
+        /// </para>
         /// </remarks>
         public static HtmlString DisplayForModel(
             [NotNull] this IHtmlHelper html,

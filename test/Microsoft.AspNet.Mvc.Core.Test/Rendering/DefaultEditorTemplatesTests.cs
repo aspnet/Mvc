@@ -685,7 +685,7 @@ Environment.NewLine;
         }
 
         [Fact]
-        public void DefaultEditorTemplates_DefaultPathNameCase()
+        public void EditorForModel_CallsFindPartialView_WithExpectedPath()
         {
             // Arrange
             var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
@@ -698,7 +698,7 @@ Environment.NewLine;
             var html = DefaultTemplatesUtilities.GetHtmlHelper(new object(), viewEngine: viewEngine.Object);
 
             // Act & Assert
-            html.EditorForModel(string.Empty);
+            html.Editor(expression: string.Empty, templateName: null, htmlFieldName: null, additionalViewData: null);
             viewEngine.Verify();
         }
 

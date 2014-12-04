@@ -595,7 +595,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         }
 
        [Fact]
-        public void RazorViewEngine_VerifyAreaViewLocationFormat()
+        public void AreaViewLocationFormats_ContainsExpectedLocations()
         {
             // Arrange
             var viewEngine = CreateViewEngine();

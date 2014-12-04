@@ -277,7 +277,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void ViewViewComponentResult_DefaultPathNameCase()
+        public void Execute_CallsFindPartialView_WithExpectedPath()
         {
             // Arrange
             var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);

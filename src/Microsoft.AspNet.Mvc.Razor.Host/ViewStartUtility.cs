@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
+    /// <summary>
+    /// Contains the methods to locate <c>_ViewStart.cshtml</c> 
+    /// </summary>
     public static class ViewStartUtility
     {
         private const string ViewStartFileName = "_ViewStart.cshtml";

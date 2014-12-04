@@ -293,7 +293,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void DefaultTemplates_DefaultPathNameCase()
+        public void Display_CallsFindPartialView_WithExpectedPath()
         {
             // Arrange
             var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
@@ -306,7 +306,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var html = DefaultTemplatesUtilities.GetHtmlHelper(new object(), viewEngine: viewEngine.Object);
 
             // Act & Assert
-            html.Display(string.Empty);
+            html.Display(expression: string.Empty, templateName: null, htmlFieldName: null, additionalViewData: null);
             viewEngine.Verify();
         }
     }
