@@ -274,6 +274,52 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.False(authorizationServiceIsCalled);
         }
 
+        [Fact]
+        public async Task Invoke_FailWhenLookingForClaimInOtherIdentity()
+        {
+            // Arrange
+            var policy = new AuthorizationPolicy("Bearer").Requires("Permission", "CanViewComment");
+            var authorizationOptions = new AuthorizationOptions();
+            authorizationOptions.Policies["CanViewComment"] = policy;
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute("CanViewComment");
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.NotNull(authorizationContext.Result);
+        }
+
+
+        [Fact]
+        public async Task Invoke_CanLookingForClaimsInMultipleIdentities()
+        {
+            // Arrange
+            var policy = new AuthorizationPolicy("Bearer", "Basic").Requires("Permission", "CanViewComment").Requires("Permission", "CupBearer");
+            var authorizationOptions = new AuthorizationOptions();
+            authorizationOptions.Policies["CanViewCommentCupBearer"] = policy;
+            var options = new Mock<IOptions<AuthorizationOptions>>();
+            options.Setup(o => o.Options).Returns(authorizationOptions);
+            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizeAttribute = new AuthorizeAttribute("CanViewCommentCupBearer");
+            var authorizationContext = GetAuthorizationContext(services =>
+                services.AddInstance<IAuthorizationService>(authorizationService)
+                );
+
+            // Act
+            await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.NotNull(authorizationContext.Result);
+        }
+
+
         [Fact(Skip = "This fails because  policies DO fail now...")]
         public async Task Invoke_NullPoliciesShouldNotFail()
         {
