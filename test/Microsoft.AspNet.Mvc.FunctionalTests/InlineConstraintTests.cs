@@ -43,7 +43,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => client.GetAsync("http://localhost/area-withoutexists/Users"));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => client.GetAsync("http://localhost/area-withoutexists/Users")
+                );
 
             Assert.Equal("The view 'Index' was not found." +
                          " The following locations were searched:\r\n/Areas/Users/Views/Home/Index.cshtml\r\n" +
@@ -168,7 +170,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task GetProductByCategoryName_StringLength1To20Constraint_ForOptionalCategoryName_ValidCatName()
+        public async Task GetProductByCategoryName_StringLengthConstraint_ForOptionalCategoryName_ValidCatName()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -186,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task GetProductByCategoryName_StringLength1To20Constraint_ForOptionalCategoryName_InvalidCatName()
+        public async Task GetProductByCategoryName_StringLengthConstraint_ForOptionalCategoryName_InvalidCatName()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -416,7 +418,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task GetStoreByLocation_StringLength3to10Constraint_AlphaConstraint_ForMandatoryLocation_Valid()
+        public async Task GetStoreByLocation_StringLengthConstraint_AlphaConstraint_ForMandatoryLocation_Valid()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -434,7 +436,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task GetStoreByLocation_StringLength3to10Constraint_AlphaConstraint_ForMandatoryLocation_MoreLength()
+        public async Task GetStoreByLocation_StringLengthConstraint_AlphaConstraint_ForMandatoryLocation_MoreLength()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -448,7 +450,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task GetStoreByLocation_StringLength3to10Constraint_AlphaConstraint_ForMandatoryLocation_LessLength()
+        public async Task GetStoreByLocation_StringLengthConstraint_AlphaConstraint_ForMandatoryLocation_LessLength()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -462,7 +464,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task GetStoreByLocation_StringLength3to10Constraint_AlphaConstraint_ForMandatoryLocation_NoAlpha()
+        public async Task GetStoreByLocation_StringLengthConstraint_AlphaConstraint_ForMandatoryLocation_NoAlpha()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -477,11 +479,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         public static IEnumerable<object[]> QueryParameters
         {
+            // The first four parameters are controller name, action name, parameters in the query and their values.   
+            // These are used to generate a link, the last parameter is expected generated link 
             get
             {
                 // Attribute Route, id:int? constraint
                 yield return new object[]
-                    { "InlineConstraints_Products",
+                    {
+                        "InlineConstraints_Products",
                         "GetProductById",
                         "id",
                         "5",
@@ -489,125 +494,144 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                     };
 
                 // Attribute Route, id:int? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductById",
-                    "id",
-                    "sdsd", "" };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductById",
+                        "id",
+                        "sdsd", ""
+                    };
 
                 // Attribute Route, name:alpha constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByName",
-                    "name",
-                    "zxcv",
-                    "/products/GetProductByName/zxcv"
-                };
+                yield return new object[]
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByName",
+                        "name",
+                        "zxcv",
+                        "/products/GetProductByName/zxcv"
+                    };
 
                 // Attribute Route, name:length(1,20)? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByCategoryName",
-                    "name",
-                    "sports",
-                    "/products/GetProductByCategoryName/sports"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByCategoryName",
+                        "name",
+                        "sports",
+                        "/products/GetProductByCategoryName/sports"
+                    };
 
                 // Attribute Route, name:length(1,20)? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByCategoryName",
-                    null,
-                    null,
-                    "/products/GetProductByCategoryName"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByCategoryName",
+                        null,
+                        null,
+                        "/products/GetProductByCategoryName"
+                    };
 
                 // Attribute Route, catId:int:range(10, 100) constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByCategoryId",
-                    "catId",
-                    "50",
-                    "/products/GetProductByCategoryId/50"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByCategoryId",
+                        "catId",
+                        "50",
+                        "/products/GetProductByCategoryId/50"
+                    };
 
                 // Attribute Route, catId:int:range(10, 100) constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByCategoryId",
-                    "catId",
-                    "500",
-                    ""
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByCategoryId",
+                        "catId",
+                        "500",
+                        ""
+                    };
 
                 // Attribute Route, name:length(1,20)? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByPrice",
-                    "price",
-                    "123.45",
-                    "/products/GetProductByPrice/123.45"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByPrice",
+                        "price",
+                        "123.45",
+                        "/products/GetProductByPrice/123.45"
+                    };
 
                 // Attribute Route, price:float? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByManufacturerId",
-                    "manId",
-                    "15",
-                    "/products/GetProductByManufacturerId/15"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByManufacturerId",
+                        "manId",
+                        "15",
+                        "/products/GetProductByManufacturerId/15"
+                    };
 
                 // Attribute Route, manId:int:min(10)? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByManufacturerId",
-                    "manId",
-                    "qwer",
-                    ""
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByManufacturerId",
+                        "manId",
+                        "qwer",
+                        ""
+                    };
 
                 // Attribute Route, manId:int:min(10)? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByManufacturerId",
-                    "manId",
-                    "1",
-                    ""
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByManufacturerId",
+                        "manId",
+                        "1",
+                        ""
+                    };
 
                 // Attribute Route, manId:int:min(10)? constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByManufacturerId",
-                    "manId",
-                    "1",
-                    ""
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByManufacturerId",
+                        "manId",
+                        "1",
+                        ""
+                    };
 
                 // Attribute Route, dateTime:datetime constraint
-                yield return new object[] {
-                    "InlineConstraints_Products",
-                    "GetProductByManufacturingDate",
-                    "dateTime",
-                    "2014-10-11T13:45:30",
-                    "/products/GetProductByManufacturingDate/2014-10-11T13%3a45%3a30"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Products",
+                        "GetProductByManufacturingDate",
+                        "dateTime",
+                        "2014-10-11T13:45:30",
+                        "/products/GetProductByManufacturingDate/2014-10-11T13%3a45%3a30"
+                    };
 
                 // Conventional Route, id:guid? constraint
-                yield return new object[] {
-                    "InlineConstraints_Store",
-                    "GetStoreById",
-                    "id",
-                    "691cf17a-791b-4af8-99fd-e739e168170f",
-                    "/store/GetStoreById/691cf17a-791b-4af8-99fd-e739e168170f"
-                };
+                yield return new object[] 
+                    {
+                        "InlineConstraints_Store",
+                        "GetStoreById",
+                        "id",
+                        "691cf17a-791b-4af8-99fd-e739e168170f",
+                        "/store/GetStoreById/691cf17a-791b-4af8-99fd-e739e168170f"
+                    };
             }
         }
 
         [Theory]
         [MemberData(nameof(QueryParameters))]
-        public async Task GetGeneratedLink(string controller, string action, string parameterName, string parameterValue, string expectedLink)
+        public async Task GetGeneratedLink(
+            string controller, 
+            string action, 
+            string parameterName, 
+            string parameterValue, 
+            string expectedLink)
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -616,7 +640,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Act
             string url;
 
-            if (parameterName != null)
+            if (parameterName == null)
+            {
+                url = string.Format(
+                    "{0}newController={1}&newAction={2}",
+                    "http://localhost/products/GetGeneratedLink?",
+                    controller,
+                    action);
+            }
+            else
             {
                 url = string.Format(
                     "{0}newController={1}&newAction={2}&{3}={4}",
@@ -624,15 +656,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                     controller,
                     action,
                     parameterName,
-                    parameterValue);
-            }
-            else
-            {
-                url = string.Format(
-                    "{0}newController={1}&newAction={2}",
-                    "http://localhost/products/GetGeneratedLink?",
-                    controller,
-                    action);
+                    parameterValue);                
             }
 
             var response = await client.GetAsync(url);

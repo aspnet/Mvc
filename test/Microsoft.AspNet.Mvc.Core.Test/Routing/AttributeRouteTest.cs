@@ -234,7 +234,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             await route.RouteAsync(context);
 
             // Assert
-            if (expectedResult == true)
+            if (expectedResult)
             {
                 Assert.True(context.IsHandled);
                 Assert.Equal(expectedRouteGroup, context.RouteData.Values["test_route_group"]);
