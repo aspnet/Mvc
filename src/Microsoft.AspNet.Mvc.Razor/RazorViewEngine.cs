@@ -17,7 +17,6 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// For <c>ViewResults</c> returned from controllers, views should be located in <see cref="ViewLocationFormats"/> 
     /// by default. For the controllers in <c>Area</c>,  views should exist in <see cref="AreaViewLocationFormats"/>. 
     /// </remarks>
-    public class RazorViewEngine : IViewEngine
     public class RazorViewEngine : IRazorViewEngine
     {
         private const string ViewExtension = ".cshtml";

@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             fileSystem.AddFile(@"Views\accounts\_ViewStart.cshtml", "@using AccountModels");
             fileSystem.AddFile(@"Views\Shared\_ViewStart.cshtml", "@inject SharedHelper Shared");
             fileSystem.AddFile(@"Views\home\_ViewStart.cshtml", "@using MyNamespace");
-            fileSystem.AddFile(@"Views\_viewstart.cshtml",
+            fileSystem.AddFile(@"Views\_ViewStart.cshtml",
 @"@inject MyHelper<TModel> Helper
 @inherits MyBaseType
 
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         {
             // Arrange
             var fileSystem = new TestFileSystem();
-            fileSystem.AddFile(@"views\_ViewStart.cshtml",
+            fileSystem.AddFile(@"Views\_ViewStart.cshtml",
                                "@inject DifferentHelper<TModel> Html");
             var host = new MvcRazorHost(fileSystem);
             var defaultChunks = new Chunk[]
