@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void GetViewStartLocations_ReturnsEmptySequenceIfViewPathIsEmpty(string viewPath)
         {
             // Act
-            var result = ViewStartUtility.GetViewStartLocations(viewPath);
+            var result = ViewStartUtility.GetViewStartLocations(new TestFileSystem(), viewPath);
 
             // Assert
             Assert.Empty(result);
@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         [InlineData("/views/Home/MyView.cshtml")]
         [InlineData("~/views/Home/MyView.cshtml")]
         [InlineData("views/Home/MyView.cshtml")]
-        public void GetViewStartLocations_ReturnsPotentialViewStartLocations_PathStartswithSlash(string inputPath)
+        public void GetViewStartLocations_ReturnsPotentialViewStartLocations(string inputPath)
         {
             // Arrange
             var expected = new[]
@@ -36,9 +36,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 @"views\_viewstart.cshtml",
                 @"_viewstart.cshtml"
             };
+            var fileSystem = new PhysicalFileSystem(GetTestFileSystemBase());
 
             // Act
-            var result = ViewStartUtility.GetViewStartLocations(inputPath);
+            var result = ViewStartUtility.GetViewStartLocations(fileSystem, inputPath);
 
             // Assert
             Assert.Equal(expected, result);
@@ -59,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var fileSystem = new PhysicalFileSystem(GetTestFileSystemBase());
 
             // Act
-            var result = ViewStartUtility.GetViewStartLocations(inputPath);
+            var result = ViewStartUtility.GetViewStartLocations(fileSystem, inputPath);
 
             // Assert
             Assert.Equal(expected, result);
@@ -68,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         [Theory]
         [InlineData("Test.cshtml")]
         [InlineData("ViewStart.cshtml")]
-        public void GetViewStartLocations_ReturnsPotentialViewStartLocations(string fileName)
+        public void GetViewStartLocations_ReturnsPotentialViewStartLocations_IfPathIsAbsolute(string fileName)
         {
             // Arrange
             var expected = new[]
@@ -80,10 +81,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 @"Areas\_viewstart.cshtml",
                 @"_viewstart.cshtml",
             };
-            var viewPath = Path.Combine("Areas", "MyArea", "Sub", "Views", "Admin", fileName);
+            var appBase = GetTestFileSystemBase();
+            var viewPath = Path.Combine(appBase, "Areas", "MyArea", "Sub", "Views", "Admin", fileName);
+            var fileSystem = new PhysicalFileSystem(appBase);
 
             // Act
-            var result = ViewStartUtility.GetViewStartLocations(viewPath);
+            var result = ViewStartUtility.GetViewStartLocations(fileSystem, viewPath);
 
             // Assert
             Assert.Equal(expected, result);
@@ -92,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         [Theory]
         [InlineData("_ViewStart.cshtml")]
         [InlineData("_viewstart.cshtml")]
-        public void GetViewStartLocations_SkipsCurrentPath_IfPathIsAViewStartFile(string fileName)
+        public void GetViewStartLocations_SkipsCurrentPath_IfAbsolutePathIsAViewStartFile(string fileName)
         {
             // Arrange
             var expected = new[]
@@ -103,10 +106,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 @"Areas\_viewstart.cshtml",
                 @"_viewstart.cshtml",
             };
-            var viewPath = Path.Combine("Areas", "MyArea", "Sub", "Views", "Admin", fileName);
+            var appBase = GetTestFileSystemBase();
+            var viewPath = Path.Combine(appBase, "Areas", "MyArea", "Sub", "Views", "Admin", fileName);
+            var fileSystem = new PhysicalFileSystem(appBase);
 
             // Act
-            var result = ViewStartUtility.GetViewStartLocations(viewPath);
+            var result = ViewStartUtility.GetViewStartLocations(fileSystem, viewPath);
 
             // Assert
             Assert.Equal(expected, result);
@@ -118,23 +123,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var appBase = GetTestFileSystemBase();
             var viewPath = "_viewstart.cshtml";
+            var fileSystem = new PhysicalFileSystem(appBase);
 
             // Act
-            var result = ViewStartUtility.GetViewStartLocations(viewPath);
-
-            // Assert
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void GetViewStartLocations_ReturnsEmptySequence_IfPathIsRooted()
-        {
-            // Arrange
-            var appBase = GetTestFileSystemBase();
-            var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "Index.cshtml");
-
-            // Act
-            var result = ViewStartUtility.GetViewStartLocations(absolutePath);
+            var result = ViewStartUtility.GetViewStartLocations(fileSystem, viewPath);
 
             // Assert
             Assert.Empty(result);
