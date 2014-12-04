@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public IDirectoryContents GetDirectoryContents(string subpath)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public void AddFile(string path, string contents)
@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public void AddFile(string path, TestFileInfo contents)
         {
-            _lookup.Add(path, contents);
+            _lookup[path] = contents;
         }
 
         public void DeleteFile(string path)
@@ -52,5 +52,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return new NotFoundFileInfo(subpath);
             }
         }
+
     }
 }

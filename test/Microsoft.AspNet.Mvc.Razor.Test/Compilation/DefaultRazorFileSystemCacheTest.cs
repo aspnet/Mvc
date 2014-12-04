@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Microsoft.AspNet.FileSystems;
-using Microsoft.Framework.Expiration.Interfaces;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -42,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public void CreateFile(string fileName)
         {
-            var fileInfo = new DummyFileInfo()
+            var fileInfo = new TestFileInfo()
             {
                 Name = fileName,
                 LastModified = DateTime.Now,
@@ -86,14 +83,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             CreateFile(FileName);
 
             // Act
-            IFileInfo fileInfo1;
-            IFileInfo fileInfo2;
-            var result1 = cache.TryGetFileInfo(FileName, out fileInfo1);
-            var result2 = cache.TryGetFileInfo(FileName, out fileInfo2);
+            var fileInfo1 = cache.GetFileInfo(FileName);
+            var fileInfo2 = cache.GetFileInfo(FileName);
 
             // Assert
-            Assert.True(result1);
-            Assert.True(result2);
+            Assert.True(fileInfo1.Exists);
+            Assert.True(fileInfo1.Exists);
 
             Assert.Same(fileInfo1, fileInfo2);
 
@@ -312,15 +307,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Equal(FileName, fileInfo1.Name);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void TryGetDirectoryInfo_PassesThroughToUnderlyingFileSystem(bool expected)
+        [Fact]
+        public void GetDirectoryInfo_PassesThroughToUnderlyingFileSystem()
         {
             // Arrange
             var fileSystem = new Mock<IFileSystem>();
-            var contents = Enumerable.Empty<IFileInfo>();
-            fileSystem.Setup(f => f.TryGetDirectoryContents("/test-path", out contents))
+            var expected = Mock.Of<IDirectoryContents>();
+            fileSystem.Setup(f => f.GetDirectoryContents("/test-path"))
                       .Returns(expected)
                       .Verifiable();
             var options = new RazorViewEngineOptions
@@ -334,39 +327,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             var cachedFileSystem = new DefaultRazorFileSystemCache(accessor.Object);
 
             // Act
-            var result = cachedFileSystem.TryGetDirectoryContents("/test-path", out contents);
+            var result = cachedFileSystem.GetDirectoryContents("/test-path");
 
             // Assert
-            Assert.Equal(expected, result);
-            fileSystem.Verify();
-        }
-
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void TryGetParentPath_PassesThroughToUnderlyingFileSystem(bool expected)
-        {
-            // Arrange
-            var fileSystem = new Mock<IFileSystem>();
-            var parentPath = "/";
-            fileSystem.Setup(f => f.TryGetParentPath("/test-path", out parentPath))
-                      .Returns(expected)
-                      .Verifiable();
-            var options = new RazorViewEngineOptions
-            {
-                FileSystem = fileSystem.Object
-            };
-            var accessor = new Mock<IOptions<RazorViewEngineOptions>>();
-            accessor.SetupGet(a => a.Options)
-                    .Returns(options);
-
-            var cachedFileSystem = new DefaultRazorFileSystemCache(accessor.Object);
-
-            // Act
-            var result = cachedFileSystem.TryGetParentPath("/test-path", out parentPath);
-
-            // Assert
-            Assert.Equal(expected, result);
+            Assert.Same(expected, result);
             fileSystem.Verify();
         }
 
@@ -401,19 +365,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 _internalUtcNow = UtcNow.AddMilliseconds(milliSeconds);
             }
-
-            public IFileInfo GetFileInfo(string subpath)
-            {
-                IFileInfo fileInfo;
-                if (TryGetFileInfo(subpath, out fileInfo))
-                {
-                    return fileInfo;
-                }
-
-                return null;
-            }
         }
-
         public class DummyFileSystem : IFileSystem
         {
             private Dictionary<string, IFileInfo> _fileInfos = new Dictionary<string, IFileInfo>(StringComparer.OrdinalIgnoreCase);
@@ -440,7 +392,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 IFileInfo knownInfo;
                 if (_fileInfos.TryGetValue(subpath, out knownInfo))
                 {
-                    return new DummyFileInfo()
+                    return new TestFileInfo
                     {
                         Name = knownInfo.Name,
                         LastModified = knownInfo.LastModified,
@@ -453,49 +405,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             public bool TryGetParentPath(string subpath, out string parentPath)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public class DummyFileInfo : IFileInfo
-        {
-            public DateTime LastModified { get; set; }
-            public string Name { get; set; }
-
-            public long Length { get { throw new NotImplementedException(); } }
-            public bool IsDirectory { get { throw new NotImplementedException(); } }
-            public string PhysicalPath { get { throw new NotImplementedException(); } }
-
-            public bool Exists
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public bool IsReadOnly
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public Stream CreateReadStream() { throw new NotImplementedException(); }
-
-            public void WriteContent(byte[] content)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Delete()
-            {
-                throw new NotImplementedException();
-            }
-
-            public IExpirationTrigger CreateFileChangeTrigger()
             {
                 throw new NotImplementedException();
             }

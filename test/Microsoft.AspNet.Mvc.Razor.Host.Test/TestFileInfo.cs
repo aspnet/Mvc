@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.AspNet.FileSystems;
+using Microsoft.Framework.Expiration.Interfaces;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -32,10 +33,38 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
+        public bool Exists
+        {
+            get { return true; }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Stream CreateReadStream()
         {
             var bytes = Encoding.UTF8.GetBytes(Content);
             return new MemoryStream(bytes);
+        }
+
+        public void WriteContent(byte[] content)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Delete()
+        {
+            throw new NotSupportedException();
+        }
+
+        public IExpirationTrigger CreateFileChangeTrigger()
+        {
+            throw new NotSupportedException();
         }
     }
 }

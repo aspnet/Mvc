@@ -200,28 +200,27 @@ namespace Microsoft.AspNet.Mvc.Razor
                 LastModified = lastModified,
                 Content = instance.Content
             };
-
             var runtimeFileInfo = new RelativeFileInfo(fileInfo, "ab");
-            var precompiledContent = new PreCompile().Content;
+
+            var viewStartContent = "viewstart-content";
+            var viewStartFileInfo = new TestFileInfo
+            {
+                Content = viewStartContent,
+                LastModified = DateTime.UtcNow
+            };
+            fileSystem.AddFile("_viewstart.cshtml", viewStartFileInfo);
             var viewStartRazorFileInfo = new RazorFileInfo
             {
-                Hash = RazorFileHash.GetHash(GetMemoryStream("viewstart-content")),
-                LastModified = DateTime.UtcNow,
-                Length = 30,
+                Hash = RazorFileHash.GetHash(GetMemoryStream(viewStartContent)),
+                LastModified = viewStartFileInfo.LastModified,
+                Length = viewStartFileInfo.Length,
                 RelativePath = "_viewstart.cshtml",
                 FullTypeName = typeof(RuntimeCompileIdentical).FullName
             };
-            fileSystem.AddFile(viewStartRazorFileInfo.RelativePath, new TestFileInfo
-            {
-                Length = viewStartRazorFileInfo.Length,
-                Content = "viewstart-content",
-                LastModified = viewStartRazorFileInfo.LastModified
-            });
 
             var precompiledViews = new ViewCollection();
             precompiledViews.Add(viewStartRazorFileInfo);
             var cache = new CompilerCache(new[] { precompiledViews }, fileSystem);
-
 
             // Act
             var actual = cache.GetOrAdd(runtimeFileInfo,

@@ -17,19 +17,19 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly ITypeActivator _activator;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IRazorFileSystemCache _cachedFileSystem;
+        private readonly IRazorFileSystemCache _fileSystemCache;
         private readonly ICompilerCache _compilerCache;
         private IRazorCompilationService _razorcompilationService;
 
         public VirtualPathRazorPageFactory(ITypeActivator typeActivator,
                                            IServiceProvider serviceProvider,
                                            ICompilerCache compilerCache,
-                                           IRazorFileSystemCache cachedFileSystem)
+                                           IRazorFileSystemCache fileSystemCache)
         {
             _activator = typeActivator;
             _serviceProvider = serviceProvider;
             _compilerCache = compilerCache;
-            _cachedFileSystem = cachedFileSystem;
+            _fileSystemCache = fileSystemCache;
         }
 
         private IRazorCompilationService RazorCompilationService
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 relativePath = relativePath.Substring(1);
             }
 
-            var fileInfo = _fileInfoCache.GetFileInfo(relativePath);
+            var fileInfo = _fileSystemCache.GetFileInfo(relativePath);
 
             if (fileInfo.Exists)
             {

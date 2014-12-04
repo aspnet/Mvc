@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// An <see cref="IAssemblyProvider"/> representing the assemblies
         /// used to search for pre-compiled views.
         /// </param>
-        /// <param name="fileSystem">An <see cref="IRazorFileSystemCache"/> instance that represents application's
+        /// <param name="fileSystem">An <see cref="IRazorFileSystemCache"/> instance that represents the application's
         /// file system.
         /// </param>
         public CompilerCache(IAssemblyProvider provider, IRazorFileSystemCache fileSystem)
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Set up ViewStarts
             foreach (var entry in _cache)
             {
-                var viewStartLocations = ViewStartUtility.GetViewStartLocations(fileSystem, entry.Key);
+                var viewStartLocations = ViewStartUtility.GetViewStartLocations(entry.Key);
                 foreach (var location in viewStartLocations)
                 {
                     CompilerCacheEntry viewStartEntry;
@@ -162,6 +162,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 AssociatedViewStartEntry = GetCompositeViewStartEntry(normalizedPath, compile)
             };
 
+            // The cache is a concurrent dictionary, so concurrent addition to it with the same key would result in a
+            // safe race.
             _cache[normalizedPath] = cacheEntry;
             return cacheEntry;
         }
@@ -172,7 +174,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             var viewStartEntry = GetCompositeViewStartEntry(entry.RelativePath, compile);
             return entry.AssociatedViewStartEntry != viewStartEntry;
         }
-
         
         // Returns the entry for the nearest _ViewStart that the file inherits directives from. Since _ViewStart
         // entries are affected by other _ViewStart entries that are in the path hierarchy, the returned value
@@ -180,11 +181,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         private CompilerCacheEntry GetCompositeViewStartEntry(string relativePath,
                                                               Func<RelativeFileInfo, CompilationResult> compile)
         {
-            var viewStartLocations = ViewStartUtility.GetViewStartLocations(_fileSystem, relativePath);
+            var viewStartLocations = ViewStartUtility.GetViewStartLocations(relativePath);
             foreach (var viewStartLocation in viewStartLocations)
             {
-                IFileInfo viewStartFileInfo;
-                if (_fileSystem.TryGetFileInfo(viewStartLocation, out viewStartFileInfo))
+                var viewStartFileInfo = _fileSystem.GetFileInfo(viewStartLocation);
+                if (viewStartFileInfo.Exists)
                 {
                     var relativeFileInfo = new RelativeFileInfo(viewStartFileInfo, viewStartLocation);
                     CompilationResult result;
@@ -198,6 +199,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private static string NormalizePath(string path)
         {
+            // We need to allow for scenarios where the application was precompiled on a machine with forward slashes
+            // but is being run in one with backslashes (or vice versa). To this effect, we'll normalize paths to
+            // use backslashes for lookups and storage in the dictionary.
             path = path.Replace('/', '\\');
             path = path.TrimStart('\\');
 

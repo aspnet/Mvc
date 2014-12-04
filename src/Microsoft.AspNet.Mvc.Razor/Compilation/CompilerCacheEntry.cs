@@ -40,17 +40,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the <see cref="Type"/> produced as a result of compilation.
         /// </summary>
-        public Type CompiledType { get; }
+        public Type CompiledType { get; private set; }
 
         /// <summary>
         /// Gets the path of the compiled file relative to the root of the application.
         /// </summary>
-        public string RelativePath { get; }
+        public string RelativePath { get; private set; }
 
         /// <summary>
         /// Gets the size of file (in bytes) on disk.
         /// </summary>
-        public long Length { get; }
+        public long Length { get; private set; }
 
         /// <summary>
         /// Gets or sets the last modified <see cref="DateTime"/> for the file at the time of compilation.
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the file hash, should only be available for pre compiled files.
         /// </summary>
-        public string Hash { get; }
+        public string Hash { get; private set; }
 
         /// <summary>
         /// Gets a flag that indicates if the file is precompiled.

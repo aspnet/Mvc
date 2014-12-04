@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Microsoft.AspNet.FileSystems;
 using Microsoft.Framework.OptionsModel;
 
@@ -40,27 +39,25 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public bool TryGetDirectoryContents(string subpath, out IEnumerable<IFileInfo> contents)
+        public IDirectoryContents GetDirectoryContents(string subpath)
         {
-            return _fileSystem.TryGetDirectoryContents(subpath, out contents);
+            return _fileSystem.GetDirectoryContents(subpath);
         }
 
         /// <inheritdoc />
-        public bool TryGetFileInfo(string subpath, out IFileInfo fileInfo)
+        public IFileInfo GetFileInfo(string subpath)
         {
             ExpiringFileInfo expiringFileInfo;
-
             var utcNow = UtcNow;
 
             if (_fileInfoCache.TryGetValue(subpath, out expiringFileInfo) &&
                 expiringFileInfo.ValidUntil > utcNow)
             {
-                fileInfo = expiringFileInfo.FileInfo;
-                return fileInfo != null;
+                return expiringFileInfo.FileInfo;
             }
             else
             {
-                fileInfo = _fileSystem.GetFileInfo(virtualPath);
+                var fileInfo = _fileSystem.GetFileInfo(subpath);
 
                 expiringFileInfo = new ExpiringFileInfo()
                 {
@@ -70,14 +67,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 _fileInfoCache[subpath] = expiringFileInfo;
 
-                return result;
+                return fileInfo;
             }
-        }
-
-        /// <inheritdoc />
-        public bool TryGetParentPath(string subpath, out string parentPath)
-        {
-            return _fileSystem.TryGetParentPath(subpath, out parentPath);
         }
 
         private class ExpiringFileInfo

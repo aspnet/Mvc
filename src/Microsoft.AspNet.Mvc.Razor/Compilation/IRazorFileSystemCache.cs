@@ -6,9 +6,8 @@ using Microsoft.AspNet.FileSystems;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents a <see cref="IFileSystem"/> that caches the results of
-    /// <see cref="IFileSystem.TryGetFileInfo(string, out IFileInfo)"/> for a duration specified by
-    /// <see cref="RazorViewEngineOptions.ExpirationBeforeCheckingFilesOnDisk"/>.
+    /// An <see cref="IFileSystem"/> that caches the results of <see cref="IFileSystem.GetFileInfo(string)"/> for a
+    /// duration specified by <see cref="RazorViewEngineOptions.ExpirationBeforeCheckingFilesOnDisk"/>.
     /// </summary>
     public interface IRazorFileSystemCache : IFileSystem
     {
