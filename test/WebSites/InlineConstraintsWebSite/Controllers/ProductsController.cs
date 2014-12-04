@@ -58,6 +58,12 @@ namespace InlineConstraintsWebSite.Controllers
             return ActionContext.RouteData.Values;
         }
 
+        [HttpGet(@"{name:regex(^abc$)}")]
+        public IDictionary<string, object> GetUserByName(string name)
+        {
+            return ActionContext.RouteData.Values;
+        }
+
         public string GetGeneratedLink()
         {
             var query = ActionContext.HttpContext.Request.Query;

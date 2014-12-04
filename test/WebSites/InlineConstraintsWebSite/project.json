@@ -1,5 +1,4 @@
 {
-    "webroot": "wwwroot",
     "dependencies": {
         "Microsoft.AspNet.Mvc": "6.0.0-*",
         "Microsoft.AspNet.Server.IIS": "1.0.0-*",

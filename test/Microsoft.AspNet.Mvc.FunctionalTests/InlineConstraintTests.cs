@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 using InlineConstraints;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
-using Xunit;
 using Newtonsoft.Json;
-using Microsoft.AspNet.WebUtilities;
+using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -52,7 +51,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                          ex.Message);
         }
 
-        #region Inline constraints in attribute routes -- ProductsController
         [Fact]
         public async Task GetProductById_IntConstraintForOptionalId_IdPresent()
         {
@@ -334,9 +332,39 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(result["controller"], "InlineConstraints_Products");
             Assert.Equal(result["action"], "GetProductByManufacturerId");
         }
-        #endregion
 
-        #region Inline Constraints in conventional routes -- StoreController
+        [Fact]
+        public async Task GetUserByName_RegExConstraint_ForMandatoryName_Valid()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/products/GetUserByName/abc");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var result = await GetResponseValues(response);
+            Assert.Equal(result["controller"], "InlineConstraints_Products");
+            Assert.Equal(result["action"], "GetUserByName");
+            Assert.Equal(result["name"], "abc");
+        }
+
+        [Fact]
+        public async Task GetUserByName_RegExConstraint_ForMandatoryName_InValid()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/products/GetUserByName/abcd");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
         [Fact]
         public async Task GetStoreById_GuidConstraintForOptionalId_Valid()
         {
@@ -447,48 +475,172 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        #endregion
+        public static IEnumerable<object[]> QueryParameters
+        {
+            get
+            {
+                // Attribute Route, id:int? constraint
+                yield return new object[]
+                    { "InlineConstraints_Products",
+                        "GetProductById",
+                        "id",
+                        "5",
+                        "/products/GetProductById/5"
+                    };
 
-        #region Link generation with Inline constraints
+                // Attribute Route, id:int? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductById",
+                    "id",
+                    "sdsd", "" };
+
+                // Attribute Route, name:alpha constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByName",
+                    "name",
+                    "zxcv",
+                    "/products/GetProductByName/zxcv"
+                };
+
+                // Attribute Route, name:length(1,20)? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByCategoryName",
+                    "name",
+                    "sports",
+                    "/products/GetProductByCategoryName/sports"
+                };
+
+                // Attribute Route, name:length(1,20)? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByCategoryName",
+                    null,
+                    null,
+                    "/products/GetProductByCategoryName"
+                };
+
+                // Attribute Route, catId:int:range(10, 100) constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByCategoryId",
+                    "catId",
+                    "50",
+                    "/products/GetProductByCategoryId/50"
+                };
+
+                // Attribute Route, catId:int:range(10, 100) constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByCategoryId",
+                    "catId",
+                    "500",
+                    ""
+                };
+
+                // Attribute Route, name:length(1,20)? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByPrice",
+                    "price",
+                    "123.45",
+                    "/products/GetProductByPrice/123.45"
+                };
+
+                // Attribute Route, price:float? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByManufacturerId",
+                    "manId",
+                    "15",
+                    "/products/GetProductByManufacturerId/15"
+                };
+
+                // Attribute Route, manId:int:min(10)? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByManufacturerId",
+                    "manId",
+                    "qwer",
+                    ""
+                };
+
+                // Attribute Route, manId:int:min(10)? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByManufacturerId",
+                    "manId",
+                    "1",
+                    ""
+                };
+
+                // Attribute Route, manId:int:min(10)? constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByManufacturerId",
+                    "manId",
+                    "1",
+                    ""
+                };
+
+                // Attribute Route, dateTime:datetime constraint
+                yield return new object[] {
+                    "InlineConstraints_Products",
+                    "GetProductByManufacturingDate",
+                    "dateTime",
+                    "2014-10-11T13:45:30",
+                    "/products/GetProductByManufacturingDate/2014-10-11T13%3a45%3a30"
+                };
+
+                // Conventional Route, id:guid? constraint
+                yield return new object[] {
+                    "InlineConstraints_Store",
+                    "GetStoreById",
+                    "id",
+                    "691cf17a-791b-4af8-99fd-e739e168170f",
+                    "/store/GetStoreById/691cf17a-791b-4af8-99fd-e739e168170f"
+                };
+            }
+        }
+
         [Theory]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductById&id=5", "/products/GetProductById/5")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductById&id=sdsd", "")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByName&name=zxcv",
-            "/products/GetProductByName/zxcv")]        
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByCategoryName&name=sports",
-            "/products/GetProductByCategoryName/sports")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByCategoryName",
-            "/products/GetProductByCategoryName")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByCategoryId&catId=50",
-            "/products/GetProductByCategoryId/50")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByCategoryId&catId=500", "")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByPrice&price=123.45",
-            "/products/GetProductByPrice/123.45")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByManufacturerId&manId=15",
-            "/products/GetProductByManufacturerId/15")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByManufacturerId&manId=qwer", "")]
-        [InlineData("newController=InlineConstraints_Products&newAction=GetProductByManufacturerId&manId=1", "")]
-        [InlineData("newController=InlineConstraints_Store&newAction=GetStoreById&id=691cf17a-791b-4af8-99fd-e739e168170f", 
-            "/store/GetStoreById/691cf17a-791b-4af8-99fd-e739e168170f")]
-        public async Task GetGeneratedLink(string query, string expectedLink)
+        [MemberData(nameof(QueryParameters))]
+        public async Task GetGeneratedLink(string controller, string action, string parameterName, string parameterValue, string expectedLink)
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync
-                ("http://localhost/products/GetGeneratedLink?" + query);
+            string url;
 
-            //System.Diagnostics.Debugger.Launch();
-            //System.Diagnostics.Debugger.Break();
+            if (parameterName != null)
+            {
+                url = string.Format(
+                    "{0}newController={1}&newAction={2}&{3}={4}",
+                    "http://localhost/products/GetGeneratedLink?",
+                    controller,
+                    action,
+                    parameterName,
+                    parameterValue);
+            }
+            else
+            {
+                url = string.Format(
+                    "{0}newController={1}&newAction={2}",
+                    "http://localhost/products/GetGeneratedLink?",
+                    controller,
+                    action);
+            }
+
+            var response = await client.GetAsync(url);
 
             // Assert            
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedLink, body);
         }
-
-        #endregion
 
         private async Task<IDictionary<string, object>> GetResponseValues(HttpResponseMessage response)
         {
