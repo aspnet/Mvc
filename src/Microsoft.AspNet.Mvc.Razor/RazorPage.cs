@@ -544,8 +544,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Invokes <see cref="TextWriter.FlushAsync"/> on <see cref="Output"/> writing out any buffered
         /// content to the <see cref="HttpResponse.Body"/>.
         /// </summary>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous flush operation.</returns>
-        public Task FlushAsync()
+        /// <returns>A<see cref="Task{HtmlString}"/> that represents the asynchronous flush operation and on
+        /// completion returns a <see cref="HtmlString.Empty"/>.</returns>
+        public async Task<HtmlString> FlushAsync()
         {
             // If there are active writing scopes then we should throw. Cannot flush content that has the potential to
             // change.
@@ -562,7 +563,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(message);
             }
 
-            return Output.FlushAsync();
+            await Output.FlushAsync();
+            return HtmlString.Empty;
         }
 
         /// <inheritdoc />
