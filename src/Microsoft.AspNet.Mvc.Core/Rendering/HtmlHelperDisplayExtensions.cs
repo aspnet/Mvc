@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
         /// <para>
-        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
@@ -59,14 +59,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/>'s value. 
+        /// <paramref name="expression"/>'s value.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
         /// <para>
-        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
@@ -94,14 +94,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// <paramref name="expression"/>'s value. 
+        /// <paramref name="expression"/>'s value.
         /// </para>
         /// <para>
         /// Example <paramref name="expression"/>s include <c>string.Empty</c> which identifies the current model and
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
         /// <para>
-        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
@@ -140,7 +140,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
         /// <para>
-        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on 
+        /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
@@ -357,7 +357,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
-        /// current model. The template should be located under the <c>DisplayTemplates</c> folder.
+        /// current model.
         /// </para>
         /// <para>
         /// Custom templates are found under a <c>DisplayTemplates</c> folder. The folder name is case-sensitive on

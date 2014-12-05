@@ -611,7 +611,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         }
 
         [Fact]
-        public void RazorViewEngine_VerifyViewLocationFormat()
+        public void ViewLocationFormats_ContainsExpectedLocations()
         {
             // Arrange
             var viewEngine = CreateViewEngine();

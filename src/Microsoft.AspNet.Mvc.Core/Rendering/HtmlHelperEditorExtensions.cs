@@ -222,9 +222,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// <para>
-        /// Custom templates are found under a <c>EditorTemplates</c> folder. The folder name is case-sensitive on
-        /// case-sensitive file systems.
-        /// </para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
         /// elements for each property in the <paramref name="expression"/> result.
         /// </para>
