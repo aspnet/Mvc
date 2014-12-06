@@ -52,8 +52,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             Assert.Null(metadata.BinderModelName);
             Assert.Null(metadata.BinderMetadata);
-            Assert.Empty(metadata.BinderIncludeProperties);
-            Assert.Null(metadata.BinderExcludeProperties);
+            Assert.Null(metadata.PropertyBindingPredicateProvider);
+            Assert.Null(metadata.BinderType);
         }
 
         public static TheoryData<object, Func<ModelMetadata, string>> ExpectedAttributeDataStrings
@@ -397,6 +397,79 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             Assert.Null(metadata.EditFormatString);
+        }
+
+        [Fact]
+        public void Constructor_FindsBinderTypeProviders_Null()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelMetadataProvider();
+
+            var binderProviders = new[] { new TestBinderTypeProvider(), new TestBinderTypeProvider() };
+
+            // Act
+            var metadata = new CachedDataAnnotationsModelMetadata(
+                provider,
+                containerType: null,
+                modelType: typeof(object),
+                propertyName: null,
+                attributes: binderProviders);
+
+            // Assert
+            Assert.Null(metadata.BinderType);
+        }
+
+        [Fact]
+        public void Constructor_FindsBinderTypeProviders_Fallback()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelMetadataProvider();
+
+            var binderProviders = new[]
+            {
+                new TestBinderTypeProvider(),
+                new TestBinderTypeProvider() { BinderType = typeof(string) }
+            };
+
+            // Act
+            var metadata = new CachedDataAnnotationsModelMetadata(
+                provider,
+                containerType: null,
+                modelType: typeof(object),
+                propertyName: null,
+                attributes: binderProviders);
+
+            // Assert
+            Assert.Same(typeof(string), metadata.BinderType);
+        }
+
+        [Fact]
+        public void Constructor_FindsBinderTypeProviders_FirstAttributeHasPrecedence()
+        {
+            // Arrange
+            var provider = new DataAnnotationsModelMetadataProvider();
+
+            var binderProviders = new[]
+            {
+                new TestBinderTypeProvider() { BinderType = typeof(int) },
+                new TestBinderTypeProvider() { BinderType = typeof(string) }
+            };
+
+            // Act
+            var metadata = new CachedDataAnnotationsModelMetadata(
+                provider,
+                containerType: null,
+                modelType: typeof(object),
+                propertyName: null,
+                attributes: binderProviders);
+
+            // Assert
+            Assert.Same(typeof(int), metadata.BinderType);
+        }
+
+        private class TestBinderTypeProvider : IBinderTypeProviderMetadata
+        {
+            public Type BinderType { get; set; }
         }
 
         private class DataTypeWithCustomDisplayFormat : DataTypeAttribute

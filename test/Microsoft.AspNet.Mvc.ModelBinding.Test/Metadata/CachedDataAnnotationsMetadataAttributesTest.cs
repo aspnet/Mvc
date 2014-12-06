@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Null(cache.ScaffoldColumn);
             Assert.Null(cache.BinderMetadata);
             Assert.Null(cache.BinderModelNameProvider);
-            Assert.Empty(cache.PropertyBindingInfo);
+            Assert.Empty(cache.PropertyBindingPredicateProviders);
         }
 
         public static TheoryData<object, Func<CachedDataAnnotationsMetadataAttributes, object>>
@@ -78,17 +78,35 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void Constructor_FindsPropertyBindingInfo()
         {
             // Arrange
-            var propertyBindingInfos =
-                new[] { new TestPropertyBindingInfo(), new TestPropertyBindingInfo() };
+            var providers = new[] { new TestPredicateProvider(), new TestPredicateProvider() };
 
             // Act
-            var cache = new CachedDataAnnotationsMetadataAttributes(propertyBindingInfos);
-            var result = cache.PropertyBindingInfo.ToArray();
+            var cache = new CachedDataAnnotationsMetadataAttributes(providers);
+            var result = cache.PropertyBindingPredicateProviders.ToArray();
 
             // Assert
-            for (var index = 0; index < propertyBindingInfos.Length; index++)
+            Assert.Equal(providers.Length, result.Length);
+            for (var index = 0; index < providers.Length; index++)
             {
-                Assert.Same(propertyBindingInfos[index], result[index]);
+                Assert.Same(providers[index], result[index]);
+            }
+        }
+
+        [Fact]
+        public void Constructor_FindsBinderTypeProviders()
+        {
+            // Arrange
+            var providers = new[] { new TestBinderTypeProvider(), new TestBinderTypeProvider() };
+
+            // Act
+            var cache = new CachedDataAnnotationsMetadataAttributes(providers);
+            var result = cache.BinderTypeProviders.ToArray();
+
+            // Assert
+            Assert.Equal(providers.Length, result.Length);
+            for (var index = 0; index < providers.Length; index++)
+            {
+                Assert.Same(providers[index], result[index]);
             }
         }
 
@@ -122,6 +140,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             Assert.Same(displayFormat, result);
+        }
+
+        private class TestBinderTypeProvider : IBinderTypeProviderMetadata
+        {
+            public Type BinderType { get; set; }
+        }
+
+        private class TestPredicateProvider : IPropertyBindingPredicateProvider
+        {
+            public Func<ModelBindingContext, string, bool> PropertyFilter
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
     }
 }
