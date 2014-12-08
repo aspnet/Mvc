@@ -150,12 +150,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var assemblyName = typeof(Startup).GetTypeInfo().Assembly.GetName().ToString();
 #if ASPNET50
             var expected =
-@"Value set inside ASPNET50
-" + assemblyName;
+@"Value set inside ASPNET50 " + assemblyName;
 #elif ASPNETCORE50
             var expected =
-@"Value set inside ASPNETCORE50
-" + assemblyName;
+@"Value set inside ASPNETCORE50 " + assemblyName;
 #endif
 
             var server = TestServer.Create(_services, _app);

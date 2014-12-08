@@ -30,9 +30,9 @@ namespace Microsoft.AspNet.Mvc
         public virtual void BeforeCompile(IBeforeCompileContext context)
         {
             var applicationEnvironment = _appServices.GetRequiredService<IApplicationEnvironment>();
-            var compilationOptionsProvider = _appServices.GetRequiredService<ICompilationOptionsProvider>();
+            var compilerOptionsProvider = _appServices.GetRequiredService<ICompilerOptionsProvider>();
             var compilationSettings = RoslynCompilationService.GetCompilationSettings(applicationEnvironment,
-                                                                                      compilationOptionsProvider);
+                                                                                      compilerOptionsProvider);
 
             var setup = new RazorViewEngineOptionsSetup(applicationEnvironment);
             var sc = new ServiceCollection();
