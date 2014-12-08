@@ -13,8 +13,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         /// <inheritdoc />
         protected override Task<bool> BindAsync(
-            [NotNull]ModelBindingContext bindingContext, 
-            [NotNull]IHeaderBinderMetadata metadata)
+            [NotNull] ModelBindingContext bindingContext, 
+            [NotNull] IHeaderBinderMetadata metadata)
         {
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
 

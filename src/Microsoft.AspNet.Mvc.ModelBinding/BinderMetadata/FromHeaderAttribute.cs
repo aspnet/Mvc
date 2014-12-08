@@ -13,6 +13,7 @@ namespace Microsoft.AspNet.Mvc
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class FromHeaderAttribute : Attribute, IHeaderBinderMetadata, IModelNameProvider
     {
+        /// <inheritdoc />
         public string Name { get; set; }
     }
 }
