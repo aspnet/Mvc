@@ -12,6 +12,7 @@ using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
+using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -492,6 +493,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpContext.Setup(o => o.RequestServices).Returns(GetServiceProvider());
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOutputFormattersProvider)))
                        .Returns(new TestOutputFormatterProvider());
+            httpContext.Setup(o => o.ApplicationServices.GetService(typeof(ILoggerFactory)))
+                       .Returns(NullLoggerFactory.Instance);
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
         }
 

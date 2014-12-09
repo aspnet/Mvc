@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -29,6 +31,8 @@ namespace Microsoft.AspNet.Mvc
 
         public override async Task ExecuteResultAsync(ActionContext context)
         {
+            var logger = context.HttpContext.ApplicationServices.
+                         GetRequiredService<ILoggerFactory>().Create<ObjectResult>();
             var formatters = GetDefaultFormatters(context);
             var formatterContext = new OutputFormatterContext()
             {
@@ -40,9 +44,19 @@ namespace Microsoft.AspNet.Mvc
             var selectedFormatter = SelectFormatter(formatterContext, formatters);
             if (selectedFormatter == null)
             {
+                if (logger.IsEnabled(LogLevel.Error))
+                {
+                    logger.WriteError(new ObjectResultValues(this, context?.HttpContext, selectedFormatter));
+                }
+
                 // No formatter supports this.
                 context.HttpContext.Response.StatusCode = 406;
                 return;
+            }
+
+            if (logger.IsEnabled(LogLevel.Verbose))
+            {
+                logger.WriteVerbose(new ObjectResultValues(this, context.HttpContext, selectedFormatter));
             }
 
             await selectedFormatter.WriteAsync(formatterContext);

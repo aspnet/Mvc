@@ -5,11 +5,18 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Console;
 
 namespace FormatterWebSite
 {
     public class Startup
     {
+        public Startup(ILoggerFactory factory)
+        {
+            factory.AddConsole(LogLevel.Verbose);
+        }
+
         public void Configure(IApplicationBuilder app)
         {
             var configuration = app.GetTestConfiguration();
