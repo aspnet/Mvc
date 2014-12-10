@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Description;
 
-namespace ApiExplorer
+namespace ApiExplorerWebSite
 {
     /// <summary>
     /// An action filter that looks up and serializes Api Explorer data for the action.
@@ -68,7 +68,7 @@ namespace ApiExplorer
                 var responseData = new ApiExplorerResponseData()
                 {
                     FormatterType = response.Formatter.GetType().FullName,
-                    MediaType = response.MediaType.RawValue,
+                    MediaType = response.MediaType.MediaType + "/" + response.MediaType.MediaSubType,
                 };
 
                 data.SupportedResponseFormats.Add(responseData);
