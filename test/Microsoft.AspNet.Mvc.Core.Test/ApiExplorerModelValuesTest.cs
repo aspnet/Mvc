@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void ApiExplorerModelValues_IncludesAllProperties()
         {
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(ApiExplorerModel),
                 typeof(ApiExplorerModelValues));
         }

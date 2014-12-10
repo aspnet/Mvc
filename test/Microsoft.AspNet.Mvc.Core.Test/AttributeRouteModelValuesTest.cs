@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void AttributeRouteInfoValues_IncludesAllProperties()
         {
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(AttributeRouteInfo), 
                 typeof(AttributeRouteInfoValues));
         }

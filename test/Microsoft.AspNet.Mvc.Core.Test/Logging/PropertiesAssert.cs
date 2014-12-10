@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
-    public class PropertiesHelper
+    public static class PropertiesAssert
     {
         /// <summary>
         /// Given two types, compares their properties and asserts true if they have the same property names.
@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         /// <param name="shadow">The shadow type whose properties will be compared against the original.</param>
         /// <param name="exclude">Properties that exist in the original type but not the shadow.</param>
         /// <param name="include">Properties that are in the shadow type but not in the original.</param>
-        public static void AssertPropertiesAreTheSame(Type original, Type shadow, string[] exclude = null, string[] include = null)
+        public static void PropertiesAreTheSame(Type original, Type shadow, string[] exclude = null, string[] include = null)
         {
             var originalProperties = original.GetProperties().Where(p => !exclude?.Contains(p.Name) ?? true)
                 .Select(p => p.Name);

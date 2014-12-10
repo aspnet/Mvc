@@ -14,6 +14,7 @@ namespace Microsoft.AspNet.Mvc.Logging
     {
         public FilterValues(IFilter inner)
         {
+            FilterMetadataType = inner.GetType();
             if (inner is IFilterFactory)
             {
                 IsFactory = true;
@@ -25,12 +26,15 @@ namespace Microsoft.AspNet.Mvc.Logging
                 {
                     FilterType = ((TypeFilterAttribute)inner).ImplementationType;
                 }
-                if (FilterType != null)
-                {
-                    FilterInterfaces = FilterType.GetInterfaces().ToList();
-                }
             }
-            FilterMetadataType = inner.GetType();
+            if (FilterType != null)
+            {
+                FilterInterfaces = FilterType.GetInterfaces().ToList();
+            }
+            else
+            {
+                FilterInterfaces = FilterMetadataType.GetInterfaces().ToList();
+            }
         }
 
         /// <summary>
@@ -50,8 +54,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         public Type FilterType { get; }
 
         /// <summary>
-        /// A list of interfaces the <see cref="IFilter"/> implements if it is a <see cref="ServiceFilterAttribute"/>
-        /// or <see cref="TypeFilterAttribute"/>.
+        /// A list of interfaces the <see cref="IFilter"/> implements.
         /// </summary>
         public List<Type> FilterInterfaces { get; }
 

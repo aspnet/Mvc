@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void RouteDataActionConstraintValues_IncludesAllProperties()
         {
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(RouteDataActionConstraint), 
                 typeof(RouteDataActionConstraintValues));
         }

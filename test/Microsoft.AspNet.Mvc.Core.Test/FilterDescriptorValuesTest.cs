@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.Test.Logging
         public void FilterDescriptorValues_IncludesAllProperties()
         {
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(FilterDescriptor), 
                 typeof(FilterDescriptorValues));
         }

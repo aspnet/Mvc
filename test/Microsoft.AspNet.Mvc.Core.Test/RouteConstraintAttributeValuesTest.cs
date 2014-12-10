@@ -11,10 +11,10 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void RouteConstraintAttributeValues_IncludesAllProperties()
         {
             // Arrange
-            string[] exclude = { "TypeId" };
+            var exclude = new[] { "TypeId" };
 
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(RouteConstraintAttribute), 
                 typeof(RouteConstraintAttributeValues), 
                 exclude);

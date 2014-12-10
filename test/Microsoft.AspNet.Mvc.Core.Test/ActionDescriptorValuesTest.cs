@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             var include = new[] { "HttpMethods" };
 
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(ControllerActionDescriptor), 
                 typeof(ActionDescriptorValues),
                 include: include);

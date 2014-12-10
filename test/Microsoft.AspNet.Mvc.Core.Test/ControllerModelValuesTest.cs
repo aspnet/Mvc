@@ -12,10 +12,10 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void ControllerModelValues_IncludesAllProperties()
         {
             // Arrange
-            string[] exclude = { "Application" };
+            var exclude = new[] { "Application" };
 
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(ControllerModel), 
                 typeof(ControllerModelValues), 
                 exclude);

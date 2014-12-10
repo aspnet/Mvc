@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
-    public class AssemblyLoggingTest
+    public class DefaultActionDescriptorCollectionProviderLoggingTest
     {
         [Fact]
         public void SimpleController_AssemblyDiscovery()

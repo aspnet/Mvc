@@ -12,10 +12,10 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void AttributeRouteModelValues_IncludesAllProperties()
         {
             // Arrange
-            string[] exclude = { "Attribute" };
+            var exclude = new[] { "Attribute" };
 
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(AttributeRouteModel), 
                 typeof(AttributeRouteModelValues), 
                 exclude);

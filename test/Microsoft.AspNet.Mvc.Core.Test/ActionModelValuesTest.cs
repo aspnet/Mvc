@@ -12,10 +12,10 @@ namespace Microsoft.AspNet.Mvc.Logging
         public void ActionModelValues_IncludesAllProperties()
         {
             // Arrange
-            string[] exclude = { "Controller", "Attributes", "IsActionNameMatchRequired" };
+            var exclude = new[] { "Controller", "Attributes", "IsActionNameMatchRequired" };
 
             // Assert
-            PropertiesHelper.AssertPropertiesAreTheSame(
+            PropertiesAssert.PropertiesAreTheSame(
                 typeof(ActionModel), 
                 typeof(ActionModelValues), 
                 exclude);
