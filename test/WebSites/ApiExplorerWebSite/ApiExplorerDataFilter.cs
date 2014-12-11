@@ -68,7 +68,7 @@ namespace ApiExplorerWebSite
                 var responseData = new ApiExplorerResponseData()
                 {
                     FormatterType = response.Formatter.GetType().FullName,
-                    MediaType = response.MediaType.RawValue,
+                    MediaType = response.MediaType.MediaType + "/" + response.MediaType.MediaSubType,
                 };
 
                 data.SupportedResponseFormats.Add(responseData);
