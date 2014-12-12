@@ -15,6 +15,7 @@
         "FiltersWebSite": "1.0.0",
         "FormatterWebSite": "1.0.0",
         "InlineConstraintsWebSite": "1.0.0",
+        "LoggingWebSite": "1.0.0",
         "ModelBindingWebSite": "1.0.0",
         "MvcSample.Web": "1.0.0",
         "PrecompilationWebSite": "1.0.0",
