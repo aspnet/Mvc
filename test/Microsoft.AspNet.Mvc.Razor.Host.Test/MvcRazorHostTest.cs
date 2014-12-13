@@ -209,7 +209,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 generatedLocation: new MappingLocation(generatedLocation, contentLength));
         }
 
-        public class TestMvcRazorHost : MvcRazorHost
+        /// <summary>
+        /// Used when testing Tag Helpers, it disables the unique ID generation feature.
+        /// </summary>
+        private class TestMvcRazorHost : MvcRazorHost
         {
             public TestMvcRazorHost(IFileSystem fileSystem)
                 : base(fileSystem)
