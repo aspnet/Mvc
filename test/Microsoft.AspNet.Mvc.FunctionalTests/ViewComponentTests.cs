@@ -65,6 +65,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("10", body.Trim());
         }
 
+        [Fact]
+        public async Task ViewComponents_SupportsEnumerableModel()
+        {
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            // The invoked ViewComponent has a model which is Enumerable.
+            var body = await client.GetStringAsync("http://localhost/Home/ViewComponentWithEnumerableModel");
+
+            // Assert
+            Assert.Equal("<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>", body.Trim());
+        }
+
         [Theory]
         [InlineData("ViewComponentWebSite.Namespace1.SameName")]
         [InlineData("ViewComponentWebSite.Namespace2.SameName")]

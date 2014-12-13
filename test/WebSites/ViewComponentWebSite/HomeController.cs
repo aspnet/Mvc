@@ -21,5 +21,10 @@ namespace ViewComponentWebSite
         {
             return new ViewResult();
         }
+
+        public ViewResult ViewComponentWithEnumerableModel()
+        {
+            return new ViewResult();
+        }
     }
 }

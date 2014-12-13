@@ -29,7 +29,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "propertyName");
             }
 
-            var typeInfo = GetTypeInformation(containerType);
+            var typeInfo = GetTypeInformation(containerType, getPropertyInfo: true);
+
             PropertyInformation propertyInfo;
             if (!typeInfo.Properties.TryGetValue(propertyName, out propertyInfo))
             {
@@ -92,7 +93,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private IEnumerable<ModelMetadata> GetMetadataForPropertiesCore(object container, Type containerType)
         {
-            var typeInfo = GetTypeInformation(containerType);
+            var typeInfo = GetTypeInformation(containerType, getPropertyInfo: true);
+            
             foreach (var kvp in typeInfo.Properties)
             {
                 var propertyInfo = kvp.Value;
@@ -122,7 +124,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return metadata;
         }
 
-        private TypeInformation GetTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes = null)
+        private TypeInformation GetTypeInformation(
+            Type type,
+            bool getPropertyInfo = false,
+            IEnumerable<Attribute> associatedAttributes = null)
         {
             // This retrieval is implemented as a TryGetValue/TryAdd instead of a GetOrAdd
             // to avoid the performance cost of creating instance delegates
@@ -132,6 +137,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 typeInfo = CreateTypeInformation(type, associatedAttributes);
                 _typeInfoCache.TryAdd(type, typeInfo);
             }
+
+            if (getPropertyInfo && typeInfo.Properties == null)
+            {
+                var originalTypeInfoValue = typeInfo;
+                typeInfo.Properties = GetInformationOfProperties(type);
+                _typeInfoCache.TryUpdate(type, typeInfo, originalTypeInfoValue);
+            }
+
             return typeInfo;
         }
 
@@ -151,17 +164,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                     propertyName: null)
             };
 
-            var properties = new Dictionary<string, PropertyInformation>(StringComparer.Ordinal);
-            foreach (var propertyHelper in PropertyHelper.GetProperties(type))
-            {
-                // Avoid re-generating a property descriptor if one has already been generated for the property name
-                if (!properties.ContainsKey(propertyHelper.Name))
-                {
-                    properties.Add(propertyHelper.Name, CreatePropertyInformation(type, propertyHelper));
-                }
-            }
-
-            info.Properties = properties;
             return info;
         }
 
@@ -177,6 +179,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                     property.Name),
                 IsReadOnly = !property.CanWrite || property.SetMethod.IsPrivate
             };
+        }
+
+        // This is a safe race because it does not update any shared resource.
+        private Dictionary<string, PropertyInformation> GetInformationOfProperties(Type containerType)
+        {
+            var properties = new Dictionary<string, PropertyInformation>(StringComparer.Ordinal);
+            foreach (var propertyHelper in PropertyHelper.GetProperties(containerType))
+            {
+                // Avoid re-generating a property descriptor if one has already been generated for the property name
+                if (!properties.ContainsKey(propertyHelper.Name))
+                {
+                    properties.Add(propertyHelper.Name, CreatePropertyInformation(containerType, propertyHelper));
+                }
+            }
+
+            return properties;
         }
 
         private ParameterInformation CreateParameterInfo(
