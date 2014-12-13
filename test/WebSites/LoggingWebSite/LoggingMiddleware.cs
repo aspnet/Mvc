@@ -26,7 +26,8 @@ namespace LoggingWebSite
         public async Task Invoke(HttpContext context)
         {
             var requestId = Guid.NewGuid();
-            using (new LoggingContext(requestId)) {
+            using (new LoggingContext(requestId))
+            {
                 Stream stream = null;
                 try
                 {

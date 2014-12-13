@@ -53,7 +53,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 dynamic assembly = context.State;
                 Assert.NotNull(assembly);
-                Assert.Equal("LoggingWebSite, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", assembly.AssemblyName.ToString());
+                Assert.Equal(
+                    "LoggingWebSite, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", 
+                    assembly.AssemblyName.ToString());
             }
         }
 
@@ -68,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             foreach (var context in contexts)
             {
                 dynamic isController = context.State;
-                if (isController.Type.ToString().StartsWith(typeof(HomeController).ToString()))
+                if (string.Equals(typeof(HomeController).AssemblyQualifiedName, isController.Type.ToString()))
                 {
                     Assert.Equal(
                         ControllerStatus.IsController,
