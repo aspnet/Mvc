@@ -14,7 +14,7 @@ namespace LoggingWebSite
         {    
             var configuration = app.GetTestConfiguration();
 
-            app.UseLoggingMiddleware(new TestSink(), LogSelection.Startup);
+            app.UseLoggingMiddleware(new TestSink());
 
             // Set up application services
             app.UseServices(services =>

@@ -8,13 +8,13 @@ namespace LoggingWebSite
 {
     public static class LoggingMiddlewareExtensions
     {
-        public static IApplicationBuilder UseLoggingMiddleware(this IApplicationBuilder builder, TestSink sink, LogSelection logSelection)
+        public static IApplicationBuilder UseLoggingMiddleware(this IApplicationBuilder builder, TestSink sink)
         {
-            // add the elm provider to the factory here so the logger can start capturing logs immediately
+            // add the test logger provider to the factory here so the logger can start capturing logs
             var factory = builder.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddProvider(new TestLoggerProvider(sink));
 
-            return builder.UseMiddleware<LoggingMiddleware>(sink, logSelection);
+            return builder.UseMiddleware<LoggingMiddleware>(sink);
         }
     }
 }

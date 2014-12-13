@@ -16,38 +16,42 @@ namespace LoggingWebSite
     {
         private readonly TestSink _sink;
         private readonly RequestDelegate _next;
-        private readonly LogSelection _logSelection;
 
-        public LoggingMiddleware(RequestDelegate next, TestSink sink, LogSelection logSelection)
+        public LoggingMiddleware(RequestDelegate next, TestSink sink)
         {
             _next = next;
             _sink = sink;
-            _logSelection = logSelection;
         }
 
         public async Task Invoke(HttpContext context)
         {
             var requestId = Guid.NewGuid();
             using (new LoggingContext(requestId)) {
-                var stream = context.Response.Body;
-                context.Response.Body = new MemoryStream();
-                await _next(context);
-                var serializer = JsonSerializer.Create();
-                var writer = new JsonTextWriter(new StreamWriter(stream));
-                if (_logSelection == LogSelection.All)
+                Stream stream = null;
+                try
                 {
-                    serializer.Serialize(writer, _sink.Writes);
+                    stream = context.Response.Body;
+                    context.Response.Body = new MemoryStream();
+
+                    await _next(context);
+
+                    var serializer = JsonSerializer.Create();
+                    using (var writer = new JsonTextWriter(new StreamWriter(stream)))
+                    {
+                        if (string.Equals(context.Request.Headers["Startup"], "true"))
+                        {
+                            serializer.Serialize(writer, _sink.Writes.Where(w => w.RequestId == Guid.Empty));
+                        }
+                        else
+                        {
+                            serializer.Serialize(writer, _sink.Writes.Where(w => w.RequestId == requestId));
+                        }
+                    }
                 }
-                else if (_logSelection == LogSelection.Startup)
+                finally
                 {
-                    serializer.Serialize(writer, _sink.Writes.Where(w => w.RequestId == Guid.Empty));
+                    context.Response.Body = stream;
                 }
-                else
-                {
-                    serializer.Serialize(writer, _sink.Writes.Where(w => w.RequestId == requestId));
-                }
-                writer.Flush();
-                context.Response.Body = stream;
             }
         }
     }

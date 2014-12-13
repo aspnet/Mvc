@@ -23,17 +23,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         public static IServiceProvider CreateServices(
             string applicationWebSiteName, 
-            IServiceCollection newServices = null, 
-            ILoggerFactory loggerFactory = null)
+            IServiceCollection newServices = null)
         {
-            return CreateServices(applicationWebSiteName, WebsitesDirectoryPath, newServices, loggerFactory);
+            return CreateServices(applicationWebSiteName, WebsitesDirectoryPath, newServices);
         }
 
         public static IServiceProvider CreateServices(
             string applicationWebSiteName, 
             string applicationPath, 
-            IServiceCollection newServices = null, 
-            ILoggerFactory loggerFactory = null)
+            IServiceCollection newServices = null)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             var appEnvironment = originalProvider.GetRequiredService<IApplicationEnvironment>();
@@ -67,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             services.AddInstance(
                 typeof(ILoggerFactory),
-                loggerFactory ?? NullLoggerFactory.Instance);
+                new LoggerFactory());
 
             if (newServices != null)
             {
