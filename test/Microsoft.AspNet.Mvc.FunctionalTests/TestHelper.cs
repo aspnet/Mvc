@@ -21,12 +21,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // Path from Mvc\\test\\Microsoft.AspNet.Mvc.FunctionalTests
         private static readonly string WebsitesDirectoryPath = Path.Combine("..", "WebSites");
 
-        public static IServiceProvider CreateServices(string applicationWebSiteName, IServiceCollection newServices = null)
+        public static IServiceProvider CreateServices(
+            string applicationWebSiteName, 
+            IServiceCollection newServices = null)
         {
             return CreateServices(applicationWebSiteName, WebsitesDirectoryPath, newServices);
         }
 
-        public static IServiceProvider CreateServices(string applicationWebSiteName, string applicationPath, IServiceCollection newServices = null)
+        public static IServiceProvider CreateServices(
+            string applicationWebSiteName, 
+            string applicationPath, 
+            IServiceCollection newServices = null)
         {
             var originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
             var appEnvironment = originalProvider.GetRequiredService<IApplicationEnvironment>();
@@ -60,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             services.AddInstance(
                 typeof(ILoggerFactory),
-                NullLoggerFactory.Instance);
+                new LoggerFactory());
 
             if (newServices != null)
             {
