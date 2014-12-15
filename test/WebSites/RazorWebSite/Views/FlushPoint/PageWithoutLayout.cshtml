@@ -16,7 +16,7 @@ Secondary content
 {
     @Html.TextBox("Name1")
     @await FlushAsync()
-    System.Threading.Thread.Sleep(6000);
+    WaitService.WaitForClient();
     @Html.TextBox("Name2")
 }
 @{

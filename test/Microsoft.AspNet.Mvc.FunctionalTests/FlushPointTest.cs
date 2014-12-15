@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             waitService.WaitForServer();
 
             // Assert - 3
-            Assert.Equal(String.Join("", "Inside partial", ""), GetTrimmedString(stream));
+            Assert.Equal(string.Join("", "Inside partial", ""), GetTrimmedString(stream));
             waitService.WaitForServer();
                 
             // Assert - 4
