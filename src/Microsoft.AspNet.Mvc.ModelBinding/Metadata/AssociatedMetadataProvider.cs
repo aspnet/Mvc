@@ -29,7 +29,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "propertyName");
             }
 
-            var typeInfo = GetTypeInformation(containerType, getPropertyInfo: true);
+            var typeInfo = GetTypeInformation(containerType);
+            typeInfo.Properties = GetInformationOfProperties(containerType);
 
             PropertyInformation propertyInfo;
             if (!typeInfo.Properties.TryGetValue(propertyName, out propertyInfo))
@@ -93,8 +94,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private IEnumerable<ModelMetadata> GetMetadataForPropertiesCore(object container, Type containerType)
         {
-            var typeInfo = GetTypeInformation(containerType, getPropertyInfo: true);
-            
+            var typeInfo = GetTypeInformation(containerType);
+            typeInfo.Properties = GetInformationOfProperties(containerType);
+
             foreach (var kvp in typeInfo.Properties)
             {
                 var propertyInfo = kvp.Value;
@@ -126,7 +128,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private TypeInformation GetTypeInformation(
             Type type,
-            bool getPropertyInfo = false,
             IEnumerable<Attribute> associatedAttributes = null)
         {
             // This retrieval is implemented as a TryGetValue/TryAdd instead of a GetOrAdd
@@ -136,13 +137,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 typeInfo = CreateTypeInformation(type, associatedAttributes);
                 _typeInfoCache.TryAdd(type, typeInfo);
-            }
-
-            if (getPropertyInfo && typeInfo.Properties == null)
-            {
-                var originalTypeInfoValue = typeInfo;
-                typeInfo.Properties = GetInformationOfProperties(type);
-                _typeInfoCache.TryUpdate(type, typeInfo, originalTypeInfoValue);
             }
 
             return typeInfo;
