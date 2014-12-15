@@ -12,11 +12,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public abstract class AssociatedMetadataProvider<TModelMetadata> : IModelMetadataProvider
         where TModelMetadata : ModelMetadata
     {
-        private readonly ConcurrentDictionary<Type, TypeInformation> _typeInfoCache =
-                new ConcurrentDictionary<Type, TypeInformation>();
+        private readonly ConcurrentDictionary<Type, TModelMetadata> _typeInfoCache =
+                new ConcurrentDictionary<Type, TModelMetadata>();
 
-        private readonly ConcurrentDictionary<Type, TypePropertyInformation> _typePropertyInfoCache =
-                new ConcurrentDictionary<Type, TypePropertyInformation>();
+        private readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInformation>> _typePropertyInfoCache =
+                new ConcurrentDictionary<Type, Dictionary<string, PropertyInformation>>();
 
         public IEnumerable<ModelMetadata> GetMetadataForProperties(object container, [NotNull] Type containerType)
         {
@@ -29,17 +29,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             if (string.IsNullOrEmpty(propertyName))
             {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "propertyName");
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(propertyName));
             }
 
-            // This is a safe race because it does not update any shared resource.
             var typePropertyInfo = GetTypePropertyInformation(containerType);
 
             PropertyInformation propertyInfo;
-            if (!typePropertyInfo.Properties.TryGetValue(propertyName, out propertyInfo))
+            if (!typePropertyInfo.TryGetValue(propertyName, out propertyInfo))
             {
                 var message = Resources.FormatCommon_PropertyNotFound(containerType, propertyName);
-                throw new ArgumentException(message, "propertyName");
+                throw new ArgumentException(message, nameof(propertyName));
             }
 
             return CreatePropertyMetadata(modelAccessor, propertyInfo);
@@ -47,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public ModelMetadata GetMetadataForType(Func<object> modelAccessor, [NotNull] Type modelType)
         {
-            var prototype = GetTypeInformation(modelType).Prototype;
+            var prototype = GetTypeInformation(modelType);
             return CreateMetadataFromPrototype(prototype, modelAccessor);
         }
 
@@ -58,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             if (string.IsNullOrEmpty(parameterName))
             {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "parameterName");
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(parameterName));
             }
 
             var parameter = methodInfo.GetParameters().FirstOrDefault(
@@ -97,10 +96,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private IEnumerable<ModelMetadata> GetMetadataForPropertiesCore(object container, Type containerType)
         {
-            // This is a safe race because it does not update any shared resource.
             var typePropertyInfo = GetTypePropertyInformation(containerType);
 
-            foreach (var kvp in typePropertyInfo.Properties)
+            foreach (var kvp in typePropertyInfo)
             {
                 var propertyInfo = kvp.Value;
                 Func<object> modelAccessor = null;
@@ -129,11 +127,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return metadata;
         }
 
-        private TypeInformation GetTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes = null)
+        private TModelMetadata GetTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes = null)
         {
             // This retrieval is implemented as a TryGetValue/TryAdd instead of a GetOrAdd
             // to avoid the performance cost of creating instance delegates
-            TypeInformation typeInfo;
+            TModelMetadata typeInfo;
             if (!_typeInfoCache.TryGetValue(type, out typeInfo))
             {
                 typeInfo = CreateTypeInformation(type, associatedAttributes);
@@ -143,11 +141,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return typeInfo;
         }
 
-        private TypePropertyInformation GetTypePropertyInformation(Type type)
+        private Dictionary<string, PropertyInformation> GetTypePropertyInformation(Type type)
         {
             // This retrieval is implemented as a TryGetValue/TryAdd instead of a GetOrAdd
             // to avoid the performance cost of creating instance delegates
-            TypePropertyInformation typePropertyInfo;
+            Dictionary<string, PropertyInformation> typePropertyInfo;
             if (!_typePropertyInfoCache.TryGetValue(type, out typePropertyInfo))
             {
                 typePropertyInfo = GetInformationOfProperties(type);
@@ -157,23 +155,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return typePropertyInfo;
         }
 
-        private TypeInformation CreateTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes)
+        private TModelMetadata CreateTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes)
         {
-            var typeInfo = type.GetTypeInfo();
-            var attributes = typeInfo.GetCustomAttributes();
+            var attributes = type.GetTypeInfo().GetCustomAttributes();
             if (associatedAttributes != null)
             {
                 attributes = attributes.Concat(associatedAttributes);
             }
-            var info = new TypeInformation
-            {
-                Prototype = CreateMetadataPrototype(attributes,
-                                                    containerType: null,
-                                                    modelType: type,
-                                                    propertyName: null)
-            };
 
-            return info;
+            return CreateMetadataPrototype(attributes, containerType: null, modelType: type, propertyName: null);
         }
 
         private PropertyInformation CreatePropertyInformation(Type containerType, PropertyHelper helper)
@@ -190,7 +180,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
         }
 
-        private TypePropertyInformation GetInformationOfProperties(Type containerType)
+        private Dictionary<string, PropertyInformation> GetInformationOfProperties(Type containerType)
         {
             var properties = new Dictionary<string, PropertyInformation>(StringComparer.Ordinal);
             foreach (var propertyHelper in PropertyHelper.GetProperties(containerType))
@@ -202,7 +192,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            return new TypePropertyInformation { Properties = properties };
+            return properties;
         }
 
         private ParameterInformation CreateParameterInfo(
@@ -224,16 +214,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private sealed class ParameterInformation
         {
             public TModelMetadata Prototype { get; set; }
-        }
-
-        private sealed class TypeInformation
-        {
-            public TModelMetadata Prototype { get; set; }
-        }
-
-        private sealed class TypePropertyInformation
-        {
-            public Dictionary<string, PropertyInformation> Properties { get; set; }
         }
 
         private sealed class PropertyInformation

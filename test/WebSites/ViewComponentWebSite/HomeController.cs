@@ -9,6 +9,17 @@ namespace ViewComponentWebSite
 {
     public class HomeController : Controller
     {
+        private IEnumerable<SampleModel> ModelList { get; set; }
+
+        public HomeController()
+        {
+            ModelList = new List<SampleModel>()
+            {
+                new SampleModel { Prop1 = "Hello", Prop2 = "World" },
+                new SampleModel { Prop1 = "Sample", Prop2 = "Test" },
+            };
+        }
+
         public ViewResult ViewWithAsyncComponents()
         {
             return new ViewResult();
@@ -24,15 +35,50 @@ namespace ViewComponentWebSite
             return new ViewResult();
         }
 
-        public ViewResult ViewComponentWithEnumerableModel()
+        public ViewResult ViewComponentWithEnumerableModelUsingWhere(string linqQueryType)
         {
-            var modelList = new List<SampleModel>()
-            {
-                new SampleModel { Prop1 = "Hello", Prop2 = "World" },
-                new SampleModel { Prop1 = "Sample", Prop2 = "Test" },
-            };
-            
-            return View(modelList.Where(a => a != null));
+            ViewBag.LinqQueryType = linqQueryType;
+            return View("ViewComponentWithEnumerableModel", ModelList.Where(a => a != null));
+        }
+
+        public ViewResult ViewComponentWithEnumerableModelUsingSelect(string linqQueryType)
+        {
+            ViewBag.LinqQueryType = linqQueryType;
+            return View("ViewComponentWithEnumerableModel", ModelList.Select(a => a));
+        }
+        
+        public ViewResult ViewComponentWithEnumerableModelUsingTake(string linqQueryType)
+        {
+            ViewBag.LinqQueryType = linqQueryType;
+            return View("ViewComponentWithEnumerableModel", ModelList.Take(2));
+        }
+
+        public ViewResult ViewComponentWithEnumerableModelUsingTakeWhile(string linqQueryType)
+        {
+            ViewBag.LinqQueryType = linqQueryType;
+            return View("ViewComponentWithEnumerableModel", ModelList.TakeWhile(a => a != null));
+        }
+
+        public ViewResult ViewComponentWithEnumerableModelUsingUnion(string linqQueryType)
+        {
+            ViewBag.LinqQueryType = linqQueryType;
+            return View("ViewComponentWithEnumerableModel", ModelList.Union(ModelList));
+        }
+
+        public ViewResult ViewComponentWithEnumerableModelUsingSelectMany(string linqQueryType)
+        {
+            var selectManySampleModelList = new List<SelectManySampleModel>
+                    {
+                        new SelectManySampleModel {
+                            TestModel =
+                                new List<SampleModel> { new SampleModel { Prop1 = "Hello", Prop2 = "World" } } },
+                        new SelectManySampleModel {
+                            TestModel =
+                                new List<SampleModel> { new SampleModel{ Prop1 = linqQueryType, Prop2 = "Test" } } }
+                    };
+
+            ViewBag.LinqQueryType = linqQueryType;
+            return View("ViewComponentWithEnumerableModel", selectManySampleModelList.SelectMany(s => s.TestModel));
         }
     }
 }

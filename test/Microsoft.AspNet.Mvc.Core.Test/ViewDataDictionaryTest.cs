@@ -76,10 +76,10 @@ namespace Microsoft.AspNet.Mvc.Core
 
         // When SetModel is called, only GetMetadataForType from MetadataProvider is expected to be called.
         [Fact]
-        public void SetModelCallsGetMetadataForTypeOnlyOnce()
+        public void SetModelCallsGetMetadataForTypeExactlyOnce()
         {
             // Arrange
-            var metadataProvider = new Mock<IModelMetadataProvider>();
+            var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
             metadataProvider
                 .Setup(m => m.GetMetadataForType(It.IsAny<Func<object>>(), typeof(object)))
                 .Returns(new EmptyModelMetadataProvider().GetMetadataForType(null, typeof(object)))
@@ -99,13 +99,13 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.NotNull(viewData.ModelMetadata);
             // Verifies if the GetMetadataForType is called only once.
             metadataProvider.Verify(
-                m => m.GetMetadataForType(It.IsAny<Func<object>>(), typeof(object)), Times.Exactly(1));
+                m => m.GetMetadataForType(It.IsAny<Func<object>>(), typeof(object)), Times.Once());
             // Verifies if GetMetadataForProperties and GetMetadataForProperty is not called.
             metadataProvider.Verify(
-                m => m.GetMetadataForProperties(It.IsAny<Func<object>>(), typeof(object)), Times.Exactly(0));
+                m => m.GetMetadataForProperties(It.IsAny<Func<object>>(), typeof(object)), Times.Never());
             metadataProvider.Verify(
                 m => m.GetMetadataForProperty(
-                    It.IsAny<Func<object>>(), typeof(object), It.IsAny<string>()), Times.Exactly(0));
+                    It.IsAny<Func<object>>(), typeof(object), It.IsAny<string>()), Times.Never());
         }
 
         public static TheoryData<object> SetModelData

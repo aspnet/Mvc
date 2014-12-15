@@ -65,8 +65,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("10", body.Trim());
         }
 
-        [Fact]
-        public async Task ViewComponents_SupportsEnumerableModel()
+        [Theory]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingWhere?linqQueryType=", "Where")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingSelect?linqQueryType=", "Select")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingSelect?linqQueryType=", "SelectMany")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingTake?linqQueryType=", "Take")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingTakeWhile?linqQueryType=", "TakeWhile")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingUnion?linqQueryType=", "Union")]
+        public async Task ViewComponents_SupportsEnumerableModel(string url, string linqQueryType)
         {
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
@@ -75,11 +81,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // https://github.com/aspnet/Mvc/issues/1354
             // The invoked ViewComponent/View has a model which is an internal type implementing Enumerable.
             // For ex - TestEnumerableObject.Select(t => t) returns WhereSelectListIterator
-            var body = await client.GetStringAsync("http://localhost/Home/ViewComponentWithEnumerableModel");
+            var body = await client.GetStringAsync(url + linqQueryType);
 
             // Assert
             Assert.Equal("<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>"
-                + "<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>", body.Trim());
+                + "<p>Hello</p><p>World</p><p>" + linqQueryType + "</p><p>Test</p>", body.Trim());
         }
 
         [Theory]
