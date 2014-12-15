@@ -72,11 +72,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act
-            // The invoked ViewComponent has a model which is Enumerable.
+            // https://github.com/aspnet/Mvc/issues/1354
+            // The invoked ViewComponent/View has a model which is an internal type implementing Enumerable.
+            // For ex - TestEnumerableObject.Select(t => t) returns WhereSelectListIterator
             var body = await client.GetStringAsync("http://localhost/Home/ViewComponentWithEnumerableModel");
 
             // Assert
-            Assert.Equal("<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>", body.Trim());
+            Assert.Equal("<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>"
+                + "<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>", body.Trim());
         }
 
         [Theory]

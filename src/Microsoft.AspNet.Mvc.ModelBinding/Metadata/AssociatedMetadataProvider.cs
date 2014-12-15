@@ -15,6 +15,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private readonly ConcurrentDictionary<Type, TypeInformation> _typeInfoCache =
                 new ConcurrentDictionary<Type, TypeInformation>();
 
+        private readonly ConcurrentDictionary<Type, TypePropertyInformation> _typePropertyInfoCache =
+                new ConcurrentDictionary<Type, TypePropertyInformation>();
+
         public IEnumerable<ModelMetadata> GetMetadataForProperties(object container, [NotNull] Type containerType)
         {
             return GetMetadataForPropertiesCore(container, containerType);
@@ -29,11 +32,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "propertyName");
             }
 
-            var typeInfo = GetTypeInformation(containerType);
-            typeInfo.Properties = GetInformationOfProperties(containerType);
+            // This is a safe race because it does not update any shared resource.
+            var typePropertyInfo = GetTypePropertyInformation(containerType);
 
             PropertyInformation propertyInfo;
-            if (!typeInfo.Properties.TryGetValue(propertyName, out propertyInfo))
+            if (!typePropertyInfo.Properties.TryGetValue(propertyName, out propertyInfo))
             {
                 var message = Resources.FormatCommon_PropertyNotFound(containerType, propertyName);
                 throw new ArgumentException(message, "propertyName");
@@ -94,10 +97,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private IEnumerable<ModelMetadata> GetMetadataForPropertiesCore(object container, Type containerType)
         {
-            var typeInfo = GetTypeInformation(containerType);
-            typeInfo.Properties = GetInformationOfProperties(containerType);
+            // This is a safe race because it does not update any shared resource.
+            var typePropertyInfo = GetTypePropertyInformation(containerType);
 
-            foreach (var kvp in typeInfo.Properties)
+            foreach (var kvp in typePropertyInfo.Properties)
             {
                 var propertyInfo = kvp.Value;
                 Func<object> modelAccessor = null;
@@ -126,9 +129,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return metadata;
         }
 
-        private TypeInformation GetTypeInformation(
-            Type type,
-            IEnumerable<Attribute> associatedAttributes = null)
+        private TypeInformation GetTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes = null)
         {
             // This retrieval is implemented as a TryGetValue/TryAdd instead of a GetOrAdd
             // to avoid the performance cost of creating instance delegates
@@ -140,6 +141,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return typeInfo;
+        }
+
+        private TypePropertyInformation GetTypePropertyInformation(Type type)
+        {
+            // This retrieval is implemented as a TryGetValue/TryAdd instead of a GetOrAdd
+            // to avoid the performance cost of creating instance delegates
+            TypePropertyInformation typePropertyInfo;
+            if (!_typePropertyInfoCache.TryGetValue(type, out typePropertyInfo))
+            {
+                typePropertyInfo = GetInformationOfProperties(type);
+                _typePropertyInfoCache.TryAdd(type, typePropertyInfo);
+            }
+
+            return typePropertyInfo;
         }
 
         private TypeInformation CreateTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes)
@@ -175,8 +190,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
         }
 
-        // This is a safe race because it does not update any shared resource.
-        private Dictionary<string, PropertyInformation> GetInformationOfProperties(Type containerType)
+        private TypePropertyInformation GetInformationOfProperties(Type containerType)
         {
             var properties = new Dictionary<string, PropertyInformation>(StringComparer.Ordinal);
             foreach (var propertyHelper in PropertyHelper.GetProperties(containerType))
@@ -188,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            return properties;
+            return new TypePropertyInformation { Properties = properties };
         }
 
         private ParameterInformation CreateParameterInfo(
@@ -215,6 +229,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private sealed class TypeInformation
         {
             public TModelMetadata Prototype { get; set; }
+        }
+
+        private sealed class TypePropertyInformation
+        {
             public Dictionary<string, PropertyInformation> Properties { get; set; }
         }
 
