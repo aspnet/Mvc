@@ -148,7 +148,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Dictionary<string, PropertyInformation> typePropertyInfo;
             if (!_typePropertyInfoCache.TryGetValue(type, out typePropertyInfo))
             {
-                typePropertyInfo = GetInformationOfProperties(type);
+                typePropertyInfo = GetPropertiesLookup(type);
                 _typePropertyInfoCache.TryAdd(type, typePropertyInfo);
             }
 
@@ -180,7 +180,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
         }
 
-        private Dictionary<string, PropertyInformation> GetInformationOfProperties(Type containerType)
+        private Dictionary<string, PropertyInformation> GetPropertiesLookup(Type containerType)
         {
             var properties = new Dictionary<string, PropertyInformation>(StringComparer.Ordinal);
             foreach (var propertyHelper in PropertyHelper.GetProperties(containerType))
