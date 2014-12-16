@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Microsoft.AspNet.FileSystems;
+using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Expiration.Interfaces;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -13,6 +15,9 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly Dictionary<string, IFileInfo> _lookup =
             new Dictionary<string, IFileInfo>(StringComparer.Ordinal);
+
+        private readonly Dictionary<string, CancellationTokenSource> _triggerLookup =
+            new Dictionary<string, CancellationTokenSource>(StringComparer.Ordinal);
 
         public IDirectoryContents GetDirectoryContents(string subpath)
         {
@@ -56,7 +61,24 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public IExpirationTrigger Watch(string filter)
         {
-            throw new NotImplementedException();
+            var tokenSource = GetTriggerTokenSource(filter);
+            return new CancellationTokenTrigger(tokenSource.Token);
+        }
+
+        public CancellationTokenSource GetTriggerTokenSource(string filter)
+        {
+            CancellationTokenSource tokenSource;
+            if (!_triggerLookup.TryGetValue(filter, out tokenSource))
+            {
+                tokenSource = new CancellationTokenSource();
+                tokenSource.Token.Register(() =>
+                {
+                    _triggerLookup.Remove(filter);
+                });
+                _triggerLookup[filter] = tokenSource;
+            }
+
+            return tokenSource;
         }
     }
 }

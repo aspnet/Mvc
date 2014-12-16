@@ -3,9 +3,8 @@
 
 using System;
 using Microsoft.AspNet.FileSystems;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -17,19 +16,19 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly ITypeActivator _activator;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IRazorFileSystemCache _fileSystemCache;
         private readonly ICompilerCache _compilerCache;
+        private readonly IFileSystem _fileSystem;
         private IRazorCompilationService _razorcompilationService;
 
         public VirtualPathRazorPageFactory(ITypeActivator typeActivator,
                                            IServiceProvider serviceProvider,
                                            ICompilerCache compilerCache,
-                                           IRazorFileSystemCache fileSystemCache)
+                                           IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _activator = typeActivator;
             _serviceProvider = serviceProvider;
             _compilerCache = compilerCache;
-            _fileSystemCache = fileSystemCache;
+            _fileSystem = optionsAccessor.Options.FileSystem;
         }
 
         private IRazorCompilationService RazorCompilationService
@@ -57,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 relativePath = relativePath.Substring(1);
             }
 
-            var fileInfo = _fileSystemCache.GetFileInfo(relativePath);
+            var fileInfo = _fileSystem.GetFileInfo(relativePath);
 
             if (fileInfo.Exists)
             {
@@ -65,7 +64,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 var result = _compilerCache.GetOrAdd(
                     relativeFileInfo,
-                    RazorCompilationService.Compile);
+                    () => RazorCompilationService.Compile(relativeFileInfo));
 
                 var page = (IRazorPage)_activator.CreateInstance(_serviceProvider, result.CompiledType);
                 page.Path = relativePath;
