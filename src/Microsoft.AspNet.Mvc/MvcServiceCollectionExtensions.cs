@@ -23,10 +23,12 @@ namespace Microsoft.Framework.DependencyInjection
             services.AddDataProtection(configuration);
             services.AddRouting(configuration);
             services.AddScopedInstance(configuration);
+            services.AddAuthorization(configuration, options => options.AddPolicy("AnyAuthenticated", new DefaultMvcAuthorizationPolicy()));
             services.Configure<RouteOptions>(routeOptions =>
                                                     routeOptions.ConstraintMap
                                                          .Add("exists",
                                                               typeof(KnownRouteValueConstraint)));
+
         }
     }
 }
