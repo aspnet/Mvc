@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -20,10 +19,10 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var service = Mock.Of<ITestService>();
             var validationProvider = Mock.Of<IModelValidatorProvider>();
             var type = typeof(TestModelValidationProvider);
-            var typeActivator = new TypeActivator();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
+            var optionActivator = new DefaultOptionActivator<IModelValidatorProvider>(serviceProvider.Object);
             var options = new MvcOptions();
             options.ModelValidatorProviders.Add(type);
             options.ModelValidatorProviders.Add(validationProvider);
@@ -31,8 +30,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             accessor.SetupGet(a => a.Options)
                     .Returns(options);
             var provider = new DefaultModelValidatorProviderProvider(accessor.Object,
-                                                                     typeActivator,
-                                                                     serviceProvider.Object);
+                                                                     optionActivator);
 
             // Act
             var result = provider.ModelValidatorProviders;

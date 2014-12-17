@@ -15,17 +15,14 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
     public abstract class OptionDescriptorBasedProvider<TOption>
     {
         private readonly IEnumerable<OptionDescriptor<TOption>> _optionDescriptors;
-        private readonly ITypeActivator _typeActivator;
-        private readonly IServiceProvider _serviceProvider;
+        private IOptionActivator<TOption> _optionActivator;
 
         public OptionDescriptorBasedProvider(
             [NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
-            [NotNull] ITypeActivator typeActivator,
-            [NotNull] IServiceProvider serviceProvider)
+            [NotNull] IOptionActivator<TOption> optionActivator)
         {
             _optionDescriptors = optionDescriptors;
-            _typeActivator = typeActivator;
-            _serviceProvider = serviceProvider;
+            _optionActivator = optionActivator;
         }
 
         /// <summary>
@@ -41,8 +38,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
                     var instance = descriptor.Instance;
                     if (instance == null)
                     {
-                        instance = (TOption)_typeActivator.CreateInstance(_serviceProvider,
-                                                                          descriptor.OptionType);
+                        instance = _optionActivator.CreateInstance(descriptor.OptionType);
                     }
 
                     result.Add(instance);

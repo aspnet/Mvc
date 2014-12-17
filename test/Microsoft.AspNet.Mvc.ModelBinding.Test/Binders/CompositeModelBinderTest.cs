@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -421,15 +420,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         private static CompositeModelBinder CreateBinderWithDefaults()
         {
             var serviceProvider = Mock.Of<IServiceProvider>();
-            var typeActivator = new Mock<ITypeActivator>();
-            typeActivator
-                .Setup(t => t.CreateInstance(serviceProvider, It.IsAny<Type>(), It.IsAny<object[]>()))
-                .Returns((IServiceProvider sp, Type t, object[] args) => Activator.CreateInstance(t));
+            var modelBinderActivator = new Mock<IModelBinderActivator>();
+            modelBinderActivator
+                .Setup(t => t.CreateInstance(It.IsAny<Type>()))
+                .Returns((Type t) => Activator.CreateInstance(t));
             var binders = new IModelBinder[]
             {
                 new TypeMatchModelBinder(),
                 new ByteArrayModelBinder(),
-                new GenericModelBinder(serviceProvider, typeActivator.Object),
+                new GenericModelBinder(serviceProvider, modelBinderActivator.Object),
                 new ComplexModelDtoModelBinder(),
                 new TypeConverterModelBinder(),
                 new MutableObjectModelBinder()

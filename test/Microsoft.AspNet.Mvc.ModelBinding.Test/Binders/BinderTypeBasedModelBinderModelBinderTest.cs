@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
-using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -20,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var bindingContext = GetBindingContext(typeof(Person));
 
-            var binder = new BinderTypeBasedModelBinder(Mock.Of<ITypeActivator>());
+            var binder = new BinderTypeBasedModelBinder(Mock.Of<IModelBinderActivator>());
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
@@ -38,12 +37,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var innerModelBinder = new FalseModelBinder();
 
-            var mockITypeActivator = new Mock<ITypeActivator>();
-            mockITypeActivator
-                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(FalseModelBinder)))
+            var mockIModelBinderActivator = new Mock<IModelBinderActivator>();
+            mockIModelBinderActivator
+                .Setup(o => o.CreateInstance(typeof(FalseModelBinder)))
                 .Returns(innerModelBinder);
-
-            var binder = new BinderTypeBasedModelBinder(mockITypeActivator.Object);
+            var binder = new BinderTypeBasedModelBinder(mockIModelBinderActivator.Object);
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
@@ -62,12 +60,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var model = new Person();
             var innerModelBinder = new TrueModelBinder(model);
 
-            var mockITypeActivator = new Mock<ITypeActivator>();
-            mockITypeActivator
-                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(TrueModelBinder)))
+            var mockIModelBinderActivator = new Mock<IModelBinderActivator>();
+            mockIModelBinderActivator
+                .Setup(o => o.CreateInstance(typeof(TrueModelBinder)))
                 .Returns(innerModelBinder);
 
-            var binder = new BinderTypeBasedModelBinder(mockITypeActivator.Object);
+            var binder = new BinderTypeBasedModelBinder(mockIModelBinderActivator.Object);
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
@@ -89,12 +87,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var provider = new ModelBinderProvider(innerModelBinder);
 
-            var mockITypeActivator = new Mock<ITypeActivator>();
-            mockITypeActivator
-                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(ModelBinderProvider)))
+            var mockIModelBinderActivator = new Mock<IModelBinderActivator>();
+            mockIModelBinderActivator
+                .Setup(o => o.CreateInstance(typeof(ModelBinderProvider)))
                 .Returns(provider);
 
-            var binder = new BinderTypeBasedModelBinder(mockITypeActivator.Object);
+            var binder = new BinderTypeBasedModelBinder(mockIModelBinderActivator.Object);
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
@@ -110,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var bindingContext = GetBindingContext(typeof(Person));
             bindingContext.ModelMetadata.BinderType = typeof(string);
-            var binder = new BinderTypeBasedModelBinder(Mock.Of<ITypeActivator>());
+            var binder = new BinderTypeBasedModelBinder(Mock.Of<IModelBinderActivator>());
 
             var expected = "The type 'System.String' must implement either " +
                 "'Microsoft.AspNet.Mvc.ModelBinding.IModelBinder' or " +

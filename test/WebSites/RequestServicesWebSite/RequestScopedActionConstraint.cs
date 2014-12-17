@@ -19,8 +19,7 @@ namespace RequestServicesWebSite
 
         public IActionConstraint CreateInstance(IServiceProvider services)
         {
-            var activator = services.GetService<ITypeActivator>();
-            return activator.CreateInstance<Constraint>(services, _requestId);
+            return ActivatorUtilities.CreateInstance<Constraint>(services, _requestId);
         }
 
         private class Constraint : IActionConstraint

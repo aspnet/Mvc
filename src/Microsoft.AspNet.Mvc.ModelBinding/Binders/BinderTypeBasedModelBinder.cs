@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -14,15 +13,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class BinderTypeBasedModelBinder : IModelBinder
     {
-        private readonly ITypeActivator _typeActivator;
-        
+        private readonly IModelBinderActivator _binderActivator;
+
         /// <summary>
         /// Creates a new instance of <see cref="BinderTypeBasedModelBinder"/>.
         /// </summary>
-        /// <param name="typeActivator">The <see cref="ITypeActivator"/>.</param>
-        public BinderTypeBasedModelBinder([NotNull] ITypeActivator typeActivator)
+        /// <param name="binderActivator">The <see cref="IModelBinderActivator"/>.</param>
+        public BinderTypeBasedModelBinder([NotNull] IModelBinderActivator binderActivator)
         {
-            _typeActivator = typeActivator;
+            _binderActivator = binderActivator;
         }
 
         public async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
@@ -35,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
-            var instance = _typeActivator.CreateInstance(requestServices, bindingContext.ModelMetadata.BinderType);
+            var instance = _binderActivator.CreateInstance(bindingContext.ModelMetadata.BinderType);
 
             var modelBinder = instance as IModelBinder;
             if (modelBinder == null)

@@ -75,15 +75,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 HttpContext = new DefaultHttpContext(),
             };
 
-            var activator = new Mock<ITypeActivator>(MockBehavior.Strict);
+            var activator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
             activator
-                .Setup(a => a.CreateInstance(It.IsAny<IServiceProvider>(), typeof(TestProvider), It.IsAny<object[]>()))
+                .Setup(a => a.CreateInstance(typeof(TestProvider)))
                 .Returns(new TestProvider())
                 .Verifiable();
 
             var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             services
-                .Setup(s => s.GetService(typeof(ITypeActivator)))
+                .Setup(s => s.GetService(typeof(IModelBinderActivator)))
                 .Returns(activator.Object);
 
             context.OperationBindingContext.HttpContext.RequestServices = services.Object;
@@ -109,15 +109,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 HttpContext = new DefaultHttpContext(),
             };
 
-            var activator = new Mock<ITypeActivator>(MockBehavior.Strict);
+            var activator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
             activator
-                .Setup(a => a.CreateInstance(It.IsAny<IServiceProvider>(), typeof(TestProvider), It.IsAny<object[]>()))
+                .Setup(a => a.CreateInstance(typeof(TestProvider)))
                 .Returns(new TestProvider())
                 .Verifiable();
 
             var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             services
-                .Setup(s => s.GetService(typeof(ITypeActivator)))
+                .Setup(s => s.GetService(typeof(IModelBinderActivator)))
                 .Returns(activator.Object);
 
             context.OperationBindingContext.HttpContext.RequestServices = services.Object;
@@ -131,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             activator
                 .Verify(
-                    a => a.CreateInstance(It.IsAny<IServiceProvider>(), typeof(TestProvider), It.IsAny<object[]>()),
+                    a => a.CreateInstance(typeof(TestProvider)),
                     Times.Once());
         }
 #endif

@@ -14,15 +14,13 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         // Name of the "public TModel Model" property on RazorPage<TModel>
         private const string ModelPropertyName = "Model";
-        private readonly ITypeActivator _typeActivator;
         private readonly ConcurrentDictionary<Type, PageActivationInfo> _activationInfo;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorPageActivator"/> class.
         /// </summary>
-        public RazorPageActivator(ITypeActivator typeActivator)
+        public RazorPageActivator()
         {
-            _typeActivator = typeActivator;
             _activationInfo = new ConcurrentDictionary<Type, PageActivationInfo>();
         }
 
@@ -48,16 +46,16 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (context.ViewData == null)
             {
                 // Create ViewDataDictionary<TModel>(IModelMetadataProvider, ModelStateDictionary).
-                return (ViewDataDictionary)_typeActivator.CreateInstance(context.HttpContext.RequestServices,
-                                                                         activationInfo.ViewDataDictionaryType,
-                                                                         context.ModelState);
+                return (ViewDataDictionary)ActivatorUtilities.CreateInstance(context.HttpContext.RequestServices,
+                                                                             activationInfo.ViewDataDictionaryType,
+                                                                             context.ModelState);
             }
             else if (context.ViewData.GetType() != activationInfo.ViewDataDictionaryType)
             {
                 // Create ViewDataDictionary<TModel>(ViewDataDictionary).
-                return (ViewDataDictionary)_typeActivator.CreateInstance(context.HttpContext.RequestServices,
-                                                                         activationInfo.ViewDataDictionaryType,
-                                                                         context.ViewData);
+                return (ViewDataDictionary)ActivatorUtilities.CreateInstance(context.HttpContext.RequestServices,
+                                                                             activationInfo.ViewDataDictionaryType,
+                                                                             context.ViewData);
             }
 
             return context.ViewData;

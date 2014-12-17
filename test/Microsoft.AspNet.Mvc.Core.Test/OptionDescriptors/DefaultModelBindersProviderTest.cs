@@ -25,12 +25,12 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor.SetupGet(o => o.Options)
                            .Returns(options);
-            var activator = new TypeActivator();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
+            var optionActivator = new DefaultOptionActivator<IModelBinder>(serviceProvider.Object);
 
-            var provider = new DefaultModelBindersProvider(optionsAccessor.Object, activator, serviceProvider.Object);
+            var provider = new DefaultModelBindersProvider(optionsAccessor.Object, optionActivator);
 
             // Act
             var binders = provider.ModelBinders;

@@ -7,19 +7,18 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
-using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class GenericModelBinder : IModelBinder
     {
-        private readonly ITypeActivator _activator;
+        private readonly IModelBinderActivator _modelBinderActivator;
         private readonly IServiceProvider _serviceProvider;
 
-        public GenericModelBinder(IServiceProvider serviceProvider, ITypeActivator activator)
+        public GenericModelBinder(IServiceProvider serviceProvider, IModelBinderActivator modelBinderActivator)
         {
             _serviceProvider = serviceProvider;
-            _activator = activator;
+            _modelBinderActivator = modelBinderActivator;
         }
 
         public async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
@@ -27,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binderType = ResolveBinderType(bindingContext.ModelType);
             if (binderType != null)
             {
-                var binder = (IModelBinder)_activator.CreateInstance(_serviceProvider, binderType);
+                var binder = (IModelBinder)_modelBinderActivator.CreateInstance(binderType);
                 await binder.BindModelAsync(bindingContext);
 
                 // Was able to resolve a binder type, hence we should tell the model binding system to return

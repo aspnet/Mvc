@@ -9,16 +9,16 @@ namespace Microsoft.AspNet.Mvc
     public class DefaultViewComponentInvokerProvider : IViewComponentInvokerProvider
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly ITypeActivator _typeActivator;
+        private readonly IViewComponentFactory _viewComponentFactory;
         private readonly IViewComponentActivator _viewComponentActivator;
 
         public DefaultViewComponentInvokerProvider(
             IServiceProvider serviceProvider,
-            ITypeActivator typeActivator,
+            IViewComponentFactory viewComponentFactory,
             IViewComponentActivator viewComponentActivator)
         {
             _serviceProvider = serviceProvider;
-            _typeActivator = typeActivator;
+            _viewComponentFactory = viewComponentFactory;
             _viewComponentActivator = viewComponentActivator;
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc
         {
             context.Result = new DefaultViewComponentInvoker(
                     _serviceProvider,
-                    _typeActivator,
+                    _viewComponentFactory,
                     _viewComponentActivator,
                     context.ComponentType,
                     context.Arguments);

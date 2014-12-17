@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
@@ -25,18 +24,8 @@ namespace Microsoft.AspNet.Mvc
 
         public IFilter CreateInstance([NotNull] IServiceProvider serviceProvider)
         {
-            var activator = serviceProvider.GetRequiredService<ITypeActivator>();
-            var obj = activator.CreateInstance(serviceProvider, ImplementationType, Arguments ?? new object[0]);
-
-            var filter = obj as IFilter;
-            if (filter == null)
-            {
-                throw new InvalidOperationException(Resources.FormatFilterFactoryAttribute_TypeMustImplementIFilter(
-                    typeof(TypeFilterAttribute).Name,
-                    typeof(IFilter).Name));
-            }
-
-            return filter;
+            var filterActivator = serviceProvider.GetRequiredService<IFilterActivator>();
+            return filterActivator.CreateInstance(ImplementationType);
         }
     }
 }

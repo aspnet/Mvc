@@ -17,14 +17,12 @@ namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
         /// Initializes a new instance of the <see cref="DefaultViewLocationExpanderProvider"/> class.
         /// </summary>
         /// <param name="options">An accessor to the <see cref="MvcOptions"/> configured for this application.</param>
-        /// <param name="typeActivator">An <see cref="ITypeActivator"/> instance used to instantiate types.</param>
-        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
+        /// <param name="optionActivator">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public DefaultViewLocationExpanderProvider(
             IOptions<RazorViewEngineOptions> optionsAccessor,
-            ITypeActivator typeActivator,
-            IServiceProvider serviceProvider)
-            : base(optionsAccessor.Options.ViewLocationExpanders, typeActivator, serviceProvider)
+            IOptionActivator<IViewLocationExpander> optionActivator)
+            : base(optionsAccessor.Options.ViewLocationExpanders, optionActivator)
         {
         }
 
