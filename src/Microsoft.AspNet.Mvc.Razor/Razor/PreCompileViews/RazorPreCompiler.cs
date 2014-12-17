@@ -131,15 +131,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         context.CSharpCompilation = context.CSharpCompilation.AddSyntaxTrees(syntaxTree);
 
-                        var hash = RazorFileHash.GetHash(fileInfo.FileInfo);
-
-                        return new RazorFileInfo()
+                        return new RazorFileInfo
                         {
                             FullTypeName = fullTypeName,
-                            RelativePath = fileInfo.RelativePath,
-                            LastModified = fileInfo.FileInfo.LastModified,
-                            Length = fileInfo.FileInfo.Length,
-                            Hash = hash,
+                            RelativePath = fileInfo.RelativePath
                         };
                     }
                 }

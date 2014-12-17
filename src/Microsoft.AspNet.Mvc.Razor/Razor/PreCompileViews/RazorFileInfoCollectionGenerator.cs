@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         protected CSharpParseOptions Options { get; private set; }
 
         public RazorFileInfoCollectionGenerator([NotNull] IReadOnlyList<RazorFileInfo> fileInfos,
-                                                 [NotNull] CSharpParseOptions options)
+                                                [NotNull] CSharpParseOptions options)
         {
             FileInfos = fileInfos;
             Options = options;
@@ -46,12 +47,10 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected virtual string GenerateFile([NotNull] RazorFileInfo fileInfo)
         {
-            return string.Format(FileFormat,
-                                 fileInfo.LastModified.ToFileTimeUtc(),
-                                 fileInfo.Length,
+            return string.Format(CultureInfo.InvariantCulture,
+                                 FileFormat,
                                  fileInfo.RelativePath,
-                                 fileInfo.FullTypeName,
-                                 fileInfo.Hash);
+                                 fileInfo.FullTypeName);
         }
 
         protected virtual string Top
@@ -99,11 +98,8 @@ namespace __ASP_ASSEMBLY
                     "            info = new "
                     + nameof(RazorFileInfo) + @"
             {{
-                " + nameof(RazorFileInfo.LastModified) + @" = DateTime.FromFileTimeUtc({0:D}).ToLocalTime(),
-                " + nameof(RazorFileInfo.Length) + @" = {1:D},
-                " + nameof(RazorFileInfo.RelativePath) + @" = @""{2}"",
-                " + nameof(RazorFileInfo.FullTypeName) + @" = @""{3}"",
-                " + nameof(RazorFileInfo.Hash) + @" = @""{4}"",
+                " + nameof(RazorFileInfo.RelativePath) + @" = @""{0}"",
+                " + nameof(RazorFileInfo.FullTypeName) + @" = @""{1}""
             }};
             fileInfos.Add(info);
 ";

@@ -18,6 +18,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="compile">An delegate that will generate a compilation result.</param>
         /// <returns>A cached <see cref="CompilationResult"/>.</returns>
         CompilationResult GetOrAdd([NotNull] RelativeFileInfo fileInfo,
-                                   [NotNull] Func<RelativeFileInfo, CompilationResult> compile);
+                                   [NotNull] Func<CompilationResult> compile);
     }
 }
