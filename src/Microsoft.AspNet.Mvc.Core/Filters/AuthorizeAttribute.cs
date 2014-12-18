@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -11,13 +13,40 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    public class DefaultAuthorizeRequirement : IAuthorizationRequirement
+    {
+        // No filter, allow all types through
+        public IEnumerable<string> AuthenticationTypesFilter
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public Task<bool> CheckAsync(Security.AuthorizationContext context)
+        {
+            var user = context.User;
+            var userIsAnonymous =
+                user == null ||
+                user.Identity == null ||
+                !user.Identity.IsAuthenticated;
+
+            if (!userIsAnonymous)
+            {
+                return Task.FromResult(true);
+            }
+
+            var authContext = context.Resources.FirstOrDefault() as AuthorizationContext;
+            return Task.FromResult(authContext != null && authContext.Filters.Any(item => item is IAllowAnonymous));
+        }
+    }
+
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
-        protected string _policy;
-
         public AuthorizeAttribute([NotNull] string policy = "AnyAuthenticated")
         {
-            _policy = policy;
+            Policy = policy;
         }
 
         public string Policy { get; set; }
@@ -34,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
                 var rolesPolicy = new AuthorizationPolicy();
                 foreach (var role in Roles.Split(','))
                 {
-                    rolesPolicy.Requires(ClaimTypes.Role, role);
+                    rolesPolicy.RequiresClaim(ClaimTypes.Role, role);
                 }
                 if (!await GetAuthService(httpContext).AuthorizeAsync(rolesPolicy, user, context))
                 {
@@ -43,7 +72,7 @@ namespace Microsoft.AspNet.Mvc
                 }
             }
 
-            if (!await GetAuthService(httpContext).AuthorizeAsync(_policy, user))
+            if (!await GetAuthService(httpContext).AuthorizeAsync(Policy, user, context))
             {
                 Fail(context);
             }

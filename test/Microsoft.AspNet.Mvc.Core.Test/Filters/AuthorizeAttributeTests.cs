@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_ValidClaimShouldNotFail()
         {
             // Arrange
-            var policy = new AuthorizationPolicy("Basic").Requires("Permission", "CanViewPage");
+            var policy = new AuthorizationPolicy("Basic").RequiresClaim("Permission", "CanViewPage");
             var authorizationOptions = new AuthorizationOptions();
             authorizationOptions.AddPolicy("CanViewPage", policy);
             var options = new Mock<IOptions<AuthorizationOptions>>();
@@ -62,9 +62,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
+            authorizationOptions.AddPolicy("AnyAuthenticated", new AuthorizationPolicy().Requires(new DefaultAuthorizeRequirement()));
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authorizationOptions);
-            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizationService = new DefaultAuthorizationService(options.Object);
             var authorizeAttribute = new AuthorizeAttribute();
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance<IAuthorizationService>(authorizationService),
@@ -85,9 +86,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
+            authorizationOptions.AddPolicy("AnyAuthenticated", new AuthorizationPolicy().Requires(new DefaultAuthorizeRequirement()));
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authorizationOptions);
-            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizationService = new DefaultAuthorizationService(options.Object);
             var authorizeAttribute = new AuthorizeAttribute();
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance<IAuthorizationService>(authorizationService)
@@ -104,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_SingleValidClaimShouldSucceed()
         {
             // Arrange
-            var policy = new AuthorizationPolicy("Basic").Requires("Permission", "CanViewComment", "CanViewPage");
+            var policy = new AuthorizationPolicy("Basic").RequiresClaim("Permission", "CanViewComment", "CanViewPage");
             var authorizationOptions = new AuthorizationOptions();
             authorizationOptions.AddPolicy("CanViewCommentOrPage", policy);
             var options = new Mock<IOptions<AuthorizationOptions>>();
@@ -123,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task Invoke_RequireAdminRoleWithNoPolicyShouldSucceed()
+        public async Task Invoke_RequireAdminRoleShouldFailWithNoHandlers()
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
@@ -139,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.Null(authorizationContext.Result);
+            Assert.NotNull(authorizationContext.Result);
         }
 
         [Fact]
@@ -147,6 +149,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
+            authorizationOptions.AddPolicy("AnyAuthenticated", new AuthorizationPolicy().Requires(new DefaultAuthorizeRequirement()));
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authorizationOptions);
             var authorizationService = new DefaultAuthorizationService(options.Object, null);
@@ -206,12 +209,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_RequireAdminRoleButFailPolicyShouldFail()
         {
             // Arrange
-            var policy = new AuthorizationPolicy("Basic").Requires("Permission", "CanViewComment");
+            var policy = new AuthorizationPolicy("Basic").RequiresClaim("Permission", "CanViewComment");
             var authorizationOptions = new AuthorizationOptions();
             authorizationOptions.AddPolicy("CanViewComment", policy);
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authorizationOptions);
-            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizationService = new DefaultAuthorizationService(options.Object);
             var authorizeAttribute = new AuthorizeAttribute { Roles = "Administrator", Policy = "Basic" };
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance<IAuthorizationService>(authorizationService)
@@ -221,14 +224,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             await authorizeAttribute.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.Null(authorizationContext.Result);
+            Assert.NotNull(authorizationContext.Result);
         }
 
         [Fact]
         public async Task Invoke_InvalidClaimShouldFail()
         {
             // Arrange
-            var policy = new AuthorizationPolicy("Basic").Requires("Permission", "CanViewComment");
+            var policy = new AuthorizationPolicy("Basic").RequiresClaim("Permission", "CanViewComment");
             var authorizationOptions = new AuthorizationOptions();
             authorizationOptions.AddPolicy("CanViewComment", policy);
             var options = new Mock<IOptions<AuthorizationOptions>>();
@@ -278,7 +281,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_FailWhenLookingForClaimInOtherIdentity()
         {
             // Arrange
-            var policy = new AuthorizationPolicy("Bearer").Requires("Permission", "CanViewComment");
+            var policy = new AuthorizationPolicy("Bearer").RequiresClaim("Permission", "CanViewComment");
             var authorizationOptions = new AuthorizationOptions();
             authorizationOptions.AddPolicy("CanViewComment", policy);
             var options = new Mock<IOptions<AuthorizationOptions>>();
@@ -296,12 +299,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.NotNull(authorizationContext.Result);
         }
 
-
         [Fact]
         public async Task Invoke_CanLookingForClaimsInMultipleIdentities()
         {
             // Arrange
-            var policy = new AuthorizationPolicy("Bearer", "Basic").Requires("Permission", "CanViewComment").Requires("Permission", "CupBearer");
+            var policy = new AuthorizationPolicy("Bearer", "Basic").RequiresClaim("Permission", "CanViewComment").RequiresClaim("Permission", "CupBearer");
             var authorizationOptions = new AuthorizationOptions();
             authorizationOptions.AddPolicy("CanViewCommentCupBearer", policy);
             var options = new Mock<IOptions<AuthorizationOptions>>();
@@ -319,14 +321,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.NotNull(authorizationContext.Result);
         }
 
-        [Fact(Skip = "This fails because  policies DO fail now...")]
-        public async Task Invoke_NullPoliciesShouldNotFail()
+        public async Task Invoke_NoPoliciesShouldNotFail()
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authorizationOptions);
-            var authorizationService = new DefaultAuthorizationService(options.Object, null);
+            var authorizationService = new DefaultAuthorizationService(options.Object);
             var authorizeAttribute = new AuthorizeAttribute("CanViewPage");
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance<IAuthorizationService>(authorizationService)
