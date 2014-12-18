@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNet.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace ActivatorWebSite.TagHelpers
 {
     [HtmlElementName("span")]
-    [ContentBehavior(ContentBehavior.Modify)]
     public class HiddenTagHelper : TagHelper
     {
         public string Name { get; set; }
@@ -14,9 +13,11 @@ namespace ActivatorWebSite.TagHelpers
         [Activate]
         public IHtmlHelper HtmlHelper { get; set; }
 
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            output.Content = HtmlHelper.Hidden(Name, output.Content).ToString();
+            var content = await context.GetChildContentAsync();
+
+            output.Content = HtmlHelper.Hidden(Name, content).ToString();
         }
     }
 }

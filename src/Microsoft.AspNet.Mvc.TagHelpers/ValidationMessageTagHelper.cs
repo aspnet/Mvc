@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
@@ -12,7 +13,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// attribute.
     /// </summary>
     [HtmlElementName("span")]
-    [ContentBehavior(ContentBehavior.Modify)]
     public class ValidationMessageTagHelper : TagHelper
     {
         private const string ValidationForAttributeName = "asp-validation-for";
@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <inheritdoc />
         /// <remarks>Does nothing if <see cref="For"/> is <c>null</c>.</remarks>
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             if (For != null)
             {
@@ -47,10 +47,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 {
                     output.MergeAttributes(tagBuilder);
 
+                    var childContent = await context.GetChildContentAsync();
+
                     // We check for whitespace to detect scenarios such as:
                     // <span validation-for="Name">
                     // </span>
-                    if (string.IsNullOrWhiteSpace(output.Content))
+                    if (string.IsNullOrWhiteSpace(childContent) && string.IsNullOrEmpty(output.Content))
                     {
                         output.Content = tagBuilder.InnerHtml;
                     }

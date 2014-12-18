@@ -13,7 +13,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// attribute.
     /// </summary>
     [HtmlElementName("div")]
-    [ContentBehavior(ContentBehavior.Append)]
     public class ValidationSummaryTagHelper : TagHelper
     {
         private const string ValidationSummaryAttributeName = "asp-validation-summary";
@@ -70,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 if (tagBuilder != null)
                 {
                     output.MergeAttributes(tagBuilder);
-                    output.Content += tagBuilder.InnerHtml;
+                    output.PostContent += tagBuilder.InnerHtml;
                 }
             }
         }
