@@ -33,7 +33,8 @@ namespace TagHelpersWebSite.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (MakePretty.HasValue && !MakePretty.Value)
+            if (MakePretty.HasValue && !MakePretty.Value || 
+                output.TagName == null)
             {
                 return;
             }

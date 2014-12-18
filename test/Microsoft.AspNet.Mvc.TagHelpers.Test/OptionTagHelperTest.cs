@@ -136,9 +136,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 { "selected", selected },
                 { "value", value },
             };
-            var tagHelperContext = new TagHelperContext(contextAttributes, uniqueId: "test");
-            var output = new TagHelperOutput(expectedTagName, originalAttributes, originalContent)
+            var context = new TagHelperContext(contextAttributes,
+                                               uniqueId: "test",
+                                               getChildContentAsync: () => Task.FromResult(originalContent));
+            var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
+                Content = originalContent,
                 SelfClosing = false,
             };
 
@@ -158,7 +161,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
 
             // Act
-            await tagHelper.ProcessAsync(tagHelperContext, output);
+            await tagHelper.ProcessAsync(context, output);
 
             // Assert
             Assert.Equal(
@@ -188,9 +191,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 { "selected", selected },
                 { "value", value },
             };
-            var tagHelperContext = new TagHelperContext(contextAttributes, uniqueId: "test");
-            var output = new TagHelperOutput(originalTagName, originalAttributes, originalContent)
+            var originalPreContent = "original pre-content";
+            var originalPostContent = "original post-content";
+            var context = new TagHelperContext(contextAttributes,
+                                               uniqueId: "test",
+                                               getChildContentAsync: () => Task.FromResult(originalContent));
+            var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
+                PreContent = originalPreContent,
+                Content = originalContent,
+                PostContent = originalPostContent,
                 SelfClosing = false,
             };
 
@@ -210,7 +220,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Act & Assert (does not throw)
             // Tag helper would throw an NRE if it used Generator value.
-            await tagHelper.ProcessAsync(tagHelperContext, output);
+            await tagHelper.ProcessAsync(context, output);
         }
 
         [Theory]
@@ -235,9 +245,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 { "selected", selected },
                 { "value", value },
             };
-            var tagHelperContext = new TagHelperContext(contextAttributes, uniqueId: "test");
-            var output = new TagHelperOutput(originalTagName, originalAttributes, originalContent)
+            var originalPreContent = "original pre-content";
+            var originalPostContent = "original post-content";
+            var context = new TagHelperContext(contextAttributes,
+                                               uniqueId: "test",
+                                               getChildContentAsync: () => Task.FromResult(originalContent));
+            var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
+                PreContent = originalPreContent,
+                Content = originalContent,
+                PostContent = originalPostContent,
                 SelfClosing = false,
             };
 
@@ -249,7 +266,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Act & Assert (does not throw)
             // Tag helper would throw an NRE if it used ViewContext or Generator values.
-            await tagHelper.ProcessAsync(tagHelperContext, output);
+            await tagHelper.ProcessAsync(context, output);
         }
     }
 }
