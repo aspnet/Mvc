@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.Diagnostics;
+
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// Represents a message encountered during compilation.
     /// </summary>
-    public class CompilationMessage
+    public class CompilationMessage : IRuntimeCompilationMessage
     {
         /// <summary>
         /// Initializes a <see cref="CompilationMessage"/> with the specified message.
@@ -21,6 +23,18 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets a message produced from compilation.
         /// </summary>
         public string Message { get; private set; }
+
+        /// <inheritdoc />
+        public int StartColumn { get; set; }
+
+        /// <inheritdoc />
+        public int StartLine { get; set; }
+
+        /// <inheritdoc />
+        public int EndColumn { get; set; }
+
+        /// <inheritdoc />
+        public int EndLine { get; set; }
 
         /// <summary>
         /// Returns a <see cref="string"/> representation of this instance of <see cref="CompilationMessage"/>.

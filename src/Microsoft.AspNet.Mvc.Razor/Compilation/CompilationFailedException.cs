@@ -3,14 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNet.Diagnostics;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// An exception thrown when accessing the result of a failed compilation.
     /// </summary>
-    public class CompilationFailedException : Exception
+    public class CompilationFailedException : Exception, IRuntimeCompilationException
     {
         /// <summary>
         /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
@@ -24,49 +24,33 @@ namespace Microsoft.AspNet.Mvc.Razor
                 [NotNull] string filePath,
                 [NotNull] string fileContent,
                 [NotNull] string compiledContent,
-                [NotNull] IEnumerable<CompilationMessage> messages)
-            : base(FormatMessage(messages))
+                [NotNull] IEnumerable<IRuntimeCompilationMessage> messages)
+            : base(Resources.FormatCompilationFailed(filePath))
         {
-            FilePath = filePath;
-            FileContent = fileContent;
+            SourceFilePath = filePath;
+            SourceFileContent = fileContent;
             CompiledContent = compiledContent;
-            Messages = messages.ToList();
+            Messages = messages;
         }
 
         /// <summary>
         /// Gets the path of the Razor source file that produced the compilation failure.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string SourceFilePath { get; private set; }
 
         /// <summary>
         /// Gets a sequence of <see cref="CompilationMessage"/> instances encountered during compilation.
         /// </summary>
-        public IEnumerable<CompilationMessage> Messages { get; private set; }
+        public IEnumerable<IRuntimeCompilationMessage> Messages { get; }
 
         /// <summary>
         /// Gets the content of the Razor source file.
         /// </summary>
-        public string FileContent { get; private set; }
+        public string SourceFileContent { get; private set; }
 
         /// <summary>
         /// Gets the generated C# content that was compiled.
         /// </summary>
         public string CompiledContent { get; private set; }
-
-        /// <inheritdoc />
-        public override string Message
-        {
-            get
-            {
-                return Resources.FormatCompilationFailed(FilePath) +
-                       Environment.NewLine +
-                       FormatMessage(Messages);
-            }
-        }
-
-        private static string FormatMessage(IEnumerable<CompilationMessage> messages)
-        {
-            return string.Join(Environment.NewLine, messages);
-        }
     }
 }

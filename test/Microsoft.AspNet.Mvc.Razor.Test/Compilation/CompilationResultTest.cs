@@ -38,7 +38,7 @@ world";
             // Act and Assert
             var ex = Assert.Throws<CompilationFailedException>(() => result.CompiledType);
             Assert.Equal(expected, ex.Message);
-            Assert.Equal(originalContent, ex.FileContent);
+            Assert.Equal(originalContent, ex.SourceFileContent);
         }
     }
 }
