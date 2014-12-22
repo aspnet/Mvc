@@ -8,7 +8,6 @@ using TagHelpersWebSite.Models;
 
 namespace TagHelpersWebSite.TagHelpers
 {
-    [ContentBehavior(ContentBehavior.Append)]
     public class WebsiteInformationTagHelper : TagHelper
     {
         public WebsiteContext Info { get; set; }
@@ -16,7 +15,7 @@ namespace TagHelpersWebSite.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "section";
-            output.Content = string.Format(
+            output.PreContent = string.Format(
                 "<p><strong>Version:</strong> {0}</p>" + Environment.NewLine +
                 "<p><strong>Copyright Year:</strong> {1}</p>" + Environment.NewLine +
                 "<p><strong>Approved:</strong> {2}</p>" + Environment.NewLine +

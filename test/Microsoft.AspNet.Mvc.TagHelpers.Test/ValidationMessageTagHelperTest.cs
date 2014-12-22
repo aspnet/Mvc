@@ -28,20 +28,29 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 For = modelExpression
             };
 
-            var tagHelperContext = new TagHelperContext(
+            var expectedPreContent = "original pre-content";
+            var expectedContent = "original content";
+            var expectedPostContent = "original post-content";
+
+            var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>
                 {
                     { "id", "myvalidationmessage" },
                     { "for", modelExpression },
                 },
-                uniqueId: "test");
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new Dictionary<string, string>
                 {
                     { "id", "myvalidationmessage" }
-                },
-                content: "Something");
+                })
+            {
+                PreContent = expectedPreContent,
+                Content = expectedContent,
+                PostContent = expectedPostContent,
+            };
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
             var viewContext = TestableHtmlGenerator.GetViewContext(model: null,
                                                                    htmlGenerator: htmlGenerator,
@@ -50,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             validationMessageTagHelper.Generator = htmlGenerator;
 
             // Act
-            await validationMessageTagHelper.ProcessAsync(tagHelperContext, output);
+            await validationMessageTagHelper.ProcessAsync(context, output);
 
             // Assert
             Assert.Equal(4, output.Attributes.Count);
@@ -62,7 +71,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("Name", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("data-valmsg-replace"));
             Assert.Equal("true", attribute.Value);
-            Assert.Equal("Something", output.Content);
+            Assert.Equal(expectedPreContent, output.PreContent);
+            Assert.Equal(expectedContent, output.Content);
+            Assert.Equal(expectedPostContent, output.PostContent);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -74,10 +85,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 For = CreateModelExpression("Hello")
             };
+            var expectedPreContent = "original pre-content";
+            var expectedContent = "original content";
+            var expectedPostContent = "original post-content";
+            var context = new TagHelperContext(
+                allAttributes: new Dictionary<string, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(
                 "span",
-                attributes: new Dictionary<string, string>(),
-                content: "Content of validation message");
+                attributes: new Dictionary<string, string>())
+            {
+                PreContent = expectedPreContent,
+                Content = expectedContent,
+                PostContent = expectedPostContent,
+            };
             var expectedViewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
             generator
@@ -89,19 +111,23 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             validationMessageTagHelper.ViewContext = expectedViewContext;
 
             // Act & Assert
-            await validationMessageTagHelper.ProcessAsync(context: null, output: output);
+            await validationMessageTagHelper.ProcessAsync(context, output: output);
 
             generator.Verify();
             Assert.Equal("span", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal("Content of validation message", output.Content);
+            Assert.Equal(expectedPreContent, output.PreContent);
+            Assert.Equal(expectedContent, output.Content);
+            Assert.Equal(expectedPostContent, output.PostContent);
         }
 
         [Theory]
-        [InlineData("Content of validation message", "Content of validation message")]
-        [InlineData("\r\n  \r\n", "New HTML")]
+        [InlineData("Content of validation message", null, null)]
+        [InlineData("Content of validation message", "Some Content", "Some Content")]
+        [InlineData("\r\n  \r\n", "", "New HTML")]
+        [InlineData("\r\n  \r\n", "Some Content", "Some Content")]
         public async Task ProcessAsync_MergesTagBuilderFromGenerateValidationMessage(
-            string outputContent, string expectedOutputContent)
+            string childContent, string outputContent, string expectedOutputContent)
         {
             // Arrange
             var validationMessageTagHelper = new ValidationMessageTagHelper
@@ -110,8 +136,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(
                 "span",
-                attributes: new Dictionary<string, string>(),
-                content: outputContent);
+                attributes: new Dictionary<string, string>())
+            {
+                Content = outputContent
+            };
+            var context = new TagHelperContext(allAttributes: new Dictionary<string, object>(),
+                                               uniqueId: "test",
+                                               getChildContentAsync: () => Task.FromResult(childContent));
             var tagBuilder = new TagBuilder("span2")
             {
                 InnerHtml = "New HTML"
@@ -133,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             validationMessageTagHelper.Generator = generator.Object;
 
             // Act
-            await validationMessageTagHelper.ProcessAsync(context: null, output: output);
+            await validationMessageTagHelper.ProcessAsync(context, output: output);
 
             // Assert
             Assert.Equal("span", output.TagName);
@@ -150,10 +181,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             // Arrange
             var validationMessageTagHelper = new ValidationMessageTagHelper();
+            var expectedPreContent = "original pre-content";
+            var expectedContent = "original content";
+            var expectedPostContent = "original post-content";
             var output = new TagHelperOutput(
                 "span",
-                attributes: new Dictionary<string, string>(),
-                content: "Content of validation message");
+                attributes: new Dictionary<string, string>())
+            {
+                PreContent = expectedPreContent,
+                Content = expectedContent,
+                PostContent = expectedPostContent,
+            };
             var viewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             validationMessageTagHelper.ViewContext = viewContext;
@@ -165,7 +203,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("span", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal("Content of validation message", output.Content);
+            Assert.Equal(expectedPreContent, output.PreContent);
+            Assert.Equal(expectedContent, output.Content);
+            Assert.Equal(expectedPostContent, output.PostContent);
         }
 
         private static ModelExpression CreateModelExpression(string name)
