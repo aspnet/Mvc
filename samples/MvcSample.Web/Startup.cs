@@ -25,7 +25,7 @@ namespace MvcSample.Web
         {
             app.UseFileServer();
 #if ASPNET50
-            // Setup configuration sources.
+            // Set up configuration sources.
             var configuration = new Configuration()
                     .AddJsonFile("config.json")
                     .AddEnvironmentVariables();
