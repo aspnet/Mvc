@@ -1,0 +1,1 @@
+Adding this file as Git does not allow to add empty folders into repository
