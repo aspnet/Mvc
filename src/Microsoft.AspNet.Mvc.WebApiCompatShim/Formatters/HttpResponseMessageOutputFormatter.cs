@@ -42,6 +42,10 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             using (responseMessage)
             {
+                // Ignore the chunked Transfer-Encoding header if its set by the user. 
+                // We let the host decide about whether the response should be chunked or not.
+                responseMessage.Headers.TransferEncodingChunked = false;
+
                 response.StatusCode = (int)responseMessage.StatusCode;
 
                 var responseFeature = context.ActionContext.HttpContext.GetFeature<IHttpResponseFeature>();
