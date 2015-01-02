@@ -6,9 +6,10 @@ using Microsoft.AspNet.Mvc;
 namespace FiltersWebSite
 {
     [AuthorizeUser]
+    [Authorize("RequireBasic")]
     public class AuthorizeUserController : Controller
     {
-        [Authorize("Permission", "CanViewPage")]
+        [Authorize("CanViewPage")]
         public string ReturnHelloWorldOnlyForAuthorizedUser()
         {
             return "Hello World!";

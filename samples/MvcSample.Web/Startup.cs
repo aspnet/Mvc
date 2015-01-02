@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Security.Claims;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
@@ -43,10 +44,14 @@ namespace MvcSample.Web
                     {
                         auth.AddPolicy("CanViewPage", 
                             new AuthorizationPolicy()
-                                .Requires("Permission", "CanViewPage", "CanViewAnything"));
+                                .RequiresClaim("Permission", "CanViewPage", "CanViewAnything"));
                         auth.AddPolicy("CanViewAnything", 
                             new AuthorizationPolicy()
-                                .Requires("Permission", "CanViewAnything"));
+                                .RequiresClaim("Permission", "CanViewAnything"));
+                        // This policy basically requires that the auth type is present
+                        auth.AddPolicy("RequireBasic", 
+                            new AuthorizationPolicy("Basic")
+                                .RequiresClaim(ClaimTypes.NameIdentifier));
                     });
 
                     services.AddMvc();
