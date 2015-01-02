@@ -24,12 +24,9 @@ namespace LoggingWebSite
             _next = next;
         }
 
-        public Task Invoke(HttpContext context)
+        public Task Invoke(HttpContext context, ElmStore elmStore)
         {
             var currentRequest = context.Request;
-
-            //TODO: RequiredService ? as ElmStore is required in this case
-            var elmStore = context.RequestServices.GetService<ElmStore>();
 
             var logInfos = GetAllLogInfos(elmStore);
 
@@ -39,36 +36,34 @@ namespace LoggingWebSite
             if (currentRequest.Headers.ContainsKey(StartupHeaderKey))
             {
                 logInfos = logInfos.Where(info =>
-                    {
-                        if (info.ActivityContext != null
-                        && (info.ActivityContext.HttpInfo == null
-                        || info.ActivityContext.HttpInfo.RequestID == Guid.Empty))
-                        {
-                            return true;
-                        }
+                                    {
+                                        if (info.ActivityContext != null
+                                        && (info.ActivityContext.HttpInfo == null
+                                        || info.ActivityContext.HttpInfo.RequestID == Guid.Empty))
+                                        {
+                                            return true;
+                                        }
 
-                        return false;
-                    }).ToList();
+                                        return false;
+                                    });
             }
             // Filter by client's request trace id
             else if (currentRequest.Headers.ContainsKey(RequestTraceIdHeaderKey))
             {
                 logInfos = logInfos.Where(info =>
-                {
-                    if (info.ActivityContext != null
-                        && info.ActivityContext.HttpInfo != null
-                        && info.ActivityContext.HttpInfo.Headers.ContainsKey(RequestTraceIdHeaderKey)
-                        && string.Equals(
-                                        info.ActivityContext.HttpInfo.Headers[RequestTraceIdHeaderKey],
-                                        currentRequest.Headers[RequestTraceIdHeaderKey],
-                                        StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
+                                        {
+                                            if (info.ActivityContext != null
+                                                && info.ActivityContext.HttpInfo != null
+                                                && string.Equals(
+                                                                info.ActivityContext.HttpInfo.Headers[RequestTraceIdHeaderKey],
+                                                                currentRequest.Headers[RequestTraceIdHeaderKey],
+                                                                StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                return true;
+                                            }
 
-                    return false;
-
-                }).ToList();
+                                            return false;
+                                        });
             }
 
             // convert the log infos to DTOs to be able to be transferred over the wire to tests
@@ -103,14 +98,10 @@ namespace LoggingWebSite
         }
 
 
-        /// <summary>
-        /// Elm logs are arranged in the form of activities. Each activity could
-        /// represent a tree of nodes. So here we traverse through the tree to get a flat list of
-        /// log messages for us to enable verifying in the test.
-        /// </summary>
-        /// <param name="activities">ElmStore's log activities</param>
-        /// <returns>Log messages</returns>
-        private IList<LogInfo> GetAllLogInfos(ElmStore elmStore)
+        // Elm logs are arranged in the form of activities. Each activity could
+        // represent a tree of nodes. So here we traverse through the tree to get a flat list of
+        // log messages for us to enable verifying in the test.
+        private IEnumerable<LogInfo> GetAllLogInfos(ElmStore elmStore)
         {
             // Build a flat list of log messages from the log node tree 
             var logInfos = new List<LogInfo>();
@@ -138,9 +129,9 @@ namespace LoggingWebSite
                 logInfos.Add(logInfo);
             }
 
-            foreach (var snode in node.Children)
+            foreach (var scopeNode in node.Children)
             {
-                Traverse(snode, logInfos);
+                Traverse(scopeNode, logInfos);
             }
         }
     }
