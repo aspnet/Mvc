@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -64,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // map to the source file. If a file does not exist on a physical file system, PhysicalPath will be null.
             // This prevents files that exist in a non-physical file system from being debugged.
             var path = fileInfo.PhysicalPath ?? fileInfo.Name;
-            var compilationSettings = GetCompilationSettings(_environment, _compilerOptionsProvider);
+            var compilationSettings = _compilerOptionsProvider.GetCompilationSettings(_environment);
             var syntaxTree = SyntaxTreeGenerator.Generate(compilationContent,
                                                           path,
                                                           compilationSettings);
@@ -73,7 +72,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var assemblyName = Path.GetRandomFileName();
             var compilationOptions = compilationSettings.CompilationOptions
                                                         .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
-                                                        
+
             var compilation = CSharpCompilation.Create(assemblyName,
                         options: compilationOptions,
                         syntaxTrees: new[] { syntaxTree },
@@ -123,19 +122,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                                        .First(t => t.Name.
                                           StartsWith(_classPrefix, StringComparison.Ordinal));
 
-                    return UncachedCompilationResult.Successful(type);
+                    return UncachedCompilationResult.Successful(type, compilationContent);
                 }
             }
-        }
-
-        public static CompilationSettings GetCompilationSettings(
-            [NotNull] IApplicationEnvironment applicationEnvironment,
-            [NotNull] ICompilerOptionsProvider compilerOptionsProvider)
-        {
-            return compilerOptionsProvider.GetCompilerOptions(applicationEnvironment.ApplicationBasePath,
-                                                              applicationEnvironment.RuntimeFramework,
-                                                              applicationEnvironment.Configuration)
-                                          .ToCompilationSettings(applicationEnvironment.RuntimeFramework);
         }
 
         private List<MetadataReference> GetApplicationReferences()

@@ -65,9 +65,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             foreach (var info in GetFileInfosRecursive(string.Empty))
             {
-                var descriptor = ParseView(info,
-                                           context,
-                                           _compilationSettings);
+                var descriptor = ParseView(info, context);
 
                 if (descriptor != null)
                 {
@@ -110,8 +108,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         protected virtual RazorFileInfo ParseView([NotNull] RelativeFileInfo fileInfo,
-                                                  [NotNull] IBeforeCompileContext context,
-                                                  [NotNull] CompilationSettings compilationSettings)
+                                                  [NotNull] IBeforeCompileContext context)
         {
             using (var stream = fileInfo.FileInfo.CreateReadStream())
             {
@@ -129,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     var syntaxTree = SyntaxTreeGenerator.Generate(generatedCode,
                                                                   fileInfo.FileInfo.PhysicalPath,
-                                                                  compilationSettings);
+                                                                  _compilationSettings);
                     var fullTypeName = results.GetMainClassName(_host, syntaxTree);
 
                     if (fullTypeName != null)

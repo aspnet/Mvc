@@ -31,8 +31,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var applicationEnvironment = _appServices.GetRequiredService<IApplicationEnvironment>();
             var compilerOptionsProvider = _appServices.GetRequiredService<ICompilerOptionsProvider>();
-            var compilationSettings = RoslynCompilationService.GetCompilationSettings(applicationEnvironment,
-                                                                                      compilerOptionsProvider);
+            var compilationSettings = compilerOptionsProvider.GetCompilationSettings(applicationEnvironment);
 
             var setup = new RazorViewEngineOptionsSetup(applicationEnvironment);
             var sc = new ServiceCollection();
