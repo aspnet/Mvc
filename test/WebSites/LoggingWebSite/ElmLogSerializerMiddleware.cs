@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LoggingWebSite.Models;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Diagnostics.Elm;
 using Microsoft.AspNet.Http;
@@ -86,6 +87,81 @@ namespace LoggingWebSite
             return Task.FromResult(true);
         }
 
+        private void GetLogDetails(ElmStore elmStore)
+        {
+            var activities = new List<ActivityContextDto>();
+            foreach (var activity in elmStore.GetActivities().Reverse())
+            {
+                activities.Add(new ActivityContextDto()
+                {
+                    HttpInfo = GetRequestInfoDto(activity.HttpInfo),
+                    Id = activity.Id,
+                    RepresentsScope = activity.RepresentsScope,
+
+                });
+            }
+        }
+
+        private RequestInfoDto GetRequestInfoDto(HttpInfo httpInfo)
+        {
+            return new RequestInfoDto()
+            {
+                ContentType = httpInfo.ContentType,
+                Cookies = httpInfo.Cookies,
+                Headers = httpInfo.Headers,
+                Host = httpInfo.Host.Value,
+                Method = httpInfo.Method,
+                Path = httpInfo.Path.Value,
+                Protocol = httpInfo.Protocol,
+                Query = httpInfo.Query.Value,
+                RequestID = httpInfo.RequestID,
+                Scheme = httpInfo.Scheme,
+                StatusCode = httpInfo.StatusCode
+            };
+        }
+
+        private LogInfoDto GetLogInfoDto(LogInfo logInfo)
+        {
+            return new LogInfoDto()
+            {
+                EventID = logInfo.EventID,
+                Exception = logInfo.Exception,
+                LoggerName = logInfo.Name,
+                LogLevel = logInfo.Severity,
+                State = logInfo.State,
+                StateType = logInfo.State?.GetType()
+            };
+        }
+
+        private ScopeNodeDto CopyScopeNodeTree(ScopeNode root, ScopeNodeDto rootDto)
+        {
+            rootDto.LoggerName = root.Name;
+
+            foreach (var logInfo in root.Messages)
+            {
+                rootDto.Messages.Add(GetLogInfoDto(logInfo));
+            }
+
+            foreach (var scopeNode in root.Children)
+            {
+                ScopeNodeDto childDto = new ScopeNodeDto();
+                childDto.Parent = rootDto;
+
+                rootDto.Children.Add(CopyScopeNodeTree(scopeNode, childDto));
+            }
+
+            return rootDto;
+        }
+
+
+
+
+
+
+
+
+
+
 
         // Elm logs are arranged in the form of activities. Each activity could
         // represent a tree of nodes. So here we traverse through the tree to get a flat list of
@@ -123,5 +199,40 @@ namespace LoggingWebSite
                 Traverse(scopeNode, logInfos);
             }
         }
+
+
+        //private class SDTO
+        //{
+        //    public List<MDTO> Messages { get; } = new List<MDTO>();
+
+        //    public List<SDTO> Children { get; } = new List<SDTO>();
+        //}
+
+        //private class MDTO
+        //{
+        //}
+
+
+        //private SDTO T(ScopeNode node)
+        //{
+        //    var result = new SDTO();
+        //    // copy properties
+
+        //    foreach (var message in node.Messages)
+        //    {
+        //        var m = new MDTO();
+        //        // copy properties
+
+        //        result.Messages.Add(m);
+        //    }
+
+        //    foreach (var child in node.Children)
+        //    {
+        //        var c = T(child);
+        //        result.Children.Add(T(child));
+        //    }
+
+        //    return result;
+        //}
     }
 }
