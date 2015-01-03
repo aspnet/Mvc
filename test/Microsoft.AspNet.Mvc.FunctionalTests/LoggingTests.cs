@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class LoggingTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("LoggingWebSite");
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(LoggingWebSite));
         private readonly Action<IApplicationBuilder> _app = new LoggingWebSite.Startup().Configure;
         
         [Fact]

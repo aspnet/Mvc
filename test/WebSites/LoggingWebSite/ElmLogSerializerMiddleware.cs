@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Diagnostics.Elm;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
-using System.IO;
-using System.Text;
 
 namespace LoggingWebSite
 {
@@ -37,14 +36,9 @@ namespace LoggingWebSite
             {
                 logInfos = logInfos.Where(info =>
                                     {
-                                        if (info.ActivityContext != null
-                                        && (info.ActivityContext.HttpInfo == null
-                                        || info.ActivityContext.HttpInfo.RequestID == Guid.Empty))
-                                        {
-                                            return true;
-                                        }
-
-                                        return false;
+                                        return (info.ActivityContext != null
+                                                && (info.ActivityContext.HttpInfo == null
+                                                || info.ActivityContext.HttpInfo.RequestID == Guid.Empty));
                                     });
             }
             // Filter by client's request trace id
@@ -52,17 +46,12 @@ namespace LoggingWebSite
             {
                 logInfos = logInfos.Where(info =>
                                         {
-                                            if (info.ActivityContext != null
+                                            return (info.ActivityContext != null
                                                 && info.ActivityContext.HttpInfo != null
                                                 && string.Equals(
-                                                                info.ActivityContext.HttpInfo.Headers[RequestTraceIdHeaderKey],
-                                                                currentRequest.Headers[RequestTraceIdHeaderKey],
-                                                                StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                return true;
-                                            }
-
-                                            return false;
+                                                        info.ActivityContext.HttpInfo.Headers[RequestTraceIdHeaderKey],
+                                                        currentRequest.Headers[RequestTraceIdHeaderKey],
+                                                        StringComparison.OrdinalIgnoreCase));
                                         });
             }
 
@@ -77,7 +66,7 @@ namespace LoggingWebSite
                     LoggerName = logInfo.Name,
                     LogLevel = logInfo.Severity,
                     State = logInfo.State,
-                    StateType = logInfo.State != null ? logInfo.State.GetType() : null,
+                    StateType = logInfo.State?.GetType()
                 });
             }
 
@@ -85,7 +74,6 @@ namespace LoggingWebSite
             context.Response.ContentType = "application/json";
 
             var serializer = JsonSerializer.Create();
-            serializer.Formatting = Formatting.Indented;
             using (var writer = new JsonTextWriter(new StreamWriter(stream: context.Response.Body,
                                                                     encoding: Encoding.UTF8,
                                                                     bufferSize: 1024,

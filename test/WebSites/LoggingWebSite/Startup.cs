@@ -14,15 +14,14 @@ namespace LoggingWebSite
         {    
             var configuration = app.GetTestConfiguration();
 
-            // Set up application services
             app.UseServices(services =>
             {
                 services.AddElm(options =>
                 {
-                    options.Filter = (name, level) => level >= LogLevel.Verbose;
+                    // We want to log for all log levels and loggers
+                    options.Filter = (loggerName, logLevel) => true;
                 });
 
-                // Add MVC services to the services container
                 services.AddMvc(configuration);
             });
 
