@@ -29,9 +29,10 @@ namespace LoggingWebSite
 
             var logInfos = GetAllLogInfos(elmStore);
 
-            // filter the logs
+            // Filter the logs.
             // For logs which are generated during the application's startup,
-            // they would not be associated with a RequestID
+            // they would not be associated with a RequestId that the ElmCapture middleware
+            // creates.
             if (currentRequest.Headers.ContainsKey(StartupHeaderKey))
             {
                 logInfos = logInfos.Where(info =>
