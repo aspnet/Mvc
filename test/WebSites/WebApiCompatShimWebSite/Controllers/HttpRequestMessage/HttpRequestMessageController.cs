@@ -47,6 +47,20 @@ namespace WebApiCompatShimWebSite
             return response;
         }
 
+        public async Task<HttpResponseMessage> EchoWithResponseMessageChunked(HttpRequestMessage request)
+        {
+            var message = string.Format(
+                "{0} {1}",
+                request.Method.ToString(),
+                await request.Content.ReadAsStringAsync());
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(message);
+            response.Headers.TransferEncodingChunked = true;
+            response.Headers.TryAddWithoutValidation("X-Test", "Hello!");
+            return response;
+        }
+
         public HttpResponseMessage GetUser(string mediaType = null)
         {
             var user = new User()

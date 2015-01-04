@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
             var httpResponseMessage = new HttpResponseMessage();
             httpResponseMessage.Content = streamContent.Object;
             var outputFormatterContext = GetOutputFormatterContext(
-                                                httpResponseMessage, 
+                                                httpResponseMessage,
                                                 typeof(HttpResponseMessage),
                                                 new DefaultHttpContext());
 
@@ -66,9 +66,10 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
         public async Task ExplicitlySet_ChunkedEncodingHeader_IsIgnored()
         {
             // Arrange
+            var transferEncodingHeaderKey = "Transfer-Encoding";
             var httpResponseMessage = new HttpResponseMessage();
             httpResponseMessage.Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("Hello, World")));
-            httpResponseMessage.Headers.Add("Transfer-Encoding", "chunked");
+            httpResponseMessage.Headers.Add(transferEncodingHeaderKey, "chunked");
 
             var httpContext = new DefaultHttpContext();
             var formatter = new HttpResponseMessageOutputFormatter();
@@ -80,10 +81,59 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
             await formatter.WriteAsync(outputFormatterContext);
 
             // Assert
-            Assert.False(httpContext.Response.Headers.ContainsKey("Transfer-Encoding"));
+            Assert.False(httpContext.Response.Headers.ContainsKey(transferEncodingHeaderKey));
         }
-        
-        private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType, 
+
+        [Fact]
+        public async Task ExplicitlySet_MultipleEncodings_ChunkedNotIgnored()
+        {
+            // Arrange
+            var transferEncodingHeaderKey = "Transfer-Encoding";
+            var httpResponseMessage = new HttpResponseMessage();
+            httpResponseMessage.Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("Hello, World")));
+            httpResponseMessage.Headers.Add(transferEncodingHeaderKey, new[] { "identity", "chunked" });
+
+            var httpContext = new DefaultHttpContext();
+            var formatter = new HttpResponseMessageOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(
+                                                httpResponseMessage,
+                                                typeof(HttpResponseMessage),
+                                                httpContext);
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.True(httpContext.Response.Headers.ContainsKey(transferEncodingHeaderKey));
+            Assert.Equal(new string[] { "identity", "chunked" }, 
+                        httpContext.Response.Headers.GetValues(transferEncodingHeaderKey));
+        }
+
+        [Fact]
+        public async Task ExplicitlySet_MultipleEncodings_ChunkedNotIgnored2()
+        {
+            // Arrange
+            var transferEncodingHeaderKey = "Transfer-Encoding";
+            var httpResponseMessage = new HttpResponseMessage();
+            httpResponseMessage.Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("Hello, World")));
+            httpResponseMessage.Headers.Add(transferEncodingHeaderKey, new[] { "identity" });
+            httpResponseMessage.Headers.TransferEncodingChunked = true;
+
+            var httpContext = new DefaultHttpContext();
+            var formatter = new HttpResponseMessageOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(
+                                                httpResponseMessage,
+                                                typeof(HttpResponseMessage),
+                                                httpContext);
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.True(httpContext.Response.Headers.ContainsKey(transferEncodingHeaderKey));
+            Assert.Equal(new string[] { "identity", "chunked" },
+                        httpContext.Response.Headers.GetValues(transferEncodingHeaderKey));
+        }
+
+        private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
                                                                     HttpContext httpContext)
         {
             return new OutputFormatterContext

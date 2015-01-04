@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
@@ -275,6 +276,47 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(38, response.Content.Headers.ContentLength);
         }
 
+        [Fact]
+        public async Task ApiController_ExplicitChunkedEncoding_IsIgnored()
+        {
+            // Arrange		
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+
+            var expected =
+                "POST Hello, HttpResponseMessage world!";
+
+            // Act	
+            var request = new HttpRequestMessage();
+            request.Method = HttpMethod.Post;
+            request.RequestUri = new Uri("http://localhost/api/Blog/HttpRequestMessage/EchoWithResponseMessageChunked");
+            request.Content = new StringContent("Hello, HttpResponseMessage world!");
+
+            // HttpClient buffers the response by default and this would set the Content-Length header and so
+            // this will not provide us accurate information as to whether the server set the header or
+            // the client. So here we explicitly mention to only read the headers and not the body.
+            var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+            // Assert		
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(response.Content);
+            Assert.NotNull(response.Content.Headers.ContentLength);
+            Assert.Null(response.Headers.TransferEncodingChunked);
+
+            // When HttpClient by default reads and buffers the resposne body, it diposes the
+            // response stream for us. But since we are reading the content explicitly, we need
+            // to close it.
+            var responseStream = await response.Content.ReadAsStreamAsync();
+            using (var streamReader = new StreamReader(responseStream))
+            {
+                Assert.Equal(expected, streamReader.ReadToEnd());
+            }
+
+            IEnumerable<string> values;
+            Assert.True(response.Headers.TryGetValues("X-Test", out values));
+            Assert.Equal(new string[] { "Hello!" }, values);
+        }
+
         [Theory]
         [InlineData("application/json", "application/json")]
         [InlineData("text/xml", "text/xml")]
@@ -464,15 +506,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/" + action);
+            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/" + action,
+                                                HttpCompletionOption.ResponseHeadersRead);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Content);
             Assert.Equal("application/pdf", response.Content.Headers.ContentType.MediaType);
 
-            var actualBody = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedBody, actualBody);
+            // Since content is PushStreamContent at the server, 
+            // the response is expected to be sent in chunked encoding format.
+            Assert.Null(response.Content.Headers.ContentLength);
+            //Assert.Equal(true, response.Headers.TransferEncodingChunked);
+
+            var responseStream = await response.Content.ReadAsStreamAsync();
+            using (var reader = new StreamReader(responseStream))
+            {
+                Assert.Equal(expectedBody, reader.ReadToEnd());
+            }
         }
 
         [Fact]
@@ -485,16 +536,25 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var multipleValues = new[] { "value1", "value2" };
 
             // Act
-            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/ReturnPushStreamContentWithCustomHeaders");
+            var response = await client.GetAsync("http://localhost/api/Blog/HttpRequestMessage/ReturnPushStreamContentWithCustomHeaders",
+                                                HttpCompletionOption.ResponseHeadersRead);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Content);
             Assert.Equal("application/octet-stream", response.Content.Headers.ContentType.ToString());
-
-            var actualBody = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedBody, actualBody);
             Assert.Equal(multipleValues, response.Headers.GetValues("Multiple"));
+            
+            // Since content is PushStreamContent at the server, 
+            // the response is expected to be sent in chunked encoding format.
+            Assert.Null(response.Content.Headers.ContentLength);
+            //Assert.Equal(true, response.Headers.TransferEncodingChunked);
+
+            var responseStream = await response.Content.ReadAsStreamAsync();
+            using (var reader = new StreamReader(responseStream))
+            {
+                Assert.Equal(expectedBody, reader.ReadToEnd());
+            }
         }
     }
 }
