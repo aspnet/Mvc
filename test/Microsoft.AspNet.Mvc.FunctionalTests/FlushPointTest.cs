@@ -67,10 +67,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             waitService.WaitForServer();
                 
             // Assert - 4
-            Assert.Equal(string.Join(
-                Environment.NewLine,
-                "After flush inside partial",
-                "<form action=\"/FlushPoint/PageWithoutLayout\" method=\"post\"><input id=\"Name1\" name=\"Name1\" type=\"text\" value=\"\" />"),
+            Assert.Equal(@"After flush inside partial
+<form action=""/FlushPoint/PageWithoutLayout"" method=""post""><input id=""Name1"" name=""Name1"" type=""text"" value="""" />",
             GetTrimmedString(stream));
             waitService.WaitForServer();
 
@@ -121,6 +119,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task FlushPointsNestedLayout()
         {
+            // Arrange
             var waitService = new WaitService();
             var serviceProvider = GetServiceProvider(waitService);
 
@@ -181,8 +180,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var buffer = new byte[1024];
             var count = stream.Read(buffer, 0, buffer.Length);
-            string content = Encoding.UTF8.GetString(buffer, 0, count).Trim();
-            return content;
+            return Encoding.UTF8.GetString(buffer, 0, count).Trim();
         }
     }
 }
