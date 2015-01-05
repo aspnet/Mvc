@@ -72,14 +72,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
                     // Copy the response content headers only after ensuring they are complete.
                     // We ask for Content-Length first because HttpContent lazily computes this
                     // and only afterwards writes the value into the content headers.
-                    try
-                    {
-                        var unused = contentHeaders.ContentLength;
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
+                    var unused = contentHeaders.ContentLength;
                     
                     foreach (var header in contentHeaders)
                     {

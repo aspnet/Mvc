@@ -60,6 +60,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
 
             // Assert
             Assert.False(httpContext.Response.Headers.ContainsKey("Transfer-Encoding"));
+            Assert.NotNull(httpContext.Response.ContentLength);
         }
 
         [Fact]
@@ -82,6 +83,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
 
             // Assert
             Assert.False(httpContext.Response.Headers.ContainsKey(transferEncodingHeaderKey));
+            Assert.NotNull(httpContext.Response.ContentLength);
         }
 
         [Fact]
@@ -106,6 +108,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
             Assert.True(httpContext.Response.Headers.ContainsKey(transferEncodingHeaderKey));
             Assert.Equal(new string[] { "identity", "chunked" }, 
                         httpContext.Response.Headers.GetValues(transferEncodingHeaderKey));
+            Assert.NotNull(httpContext.Response.ContentLength);
         }
 
         [Fact]
@@ -131,6 +134,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShimTest
             Assert.True(httpContext.Response.Headers.ContainsKey(transferEncodingHeaderKey));
             Assert.Equal(new string[] { "identity", "chunked" },
                         httpContext.Response.Headers.GetValues(transferEncodingHeaderKey));
+            Assert.NotNull(httpContext.Response.ContentLength);
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
