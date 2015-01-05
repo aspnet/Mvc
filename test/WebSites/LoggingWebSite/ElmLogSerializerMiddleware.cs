@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,9 +13,6 @@ namespace LoggingWebSite
 {
     public class ElmLogSerializerMiddleware
     {
-        public const string StartupHeaderKey = "Startup";
-        public const string RequestTraceIdHeaderKey = "RequestTraceID";
-
         private readonly RequestDelegate _next;
 
         public ElmLogSerializerMiddleware(RequestDelegate next)
@@ -28,49 +24,7 @@ namespace LoggingWebSite
         {
             var currentRequest = context.Request;
 
-            var logInfos = GetAllLogInfos(elmStore);
-
-            // Filter the logs.
-            // For logs which are generated during the application's startup,
-            // they would not be associated with a RequestId that the ElmCapture middleware
-            // creates.
-            if (currentRequest.Headers.ContainsKey(StartupHeaderKey))
-            {
-                logInfos = logInfos.Where(info =>
-                                    {
-                                        return (info.ActivityContext != null
-                                                && (info.ActivityContext.HttpInfo == null
-                                                || info.ActivityContext.HttpInfo.RequestID == Guid.Empty));
-                                    });
-            }
-            // Filter by client's request trace id
-            else if (currentRequest.Headers.ContainsKey(RequestTraceIdHeaderKey))
-            {
-                logInfos = logInfos.Where(info =>
-                                        {
-                                            return (info.ActivityContext != null
-                                                && info.ActivityContext.HttpInfo != null
-                                                && string.Equals(
-                                                        info.ActivityContext.HttpInfo.Headers[RequestTraceIdHeaderKey],
-                                                        currentRequest.Headers[RequestTraceIdHeaderKey],
-                                                        StringComparison.OrdinalIgnoreCase));
-                                        });
-            }
-
-            // convert the log infos to DTOs to be able to be transferred over the wire to tests
-            var logInfoDtos = new List<LogInfoDto>();
-            foreach (var logInfo in logInfos)
-            {
-                logInfoDtos.Add(new LogInfoDto()
-                {
-                    EventID = logInfo.EventID,
-                    Exception = logInfo.Exception,
-                    LoggerName = logInfo.Name,
-                    LogLevel = logInfo.Severity,
-                    State = logInfo.State,
-                    StateType = logInfo.State?.GetType()
-                });
-            }
+            var logActivities = GetLogDetails(elmStore);
 
             context.Response.StatusCode = 200;
             context.Response.ContentType = "application/json";
@@ -81,34 +35,41 @@ namespace LoggingWebSite
                                                                     bufferSize: 1024,
                                                                     leaveOpen: true)))
             {
-                serializer.Serialize(writer, logInfoDtos);
+                serializer.Serialize(writer, logActivities);
             }
 
             return Task.FromResult(true);
         }
 
-        private void GetLogDetails(ElmStore elmStore)
+        private IEnumerable<ActivityContextDto> GetLogDetails(ElmStore elmStore)
         {
             var activities = new List<ActivityContextDto>();
             foreach (var activity in elmStore.GetActivities().Reverse())
             {
+                var rootScopeNodeDto = new ScopeNodeDto();
+                CopyScopeNodeTree(activity.Root, rootScopeNodeDto);
+
                 activities.Add(new ActivityContextDto()
                 {
-                    HttpInfo = GetRequestInfoDto(activity.HttpInfo),
+                    RequestInfo = GetRequestInfoDto(activity.HttpInfo),
                     Id = activity.Id,
                     RepresentsScope = activity.RepresentsScope,
-
+                    Root = rootScopeNodeDto    
                 });
             }
+
+            return activities;
         }
 
         private RequestInfoDto GetRequestInfoDto(HttpInfo httpInfo)
         {
+            if (httpInfo == null) return null;
+
             return new RequestInfoDto()
             {
                 ContentType = httpInfo.ContentType,
-                Cookies = httpInfo.Cookies,
-                Headers = httpInfo.Headers,
+                Cookies = httpInfo.Cookies.ToArray(),
+                Headers = httpInfo.Headers.ToArray(),
                 Host = httpInfo.Host.Value,
                 Method = httpInfo.Method,
                 Path = httpInfo.Path.Value,
@@ -133,9 +94,11 @@ namespace LoggingWebSite
             };
         }
 
-        private ScopeNodeDto CopyScopeNodeTree(ScopeNode root, ScopeNodeDto rootDto)
+        private void CopyScopeNodeTree(ScopeNode root, ScopeNodeDto rootDto)
         {
             rootDto.LoggerName = root.Name;
+            rootDto.State = root.State;
+            rootDto.StateType = root.State?.GetType();
 
             foreach (var logInfo in root.Messages)
             {
@@ -145,94 +108,11 @@ namespace LoggingWebSite
             foreach (var scopeNode in root.Children)
             {
                 ScopeNodeDto childDto = new ScopeNodeDto();
-                childDto.Parent = rootDto;
 
-                rootDto.Children.Add(CopyScopeNodeTree(scopeNode, childDto));
-            }
+                CopyScopeNodeTree(scopeNode, childDto);
 
-            return rootDto;
-        }
-
-
-
-
-
-
-
-
-
-
-
-        // Elm logs are arranged in the form of activities. Each activity could
-        // represent a tree of nodes. So here we traverse through the tree to get a flat list of
-        // log messages for us to enable verifying in the test.
-        private IEnumerable<LogInfo> GetAllLogInfos(ElmStore elmStore)
-        {
-            // Build a flat list of log messages from the log node tree 
-            var logInfos = new List<LogInfo>();
-            foreach (var activity in elmStore.GetActivities().Reverse())
-            {
-                if (!activity.RepresentsScope)
-                {
-                    // message not within a scope
-                    var logInfo = activity.Root.Messages.FirstOrDefault();
-                    logInfos.Add(logInfo);
-                }
-                else
-                {
-                    Traverse(activity.Root, logInfos);
-                }
-            }
-
-            return logInfos;
-        }
-
-        private void Traverse(ScopeNode node, IList<LogInfo> logInfos)
-        {
-            foreach (var logInfo in node.Messages)
-            {
-                logInfos.Add(logInfo);
-            }
-
-            foreach (var scopeNode in node.Children)
-            {
-                Traverse(scopeNode, logInfos);
+                rootDto.Children.Add(childDto);
             }
         }
-
-
-        //private class SDTO
-        //{
-        //    public List<MDTO> Messages { get; } = new List<MDTO>();
-
-        //    public List<SDTO> Children { get; } = new List<SDTO>();
-        //}
-
-        //private class MDTO
-        //{
-        //}
-
-
-        //private SDTO T(ScopeNode node)
-        //{
-        //    var result = new SDTO();
-        //    // copy properties
-
-        //    foreach (var message in node.Messages)
-        //    {
-        //        var m = new MDTO();
-        //        // copy properties
-
-        //        result.Messages.Add(m);
-        //    }
-
-        //    foreach (var child in node.Children)
-        //    {
-        //        var c = T(child);
-        //        result.Children.Add(T(child));
-        //    }
-
-        //    return result;
-        //}
     }
 }

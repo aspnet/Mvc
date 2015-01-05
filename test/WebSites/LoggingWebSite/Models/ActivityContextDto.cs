@@ -6,7 +6,7 @@ namespace LoggingWebSite.Models
     {
         public Guid Id { get; set; }
 
-        public RequestInfoDto HttpInfo { get; set; }
+        public RequestInfoDto RequestInfo { get; set; }
 
         public ScopeNodeDto Root { get; set; }
 

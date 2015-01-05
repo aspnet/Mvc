@@ -7,8 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using LoggingWebSite;
 using LoggingWebSite.Controllers;
+using LoggingWebSite.Models;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.ApplicationModels;
 using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.TestHost;
 using Newtonsoft.Json;
@@ -25,10 +25,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AssemblyValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsForStartup();
+            var logs = await GetLogsForStartupAsync();
             logs = logs.Where(c => c.StateType.Equals(typeof(AssemblyValues))).ToList();
 
             // Assert
+            Assert.NotEmpty(logs);
             foreach (var log in logs)
             {
                 dynamic assembly = log.State;
@@ -43,10 +44,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task IsControllerValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsForStartup();
-            logs = logs.Where(c => c.StateType.Equals(typeof(DefaultControllerModelBuilder))).ToList();
+            var logs = await GetLogsForStartupAsync();
+            logs = logs.Where(c => c.StateType.Equals(typeof(IsControllerValues)));
 
             // Assert
+            Assert.NotEmpty(logs);
             foreach (var log in logs)
             {
                 dynamic isController = log.State;
@@ -68,12 +70,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerModelValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsForStartup();
-            logs = logs.Where(c => c.StateType.Equals(typeof(ControllerModelValues))).ToList();
+            var logs = await GetLogsForStartupAsync();
+            logs = logs.Where(c => c.StateType.Equals(typeof(ControllerModelValues)));
 
             // Assert
             Assert.Single(logs);
-            dynamic controller = logs[0].State;
+            dynamic controller = logs.First().State;
             Assert.Equal("Home", controller.ControllerName.ToString());
             Assert.Equal(typeof(HomeController).AssemblyQualifiedName, controller.ControllerType.ToString());
             Assert.Equal("Index", controller.Actions[0].ActionName.ToString());
@@ -90,12 +92,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionDescriptorValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsForStartup();
+            var logs = await GetLogsForStartupAsync();
             logs = logs.Where(c => c.StateType.Equals(typeof(ActionDescriptorValues))).ToList();
 
             // Assert
             Assert.Single(logs);
-            dynamic action = logs[0].State;
+            dynamic action = logs.First().State;
             Assert.Equal("Index", action.Name.ToString());
             Assert.Empty(action.Parameters);
             Assert.Empty(action.FilterDescriptors);
@@ -108,7 +110,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Home", action.ControllerName.ToString());
         }
 
-        private async Task<List<LogInfoDto>> GetLogsForStartup()
+        private async Task<IEnumerable<LogInfoDto>> GetLogsForStartupAsync()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -117,11 +119,49 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Act
             var response = await client.GetStringAsync("http://localhost/logs");
 
-            var logs = JsonConvert.DeserializeObject<List<LogInfoDto>>(response);
+            var activityDtos = JsonConvert.DeserializeObject<List<ActivityContextDto>>(response);
+            var logInfos = GetAllLogInfos(activityDtos);
 
             // Assert
-            Assert.NotEmpty(logs);
-            return logs;
+            Assert.NotEmpty(logInfos);
+            return logInfos;
+        }
+
+        // Elm logs are arranged in the form of activities. Each activity could
+        // represent a tree of nodes. So here we traverse through the tree to get a flat list of
+        // log messages for us to enable verifying in the test.
+        private IEnumerable<LogInfoDto> GetAllLogInfos(IEnumerable<ActivityContextDto> activities)
+        {
+            // Build a flat list of log messages from the log node tree 
+            var logInfos = new List<LogInfoDto>();
+            foreach (var activity in activities)
+            {
+                if (!activity.RepresentsScope)
+                {
+                    // message not within a scope
+                    var logInfo = activity.Root.Messages.FirstOrDefault();
+                    logInfos.Add(logInfo);
+                }
+                else
+                {
+                    Traverse(activity.Root, logInfos);
+                }
+            }
+
+            return logInfos;
+        }
+
+        private void Traverse(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos)
+        {
+            foreach (var logInfo in node.Messages)
+            {
+                logInfoDtos.Add(logInfo);
+            }
+
+            foreach (var scopeNode in node.Children)
+            {
+                Traverse(scopeNode, logInfoDtos);
+            }
         }
     }
 }

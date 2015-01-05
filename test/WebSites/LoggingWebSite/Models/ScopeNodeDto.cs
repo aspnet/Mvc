@@ -5,8 +5,6 @@ namespace LoggingWebSite.Models
 {
     public class ScopeNodeDto
     {
-        public ScopeNodeDto Parent { get; set; }
-
         public List<ScopeNodeDto> Children { get; private set; } = new List<ScopeNodeDto>();
 
         public List<LogInfoDto> Messages { get; private set; } = new List<LogInfoDto>();
