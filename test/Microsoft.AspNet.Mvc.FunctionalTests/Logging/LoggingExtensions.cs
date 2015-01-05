@@ -10,6 +10,27 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         public const string RequestTraceIdQueryKey = "RequestTraceId";
 
+        public static ScopeNodeDto FindScopeWithName(this IEnumerable<ActivityContextDto> activities,
+                                                                    string scopeName)
+        {
+            ScopeNodeDto node = null;
+
+            foreach(var activity in activities)
+            {
+                if(activity.RepresentsScope)
+                {
+                    node = GetScope(activity.Root, scopeName);
+                    
+                    if(node != null)
+                    {
+                        break;
+                    }                    
+                }
+            }
+
+            return node;                        
+        }
+        
         public static IEnumerable<LogInfoDto> GetStartupLogs(this IEnumerable<ActivityContextDto> activities)
         {
             return activities.Where(activity => activity.RequestInfo == null)
@@ -99,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 GetLogsUnderScopeHelper(scopeNode, logInfoDtos, scopeName, foundScope);
             }
         }
-
+        
         private static void Traverse(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos)
         {
             foreach (var logInfo in node.Messages)
@@ -120,6 +141,28 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                         && string.Equals(GetQueryValue(activity.RequestInfo.Query, RequestTraceIdQueryKey),
                                         requestTraceId,
                                         StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static ScopeNodeDto GetScope(ScopeNodeDto root, string scopeName)
+        {
+            if (string.Equals(root.State?.ToString(),
+                            scopeName,
+                            StringComparison.OrdinalIgnoreCase))
+            {
+                return root;
+            }
+
+            foreach (var childNode in root.Children)
+            {
+                var foundNode = GetScope(childNode, scopeName);
+
+                if (foundNode != null)
+                {
+                    return foundNode;
+                }
+            }
+
+            return null;
         }
 
         private static string GetQueryValue(string query, string key)
