@@ -3,8 +3,11 @@
 
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNet.FileSystems;
 using Microsoft.AspNet.Razor;
+using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
+using Microsoft.AspNet.Razor.Generator.Compiler.CSharp;
 using Microsoft.AspNet.Razor.Text;
 using Xunit;
 
@@ -48,7 +51,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                                  generatedAbsoluteIndex: 823,
                                  generatedLineIndex: 25,
                                  generatedCharacterIndex: 14,
-                                 contentLength: 85)
+                                 contentLength: 85),
+                BuildLineMapping(documentAbsoluteIndex: 138,
+                                 documentLineIndex: 4,
+                                 documentCharacterIndex: 16,
+                                 generatedAbsoluteIndex: 2058,
+                                 generatedLineIndex: 52,
+                                 generatedCharacterIndex: 107,
+                                 contentLength: 3)
             };
 
             // Act and Assert
@@ -66,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void MvcRazorHost_ParsesAndGeneratesCodeForBasicScenarios(string scenarioName)
         {
             // Arrange
-            var host = new MvcRazorHost(new TestFileSystem());
+            var host = new TestMvcRazorHost(new TestFileSystem());
 
             // Act and Assert
             RunRuntimeTest(host, scenarioName);
@@ -204,6 +214,69 @@ namespace Microsoft.AspNet.Mvc.Razor
             return new LineMapping(
                 documentLocation: new MappingLocation(documentLocation, contentLength),
                 generatedLocation: new MappingLocation(generatedLocation, contentLength));
+        }
+
+        /// <summary>
+        /// Used when testing Tag Helpers, it disables the unique ID generation feature.
+        /// </summary>
+        private class TestMvcRazorHost : MvcRazorHost
+        {
+            public TestMvcRazorHost(IFileSystem fileSystem)
+                : base(fileSystem)
+            { }
+
+            public override CodeBuilder DecorateCodeBuilder(CodeBuilder incomingBuilder, CodeBuilderContext context)
+            {
+                base.DecorateCodeBuilder(incomingBuilder, context);
+
+                return new TestCSharpCodeBuilder(context,
+                                                 DefaultModel,
+                                                 ActivateAttribute,
+                                                 new GeneratedTagHelperAttributeContext
+                                                 {
+                                                     ModelExpressionTypeName = ModelExpressionType,
+                                                     CreateModelExpressionMethodName = CreateModelExpressionMethod
+                                                 });
+            }
+
+            protected class TestCSharpCodeBuilder : MvcCSharpCodeBuilder
+            {
+                private readonly GeneratedTagHelperAttributeContext _tagHelperAttributeContext;
+
+                public TestCSharpCodeBuilder(CodeBuilderContext context,
+                                             string defaultModel,
+                                             string activateAttribute,
+                                             GeneratedTagHelperAttributeContext tagHelperAttributeContext)
+                    : base(context, defaultModel, activateAttribute, tagHelperAttributeContext)
+                {
+                    _tagHelperAttributeContext = tagHelperAttributeContext;
+                }
+
+                protected override CSharpCodeVisitor CreateCSharpCodeVisitor(CSharpCodeWriter writer, CodeBuilderContext context)
+                {
+                    var visitor = base.CreateCSharpCodeVisitor(writer, context);
+                    visitor.TagHelperRenderer = new NoUniqueIdsTagHelperCodeRenderer(visitor, writer, context)
+                    {
+                        AttributeValueCodeRenderer =
+                            new MvcTagHelperAttributeValueCodeRenderer(_tagHelperAttributeContext)
+                    };
+                    return visitor;
+                }
+
+                private class NoUniqueIdsTagHelperCodeRenderer : CSharpTagHelperCodeRenderer
+                {
+                    public NoUniqueIdsTagHelperCodeRenderer(IChunkVisitor bodyVisitor,
+                                                            CSharpCodeWriter writer,
+                                                            CodeBuilderContext context)
+                        : base(bodyVisitor, writer, context)
+                    { }
+
+                    protected override string GenerateUniqueId()
+                    {
+                        return "test";
+                    }
+                }
+            }
         }
     }
 }

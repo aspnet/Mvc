@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Framework.Runtime;
 
-namespace Microsoft.AspNet.Mvc.Razor.Compilation
+namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// A type that uses Roslyn to compile C# content.
@@ -29,6 +29,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private readonly ILibraryManager _libraryManager;
         private readonly IApplicationEnvironment _environment;
         private readonly IAssemblyLoadContext _loader;
+        private readonly ICompilerOptionsProvider _compilerOptionsProvider;
 
         private readonly Lazy<List<MetadataReference>> _applicationReferences;
 
@@ -44,27 +45,37 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         public RoslynCompilationService(IApplicationEnvironment environment,
                                         IAssemblyLoadContextAccessor loaderAccessor,
                                         ILibraryManager libraryManager,
+                                        ICompilerOptionsProvider compilerOptionsProvider,
                                         IMvcRazorHost host)
         {
             _environment = environment;
             _loader = loaderAccessor.GetLoadContext(typeof(RoslynCompilationService).GetTypeInfo().Assembly);
             _libraryManager = libraryManager;
             _applicationReferences = new Lazy<List<MetadataReference>>(GetApplicationReferences);
+            _compilerOptionsProvider = compilerOptionsProvider;
             _classPrefix = host.MainClassNamePrefix;
         }
 
         /// <inheritdoc />
-        public CompilationResult Compile(IFileInfo fileInfo, string compilationContent)
+        public CompilationResult Compile([NotNull] IFileInfo fileInfo, [NotNull] string compilationContent)
         {
-            var syntaxTrees = new[] { SyntaxTreeGenerator.Generate(compilationContent, fileInfo.PhysicalPath) };
-
+            // The path passed to SyntaxTreeGenerator.Generate is used by the compiler to generate symbols (pdb) that
+            // map to the source file. If a file does not exist on a physical file system, PhysicalPath will be null.
+            // This prevents files that exist in a non-physical file system from being debugged.
+            var path = fileInfo.PhysicalPath ?? fileInfo.Name;
+            var compilationSettings = _compilerOptionsProvider.GetCompilationSettings(_environment);
+            var syntaxTree = SyntaxTreeGenerator.Generate(compilationContent,
+                                                          path,
+                                                          compilationSettings);
             var references = _applicationReferences.Value;
 
             var assemblyName = Path.GetRandomFileName();
+            var compilationOptions = compilationSettings.CompilationOptions
+                                                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
             var compilation = CSharpCompilation.Create(assemblyName,
-                        options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                        syntaxTrees: syntaxTrees,
+                        options: compilationOptions,
+                        syntaxTrees: new[] { syntaxTree },
                         references: references);
 
             using (var ms = new MemoryStream())
@@ -111,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                                        .First(t => t.Name.
                                           StartsWith(_classPrefix, StringComparison.Ordinal));
 
-                    return UncachedCompilationResult.Successful(type);
+                    return UncachedCompilationResult.Successful(type, compilationContent);
                 }
             }
         }

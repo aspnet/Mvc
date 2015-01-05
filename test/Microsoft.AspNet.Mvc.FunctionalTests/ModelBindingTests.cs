@@ -7,11 +7,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using ModelBindingWebSite;
+using ModelBindingWebSite.ViewModels;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -128,12 +131,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-               client.GetAsync("http://localhost/FromAttributes/FromBodyParametersThrows"));
+            // Act
+            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParametersThrows");
 
-            Assert.Equal("More than one parameter and/or property is bound to the HTTP request's content.",
-                         ex.Message);
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
+            Assert.Equal(
+                "More than one parameter and/or property is bound to the HTTP request's content.",
+                exception.ExceptionMessage);
         }
 
         [Fact]
@@ -143,12 +149,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-               client.GetAsync("http://localhost/FromAttributes/FromBodyParameterAndPropertyThrows"));
+            // Act
+            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParameterAndPropertyThrows");
 
-            Assert.Equal("More than one parameter and/or property is bound to the HTTP request's content.",
-                         ex.Message);
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
+            Assert.Equal(
+                "More than one parameter and/or property is bound to the HTTP request's content.",
+                exception.ExceptionMessage);
         }
 
         [Fact]
@@ -158,12 +167,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-               client.GetAsync("http://localhost/FromAttributes/FormAndBody_AsParameters_Throws"));
+            // Act
+            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_AsParameters_Throws");
 
-            Assert.Equal("More than one parameter and/or property is bound to the HTTP request's content.",
-                         ex.Message);
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
+            Assert.Equal(
+                "More than one parameter and/or property is bound to the HTTP request's content.",
+                exception.ExceptionMessage);
         }
 
         [Fact]
@@ -173,12 +185,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-               client.GetAsync("http://localhost/FromAttributes/FormAndBody_Throws"));
+            // Act
+            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_Throws");
 
-            Assert.Equal("More than one parameter and/or property is bound to the HTTP request's content.",
-                         ex.Message);
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
+            Assert.Equal(
+                "More than one parameter and/or property is bound to the HTTP request's content.",
+                exception.ExceptionMessage);
         }
 
         [Fact]
@@ -930,13 +945,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             Expression<Func<User, object>> expression = model => model.Address.Country;
 
+            var expected = string.Format(
+                "The passed expression of expression node type '{0}' is invalid." +
+                " Only simple member access expressions for model properties are supported.",
+                expression.Body.NodeType);
+
             // Act
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                          client.GetAsync("http://localhost/TryUpdateModel/GetUserAsync_WithChainedProperties?id=123"));
-            Assert.Equal(string.Format("The passed expression of expression node type '{0}' is invalid." +
-                                       " Only simple member access expressions for model properties are supported.",
-                                        expression.Body.NodeType),
-                         ex.Message);
+            var response = await client.GetAsync("http://localhost/TryUpdateModel/GetUserAsync_WithChainedProperties?id=123");
+
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
+            Assert.Equal(expected, exception.ExceptionMessage);
         }
 
         [Fact]
@@ -1065,6 +1085,245 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Should Update all included properties.
             Assert.Equal("March", user.RegisterationMonth);
+        }
+
+        [Fact]
+        public async Task UpdateVehicle_WithJson_ProducesModelStateErrors()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var content = new
+            {
+                Year = 3012,
+                InspectedDates = new[]
+                {
+                    new DateTime(4065, 10, 10)
+                },
+                Make = "Volttrax",
+                Model = "Epsum"
+            };
+
+            // Act
+            var response = await client.PutAsJsonAsync("http://localhost/api/vehicles/520", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var modelStateErrors = JsonConvert.DeserializeObject<IDictionary<string, IEnumerable<string>>>(body);
+
+            Assert.Equal(3, modelStateErrors.Count);
+            Assert.Equal(new[] {
+                    "The field Year must be between 1980 and 2034.",
+                    "Year is invalid"
+                    }, modelStateErrors["model.Year"]);
+
+            var vinError = Assert.Single(modelStateErrors["model.Vin"]);
+            Assert.Equal("The Vin field is required.", vinError);
+
+            var trackingIdError = Assert.Single(modelStateErrors["X-TrackingId"]);
+            Assert.Equal("A value is required but was not present in the request.", trackingIdError);
+        }
+
+        [Fact]
+        public async Task UpdateVehicle_WithJson_DoesPropertyValidationPriorToValidationAtType()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var content = new
+            {
+                Year = 2007,
+                InspectedDates = new[]
+                {
+                   new DateTime(4065, 10, 10)
+                },
+                Make = "Volttrax",
+                Model = "Epsum",
+                Vin = "Pqrs"
+            };
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-TrackingId", "trackingid");
+
+            // Act
+            var response = await client.PutAsJsonAsync("http://localhost/api/vehicles/520", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var modelStateErrors = JsonConvert.DeserializeObject<IDictionary<string, IEnumerable<string>>>(body);
+
+            var item = Assert.Single(modelStateErrors);
+            Assert.Equal("model.InspectedDates", item.Key);
+            var error = Assert.Single(item.Value);
+            Assert.Equal("Inspection date cannot be later than year of manufacture.", error);
+        }
+
+        [Fact]
+        public async Task UpdateVehicle_WithJson_BindsBodyAndServices()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var trackingId = Guid.NewGuid().ToString();
+            var postedContent = new
+            {
+                Year = 2010,
+                InspectedDates = new List<DateTime>
+                {
+                    new DateTime(2008, 10, 01),
+                    new DateTime(2009, 03, 01),
+                },
+                Make = "Volttrax",
+                Model = "Epsum",
+                Vin = "PQRS"
+            };
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-TrackingId", trackingId);
+
+            // Act
+            var response = await client.PutAsJsonAsync("http://localhost/api/vehicles/520", postedContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var actual = JsonConvert.DeserializeObject<VehicleViewModel>(body);
+
+            Assert.Equal(postedContent.Vin, actual.Vin);
+            Assert.Equal(postedContent.Make, actual.Make);
+            Assert.Equal(postedContent.InspectedDates, actual.InspectedDates.Select(d => d.DateTime));
+            Assert.Equal(trackingId, actual.LastUpdatedTrackingId);
+        }
+
+        [Fact]
+        public async Task UpdateVehicle_WithXml_BindsBodyServicesAndHeaders()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var trackingId = Guid.NewGuid().ToString();
+            var postedContent = new VehicleViewModel
+            {
+                Year = 2010,
+                InspectedDates = new DateTimeOffset[]
+                {
+                    new DateTimeOffset(2008, 10, 01, 8, 3, 1, TimeSpan.Zero),
+                    new DateTime(2009, 03, 01),
+                },
+                Make = "Volttrax",
+                Model = "Epsum",
+                Vin = "PQRS"
+            };
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-TrackingId", trackingId);
+
+            // Act
+            var response = await client.PutAsXmlAsync("http://localhost/api/vehicles/520", postedContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var actual = JsonConvert.DeserializeObject<VehicleViewModel>(body);
+
+            Assert.Equal(postedContent.Vin, actual.Vin);
+            Assert.Equal(postedContent.Make, actual.Make);
+            Assert.Equal(postedContent.InspectedDates, actual.InspectedDates);
+            Assert.Equal(trackingId, actual.LastUpdatedTrackingId);
+        }
+
+        // Simulates a browser based client that does a Ajax post for partial page updates.
+        [Fact]
+        public async Task UpdateDealerVehicle_PopulatesPropertyErrorsInViews()
+        {
+            // Arrange
+            var expectedContent = await GetType().GetTypeInfo().Assembly.ReadResourceAsStringAsync(
+                "compiler/resources/UpdateDealerVehicle_PopulatesPropertyErrorsInViews.txt");
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var postedContent = new
+            {
+                Year = 9001,
+                InspectedDates = new List<DateTime>
+                {
+                    new DateTime(2008, 01, 01)
+                },
+                Make = "Acme",
+                Model = "Epsum",
+                Vin = "LongerThan8Chars",
+
+            };
+            var url = "http://localhost/dealers/32/update-vehicle?dealer.name=TestCarDealer&dealer.location=SE";
+
+            // Act
+            var response = await client.PostAsJsonAsync(url, postedContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedContent, body);
+        }
+
+        [Fact]
+        public async Task UpdateDealerVehicle_PopulatesValidationSummary()
+        {
+            // Arrange
+            var expectedContent = await GetType().GetTypeInfo().Assembly.ReadResourceAsStringAsync(
+                "compiler/resources/UpdateDealerVehicle_PopulatesValidationSummary.txt");
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var postedContent = new
+            {
+                Year = 2013,
+                InspectedDates = new List<DateTime>
+                {
+                    new DateTime(2008, 01, 01)
+                },
+                Make = "Acme",
+                Model = "Epsum",
+                Vin = "8chars",
+
+            };
+            var url = "http://localhost/dealers/43/update-vehicle?dealer.name=TestCarDealer&dealer.location=SE";
+
+            // Act
+            var response = await client.PostAsJsonAsync(url, postedContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedContent, body);
+        }
+
+        [Fact]
+        public async Task UpdateDealerVehicle_UsesDefaultValuesForOptionalProperties()
+        {
+            // Arrange
+            var expectedContent = await GetType().GetTypeInfo().Assembly.ReadResourceAsStringAsync(
+                "compiler/resources/UpdateDealerVehicle_UpdateSuccessful.txt");
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var postedContent = new
+            {
+                Year = 2013,
+                InspectedDates = new DateTimeOffset[]
+                {
+                    new DateTime(2008, 11, 01)
+                },
+                Make = "RealSlowCars",
+                Model = "Epsum",
+                Vin = "8chars",
+
+            };
+            var url = "http://localhost/dealers/43/update-vehicle?dealer.name=TestCarDealer&dealer.location=NE";
+
+            // Act
+            var response = await client.PostAsJsonAsync(url, postedContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedContent, body);
         }
     }
 }

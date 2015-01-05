@@ -475,11 +475,9 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var getPerson = Assert.Single(controller.Actions, a => a.ActionName == "GetPerson");
             Assert.Empty(getPerson.HttpMethods);
-            Assert.True(getPerson.IsActionNameMatchRequired);
 
             var showPeople = Assert.Single(controller.Actions, a => a.ActionName == "ShowPeople");
             Assert.Empty(showPeople.HttpMethods);
-            Assert.True(showPeople.IsActionNameMatchRequired);
         }
 
         [Fact]
@@ -547,7 +545,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 "For action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
                 "MultipleErrorsController.Unknown'" + Environment.NewLine +
                 "Error: While processing template 'stub/[action]/[unknown]', a replacement value for the token 'unknown' " +
-                "could not be found. Available tokens: 'controller, action'." + Environment.NewLine +
+                "could not be found. Available tokens: 'action, controller'." + Environment.NewLine +
                 Environment.NewLine +
                 "Error 2:" + Environment.NewLine +
                 "For action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
@@ -1340,7 +1338,8 @@ namespace Microsoft.AspNet.Mvc.Test
                 assemblyProvider.Object,
                 modelBuilder,
                 new TestGlobalFilterProvider(filters),
-                new MockMvcOptionsAccessor());
+                new MockMvcOptionsAccessor(),
+                new NullLoggerFactory());
 
             return provider;
         }
@@ -1359,7 +1358,8 @@ namespace Microsoft.AspNet.Mvc.Test
                 assemblyProvider.Object,
                 modelBuilder,
                 new TestGlobalFilterProvider(),
-                new MockMvcOptionsAccessor());
+                new MockMvcOptionsAccessor(),
+                new NullLoggerFactory());
 
             return provider;
         }
@@ -1379,7 +1379,8 @@ namespace Microsoft.AspNet.Mvc.Test
                 assemblyProvider.Object,
                 modelBuilder,
                 new TestGlobalFilterProvider(),
-                options);
+                options,
+                new NullLoggerFactory());
         }
 
         private IEnumerable<ActionDescriptor> GetDescriptors(params TypeInfo[] controllerTypeInfos)
@@ -1395,7 +1396,8 @@ namespace Microsoft.AspNet.Mvc.Test
                 assemblyProvider.Object,
                 modelBuilder,
                 new TestGlobalFilterProvider(),
-                new MockMvcOptionsAccessor());
+                new MockMvcOptionsAccessor(),
+                new NullLoggerFactory());
 
             return provider.GetDescriptors();
         }
