@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#if ASPNET50
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LoggingWebSite;
 using LoggingWebSite.Controllers;
-using LoggingWebSite.Models;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.TestHost;
@@ -20,13 +20,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(LoggingWebSite));
         private readonly Action<IApplicationBuilder> _app = new LoggingWebSite.Startup().Configure;
-        
+
         [Fact]
         public async Task AssemblyValues_LoggedAtStartup()
         {
             // Arrange and Act
             var logs = await GetLogsForStartupAsync();
-            logs = logs.Where(c => c.StateType.Equals(typeof(AssemblyValues))).ToList();
+            logs = logs.Where(c => c.StateType.Equals(typeof(AssemblyValues)));
 
             // Assert
             Assert.NotEmpty(logs);
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 dynamic assembly = log.State;
                 Assert.NotNull(assembly);
                 Assert.Equal(
-                    "LoggingWebSite, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", 
+                    "LoggingWebSite, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
                     assembly.AssemblyName.ToString());
             }
         }
@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange and Act
             var logs = await GetLogsForStartupAsync();
-            logs = logs.Where(c => c.StateType.Equals(typeof(ActionDescriptorValues))).ToList();
+            logs = logs.Where(c => c.StateType.Equals(typeof(ActionDescriptorValues)));
 
             // Assert
             Assert.Single(logs);
@@ -120,48 +120,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.GetStringAsync("http://localhost/logs");
 
             var activityDtos = JsonConvert.DeserializeObject<List<ActivityContextDto>>(response);
-            var logInfos = GetAllLogInfos(activityDtos);
+            var logs = activityDtos.GetStartupLogs();
 
             // Assert
-            Assert.NotEmpty(logInfos);
-            return logInfos;
-        }
-
-        // Elm logs are arranged in the form of activities. Each activity could
-        // represent a tree of nodes. So here we traverse through the tree to get a flat list of
-        // log messages for us to enable verifying in the test.
-        private IEnumerable<LogInfoDto> GetAllLogInfos(IEnumerable<ActivityContextDto> activities)
-        {
-            // Build a flat list of log messages from the log node tree 
-            var logInfos = new List<LogInfoDto>();
-            foreach (var activity in activities)
-            {
-                if (!activity.RepresentsScope)
-                {
-                    // message not within a scope
-                    var logInfo = activity.Root.Messages.FirstOrDefault();
-                    logInfos.Add(logInfo);
-                }
-                else
-                {
-                    Traverse(activity.Root, logInfos);
-                }
-            }
-
-            return logInfos;
-        }
-
-        private void Traverse(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos)
-        {
-            foreach (var logInfo in node.Messages)
-            {
-                logInfoDtos.Add(logInfo);
-            }
-
-            foreach (var scopeNode in node.Children)
-            {
-                Traverse(scopeNode, logInfoDtos);
-            }
+            Assert.NotEmpty(logs);
+            return logs;
         }
     }
 }
+#endif

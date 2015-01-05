@@ -4,14 +4,13 @@
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
 
 namespace LoggingWebSite
 {
     public class Startup
     {
         public void Configure(IApplicationBuilder app)
-        {    
+        {
             var configuration = app.GetTestConfiguration();
 
             app.UseServices(services =>

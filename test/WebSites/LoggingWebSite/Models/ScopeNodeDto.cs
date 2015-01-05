@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LoggingWebSite.Models
+namespace LoggingWebSite
 {
     public class ScopeNodeDto
     {

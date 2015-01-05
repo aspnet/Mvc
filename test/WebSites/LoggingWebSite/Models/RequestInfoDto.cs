@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 
-namespace LoggingWebSite.Models
+namespace LoggingWebSite
 {
     public class RequestInfoDto
     {
@@ -25,7 +25,7 @@ namespace LoggingWebSite.Models
         public IEnumerable<KeyValuePair<string, string[]>> Headers { get; set; }
 
         public string Query { get; set; }
-
+        
         public IEnumerable<KeyValuePair<string, string[]>> Cookies { get; set; }
     }
 }

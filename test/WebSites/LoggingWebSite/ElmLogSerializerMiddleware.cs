@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using LoggingWebSite.Models;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Diagnostics.Elm;
 using Microsoft.AspNet.Http;
@@ -54,7 +53,7 @@ namespace LoggingWebSite
                     RequestInfo = GetRequestInfoDto(activity.HttpInfo),
                     Id = activity.Id,
                     RepresentsScope = activity.RepresentsScope,
-                    Root = rootScopeNodeDto    
+                    Root = rootScopeNodeDto
                 });
             }
 
@@ -70,11 +69,11 @@ namespace LoggingWebSite
                 ContentType = httpInfo.ContentType,
                 Cookies = httpInfo.Cookies.ToArray(),
                 Headers = httpInfo.Headers.ToArray(),
+                Query = httpInfo.Query.Value,
                 Host = httpInfo.Host.Value,
                 Method = httpInfo.Method,
                 Path = httpInfo.Path.Value,
                 Protocol = httpInfo.Protocol,
-                Query = httpInfo.Query.Value,
                 RequestID = httpInfo.RequestID,
                 Scheme = httpInfo.Scheme,
                 StatusCode = httpInfo.StatusCode

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LoggingWebSite.Models
+namespace LoggingWebSite
 {
     public class ActivityContextDto
     {
