@@ -1,1 +1,1 @@
-﻿For testing logging
+﻿This file exists as Git does not allow to add empty directories into the repo

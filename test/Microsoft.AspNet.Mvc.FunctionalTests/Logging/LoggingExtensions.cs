@@ -10,7 +10,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         public const string RequestTraceIdQueryKey = "RequestTraceId";
 
-        public static ScopeNodeDto FindScopeWithName(this IEnumerable<ActivityContextDto> activities,
+        /// <summary>
+        /// Gets a scope node with the given name
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <param name="scopeName"></param>
+        /// <returns>A scope node if found, else null</returns>
+        public static ScopeNodeDto FindScopeByName(this IEnumerable<ActivityContextDto> activities,
                                                                     string scopeName)
         {
             ScopeNodeDto node = null;
@@ -20,8 +26,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 if(activity.RepresentsScope)
                 {
                     node = GetScope(activity.Root, scopeName);
-                    
-                    if(node != null)
+
+                    // Ideally we do not expect multiple scopes with the same name
+                    // to exist in the logs, so we break on the first found scope node.
+                    // Note: The logs can contain multiple scopes with the same name across
+                    // different requests, but the tests are expected to filter the logs by request
+                    // (ex: using request trace id) and then find the scope by name.
+                    if (node != null)
                     {
                         break;
                     }                    
@@ -31,12 +42,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             return node;                        
         }
         
+        /// <summary>
+        /// Gets a flattened list of logs that are logged at application's startup. 
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <returns>List of log messages</returns>
         public static IEnumerable<LogInfoDto> GetStartupLogs(this IEnumerable<ActivityContextDto> activities)
         {
             return activities.Where(activity => activity.RequestInfo == null)
                              .GetLogs();
         }
 
+        /// <summary>
+        /// Get a flattened list of logs present within a given scope and that are logged 
+        /// at application's startup.
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <param name="scopeName"></param>
+        /// <returns>List of log messages</returns>
         public static IEnumerable<LogInfoDto> GetStartupLogs(this IEnumerable<ActivityContextDto> activities,
                                                             string scopeName)
         {
@@ -44,6 +67,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                              .GetLogsUnderScope(scopeName);
         }
 
+        /// <summary>
+        /// Gets a flattened list of logs that are logged for a given request 
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <param name="requestTraceId">The "RequestTraceId" query parameter value</param>
+        /// <returns>List of log messages</returns>
         public static IEnumerable<LogInfoDto> GetLogs(this IEnumerable<ActivityContextDto> activities,
                                                      string requestTraceId)
         {
@@ -51,12 +80,64 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                              .GetLogs();
         }
 
+        /// <summary>
+        /// Get a flattened list of logs present within a given scope and that are logged 
+        /// for a given request
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <param name="requestTraceId">The "RequestTraceId" query parameter value</param>
+        /// <param name="scopeName"></param>
+        /// <returns></returns>
         public static IEnumerable<LogInfoDto> GetLogs(this IEnumerable<ActivityContextDto> activities,
                                                      string requestTraceId,
                                                      string scopeName)
         {
             return activities.FilterByRequestTraceId(requestTraceId)
                              .GetLogsUnderScope(scopeName);
+        }
+
+        /// <summary>
+        /// Filters log activities based on the given request.
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <param name="requestTraceId">The "RequestTraceId" query parameter value</param>
+        /// <returns></returns>
+        public static IEnumerable<ActivityContextDto> FilterByRequestTraceId(this IEnumerable<ActivityContextDto> activities,
+                                                                                string requestTraceId)
+        {
+            return activities.Where(activity => activity.RequestInfo != null
+                        && string.Equals(GetQueryValue(activity.RequestInfo.Query, RequestTraceIdQueryKey),
+                                        requestTraceId,
+                                        StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Compares two trees and verifies if the scope nodes are equal
+        /// </summary>
+        /// <param name="root1"></param>
+        /// <param name="root2"></param>
+        /// <returns></returns>
+        public static bool AreScopesEqual(ScopeNodeDto root1, ScopeNodeDto root2)
+        {
+            if (root1 == null && root2 == null) return true;
+
+            if (root1 == null || root2 == null) return false;
+
+            if(!string.Equals(root1.State?.ToString(), root2.State?.ToString())
+                || root1.Children.Count != root2.Children.Count)
+            {
+                return false;
+            }
+
+            bool isChildScopeEqual = true;
+            for(int i = 0; i < root1.Children.Count; i++)
+            {
+                isChildScopeEqual = AreScopesEqual(root1.Children[i], root2.Children[i]);
+
+                if (!isChildScopeEqual) break;
+            }
+
+            return isChildScopeEqual;
         }
 
         private static IEnumerable<LogInfoDto> GetLogsUnderScope(this IEnumerable<ActivityContextDto> activities,
@@ -68,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 if (activity.RepresentsScope)
                 {
-                    GetLogsUnderScopeHelper(activity.Root, logInfos, scopeName, foundScope: false);
+                    GetLogsUnderScope(activity.Root, logInfos, scopeName, foundScope: false);
                 }
             }
 
@@ -96,7 +177,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             return logInfos;
         }
 
-        private static void GetLogsUnderScopeHelper(ScopeNodeDto node,
+        private static void GetLogsUnderScope(ScopeNodeDto node,
                                     IList<LogInfoDto> logInfoDtos,
                                     string scopeName,
                                     bool foundScope)
@@ -117,7 +198,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             foreach (var scopeNode in node.Children)
             {
-                GetLogsUnderScopeHelper(scopeNode, logInfoDtos, scopeName, foundScope);
+                GetLogsUnderScope(scopeNode, logInfoDtos, scopeName, foundScope);
             }
         }
         
@@ -134,14 +215,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             }
         }
 
-        private static IEnumerable<ActivityContextDto> FilterByRequestTraceId(this IEnumerable<ActivityContextDto> activities,
-                                                                                string requestTraceId)
-        {
-            return activities.Where(activity => activity.RequestInfo != null
-                        && string.Equals(GetQueryValue(activity.RequestInfo.Query, RequestTraceIdQueryKey),
-                                        requestTraceId,
-                                        StringComparison.OrdinalIgnoreCase));
-        }
 
         private static ScopeNodeDto GetScope(ScopeNodeDto root, string scopeName)
         {

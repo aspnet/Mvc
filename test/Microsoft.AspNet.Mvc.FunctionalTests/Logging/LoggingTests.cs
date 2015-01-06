@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using LoggingWebSite;
 using LoggingWebSite.Controllers;
@@ -108,6 +109,73 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Empty(action.HttpMethods.ToString());
             Assert.Empty(action.Properties);
             Assert.Equal("Home", action.ControllerName.ToString());
+        }
+
+        [Fact]
+        public async Task Successful_ActionSelection_Logged()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var requestTraceId = Guid.NewGuid().ToString();
+
+            // Act and Assert
+            var response = await client.GetAsync(string.Format("http://localhost/home/index?{0}={1}", 
+                                                        LoggingExtensions.RequestTraceIdQueryKey, requestTraceId));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseData = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Home.Index", responseData);
+
+            //get logs
+            responseData = await client.GetStringAsync("http://localhost/logs");
+            var logActivities = JsonConvert.DeserializeObject<List<ActivityContextDto>>(responseData);
+            var scopeNode = logActivities.FilterByRequestTraceId(requestTraceId)
+                                         .FindScopeByName(nameof(MvcRouteHandler) + ".RouteAsync");
+
+            Assert.NotNull(scopeNode);
+            var logInfo = scopeNode.Messages.Where(logEnty =>
+                                                    logEnty.StateType.Equals(typeof(MvcRouteHandlerRouteAsyncValues)))
+                                            .FirstOrDefault();
+            Assert.NotNull(logInfo);
+            Assert.NotNull(logInfo.State);
+
+            dynamic actionSelection = logInfo.State;
+            Assert.Equal("True", actionSelection.ActionSelected.ToString());
+            Assert.Equal("True", actionSelection.ActionInvoked.ToString());
+            Assert.Equal("True", actionSelection.Handled.ToString());
+        }
+
+        [Fact]
+        public async Task Failed_ActionSelection_Logged()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var requestTraceId = Guid.NewGuid().ToString();
+
+            // Act and Assert
+            var response = await client.GetAsync(string.Format("http://localhost/InvalidController/InvalidAction?{0}={1}",
+                                                        LoggingExtensions.RequestTraceIdQueryKey, requestTraceId));
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            //get logs
+            var responseData = await client.GetStringAsync("http://localhost/logs");
+            var logActivities = JsonConvert.DeserializeObject<List<ActivityContextDto>>(responseData);
+            var scopeNode = logActivities.FilterByRequestTraceId(requestTraceId)
+                                         .FindScopeByName(nameof(MvcRouteHandler) + ".RouteAsync");
+
+            Assert.NotNull(scopeNode);
+            var logInfo = scopeNode.Messages.Where(logEnty =>
+                                                    logEnty.StateType.Equals(typeof(MvcRouteHandlerRouteAsyncValues)))
+                                            .FirstOrDefault();
+            Assert.NotNull(logInfo);
+
+            dynamic actionSelection = logInfo.State;
+            Assert.Equal("False", actionSelection.ActionSelected.ToString());
+            Assert.Equal("False", actionSelection.ActionInvoked.ToString());
+            Assert.Equal("False", actionSelection.Handled.ToString());
         }
 
         private async Task<IEnumerable<LogInfoDto>> GetLogsForStartupAsync()
