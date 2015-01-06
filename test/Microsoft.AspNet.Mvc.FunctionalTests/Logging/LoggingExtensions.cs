@@ -1,6 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using LoggingWebSite;
 using Microsoft.AspNet.WebUtilities;
 
@@ -16,14 +19,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         /// <param name="activities"></param>
         /// <param name="scopeName"></param>
         /// <returns>A scope node if found, else null</returns>
-        public static ScopeNodeDto FindScopeByName(this IEnumerable<ActivityContextDto> activities,
+        public static ScopeNodeDto FindScope(this IEnumerable<ActivityContextDto> activities,
                                                                     string scopeName)
         {
             ScopeNodeDto node = null;
 
-            foreach(var activity in activities)
+            foreach (var activity in activities)
             {
-                if(activity.RepresentsScope)
+                if (activity.RepresentsScope)
                 {
                     node = GetScope(activity.Root, scopeName);
 
@@ -34,66 +37,53 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                     // (ex: using request trace id) and then find the scope by name.
                     if (node != null)
                     {
-                        break;
-                    }                    
+                        return node;
+                    }
                 }
             }
 
-            return node;                        
-        }
-        
-        /// <summary>
-        /// Gets a flattened list of logs that are logged at application's startup. 
-        /// </summary>
-        /// <param name="activities"></param>
-        /// <returns>List of log messages</returns>
-        public static IEnumerable<LogInfoDto> GetStartupLogs(this IEnumerable<ActivityContextDto> activities)
-        {
-            return activities.Where(activity => activity.RequestInfo == null)
-                             .GetLogs();
+            return node;
         }
 
         /// <summary>
-        /// Get a flattened list of logs present within a given scope and that are logged 
-        /// at application's startup.
+        /// Gets all the logs messages matching the given structure type
         /// </summary>
         /// <param name="activities"></param>
-        /// <param name="scopeName"></param>
-        /// <returns>List of log messages</returns>
-        public static IEnumerable<LogInfoDto> GetStartupLogs(this IEnumerable<ActivityContextDto> activities,
-                                                            string scopeName)
-        {
-            return activities.Where(activity => activity.RequestInfo == null)
-                             .GetLogsUnderScope(scopeName);
-        }
-
-        /// <summary>
-        /// Gets a flattened list of logs that are logged for a given request 
-        /// </summary>
-        /// <param name="activities"></param>
-        /// <param name="requestTraceId">The "RequestTraceId" query parameter value</param>
-        /// <returns>List of log messages</returns>
-        public static IEnumerable<LogInfoDto> GetLogs(this IEnumerable<ActivityContextDto> activities,
-                                                     string requestTraceId)
-        {
-            return activities.FilterByRequestTraceId(requestTraceId)
-                             .GetLogs();
-        }
-
-        /// <summary>
-        /// Get a flattened list of logs present within a given scope and that are logged 
-        /// for a given request
-        /// </summary>
-        /// <param name="activities"></param>
-        /// <param name="requestTraceId">The "RequestTraceId" query parameter value</param>
-        /// <param name="scopeName"></param>
+        /// <param name="structureType"></param>
         /// <returns></returns>
-        public static IEnumerable<LogInfoDto> GetLogs(this IEnumerable<ActivityContextDto> activities,
-                                                     string requestTraceId,
-                                                     string scopeName)
+        public static IEnumerable<LogInfoDto> GetLogsByStructureType(this IEnumerable<ActivityContextDto> activities,
+                                                                        Type structureType)
         {
-            return activities.FilterByRequestTraceId(requestTraceId)
-                             .GetLogsUnderScope(scopeName);
+            var logInfos = new List<LogInfoDto>();
+            foreach (var activity in activities)
+            {
+                if (!activity.RepresentsScope)
+                {
+                    var logInfo = activity.Root.Messages.OfStructureType(structureType)
+                                                        .FirstOrDefault();
+
+                    if (logInfo != null)
+                    {
+                        logInfos.Add(logInfo);
+                    }
+                }
+                else
+                {
+                    GetLogsByStructureType(activity.Root, logInfos, structureType);
+                }
+            }
+
+            return logInfos;
+        }
+
+        /// <summary>
+        /// Filters for logs activties created during application startup
+        /// </summary>
+        /// <param name="activities"></param>
+        /// <returns></returns>
+        public static IEnumerable<ActivityContextDto> FilterByStartup(this IEnumerable<ActivityContextDto> activities)
+        {
+            return activities.Where(activity => activity.RequestInfo == null);
         }
 
         /// <summary>
@@ -112,109 +102,37 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         /// <summary>
-        /// Compares two trees and verifies if the scope nodes are equal
+        /// Filters the log messages based on the given structure type
         /// </summary>
-        /// <param name="root1"></param>
-        /// <param name="root2"></param>
+        /// <param name="logInfos"></param>
+        /// <param name="structureType"></param>
         /// <returns></returns>
-        public static bool AreScopesEqual(ScopeNodeDto root1, ScopeNodeDto root2)
+        public static IEnumerable<LogInfoDto> OfStructureType(this IEnumerable<LogInfoDto> logInfos,
+                                                            Type structureType)
         {
-            if (root1 == null && root2 == null) return true;
-
-            if (root1 == null || root2 == null) return false;
-
-            if(!string.Equals(root1.State?.ToString(), root2.State?.ToString())
-                || root1.Children.Count != root2.Children.Count)
-            {
-                return false;
-            }
-
-            bool isChildScopeEqual = true;
-            for(int i = 0; i < root1.Children.Count; i++)
-            {
-                isChildScopeEqual = AreScopesEqual(root1.Children[i], root2.Children[i]);
-
-                if (!isChildScopeEqual) break;
-            }
-
-            return isChildScopeEqual;
+            return logInfos.Where(logInfo => logInfo.StateType != null
+                                            && logInfo.StateType.Equals(structureType));
         }
 
-        private static IEnumerable<LogInfoDto> GetLogsUnderScope(this IEnumerable<ActivityContextDto> activities,
-                                                        string scopeName)
+        /// <summary>
+        /// Traverses through the log node tree and gets the log messages whose StateType
+        /// matches the supplied structure type.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="logInfoDtos"></param>
+        /// <param name="structureType"></param>
+        private static void GetLogsByStructureType(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos, Type structureType)
         {
-            var logInfos = new List<LogInfoDto>();
-
-            foreach (var activity in activities)
-            {
-                if (activity.RepresentsScope)
-                {
-                    GetLogsUnderScope(activity.Root, logInfos, scopeName, foundScope: false);
-                }
-            }
-
-            return logInfos;
-        }
-
-        private static IEnumerable<LogInfoDto> GetLogs(this IEnumerable<ActivityContextDto> activities)
-        {
-            // Build a flat list of log messages from the log node tree 
-            var logInfos = new List<LogInfoDto>();
-            foreach (var activity in activities)
-            {
-                if (!activity.RepresentsScope)
-                {
-                    // message not within a scope
-                    var logInfo = activity.Root.Messages.FirstOrDefault();
-                    logInfos.Add(logInfo);
-                }
-                else
-                {
-                    Traverse(activity.Root, logInfos);
-                }
-            }
-
-            return logInfos;
-        }
-
-        private static void GetLogsUnderScope(ScopeNodeDto node,
-                                    IList<LogInfoDto> logInfoDtos,
-                                    string scopeName,
-                                    bool foundScope)
-        {
-            if (!foundScope
-                && string.Equals(node.State?.ToString(), scopeName, StringComparison.OrdinalIgnoreCase))
-            {
-                foundScope = true;
-            }
-
-            if (foundScope)
-            {
-                foreach (var logInfo in node.Messages)
-                {
-                    logInfoDtos.Add(logInfo);
-                }
-            }
-
-            foreach (var scopeNode in node.Children)
-            {
-                GetLogsUnderScope(scopeNode, logInfoDtos, scopeName, foundScope);
-            }
-        }
-        
-        private static void Traverse(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos)
-        {
-            foreach (var logInfo in node.Messages)
+            foreach (var logInfo in node.Messages.OfStructureType(structureType))
             {
                 logInfoDtos.Add(logInfo);
             }
 
             foreach (var scopeNode in node.Children)
             {
-                Traverse(scopeNode, logInfoDtos);
+                GetLogsByStructureType(scopeNode, logInfoDtos, structureType);
             }
         }
-
 
         private static ScopeNodeDto GetScope(ScopeNodeDto root, string scopeName)
         {
