@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AssemblyValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsOfStructureTypeAsync(typeof(AssemblyValues));
+            var logs = await GetLogsByDataTypeAsync<AssemblyValues>();
 
             // Assert
             Assert.NotEmpty(logs);
@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task IsControllerValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsOfStructureTypeAsync(typeof(IsControllerValues));
+            var logs = await GetLogsByDataTypeAsync<IsControllerValues>();
 
             // Assert
             Assert.NotEmpty(logs);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerModelValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsOfStructureTypeAsync(typeof(ControllerModelValues));
+            var logs = await GetLogsByDataTypeAsync<ControllerModelValues>();
 
             // Assert
             Assert.Single(logs);
@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionDescriptorValues_LoggedAtStartup()
         {
             // Arrange and Act
-            var logs = await GetLogsOfStructureTypeAsync(typeof(ActionDescriptorValues));
+            var logs = await GetLogsByDataTypeAsync<ActionDescriptorValues>();
 
             // Assert
             Assert.Single(logs);
@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Home", action.ControllerName.ToString());
         }
 
-        private async Task<IEnumerable<LogInfoDto>> GetLogsOfStructureTypeAsync(Type structureType)
+        private async Task<IEnumerable<LogInfoDto>> GetLogsByDataTypeAsync<T>()
         {
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
@@ -115,7 +115,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var activityDtos = JsonConvert.DeserializeObject<List<ActivityContextDto>>(response);
 
-            var logs = activityDtos.FilterByStartup().GetLogsByStructureType(structureType);
+            var logs = activityDtos.FilterByStartup().GetLogsByDataType<T>();
 
             return logs;
         }

@@ -64,7 +64,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 isChildScopeEqual = AreScopesEqual(root1.Children[i], root2.Children[i]);
 
-                if (!isChildScopeEqual) break;
+                if (!isChildScopeEqual)
+                {
+                    break;
+                }
             }
 
             return isChildScopeEqual;

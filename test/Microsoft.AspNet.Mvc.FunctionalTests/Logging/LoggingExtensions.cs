@@ -46,20 +46,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         /// <summary>
-        /// Gets all the logs messages matching the given structure type
+        /// Gets all the logs messages matching the given data type
         /// </summary>
         /// <param name="activities"></param>
-        /// <param name="structureType"></param>
         /// <returns></returns>
-        public static IEnumerable<LogInfoDto> GetLogsByStructureType(this IEnumerable<ActivityContextDto> activities,
-                                                                        Type structureType)
+        public static IEnumerable<LogInfoDto> GetLogsByDataType<T>(this IEnumerable<ActivityContextDto> activities)
         {
             var logInfos = new List<LogInfoDto>();
             foreach (var activity in activities)
             {
                 if (!activity.RepresentsScope)
                 {
-                    var logInfo = activity.Root.Messages.OfStructureType(structureType)
+                    var logInfo = activity.Root.Messages.OfDataType<T>()
                                                         .FirstOrDefault();
 
                     if (logInfo != null)
@@ -69,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 }
                 else
                 {
-                    GetLogsByStructureType(activity.Root, logInfos, structureType);
+                    GetLogsByDataType<T>(activity.Root, logInfos);
                 }
             }
 
@@ -102,35 +100,32 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         /// <summary>
-        /// Filters the log messages based on the given structure type
+        /// Filters the log messages based on the given data type
         /// </summary>
         /// <param name="logInfos"></param>
-        /// <param name="structureType"></param>
         /// <returns></returns>
-        public static IEnumerable<LogInfoDto> OfStructureType(this IEnumerable<LogInfoDto> logInfos,
-                                                            Type structureType)
+        public static IEnumerable<LogInfoDto> OfDataType<T>(this IEnumerable<LogInfoDto> logInfos)
         {
             return logInfos.Where(logInfo => logInfo.StateType != null
-                                            && logInfo.StateType.Equals(structureType));
+                                            && logInfo.StateType.Equals(typeof(T)));
         }
 
         /// <summary>
         /// Traverses through the log node tree and gets the log messages whose StateType
-        /// matches the supplied structure type.
+        /// matches the supplied data type.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="logInfoDtos"></param>
-        /// <param name="structureType"></param>
-        private static void GetLogsByStructureType(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos, Type structureType)
+        private static void GetLogsByDataType<T>(ScopeNodeDto node, IList<LogInfoDto> logInfoDtos)
         {
-            foreach (var logInfo in node.Messages.OfStructureType(structureType))
+            foreach (var logInfo in node.Messages.OfDataType<T>())
             {
                 logInfoDtos.Add(logInfo);
             }
 
             foreach (var scopeNode in node.Children)
             {
-                GetLogsByStructureType(scopeNode, logInfoDtos, structureType);
+                GetLogsByDataType<T>(scopeNode, logInfoDtos);
             }
         }
 

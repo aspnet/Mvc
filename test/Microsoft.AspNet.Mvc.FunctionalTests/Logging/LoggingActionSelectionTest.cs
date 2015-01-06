@@ -31,20 +31,21 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var requestTraceId = Guid.NewGuid().ToString();
 
             // Act
-            var response = await client.GetAsync(string.Format("http://localhost/home/index?{0}={1}",
-                                                        LoggingExtensions.RequestTraceIdQueryKey, requestTraceId));
+            var response = await client.GetAsync(string.Format(
+                                                        "http://localhost/home/index?{0}={1}",
+                                                        LoggingExtensions.RequestTraceIdQueryKey, 
+                                                        requestTraceId));
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseData = await response.Content.ReadAsStringAsync();
             Assert.Equal("Home.Index", responseData);
 
-            //get logs 
             var logs = await GetLogsAsync(client, requestTraceId);
             var scopeNode = logs.FindScope(nameof(MvcRouteHandler) + ".RouteAsync");
 
             Assert.NotNull(scopeNode);
-            var logInfo = scopeNode.Messages.OfStructureType(typeof(MvcRouteHandlerRouteAsyncValues))
+            var logInfo = scopeNode.Messages.OfDataType<MvcRouteHandlerRouteAsyncValues>()
                                             .FirstOrDefault();
                         
             Assert.NotNull(logInfo);
@@ -65,18 +66,19 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var requestTraceId = Guid.NewGuid().ToString();
 
             // Act
-            var response = await client.GetAsync(string.Format("http://localhost/InvalidController/InvalidAction?{0}={1}",
-                                                        LoggingExtensions.RequestTraceIdQueryKey, requestTraceId));
+            var response = await client.GetAsync(string.Format(
+                                                        "http://localhost/InvalidController/InvalidAction?{0}={1}",
+                                                        LoggingExtensions.RequestTraceIdQueryKey, 
+                                                        requestTraceId));
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 
-            //get logs
             var logs = await GetLogsAsync(client, requestTraceId);
             var scopeNode = logs.FindScope(nameof(MvcRouteHandler) + ".RouteAsync");
 
             Assert.NotNull(scopeNode);
-            var logInfo = scopeNode.Messages.OfStructureType(typeof(MvcRouteHandlerRouteAsyncValues))
+            var logInfo = scopeNode.Messages.OfDataType<MvcRouteHandlerRouteAsyncValues>()
                                             .FirstOrDefault();
             Assert.NotNull(logInfo);
 
