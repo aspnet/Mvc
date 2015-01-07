@@ -49,6 +49,15 @@ namespace ModelBindingWebSite.Controllers
             return person;
         }
 
+        public IActionResult ActionWithCustomModelBinder(Person2 person)
+        {
+            if (!ModelState.IsValid)
+            {
+                return HttpBadRequest();
+            }
+            return Created("", person);
+        }
+
         public Customer GetCustomer(int id)
         {
             var customer = CreateCustomer(id);

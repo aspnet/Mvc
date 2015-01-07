@@ -1327,5 +1327,34 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedContent, body);
         }
+
+        [Fact]
+        public async Task TypeSpecificModelBinder_CanBind()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post,
+                string.Format("http://localhost/Home/ActionWithCustomModelBinder"));
+            var nameValueCollection = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string,string>("FirstName", "Foo"),
+                new KeyValuePair<string,string>("LastName", "Bar"),
+            };
+
+            request.Content = new FormUrlEncodedContent(nameValueCollection);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(
+                "{\"FirstName\":\"Foo\"," +
+                "\"LastName\":\"Bar\"," +
+                "\"FullName\":\"Foo Bar\"}",
+                await response.Content.ReadAsStringAsync());
+        }
     }
 }

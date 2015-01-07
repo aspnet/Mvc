@@ -23,6 +23,9 @@ namespace ModelBindingWebSite
                         {
                             m.MaxModelValidationErrors = 8;
                             m.ModelBinders.Insert(0, typeof(TestMetadataAwareBinder));
+
+                            // Registering custom model binder
+                            m.ModelBinders.Add(typeof(Person2), new PersonModelBinder());
                         });
 
                 services.AddSingleton<ICalculator, DefaultCalculator>();
