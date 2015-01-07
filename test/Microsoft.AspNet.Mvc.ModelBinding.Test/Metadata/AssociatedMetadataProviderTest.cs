@@ -233,6 +233,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Same(model, metadata[2].Container);
         }
 
+        [Fact]
+        public void GetMetadataForPropertiesFromModelMetadataType()
+        {
+            // Arrange
+            var model = new PropertyModel { LocalAttributes = 8, MetadataAttributes = "hello", MixedAttributes = 21.12 };
+            var provider = new TestableAssociatedMetadataProvider();
+
+            // Act
+            // Call ToList() to force the lazy evaluation to evaluate
+            provider.GetMetadataForProperties(model, typeof(PropertyViewModel)).ToList();
+
+            // Assert
+            var local = Assert.Single(
+                provider.CreateMetadataPrototypeLog,
+                m => m.ContainerType == typeof(PropertyModel) && m.PropertyName == "LocalAttributes");
+            Assert.Equal(typeof(int), local.ModelType);
+            Assert.True(local.Attributes.Any(a => a is RequiredAttribute));
+            Assert.True(local.Attributes.Any(a => a is RangeAttribute));
+
+            var metadata = Assert.Single(
+                provider.CreateMetadataPrototypeLog,
+                m => m.ContainerType == typeof(PropertyModel) && m.PropertyName == "MetadataAttributes");
+            Assert.Equal(typeof(string), metadata.ModelType);
+            Assert.True(metadata.Attributes.Any(a => a is RangeAttribute));
+            var rangeAttr = (RangeAttribute)metadata.Attributes.Where(a => a is RangeAttribute).FirstOrDefault();
+            Assert.Equal(0, (int)rangeAttr.Minimum);
+            Assert.Equal(10, (int)rangeAttr.Maximum);
+
+            var mixed = Assert.Single(
+                provider.CreateMetadataPrototypeLog,
+                m => m.ContainerType == typeof(PropertyModel) && m.PropertyName == "MixedAttributes");
+            Assert.Equal(typeof(double), mixed.ModelType);
+            Assert.True(mixed.Attributes.Any(a => a is RequiredAttribute));
+            Assert.True(mixed.Attributes.Any(a => a is RangeAttribute));
+        }
+
         // Helpers
 
         private class PropertyModel
@@ -245,6 +281,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             [Required]
             [Range(10, 100)]
+            public double MixedAttributes { get; set; }
+        }
+
+        [ModelMetadataType(typeof(PropertyModel))]
+        private class PropertyViewModel
+        {
+            [Range(0, 10)]
+            public int LocalAttributes { get; set; }
+
+            [Range(0, 10)]
+            public string MetadataAttributes { get; set; }
+
             public double MixedAttributes { get; set; }
         }
 

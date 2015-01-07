@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -157,7 +158,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private TModelMetadata CreateTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes)
         {
-            var attributes = type.GetTypeInfo().GetCustomAttributes();
+            var attributes = ModelAttributes.GetModelMetadataAttributesForType(type);
             if (associatedAttributes != null)
             {
                 attributes = attributes.Concat(associatedAttributes);
@@ -169,10 +170,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private PropertyInformation CreatePropertyInformation(Type containerType, PropertyHelper helper)
         {
             var property = helper.Property;
+            var attributes = ModelAttributes.GetAttributesForProperty(containerType, property);
+
             return new PropertyInformation
             {
                 PropertyHelper = helper,
-                Prototype = CreateMetadataPrototype(ModelAttributes.GetAttributesForProperty(property),
+                Prototype = CreateMetadataPrototype(attributes,
                                                     containerType,
                                                     property.PropertyType,
                                                     property.Name),
