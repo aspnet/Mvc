@@ -49,7 +49,7 @@ namespace ModelBindingWebSite.Controllers
             return person;
         }
 
-        public IActionResult ActionWithCustomModelBinder(Person2 person)
+        public IActionResult CreatePerson(Person2 person)
         {
             if (!ModelState.IsValid)
             {

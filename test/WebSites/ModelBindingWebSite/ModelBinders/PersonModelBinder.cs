@@ -14,7 +14,7 @@ namespace ModelBindingWebSite
             }
 
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
-            var form = await request.GetFormAsync();
+            var form = await request.ReadFormAsync();
 
             var person = new Person2();
             person.FirstName = form.Get("FirstName");

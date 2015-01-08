@@ -1336,7 +1336,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(HttpMethod.Post,
-                string.Format("http://localhost/Home/ActionWithCustomModelBinder"));
+                string.Format("http://localhost/Home/CreatePerson"));
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string,string>("FirstName", "Foo"),
