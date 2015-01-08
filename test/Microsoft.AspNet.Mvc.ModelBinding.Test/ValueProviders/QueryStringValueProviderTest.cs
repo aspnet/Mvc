@@ -6,12 +6,12 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.WebUtilities.Collections;
+using Microsoft.AspNet.PipelineCore.Collections;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
-    public class ReadableStringCollectionValueProviderTest
+    public class QueryStringValueProviderTest
     {
         private static readonly IReadableStringCollection _backingStore = new ReadableStringCollection(
             new Dictionary<string, string[]>
@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var backingStore = new ReadableStringCollection(new Dictionary<string, string[]>());
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(backingStore, null);
+            var valueProvider = new QueryStringValueProvider(backingStore, null);
 
             // Act
             var result = await valueProvider.ContainsPrefixAsync("");
@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task ContainsPrefixAsync_WithNonEmptyCollection_ReturnsTrueForEmptyPrefix()
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act
             var result = await valueProvider.ContainsPrefixAsync("");
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task ContainsPrefixAsync_WithNonEmptyCollection_ReturnsTrueForKnownPrefixes()
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act & Assert
             Assert.True(await valueProvider.ContainsPrefixAsync("foo"));
@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task ContainsPrefixAsync_WithNonEmptyCollection_ReturnsFalseForUnknownPrefix()
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act
             var result = await valueProvider.ContainsPrefixAsync("biff");
@@ -85,7 +85,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "null_value", "null_value" },
                 { "prefix", "prefix" }
             };
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, culture: null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, culture: null);
 
             // Act
             var result = await valueProvider.GetKeysFromPrefixAsync("");
@@ -98,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task GetKeysFromPrefixAsync_UnknownPrefix_ReturnsEmptyDictionary()
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act
             var result = await valueProvider.GetKeysFromPrefixAsync("abc");
@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task GetKeysFromPrefixAsync_KnownPrefix_ReturnsMatchingItems()
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act
             var result = await valueProvider.GetKeysFromPrefixAsync("bar");
@@ -127,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, culture);
+            var valueProvider = new QueryStringValueProvider(_backingStore, culture);
 
             // Act
             var vpResult = await valueProvider.GetValueAsync("bar.baz");
@@ -144,7 +144,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, culture);
+            var valueProvider = new QueryStringValueProvider(_backingStore, culture);
 
             // Act
             var vpResult = await valueProvider.GetValueAsync("foo");
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, culture);
+            var valueProvider = new QueryStringValueProvider(_backingStore, culture);
 
             // Act
             var result = await valueProvider.GetValueAsync(key);
@@ -182,7 +182,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     { "key", new string[] { null, null, "value" } }
                 });
             var culture = new CultureInfo("fr-FR");
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(backingStore, culture);
+            var valueProvider = new QueryStringValueProvider(backingStore, culture);
 
             // Act
             var vpResult = await valueProvider.GetValueAsync("key");
@@ -196,7 +196,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task GetValueAsync_ReturnsNullIfKeyNotFound()
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act
             var vpResult = await valueProvider.GetValueAsync("bar");
@@ -219,17 +219,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public void FilterReturnsItself_ForAnyClassRegisteredAsGenericParam(IValueProviderMetadata metadata)
         {
             // Arrange
-            var valueProvider = new ReadableStringCollectionValueProvider<TestValueProviderMetadata>(_backingStore, null);
+            var valueProvider = new QueryStringValueProvider(_backingStore, null);
 
             // Act
             var result = valueProvider.Filter(metadata);
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsType<ReadableStringCollectionValueProvider<TestValueProviderMetadata>>(result);
+            Assert.IsType<QueryStringValueProvider>(result);
         }
 
-        private class TestValueProviderMetadata : IValueProviderMetadata
+        private class TestValueProviderMetadata : IQueryValueProviderMetadata
         {
         }
 

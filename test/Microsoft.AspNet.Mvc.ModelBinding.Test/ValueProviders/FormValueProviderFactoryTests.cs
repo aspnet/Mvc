@@ -42,15 +42,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = factory.GetValueProvider(context);
 
             // Assert
-            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider<IFormDataValueProviderMetadata>>(result);
+            var valueProvider = Assert.IsType<FormCollectionValueProvider>(result);
             Assert.Equal(CultureInfo.CurrentCulture, valueProvider.Culture);
         }
 
         private static ValueProviderFactoryContext CreateContext(string contentType)
         {
-            var collection = Mock.Of<IReadableStringCollection>();
+            var collection = Mock.Of<IFormCollection>();
             var request = new Mock<HttpRequest>();
-            request.Setup(f => f.GetFormAsync(CancellationToken.None)).Returns(Task.FromResult(collection));
+            request.Setup(f => f.ReadFormAsync(CancellationToken.None)).Returns(Task.FromResult(collection));
             request.SetupGet(r => r.ContentType).Returns(contentType);
 
             var context = new Mock<HttpContext>();

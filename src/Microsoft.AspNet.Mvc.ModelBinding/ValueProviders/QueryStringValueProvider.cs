@@ -11,13 +11,13 @@ using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public class ReadableStringCollectionValueProvider<TBinderMetadata> :
-        MetadataAwareValueProvider<TBinderMetadata>, IEnumerableValueProvider
-        where TBinderMetadata : IValueProviderMetadata
+    public class QueryStringValueProvider :
+        MetadataAwareValueProvider<IQueryValueProviderMetadata>,
+        IEnumerableValueProvider
     {
         private readonly CultureInfo _culture;
-        private readonly Func<Task<IReadableStringCollection>> _valuesFactory;
         private PrefixContainer _prefixContainer;
+        private readonly Func<Task<IReadableStringCollection>> _valuesFactory;
         private IReadableStringCollection _values;
 
         /// <summary>
@@ -25,13 +25,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="values">The key value pairs to wrap.</param>
         /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
-        public ReadableStringCollectionValueProvider([NotNull] IReadableStringCollection values, CultureInfo culture)
+        public QueryStringValueProvider([NotNull] IReadableStringCollection values, CultureInfo culture)
         {
             _values = values;
             _culture = culture;
         }
 
-        public ReadableStringCollectionValueProvider([NotNull] Func<Task<IReadableStringCollection>> valuesFactory,
+        public QueryStringValueProvider([NotNull] Func<Task<IReadableStringCollection>> valuesFactory,
                                                      CultureInfo culture)
         {
             _valuesFactory = valuesFactory;

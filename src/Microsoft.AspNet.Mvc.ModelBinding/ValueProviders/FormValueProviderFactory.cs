@@ -19,8 +19,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (IsSupportedContentType(request))
             {
                 var culture = GetCultureInfo(request);
-                return new ReadableStringCollectionValueProvider<IFormDataValueProviderMetadata>(
-                    () => request.GetFormAsync(),
+                return new FormCollectionValueProvider(
+                    () => request.ReadFormAsync(),
                     culture);
             }
 
