@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
-    public class CacheTagHelpersTest
+    public class CacheTagHelperTest
     {
         [Fact]
         public void GenerateKey_ReturnsKeyBasedOnTagHelperUniqueId()
@@ -41,17 +41,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expected, key);
         }
 
-        [Fact]
-        public void GenerateKey_UsesVaryByPropertyToGenerateKey()
+        [Theory]
+        [InlineData("Vary-By-Value")]
+        [InlineData("Vary  with spaces")]
+        [InlineData("  Vary  with more spaces   ")]
+        public void GenerateKey_UsesVaryByPropertyToGenerateKey(string varyBy)
         {
             // Arrange
             var tagHelperContext = GetTagHelperContext();
             var cacheTagHelper = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
-                VaryBy = "Vary-By-Value"
+                VaryBy = varyBy
             };
-            var expected = GetHashedBytes("CacheTagHelper||testid||VaryBy||Vary-By-Value");
+            var expected = GetHashedBytes("CacheTagHelper||testid||VaryBy||" + varyBy);
 
             // Act
             var key = cacheTagHelper.GenerateKey(tagHelperContext);
@@ -63,6 +66,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Theory]
         [InlineData("Cookie0", "CacheTagHelper||testid||VaryByCookie(Cookie0||Cookie0Value)")]
         [InlineData("Cookie0,Cookie1",
+                    "CacheTagHelper||testid||VaryByCookie(Cookie0||Cookie0Value||Cookie1||Cookie1Value)")]
+        [InlineData("Cookie0, Cookie1",
+                    "CacheTagHelper||testid||VaryByCookie(Cookie0||Cookie0Value||Cookie1||Cookie1Value)")]
+        [InlineData("   Cookie0,   ,   Cookie1   ",
                     "CacheTagHelper||testid||VaryByCookie(Cookie0||Cookie0Value||Cookie1||Cookie1Value)")]
         [InlineData(",Cookie0,,Cookie1,",
                     "CacheTagHelper||testid||VaryByCookie(Cookie0||Cookie0Value||Cookie1||Cookie1Value)")]
@@ -87,7 +94,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         [Theory]
         [InlineData("Accept-Language", "CacheTagHelper||testid||VaryByHeader(Accept-Language||en-us;charset=utf8)")]
-        [InlineData("X-CustomHeader,Accept-Encoding,NotAvailable",
+        [InlineData("X-CustomHeader,Accept-Encoding, NotAvailable",
+         "CacheTagHelper||testid||VaryByHeader(X-CustomHeader||Header-Value||Accept-Encoding||utf8||NotAvailable||)")]
+        [InlineData("X-CustomHeader,  , Accept-Encoding, NotAvailable",
          "CacheTagHelper||testid||VaryByHeader(X-CustomHeader||Header-Value||Accept-Encoding||utf8||NotAvailable||)")]
         public void GenerateKey_UsesVaryByHeader(string varyByHeader, string expected)
         {
@@ -114,6 +123,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [InlineData("category", "CacheTagHelper||testid||VaryByQuery(category||cats)")]
         [InlineData("Category,SortOrder,SortOption",
             "CacheTagHelper||testid||VaryByQuery(Category||cats||SortOrder||||SortOption||Adorability)")]
+        [InlineData("Category,  SortOrder, SortOption,  ",
+            "CacheTagHelper||testid||VaryByQuery(Category||cats||SortOrder||||SortOption||Adorability)")]
         public void GenerateKey_UsesVaryByQuery(string varyByQuery, string expected)
         {
             // Arrange
@@ -136,6 +147,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Theory]
         [InlineData("id", "CacheTagHelper||testid||VaryByRoute(id||4)")]
         [InlineData("Category,,Id,OptionRouteValue",
+            "CacheTagHelper||testid||VaryByRoute(Category||MyCategory||Id||4||OptionRouteValue||)")]
+        [InlineData(" Category,  , Id,   OptionRouteValue,   ",
             "CacheTagHelper||testid||VaryByRoute(Category||MyCategory||Id||4||OptionRouteValue||)")]
         public void GenerateKey_UsesVaryByRoute(string varyByRoute, string expected)
         {
@@ -263,7 +276,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act - 2
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
-            // Assert - 1
+            // Assert - 2
             Assert.Null(tagHelperOutput2.PreContent);
             Assert.Null(tagHelperOutput2.PostContent);
             Assert.True(tagHelperOutput2.ContentSet);
@@ -319,7 +332,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act - 2
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
-            // Assert - 1
+            // Assert - 2
             Assert.Null(tagHelperOutput2.PreContent);
             Assert.Null(tagHelperOutput2.PostContent);
             Assert.True(tagHelperOutput2.ContentSet);
@@ -466,7 +479,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act - 2
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
-            // Assert - 1
+            // Assert - 2
             Assert.Null(tagHelperOutput2.PreContent);
             Assert.Null(tagHelperOutput2.PostContent);
             Assert.True(tagHelperOutput2.ContentSet);
@@ -525,7 +538,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act - 2
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
-            // Assert - 1
+            // Assert - 2
             Assert.Null(tagHelperOutput2.PreContent);
             Assert.Null(tagHelperOutput2.PostContent);
             Assert.True(tagHelperOutput2.ContentSet);
@@ -584,7 +597,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act - 2
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
-            // Assert - 1
+            // Assert - 2
             Assert.Null(tagHelperOutput2.PreContent);
             Assert.Null(tagHelperOutput2.PostContent);
             Assert.True(tagHelperOutput2.ContentSet);

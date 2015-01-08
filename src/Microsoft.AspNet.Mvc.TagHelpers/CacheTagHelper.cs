@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,27 +18,30 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// </summary>
     public class CacheTagHelper : TagHelper
     {
-        private const string VaryByAttributeName = "asp-vary-by";
-        private const string VaryByHeaderAttributeName = "asp-vary-by-header";
-        private const string VaryByQueryAttributeName = "asp-vary-by-query";
-        private const string VaryByRouteAttributeName = "asp-vary-by-route";
-        private const string VaryByCookieAttributeName = "asp-vary-by-route";
-        private const string VaryByUserAttributeName = "asp-vary-by-user";
-        private const string ExpiresOnAttributeName = "asp-expires-on";
-        private const string ExpiresAfterAttributeName = "asp-expires-after";
-        private const string ExpiresSlidingAttributeName = "asp-expires-sliding";
-        private const string CachePriorityAttributeName = "asp-priority";
+        private const string VaryByAttributeName = "vary-by";
+        private const string VaryByHeaderAttributeName = "vary-by-header";
+        private const string VaryByQueryAttributeName = "vary-by-query";
+        private const string VaryByRouteAttributeName = "vary-by-route";
+        private const string VaryByCookieAttributeName = "vary-by-cookie";
+        private const string VaryByUserAttributeName = "vary-by-user";
+        private const string ExpiresOnAttributeName = "expires-on";
+        private const string ExpiresAfterAttributeName = "expires-after";
+        private const string ExpiresSlidingAttributeName = "expires-sliding";
+        private const string CachePriorityAttributeName = "priority";
         private const string CacheKeyTokenSeparator = "||";
         private static readonly char[] AttributeSeparator = new[] { ',' };
 
+        /// <summary>
+        /// Gets or sets the <see cref="IMemoryCache"/> instance used to cache entries.
+        /// </summary>
         [Activate]
-        public IMemoryCache MemoryCache { get; set; }
+        protected internal IMemoryCache MemoryCache { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="ViewContext"/> for the current executing View.
         /// </summary>
         [Activate]
-        public ViewContext ViewContext { get; set; }
+        protected internal ViewContext ViewContext { get; set; }
 
         /// <summary>
         /// Gets or sets a <see cref="string" /> to vary the cached result by.
@@ -66,11 +70,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// Gets or sets a comma-delimited set of cookie names to vary the cached result by.
         /// </summary>
-        [HtmlAttributeName(VaryByRouteAttributeName)]
+        [HtmlAttributeName(VaryByCookieAttributeName)]
         public string VaryByCookie { get; set; }
 
         /// <summary>
-        /// Gets or sets a value that determines if the content is to be varied by the Identity for the logged in 
+        /// Gets or sets a value that determines if the cached result is to be varied by the Identity for the logged in
         /// <see cref="HttpContext.User"/>.
         /// </summary>
         [HtmlAttributeName(VaryByUserAttributeName)]
@@ -83,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public DateTimeOffset? ExpiresOn { get; set; }
 
         /// <summary>
-        /// Gets or sets the duration from the time the cache entry when it should be evicted.
+        /// Gets or sets the duration, from the time the cache entry was added, when it should be evicted.
         /// </summary>
         [HtmlAttributeName(ExpiresAfterAttributeName)]
         public TimeSpan? ExpiresAfter { get; set; }
@@ -133,15 +137,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (!string.IsNullOrEmpty(VaryBy))
             {
                 builder.Append(CacheKeyTokenSeparator)
-                        .Append(nameof(VaryBy))
-                        .Append(CacheKeyTokenSeparator)
-                        .Append(VaryBy);
+                       .Append(nameof(VaryBy))
+                       .Append(CacheKeyTokenSeparator)
+                       .Append(VaryBy);
             }
 
-            BuildStringCollectionKey(builder, nameof(VaryByCookie), VaryByCookie, request.Cookies);
-            BuildStringCollectionKey(builder, nameof(VaryByHeader), VaryByHeader, request.Headers);
-            BuildStringCollectionKey(builder, nameof(VaryByQuery), VaryByQuery, request.Query);
-            BuildVaryByRouteKey(builder);
+            AddStringCollectionKey(builder, nameof(VaryByCookie), VaryByCookie, request.Cookies);
+            AddStringCollectionKey(builder, nameof(VaryByHeader), VaryByHeader, request.Headers);
+            AddStringCollectionKey(builder, nameof(VaryByQuery), VaryByQuery, request.Query);
+            AddVaryByRouteKey(builder);
 
             if (VaryByUser)
             {
@@ -186,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        private static void BuildStringCollectionKey(StringBuilder builder,
+        private static void AddStringCollectionKey(StringBuilder builder,
                                                      string keyName,
                                                      string value,
                                                      IReadableStringCollection sourceCollection)
@@ -195,8 +199,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 // keyName(param1=value1|param2=value2)
                 builder.Append(CacheKeyTokenSeparator)
-                        .Append(keyName)
-                        .Append("(");
+                       .Append(keyName)
+                       .Append("(");
 
                 var tokenFound = false;
                 foreach (var item in Tokenize(value))
@@ -219,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        private void BuildVaryByRouteKey(StringBuilder builder)
+        private void AddVaryByRouteKey(StringBuilder builder)
         {
             var tokenFound = false;
 
@@ -250,17 +254,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private static IEnumerable<string> Tokenize(string value)
         {
-            var index = 0;
-            do
-            {
-                var nextIndex = value.IndexOf(',', index);
-                var length = nextIndex == -1 ? value.Length - index : nextIndex - index;
-                if (length > 0)
-                {
-                    yield return value.Substring(index, length);
-                }
-                index = nextIndex + 1;
-            } while (index != 0);
+            return value.Split(AttributeSeparator, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(token => token.Trim())
+                        .Where(token => token.Length > 0);
         }
     }
 }
