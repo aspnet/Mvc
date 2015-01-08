@@ -560,12 +560,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return context.Object;
         }
 
-        private static IContextAccessor<ActionContext> CreateActionContext(HttpContext context)
+        private static IScopeLocal<ActionContext> CreateActionContext(HttpContext context)
         {
             return CreateActionContext(context, (new Mock<IRouter>()).Object);
         }
 
-        private static IContextAccessor<ActionContext> CreateActionContext(HttpContext context, IRouter router)
+        private static IScopeLocal<ActionContext> CreateActionContext(HttpContext context, IRouter router)
         {
             var routeData = new RouteData();
             routeData.Routers.Add(router);
@@ -573,7 +573,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var actionContext = new ActionContext(context,
                                                   routeData,
                                                   new ActionDescriptor());
-            var contextAccessor = new Mock<IContextAccessor<ActionContext>>();
+            var contextAccessor = new Mock<IScopeLocal<ActionContext>>();
             contextAccessor.SetupGet(c => c.Value)
                            .Returns(actionContext);
             return contextAccessor.Object;
@@ -599,7 +599,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        private static UrlHelper CreateUrlHelper(IContextAccessor<ActionContext> contextAccessor)
+        private static UrlHelper CreateUrlHelper(IScopeLocal<ActionContext> contextAccessor)
         {
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(contextAccessor, actionSelector.Object);
