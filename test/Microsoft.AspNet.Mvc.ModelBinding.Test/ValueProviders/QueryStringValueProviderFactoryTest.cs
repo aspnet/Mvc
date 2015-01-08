@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = _factory.GetValueProvider(factoryContext);
 
             // Assert
-            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider<IQueryValueProviderMetadata>>(result);
+            var valueProvider = Assert.IsType<QueryStringValueProvider>(result);
             Assert.Equal(CultureInfo.InvariantCulture, valueProvider.Culture);
         }
 #endif
