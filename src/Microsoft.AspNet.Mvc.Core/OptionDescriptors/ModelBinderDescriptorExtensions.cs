@@ -97,5 +97,23 @@ namespace Microsoft.AspNet.Mvc
             descriptors.Add(descriptor);
             return descriptor;
         }
+
+        /// <summary>
+        /// Adds a <see cref="TypeSpecificModelBinder"/> to a descriptor collection.
+        /// </summary>
+        /// <param name="descriptors">A list of ModelBinderDescriptors.</param>
+        /// <param name="type">The model type that the given instance should bind with.</param>
+        /// <param name="modelBinderProvider">An <see cref="IModelBinderProvider"/> instance.</param>
+        /// <returns>The <see cref="ModelBinderDescriptor"/> representing the added instance.</returns>
+        public static ModelBinderDescriptor Add([NotNull] this IList<ModelBinderDescriptor> descriptors,
+                                                [NotNull] Type type,
+                                                [NotNull] IModelBinderProvider modelBinderprovider)
+        {
+            var compositeBinder = new CompositeModelBinder(modelBinderprovider);
+            var typeModelBinder = new TypeSpecificModelBinder(type, compositeBinder);
+            var descriptor = new ModelBinderDescriptor(typeModelBinder);
+            descriptors.Add(descriptor);
+            return descriptor;
+        }
     }
 }

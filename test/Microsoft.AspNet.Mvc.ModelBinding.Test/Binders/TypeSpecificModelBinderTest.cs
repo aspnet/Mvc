@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "FirstName", "Foo" },
                 { "LastName", "Bar" }
             };
-            ModelBindingContext bindingContext = GetBindingContext(valueProvider, typeof(Person));
+            var bindingContext = GetBindingContext(valueProvider, typeof(Person));
 
             // Act
             var retVal = await binder.BindModelAsync(bindingContext);
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "FirstName", "Foo" },
                 { "LastName", "Bar" }
             };
-            ModelBindingContext bindingContext = GetBindingContext(valueProvider, typeof(string));
+            var bindingContext = GetBindingContext(valueProvider, typeof(string));
 
             // Act
             var retVal = await binder.BindModelAsync(bindingContext);
@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         private static ModelBindingContext GetBindingContext(IValueProvider valueProvider, Type type)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            ModelBindingContext bindingContext = new ModelBindingContext
+            var bindingContext = new ModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(null, type),
                 ValueProvider = valueProvider

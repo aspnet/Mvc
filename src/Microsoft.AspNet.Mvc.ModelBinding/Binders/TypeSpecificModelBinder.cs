@@ -41,7 +41,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 return false;
             }
-            return await ModelBinder.BindModelAsync(bindingContext);
+            await ModelBinder.BindModelAsync(bindingContext);
+            return true;
         }
     }
 }
