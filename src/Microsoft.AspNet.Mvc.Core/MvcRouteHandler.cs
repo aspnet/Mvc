@@ -116,11 +116,6 @@ namespace Microsoft.AspNet.Mvc
             await invoker.InvokeAsync();
         }
 
-        private ActionContext PreventExchange(ActionContext contex)
-        {
-            throw new InvalidOperationException(Resources.ActionContextAccessor_SetValueNotSupported);
-        }
-
         private void EnsureLogger(HttpContext context)
         {
             if (_logger == null)
