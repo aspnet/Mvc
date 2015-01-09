@@ -14,7 +14,7 @@ namespace RoutingWebSite
     {
         private readonly ActionContext _actionContext;
 
-        public TestResponseGenerator(IContextAccessor<ActionContext> contextAccessor)
+        public TestResponseGenerator(IScopeLocal<ActionContext> contextAccessor)
         {
             _actionContext = contextAccessor.Value;
             if (_actionContext == null)
