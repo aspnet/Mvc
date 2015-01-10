@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc
             var optionsAccessor = services.GetRequiredService<IOptions<MvcOptions>>();
             actionContext.ModelState.MaxAllowedErrors = optionsAccessor.Options.MaxModelValidationErrors;
 
-            var contextAccessor = services.GetRequiredService<IScopeLocal<ActionContext>>();
+            var contextAccessor = services.GetRequiredService<IScopedInstance<ActionContext>>();
             contextAccessor.Value = actionContext;
             var invokerFactory = services.GetRequiredService<IActionInvokerFactory>();
             var invoker = invokerFactory.CreateInvoker(actionContext);

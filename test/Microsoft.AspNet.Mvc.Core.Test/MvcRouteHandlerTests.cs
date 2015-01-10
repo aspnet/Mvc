@@ -246,7 +246,7 @@ namespace Microsoft.AspNet.Mvc
             ILoggerFactory loggerFactory = null,
             IOptions<MvcOptions> optionsAccessor = null)
         {
-            var mockContextAccessor = new Mock<IScopeLocal<ActionContext>>();
+            var mockContextAccessor = new Mock<IScopedInstance<ActionContext>>();
 
             if (actionSelector == null)
             {
@@ -287,7 +287,7 @@ namespace Microsoft.AspNet.Mvc
             }
 
             var httpContext = new Mock<HttpContext>();
-            httpContext.Setup(h => h.RequestServices.GetService(typeof(IScopeLocal<ActionContext>)))
+            httpContext.Setup(h => h.RequestServices.GetService(typeof(IScopedInstance<ActionContext>)))
                 .Returns(mockContextAccessor.Object);
             httpContext.Setup(h => h.RequestServices.GetService(typeof(IActionSelector)))
                 .Returns(actionSelector);

@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext
                 .Setup(o => o.Request.Cookies)
                 .Returns(requestCookies.Object);
-            var contextAccessor = new ScopeLocal<AntiForgeryContext>();
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
             mockHttpContext.SetupGet(o => o.RequestServices)
                            .Returns(GetServiceProvider(contextAccessor));
             var config = new AntiForgeryOptions()
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext
                 .Setup(o => o.Request.Cookies)
                 .Returns(requestCookies.Object);
-            var contextAccessor = new ScopeLocal<AntiForgeryContext>();
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
             mockHttpContext.SetupGet(o => o.RequestServices)
                            .Returns(GetServiceProvider(contextAccessor));
 
@@ -275,7 +275,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var mockHttpContext = new Mock<HttpContext>();
             mockHttpContext.Setup(o => o.Response.Cookies)
                            .Returns(cookies);
-            var contextAccessor = new ScopeLocal<AntiForgeryContext>();
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
             mockHttpContext.SetupGet(o => o.RequestServices)
                            .Returns(GetServiceProvider(contextAccessor));
 
@@ -317,17 +317,17 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Request)
                            .Returns(request.Object);
 
-            var contextAccessor = new ScopeLocal<AntiForgeryContext>();
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
             mockHttpContext.SetupGet(o => o.RequestServices)
                            .Returns(GetServiceProvider(contextAccessor));
 
             return mockHttpContext.Object;
         }
 
-        private static IServiceProvider GetServiceProvider(IScopeLocal<AntiForgeryContext> contextAccessor)
+        private static IServiceProvider GetServiceProvider(IScopedInstance<AntiForgeryContext> contextAccessor)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddInstance<IScopeLocal<AntiForgeryContext>>(contextAccessor);
+            serviceCollection.AddInstance<IScopedInstance<AntiForgeryContext>>(contextAccessor);
             return serviceCollection.BuildServiceProvider();
         }
 

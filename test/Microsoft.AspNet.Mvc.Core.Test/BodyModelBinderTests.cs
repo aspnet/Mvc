@@ -128,12 +128,12 @@ namespace Microsoft.AspNet.Mvc
             return binder;
         }
 
-        private static IScopeLocal<ActionContext> CreateActionContext(HttpContext context)
+        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context)
         {
             return CreateActionContext(context, (new Mock<IRouter>()).Object);
         }
 
-        private static IScopeLocal<ActionContext> CreateActionContext(HttpContext context, IRouter router)
+        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context, IRouter router)
         {
             var routeData = new RouteData();
             routeData.Routers.Add(router);
@@ -141,7 +141,7 @@ namespace Microsoft.AspNet.Mvc
             var actionContext = new ActionContext(context,
                                                   routeData,
                                                   new ActionDescriptor());
-            var contextAccessor = new Mock<IScopeLocal<ActionContext>>();
+            var contextAccessor = new Mock<IScopedInstance<ActionContext>>();
             contextAccessor.SetupGet(c => c.Value)
                            .Returns(actionContext);
             return contextAccessor.Object;
