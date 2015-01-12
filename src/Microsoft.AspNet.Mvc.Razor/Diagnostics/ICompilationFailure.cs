@@ -7,10 +7,10 @@ using Microsoft.Framework.Runtime;
 namespace Microsoft.AspNet.Diagnostics
 {
     /// <summary>
-    /// Specifies the contracts for an exception that represents a compilation failure at runtime.
+    /// Specifies the contract for a file that fails compilation.
     /// </summary>
     [AssemblyNeutral]
-    public interface IRuntimeCompilationException
+    public interface ICompilationFailure
     {
         /// <summary>
         /// Path of the file that produced the compilation exception.
@@ -33,8 +33,8 @@ namespace Microsoft.AspNet.Diagnostics
         string CompiledContent { get; }
 
         /// <summary>
-        /// Gets a sequence of compilation error messages for this exception.
+        /// Gets a sequence of <see cref="ICompilationMessage"/> produced as a result of compilation.
         /// </summary>
-        IEnumerable<IRuntimeCompilationMessage> Messages { get; }
+        IEnumerable<ICompilationMessage> Messages { get; }
     }
 }

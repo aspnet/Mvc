@@ -6,10 +6,11 @@ using Microsoft.Framework.Runtime;
 namespace Microsoft.AspNet.Diagnostics
 {
     /// <summary>
-    /// Specifies the contracts for a compilation message produced as part of <see cref="IRuntimeCompilationException"/>.
+    /// Specifies the contract for diagnostic messages produced as result of compiling an instance
+    /// of <see cref="ICompilationFailure"/>.
     /// </summary>
     [AssemblyNeutral]
-    public interface IRuntimeCompilationMessage
+    public interface ICompilationMessage
     {
         /// <summary>
         /// Gets the error message.

@@ -15,10 +15,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         public void FailedResult_ThrowsWhenAccessingCompiledType()
         {
             // Arrange
-            var expected =
-@"Compilation for 'myfile' failed:
-hello
-world";
+            var expected = @"Error compiling page at 'myfile'.";
             var originalContent = "Original file content";
             var fileInfo = new Mock<IFileInfo>();
             fileInfo.SetupGet(f => f.PhysicalPath)
@@ -38,7 +35,9 @@ world";
             // Act and Assert
             var ex = Assert.Throws<CompilationFailedException>(() => result.CompiledType);
             Assert.Equal(expected, ex.Message);
-            Assert.Equal(originalContent, ex.SourceFileContent);
+            var compilationFailure = Assert.Single(ex.CompilationFailures);
+            Assert.Equal(originalContent, compilationFailure.SourceFileContent);
+            Assert.Equal(messages, compilationFailure.Messages);
         }
     }
 }

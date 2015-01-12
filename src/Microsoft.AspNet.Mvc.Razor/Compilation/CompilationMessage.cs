@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <summary>
     /// Represents a message encountered during compilation.
     /// </summary>
-    public class CompilationMessage : IRuntimeCompilationMessage
+    public class CompilationMessage : ICompilationMessage
     {
         /// <summary>
         /// Initializes a <see cref="CompilationMessage"/> with the specified message.
