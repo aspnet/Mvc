@@ -13,6 +13,11 @@ namespace TagHelperSample.Web
         {
             app.UseServices(services =>
             {
+                services.Configure<MvcOptions>(options =>
+                {
+                    options.AddXmlDataContractSerializerFormatter();
+                });
+
                 services.AddMvc();
 
                 // Setup services with a test AssemblyProvider so that only the sample's assemblies are loaded. This
