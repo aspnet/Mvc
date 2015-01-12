@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Routing;
@@ -155,7 +156,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             {
                 foreach (var parameterInfo in actionModel.ActionMethod.GetParameters())
                 {
-                    var parameterModel = CreateParameterModel(parameterInfo);
+                    var parameterModel = CreateParameterModel(parameterInfo, actionModel.ActionName);
                     if (parameterModel != null)
                     {
                         parameterModel.Action = actionModel;
@@ -306,14 +307,23 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         /// </summary>
         /// <param name="parameterInfo">The <see cref="ParameterInfo"/>.</param>
         /// <returns>A <see cref="ParameterModel"/> for the given <see cref="ParameterInfo"/>.</returns>
-        protected virtual ParameterModel CreateParameterModel([NotNull] ParameterInfo parameterInfo)
+        protected virtual ParameterModel CreateParameterModel([NotNull] ParameterInfo parameterInfo, string actionName)
         {
             // CoreCLR returns IEnumerable<Attribute> from GetCustomAttributes - the OfType<object>
             // is needed to so that the result of ToArray() is object
             var attributes = parameterInfo.GetCustomAttributes(inherit: true).OfType<object>().ToArray();
             var parameterModel = new ParameterModel(parameterInfo, attributes);
 
-            parameterModel.BinderMetadata = attributes.OfType<IBinderMetadata>().FirstOrDefault();
+            var binderMetadatas = attributes.OfType<IBinderMetadata>().ToList();
+            if (binderMetadatas.Count > 1)
+            {
+                throw new InvalidOperationException(
+              Resources.FormatMultipleBinderMetadataAssociatedWithActionParameter(parameterInfo.Name, actionName));
+            }
+            else if (binderMetadatas.Count == 1)
+            {
+                parameterModel.BinderMetadata = binderMetadatas[0];
+            }
 
             parameterModel.ParameterName = parameterInfo.Name;
 

@@ -646,6 +646,22 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             Assert.Equal<string>(new string[] { "GET" }, action.HttpMethods);
         }
 
+        [Fact]
+        public void CreateParameterModel_MultipleBinderMetadataForAParameter_Throws()
+        {
+            // Arrange
+            var builder = new DefaultActionModelBuilder();
+            var typeInfo = typeof(MultipleBinderMetadataAtActionParameterLevel).GetTypeInfo();
+            var actionName = nameof(MultipleBinderMetadataAtActionParameterLevel.ActionWithMultipleBinderMetadata);
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => builder.BuildActionModels(typeInfo, typeInfo.GetMethod(actionName)));
+            Assert.Equal("More than one 'IBinderMetadata' is associated to the action parameter named 'parameter' "+
+                "and the action named 'ActionWithMultipleBinderMetadata'.",
+                exception.Message);
+        }
+
         private class AccessibleActionModelBuilder : DefaultActionModelBuilder
         {
             public new bool IsAction([NotNull] TypeInfo typeInfo, [NotNull]MethodInfo methodInfo)
@@ -892,6 +908,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             [HttpPut]
             [AcceptVerbs("GET", "POST")]
             public void List() { }
+        }
+
+        private class MultipleBinderMetadataAtActionParameterLevel
+        {
+            public void ActionWithMultipleBinderMetadata([FromHeader] [FromBody] string parameter)
+            {
+            }
         }
 
         private class CustomHttpMethodsAttribute : Attribute, IActionHttpMethodProvider

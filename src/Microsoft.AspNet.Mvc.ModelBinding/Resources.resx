@@ -126,6 +126,12 @@
   <data name="Common_PropertyNotFound" xml:space="preserve">
     <value>The property {0}.{1} could not be found.</value>
   </data>
+  <data name="MultipleBinderMetadataAreNotAllowed" xml:space="preserve">
+    <value>More than one 'IBinderMetadata' is associated to the model with type '{0}' and property name '{1}'.</value>
+  </data>
+  <data name="MultipleBinderMetadataAssociatedWithActionParameter" xml:space="preserve">
+    <value>the action parameter named '{0}' and the action named '{1}'.</value>
+  </data>
   <data name="Common_ParameterNotFound" xml:space="preserve">
     <value>The parameter '{0}' could not be found.</value>
   </data>
