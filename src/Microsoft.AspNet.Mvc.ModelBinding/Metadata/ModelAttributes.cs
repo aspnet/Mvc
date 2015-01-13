@@ -33,7 +33,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <summary>
         /// Gets the attributes for the given <paramref name="property"/>.
         /// </summary>
-        /// <param name="type">A <see cref="Type"/> on which the property exists.
+        /// <param name="type">The <see cref="Type"/> in which caller found <paramref name="property"/>.
+        /// </param>
         /// <param name="property">A <see cref="PropertyInfo"/> for which attributes need to be resolved.
         /// </param>
         /// <returns>An <see cref="IEnumerable{object}"/> containing the attributes on the
@@ -67,11 +68,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <summary>
         /// Gets the attributes for the given <paramref name="type"/>.
         /// </summary>
-        /// <param name="type">A <see cref="Type"/> for which attributes need to be resolved.
-        /// <param name="attributes">A <see cref="IEnumerable{Attribute}"/> of attributes on type.
+        /// <param name="type">The <see cref="Type"/> for which attributes need to be resolved.
         /// </param>
-        /// <returns>An <see cref="IEnumerable{Attribute}"/> that includes attributes on ModelMetadataType class
-        public static IEnumerable<Attribute> GetModelMetadataAttributesForType(Type type)
+        /// <returns>An <see cref="IEnumerable{object}"/> containing the attributes on the
+        /// <paramref name="type"/>.</returns>
+        public static IEnumerable<object> GetAttributesForType(Type type)
         {
             var attributes = type.GetTypeInfo().GetCustomAttributes();
 

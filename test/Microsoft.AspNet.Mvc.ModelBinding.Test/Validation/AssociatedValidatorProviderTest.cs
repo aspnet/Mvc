@@ -76,73 +76,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(callbackAttributes.Any(a => a is RequiredAttribute));
         }
 
-        [Fact]
-        public void GetModelMetadataTypeAttributeValidators_DifferentAttributesOnProperty()
-        {
-            // Arrange
-            IEnumerable<Attribute> callbackAttributes = null;
-            var metadata = _metadataProvider.GetMetadataForProperty(null, typeof(PropertyViewModel), "LocalAttributes");
-            Mock<TestableAssociatedValidatorProvider> provider = new Mock<TestableAssociatedValidatorProvider> { CallBase = true };
-            provider.Setup(p => p.AbstractGetValidators(metadata, It.IsAny<IEnumerable<Attribute>>()))
-                    .Callback<ModelMetadata, IEnumerable<Attribute>>((m, attributes) => callbackAttributes = attributes)
-                    .Returns((IEnumerable<IModelValidator>)null)
-                    .Verifiable();
-
-            // Act
-            provider.Object.GetValidators(metadata);
-
-            // Assert
-            provider.Verify();
-            Assert.True(callbackAttributes.Any(a => a is RangeAttribute));
-            Assert.True(callbackAttributes.Any(a => a is RequiredAttribute));
-        }
-
-        [Fact]
-        public void GetModelMetadataTypeAttributeValidators_SameAttributesOnProperty()
-        {
-            // Arrange
-            IEnumerable<Attribute> callbackAttributes = null;
-            var metadata = _metadataProvider.GetMetadataForProperty(null, typeof(PropertyViewModel), "MetadataAttributes");
-            Mock<TestableAssociatedValidatorProvider> provider = new Mock<TestableAssociatedValidatorProvider> { CallBase = true };
-            provider.Setup(p => p.AbstractGetValidators(metadata, It.IsAny<IEnumerable<Attribute>>()))
-                    .Callback<ModelMetadata, IEnumerable<Attribute>>((m, attributes) => callbackAttributes = attributes)
-                    .Returns((IEnumerable<IModelValidator>)null)
-                    .Verifiable();
-
-            // Act
-            provider.Object.GetValidators(metadata);
-
-            // Assert
-            provider.Verify();
-            Assert.True(callbackAttributes.Any(a => a is RangeAttribute));
-
-            var rangeAttr = (RangeAttribute)callbackAttributes.Where(a => a is RangeAttribute).FirstOrDefault();
-            Assert.Equal(0, (int)rangeAttr.Minimum);
-            Assert.Equal(10, (int)rangeAttr.Maximum);
-        }
-
-        [Fact]
-        public void GetModelMetadataTypeAttributeValidatorsFromMetadataClass()
-        {
-            // Arrange
-            IEnumerable<Attribute> callbackAttributes = null;
-            var metadata = _metadataProvider.GetMetadataForProperty(null, typeof(PropertyViewModel), "MixedAttributes");
-            Mock<TestableAssociatedValidatorProvider> provider = new Mock<TestableAssociatedValidatorProvider> { CallBase = true };
-            provider.Setup(p => p.AbstractGetValidators(metadata, It.IsAny<IEnumerable<Attribute>>()))
-                    .Callback<ModelMetadata, IEnumerable<Attribute>>((m, attributes) => callbackAttributes = attributes)
-                    .Returns((IEnumerable<IModelValidator>)null)
-                    .Verifiable();
-
-            // Act
-            provider.Object.GetValidators(metadata);
-
-            // Assert
-            provider.Verify();
-            Assert.True(callbackAttributes.Any(a => a is RangeAttribute));
-            Assert.True(callbackAttributes.Any(a => a is RequiredAttribute));
-        }
-
-
         private class PropertyModel
         {
             [Required]
@@ -153,18 +86,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             [Required]
             [Range(10, 100)]
-            public double MixedAttributes { get; set; }
-        }
-
-        [ModelMetadataType(typeof(PropertyModel))]
-        private class PropertyViewModel
-        {
-            [Range(0,10)]
-            public int LocalAttributes { get; set; }
-
-            [Range(0,10)]
-            public string MetadataAttributes { get; set; }
-
             public double MixedAttributes { get; set; }
         }
 

@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,14 +40,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             var attributes = ModelAttributes.GetAttributesForProperty(metadata.ContainerType, property);
-            return GetValidators(metadata, attributes.Cast<Attribute>());
+            return GetValidators(metadata, attributes.OfType<Attribute>());
         }
 
         private IEnumerable<IModelValidator> GetValidatorsForType(ModelMetadata metadata)
         {
-            var attributes = ModelAttributes.GetModelMetadataAttributesForType(metadata.ModelType);
+            var attributes = ModelAttributes.GetAttributesForType(metadata.ModelType);
 
-            return GetValidators(metadata, attributes);
+            return GetValidators(metadata, attributes.OfType<Attribute>());
         }
     }
 }

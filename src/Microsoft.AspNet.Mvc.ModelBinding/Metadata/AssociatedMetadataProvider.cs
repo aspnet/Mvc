@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -158,7 +157,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private TModelMetadata CreateTypeInformation(Type type, IEnumerable<Attribute> associatedAttributes)
         {
-            var attributes = ModelAttributes.GetModelMetadataAttributesForType(type);
+            var attributes = ModelAttributes.GetAttributesForType(type);
             if (associatedAttributes != null)
             {
                 attributes = attributes.Concat(associatedAttributes);
