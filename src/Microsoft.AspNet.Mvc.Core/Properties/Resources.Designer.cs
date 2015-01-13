@@ -1514,6 +1514,38 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AmbiguousTypeMatch_Item"), p0, p1);
         }
 
+        /// <summary>
+        /// The input was not valid.
+        /// </summary>
+        internal static string SerializableError_DefaultError
+        {
+            get { return GetString("SerializableError_DefaultError"); }
+        }
+
+        /// <summary>
+        /// The input was not valid.
+        /// </summary>
+        internal static string FormatSerializableError_DefaultError()
+        {
+            return GetString("SerializableError_DefaultError");
+        }
+
+        /// <summary>
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
+        /// </summary>
+        internal static string AsyncResourceFilter_InvalidShortCircuit
+        {
+            get { return GetString("AsyncResourceFilter_InvalidShortCircuit"); }
+        }
+
+        /// <summary>
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
+        /// </summary>
+        internal static string FormatAsyncResourceFilter_InvalidShortCircuit(object p0, object p1, object p2, object p3)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AsyncResourceFilter_InvalidShortCircuit"), p0, p1, p2, p3);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

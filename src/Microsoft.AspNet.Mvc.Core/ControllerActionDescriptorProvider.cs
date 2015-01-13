@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ApplicationModels;
-using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 
@@ -61,7 +61,10 @@ namespace Microsoft.AspNet.Mvc
         public ApplicationModel BuildModel()
         {
             var applicationModel = new ApplicationModel();
-            applicationModel.Filters.AddRange(_globalFilters);
+            foreach (var filter in _globalFilters)
+            {
+                applicationModel.Filters.Add(filter);
+            }
 
             var assemblies = _assemblyProvider.CandidateAssemblies;
             var types = assemblies.SelectMany(a => a.DefinedTypes);

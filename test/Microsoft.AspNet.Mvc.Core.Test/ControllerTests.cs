@@ -669,6 +669,38 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal(400, result.StatusCode);
         }
 
+        [Fact]
+        public void BadRequest_SetsStatusCodeAndValue_Object()
+        {
+            // Arrange
+            var controller = new Controller();
+            var obj = new object();
+
+            // Act
+            var result = controller.HttpBadRequest(obj);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal(obj, result.Value);
+        }
+
+        [Fact]
+        public void BadRequest_SetsStatusCodeAndValue_ModelState()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            // Act
+            var result = controller.HttpBadRequest(new ModelStateDictionary());
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, result.StatusCode);
+            var errors = Assert.IsType<SerializableError>(result.Value);
+            Assert.Equal(0, errors.Count);
+        }
+
         [Theory]
         [MemberData(nameof(PublicNormalMethodsFromController))]
         public void NonActionAttribute_IsOnEveryPublicNormalMethodFromController(MethodInfo method)
@@ -962,17 +994,16 @@ namespace Microsoft.AspNet.Mvc.Test
             // Assert
             binder.Verify();
         }
-       
+
         [Fact]
         public async Task TryUpdateModel_PredicateOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
 
-            Func<ModelBindingContext, string, bool> includePredicate = 
-                (context, propertyName) => 
-                                string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) || 
-                                string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
+                string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
 
             var binder = new Mock<IModelBinder>();
             var valueProvider = Mock.Of<IValueProvider>();
@@ -1270,21 +1301,20 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var actionContext = new ActionContext(Mock.Of<HttpContext>(), new RouteData(), new ActionDescriptor());
-            var bindingContext = new ActionBindingContext(actionContext,
-                                                          metadataProvider,
-                                                          binder,
-                                                          provider ?? Mock.Of<IValueProvider>(),
-                                                          Mock.Of<IInputFormatterSelector>(),
-                                                          Mock.Of<IModelValidatorProvider>());
-            var bindingContextProvider = new Mock<IActionBindingContextProvider>();
-            bindingContextProvider.Setup(b => b.GetActionBindingContextAsync(actionContext))
-                                  .Returns(Task.FromResult(bindingContext));
 
             var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
-            return new Controller
+
+            var bindingContext = new ActionBindingContext()
+            {
+                ModelBinder = binder,
+                ValueProvider = provider,
+            };
+
+            return new Controller()
             {
                 ActionContext = actionContext,
-                BindingContextProvider = bindingContextProvider.Object,
+                BindingContext = bindingContext,
+                MetadataProvider = metadataProvider,
                 ViewData = viewData
             };
         }
