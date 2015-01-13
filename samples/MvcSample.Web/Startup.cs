@@ -43,15 +43,15 @@ namespace MvcSample.Web
                     services.ConfigureAuthorization(auth =>
                     {
                         auth.AddPolicy("CanViewPage", 
-                            new AuthorizationPolicy()
-                                .RequiresClaim("Permission", "CanViewPage", "CanViewAnything"));
+                            new AuthorizationPolicyBuilder()
+                                .RequiresClaim("Permission", "CanViewPage", "CanViewAnything").Build());
                         auth.AddPolicy("CanViewAnything", 
-                            new AuthorizationPolicy()
-                                .RequiresClaim("Permission", "CanViewAnything"));
+                            new AuthorizationPolicyBuilder()
+                                .RequiresClaim("Permission", "CanViewAnything").Build());
                         // This policy basically requires that the auth type is present
-                        auth.AddPolicy("RequireBasic", 
-                            new AuthorizationPolicy("Basic")
-                                .RequiresClaim(ClaimTypes.NameIdentifier));
+                        var basicPolicy = new AuthorizationPolicyBuilder().RequiresClaim(ClaimTypes.NameIdentifier);
+                        basicPolicy.UseOnlyTheseAuthenticationTypes.Add("Basic");
+                        auth.AddPolicy("RequireBasic", basicPolicy.Build());
                     });
 
                     services.AddMvc();

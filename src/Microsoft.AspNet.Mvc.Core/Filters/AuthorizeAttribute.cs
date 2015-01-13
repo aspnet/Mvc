@@ -2,9 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
@@ -13,38 +10,9 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class DefaultAuthorizeRequirement : IAuthorizationRequirement
-    {
-        // No filter, allow all types through
-        public IEnumerable<string> AuthenticationTypesFilter
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public Task<bool> CheckAsync(Security.AuthorizationContext context)
-        {
-            var user = context.User;
-            var userIsAnonymous =
-                user == null ||
-                user.Identity == null ||
-                !user.Identity.IsAuthenticated;
-
-            if (!userIsAnonymous)
-            {
-                return Task.FromResult(true);
-            }
-
-            var authContext = context.Resources.FirstOrDefault() as AuthorizationContext;
-            return Task.FromResult(authContext != null && authContext.Filters.Any(item => item is IAllowAnonymous));
-        }
-    }
-
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
-        public AuthorizeAttribute([NotNull] string policy = "AnyAuthenticated")
+        public AuthorizeAttribute(string policy = null)
         {
             Policy = policy;
         }
@@ -55,27 +23,36 @@ namespace Microsoft.AspNet.Mvc
         public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
             var httpContext = context.HttpContext;
-            var user = httpContext.User;
 
-            // Build a policy for the requested roles
+            var authService = GetAuthService(httpContext);
+
+            // Build a policy for the requested roles if specified
             if (Roles != null)
             {
-                var rolesPolicy = new AuthorizationPolicy();
-                foreach (var role in Roles.Split(','))
-                {
-                    rolesPolicy.RequiresClaim(ClaimTypes.Role, role);
-                }
-                if (!await GetAuthService(httpContext).AuthorizeAsync(rolesPolicy, user, context))
+                var rolesPolicy = new AuthorizationPolicyBuilder();
+                rolesPolicy.RequiresRole(Roles.Split(','));
+                if (!await authService.AuthorizeAsync(rolesPolicy.Build(), httpContext, context))
                 {
                     Fail(context);
                     return;
                 }
             }
 
-            if (!await GetAuthService(httpContext).AuthorizeAsync(Policy, user, context))
+            var authorized = (Policy == null)
+                // [Authorize] with no policy just requires any authenticated user
+                ? await authService.AuthorizeAsync(BuildAnyAuthorizedUserPolicy(), httpContext, context)
+                : await authService.AuthorizeAsync(Policy, httpContext, context);
+            if (!authorized)
             {
                 Fail(context);
             }
+        }
+
+        private static AuthorizationPolicy BuildAnyAuthorizedUserPolicy()
+        {
+            var policyBuilder = new AuthorizationPolicyBuilder();
+            policyBuilder.Requirements.Add(new AnyAuthorizedUserRequirement());
+            return policyBuilder.Build();
         }
 
         private IAuthorizationService GetAuthService(HttpContext httpContext)

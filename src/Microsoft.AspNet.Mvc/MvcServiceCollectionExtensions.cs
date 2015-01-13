@@ -25,10 +25,8 @@ namespace Microsoft.Framework.DependencyInjection
             services.AddOptions(configuration);
             services.AddDataProtection(configuration);
             services.AddRouting(configuration);
-            services.AddContextAccessor(configuration);
-            services.AddAuthorization(configuration, options => 
-                options.AddPolicy("AnyAuthenticated", 
-                    new AuthorizationPolicy().Requires(new DefaultAuthorizeRequirement())));
+            services.AddScopedInstance(configuration);
+            services.AddAuthorization(configuration);
             services.Configure<RouteOptions>(routeOptions =>
                                                     routeOptions.ConstraintMap
                                                          .Add("exists",

@@ -155,6 +155,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Singleton<AntiForgery, AntiForgery>();
             yield return describe.Singleton<IAntiForgeryAdditionalDataProvider,
                 DefaultAntiForgeryAdditionalDataProvider>();
+            yield return describe.Singleton<IAuthorizationHandler, DefaultAuthorizeHandler>();
 
             // Api Description
 
