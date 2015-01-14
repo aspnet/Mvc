@@ -1030,6 +1030,73 @@ namespace Microsoft.AspNet.Mvc
                 predicate);
         }
 
+        /// <summary>
+        /// Validates the specified <paramref name="model"/> instance using values from the controller's current
+        /// <see cref="IValueProvider"/>.
+        /// </summary>
+        /// <param name="model">The model instance to update.</param>
+        /// <returns>A <see cref="bool"/> that on completion returns <c>true</c> if the ModelState is valid</returns>
+        [NonAction]
+        public virtual bool TryValidateModel(object model)
+        {
+            return TryValidateModel(model, null /* prefix */);
+        }
+
+        /// <summary>
+        /// Validates the specified <paramref name="model"/> instance using values from the controller's current
+        /// <see cref="IValueProvider"/> and a <paramref name="prefix"/>.
+        /// </summary>
+        /// <param name="model">The model instance to update.</param>
+        /// <param name="prefix">The prefix to use when looking up values in the current <see cref="IValueProvider"/>
+        /// </param>
+        /// <returns>A <see cref="bool"/> that on completion returns <c>true</c> if the ModelState is valid</returns>
+        [NonAction]
+        public virtual bool TryValidateModel(object model, string prefix)
+        {
+            if (model == null)
+            {
+                throw new ArgumentNullException("model");
+            }
+
+            var modelMetadata = MetadataProvider.GetMetadataForType(
+               modelAccessor: null,
+               modelType: model.GetType());
+
+            var operationBindingContext = new OperationBindingContext
+            {
+                ModelBinder = BindingContext.ModelBinder,
+                ValidatorProvider = BindingContext.ValidatorProvider,
+                MetadataProvider = MetadataProvider,
+                HttpContext = Context
+            };
+
+            var modelBindingContext = new ModelBindingContext
+            {
+                ModelMetadata = modelMetadata,
+                ModelName = prefix,
+                Model = model,
+                ModelState = ModelState,
+                ValueProvider = BindingContext.ValueProvider,
+                FallbackToEmptyPrefix = true,
+                OperationBindingContext = operationBindingContext,
+                PropertyFilter = (context, propertyName) => true
+            };
+
+            var validationContext = new ModelValidationContext(operationBindingContext.MetadataProvider,
+                                                                   operationBindingContext.ValidatorProvider,
+                                                                   ModelState,
+                                                                   modelMetadata,
+                                                                   containerMetadata: null);
+
+            modelBindingContext.ValidationNode = new ModelValidationNode(modelBindingContext.ModelMetadata,
+                                                                               modelBindingContext.ModelName);
+            modelBindingContext.ValidationNode.ValidateAllProperties = true;
+
+            modelBindingContext.ValidationNode.Validate(validationContext);
+
+            return ModelState.IsValid;
+        }
+
         public void Dispose()
         {
             Dispose(disposing: true);

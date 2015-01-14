@@ -1237,6 +1237,114 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.True(controller.DisposeCalled);
         }
 
+        [Fact]
+        public void ControllerExpose_ViewEngine()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            var viewEngine = Mock.Of<ICompositeViewEngine>();
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider
+                .Setup(s => s.GetService(It.Is<Type>(t => t == typeof(ICompositeViewEngine))))
+                .Returns(viewEngine);
+
+            var httpContext = new Mock<HttpContext>();
+            httpContext
+                .Setup(c => c.RequestServices)
+                .Returns(serviceProvider.Object);
+
+            controller.ActionContext = new ActionContext(httpContext.Object,
+                                                  Mock.Of<RouteData>(),
+                                                  new ActionDescriptor());
+
+            // Act
+            var innerViewEngine = controller.ViewEngine;
+
+            // Assert
+            Assert.Same(viewEngine, innerViewEngine);
+        }
+
+        [Fact]
+        public void ControllerView_UsesControllerViewEngine()
+        {
+            // Arrange
+            var controller = new Controller();
+
+            var viewEngine = Mock.Of<ICompositeViewEngine>();
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider
+                .Setup(s => s.GetService(It.Is<Type>(t => t == typeof(ICompositeViewEngine))))
+                .Returns(viewEngine);
+
+            var httpContext = new Mock<HttpContext>();
+            httpContext
+                .Setup(c => c.RequestServices)
+                .Returns(serviceProvider.Object);
+
+            controller.ActionContext = new ActionContext(httpContext.Object,
+                                                  Mock.Of<RouteData>(),
+                                                  new ActionDescriptor());
+
+            // Act
+            var unsused = controller.ViewEngine;
+            var result = controller.View();
+
+            // Assert
+            Assert.Same(viewEngine, result.ViewEngine);
+        }
+
+        [Fact]
+        public void TryValidateModelWithValidModel()
+        {
+            // Arrange
+            var binder = new Mock<IModelBinder>();
+            var controller = GetController(binder.Object, provider: null);
+            controller.BindingContext.ValidatorProvider = Mock.Of<IModelValidatorProvider>();
+            var model = new TryValidateModelModel();
+
+            // Act
+            var result = controller.TryValidateModel(model);
+
+            
+            // Assert
+            Assert.True(result);
+            Assert.True(controller.ModelState.IsValid);
+        }
+
+        [Fact]
+        public void TryValidateModelWithInvalidModel()
+        {
+            // Arrange
+            var model = new TryValidateModelModel();
+            var validationResult =
+                new ModelValidationResult[] {
+                    new ModelValidationResult("", "Out of range!")
+                 };
+
+            var validator1 = new Mock<IModelValidator>();
+
+            validator1.Setup(v => v.Validate(It.IsAny<ModelValidationContext>()))
+               .Returns(validationResult);
+
+            var provider = new Mock<IModelValidatorProvider>();
+            provider.Setup(v => v.GetValidators(It.IsAny<ModelMetadata>()))
+                .Returns(new[] { validator1.Object });
+
+            var binder = new Mock<IModelBinder>();
+            var controller = GetController(binder.Object, provider: null);
+            controller.BindingContext.ValidatorProvider = provider.Object;
+            
+            // Act
+            var result = controller.TryValidateModel(model, "Prefix");
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal("Out of range!", controller.ModelState["Prefix.IntegerProperty"].Errors[0].ErrorMessage);
+        }
+
         private static Controller GetController(IModelBinder binder, IValueProvider provider)
         {
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
@@ -1285,6 +1393,11 @@ namespace Microsoft.AspNet.Mvc.Test
             public string Street { get; set; }
             public string City { get; set; }
             public int Zip { get; set; }
+        }
+
+        private class TryValidateModelModel
+        {
+            public int IntegerProperty { get; set; }
         }
 
         private class DisposableController : Controller
