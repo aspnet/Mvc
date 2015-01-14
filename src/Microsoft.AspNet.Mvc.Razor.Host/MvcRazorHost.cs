@@ -127,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the list of chunks that are injected by default by this host.
         /// </summary>
-        public virtual IList<Chunk> DefaultInheritedChunks
+        public virtual IReadOnlyList<Chunk> DefaultInheritedChunks
         {
             get { return _defaultInheritedChunks; }
         }
@@ -183,8 +183,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public override RazorParser DecorateRazorParser([NotNull] RazorParser razorParser, string sourceFileName)
         {
-            var inheritedChunks = ChunkInheritanceUtility.GetInheritedChunks(sourceFileName);
-            return new MvcRazorParser(razorParser, inheritedChunks);
+            var inheritedChunks = ChunkInheritanceUtility.GetInheritedCodeTrees(sourceFileName);
+            return new MvcRazorParser(razorParser, inheritedChunks, DefaultInheritedChunks);
         }
 
         /// <inheritdoc />
@@ -197,9 +197,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         public override CodeBuilder DecorateCodeBuilder([NotNull] CodeBuilder incomingBuilder,
                                                         [NotNull] CodeBuilderContext context)
         {
-            var inheritedChunks = ChunkInheritanceUtility.GetInheritedChunks(context.SourceFile);
+            var inheritedChunks = ChunkInheritanceUtility.GetInheritedCodeTrees(context.SourceFile);
 
-            ChunkInheritanceUtility.MergeInheritedChunks(context.CodeTreeBuilder.CodeTree,
+            ChunkInheritanceUtility.MergeInheritedCodeTrees(context.CodeTreeBuilder.CodeTree,
                                                          inheritedChunks,
                                                          DefaultModel);
 

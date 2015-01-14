@@ -9,6 +9,7 @@ using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
 using Microsoft.AspNet.Razor.Parser.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
+using Microsoft.AspNet.Razor.Text;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -24,13 +25,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes a new instance of <see cref="MvcRazorParser"/>.
         /// </summary>
         /// <param name="parser">The <see cref="RazorParser"/> to copy properties from.</param>
-        /// <param name="viewStartChunks">The <see cref="IReadOnlyList{Chunk}"/>s that are inherited
-        /// by parsed pages from _ViewStart files.</param>
-        public MvcRazorParser(RazorParser parser, IDictionary<string, IList<Chunk>> inheritedChunks)
+        /// <param name="inheritedCodeTrees">The <see cref="IReadOnlyList{CodeTree}"/>s that are inherited
+        /// from parsed pages from _ViewStart files.</param>
+        /// <param name="defaultInheritedChunks">The <see cref="IReadOnlyList{Chunk}"/> inherited by
+        /// default by all Razor pages in the application.</param>
+        public MvcRazorParser([NotNull] RazorParser parser, 
+                              [NotNull] IReadOnlyList<CodeTree> inheritedCodeTrees, 
+                              [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks)
             : base(parser)
         {
             // Construct tag helper descriptors from @addTagHelper and @removeTagHelper chunks
-            _viewStartDirectiveDescriptors = GetTagHelperDescriptors(inheritedChunks);
+            _viewStartDirectiveDescriptors = GetTagHelperDescriptors(inheritedCodeTrees, defaultInheritedChunks);
         }
 
         /// <inheritdoc />
@@ -45,7 +50,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         private static IEnumerable<TagHelperDirectiveDescriptor> GetTagHelperDescriptors(
-           IDictionary<string, IList<Chunk>> inheritedChunks)
+           IReadOnlyList<CodeTree> inheritedCodeTrees,
+           IReadOnlyList<Chunk> defaultInheritedChunks)
         {
             var descriptors = new List<TagHelperDirectiveDescriptor>();
 
@@ -53,15 +59,16 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Consequently we must visit tag helpers outside-in - furthest _ViewStart first and nearest one last. This
             // is different from the behavior of chunk merging where we visit the nearest one first and ignore chunks
             // that were previously visited.
-            var chunksInOrder = inheritedChunks.OrderBy(item => item.Key.Length)
-                                               .SelectMany(item => item.Value);
+            var chunksFromViewStarts = inheritedCodeTrees.Reverse()
+                                                         .SelectMany(tree => tree.Chunks);
+            var chunksInOrder = defaultInheritedChunks.Concat(chunksFromViewStarts);
             foreach (var chunk in chunksInOrder)
             {
                 var addHelperChunk = chunk as AddTagHelperChunk;
                 if (addHelperChunk != null)
                 {
                     var descriptor = new TagHelperDirectiveDescriptor(addHelperChunk.LookupText,
-                                                                      addHelperChunk.Start,
+                                                                      SourceLocation.Undefined,
                                                                       TagHelperDirectiveType.AddTagHelper);
                     descriptors.Add(descriptor);
                 }
@@ -71,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     if (removeHelperChunk != null)
                     {
                         var descriptor = new TagHelperDirectiveDescriptor(removeHelperChunk.LookupText,
-                                                                          removeHelperChunk.Start,
+                                                                          SourceLocation.Undefined,
                                                                           TagHelperDirectiveType.RemoveTagHelper);
                         descriptors.Add(descriptor);
                     }

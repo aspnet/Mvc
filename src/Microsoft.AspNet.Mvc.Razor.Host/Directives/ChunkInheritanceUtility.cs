@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         private readonly Dictionary<string, CodeTree> _parsedCodeTrees;
         private readonly MvcRazorHost _razorHost;
         private readonly IFileSystem _fileSystem;
-        private readonly IList<Chunk> _defaultInheritedChunks;
+        private readonly IReadOnlyList<Chunk> _defaultInheritedChunks;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ChunkInheritanceUtility"/>.
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="defaultInheritedChunks">Sequence of <see cref="Chunk"/>s inherited by default.</param>
         public ChunkInheritanceUtility([NotNull] MvcRazorHost razorHost,
                                        [NotNull] IFileSystem fileSystem,
-                                       [NotNull] IList<Chunk> defaultInheritedChunks)
+                                       [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks)
         {
             _razorHost = razorHost;
             _fileSystem = fileSystem;
@@ -40,15 +40,16 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         /// <summary>
-        /// Gets a mapping of _ViewStart paths to the <see cref="Chunk"/>s containing parsed results of the _ViewStart
-        /// file. The result specifically contains results for _ViewStarts that are applicable to the page located at
-        /// <paramref name="pagePath"/>.
+        /// Gets an ordered <see cref="IReadOnlyList{T}"/> of parsed <see cref="CodeTree"/> for each _ViewStart that
+        /// is applicable to the page located at <paramref name="pagePath"/>. The list is ordered so that the
+        /// <see cref="CodeTree"/> for the _ViewStart closest to the <paramref name="pagePath"/> in the filesystem
+        /// appears first.
         /// </summary>
         /// <param name="pagePath">The path of the page to locate inherited chunks for.</param>
-        /// <returns>A <see cref="IDictionary{string, IList{Chunk}}"/> of parsed _ViewStart chunks.</returns>
-        public IDictionary<string, IList<Chunk>> GetInheritedChunks([NotNull] string pagePath)
+        /// <returns>A <see cref="IReadOnlyList{CodeTree}"/> of parsed _ViewStart <see cref="CodeTree"/>s.</returns>
+        public IReadOnlyList<CodeTree> GetInheritedCodeTrees([NotNull] string pagePath)
         {
-            var inheritedChunks = new Dictionary<string, IList<Chunk>>(StringComparer.Ordinal);
+            var inheritedChunks = new List<CodeTree>();
 
             var templateEngine = new RazorTemplateEngine(_razorHost);
             foreach (var viewStartPath in ViewStartUtility.GetViewStartLocations(pagePath))
@@ -57,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 
                 if (_parsedCodeTrees.TryGetValue(viewStartPath, out codeTree))
                 {
-                    inheritedChunks.Add(viewStart, codeTree.Chunks);
+                    inheritedChunks.Add(codeTree);
                 }
                 else
                 {
@@ -70,28 +71,26 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
                         // for the current _ViewStart to succeed.
                         codeTree = ParseViewFile(templateEngine, fileInfo, viewStartPath);
                         _parsedCodeTrees.Add(viewStartPath, codeTree);
-                        inheritedChunks.AddRange(codeTree.Chunks);
+
+                        inheritedChunks.Add(codeTree);
                     }
                 }
-            }
-
-            if (_defaultInheritedChunks.Count > 0)
-            {
-                inheritedChunks.Add(string.Empty, _defaultInheritedChunks);
             }
 
             return inheritedChunks;
         }
 
         /// <summary>
-        /// Merges a list of chunks into the specified <paramref name="codeTree"/>.
+        /// Merges <see cref="Chunk"/> inherited by default and <see cref="CodeTree"/> instances produced by parsing
+        /// _ViewStart files into the specified <paramref name="codeTree"/>.
         /// </summary>
-        /// <param name="codeTree">The <see cref="CodeTree"/> to merge.</param>
-        /// <param name="inheritedChunks">Chunks inherited by default and from _ViewStart files.</param>
+        /// <param name="codeTree">The <see cref="CodeTree"/> to merge in to.</param>
+        /// <param name="inheritedCodeTrees"><see cref="IReadOnlyList{CodeTree}"/> inherited from _ViewStart
+        /// files.</param>
         /// <param name="defaultModel">The list of chunks to merge.</param>
-        public void MergeInheritedChunks([NotNull] CodeTree codeTree,
-                                         [NotNull] IDictionary<string, IList<Chunk>> inheritedChunks,
-                                         string defaultModel)
+        public void MergeInheritedCodeTrees([NotNull] CodeTree codeTree,
+                                            [NotNull] IReadOnlyList<CodeTree> inheritedCodeTrees,
+                                            string defaultModel)
         {
             var mergerMappings = GetMergerMappings(codeTree, defaultModel);
             IChunkMerger merger;
@@ -112,9 +111,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             // Read the chunks outside in - that is chunks from the _ViewStart closest to the page get merged in first
             // and the furthest one last. This allows the merger to ignore a directive like @model that was previously
             // seen.
-            var chunksInOrder = inheritedChunks.OrderByDescending(item => item.Key.Length)
-                                               .SelectMany(item => item.Value);
-            foreach (var chunk in chunksInOrder)
+            var chunksToMerge = inheritedCodeTrees.SelectMany(tree => tree.Chunks)
+                                               .Concat(_defaultInheritedChunks);
+            foreach (var chunk in chunksToMerge)
             {
                 if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
                 {
