@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </param>
         /// <returns>An <see cref="IEnumerable{object}"/> containing the attributes on the
         /// <paramref name="property"/> before the attributes on the <paramref name="property"/> type.</returns>
-        public static IEnumerable<object> GetAttributesForProperty(Type type, PropertyInfo property)
+        public static IEnumerable<object> GetAttributesForProperty([NotNull] Type type, [NotNull] PropertyInfo property)
         {
             // Return the property attributes first.
             var propertyAttributes = property.GetCustomAttributes();
@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </param>
         /// <returns>An <see cref="IEnumerable{object}"/> containing the attributes on the
         /// <paramref name="type"/>.</returns>
-        public static IEnumerable<object> GetAttributesForType(Type type)
+        public static IEnumerable<object> GetAttributesForType([NotNull] Type type)
         {
             var attributes = type.GetTypeInfo().GetCustomAttributes();
 

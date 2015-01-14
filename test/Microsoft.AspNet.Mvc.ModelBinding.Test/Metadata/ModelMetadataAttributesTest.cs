@@ -12,11 +12,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class ModelMetadataAttributesTest
     {
         [Fact]
-        public void GetAttributesForBaseProperty_IncludeMetadataAttributes()
+        public void GetAttributesForBaseProperty_IncludesMetadataAttributes()
         {
             // Arrange
             var modelType = typeof(BaseViewModel);
-            var property = modelType.GetRuntimeProperties().Where(p => p.Name == "BaseProperty").FirstOrDefault();
+            var property = modelType.GetRuntimeProperties().FirstOrDefault(p => p.Name == "BaseProperty");
 
             // Act
             var attributes = ModelAttributes.GetAttributesForProperty(modelType, property);
@@ -31,24 +31,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Arrange
             var modelType = typeof(BaseViewModel);
-            var property = modelType.GetRuntimeProperties().Where(p => p.Name == "TestProperty").FirstOrDefault();
+            var property = modelType.GetRuntimeProperties().FirstOrDefault(p => p.Name == "TestProperty");
 
             // Act
             var attributes = ModelAttributes.GetAttributesForProperty(modelType, property);
-            var rangeAttribute = attributes.OfType<RangeAttribute>().FirstOrDefault();
 
             // Assert
+            var rangeAttribute = attributes.OfType<RangeAttribute>().FirstOrDefault();
             Assert.NotNull(rangeAttribute);
             Assert.Equal(0, (int)rangeAttribute.Minimum);
             Assert.Equal(10, (int)rangeAttribute.Maximum);
         }
 
         [Fact]
-        public void GetAttributesForBasePropertyFromDerivedModel_IncludeMetadataAttributes()
+        public void GetAttributesForBasePropertyFromDerivedModel_IncludesMetadataAttributes()
         {
             // Arrange
             var modelType = typeof(DerivedViewModel);
-            var property = modelType.GetRuntimeProperties().Where(p => p.Name == "BaseProperty").FirstOrDefault();
+            var property = modelType.GetRuntimeProperties().FirstOrDefault(p => p.Name == "BaseProperty");
 
             // Act
             var attributes = ModelAttributes.GetAttributesForProperty(modelType, property);
@@ -59,11 +59,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void GetAttributesForTestPropertyFromDerived_IncludeMetadataAttributes()
+        public void GetAttributesForTestPropertyFromDerived_IncludesMetadataAttributes()
         {
             // Arrange
             var modelType = typeof(DerivedViewModel);
-            var property = modelType.GetRuntimeProperties().Where(p => p.Name == "TestProperty").FirstOrDefault();
+            var property = modelType.GetRuntimeProperties().FirstOrDefault(p => p.Name == "TestProperty");
 
             // Act
             var attributes = ModelAttributes.GetAttributesForProperty(modelType, property);
@@ -75,11 +75,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void GetAttributesForVirtualPropertyFromDerived_IncludeMetadataAttributes()
+        public void GetAttributesForVirtualPropertyFromDerived_IncludesMetadataAttributes()
         {
             // Arrange
             var modelType = typeof(DerivedViewModel);
-            var property = modelType.GetRuntimeProperties().Where(p => p.Name == "VirtualProperty").FirstOrDefault();
+            var property = modelType.GetRuntimeProperties().FirstOrDefault(p => p.Name == "VirtualProperty");
 
             // Act
             var attributes = ModelAttributes.GetAttributesForProperty(modelType, property);
@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void GetAttributesForType_IncludeMetadataAttributes()
+        public void GetAttributesForType_IncludesMetadataAttributes()
         {
             // Arrange & Act
             var attributes = ModelAttributes.GetAttributesForType(typeof(BaseViewModel));
