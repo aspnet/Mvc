@@ -41,6 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.NotNull(rangeAttribute);
             Assert.Equal(0, (int)rangeAttribute.Minimum);
             Assert.Equal(10, (int)rangeAttribute.Maximum);
+            Assert.Single(attributes.OfType<FromHeaderAttribute>());
         }
 
         [Fact]
@@ -90,6 +91,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
+        public void GetFromSeriveAttributeFromBase_IncludesMetadataAttributes()
+        {
+            // Arrange
+            var modelType = typeof(DerivedViewModel);
+            var property = modelType.GetRuntimeProperties().FirstOrDefault(p => p.Name == "Calculator");
+
+            // Act
+            var attributes = ModelAttributes.GetAttributesForProperty(modelType, property);
+
+            // Assert
+            Assert.Single(attributes.OfType<RequiredAttribute>());
+            Assert.Single(attributes.OfType<FromServicesAttribute>());
+        }
+
+        [Fact]
         public void GetAttributesForType_IncludesMetadataAttributes()
         {
             // Arrange & Act
@@ -108,10 +124,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             public string BaseProperty { get; set; }
 
             [Range(10,100)]
+            [FromHeader]
             public string TestProperty { get; set; }
 
             [Required]
             public virtual int VirtualProperty { get; set; }
+
+            [FromServices]
+            public ICalculator Calculator { get; set; }
         }
 
         private class DerivedModel : BaseModel
@@ -135,6 +155,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             [Required]
             public string BaseProperty { get; set; }
+
+            [Required]
+            public ICalculator Calculator { get; set; }
         }
 
         [ModelMetadataType(typeof(DerivedModel))]
@@ -145,6 +168,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             public int VirtualProperty { get; set; }
 
+        }
+
+        public interface ICalculator
+        {
+            int Operation(char @operator, int left, int right);
         }
 
         private class ClassValidator : ValidationAttribute

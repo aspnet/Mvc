@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         protected abstract IEnumerable<IModelValidator> GetValidators(ModelMetadata metadata,
-                                                                      IEnumerable<Attribute> attributes);
+                                                                      IEnumerable<object> attributes);
 
         private IEnumerable<IModelValidator> GetValidatorsForProperty(ModelMetadata metadata)
         {
@@ -40,14 +40,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             var attributes = ModelAttributes.GetAttributesForProperty(metadata.ContainerType, property);
-            return GetValidators(metadata, attributes.OfType<Attribute>());
+            return GetValidators(metadata, attributes);
         }
 
         private IEnumerable<IModelValidator> GetValidatorsForType(ModelMetadata metadata)
         {
             var attributes = ModelAttributes.GetAttributesForType(metadata.ModelType);
 
-            return GetValidators(metadata, attributes.OfType<Attribute>());
+            return GetValidators(metadata, attributes);
         }
     }
 }

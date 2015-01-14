@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// This attribute specifies the metadata class to associate with a data model class.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class ModelMetadataTypeAttribute : Attribute
     {
         /// <summary>
