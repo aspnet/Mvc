@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void GetFromSeriveAttributeFromBase_IncludesMetadataAttributes()
+        public void GetFromServiceAttributeFromBase_IncludesMetadataAttributes()
         {
             // Arrange
             var modelType = typeof(DerivedViewModel);
