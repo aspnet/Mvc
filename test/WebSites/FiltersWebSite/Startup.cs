@@ -20,6 +20,10 @@ namespace FiltersWebSite
                 services.AddMvc(configuration);
                 services.Configure<AuthorizationOptions>(options =>
                 {
+                    // This policy cannot succeed since it has no requirements
+                    options.AddPolicy("Impossible",
+                        new AuthorizationPolicyBuilder()
+                            .Build());
                     options.AddPolicy("RequireBasic", 
                         new AuthorizationPolicyBuilder("Basic")
                             .RequiresClaim(ClaimTypes.NameIdentifier)

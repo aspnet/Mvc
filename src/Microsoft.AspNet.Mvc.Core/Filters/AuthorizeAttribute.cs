@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
@@ -23,6 +24,12 @@ namespace Microsoft.AspNet.Mvc
         public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
             var httpContext = context.HttpContext;
+
+            // Allow Anonymous skips all authorization
+            if (HasAllowAnonymous(context))
+            {
+                return;
+            }
 
             var authService = GetAuthService(httpContext);
 

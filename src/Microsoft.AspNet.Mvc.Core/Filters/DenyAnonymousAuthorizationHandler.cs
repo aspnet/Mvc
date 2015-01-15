@@ -17,20 +17,7 @@ namespace Microsoft.AspNet.Mvc
                 user == null ||
                 user.Identity == null ||
                 !user.Identity.IsAuthenticated;
-
-            if (!userIsAnonymous)
-            {
-                return Task.FromResult(true);
-            }
-            else
-            {
-                var authContext = context.Resource as AuthorizationContext;
-                if (authContext != null && authContext.Filters.Any(item => item is IAllowAnonymous))
-                {
-                    return Task.FromResult(true);
-                }
-            }
-            return Task.FromResult(false);
+            return Task.FromResult(!userIsAnonymous);
         }
     }
 }

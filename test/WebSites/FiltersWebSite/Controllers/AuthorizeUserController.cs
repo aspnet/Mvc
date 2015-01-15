@@ -14,5 +14,13 @@ namespace FiltersWebSite
         {
             return "Hello World!";
         }
+
+        [Authorize("Impossible")]
+        [AllowAnonymous]
+        public string AlwaysCanCallAllowAnonymous()
+        {
+            return "Hello World!";
+        }
+
     }
 }
