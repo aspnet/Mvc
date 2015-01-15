@@ -138,6 +138,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Hello World!", await response.Content.ReadAsStringAsync());
         }
 
+        [Fact]
+        public async Task ImpossiblePolicyFailsAuthorize()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync(
+                "http://localhost/AuthorizeUser/Impossible");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
 
         [Fact]
         public async Task ServiceFilterUsesRegisteredServicesAsFilter()

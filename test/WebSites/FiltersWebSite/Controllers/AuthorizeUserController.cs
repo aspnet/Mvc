@@ -22,5 +22,11 @@ namespace FiltersWebSite
             return "Hello World!";
         }
 
+        [Authorize("Impossible")]
+        public string Impossible()
+        {
+            return "Hello World!";
+        }
+
     }
 }
