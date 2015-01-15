@@ -44,6 +44,8 @@ namespace FiltersWebSite
 
             app.UseErrorReporter();
 
+            app.UseMiddleware<AuthorizeBasicMiddleware>();
+
             app.UseMvc();
         }
     }
