@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc
         private static AuthorizationPolicy BuildAnyAuthorizedUserPolicy()
         {
             var policyBuilder = new AuthorizationPolicyBuilder();
-            policyBuilder.Requirements.Add(new AnyAuthorizedUserRequirement());
+            policyBuilder.Requirements.Add(new DenyAnonymousAuthorizationRequirement());
             return policyBuilder.Build();
         }
 

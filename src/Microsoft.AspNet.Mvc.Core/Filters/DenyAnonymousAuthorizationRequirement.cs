@@ -5,5 +5,5 @@ using Microsoft.AspNet.Security;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class AnyAuthorizedUserRequirement : IAuthorizationRequirement { }
+    public class DenyAnonymousAuthorizationRequirement : IAuthorizationRequirement { }
 }

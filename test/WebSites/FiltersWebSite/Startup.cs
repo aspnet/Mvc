@@ -20,10 +20,14 @@ namespace FiltersWebSite
                 services.AddMvc(configuration);
                 services.Configure<AuthorizationOptions>(options =>
                 {
-                    var basicPolicy = new AuthorizationPolicyBuilder().RequiresClaim(ClaimTypes.NameIdentifier);
-                    basicPolicy.UseOnlyTheseAuthenticationTypes.Add("Basic");
-                    options.AddPolicy("RequireBasic", basicPolicy.Build());
-                    options.AddPolicy("CanViewPage", new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewPage").Build());
+                    options.AddPolicy("RequireBasic", 
+                        new AuthorizationPolicyBuilder("Basic")
+                            .RequiresClaim(ClaimTypes.NameIdentifier)
+                            .Build());
+                    options.AddPolicy("CanViewPage", 
+                        new AuthorizationPolicyBuilder()
+                            .RequiresClaim("Permission", "CanViewPage")
+                            .Build());
                 });
                 services.AddSingleton<RandomNumberFilter>();
                 services.AddSingleton<RandomNumberService>();

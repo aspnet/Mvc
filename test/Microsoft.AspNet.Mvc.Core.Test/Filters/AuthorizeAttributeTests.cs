@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             },
                 anonymous: true);
 
@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -100,7 +100,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     var policy = new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewComment", "CanViewPage");
                     options.AddPolicy("CanViewCommentOrPage", policy.Build());
                 });
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -153,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -175,7 +175,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     var policy = new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewComment");
                     options.AddPolicy("CanViewComment", policy.Build());
                 });
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -197,7 +197,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     var policy = new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewComment");
                     options.AddPolicy("CanViewComment", policy.Build());
                 });
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -244,11 +244,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             {
                 services.AddAuthorization(null, options =>
                 {
-                    var policy = new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewComment");
-                    policy.UseOnlyTheseAuthenticationTypes.Add("Bearer");
+                    var policy = new AuthorizationPolicyBuilder("Bearer").RequiresClaim("Permission", "CanViewComment");
                     options.AddPolicy("CanViewComment", policy.Build());
                 });
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -267,14 +266,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             {
                 services.AddAuthorization(null, options =>
                 {
-                    var policy = new AuthorizationPolicyBuilder()
+                    var policy = new AuthorizationPolicyBuilder("Basic", "Bearer")
                         .RequiresClaim("Permission", "CanViewComment")
                         .RequiresClaim("Permission", "CupBearer");
-                    policy.UseOnlyTheseAuthenticationTypes.Add("Bearer");
-                    policy.UseOnlyTheseAuthenticationTypes.Add("Basic");
                     options.AddPolicy("CanViewComment", policy.Build());
                 });
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act
@@ -291,7 +288,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
-                services.AddTransient<IAuthorizationHandler, DefaultAuthorizeHandler>();
+                services.AddTransient<IAuthorizationHandler, DenyAnonymousAuthorizationHandler>();
             });
 
             // Act

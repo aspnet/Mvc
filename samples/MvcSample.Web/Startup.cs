@@ -49,8 +49,7 @@ namespace MvcSample.Web
                             new AuthorizationPolicyBuilder()
                                 .RequiresClaim("Permission", "CanViewAnything").Build());
                         // This policy basically requires that the auth type is present
-                        var basicPolicy = new AuthorizationPolicyBuilder().RequiresClaim(ClaimTypes.NameIdentifier);
-                        basicPolicy.UseOnlyTheseAuthenticationTypes.Add("Basic");
+                        var basicPolicy = new AuthorizationPolicyBuilder("Basic").RequiresClaim(ClaimTypes.NameIdentifier);
                         auth.AddPolicy("RequireBasic", basicPolicy.Build());
                     });
 
