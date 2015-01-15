@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
@@ -13,13 +12,34 @@ namespace Microsoft.AspNet.Mvc
 {
     public class AuthorizeAttribute : AuthorizationFilterAttribute
     {
-        public AuthorizeAttribute(string policy = null)
+        private string _roles;
+        private string[] _rolesSplit;
+
+        public AuthorizeAttribute() { }
+
+        public AuthorizeAttribute(string policy)
         {
             Policy = policy;
         }
 
         public string Policy { get; set; }
-        public string Roles { get; set; }
+
+        public string Roles
+        {
+            get { return _roles; }
+            set
+            {
+                _roles = value;
+                if (string.IsNullOrWhiteSpace(_roles))
+                {
+                    _rolesSplit = null;
+                }
+                else
+                {
+                    _rolesSplit = _roles.Split(',');
+                }
+            }
+        }
 
         public override async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
@@ -34,10 +54,10 @@ namespace Microsoft.AspNet.Mvc
             var authService = GetAuthService(httpContext);
 
             // Build a policy for the requested roles if specified
-            if (Roles != null)
+            if (_rolesSplit != null)
             {
                 var rolesPolicy = new AuthorizationPolicyBuilder();
-                rolesPolicy.RequiresRole(Roles.Split(','));
+                rolesPolicy.RequiresRole(_rolesSplit);
                 if (!await authService.AuthorizeAsync(rolesPolicy.Build(), httpContext, context))
                 {
                     Fail(context);
