@@ -1308,20 +1308,19 @@ namespace Microsoft.AspNet.Mvc.Test
             // Act
             var result = controller.TryValidateModel(model);
 
-            
             // Assert
             Assert.True(result);
             Assert.True(controller.ModelState.IsValid);
         }
 
         [Fact]
-        public void TryValidateModelWithInvalidModel()
+        public void TryValidateModelWithInvalidModel_ReturnsTrue()
         {
             // Arrange
             var model = new TryValidateModelModel();
-            var validationResult =
-                new ModelValidationResult[] {
-                    new ModelValidationResult("", "Out of range!")
+            var validationResult = new []
+                 {
+                    new ModelValidationResult(string.Empty, "Out of range!")
                  };
 
             var validator1 = new Mock<IModelValidator>();
@@ -1342,6 +1341,8 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.False(result);
+            Assert.Equal(1, controller.ModelState.Count);
+            Assert.Single(controller.ModelState["Prefix.IntegerProperty"].Errors);
             Assert.Equal("Out of range!", controller.ModelState["Prefix.IntegerProperty"].Errors[0].ErrorMessage);
         }
 
