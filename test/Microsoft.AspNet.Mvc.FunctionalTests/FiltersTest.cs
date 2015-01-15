@@ -123,6 +123,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task AllowAnonymousOverridesAuthorize()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync(
+                "http://localhost/AuthorizeUser/AlwaysCanCallAllowAnonymous");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Hello World!", await response.Content.ReadAsStringAsync());
+        }
+
+
+        [Fact]
         public async Task ServiceFilterUsesRegisteredServicesAsFilter()
         {
             // Arrange
