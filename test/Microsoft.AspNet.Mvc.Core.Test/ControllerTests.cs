@@ -1297,7 +1297,7 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void TryValidateModelWithValidModel()
+        public void TryValidateModelWithValidModel_ReturnsTrue()
         {
             // Arrange
             var binder = new Mock<IModelBinder>();
@@ -1314,7 +1314,7 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void TryValidateModelWithInvalidModel_ReturnsTrue()
+        public void TryValidateModelWithInvalidModel_ReturnsFalse()
         {
             // Arrange
             var model = new TryValidateModelModel();

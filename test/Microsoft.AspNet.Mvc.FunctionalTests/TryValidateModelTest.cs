@@ -12,8 +12,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class TryValidateModelTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("FormatterWebSite");
-        private readonly Action<IApplicationBuilder> _app = new VersioningWebSite.Startup().Configure;
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(FormatterWebSite));
+        private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
 
         [Fact]
         public async Task TryValidateModel_SimpleModelInvalidProperties()
