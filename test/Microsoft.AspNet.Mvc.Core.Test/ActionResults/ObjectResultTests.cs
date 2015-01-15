@@ -557,7 +557,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                 {
                     return new List<IOutputFormatter>()
                         {
-                            new TextPlainFormatter(),
+                            new StringOutputFormatter(),
                             new JsonOutputFormatter()
                         };
                 }

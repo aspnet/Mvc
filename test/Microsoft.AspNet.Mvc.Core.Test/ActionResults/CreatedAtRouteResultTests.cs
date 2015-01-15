@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.Mvc
                 {
                     return new List<IOutputFormatter>()
                             {
-                                new TextPlainFormatter(),
+                                new StringOutputFormatter(),
                                 new JsonOutputFormatter()
                             };
                 }
