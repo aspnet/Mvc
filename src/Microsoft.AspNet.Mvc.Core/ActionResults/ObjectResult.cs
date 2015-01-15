@@ -78,11 +78,11 @@ namespace Microsoft.AspNet.Mvc
 
             var respectAcceptHeader = true;
             if (options.RespectBrowserAcceptHeader == false
-                && HasWildCardMediaAndSubMediaType(incomingAcceptHeaderMediaTypes))
+                && incomingAcceptHeaderMediaTypes.Any(mediaType => mediaType.MatchesAllTypes))
             {
                 respectAcceptHeader = false;
             }
-
+            
             IEnumerable<MediaTypeHeaderValue> sortedAcceptHeaderMediaTypes = null;
             if (respectAcceptHeader)
             {
@@ -217,12 +217,8 @@ namespace Microsoft.AspNet.Mvc
             return selectedFormatter;
         }
 
-        private bool HasWildCardMediaAndSubMediaType(IEnumerable<MediaTypeHeaderValue> mediaTypes)
-        {
-            return mediaTypes.Any(mediaType => mediaType.MatchesAllTypes);
-        }
-
-        private static IEnumerable<MediaTypeHeaderValue> SortMediaTypeHeaderValues(IEnumerable<MediaTypeHeaderValue> headerValues)
+        private static IEnumerable<MediaTypeHeaderValue> SortMediaTypeHeaderValues(
+            IEnumerable<MediaTypeHeaderValue> headerValues)
         {
             // Use OrderBy() instead of Array.Sort() as it performs fewer comparisons. In this case the comparisons
             // are quite expensive so OrderBy() performs better.

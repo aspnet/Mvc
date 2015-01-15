@@ -100,9 +100,11 @@ namespace Microsoft.AspNet.Mvc
                        .Returns(request);
             var options = new Mock<IOptions<MvcOptions>>();
             options.SetupGet(o => o.Options)
-                       .Returns(new MvcOptions()); httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
-                        .Returns(options.Object); httpContext.Setup(o => o.Response)
-             .Returns(response);
+                       .Returns(new MvcOptions());
+            httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
+                       .Returns(options.Object);
+            httpContext.Setup(o => o.Response)
+                       .Returns(response);
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOutputFormattersProvider)))
                        .Returns(new TestOutputFormatterProvider());
 

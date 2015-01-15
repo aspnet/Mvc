@@ -6,11 +6,12 @@ namespace Microsoft.AspNet.Mvc
     public static class MvcOptionsExtensions
     {
         /// <summary>
-        /// Adds <see cref="XmlDataContractSerializerInputFormatter"/> and <see cref="XmlDataContractSerializerOutputFormatter"/>
-        /// to the input and output formatter collections respectively.
+        /// Adds <see cref="XmlDataContractSerializerInputFormatter"/> and 
+        /// <see cref="XmlDataContractSerializerOutputFormatter"/> to the input and output formatter 
+        /// collections respectively.
         /// </summary>
         /// <param name="options">The MvcOptions</param>
-        public static void AddXmlDataContractSerializerFormatter(this MvcOptions options)
+        public static void AddXmlDataContractSerializerFormatter([NotNull] this MvcOptions options)
         {
             options.OutputFormatters.Add(
                 new XmlDataContractSerializerOutputFormatter(XmlOutputFormatter.GetDefaultXmlWriterSettings()));

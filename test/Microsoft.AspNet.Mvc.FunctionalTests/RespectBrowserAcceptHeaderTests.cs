@@ -4,7 +4,6 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
@@ -18,15 +17,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(FormatterWebSite));
         private readonly Action<IApplicationBuilder> _app = new FormatterWebSite.Startup().Configure;
 
-        [Fact]
-        public async Task AllMediaRangeAcceptHeader_FirstFormatterInListWritesResponse()
+        [Theory]
+        [InlineData("application/xml,*/*;0.2")]
+        [InlineData("application/xml,*/*")]
+        public async Task AllMediaRangeAcceptHeader_FirstFormatterInListWritesResponse(string acceptHeader)
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.2));
-
+            client.DefaultRequestHeaders.Add("Accept", acceptHeader);
+            
             // Act
             var response = await client.GetAsync("http://localhost/RespectBrowserAcceptHeader/EmployeeInfo");
 
@@ -39,14 +39,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("{\"Id\":10,\"Name\":\"John\"}", responseData);
         }
 
-        [Fact]
-        public async Task AllMediaRangeAcceptHeader_ProducesAttributeIsHonored()
+        [Theory]
+        [InlineData("application/xml,*/*;0.2")]
+        [InlineData("application/xml,*/*")]
+        public async Task AllMediaRangeAcceptHeader_ProducesAttributeIsHonored(string acceptHeader)
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.2));
+            client.DefaultRequestHeaders.Add("Accept", acceptHeader);
             var expectedResponseData = "<RespectBrowserAcceptHeaderController.Employee xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                                        " xmlns=\"http://schemas.datacontract.org/2004/07/FormatterWebSite.Controllers\"><Id>20</Id><Name>Mike" +
                                        "</Name></RespectBrowserAcceptHeaderController.Employee>";
@@ -63,14 +64,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedResponseData, responseData);
         }
 
-        [Fact]
-        public async Task AllMediaRangeAcceptHeader_WithContentTypeHeader_ContentTypeIsHonored()
+        [Theory]
+        [InlineData("application/xml,*/*;0.2")]
+        [InlineData("application/xml,*/*")]
+        public async Task AllMediaRangeAcceptHeader_WithContentTypeHeader_ContentTypeIsHonored(string acceptHeader)
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.2));
+            client.DefaultRequestHeaders.Add("Accept", acceptHeader);
             var requestData = "<RespectBrowserAcceptHeaderController.Employee xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                               " xmlns=\"http://schemas.datacontract.org/2004/07/FormatterWebSite.Controllers\"><Id>35</Id><Name>Jimmy" +
                               "</Name></RespectBrowserAcceptHeaderController.Employee>";

@@ -561,7 +561,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         [InlineData("application/xml;q=0.9,*/*;q=0.5", "application/json; charset=utf-8", false)]
         [InlineData("application/xml;q=0.9,text/plain;q=0.5", "application/xml; charset=utf-8", true)]
         [InlineData("application/xml;q=0.9,*/*;q=0.5", "application/xml; charset=utf-8", true)]
-        public async Task ObjectResult_WildcardAcceptMediaType_AndProducesAttribute(
+        public async Task ObjectResult_WildcardAcceptMediaType_AndExplicitResponseContentType(
             string acceptHeader,
             string expectedResponseContentType,
             bool respectBrowserAcceptHeader)
