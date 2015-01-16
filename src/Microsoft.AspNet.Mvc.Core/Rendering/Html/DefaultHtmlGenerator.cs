@@ -123,7 +123,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 metadata,
                 name,
                 value: "true",
-                useViewData: !explicitValue,
+                useViewData: (metadata == null && !explicitValue),
                 isChecked: isChecked ?? false,
                 setId: true,
                 isExplicitValue: false,
