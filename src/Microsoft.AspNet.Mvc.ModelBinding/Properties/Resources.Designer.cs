@@ -59,6 +59,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
+        /// More than one 'IBinderMetadata' is associated to the model with type '{0}' and property name '{1}'.
+        /// </summary>
+        internal static string MultipleBinderMetadataAreNotAllowed
+        {
+            get { return GetString("MultipleBinderMetadataAreNotAllowed"); }
+        }
+
+        /// <summary>
+        /// More than one 'IBinderMetadata' is associated to the model with type '{0}' and property name '{1}'.
+        /// </summary>
+        internal static string FormatMultipleBinderMetadataAreNotAllowed(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("MultipleBinderMetadataAreNotAllowed"), p0, p1);
+        }
+
+        /// <summary>
+        /// the action parameter named '{0}' and the action named '{1}'.
+        /// </summary>
+        internal static string MultipleBinderMetadataAssociatedWithActionParameter
+        {
+            get { return GetString("MultipleBinderMetadataAssociatedWithActionParameter"); }
+        }
+
+        /// <summary>
+        /// the action parameter named '{0}' and the action named '{1}'.
+        /// </summary>
+        internal static string FormatMultipleBinderMetadataAssociatedWithActionParameter(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("MultipleBinderMetadataAssociatedWithActionParameter"), p0, p1);
+        }
+
+        /// <summary>
         /// The parameter '{0}' could not be found.
         /// </summary>
         internal static string Common_ParameterNotFound

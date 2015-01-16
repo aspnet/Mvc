@@ -11,6 +11,22 @@ namespace Microsoft.AspNet.Mvc.Core
             = new ResourceManager("Microsoft.AspNet.Mvc.Core.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
+        /// More than one 'IBinderMetadata' is associated to the action parameter named '{0}' and the action named '{1}'.
+        /// </summary>
+        internal static string MultipleBinderMetadataAssociatedWithActionParameter
+        {
+            get { return GetString("MultipleBinderMetadataAssociatedWithActionParameter"); }
+        }
+
+        /// <summary>
+        /// More than one 'IBinderMetadata' is associated to the action parameter named '{0}' and the action named '{1}'.
+        /// </summary>
+        internal static string FormatMultipleBinderMetadataAssociatedWithActionParameter(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("MultipleBinderMetadataAssociatedWithActionParameter"), p0, p1);
+        }
+
+        /// <summary>
         /// The provided anti-forgery token failed a custom data check.
         /// </summary>
         internal static string AntiForgeryToken_AdditionalDataCheckFailed

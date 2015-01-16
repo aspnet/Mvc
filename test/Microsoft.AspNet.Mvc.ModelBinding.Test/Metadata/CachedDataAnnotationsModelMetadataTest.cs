@@ -240,14 +240,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 provider,
                 containerType: null,
                 modelType: typeof(object),
-                propertyName: null,
+                propertyName: "SomeProperty",
                 attributes: new object[] { firstBinderMetadata, secondBinderMetadata });
 
-            // Act
-            var result = metadata.BinderMetadata;
-
-            // Assert
-            Assert.Same(firstBinderMetadata, result);
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(() => metadata.BinderMetadata);
+            Assert.Equal("More than one 'IBinderMetadata' is associated to the model with type 'System.Object' and "+
+                "property name 'SomeProperty'.",
+                exception.Message);
         }
 
         [Fact]

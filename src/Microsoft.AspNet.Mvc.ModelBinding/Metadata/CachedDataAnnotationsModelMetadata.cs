@@ -58,9 +58,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         protected override IBinderMetadata ComputeBinderMetadata()
         {
-            return PrototypeCache.BinderMetadata != null
-                      ? PrototypeCache.BinderMetadata
-                      : base.ComputeBinderMetadata();
+            if (PrototypeCache.BinderMetadatas != null)
+            {
+                var binderMetadatas = PrototypeCache.BinderMetadatas.ToList();
+                if (binderMetadatas.Count > 1)
+                {
+                    throw new InvalidOperationException(
+                        Resources.FormatMultipleBinderMetadataAreNotAllowed(
+                        ModelType.FullName, PropertyName));
+                }
+                else if (binderMetadatas.Count == 1)
+                {
+                    return binderMetadatas[0];
+                }
+
+                return null;
+            }
+
+            return base.ComputeBinderMetadata();
         }
 
         protected override string ComputeBinderModelNamePrefix()
