@@ -1379,6 +1379,18 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Equal("Out of range!", error.ErrorMessage);
         }
 
+        [Fact]
+        public void TryValidateModelEmptyBindingContextThrowsException()
+        {
+            // Arrange
+            var controller = new Controller();
+            var model = new TryValidateModelModel();
+
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => controller.TryValidateModel(model));
+        }
+
+
         private static Controller GetController(IModelBinder binder, IValueProvider provider)
         {
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
