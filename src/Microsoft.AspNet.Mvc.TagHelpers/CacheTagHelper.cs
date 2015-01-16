@@ -18,6 +18,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// </summary>
     public class CacheTagHelper : TagHelper
     {
+        public static readonly string CacheKeyPrefix = nameof(CacheTagHelper);
         private const string VaryByAttributeName = "vary-by";
         private const string VaryByHeaderAttributeName = "vary-by-header";
         private const string VaryByQueryAttributeName = "vary-by-query";
@@ -128,7 +129,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         // Internal for unit testing
         internal string GenerateKey(TagHelperContext context)
         {
-            var builder = new StringBuilder(nameof(CacheTagHelper));
+            var builder = new StringBuilder(CacheKeyPrefix);
             builder.Append(CacheKeyTokenSeparator)
                    .Append(context.UniqueId);
 
@@ -157,7 +158,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // The key is typically too long to be useful, so we use a cryptographic hash
             // as the actual key (better randomization and key distribution, so small vary
-            // values will generate dramtically different keys).
+            // values will generate dramatically different keys).
             using (var sha = SHA256.Create())
             {
                 var contentBytes = Encoding.UTF8.GetBytes(builder.ToString());

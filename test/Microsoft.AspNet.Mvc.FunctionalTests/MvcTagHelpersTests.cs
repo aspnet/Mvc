@@ -128,8 +128,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Verify content gets changed in a View Component when the Vary-by-header parameters is changed
             client.DefaultRequestHeaders.Remove("Locale");
             client.DefaultRequestHeaders.Add("Locale", "East");
-            var response5 = await client.GetStringAsync("/catalog?categoryId=3&correlationid=3");
-            var response6 = await client.GetStringAsync("/catalog?categoryId=3&correlationid=3");
+
+            targetUrl = "/catalog?categoryId=3&correlationid=3";
+            var response5 = await client.GetStringAsync(targetUrl);
+            var response6 = await client.GetStringAsync(targetUrl);
 
             // Assert - 3
             var expected3 = await _resourcesAssembly.ReadResourceAsStringAsync(assertFile + "3.txt");
