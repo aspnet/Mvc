@@ -117,7 +117,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var authorizeAttribute = new AuthorizeAttribute { Roles = "Administrator" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
-                services.AddAuthorization();
+                services.AddOptions();
+                services.AddTransient<IAuthorizationService, DefaultAuthorizationService>();
             });
 
             // Act
