@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
             
-            // No matching environment name found, supress all output
+            // No matching environment name found, suppress all output
             output.SupressOutput();
         }
     }
