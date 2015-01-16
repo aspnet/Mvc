@@ -295,6 +295,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             filter1.Verify(f => f.OnAuthorization(It.IsAny<AuthorizationContext>()), Times.Once());
+            Assert.False(invoker.ControllerFactory.CreateCalled);
         }
 
         [Fact]
@@ -324,6 +325,8 @@ namespace Microsoft.AspNet.Mvc
             filter1.Verify(
                 f => f.OnAuthorizationAsync(It.IsAny<AuthorizationContext>()),
                 Times.Once());
+
+            Assert.False(invoker.ControllerFactory.CreateCalled);
         }
 
         [Fact]
@@ -1734,6 +1737,7 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             Assert.Same(expected.Object, context.Result);
             Assert.True(context.Canceled);
+            Assert.False(invoker.ControllerFactory.CreateCalled);
         }
 
         [Fact]
@@ -1785,6 +1789,7 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             Assert.Same(expected.Object, context.Result);
             Assert.True(context.Canceled);
+            Assert.False(invoker.ControllerFactory.CreateCalled);
         }
 
         [Fact]
@@ -1846,6 +1851,8 @@ namespace Microsoft.AspNet.Mvc
             resourceFilter.Verify(
                 f => f.OnResourceExecutionAsync(It.IsAny<ResourceExecutingContext>(), It.IsAny<ResourceExecutionDelegate>()),
                 Times.Never());
+
+            Assert.False(invoker.ControllerFactory.CreateCalled);
         }
 
         [Fact]
@@ -1962,10 +1969,6 @@ namespace Microsoft.AspNet.Mvc
                 routeData: new RouteData(),
                 actionDescriptor: actionDescriptor);
 
-            var controllerFactory = new Mock<IControllerFactory>();
-            controllerFactory.Setup(c => c.CreateController(It.IsAny<ActionContext>())).Returns(this);
-            controllerFactory.Setup(m => m.ReleaseController(this)).Verifiable();
-
             var filterProvider = new Mock<INestedProviderManager<FilterProviderContext>>(MockBehavior.Strict);
             filterProvider
                 .Setup(fp => fp.Invoke(It.IsAny<FilterProviderContext>()))
@@ -1978,7 +1981,7 @@ namespace Microsoft.AspNet.Mvc
             var invoker = new TestControllerActionInvoker(
                 actionContext,
                 filterProvider.Object,
-                controllerFactory,
+                new MockControllerFactory(this),
                 actionDescriptor,
                 inputFormattersProvider.Object,
                 Mock.Of<IControllerActionArgumentBinder>(),
@@ -1989,8 +1992,6 @@ namespace Microsoft.AspNet.Mvc
 
             return invoker;
         }
-
-
 
         [Fact]
         public async Task Invoke_UsesDefaultValuesIfNotBound()
@@ -2090,14 +2091,47 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public class TestControllerActionInvoker : ControllerActionInvoker
+        private class MockControllerFactory : IControllerFactory
         {
-            private Mock<IControllerFactory> _factoryMock;
+            private object _controller;
 
+            public MockControllerFactory(object controller)
+            {
+                _controller = controller;
+            }
+
+            public bool CreateCalled { get; private set; }
+
+            public bool ReleaseCalled { get; private set; }
+
+            public object CreateController(ActionContext actionContext)
+            {
+                CreateCalled = true;
+                return _controller;
+            }
+
+            public void ReleaseController(object controller)
+            {
+                Assert.NotNull(controller);
+                Assert.Same(_controller, controller);
+                ReleaseCalled = true;
+            }
+
+            public void Verify()
+            {
+                if (CreateCalled && !ReleaseCalled)
+                {
+                    Assert.False(true, "ReleaseController should have been called.");
+                }
+            }
+        }
+
+        private class TestControllerActionInvoker : ControllerActionInvoker
+        {
             public TestControllerActionInvoker(
                 ActionContext actionContext,
                 INestedProviderManager<FilterProviderContext> filterProvider,
-                Mock<IControllerFactory> controllerFactoryMock,
+                MockControllerFactory controllerFactory,
                 ControllerActionDescriptor descriptor,
                 IInputFormattersProvider inputFormattersProvider,
                 IControllerActionArgumentBinder controllerActionArgumentBinder,
@@ -2108,7 +2142,7 @@ namespace Microsoft.AspNet.Mvc
                 : base(
                       actionContext,
                       filterProvider,
-                      controllerFactoryMock.Object,
+                      controllerFactory,
                       descriptor,
                       inputFormattersProvider,
                       controllerActionArgumentBinder,
@@ -2117,14 +2151,17 @@ namespace Microsoft.AspNet.Mvc
                       valueProviderFactoryProvider,
                       actionBindingContext)
             {
-                _factoryMock = controllerFactoryMock;
+                ControllerFactory = controllerFactory;
             }
+
+            public MockControllerFactory ControllerFactory { get; }
 
             public async override Task InvokeAsync()
             {
                 await base.InvokeAsync();
 
-                _factoryMock.Verify();
+                // Make sure that the controller was disposed in every test that creates ones.
+                ControllerFactory.Verify();
             }
         }
     }
