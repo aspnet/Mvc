@@ -15,6 +15,11 @@ namespace Microsoft.AspNet.Mvc
 
         public string ContentType { get; set; }
 
+        /// <summary>
+        /// Gets or sets the HTTP status code.
+        /// </summary>
+        public int? StatusCode { get; set; }
+
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
             var response = context.HttpContext.Response;
@@ -22,6 +27,11 @@ namespace Microsoft.AspNet.Mvc
             if (!string.IsNullOrEmpty(ContentType))
             {
                 response.ContentType = ContentType;
+            }
+
+            if (StatusCode != null)
+            {
+                response.StatusCode = StatusCode.Value;
             }
 
             if (Content != null)
