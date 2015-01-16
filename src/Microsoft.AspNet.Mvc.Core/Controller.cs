@@ -1031,11 +1031,10 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Validates the specified <paramref name="model"/> instance using values from the controller's current
-        /// <see cref="IValueProvider"/>.
+        /// Validates the specified <paramref name="model"/> instance.
         /// </summary>
-        /// <param name="model">The model instance to update.</param>
-        /// <returns>A <see cref="bool"/> that on completion returns <c>true</c> if the <see cref="ModelState" />
+        /// <param name="model">The model to validate.</param>
+        /// <returns>A <see cref="bool"/> that on completion returns <c>true</c> if the <see cref="ModelState"/>
         /// is valid; <c>false</c> otherwise. </returns>
         [NonAction]
         public virtual bool TryValidateModel([NotNull] object model)
@@ -1044,13 +1043,12 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Validates the specified <paramref name="model"/> instance using values from the controller's current
-        /// <see cref="IValueProvider"/> and a <paramref name="prefix"/>.
+        /// Validates the specified <paramref name="model"/> instance.
         /// </summary>
-        /// <param name="model">The model instance to update.</param>
-        /// <param name="prefix">The prefix to use when looking up values in the current <see cref="IValueProvider"/>
+        /// <param name="model">The model to validate.</param>
+        /// <param name="prefix">The key to use when looking up information in <see cref="ModelState"/>
         /// </param>
-        /// <returns>A <see cref="bool"/> that on completion returns <c>true</c> if the <see cref="ModelState" />
+        /// <returns>A <see cref="bool"/> that on completion returns <c>true</c> if the <see cref="ModelState"/>
         /// is valid; <c>false</c> otherwise. </returns>
         [NonAction]
         public virtual bool TryValidateModel([NotNull] object model, string prefix)
@@ -1064,10 +1062,8 @@ namespace Microsoft.AspNet.Mvc
             }
 
             var modelMetadata = MetadataProvider.GetMetadataForType(
-               modelAccessor: null,
+               modelAccessor: () => model,
                modelType: model.GetType());
-
-            modelMetadata.Model = model;
 
             var validationContext = new ModelValidationContext(
                 MetadataProvider,

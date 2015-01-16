@@ -1314,14 +1314,14 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void TryValidateModelWithInvalidModel_ReturnsFalse()
+        public void TryValidateModelWithInvalidModelWithPrefix_ReturnsFalse()
         {
             // Arrange
             var model = new TryValidateModelModel();
             var validationResult = new []
-                 {
-                    new ModelValidationResult(string.Empty, "Out of range!")
-                 };
+            {
+                new ModelValidationResult(string.Empty, "Out of range!")
+            };
 
             var validator1 = new Mock<IModelValidator>();
 
@@ -1342,8 +1342,41 @@ namespace Microsoft.AspNet.Mvc.Test
             // Assert
             Assert.False(result);
             Assert.Equal(1, controller.ModelState.Count);
-            Assert.Single(controller.ModelState["Prefix.IntegerProperty"].Errors);
-            Assert.Equal("Out of range!", controller.ModelState["Prefix.IntegerProperty"].Errors[0].ErrorMessage);
+            var error = Assert.Single(controller.ModelState["Prefix.IntegerProperty"].Errors);
+            Assert.Equal("Out of range!", error.ErrorMessage);
+        }
+
+        [Fact]
+        public void TryValidateModelWithInvalidModelNoPrefix_ReturnsFalse()
+        {
+            // Arrange
+            var model = new TryValidateModelModel();
+            var validationResult = new[]
+            {
+                new ModelValidationResult(string.Empty, "Out of range!")
+            };
+
+            var validator1 = new Mock<IModelValidator>();
+
+            validator1.Setup(v => v.Validate(It.IsAny<ModelValidationContext>()))
+               .Returns(validationResult);
+
+            var provider = new Mock<IModelValidatorProvider>();
+            provider.Setup(v => v.GetValidators(It.IsAny<ModelMetadata>()))
+                .Returns(new[] { validator1.Object });
+
+            var binder = new Mock<IModelBinder>();
+            var controller = GetController(binder.Object, provider: null);
+            controller.BindingContext.ValidatorProvider = provider.Object;
+
+            // Act
+            var result = controller.TryValidateModel(model);
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal(1, controller.ModelState.Count);
+            var error = Assert.Single(controller.ModelState["IntegerProperty"].Errors);
+            Assert.Equal("Out of range!", error.ErrorMessage);
         }
 
         private static Controller GetController(IModelBinder binder, IValueProvider provider)

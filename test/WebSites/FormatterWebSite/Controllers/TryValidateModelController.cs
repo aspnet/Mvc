@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace FormatterWebSite
 {
@@ -15,10 +16,9 @@ namespace FormatterWebSite
                 Id = 0,
                 Name = "x"
             };
-            if(!TryValidateModel(user))
+            if (!TryValidateModel(user))
             {
-                return Content(ModelState["Id"].Errors[0].ErrorMessage + "," +
-                    ModelState["Name"].Errors[0].ErrorMessage);
+                return new BadRequestObjectResult(ModelState);
             }
 
             return Content(string.Empty);
@@ -36,7 +36,7 @@ namespace FormatterWebSite
             };
             if (!TryValidateModel(admin,"admin"))
             {
-                return Content(ModelState["admin"].Errors[0].ErrorMessage);
+                return new BadRequestObjectResult(ModelState);
             }
 
             return Content(string.Empty);
@@ -54,7 +54,7 @@ namespace FormatterWebSite
             };
             if (!TryValidateModel(admin, "admin"))
             {
-                return Content("Error validating admin");
+                return new BadRequestObjectResult(ModelState);
             }
 
             return Content("Admin user created successfully");

@@ -12,27 +12,9 @@ namespace FormatterWebSite
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            var objectType = value.GetType();
-
-            var neededProperties =
-              objectType.GetProperties()
-              .Where(propertyInfo => propertyInfo.Name == "Designation" || propertyInfo.Name == "AdminAccessCode")
-              .ToArray();
-
-            if (neededProperties.Count() != 2)
-            {
-                return new ValidationResult("Could not find Designation and AdminAccessCode properties");
-            }
-
-            var adminAccessCode = Convert.ToInt32(neededProperties[0].GetValue(value, null));
-            var designation = Convert.ToString(neededProperties[1].GetValue(value, null));
-
-            if (string.IsNullOrEmpty(designation) || !designation.Equals("Administrator"))
-            {
-                return new ValidationResult("Designation property does not have the right value");
-            }
-
-            if (adminAccessCode != 1)
+            var admin = (Administrator)value;
+            
+            if (admin.AdminAccessCode != 1)
             {
                 return new ValidationResult ("AdminAccessCode property does not have the right value");
             }

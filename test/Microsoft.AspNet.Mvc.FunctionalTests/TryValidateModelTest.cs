@@ -3,10 +3,15 @@
 
 using System;
 using System.Net;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Newtonsoft.Json;
 using Xunit;
+using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -26,10 +31,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.GetAsync("http://localhost/TryValidateModel/GetInvalidUser");
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("The field Id must be between 1 and 2000.," +
-                "The field Name must be a string or array type with a minimum length of '5'.",
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(
                 await response.Content.ReadAsStringAsync());
+            Assert.Equal("The field Id must be between 1 and 2000.",json["Id"][0]);
+            Assert.Equal(
+                "The field Name must be a string or array type with a minimum length of '5'.", json["Name"][0]);
         }
 
         [Fact]
@@ -43,9 +51,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.GetAsync("http://localhost/TryValidateModel/GetInvalidAdminWithPrefix");
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("AdminAccessCode property does not have the right value",
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(
                 await response.Content.ReadAsStringAsync());
+            Assert.Equal("AdminAccessCode property does not have the right value", json["admin"][0]);
         }
 
         [Fact]
