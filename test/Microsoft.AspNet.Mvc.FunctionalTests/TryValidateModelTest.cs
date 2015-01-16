@@ -2,16 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using Newtonsoft.Json;
 using Xunit;
-using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.ModelBinding;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
