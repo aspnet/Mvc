@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Security;
 using Microsoft.Framework.DependencyInjection;
@@ -51,7 +50,7 @@ namespace Microsoft.AspNet.Mvc
                 return;
             }
 
-            var authService = GetAuthService(httpContext);
+            var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
 
             // Build a policy for the requested roles if specified
             if (_rolesSplit != null)
@@ -77,20 +76,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static AuthorizationPolicy BuildAnyAuthorizedUserPolicy()
         {
-            var policyBuilder = new AuthorizationPolicyBuilder();
-            policyBuilder.Requirements.Add(new DenyAnonymousAuthorizationRequirement());
-            return policyBuilder.Build();
-        }
-
-        private IAuthorizationService GetAuthService(HttpContext httpContext)
-        {
-            var authorizationService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
-            if (authorizationService == null)
-            {
-                throw new InvalidOperationException(
-                    Resources.AuthorizeAttribute_AuthorizationServiceMustBeDefined);
-            }
-            return authorizationService;
+            return new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
         }
 
         public sealed override void OnAuthorization([NotNull] AuthorizationContext context)
