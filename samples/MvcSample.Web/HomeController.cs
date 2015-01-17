@@ -89,6 +89,8 @@ namespace MvcSample.Web
         /// </summary>
         public ActionResult SaveUser(User user)
         {
+            ViewData["Alive"] = true;
+            ViewData["Dependent.Alive"] = true;
             return View("MyView", user);
         }
 
@@ -117,6 +119,8 @@ namespace MvcSample.Web
         /// </summary>
         public ActionResult Post([FromBody]User user)
         {
+            ViewData["Alive"] = true;
+            ViewData["Dependent.Alive"] = true;
             return View("MyView", user);
         }
 

@@ -182,19 +182,19 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        @Html.Label("Alive")
-                    </td>
-                    <td>
-                        @Html.CheckBox("Alive")
-                        or
-                        @Html.RadioButton("Alive", value: false) False
-                        @Html.RadioButton("Alive", value: true) True
-                    </td>
+                <td>
+                    @Html.LabelFor(m => m.Alive)
+                </td>
+                <td>
+                    @Html.CheckBoxFor(m => m.Alive)
+                    or
+                    @Html.RadioButtonFor(m => m.Alive, value: false) False
+                    @Html.RadioButtonFor(m => m.Alive, value: true) True
+                </td>
                 </tr>
                 <tr>
                     <td>
-                        @Html.LabelFor(m => m.Dependent.Alive)
+                        @Html.LabelFor(m => m.Dependent.Alive, labelText: "Dependent Alive?")
                     </td>
                     <td>
                         @Html.CheckBoxFor(m => m.Dependent.Alive)
