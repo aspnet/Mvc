@@ -1046,7 +1046,7 @@ namespace Microsoft.AspNet.Mvc
         /// Validates the specified <paramref name="model"/> instance.
         /// </summary>
         /// <param name="model">The model to validate.</param>
-        /// <param name="prefix">The key to use when looking up information in <see cref="ModelState"/>
+        /// <param name="prefix">The key to use when looking up information in <see cref="ModelState"/>.
         /// </param>
         /// <returns>A <see cref="bool"/> that returns <c>true</c> if the <see cref="ModelState"/> is valid;
         /// <c>false</c> otherwise. </returns>

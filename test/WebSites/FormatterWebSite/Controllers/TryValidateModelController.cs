@@ -10,11 +10,13 @@ namespace FormatterWebSite
         [HttpGet]
         public IActionResult GetInvalidUser()
         {
-            var user = new User()
+            var user = new User
             {
                 Id = 0,
                 Name = "x"
             };
+
+            // If ModelState.InValid is false return BadRequestOjectResult; else return empty string.
             if (!TryValidateModel(user))
             {
                 return new BadRequestObjectResult(ModelState);

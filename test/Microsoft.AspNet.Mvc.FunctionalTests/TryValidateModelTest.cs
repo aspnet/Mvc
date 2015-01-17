@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var json = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(
                 await response.Content.ReadAsStringAsync());
-            Assert.Equal("The field Id must be between 1 and 2000.",json["Id"][0]);
+            Assert.Equal("The field Id must be between 1 and 2000.", json["Id"][0]);
             Assert.Equal(
                 "The field Name must be a string or array type with a minimum length of '5'.", json["Name"][0]);
         }
