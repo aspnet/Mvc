@@ -23,6 +23,8 @@ namespace Microsoft.AspNet.Mvc
     {
         private const int DefaultBufferSize = 0x1000;
 
+        private string _fileName;
+
         /// <summary>
         /// Creates a new <see cref="FilePathResult"/> instance with
         /// the provided <paramref name="fileName"/> and the
@@ -48,7 +50,7 @@ namespace Microsoft.AspNet.Mvc
         public FilePathResult(
             [NotNull] string fileName,
             [NotNull] string contentType,
-            [NotNull] IFileSystem fileSystem)
+            IFileSystem fileSystem)
             : base(contentType)
         {
             FileName = fileName;
@@ -58,12 +60,27 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Gets the path to the file that will be sent back as the response.
         /// </summary>
-        public string FileName { get; private set; }
+        public string FileName
+        {
+            get
+            {
+                return _fileName;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                _fileName = value;
+            }
+        }
 
         /// <summary>
         /// Gets the <see cref="IFileSystem"/> used to resolve paths.
         /// </summary>
-        public IFileSystem FileSystem { get; private set; }
+        public IFileSystem FileSystem { get; set; }
 
         /// <inheritdoc />
         protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)

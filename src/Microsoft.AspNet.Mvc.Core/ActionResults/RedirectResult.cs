@@ -25,24 +25,29 @@ namespace Microsoft.AspNet.Mvc
             Url = url;
         }
 
-        public bool Permanent { get; private set; }
+        public bool Permanent { get; set; }
 
-        public string Url { get; private set; }
+        public string Url { get; set; }
+
+        public IUrlHelper UrlHelper { get; set; }
 
         public override void ExecuteResult([NotNull] ActionContext context)
         {
-            var destinationUrl = Url;
-            var urlHelper = context.HttpContext
-                                   .RequestServices
-                                   .GetRequiredService<IUrlHelper>();
+            var urlHelper = GetUrlHelper(context);
 
             // IsLocalUrl is called to handle  Urls starting with '~/'.
+            var destinationUrl = Url;
             if (urlHelper.IsLocalUrl(destinationUrl))
             {
                 destinationUrl = urlHelper.Content(Url);
             }
 
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
+        }
+
+        private IUrlHelper GetUrlHelper(ActionContext context)
+        {
+            return UrlHelper ?? context.HttpContext.RequestServices.GetRequiredService<IUrlHelper>();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -13,6 +14,8 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class FileContentResult : FileResult
     {
+        private byte[] _fileContents;
+
         /// <summary>
         /// Creates a new <see cref="FileContentResult"/> instance with
         /// the provided <paramref name="fileContents"/> and the
@@ -29,7 +32,22 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Gets the file contents.
         /// </summary>
-        public byte[] FileContents { get; private set; }
+        public byte[] FileContents
+        {
+            get
+            {
+                return _fileContents;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                _fileContents = value;
+            }
+        }
 
         /// <inheritdoc />
         protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)

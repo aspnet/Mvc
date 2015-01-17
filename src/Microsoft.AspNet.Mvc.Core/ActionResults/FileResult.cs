@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Gets the Content-Type header value that will be written to the response.
         /// </summary>
-        public string ContentType { get; private set; }
+        public string ContentType { get; set; }
 
         /// <summary>
         /// Gets the file name that will be used in the Content-Disposition header of the response.

@@ -10,6 +10,8 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class CreatedResult : ObjectResult
     {
+        private string _location;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreatedResult"/> class with the values
         /// provided.
@@ -26,7 +28,22 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Gets the location at which the content has been created.
         /// </summary>
-        public string Location { get; private set; }
+        public string Location
+        {
+            get
+            {
+                return _location;
+            }
+            set
+            {
+                if (_location == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                _location = value;
+            }
+        }
 
         /// <inheritdoc />
         protected override void OnFormatting([NotNull] ActionContext context)
