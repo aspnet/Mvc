@@ -1328,9 +1328,9 @@ namespace Microsoft.AspNet.Mvc.Test
             var model = new TryValidateModelModel();
 
             // Act & Assert
-            Assert.Throws<InvalidOperationException>(() => controller.TryValidateModel(model));
+            var exception = Assert.Throws<InvalidOperationException>(() => controller.TryValidateModel(model));
+            Assert.Equal("The 'BindingContext' property of 'Microsoft.AspNet.Mvc.Controller' must not be null.", exception.Message);
         }
-
 
         private static Controller GetController(IModelBinder binder, IValueProvider provider)
         {

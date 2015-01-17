@@ -1034,8 +1034,7 @@ namespace Microsoft.AspNet.Mvc
         /// Validates the specified <paramref name="model"/> instance.
         /// </summary>
         /// <param name="model">The model to validate.</param>
-        /// <returns>A <see cref="bool"/> that returns <c>true</c> if the <see cref="ModelState"/> is valid;
-        /// is valid; <c>false</c> otherwise. </returns>
+        /// <returns><c>true</c> if the <see cref="ModelState"/> is valid; <c>false</c> otherwise. </returns>
         [NonAction]
         public virtual bool TryValidateModel([NotNull] object model)
         {
@@ -1048,8 +1047,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="model">The model to validate.</param>
         /// <param name="prefix">The key to use when looking up information in <see cref="ModelState"/>.
         /// </param>
-        /// <returns>A <see cref="bool"/> that returns <c>true</c> if the <see cref="ModelState"/> is valid;
-        /// <c>false</c> otherwise. </returns>
+        /// <returns><c>true</c> if the <see cref="ModelState"/> is valid;<c>false</c> otherwise. </returns>
         [NonAction]
         public virtual bool TryValidateModel([NotNull] object model, string prefix)
         {
