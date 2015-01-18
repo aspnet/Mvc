@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <summary>
         /// Returns anti-forgery cookie token and header.
         /// </summary>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;hidden&gt; element.</returns>
+        /// <returns>A<see cref="HtmlString"/> that returns a <see cref="HtmlString.Empty"/>.</returns>
         HtmlString PresetCookieAndHeaders();
 
         /// <summary>
