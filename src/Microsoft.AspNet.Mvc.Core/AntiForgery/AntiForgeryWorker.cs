@@ -102,18 +102,10 @@ namespace Microsoft.AspNet.Mvc
             var tokenSet = GetTokens(httpContext, oldCookieToken);
             var newCookieToken = tokenSet.CookieToken;
             var formToken = tokenSet.FormToken;
+
             if (newCookieToken != null)
             {
-                // If a new cookie was generated, persist it.
-                _tokenStore.SaveCookieToken(httpContext, newCookieToken);
-            }
-
-            if (!_config.SuppressXFrameOptionsHeader)
-            {
-                // Adding X-Frame-Options header to prevent ClickJacking. See
-                // http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-10
-                // for more information.
-                httpContext.Response.Headers.Set("X-Frame-Options", "SAMEORIGIN");
+                SaveCookieTokenAndHeader(httpContext, newCookieToken);
             }
 
             // <input type="hidden" name="__AntiForgeryToken" value="..." />
@@ -143,15 +135,11 @@ namespace Microsoft.AspNet.Mvc
 
         private AntiForgeryTokenSetInternal GetTokens(HttpContext httpContext, AntiForgeryToken oldCookieToken)
         {
-            AntiForgeryToken newCookieToken = null;
-            if (!_validator.IsCookieTokenValid(oldCookieToken))
+            AntiForgeryToken newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
+            if (newCookieToken != null)
             {
-                // Need to make sure we're always operating with a good cookie token.
-                oldCookieToken = newCookieToken = _generator.GenerateCookieToken();
+                oldCookieToken = newCookieToken;
             }
-
-            Debug.Assert(_validator.IsCookieTokenValid(oldCookieToken));
-
             var formToken = _generator.GenerateFormToken(
                 httpContext,
                 ExtractIdentity(httpContext),
@@ -202,6 +190,50 @@ namespace Microsoft.AspNet.Mvc
                 ExtractIdentity(httpContext),
                 deserializedCookieToken,
                 deserializedFormToken);
+        }
+
+        // [ ENTRY POINT ]
+        // Generates an anti-XSRF cookie token for the current user.
+        public void GetCookieTokenAndHeader([NotNull] HttpContext httpContext)
+        {
+            CheckSSLConfig(httpContext);
+
+            var oldCookieToken = GetCookieTokenNoThrow(httpContext);
+            AntiForgeryToken newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
+            if (newCookieToken != null)
+            {
+                SaveCookieTokenAndHeader(httpContext, newCookieToken);
+            }
+        }
+
+        private AntiForgeryToken ValidateAndGenerateNewToken(AntiForgeryToken oldCookieToken)
+        {
+            AntiForgeryToken newCookieToken = null;
+
+            if (!_validator.IsCookieTokenValid(oldCookieToken))
+            {
+                // Need to make sure we're always operating with a good cookie token.
+                newCookieToken = _generator.GenerateCookieToken();
+            }
+            if (newCookieToken != null)
+            {
+                Debug.Assert(_validator.IsCookieTokenValid(newCookieToken));
+            }
+            return newCookieToken;
+        }
+
+        private void SaveCookieTokenAndHeader([NotNull] HttpContext httpContext, [NotNull] AntiForgeryToken newCookieToken)
+        {
+            // If a new cookie was generated, persist it.
+            _tokenStore.SaveCookieToken(httpContext, newCookieToken);
+
+            if (!_config.SuppressXFrameOptionsHeader)
+            {
+                // Adding X-Frame-Options header to prevent ClickJacking. See
+                // http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-10
+                // for more information.
+                httpContext.Response.Headers.Set("X-Frame-Options", "SAMEORIGIN");
+            }
         }
 
         private class AntiForgeryTokenSetInternal

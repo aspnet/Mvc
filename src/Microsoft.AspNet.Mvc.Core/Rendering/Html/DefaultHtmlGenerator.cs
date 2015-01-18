@@ -87,6 +87,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
+        public virtual void GeneratePresetCookieAndHeaders([NotNull] ViewContext viewContext)
+        {
+            _antiForgery.GetCookieTokenAndHeader(viewContext.HttpContext);
+        }
+
+        /// <inheritdoc />
         public virtual TagBuilder GenerateCheckBox(
             [NotNull] ViewContext viewContext,
             ModelMetadata metadata,

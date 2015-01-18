@@ -207,6 +207,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
+        public HtmlString PresetCookieAndHeaders()
+        {
+            _htmlGenerator.GeneratePresetCookieAndHeaders(ViewContext);
+            return HtmlString.Empty;
+        }
+
+        /// <inheritdoc />
         public MvcForm BeginForm(
             string actionName,
             string controllerName,

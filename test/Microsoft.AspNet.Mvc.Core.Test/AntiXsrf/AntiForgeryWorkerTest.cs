@@ -379,6 +379,29 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             context.TokenProvider.Verify();
         }
 
+        [Theory]
+        [InlineData(false, "SAMEORIGIN")]
+        [InlineData(true, null)]
+        public void GetCookieTokenAndHeader_AddsXFrameOptionsHeader(bool suppressXFrameOptions, string expectedHeaderValue)
+        {
+            // Arrange
+            var options = new AntiForgeryOptions()
+            {
+                SuppressXFrameOptionsHeader = suppressXFrameOptions
+            };
+
+            // Genreate a new cookie.
+            var context = GetAntiForgeryWorkerContext(options, useOldCookie: false, isOldCookieValid: false);
+            var worker = GetAntiForgeryWorker(context);
+
+            // Act
+            worker.GetCookieTokenAndHeader(context.HttpContext.Object);
+
+            // Assert
+            string xFrameOptions = context.HttpContext.Object.Response.Headers["X-Frame-Options"];
+            Assert.Equal(expectedHeaderValue, xFrameOptions);
+        }
+
         private AntiForgeryWorker GetAntiForgeryWorker(AntiForgeryWorkerContext context)
         {
             return new AntiForgeryWorker(

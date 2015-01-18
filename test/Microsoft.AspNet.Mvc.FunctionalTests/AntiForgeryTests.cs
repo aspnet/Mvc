@@ -234,5 +234,27 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("The required anti-forgery form field \"__RequestVerificationToken\" is not present.",
                          exception.ExceptionMessage);
         }
+
+        [Fact]
+        public async Task PresetCookieAndHeaderBeforeFlushAsync_GeneratesCookieTokenAndHeader()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Account/FlushAsyncLogin");
+
+            // Assert
+            var header = Assert.Single(response.Headers.GetValues("X-Frame-Options"));
+            Assert.Equal("SAMEORIGIN", header);
+
+            var setCookieHeader = response.Headers.GetValues("Set-Cookie").ToArray();
+
+            // Even though there are two forms there should only be one response cookie,
+            // as for the second form, the cookie from the first token should be reused.
+            Assert.Equal(1, setCookieHeader.Length);
+            Assert.True(setCookieHeader[0].StartsWith("__RequestVerificationToken"));
+        }
     }
 }

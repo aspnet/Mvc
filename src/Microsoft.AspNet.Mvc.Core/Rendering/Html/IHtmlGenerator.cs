@@ -31,6 +31,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateAntiForgery([NotNull] ViewContext viewContext);
 
+        void GeneratePresetCookieAndHeaders([NotNull] ViewContext viewContext);
+
         TagBuilder GenerateCheckBox(
             [NotNull] ViewContext viewContext,
             ModelMetadata metadata,

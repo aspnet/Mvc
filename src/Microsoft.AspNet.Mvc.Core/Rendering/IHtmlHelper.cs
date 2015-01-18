@@ -82,6 +82,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         HtmlString AntiForgeryToken();
 
         /// <summary>
+        /// Returns anti-forgery cookie token and header.
+        /// </summary>
+        /// <returns>A new <see cref="HtmlString"/> containing the &lt;hidden&gt; element.</returns>
+        HtmlString PresetCookieAndHeaders();
+
+        /// <summary>
         /// Renders a &lt;form&gt; start tag to the response. When the user submits the form, the action with name
         /// <paramref name="actionName"/> will process the request.
         /// </summary>
