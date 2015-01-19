@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+                FormattingUtilities.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
@@ -119,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 }
             };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+                FormattingUtilities.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
@@ -169,7 +169,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType(),
                 "application/xml; charset=utf-16");
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+                FormattingUtilities.GetDefaultXmlWriterSettings());
             formatter.WriterSettings.OmitXmlDeclaration = false;
 
             // Act
@@ -191,7 +191,7 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+                FormattingUtilities.GetDefaultXmlWriterSettings());
             formatter.WriterSettings.Indent = true;
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
@@ -214,7 +214,7 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var sampleInput = new DummyClass { SampleInt = 10 };
             var formatter = new XmlDataContractSerializerOutputFormatter(
-                XmlOutputFormatter.GetDefaultXmlWriterSettings());
+                FormattingUtilities.GetDefaultXmlWriterSettings());
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
 
             // Act
