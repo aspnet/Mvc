@@ -42,15 +42,15 @@ namespace Microsoft.AspNet.Mvc
     ///
     /// <code>
     /// public class ProductModelRequestService : IProductModelRequestService
-    ///	{
-    ///		public ProductModel(IContextAccessor<ActionContext> action, IProductService prodService)
-    ///		{
-    ///			if (!action.Value.RouteData.Values.ContainsKey("product")) 
-    ///				throw new InvalidOperationException("The 'product' key was not available in the request");	
-    ///			Value = prodService.Get(action.Value.RouteData.Values["product"]);
-    ///		}
+    /// {
+    ///     public ProductModel(IContextAccessor<ActionContext> action, IProductService prodService)
+    ///     {
+    ///         if (!action.Value.RouteData.Values.ContainsKey("product")) 
+    ///             throw new InvalidOperationException("The 'product' key was not available in the request");	
+    ///         Value = prodService.Get(action.Value.RouteData.Values["product"]);
+    ///     }
     ///
-    ///		public ProductModel Value { get; private set; }
+    ///     public ProductModel Value { get; private set; }
     ///	}
     /// </code>
     ///
