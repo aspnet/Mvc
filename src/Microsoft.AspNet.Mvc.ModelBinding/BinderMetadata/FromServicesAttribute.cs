@@ -51,18 +51,16 @@ namespace Microsoft.AspNet.Mvc
     /// 	}
     ///
     /// 	public ProductModel Value { get; private set; }
-    ///}
+    /// }
     /// </code>
     ///
-    ///<code>
+    /// <code>
     /// [HttpGet]
-    ///public ProductModel GetProduct(
-    ///[FromServices]IProductModelRequestService productModelReqest)
-    ///{
-    ///return productModelReqest.Value;
-    ///}
+    /// public ProductModel GetProduct([FromServices]IProductModelRequestService productModelReqest)
+    /// {
+    /// 	return productModelReqest.Value;
+    /// }
     /// </code>
-    ///
     /// </example> 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class FromServicesAttribute : Attribute, IServiceActivatorBinderMetadata
