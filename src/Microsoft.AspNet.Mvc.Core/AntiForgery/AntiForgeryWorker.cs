@@ -103,10 +103,7 @@ namespace Microsoft.AspNet.Mvc
             var newCookieToken = tokenSet.CookieToken;
             var formToken = tokenSet.FormToken;
 
-            if (newCookieToken != null)
-            {
-                SaveCookieTokenAndHeader(httpContext, newCookieToken);
-            }
+            SaveCookieTokenAndHeader(httpContext, newCookieToken);
 
             // <input type="hidden" name="__AntiForgeryToken" value="..." />
             var retVal = new TagBuilder("input");
@@ -203,10 +200,8 @@ namespace Microsoft.AspNet.Mvc
 
             var oldCookieToken = GetCookieTokenNoThrow(httpContext);
             var newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
-            if (newCookieToken != null)
-            {
-                SaveCookieTokenAndHeader(httpContext, newCookieToken);
-            }
+            
+            SaveCookieTokenAndHeader(httpContext, newCookieToken);
         }
 
         // This method returns null if oldCookieToken is valid.
@@ -227,8 +222,11 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] HttpContext httpContext,
             [NotNull] AntiForgeryToken newCookieToken)
         {
-            // Persist the new cookie.
-            _tokenStore.SaveCookieToken(httpContext, newCookieToken);
+            if (newCookieToken != null)
+            {
+                // Persist the new cookie if it is not null.
+                _tokenStore.SaveCookieToken(httpContext, newCookieToken);
+            }
 
             if (!_config.SuppressXFrameOptionsHeader)
             {
