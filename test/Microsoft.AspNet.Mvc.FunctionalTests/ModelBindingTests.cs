@@ -1429,5 +1429,32 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("test.txt", fileDetails.Filename);
             Assert.Equal("Test Content", fileDetails.Content);
         }
+
+        [Theory]
+        [InlineData("Chinese西雅图Chars.txt")]
+        [InlineData("Unicode؃Format؃Char.txt")]
+        [InlineData("UnicodeῼTitlecaseῼChar.txt")]
+        [InlineData("UnicodeःCombiningःChar.txt")]
+        [InlineData("ййиÅÅÅ.txt")]
+        [InlineData("אָלֶף־בֵּית.txt")]
+        public async Task FormFileModelBinder_CanBind_FileWithNonEnglishFileName(string filename)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var url = "http://localhost/FileUpload/UploadSingle";
+            var formData = new MultipartFormDataContent("Upload----");
+            formData.Add(new StringContent("Test Content"), "file", filename);
+
+            // Act
+            var response = await client.PostAsync(url, formData);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var fileDetails = JsonConvert.DeserializeObject<FileDetails>(
+                                    await response.Content.ReadAsStringAsync());
+            Assert.Equal(filename, fileDetails.Filename);
+            Assert.Equal("Test Content", fileDetails.Content);
+        }
     }
 }
