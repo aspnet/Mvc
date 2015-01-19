@@ -382,7 +382,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [Theory]
         [InlineData(false, "SAMEORIGIN")]
         [InlineData(true, null)]
-        public void GetCookieTokenAndHeader_AddsXFrameOptionsHeader(bool suppressXFrameOptions, string expectedHeaderValue)
+        public void SetCookieTokenAndHeader_AddsXFrameOptionsHeader(bool suppressXFrameOptions, string expectedHeaderValue)
         {
             // Arrange
             var options = new AntiForgeryOptions()

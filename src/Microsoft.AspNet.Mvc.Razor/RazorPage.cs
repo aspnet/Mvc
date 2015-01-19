@@ -557,7 +557,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// completion returns a <see cref="HtmlString.Empty"/>.</returns>
         /// <remarks>The value returned is a token value that allows FlushAsync to work directly in an HTML
         /// section. However the value does not represent the rendered content.
-        /// Call <see cref="Html.SetCookieTokenAndHeader"/> to send anti-forgery cookie token  and and X-Frame-Options
+        /// Call <see cref="SetAntiForgeryCookieAndHeader"/> to send anti-forgery cookie token  and and X-Frame-Options
         /// header to client before this method flushes headers out. </remarks>
         public async Task<HtmlString> FlushAsync()
         {
