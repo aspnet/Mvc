@@ -23,16 +23,16 @@ namespace Microsoft.AspNet.Mvc
     /// 	[Required]
     /// 	[FromBody]
     /// 	public VehicleViewModel Vehicle { get; set; }
-    /// 
+    /// 	
     /// 	[FromServices]
     /// 	public ILocationService LocationService { get; set; }
-    /// 
+    /// 	
     /// 	[FromHeader(Name = "X-TrackingId")]
     /// 	public string TrackingId { get; set; } = "default-tracking-id";
-    /// 
+    /// 	
     /// 	public void Update()
     /// 	{
-    /// 		LocationService.Update(this);
+    /// 	LocationService.Update(this);
     /// 	}
     /// }
     /// </code> 
@@ -43,24 +43,24 @@ namespace Microsoft.AspNet.Mvc
     /// <code>
     /// public class ProductModelRequestService : IProductModelRequestService
     /// {
-    ///     public ProductModel(IContextAccessor<ActionContext> action, IProductService prodService)
-    ///     {
-    ///         if (!action.Value.RouteData.Values.ContainsKey("product")) 
-    ///             throw new InvalidOperationException("The 'product' key was not available in the request");	
-    ///         Value = prodService.Get(action.Value.RouteData.Values["product"]);
-    ///     }
+    /// 	public ProductModel(IContextAccessor<ActionContext> action, IProductService prodService)
+    /// 	{
+    /// 		if (!action.Value.RouteData.Values.ContainsKey("product")) 
+    /// 			throw new InvalidOperationException("The 'product' key was not available in the request");
+    /// 		Value = prodService.Get(action.Value.RouteData.Values["product"]);
+    /// 	}
     ///
-    ///     public ProductModel Value { get; private set; }
-    ///	}
+    /// 	public ProductModel Value { get; private set; }
+    ///}
     /// </code>
     ///
-    ///	<code>
+    ///<code>
     /// [HttpGet]
-    ///	public ProductModel GetProduct(
-    ///		[FromServices]IProductModelRequestService productModelReqest)
-    ///		{
-    ///			return productModelReqest.Value;
-    ///		}
+    ///public ProductModel GetProduct(
+    ///[FromServices]IProductModelRequestService productModelReqest)
+    ///{
+    ///return productModelReqest.Value;
+    ///}
     /// </code>
     ///
     /// </example> 
