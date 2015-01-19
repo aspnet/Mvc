@@ -766,11 +766,6 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
-            public HtmlString SetCookieAndHeader()
-            {
-                throw new NotImplementedException();
-            }
-
             public MvcForm BeginForm(
                 string actionName,
                 string controllerName,

@@ -39,12 +39,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             get
             {
-                if (ViewContext == null)
-                {
-                    return null;
-                }
-
-                return ViewContext.HttpContext;
+                return ViewContext?.HttpContext;
             }
         }
 
@@ -617,6 +612,14 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void EndContext()
         {
             PageExecutionContext?.EndContext();
+        }
+
+        public virtual HtmlString SetAntiForgeryCookieAndHeader()
+        {
+            var antiForgery = Context?.RequestServices.GetRequiredService<AntiForgery>();
+            antiForgery?.SetCookieTokenAndHeader(Context);
+
+            return HtmlString.Empty;
         }
 
         private void EnsureMethodCanBeInvoked(string methodName)

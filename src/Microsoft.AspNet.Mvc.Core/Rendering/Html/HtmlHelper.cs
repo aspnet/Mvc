@@ -207,13 +207,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString SetCookieAndHeader()
-        {
-            _htmlGenerator.GenerateSetCookieAndHeader(ViewContext);
-            return HtmlString.Empty;
-        }
-
-        /// <inheritdoc />
         public MvcForm BeginForm(
             string actionName,
             string controllerName,

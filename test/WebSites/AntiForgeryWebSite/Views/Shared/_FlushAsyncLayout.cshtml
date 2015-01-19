@@ -1,8 +1,8 @@
 ﻿<html>
 <head>
-    <title>@ViewBag.Title –AntiForgery Functional Tests</title>
+    <title>@ViewBag.Title – AntiForgery Functional Tests</title>
 </head>
-@Html.SetCookieAndHeader()
+@SetAntiForgeryCookieAndHeader()
 @await FlushAsync()
 
 <body>
