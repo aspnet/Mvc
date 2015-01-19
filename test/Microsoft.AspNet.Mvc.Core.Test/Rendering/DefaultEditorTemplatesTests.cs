@@ -766,7 +766,7 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
-            public HtmlString PresetCookieAndHeaders()
+            public HtmlString SetCookieAndHeader()
             {
                 throw new NotImplementedException();
             }

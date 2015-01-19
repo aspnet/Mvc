@@ -561,7 +561,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <returns>A<see cref="Task{HtmlString}"/> that represents the asynchronous flush operation and on
         /// completion returns a <see cref="HtmlString.Empty"/>.</returns>
         /// <remarks>The value returned is a token value that allows FlushAsync to work directly in an HTML
-        /// section. However the value does not represent the rendered content.</remarks>
+        /// section. However the value does not represent the rendered content.
+        /// Call <see cref="Html.SetCookieTokenAndHeader"/> to send anti-forgery cookie token  and and X-Frame-Options
+        /// header to client before this method flushes headers out. </remarks>
         public async Task<HtmlString> FlushAsync()
         {
             // If there are active writing scopes then we should throw. Cannot flush content that has the potential to

@@ -395,10 +395,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var worker = GetAntiForgeryWorker(context);
 
             // Act
-            worker.GetCookieTokenAndHeader(context.HttpContext.Object);
+            worker.SetCookieTokenAndHeader(context.HttpContext.Object);
 
             // Assert
-            string xFrameOptions = context.HttpContext.Object.Response.Headers["X-Frame-Options"];
+            var xFrameOptions = context.HttpContext.Object.Response.Headers["X-Frame-Options"];
             Assert.Equal(expectedHeaderValue, xFrameOptions);
         }
 

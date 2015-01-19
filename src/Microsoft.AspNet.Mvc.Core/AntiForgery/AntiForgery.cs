@@ -102,13 +102,9 @@ namespace Microsoft.AspNet.Mvc
         /// Generates an anti-forgery cookie token for this request. 
         /// </summary>
         /// <param name="context">The HTTP context associated with the current call.</param>
-        /// <remarks>
-        /// This method has a side effect:
-        /// A response cookie is set if there is no valid cookie associated with the request.
-        /// </remarks>
-        public void GetCookieTokenAndHeader([NotNull] HttpContext context)
+        public void SetCookieTokenAndHeader([NotNull] HttpContext context)
         {
-            _worker.GetCookieTokenAndHeader(context);
+            _worker.SetCookieTokenAndHeader(context);
         }
     }
 }

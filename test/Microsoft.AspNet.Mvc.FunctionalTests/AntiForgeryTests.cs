@@ -236,7 +236,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task PresetCookieAndHeaderBeforeFlushAsync_GeneratesCookieTokenAndHeader()
+        public async Task SetCookieAndHeaderBeforeFlushAsync_GeneratesCookieTokenAndHeader()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -251,10 +251,42 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var setCookieHeader = response.Headers.GetValues("Set-Cookie").ToArray();
 
-            // Even though there are two forms there should only be one response cookie,
-            // as for the second form, the cookie from the first token should be reused.
-            Assert.Equal(1, setCookieHeader.Length);
-            Assert.True(setCookieHeader[0].StartsWith("__RequestVerificationToken"));
+            var cookie = Assert.Single(setCookieHeader);
+            Assert.True(cookie.StartsWith("__RequestVerificationToken"));
         }
+
+        [Fact]
+        public async Task SetCookieAndHeaderBeforeFlushAsync_PostToForm()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // do a get response.
+            var getResponse = await client.GetAsync("http://localhost/Account/FlushAsyncLogin");
+            var resposneBody = await getResponse.Content.ReadAsStringAsync();
+
+            var formToken = AntiForgeryTestHelper.RetrieveAntiForgeryToken(resposneBody, "Account/FlushAsyncLogin");
+            var cookieToken = AntiForgeryTestHelper.RetrieveAntiForgeryCookie(getResponse);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Account/FlushAsyncLogin");
+            request.Headers.Add("Cookie", "__RequestVerificationToken=" + cookieToken);
+            var nameValueCollection = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string,string>("__RequestVerificationToken", formToken),
+                new KeyValuePair<string,string>("UserName", "abra"),
+                new KeyValuePair<string,string>("Password", "cadabra"),
+            };
+
+            request.Content = new FormUrlEncodedContent(nameValueCollection);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("OK", await response.Content.ReadAsStringAsync());
+        }
+
     }
 }

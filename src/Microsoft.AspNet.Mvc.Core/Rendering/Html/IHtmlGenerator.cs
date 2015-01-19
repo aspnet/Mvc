@@ -31,7 +31,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateAntiForgery([NotNull] ViewContext viewContext);
 
-        void GeneratePresetCookieAndHeaders([NotNull] ViewContext viewContext);
+        /// <summary>
+        /// Sets anti-forgery cookie and X-Frame-Options header on the response.
+        /// </summary>
+        /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
+        void GenerateSetCookieAndHeader([NotNull] ViewContext viewContext);
 
         TagBuilder GenerateCheckBox(
             [NotNull] ViewContext viewContext,

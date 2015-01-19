@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc
 
         private AntiForgeryTokenSetInternal GetTokens(HttpContext httpContext, AntiForgeryToken oldCookieToken)
         {
-            AntiForgeryToken newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
+            var newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
             if (newCookieToken != null)
             {
                 oldCookieToken = newCookieToken;
@@ -192,39 +192,42 @@ namespace Microsoft.AspNet.Mvc
                 deserializedFormToken);
         }
 
-        // [ ENTRY POINT ]
-        // Generates an anti-XSRF cookie token for the current user.
-        public void GetCookieTokenAndHeader([NotNull] HttpContext httpContext)
+
+        /// <summary>
+        /// Generates an anti-forgery cookie token and header for this request.
+        /// </summary>
+        /// <param name="context">The HTTP context associated with the current call.</param>
+        public void SetCookieTokenAndHeader([NotNull] HttpContext httpContext)
         {
             CheckSSLConfig(httpContext);
 
             var oldCookieToken = GetCookieTokenNoThrow(httpContext);
-            AntiForgeryToken newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
+            var newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
             if (newCookieToken != null)
             {
                 SaveCookieTokenAndHeader(httpContext, newCookieToken);
             }
         }
 
+        // This method returns null if oldCookieToken is valid.
         private AntiForgeryToken ValidateAndGenerateNewToken(AntiForgeryToken oldCookieToken)
         {
-            AntiForgeryToken newCookieToken = null;
-
             if (!_validator.IsCookieTokenValid(oldCookieToken))
             {
                 // Need to make sure we're always operating with a good cookie token.
-                newCookieToken = _generator.GenerateCookieToken();
-            }
-            if (newCookieToken != null)
-            {
+                var newCookieToken = _generator.GenerateCookieToken();
                 Debug.Assert(_validator.IsCookieTokenValid(newCookieToken));
+                return newCookieToken;
             }
-            return newCookieToken;
+
+            return null;
         }
 
-        private void SaveCookieTokenAndHeader([NotNull] HttpContext httpContext, [NotNull] AntiForgeryToken newCookieToken)
+        private void SaveCookieTokenAndHeader(
+            [NotNull] HttpContext httpContext,
+            [NotNull] AntiForgeryToken newCookieToken)
         {
-            // If a new cookie was generated, persist it.
+            // Persist the new cookie.
             _tokenStore.SaveCookieToken(httpContext, newCookieToken);
 
             if (!_config.SuppressXFrameOptionsHeader)

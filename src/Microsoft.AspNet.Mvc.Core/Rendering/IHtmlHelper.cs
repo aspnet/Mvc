@@ -82,10 +82,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         HtmlString AntiForgeryToken();
 
         /// <summary>
-        /// Returns anti-forgery cookie token and header.
+        /// Sets anti-forgery cookie and X-Frame-Options header on the response.
         /// </summary>
         /// <returns>A<see cref="HtmlString"/> that returns a <see cref="HtmlString.Empty"/>.</returns>
-        HtmlString PresetCookieAndHeaders();
+        /// <remarks> Call this method to send anti-forgery cookie token and X-Frame-Options header to client
+        /// before <see cref="FlushAsync"/> flushes the headers. </remarks>
+        HtmlString SetCookieAndHeader();
 
         /// <summary>
         /// Renders a &lt;form&gt; start tag to the response. When the user submits the form, the action with name

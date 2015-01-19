@@ -207,9 +207,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString PresetCookieAndHeaders()
+        public HtmlString SetCookieAndHeader()
         {
-            _htmlGenerator.GeneratePresetCookieAndHeaders(ViewContext);
+            _htmlGenerator.GenerateSetCookieAndHeader(ViewContext);
             return HtmlString.Empty;
         }
 

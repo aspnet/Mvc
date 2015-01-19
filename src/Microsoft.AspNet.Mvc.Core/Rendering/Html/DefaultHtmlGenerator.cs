@@ -87,9 +87,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public virtual void GeneratePresetCookieAndHeaders([NotNull] ViewContext viewContext)
+        public virtual void GenerateSetCookieAndHeader([NotNull] ViewContext viewContext)
         {
-            _antiForgery.GetCookieTokenAndHeader(viewContext.HttpContext);
+            _antiForgery.SetCookieTokenAndHeader(viewContext.HttpContext);
         }
 
         /// <inheritdoc />
