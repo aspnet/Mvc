@@ -12,8 +12,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class PrecompilationCacheEntry
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="PrecompilationCacheEntry"/> that represents a successful
-        /// parse.
+        /// Initializes a new instance of <see cref="PrecompilationCacheEntry"/> for a successful parse.
         /// </summary>
         /// <param name="fileInfo">The <see cref="RazorFileInfo"/> of the file being cached.</param>
         /// <param name="syntaxTree">The <see cref="CodeAnalysis.SyntaxTree"/> to cache.</param>
@@ -25,11 +24,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="PrecompilationCacheEntry"/> that represents a failure
-        /// in Razor parsing.
+        /// Initializes a new instance of <see cref="PrecompilationCacheEntry"/> for a failed parse.
         /// </summary>
         /// <param name="diagnostics">The <see cref="IReadOnlyList{Diagnostic}"/> produced from parsing the Razor
-        /// file.</param>
+        /// file. This does not contain <see cref="Diagnostic"/>s produced from compiling the parsed
+        /// <see cref="CodeAnalysis.SyntaxTree"/>.</param>
         public PrecompilationCacheEntry([NotNull] IReadOnlyList<Diagnostic> diagnostics)
         {
             Diagnostics = diagnostics;
@@ -53,7 +52,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <summary>
         /// Gets the <see cref="Diagnostic"/>s produced from parsing the generated contents of the file
-        /// specified by <see cref="FileInfo"/>.
+        /// specified by <see cref="FileInfo"/>. This does not contain <see cref="Diagnostic"/>s produced from
+        /// compiling the parsed <see cref="CodeAnalysis.SyntaxTree"/>.
         /// </summary>
         /// <remarks>
         /// This property is <c>null</c> if <see cref="Success"/> is <c>true</c>.

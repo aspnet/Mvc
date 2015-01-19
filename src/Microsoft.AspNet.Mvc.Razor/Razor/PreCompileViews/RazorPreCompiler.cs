@@ -73,6 +73,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorFiles = new RazorFileInfo[filesToProcess.Count];
             var syntaxTrees = new SyntaxTree[filesToProcess.Count];
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = MaxDegreesOfParallelism };
+            var diagnosticsLock = new object();
 
             Parallel.For(0, filesToProcess.Count, parallelOptions, index =>
             {
@@ -89,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     }
                     else
                     {
-                        lock (context.Diagnostics)
+                        lock (diagnosticsLock)
                         {
                             foreach (var diagnostic in cacheEntry.Diagnostics)
                             {
