@@ -121,6 +121,26 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
+        public async Task WriteAsync_ClonesMediaType()
+        {
+            // Arrange
+            var formatter = new PngImageFormatter();
+            var mediaType = formatter.SupportedMediaTypes[0];
+            var formatterContext = new OutputFormatterContext();
+            formatterContext.ActionContext = new ActionContext(
+                                    new DefaultHttpContext(), 
+                                    new RouteData(), 
+                                    new ActionDescriptor());
+
+            // Act
+            await formatter.WriteAsync(formatterContext);
+
+            // Assert
+            Assert.NotSame(mediaType, formatterContext.SelectedContentType);
+            Assert.Equal("image/png; charset=utf-8", formatterContext.SelectedContentType.ToString());
+        }
+
+        [Fact]
         public void CanWriteResult_ForNullContentType_UsesFirstEntryInSupportedContentTypes()
         {
             // Arrange
@@ -294,11 +314,25 @@ namespace Microsoft.AspNet.Mvc.Test
             public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
             {
                 // Do not set the selected media Type.
-                // The WriteResponseContentHeader should do it for you.
+                // The WriteResponseHeaders should do it for you.
                 return true;
             }
 
             public override Task WriteResponseBodyAsync(OutputFormatterContext context)
+            {
+                return Task.FromResult(true);
+            }
+        }
+
+        private class PngImageFormatter : OutputFormatter
+        {
+            public PngImageFormatter()
+            {
+                SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("image/png"));
+                SupportedEncodings.Add(Encoding.UTF8);
+            }
+            
+            public override Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context)
             {
                 return Task.FromResult(true);
             }
