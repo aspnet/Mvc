@@ -26,8 +26,8 @@ namespace Microsoft.AspNet.Mvc
         {
             _appServices = services;
             // When ListenForMemoryPressure is true, the MemoryCache evicts items at every gen2 collection.
-            // In DTH, gen2 happens frequently enough making it an undesirable characteristic for caching
-            // precompilation results. We'll instead turn this off.
+            // In DTH, gen2 happens frequently enough to make it undesirable for caching precompilation results. We'll
+            // disable listening for memory pressure for the MemoryCache instance used by precompilation.
             _memoryCache = new MemoryCache(new MemoryCacheOptions { ListenForMemoryPressure = false });
         }
 

@@ -18,7 +18,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public class RazorPreCompiler
     {
-        private static readonly int MaxDegreesOfParallelism = Environment.ProcessorCount;
         private readonly IServiceProvider _serviceProvider;
         private readonly IFileSystem _fileSystem;
 
@@ -48,6 +47,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         protected IMemoryCache PreCompilationCache { get; }
 
         protected virtual string FileExtension { get; } = ".cshtml";
+
+        protected virtual int MaxDegreesOfParallelism { get; } = Environment.ProcessorCount;
+
 
         public virtual void CompileViews([NotNull] IBeforeCompileContext context)
         {
