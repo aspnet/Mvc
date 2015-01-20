@@ -320,9 +320,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.False(getResponse.Headers.TryGetValues("Set-Cookie", out returnList));
             Assert.False(getResponse.Headers.TryGetValues("X-Frame-Options", out returnList));
 
-            var formToken = AntiForgeryTestHelper.RetrieveAntiForgeryToken(resposneBody, "Account/FlushWithoutUpdatingHeader");
+            var formToken = AntiForgeryTestHelper.RetrieveAntiForgeryToken(
+                resposneBody,
+                "Account/FlushWithoutUpdatingHeader");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Account/FlushWithoutUpdatingHeader");
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                "http://localhost/Account/FlushWithoutUpdatingHeader");
 
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
