@@ -14,48 +14,68 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
     public class EnvironmentTagHelperTest
     {
         [Theory]
-        [InlineData("Development")]
-        [InlineData("development")]
-        [InlineData("DEVELOPMENT")]
-        [InlineData(" development")]
-        [InlineData("development ")]
-        [InlineData(" development ")]
-        [InlineData("Development,Production")]
-        [InlineData("Production,Development")]
-        [InlineData("Development , Production")]
-        [InlineData(" Development,Production ")]
-        [InlineData("Development,Staging,Production")]
-        [InlineData("Staging,Development,Production")]
-        [InlineData("Staging,Production,Development")]
-        public void ShowsContentWhenCurrentEnvironmentIsSpecified(string namesAttribute)
+        [InlineData("Development", "Development")]
+        [InlineData("development", "Development")]
+        [InlineData("DEVELOPMENT", "Development")]
+        [InlineData(" development", "Development")]
+        [InlineData("development ", "Development")]
+        [InlineData(" development ", "Development")]
+        [InlineData("Development,Production", "Development")]
+        [InlineData("Production,Development", "Development")]
+        [InlineData("Development , Production", "Development")]
+        [InlineData("   Development,Production   ", "Development")]
+        [InlineData("Development ,  Production", "Development")]
+        [InlineData("Development\t,Production", "Development")]
+        [InlineData("Development,\tProduction", "Development")]
+        [InlineData(" Development,Production ", "Development")]
+        [InlineData("Development,Staging,Production", "Development")]
+        [InlineData("Staging,Development,Production", "Development")]
+        [InlineData("Staging,Production,Development", "Development")]
+        [InlineData("Test", "Test")]
+        [InlineData("Test,Staging", "Test")]
+        public void ShowsContentWhenCurrentEnvironmentIsSpecified(string namesAttribute, string environmentName)
         {
-            ShouldShowContent(namesAttribute);
+            ShouldShowContent(namesAttribute, environmentName);
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        [InlineData("  ")]
-        [InlineData(", ")]
-        [InlineData("   , ")]
-        [InlineData(",")]
-        [InlineData(",,")]
-        [InlineData(",,,")]
-        [InlineData(",,, ")]
-        public void ShowsContentWhenNoEnvironmentIsSpecified(string namesAttribute)
+        [InlineData("", "Development")]
+        [InlineData(null, "Development")]
+        [InlineData("  ", "Development")]
+        [InlineData(", ", "Development")]
+        [InlineData("   , ", "Development")]
+        [InlineData("\t,\t", "Development")]
+        [InlineData(",", "Development")]
+        [InlineData(",,", "Development")]
+        [InlineData(",,,", "Development")]
+        [InlineData(",,, ", "Development")]
+        public void ShowsContentWhenNoEnvironmentIsSpecified(string namesAttribute, string environmentName)
         {
-            ShouldShowContent(namesAttribute);
+            ShouldShowContent(namesAttribute, environmentName);
         }
 
         [Theory]
-        [InlineData("NotDevelopment")]
-        [InlineData("NOTDEVELOPMENT")]
-        [InlineData("NotDevelopment,AlsoNotDevelopment")]
-        [InlineData("Doesn'tMatchAtAll")]
-        [InlineData("Development and a space")]
-        [InlineData("Development and a space,SomethingElse")]
-        public void DoesNotShowContentWhenCurrentEnvironmentIsNotSpecified(string namesAttribute)
+        [InlineData("Development", null)]
+        [InlineData("Development", "")]
+        [InlineData("Development", " ")]
+        [InlineData("Development", "  ")]
+        [InlineData("Development", "\t")]
+        [InlineData("Test", null)]
+        public void ShowsContentWhenCurrentEnvironmentIsNotSet(string namesAttribute, string environmentName)
         {
+            ShouldShowContent(namesAttribute, environmentName);
+        }
+
+        [Theory]
+        [InlineData("NotDevelopment", "Development")]
+        [InlineData("NOTDEVELOPMENT", "Development")]
+        [InlineData("NotDevelopment,AlsoNotDevelopment", "Development")]
+        [InlineData("Doesn'tMatchAtAll", "Development")]
+        [InlineData("Development and a space", "Development")]
+        [InlineData("Development and a space,SomethingElse", "Development")]
+        public void DoesNotShowContentWhenCurrentEnvironmentIsNotSpecified(string namesAttribute, string environmentName)
+        {
+            // Arrange
             var content = "content";
             var context = MakeTagHelperContext(
                 attributes: new Dictionary<string, object> { { "names", namesAttribute } },
@@ -63,8 +83,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             var output = MakeTagHelperOutput("environment");
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.SetupProperty(h => h.EnvironmentName);
-            hostingEnvironment.Object.EnvironmentName = "Development";
+            hostingEnvironment.Object.EnvironmentName = environmentName;
 
+            // Act
             var helper = new EnvironmentTagHelper
             {
                 HostingEnvironment = hostingEnvironment.Object,
@@ -72,6 +93,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             };
             helper.Process(context, output);
 
+            // Assert
             Assert.Null(output.TagName);
             Assert.Null(output.PreContent);
             Assert.Null(output.Content);
@@ -79,8 +101,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             Assert.True(output.ContentSet);
         }
 
-        private void ShouldShowContent(string namesAttribute)
+        private void ShouldShowContent(string namesAttribute, string environmentName)
         {
+            // Arrange
             var content = "content";
             var context = MakeTagHelperContext(
                 attributes: new Dictionary<string, object> { { "names", namesAttribute } },
@@ -88,8 +111,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             var output = MakeTagHelperOutput("environment");
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.SetupProperty(h => h.EnvironmentName);
-            hostingEnvironment.Object.EnvironmentName = "Development";
+            hostingEnvironment.Object.EnvironmentName = environmentName;
 
+            // Act
             var helper = new EnvironmentTagHelper
             {
                 HostingEnvironment = hostingEnvironment.Object,
@@ -97,6 +121,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             };
             helper.Process(context, output);
 
+            // Assert
             Assert.Null(output.TagName);
             Assert.False(output.ContentSet);
         }

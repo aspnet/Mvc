@@ -24,7 +24,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
         [Activate]
         protected internal IHostingEnvironment HostingEnvironment { get; set; }
-        
+
+        /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             // Always strip the outer tag name as we never want <environment> to render
@@ -42,12 +43,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             if (environments.Length == 0)
             {
-                // No names specified, do nothing
+                // Names contains only commas or empty entries, do nothing
                 return;
             }
 
-            var currentEnvironmentName = HostingEnvironment.EnvironmentName.Trim();
-            
+            var currentEnvironmentName = HostingEnvironment.EnvironmentName?.Trim();
+
+            if (string.IsNullOrWhiteSpace(currentEnvironmentName))
+            {
+                // No current environment name, do nothing
+                return;
+            }
+
             if (environments.Any(name => string.Equals(name.Trim(), currentEnvironmentName, StringComparison.OrdinalIgnoreCase)))
             {
                 // Matching environment name found, do nothing

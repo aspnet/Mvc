@@ -30,7 +30,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("Index")]
         [InlineData("About")]
         [InlineData("Help")]
-        [InlineData("Environment")]
         public async Task CanRenderViewsWithTagHelpers(string action)
         {
             // Arrange
