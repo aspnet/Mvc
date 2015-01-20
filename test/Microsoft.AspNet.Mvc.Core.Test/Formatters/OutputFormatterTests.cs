@@ -125,7 +125,9 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var formatter = new PngImageFormatter();
-            var mediaType = formatter.SupportedMediaTypes[0];
+            formatter.SupportedMediaTypes.Clear();
+            var mediaType = new MediaTypeHeaderValue("image/png");
+            formatter.SupportedMediaTypes.Add(mediaType);
             var formatterContext = new OutputFormatterContext();
             formatterContext.ActionContext = new ActionContext(
                                     new DefaultHttpContext(), 

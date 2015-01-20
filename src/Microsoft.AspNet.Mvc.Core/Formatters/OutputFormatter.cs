@@ -177,7 +177,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.FormatOutputFormatterNoMediaType(GetType().FullName));
             }
 
-            // Clone the media type as we don't want it to effect the next request
+            // Clone the media type as we don't want it to affect the next request
             selectedMediaType = new MediaTypeHeaderValue(selectedMediaType.ToString());
 
             var selectedEncoding = SelectCharacterEncoding(context);
