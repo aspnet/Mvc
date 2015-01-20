@@ -9,8 +9,8 @@ using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     /// <summary>
-    /// <see cref="ITagHelper"/> implementation targeting &lt;environment&gt; elements that conditionally renders content
-    /// based on the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
+    /// <see cref="ITagHelper"/> implementation targeting &lt;environment&gt; elements that conditionally renders
+    /// content based on the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
     /// </summary>
     public class EnvironmentTagHelper : TagHelper
     {
@@ -20,7 +20,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// A comma separated list of environment names in which the content should be rendered.
         /// </summary>
         /// <remarks>
-        /// The specified environment names are compared case insensitively to the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
+        /// The specified environment names are compared case insensitively to the current value of
+        /// <see cref="IHostingEnvironment.EnvironmentName"/>.
         /// </remarks>
         public string Names { get; set; }
 
@@ -57,7 +58,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            if (environments.Any(name => string.Equals(name.Trim(), currentEnvironmentName, StringComparison.OrdinalIgnoreCase)))
+            if (environments.Any(name =>
+                string.Equals(name.Trim(), currentEnvironmentName, StringComparison.OrdinalIgnoreCase)))
             {
                 // Matching environment name found, do nothing
                 return;

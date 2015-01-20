@@ -73,7 +73,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
         [InlineData("Doesn'tMatchAtAll", "Development")]
         [InlineData("Development and a space", "Development")]
         [InlineData("Development and a space,SomethingElse", "Development")]
-        public void DoesNotShowContentWhenCurrentEnvironmentIsNotSpecified(string namesAttribute, string environmentName)
+        public void DoesNotShowContentWhenCurrentEnvironmentIsNotSpecified(
+            string namesAttribute,
+            string environmentName)
         {
             // Arrange
             var content = "content";
@@ -126,7 +128,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             Assert.False(output.ContentSet);
         }
 
-        private TagHelperContext MakeTagHelperContext(IDictionary<string, object> attributes = null, string content = null)
+        private TagHelperContext MakeTagHelperContext(
+            IDictionary<string, object> attributes = null,
+            string content = null)
         {
             attributes = attributes ?? new Dictionary<string, object>();
 
