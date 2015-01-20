@@ -128,21 +128,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 
         private TagHelperContext MakeTagHelperContext(IDictionary<string, object> attributes = null, string content = null)
         {
-            if (attributes == null)
-            {
-                attributes = new Dictionary<string, object>();
-            }
+            attributes = attributes ?? new Dictionary<string, object>();
 
             return new TagHelperContext(attributes, Guid.NewGuid().ToString("N"), () => Task.FromResult(content));
         }
 
         private TagHelperOutput MakeTagHelperOutput(string tagName, IDictionary<string, string> attributes = null)
         {
-            if (attributes == null)
-            {
-                attributes = new Dictionary<string, string>();
-            }
-
+            attributes = attributes ?? new Dictionary<string, string>();
+            
             return new TagHelperOutput(tagName, attributes);
         }
     }
