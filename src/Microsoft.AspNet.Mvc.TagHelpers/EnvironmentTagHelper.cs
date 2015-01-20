@@ -12,9 +12,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <see cref="ITagHelper"/> implementation targeting &lt;environment&gt; elements that conditionally renders content
     /// based on the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
     /// </summary>
+    /// <remarks>
+    /// The specified environment names are compared case insensitively to the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
+    /// </remarks>
     public class EnvironmentTagHelper : TagHelper
     {
-        private static readonly char[] _nameSeparator = new[] { ',' };
+        private static readonly char[] NameSeparator = new[] { ',' };
 
         /// <summary>
         /// A comma separated list of environment names in which the content should be rendered.
@@ -37,11 +40,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            var environments = Names.Split(_nameSeparator, StringSplitOptions.RemoveEmptyEntries)
-                                    .Where(name => !string.IsNullOrWhiteSpace(name))
-                                    .ToArray();
+            var environments = Names.Split(NameSeparator, StringSplitOptions.RemoveEmptyEntries)
+                                    .Where(name => !string.IsNullOrWhiteSpace(name));
 
-            if (environments.Length == 0)
+            if (!environments.Any())
             {
                 // Names contains only commas or empty entries, do nothing
                 return;
