@@ -38,8 +38,11 @@
         <environment names=" ">
             <li>This will show</li>
         </environment>
-        <environment names=", ">
-            <li>This will show</li>
+        <environment names="Production">
+            <li>FAIL: This should NOT show</li>
+        </environment>
+        <environment names="Staging,Production">
+            <li>FAIL: This should NOT show</li>
         </environment>
     </ul>
 </body>
