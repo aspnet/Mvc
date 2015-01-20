@@ -12,9 +12,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <see cref="ITagHelper"/> implementation targeting &lt;environment&gt; elements that conditionally renders content
     /// based on the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
     /// </summary>
-    /// <remarks>
-    /// The specified environment names are compared case insensitively to the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
-    /// </remarks>
     public class EnvironmentTagHelper : TagHelper
     {
         private static readonly char[] NameSeparator = new[] { ',' };
@@ -22,6 +19,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// A comma separated list of environment names in which the content should be rendered.
         /// </summary>
+        /// <remarks>
+        /// The specified environment names are compared case insensitively to the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
+        /// </remarks>
         public string Names { get; set; }
 
         // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
