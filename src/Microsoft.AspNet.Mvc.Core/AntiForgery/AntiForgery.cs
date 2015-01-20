@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Generates an anti-forgery cookie token for this request. 
+        /// Generates and sets an anti-forgery cookie token for this request if one is not available or not valid.
         /// </summary>
         /// <param name="context">The HTTP context associated with the current call.</param>
         public void SetCookieTokenAndHeader([NotNull] HttpContext context)

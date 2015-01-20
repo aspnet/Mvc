@@ -49,5 +49,23 @@ namespace AntiForgeryWebSite
         {
             return "OK";
         }
+
+        // GET: /Account/FlushWithoutUpdatingHeader
+        [AllowAnonymous]
+        public ActionResult FlushWithoutUpdatingHeader(string returnUrl = null)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+
+            return View();
+        }
+
+        // POST: /Account/FlushWithoutUpdatingHeader
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public string FlushWithoutUpdatingHeader(LoginViewModel model)
+        {
+            return "OK";
+        }
     }
 }

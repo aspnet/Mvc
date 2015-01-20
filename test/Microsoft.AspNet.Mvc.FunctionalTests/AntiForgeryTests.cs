@@ -274,8 +274,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string,string>("__RequestVerificationToken", formToken),
-                new KeyValuePair<string,string>("UserName", "abra"),
-                new KeyValuePair<string,string>("Password", "cadabra"),
+                new KeyValuePair<string,string>("UserName", "test"),
+                new KeyValuePair<string,string>("Password", "password"),
             };
 
             request.Content = new FormUrlEncodedContent(nameValueCollection);
@@ -286,6 +286,60 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("OK", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task FlushAsyncBeforeAntiForgery_CookieAndHeaderNotInResponse()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Account/FlushWithoutUpdatingHeader");
+
+            // Assert
+            IEnumerable<string> returnList;
+            Assert.False(response.Headers.TryGetValues("Set-Cookie", out returnList));
+            Assert.False(response.Headers.TryGetValues("X-Frame-Options", out returnList));
+        }
+
+        [Fact]
+        public async Task FlushAsyncBeforeAntiForgery_PostToForm()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // do a get response.
+            var getResponse = await client.GetAsync("http://localhost/Account/FlushWithoutUpdatingHeader");
+            var resposneBody = await getResponse.Content.ReadAsStringAsync();
+
+            // Assert - 1
+            IEnumerable<string> returnList;
+            Assert.False(getResponse.Headers.TryGetValues("Set-Cookie", out returnList));
+            Assert.False(getResponse.Headers.TryGetValues("X-Frame-Options", out returnList));
+
+            var formToken = AntiForgeryTestHelper.RetrieveAntiForgeryToken(resposneBody, "Account/FlushWithoutUpdatingHeader");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Account/FlushWithoutUpdatingHeader");
+
+            var nameValueCollection = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string,string>("__RequestVerificationToken", formToken),
+                new KeyValuePair<string,string>("UserName", "test"),
+                new KeyValuePair<string,string>("Password", "password"),
+            };
+
+            request.Content = new FormUrlEncodedContent(nameValueCollection);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert - 2
+            var exception = response.GetServerException();
+            Assert.Equal("The required anti-forgery cookie \"__RequestVerificationToken\" is not present.",
+                         exception.ExceptionMessage);
         }
 
     }
