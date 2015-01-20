@@ -139,6 +139,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.NotSame(mediaType, formatterContext.SelectedContentType);
+            Assert.Null(mediaType.Charset);
             Assert.Equal("image/png; charset=utf-8", formatterContext.SelectedContentType.ToString());
         }
 
