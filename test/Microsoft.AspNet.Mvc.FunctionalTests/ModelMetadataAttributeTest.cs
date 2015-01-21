@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class ModelMetadataAttributeTests
+    public class ModelMetadataAttributeTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(ModelBindingWebSite));
-        private readonly Action<IApplicationBuilder> _app = new ModelBindingWebSite.Startup().Configure;
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(ValidationWebSite));
+        private readonly Action<IApplicationBuilder> _app = new ValidationWebSite.Startup().Configure;
 
         [Fact]
         public async Task ValidBaseClass_Product()
@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateProductViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateProductViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InValidComplexTypeOnBaseClass_Product()
+        public async Task InvalidComplexTypeOnBaseClass_Product()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateProductViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateProductViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -122,13 +122,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
             var input = "{ \"Name\": \"MVC\", \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
-                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"ProductDetails\": {\"Field1\": \"f1\"," +
-                " \"Field2\": \"f2\", \"Field3\": \"f3\"}, \"Version\":\"2\", " +
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\", \"Version\":\"2\"," +
                 "\"DatePurchased\": \"/Date(1297246301973)/\", \"Price\" : \"110\" }";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateSoftwareViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelInclMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -146,15 +145,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateSoftwareViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelInclMetadata";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             var version = "2.2";
             request.Headers.TryAddWithoutValidation("version", version);
 
             var input = "{ \"Name\": \"MVC\", \"Contact\":\"425-895-9019\", \"Category\":\"Technology\"," +
-                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"ProductDetails\": {\"Field1\": \"f1\"," +
-                " \"Field2\": \"f2\", \"Field3\": \"f3\"}, \"Price\": 2}";
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 2}";
 
             request.Content = new StringContent(input, Encoding.UTF8, "application/json");
 
@@ -175,14 +173,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var input = "{ \"Name\": \"MVC\", \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
-                "\"CompanyName\":\"Microsoft\", \"Country\":\"UK\",\"ProductDetails\": {\"Field1\": \"f1\"," +
-                " \"Field2\": \"f2\", \"Field3\": \"f3\"}, \"Version\":\"2\", " +
+            var input = "{ \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"UK\",\"Version\":\"2\"," +
                 "\"DatePurchased\": \"/Date(1297246301973)/\", \"Price\" : \"110\" }";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
-                "http://localhost/ModelMetadataTypeAttribute/ValidateSoftwareViewModelInclMetadata";
+                "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelInclMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
