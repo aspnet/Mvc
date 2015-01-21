@@ -92,7 +92,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="XmlWriter"/> using the given stream and the WriterSettings.
+        /// Creates a new instance of <see cref="XmlWriter"/> using the given stream and the <see cref="WriterSettings"/>.
         /// </summary>
         /// <param name="writeStream">The stream on which the XmlWriter should operate on.</param>
         /// <returns>A new instance of <see cref="XmlWriter"/></returns>
