@@ -26,6 +26,13 @@ namespace Microsoft.AspNet.Mvc
             public int SampleInt { get; set; }
         }
 
+        [DataContract(Name = "SomeDummyClass", Namespace = "")]
+        public class SomeDummyClass : DummyClass
+        {
+            [DataMember]
+            public string SampleString { get; set; }
+        }
+
         [DataContract(Name = "TestLevelOne", Namespace = "")]
         public class TestLevelOne
         {
@@ -360,6 +367,44 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
+        public async Task XmlDataContractSerializerFormatterReadsWhenConfiguredWithRootName()
+        {
+            // Arrange
+            var expectedInt = 10;
+            const string SubstituteRootName = "SomeOtherClass";
+            const string SubstituteRootNamespace = "http://tempuri.org";
+
+            var input = string.Format(
+                "<{0} xmlns=\"{1}\"><SampleInt xmlns=\"\">{2}</SampleInt></{0}>",
+                SubstituteRootName,
+                SubstituteRootNamespace,
+                expectedInt);
+
+            var dictionary = new XmlDictionary();
+            var settings = new DataContractSerializerSettings
+            {
+                RootName = dictionary.Add(SubstituteRootName),
+                RootNamespace = dictionary.Add(SubstituteRootNamespace)
+            };
+            var formatter = new XmlDataContractSerializerInputFormatter
+            {
+                SerializerSettings = settings
+            };
+            var contentBytes = Encoding.UTF8.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.IsType<DummyClass>(model);
+
+            var dummyModel = model as DummyClass;
+            Assert.Equal(expectedInt, dummyModel.SampleInt);
+        }
+
+        [Fact]
         public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithKnownTypes()
         {
             // TODO: Test on Mono platform
@@ -379,6 +424,45 @@ namespace Microsoft.AspNet.Mvc
 
             // Act & Assert
             await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.ReadAsync(context));
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterReadsWhenConfiguredWithKnownTypes()
+        {
+            // Arrange
+            var expectedInt = 10;
+            var expectedString = "TestString";
+            const string KnownTypeName = "SomeDummyClass";
+            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+
+            var input = string.Format(
+                    "<DummyClass i:type=\"{0}\" xmlns:i=\"{1}\"><SampleInt>{2}</SampleInt>"
+                    + "<SampleString>{3}</SampleString></DummyClass>",
+                    KnownTypeName,
+                    InstanceNamespace,
+                    expectedInt,
+                    expectedString);
+            var settings = new DataContractSerializerSettings
+            {
+                KnownTypes = new[] { typeof(SomeDummyClass) }
+            };
+            var formatter = new XmlDataContractSerializerInputFormatter
+            {
+                SerializerSettings = settings
+            };
+            var contentBytes = Encoding.UTF8.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.IsType<SomeDummyClass>(model);
+
+            var dummyModel = model as SomeDummyClass;
+            Assert.Equal(expectedInt, dummyModel.SampleInt);
+            Assert.Equal(expectedString, dummyModel.SampleString);
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
