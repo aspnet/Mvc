@@ -9,10 +9,6 @@ namespace ValidationWebSite
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            //object instance = validationContext.ObjectInstance;
-            //var property = instance.GetType().GetProperty("CompanyName");
-            //var companyName = property.GetValue(instance);
-
             if (value == null)
             {
                 return new ValidationResult("CompanyName cannot be null");

@@ -122,6 +122,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CustomRouteWebSite", "test\
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ResponseCacheWebSite", "test\WebSites\ResponseCacheWebSite\ResponseCacheWebSite.kproj", "{BDEEBE09-C0C4-433C-B0B8-8478C9776996}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ValidationWebSite", "test\WebSites\ValidationWebSite\ValidationWebSite.kproj", "{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -682,6 +684,18 @@ Global
 		{BDEEBE09-C0C4-433C-B0B8-8478C9776996}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BDEEBE09-C0C4-433C-B0B8-8478C9776996}.Release|x86.ActiveCfg = Release|Any CPU
 		{BDEEBE09-C0C4-433C-B0B8-8478C9776996}.Release|x86.Build.0 = Release|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Debug|x86.Build.0 = Debug|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Release|x86.ActiveCfg = Release|Any CPU
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -741,5 +755,6 @@ Global
 		{AF210F69-9D31-43AF-AC3A-CD366E252218} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 		{364EC3C6-C9DB-45E0-A0F2-1EE61E4B429B} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 		{BDEEBE09-C0C4-433C-B0B8-8478C9776996} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
+		{87AB84B2-22C1-43C6-BB8A-1D327B446FB0} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 	EndGlobalSection
 EndGlobal

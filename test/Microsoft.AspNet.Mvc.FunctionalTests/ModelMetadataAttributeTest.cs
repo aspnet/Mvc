@@ -24,9 +24,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var input = "{ \"Name\": \"MVC\", \"Contact\":\"425-895-9019\", \"Category\":\"Technology\"," +
-                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 21, \"ProductDetails\": {\"Field1\": \"f1\"," +
-                " \"Field2\": \"f2\", \"Field3\": \"f3\"}}";
+            var input = "{ \"Name\": \"MVC\", \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 21, \"ProductDetails\": {\"Detail1\": \"d1\"," +
+                " \"Detail2\": \"d2\", \"Detail3\": \"d3\"}}";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
@@ -41,12 +41,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InValidPropertiesOnBaseClass_Product()
+        public async Task InvalidPropertiesAndSubPropertiesOnBaseClass_Product()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var input = "{ \"Price\": 2, \"ProductDetails\": {\"Field1\": \"f1\"}}";
+            var input = "{ \"Price\": 2, \"ProductDetails\": {\"Detail1\": \"d1\"}}";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             var url =
@@ -63,17 +63,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("The field Price must be between 20 and 100.", json["product.Price"]);
             Assert.Equal("The Category field is required.", json["product.Category"]);
             Assert.Equal("The ContactUs field is required.", json["product.Contact"]);
-            Assert.Equal("The Field2 field is required.", json["product.ProductDetails.Field2"]);
-            Assert.Equal("The Field3 field is required.", json["product.ProductDetails.Field3"]);
+            Assert.Equal("The Detail2 field is required.", json["product.ProductDetails.Detail2"]);
+            Assert.Equal("The Detail3 field is required.", json["product.ProductDetails.Detail3"]);
         }
 
         [Fact]
-        public async Task InvalidComplexTypeOnBaseClass_Product()
+        public async Task InvalidComplexTypePropertyOnBaseClass_Product()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var input = "{ \"Contact\":\"support@ms.com\", \"Category\":\"Technology\"," +
+            var input = "{ \"Contact\":\"4255678765\", \"Category\":\"Technology\"," +
                 "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 21 }";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
@@ -91,14 +91,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InValidClassAttributeOnBaseClass_Product()
+        public async Task InvalidClassAttributeOnBaseClass_Product()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var input = "{ \"Contact\":\"425-895-9019\", \"Category\":\"Technology\"," +
-                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 21, \"ProductDetails\": {\"Field1\": \"f1\"," +
-                " \"Field2\": \"f2\", \"Field3\": \"f3\"}}";
+            var input = "{ \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"UK\",\"Price\": 21, \"ProductDetails\": {\"Detail1\": \"d1\"," +
+                " \"Detail2\": \"d2\", \"Detail3\": \"d3\"}}";
 
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(1, json.Count);
-            Assert.Equal("Name property cannot be empty", json["product"]);
+            Assert.Equal("Country and Name fields don't have the right values", json["product"]);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InValidPropertiesOnDerivedClass_Software()
+        public async Task InvalidPropertiesOnDerivedClass_Software()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -168,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InValidClassAttributeOnBaseClass_Software()
+        public async Task InvalidClassAttributeOnBaseClass_Software()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -188,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(1, json.Count);
-            Assert.Equal("Country property does not have the right value", json["software"]);
+            Assert.Equal("Country and Name fields don't have the right values", json["software"]);
         }
 
     }
