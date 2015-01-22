@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class XmlDataContractSerializerInputFormatter : IInputFormatter
     {
-        private DataContractSerializerSettings _dataContractSerializerSettings;
+        private DataContractSerializerSettings _serializerSettings;
         private readonly XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
             SupportedMediaTypes = new List<MediaTypeHeaderValue>();
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/xml"));
-            _dataContractSerializerSettings = new DataContractSerializerSettings();
+            _serializerSettings = new DataContractSerializerSettings();
         }
 
         /// <inheritdoc />
@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         public DataContractSerializerSettings SerializerSettings
         {
-            get { return _dataContractSerializerSettings; }
+            get { return _serializerSettings; }
             set
             {
                 if (value == null)
@@ -88,7 +88,7 @@ namespace Microsoft.AspNet.Mvc
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                _dataContractSerializerSettings = value;
+                _serializerSettings = value;
             }
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The <see cref="XmlObjectSerializer"/> used during deserialization.</returns>
         protected virtual XmlObjectSerializer CreateDataContractSerializer(Type type)
         {
-            return new DataContractSerializer(type, _dataContractSerializerSettings);
+            return new DataContractSerializer(type, _serializerSettings);
         }
 
         private object GetDefaultValueForType(Type modelType)

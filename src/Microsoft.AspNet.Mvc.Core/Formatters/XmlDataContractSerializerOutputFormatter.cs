@@ -16,6 +16,8 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class XmlDataContractSerializerOutputFormatter : OutputFormatter
     {
+        private DataContractSerializerSettings _serializerSettings;
+
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
         /// with default XmlWriterSettings
@@ -38,12 +40,30 @@ namespace Microsoft.AspNet.Mvc
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/xml"));
 
             WriterSettings = writerSettings;
+            _serializerSettings = new DataContractSerializerSettings();
         }
 
         /// <summary>
         /// Gets the settings to be used by the XmlWriter.
         /// </summary>
         public XmlWriterSettings WriterSettings { get; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="DataContractSerializerSettings"/> used to configure the <see cref="DataContractSerializer"/>.
+        /// </summary>
+        public DataContractSerializerSettings SerializerSettings
+        {
+            get { return _serializerSettings; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _serializerSettings = value;
+            }
+        }
 
         /// <summary>
         /// Gets the type of the object to be serialized.
@@ -85,7 +105,7 @@ namespace Microsoft.AspNet.Mvc
                 FormattingUtilities.XsdDataContractExporter.GetRootElementName(type);
 #endif
                 // If the serializer does not support this type it will throw an exception.
-                return new DataContractSerializer(type);
+                return new DataContractSerializer(type, _serializerSettings);
             }
             catch (Exception)
             {

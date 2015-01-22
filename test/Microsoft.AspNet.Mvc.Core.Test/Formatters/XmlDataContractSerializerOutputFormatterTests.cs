@@ -12,6 +12,7 @@ using Microsoft.AspNet.Http.Core.Collections;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
+using System.Xml;
 
 namespace Microsoft.AspNet.Mvc.Core
 {
@@ -394,6 +395,135 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Act & Assert
             await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.WriteAsync(outputFormatterContext));
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterWritesWhenConfiguredWithRootName()
+        {
+            // Arrange
+            var sampleInt = 10;
+            const string SubstituteRootName = "SomeOtherClass";
+            const string SubstituteRootNamespace = "http://tempuri.org";
+            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+
+            var expectedOutput = string.Format(
+                "<{0} xmlns:i=\"{2}\" xmlns=\"{1}\"><SampleInt xmlns=\"\">{3}</SampleInt></{0}>",
+                SubstituteRootName,
+                SubstituteRootNamespace,
+                InstanceNamespace,
+                sampleInt);
+
+            var sampleInput = new DummyClass { SampleInt = sampleInt };
+
+            var dictionary = new XmlDictionary();
+            var settings = new DataContractSerializerSettings
+            {
+                RootName = dictionary.Add(SubstituteRootName),
+                RootNamespace = dictionary.Add(SubstituteRootNamespace)
+            };
+            var formatter = new XmlDataContractSerializerOutputFormatter
+            {
+                SerializerSettings = settings
+            };
+            var outputFormatterContext = GetOutputFormatterContext(sampleInput, sampleInput.GetType());
+
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
+            var actualOutput = new StreamReader(
+                outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expectedOutput, actualOutput);
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterWritesWhenConfiguredWithKnownTypes()
+        {
+            // Arrange
+            var sampleInt = 10;
+            var sampleString = "TestString";
+            const string KnownTypeName = "SomeDummyClass";
+            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+
+            var expectedOutput = string.Format(
+                    "<DummyClass xmlns:i=\"{1}\" xmlns=\"\" i:type=\"{0}\"><SampleInt>{2}</SampleInt>"
+                    + "<SampleString>{3}</SampleString></DummyClass>",
+                    KnownTypeName,
+                    InstanceNamespace,
+                    sampleInt,
+                    sampleString);
+
+            var sampleInput = new SomeDummyClass
+            {
+                SampleInt = sampleInt,
+                SampleString = sampleString
+            };
+
+            var settings = new DataContractSerializerSettings
+            {
+                KnownTypes = new[] { typeof(SomeDummyClass) }
+            };
+            var formatter = new XmlDataContractSerializerOutputFormatter
+            {
+                SerializerSettings = settings
+            };
+            var outputFormatterContext = GetOutputFormatterContext(sampleInput, typeof(DummyClass));
+
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
+            var actualOutput = new StreamReader(
+                outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expectedOutput, actualOutput);
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterWritesWhenConfiguredWithPreserveReferences()
+        {
+            // Arrange
+            var sampleId = 1;
+            var sampleName = "Parent";
+            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+            const string SerializationNamespace = "http://schemas.microsoft.com/2003/10/Serialization/";
+
+            var expectedOutput = string.Format(
+                    "<Parent xmlns:i=\"{0}\" z:Id=\"{2}\" xmlns:z=\"{1}\">" +
+                    "<Children z:Id=\"2\" z:Size=\"1\">" +
+                    "<Child z:Id=\"3\"><Id>{2}</Id><Parent z:Ref=\"1\" i:nil=\"true\" />" +
+                    "</Child></Children><Name z:Id=\"4\">{3}</Name></Parent>",
+                    InstanceNamespace,
+                    SerializationNamespace,
+                    sampleId,
+                    sampleName);
+
+            var child = new Child { Id = sampleId };
+            var parent = new Parent { Name = sampleName, Children = new List<Child> { child } };
+            child.Parent = parent;
+
+            var settings = new DataContractSerializerSettings
+            {
+                PreserveObjectReferences = true
+            };
+            var formatter = new XmlDataContractSerializerOutputFormatter
+            {
+                SerializerSettings = settings
+            };
+            var outputFormatterContext = GetOutputFormatterContext(parent, parent.GetType());
+
+            // Act
+            await formatter.WriteAsync(outputFormatterContext);
+
+            // Assert
+            Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
+            outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
+            var actualOutput = new StreamReader(
+                outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expectedOutput, actualOutput);
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
