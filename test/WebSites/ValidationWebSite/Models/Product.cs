@@ -16,7 +16,7 @@ namespace ValidationWebSite.Models
         [Display(Name = "ContactUs")]
         public string Contact { get; set; }
 
-        [Range(0, 10)]
+        [Range(0, 100)]
         public virtual int Price { get; set; }
 
         [CompanyName]
