@@ -60,27 +60,35 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            var postContent = new StringBuilder();
+            var content = new StringBuilder();
+
+            // Build the <link /> tag that loads the primary stylesheet
+            content.Append("<link ");
+            foreach (var a in output.Attributes)
+            {
+                content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", a.Key, a.Value);
+            }
+            content.AppendLine("/>");
 
             // Build the <meta /> tag that's used to test for the presence of the stylesheet
-            postContent.AppendLine();
-            postContent.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate,
+            content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate,
                 WebUtility.HtmlEncode(FallbackTestClass)));
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
             // indicating that the primary stylesheet failed to load.
             // TODO: Encode values as JS strings
-            postContent.AppendLine("<script>");
-            postContent.AppendFormat(CultureInfo.InvariantCulture,
+            content.AppendLine("<script>");
+            content.AppendFormat(CultureInfo.InvariantCulture,
                                      FallbackJavaScriptTemplate.Value,
                                      FallbackTestProperty,
                                      FallbackTestValue,
                                      FallbackHref);
-            postContent.AppendLine();
-            postContent.AppendLine("</script>");
+            content.AppendLine();
+            content.AppendLine("</script>");
 
-            output.PostContent = postContent.ToString();
+            output.TagName = null;
+            output.Content = content.ToString();
         }
 
         private bool ShouldProcess(TagHelperContext context)
