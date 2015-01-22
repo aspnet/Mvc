@@ -132,7 +132,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new EmptyModelMetadataProvider();
 
             // Act
-            var modelMetadata = new ModelMetadata(provider, null, null, type, null);
+            var modelMetadata = new ModelMetadata(
+                provider,
+                containerType: null,
+                modelAccessor: null,
+                modelType: type,
+                propertyName: null);
 
             // Assert
             Assert.False(modelMetadata.IsComplexType);
@@ -149,7 +154,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new EmptyModelMetadataProvider();
 
             // Act
-            var modelMetadata = new ModelMetadata(provider, null, null, type, null);
+            var modelMetadata = new ModelMetadata(
+                provider,
+                containerType: null,
+                modelAccessor: null,
+                modelType: type,
+                propertyName: null);
 
             // Assert
             Assert.True(modelMetadata.IsComplexType);
@@ -166,7 +176,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new EmptyModelMetadataProvider();
 
             // Act
-            var modelMetadata = new ModelMetadata(provider, null, null, type, null);
+            var modelMetadata = new ModelMetadata(
+                provider,
+                containerType: null,
+                modelAccessor: null,
+                modelType: type,
+                propertyName: null);
 
             // Assert
             Assert.False(modelMetadata.IsCollectionType);
@@ -186,7 +201,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new EmptyModelMetadataProvider();
 
             // Act
-            var modelMetadata = new ModelMetadata(provider, null, null, type, null);
+            var modelMetadata = new ModelMetadata(
+                provider,
+                containerType: null,
+                modelAccessor: null,
+                modelType: type,
+                propertyName: null);
 
             // Assert
             Assert.True(modelMetadata.IsCollectionType);

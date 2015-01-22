@@ -808,7 +808,6 @@ namespace Microsoft.AspNet.Mvc.Description
 
             // Assert
             var description = Assert.Single(descriptions);
-            Assert.Equal(1, description.ParameterDescriptions.Count);
 
             var c = Assert.Single(description.ParameterDescriptions);
             Assert.Same(ApiParameterSource.Query, c.Source);
@@ -828,7 +827,6 @@ namespace Microsoft.AspNet.Mvc.Description
 
             // Assert
             var description = Assert.Single(descriptions);
-            Assert.Equal(1, description.ParameterDescriptions.Count);
 
             var products = Assert.Single(description.ParameterDescriptions);
             Assert.Same(ApiParameterSource.Query, products.Source);
@@ -849,7 +847,6 @@ namespace Microsoft.AspNet.Mvc.Description
 
             // Assert
             var description = Assert.Single(descriptions);
-            Assert.Equal(1, description.ParameterDescriptions.Count);
 
             var c = Assert.Single(description.ParameterDescriptions);
             Assert.Same(ApiParameterSource.ModelBinding, c.Source);
@@ -869,14 +866,35 @@ namespace Microsoft.AspNet.Mvc.Description
 
             // Assert
             var description = Assert.Single(descriptions);
-            Assert.Equal(1, description.ParameterDescriptions.Count);
 
             var r = Assert.Single(description.ParameterDescriptions);
             Assert.Same(ApiParameterSource.Query, r.Source);
             Assert.Equal("r", r.Name);
             Assert.Equal(typeof(RedundentMetadata), r.Type);
         }
-        
+
+        [Fact]
+        public void GetApiDescription_ParameterDescription_RedundentMetadata_WithParameterMetadata()
+        {
+            // Arrange
+            var action = CreateActionDescriptor(nameof(AcceptsPerson));
+            var parameterDescriptor = action.Parameters.Single();
+
+            // Act
+            var descriptions = GetApiDescriptions(action);
+
+            // Assert
+            var description = Assert.Single(descriptions);
+
+            var name = Assert.Single(description.ParameterDescriptions, p => p.Name == "Name");
+            Assert.Same(ApiParameterSource.Header, name.Source);
+            Assert.Equal(typeof(string), name.Type);
+
+            var id = Assert.Single(description.ParameterDescriptions, p => p.Name == "Id");
+            Assert.Same(ApiParameterSource.Form, id.Source);
+            Assert.Equal(typeof(int), id.Type);
+        }
+
         private IReadOnlyList<ApiDescription> GetApiDescriptions(ActionDescriptor action)
         {
             return GetApiDescriptions(action, CreateFormatters());
@@ -1068,6 +1086,10 @@ namespace Microsoft.AspNet.Mvc.Description
         {
         }
 
+        private void AcceptsPerson([FromForm] Person person)
+        {
+        }
+
         private void FromRouting([FromRoute] int id)
         {
         }
@@ -1177,6 +1199,15 @@ namespace Microsoft.AspNet.Mvc.Description
 
             [FromQuery]
             public string Name { get; set; }
+        }
+
+        public class Person
+        {
+            [FromHeader(Name = "Name")]
+            public string Name { get; set; }
+
+            [FromForm]
+            public int Id { get; set; }
         }
 
         private class MockFormatter : OutputFormatter

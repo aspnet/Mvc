@@ -875,11 +875,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(typeof(string).FullName, feedback.Type);
         }
 
-        [FromQuery]
-        public string ShippingInstructions { get; set; }
-
-        public string Feedback { get; set; }
-
         // Used to serialize data between client and server
         private class ApiExplorerData
         {
