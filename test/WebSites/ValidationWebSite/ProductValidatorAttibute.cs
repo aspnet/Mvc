@@ -1,5 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using ValidationWebSite.Models;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.ComponentModel.DataAnnotations;
+using ValidationWebSite.ViewModels;
 
 namespace ValidationWebSite
 {
@@ -7,11 +10,23 @@ namespace ValidationWebSite
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            var product = (Product)value;
 
-            if (!product.Country.Equals("USA") && string.IsNullOrEmpty(product.Name))
+            if (value is ProductViewModel)
             {
-                return new ValidationResult("Country and Name fields don't have the right values");
+                var product = (ProductViewModel)value;
+                if (!product.Country.Equals("USA") && string.IsNullOrEmpty(product.Name))
+                {
+                    return new ValidationResult("Country and Name fields don't have the right values");
+                }
+
+            }
+            else
+            {
+                var software = (SoftwareViewModel)value;
+                if (!software.Country.Equals("USA") && string.IsNullOrEmpty(software.Name))
+                {
+                    return new ValidationResult("Country and Name fields don't have the right values");
+                }
             }
 
             return null;

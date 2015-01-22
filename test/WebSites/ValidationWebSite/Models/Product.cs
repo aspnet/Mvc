@@ -12,6 +12,7 @@ namespace ValidationWebSite.Models
         public string Name { get; set; }
 
         [StringLength(20)]
+        [RegularExpression("^[0-9]*$")]
         [Display(Name = "ContactUs")]
         public string Contact { get; set; }
 
