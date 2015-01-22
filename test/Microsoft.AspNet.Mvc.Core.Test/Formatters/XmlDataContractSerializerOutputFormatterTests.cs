@@ -24,6 +24,13 @@ namespace Microsoft.AspNet.Mvc.Core
             public int SampleInt { get; set; }
         }
 
+        [DataContract(Name = "SomeDummyClass", Namespace = "")]
+        public class SomeDummyClass : DummyClass
+        {
+            [DataMember]
+            public string SampleString { get; set; }
+        }
+
         [DataContract(Name = "TestLevelOne", Namespace = "")]
         public class TestLevelOne
         {
@@ -40,6 +47,24 @@ namespace Microsoft.AspNet.Mvc.Core
             public string SampleString { get; set; }
             [DataMember]
             public TestLevelOne TestOne { get; set; }
+        }
+
+        [DataContract(Name = "Child", Namespace = "")]
+        public class Child
+        {
+            [DataMember]
+            public int Id { get; set; }
+            [DataMember]
+            public Parent Parent { get; set; }
+        }
+
+        [DataContract(Name = "Parent", Namespace = "")]
+        public class Parent
+        {
+            [DataMember]
+            public string Name { get; set; }
+            [DataMember]
+            public List<Child> Children { get; set; }
         }
 
         public static IEnumerable<object[]> BasicTypeValues
@@ -338,6 +363,37 @@ namespace Microsoft.AspNet.Mvc.Core
             {
                 Assert.Equal(expectedOutput, result);
             }
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerOutputFormatterThrowsWhenNotConfiguredWithKnownTypes()
+        {
+            // TODO: Test on Mono platform
+
+            // Arrange
+            var sampleInput = new SomeDummyClass { SampleInt = 1, SampleString = "TestString" };
+            var formatter = new XmlDataContractSerializerOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(sampleInput, typeof(DummyClass));
+
+            // Act & Assert
+            await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.WriteAsync(outputFormatterContext));
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerOutputFormatterThrowsWhenNotConfiguredWithPreserveReferences()
+        {
+            // TODO: Test on Mono platform
+
+            // Arrange
+            var child = new Child { Id = 1 };
+            var parent = new Parent { Name = "Parent", Children = new List<Child> { child } };
+            child.Parent = parent;
+
+            var formatter = new XmlDataContractSerializerOutputFormatter();
+            var outputFormatterContext = GetOutputFormatterContext(parent, parent.GetType());
+
+            // Act & Assert
+            await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.WriteAsync(outputFormatterContext));
         }
 
         private OutputFormatterContext GetOutputFormatterContext(object outputValue, Type outputType,
