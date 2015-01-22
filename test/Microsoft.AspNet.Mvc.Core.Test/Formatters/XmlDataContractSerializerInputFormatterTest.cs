@@ -338,6 +338,49 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedString, levelOneModel.sampleString);
         }
 
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithRootName()
+        {
+            // TODO: Test on Mono platform
+
+            // Arrange
+            const string SubstituteRootName = "SomeOtherClass";
+            const string SubstituteRootNamespace = "http://tempuri.org";
+
+            var input = string.Format(
+                "<{0} xmlns=\"{1}\"><SampleInt xmlns=\"\">1</SampleInt></{0}>",
+                SubstituteRootName,
+                SubstituteRootNamespace);
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encoding.UTF8.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
+
+            // Act & Assert
+            await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.ReadAsync(context));
+        }
+
+        [Fact]
+        public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithKnownTypes()
+        {
+            // TODO: Test on Mono platform
+
+            // Arrange
+            const string KnownTypeName = "SomeDummyClass";
+            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+
+            var input = string.Format(
+                    "<DummyClass i:type=\"{0}\" xmlns:i=\"{1}\"><SampleInt>1</SampleInt>"
+                    + "<SampleString>Some text</SampleString></DummyClass>",
+                    KnownTypeName,
+                    InstanceNamespace);
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encoding.UTF8.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
+
+            // Act & Assert
+            await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.ReadAsync(context));
+        }
+
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
         {
             var actionContext = GetActionContext(contentBytes);
