@@ -45,7 +45,6 @@ namespace ValidationWebSite.Controllers
                 Contact = "4258393231",
                 Country = "UK",
                 DatePurchased = new DateTime(10, 10, 10),
-                Name = "MVC",
                 Price = 110,
                 Version = "2"
             };
@@ -80,12 +79,17 @@ namespace ValidationWebSite.Controllers
             var result = new Dictionary<string, string>();
             foreach (var item in ModelState)
             {
-                var error = item.Value.Errors.SingleOrDefault();
-                if (error != null)
+                var errorMessage = string.Empty;
+                foreach (var error in item.Value.Errors)
                 {
-                    var value = error.Exception != null ? error.Exception.Message :
-                                                          error.ErrorMessage;
-                    result.Add(item.Key, value);
+                    if (error != null)
+                    {
+                        errorMessage = errorMessage + error.ErrorMessage;
+                    }
+                }
+                if (errorMessage != string.Empty)
+                {
+                    result.Add(item.Key, errorMessage);
                 }
             }
 

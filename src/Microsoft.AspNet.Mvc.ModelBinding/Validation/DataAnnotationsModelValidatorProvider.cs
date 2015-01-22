@@ -61,11 +61,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     factory = _defaultAttributeFactory;
                 }
-                var modelValidator = factory(attribute);
-                if (!results.Exists(a => a.GetType() == modelValidator.GetType()))
-                {
-                    results.Add(factory(attribute));
-                }
+                results.Add(factory(attribute));
             }
 
             // Produce a validator if the type supports IValidatableObject
