@@ -369,11 +369,9 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithRootName()
         {
-            // TODO: Test on Mono platform
-
             // Arrange
-            const string SubstituteRootName = "SomeOtherClass";
-            const string SubstituteRootNamespace = "http://tempuri.org";
+            var SubstituteRootName = "SomeOtherClass";
+            var SubstituteRootNamespace = "http://tempuri.org";
 
             var input = string.Format(
                 "<{0} xmlns=\"{1}\"><SampleInt xmlns=\"\">1</SampleInt></{0}>",
@@ -392,8 +390,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var expectedInt = 10;
-            const string SubstituteRootName = "SomeOtherClass";
-            const string SubstituteRootNamespace = "http://tempuri.org";
+            var SubstituteRootName = "SomeOtherClass";
+            var SubstituteRootNamespace = "http://tempuri.org";
 
             var input = string.Format(
                 "<{0} xmlns=\"{1}\"><SampleInt xmlns=\"\">{2}</SampleInt></{0}>",
@@ -419,20 +417,16 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.NotNull(model);
-            Assert.IsType<DummyClass>(model);
-
-            var dummyModel = model as DummyClass;
+            var dummyModel = Assert.IsType<DummyClass>(model);
             Assert.Equal(expectedInt, dummyModel.SampleInt);
         }
 
         [Fact]
         public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithKnownTypes()
         {
-            // TODO: Test on Mono platform
-
             // Arrange
-            const string KnownTypeName = "SomeDummyClass";
-            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+            var KnownTypeName = "SomeDummyClass";
+            var InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
 
             var input = string.Format(
                     "<DummyClass i:type=\"{0}\" xmlns:i=\"{1}\"><SampleInt>1</SampleInt>"
@@ -453,8 +447,8 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var expectedInt = 10;
             var expectedString = "TestString";
-            const string KnownTypeName = "SomeDummyClass";
-            const string InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+            var KnownTypeName = "SomeDummyClass";
+            var InstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
 
             var input = string.Format(
                     "<DummyClass i:type=\"{0}\" xmlns:i=\"{1}\"><SampleInt>{2}</SampleInt>"
@@ -479,9 +473,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.NotNull(model);
-            Assert.IsType<SomeDummyClass>(model);
-
-            var dummyModel = model as SomeDummyClass;
+            var dummyModel = Assert.IsType<SomeDummyClass>(model);
             Assert.Equal(expectedInt, dummyModel.SampleInt);
             Assert.Equal(expectedString, dummyModel.SampleString);
         }
