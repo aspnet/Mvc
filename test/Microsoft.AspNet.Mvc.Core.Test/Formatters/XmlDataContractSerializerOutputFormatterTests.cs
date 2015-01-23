@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Core.Collections;
 using Microsoft.Net.Http.Headers;
+using Microsoft.AspNet.Mvc.Xml;
 using Moq;
 using Xunit;
 using System.Xml;
@@ -299,7 +300,6 @@ namespace Microsoft.AspNet.Mvc.Core
             // Act & Assert
             await formatter.WriteAsync(outputFormatterContext);
         }
-
         public static IEnumerable<object[]> TypesForCanWriteResult
         {
             get
