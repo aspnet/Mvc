@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 
 namespace ViewComponentWebSite
@@ -15,7 +16,13 @@ namespace ViewComponentWebSite
             {
                 services.AddMvc(configuration);
             });
-            app.UseMvc();
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }
