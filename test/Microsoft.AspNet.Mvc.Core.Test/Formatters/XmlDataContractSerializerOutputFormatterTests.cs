@@ -7,13 +7,13 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Core.Collections;
-using Microsoft.Net.Http.Headers;
 using Microsoft.AspNet.Mvc.Xml;
+using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
-using System.Xml;
 
 namespace Microsoft.AspNet.Mvc.Core
 {
@@ -220,9 +220,10 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.NotNull(outputFormatterContext.ActionContext.HttpContext.Response.Body);
             outputFormatterContext.ActionContext.HttpContext.Response.Body.Position = 0;
             Assert.Equal("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-                            "<DummyClass xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-                            "<SampleInt>10</SampleInt></DummyClass>",
-                        new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, Encoding.UTF8).ReadToEnd());
+                "<DummyClass xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                "<SampleInt>10</SampleInt></DummyClass>",
+                new StreamReader(outputFormatterContext.ActionContext.HttpContext.Response.Body, 
+                Encoding.UTF8).ReadToEnd());
         }
 
         [Fact]
@@ -346,7 +347,8 @@ namespace Microsoft.AspNet.Mvc.Core
 
         [Theory]
         [MemberData(nameof(TypesForGetSupportedContentTypes))]
-        public void XmlDataContractSerializer_GetSupportedContentTypes_Returns_SupportedTypes(Type declaredType, Type runtimeType, object expectedOutput)
+        public void XmlDataContractSerializer_GetSupportedContentTypes_Returns_SupportedTypes(Type declaredType, 
+            Type runtimeType, object expectedOutput)
         {
             // Arrange
             var formatter = new XmlDataContractSerializerOutputFormatter();
@@ -377,7 +379,8 @@ namespace Microsoft.AspNet.Mvc.Core
             var outputFormatterContext = GetOutputFormatterContext(sampleInput, typeof(DummyClass));
 
             // Act & Assert
-            await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.WriteAsync(outputFormatterContext));
+            await Assert.ThrowsAsync(typeof(SerializationException), 
+                async () => await formatter.WriteAsync(outputFormatterContext));
         }
 
         [Fact]
@@ -394,7 +397,8 @@ namespace Microsoft.AspNet.Mvc.Core
             var outputFormatterContext = GetOutputFormatterContext(parent, parent.GetType());
 
             // Act & Assert
-            await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.WriteAsync(outputFormatterContext));
+            await Assert.ThrowsAsync(typeof(SerializationException), 
+                async () => await formatter.WriteAsync(outputFormatterContext));
         }
 
         [Fact]

@@ -49,7 +49,8 @@ namespace Microsoft.AspNet.Mvc.Xml
         public XmlWriterSettings WriterSettings { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="DataContractSerializerSettings"/> used to configure the <see cref="DataContractSerializer"/>.
+        /// Gets or sets the <see cref="DataContractSerializerSettings"/> used to configure the 
+        /// <see cref="DataContractSerializer"/>.
         /// </summary>
         public DataContractSerializerSettings SerializerSettings
         {
