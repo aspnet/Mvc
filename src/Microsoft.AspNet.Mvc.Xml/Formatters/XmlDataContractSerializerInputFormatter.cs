@@ -126,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         /// <returns>The <see cref="XmlObjectSerializer"/> used during deserialization.</returns>
         protected virtual XmlObjectSerializer CreateDataContractSerializer(Type type)
         {
-            return new DataContractSerializer(type, _serializerSettings);
+            return new DataContractSerializer(SerializableErrorWrapper.CreateSerializableType(type), _serializerSettings);
         }
 
         private object GetDefaultValueForType(Type modelType)
