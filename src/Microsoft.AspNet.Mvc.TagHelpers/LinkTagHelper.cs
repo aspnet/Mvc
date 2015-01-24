@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -62,6 +63,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var content = new StringBuilder();
 
+            // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
+
             // Build the <link /> tag that loads the primary stylesheet
             content.Append("<link ");
             foreach (var a in output.Attributes)
@@ -72,20 +75,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Build the <meta /> tag that's used to test for the presence of the stylesheet
             content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate,
-                WebUtility.HtmlEncode(FallbackTestClass)));
+                FallbackTestClass));
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
             // indicating that the primary stylesheet failed to load.
-            // TODO: Encode values as JS strings
-            content.AppendLine("<script>");
+            content.Append("<script>");
             content.AppendFormat(CultureInfo.InvariantCulture,
                                      FallbackJavaScriptTemplate.Value,
-                                     FallbackTestProperty,
-                                     FallbackTestValue,
-                                     FallbackHref);
-            content.AppendLine();
-            content.AppendLine("</script>");
+                                     JavaScriptStringEncode(FallbackTestProperty),
+                                     JavaScriptStringEncode(FallbackTestValue),
+                                     JavaScriptStringEncode(FallbackHref));
+            content.Append("</script>");
 
             output.TagName = null;
             output.Content = content.ToString();
@@ -113,6 +114,38 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         .Replace("]]]", "}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
+        /// </summary>
+        private static string JavaScriptStringEncode(string value)
+        {
+            var map = new Dictionary<char, string>
+            {
+                { '<', @"\u003c" },
+                { '>', @"\u003e" },
+                { '\'', @"\u0027" },
+                { '"', @"\u0022" },
+                { '\\', @"\\" },
+                { '\r', "\\r" },
+                { '\n', "\\n" }
+            };
+            var result = new StringBuilder();
+
+            foreach (var c in value)
+            {
+                if (map.ContainsKey(c))
+                {
+                    result.Append(map[c]);
+                }
+                else
+                {
+                    result.Append(c);
+                }
+            }
+
+            return result.ToString();
         }
     }
 }
