@@ -1,13 +1,13 @@
 ﻿{
     "description": "Provides compatibility in ASP.NET MVC with ASP.NET Web API 2 to simplify migration of existing Web API implementations.",
-    "version": "6.0.0-*",
+    "version": "6.0.0-beta2",
     "compilationOptions": {
         "warningsAsErrors": false
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.ModelBinding": "6.0.0-*",
+        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-beta2", "type": "build" },
+        "Microsoft.AspNet.Mvc.Core": "6.0.0-beta2",
+        "Microsoft.AspNet.Mvc.ModelBinding": "6.0.0-beta2",
         "Microsoft.AspNet.WebApi.Client": "5.2.2"
     },
     "frameworks": {
@@ -18,7 +18,7 @@
         },
         "aspnetcore50": {
             "dependencies": {
-                "System.Net.Http": "4.0.0-beta-*"
+                "System.Net.Http": "4.0.0-beta-22416"
             }
         }
     }

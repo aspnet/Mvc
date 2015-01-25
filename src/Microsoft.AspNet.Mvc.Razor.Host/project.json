@@ -1,25 +1,25 @@
 {
     "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
-    "version": "6.0.0-*",
+    "version": "6.0.0-beta2",
     "compilationOptions": {
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Microsoft.AspNet.FileSystems": "1.0.0-*",
-        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Razor.Runtime": "4.0.0-*"
+        "Microsoft.AspNet.FileSystems": "1.0.0-beta2",
+        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-beta2", "type": "build" },
+        "Microsoft.AspNet.Razor.Runtime": "4.0.0-beta2"
     },
     "frameworks": {
         "net45": {},
         "aspnet50": {
             "dependencies": {
-                "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-*", "type": "build" }
+                "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-beta2", "type": "build" }
             }
         },
         "aspnetcore50": {
             "dependencies": {
-                "System.Collections.Concurrent": "4.0.10-beta-*",
-                "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-*", "type": "build" }
+                "System.Collections.Concurrent": "4.0.10-beta-22416",
+                "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-beta2", "type": "build" }
             }
         }
     }

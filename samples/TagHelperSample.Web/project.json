@@ -4,10 +4,10 @@
     "warningsAsErrors": true
   },
   "dependencies": {
-    "Microsoft.AspNet.Mvc": "6.0.0-*",
-    "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-    "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-*"
+    "Microsoft.AspNet.Mvc": "6.0.0-beta2",
+    "Microsoft.AspNet.Server.IIS": "1.0.0-beta2",
+    "Microsoft.AspNet.Server.WebListener": "1.0.0-beta2",
+    "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-beta2"
   },
   "commands": {
     "web": "Microsoft.AspNet.Hosting server=Microsoft.AspNet.Server.WebListener server.urls=http://localhost:5001"

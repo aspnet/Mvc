@@ -1,11 +1,11 @@
 {
     "commands": {
-        "test": "Xunit.KRunner"
+        "test": "xunit.runner.kre"
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-*",
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Xunit.KRunner": "1.0.0-*"
+        "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-beta2",
+        "Microsoft.AspNet.Testing": "1.0.0-beta2",
+        "xunit.runner.kre": "1.0.0-*"
     },
     "frameworks": {
         "aspnet50": {

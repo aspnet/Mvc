@@ -3,12 +3,12 @@
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Kestrel": "1.0.0-*",
-        "Microsoft.AspNet.Mvc": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-*",
-        "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-        "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-        "Microsoft.AspNet.StaticFiles": "1.0.0-*",
+        "Kestrel": "1.0.0-beta2",
+        "Microsoft.AspNet.Mvc": "6.0.0-beta2",
+        "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-beta2",
+        "Microsoft.AspNet.Server.IIS": "1.0.0-beta2",
+        "Microsoft.AspNet.Server.WebListener": "1.0.0-beta2",
+        "Microsoft.AspNet.StaticFiles": "1.0.0-beta2",
     },
     "commands": {
         "web": "Microsoft.AspNet.Hosting server=Microsoft.AspNet.Server.WebListener server.urls=http://localhost:5001",
@@ -17,8 +17,8 @@
     "frameworks": {
         "aspnet50": {
             "dependencies": {
-                "Microsoft.Framework.DependencyInjection.Autofac": "1.0.0-*",
-                "Microsoft.Framework.ConfigurationModel.Json": "1.0.0-*"
+                "Microsoft.Framework.DependencyInjection.Autofac": "1.0.0-beta2",
+                "Microsoft.Framework.ConfigurationModel.Json": "1.0.0-beta2"
             }
         },
         "aspnetcore50": {
