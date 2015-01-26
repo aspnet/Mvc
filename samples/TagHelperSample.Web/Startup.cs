@@ -20,13 +20,13 @@ namespace TagHelperSample.Web
                 // prevents loading controllers from other assemblies when the sample is used in functional tests.
                 services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
                 services.AddSingleton<MoviesService>();
-
-                services.Configure<MvcOptions>(options =>
-                {
-                    options.AddXmlDataContractSerializerFormatter();
-                });
             });
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }
