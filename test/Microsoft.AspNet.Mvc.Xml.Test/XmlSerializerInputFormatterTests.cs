@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void XmlSerializerFormatterHasProperSuppportedMediaTypes()
+        public void HasProperSuppportedMediaTypes()
         {
             // Arrange & Act
             var formatter = new XmlSerializerInputFormatter();
@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void XmlSerializerFormatterHasProperSuppportedEncodings()
+        public void HasProperSuppportedEncodings()
         {
             // Arrange & Act
             var formatter = new XmlSerializerInputFormatter();
@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterReadsSimpleTypes()
+        public async Task ReadAsync_ReadsSimpleTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterReadsComplexTypes()
+        public async Task ReadAsync_ReadsComplexTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -156,7 +156,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterReadsWhenMaxDepthIsModified()
+        public async Task ReadAsync_ReadsWhenMaxDepthIsModified()
         {
             // Arrange
             var expectedInt = 10;
@@ -180,7 +180,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterThrowsOnExceededMaxDepth()
+        public async Task ReadAsync_ThrowsOnExceededMaxDepth()
         {
             if (TestPlatformHelper.IsMono)
             {
@@ -205,7 +205,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterThrowsWhenReaderQuotasAreChanged()
+        public async Task ReadAsync_ThrowsWhenReaderQuotasAreChanged()
         {
             if (TestPlatformHelper.IsMono)
             {
@@ -230,7 +230,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void XmlSerializerSerializerThrowsWhenMaxDepthIsBelowOne()
+        public void SetMaxDepth_ThrowsWhenMaxDepthIsBelowOne()
         {
             // Arrange
             var formatter = new XmlSerializerInputFormatter();
@@ -240,7 +240,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task VerifyStreamIsOpenAfterRead()
+        public async Task ReadAsync_VerifyStreamIsOpenAfterRead()
         {
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -258,7 +258,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterThrowsOnInvalidCharacters()
+        public async Task ReadAsync_ThrowsOnInvalidCharacters()
         {
             // Arrange
             var expectedException = TestPlatformHelper.IsMono ? typeof(InvalidOperationException) :
@@ -286,7 +286,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterIgnoresBOMCharacters()
+        public async Task ReadAsync_IgnoresBOMCharacters()
         {
             // Arrange
             var sampleString = "Test";
@@ -317,7 +317,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task XmlSerializerFormatterAcceptsUTF16Characters()
+        public async Task ReadAsync_AcceptsUTF16Characters()
         {
             // Arrange
             var expectedInt = 10;
@@ -347,7 +347,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public async Task ReadsSerializableErrorXml()
+        public async Task ReadAsync_ReadsSerializableErrorXml()
         {
             // Arrange
             var serializableErrorXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +

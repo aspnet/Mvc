@@ -233,7 +233,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void ReadAsync_ThrowsWhenMaxDepthIsBelowOne()
+        public void SetMaxDepth_ThrowsWhenMaxDepthIsBelowOne()
         {
             // Arrange
             var formatter = new XmlDataContractSerializerInputFormatter();
