@@ -121,10 +121,11 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// Called during deserialization to get the <see cref="XmlObjectSerializer"/>.
+        /// Called during deserialization to get the <see cref="DataContractSerializer"/>.
         /// </summary>
-        /// <returns>The <see cref="XmlObjectSerializer"/> used during deserialization.</returns>
-        protected virtual XmlObjectSerializer CreateDataContractSerializer(Type type)
+        /// <param name="type">The type of object for which the serializer should be created.</param>
+        /// <returns>The <see cref="DataContractSerializer"/> used during deserialization.</returns>
+        protected virtual DataContractSerializer CreateSerializer([NotNull]Type type)
         {
             return new DataContractSerializer(SerializableErrorWrapper.CreateSerializableType(type), _serializerSettings);
         }
@@ -146,8 +147,8 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             using (var xmlReader = CreateXmlReader(new DelegatingStream(request.Body)))
             {
-                var xmlSerializer = CreateDataContractSerializer(type);
-                var deserializedObject = xmlSerializer.ReadObject(xmlReader);
+                var dataContractSerializer = CreateSerializer(type);
+                var deserializedObject = dataContractSerializer.ReadObject(xmlReader);
                 deserializedObject = SerializableErrorWrapper.UnwrapSerializableErrorObject(type, deserializedObject);
                 return Task.FromResult(deserializedObject);
             }
