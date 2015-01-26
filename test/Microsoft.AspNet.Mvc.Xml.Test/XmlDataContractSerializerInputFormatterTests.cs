@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void XmlDataContractSerializerFormatterHasProperSuppportedMediaTypes()
+        public void HasProperSuppportedMediaTypes()
         {
             // Arrange & Act
             var formatter = new XmlDataContractSerializerInputFormatter();
@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void XmlDataContractSerializerFormatterHasProperSuppportedEncodings()
+        public void HasProperSuppportedEncodings()
         {
             // Arrange & Act
             var formatter = new XmlDataContractSerializerInputFormatter();
@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterReadsSimpleTypes()
+        public async Task ReadAsync_ReadsSimpleTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -133,7 +133,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterReadsComplexTypes()
+        public async Task ReadAsync_ReadsComplexTypes()
         {
             // Arrange
             var expectedInt = 10;
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterReadsWhenMaxDepthIsModified()
+        public async Task ReadAsync_ReadsWhenMaxDepthIsModified()
         {
             // Arrange
             var expectedInt = 10;
@@ -187,7 +187,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterThrowsOnExceededMaxDepth()
+        public async Task ReadAsync_ThrowsOnExceededMaxDepth()
         {
             if (TestPlatformHelper.IsMono)
             {
@@ -210,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterThrowsWhenReaderQuotasAreChanged()
+        public async Task ReadAsync_ThrowsWhenReaderQuotasAreChanged()
         {
             if (TestPlatformHelper.IsMono)
             {
@@ -233,7 +233,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void XmlDataContractSerializerFormatterThrowsWhenMaxDepthIsBelowOne()
+        public void ReadAsync_ThrowsWhenMaxDepthIsBelowOne()
         {
             // Arrange
             var formatter = new XmlDataContractSerializerInputFormatter();
@@ -243,7 +243,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task VerifyStreamIsOpenAfterRead()
+        public async Task ReadAsync_VerifyStreamIsOpenAfterRead()
         {
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -261,7 +261,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterThrowsOnInvalidCharacters()
+        public async Task ReadAsync_ThrowsOnInvalidCharacters()
         {
             // Arrange
             var expectedException = TestPlatformHelper.IsMono ? typeof(SerializationException) :
@@ -288,7 +288,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterIgnoresBOMCharacters()
+        public async Task ReadAsync_IgnoresBOMCharacters()
         {
             // Arrange
             var sampleString = "Test";
@@ -319,7 +319,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerAcceptsUTF16Characters()
+        public async Task ReadAsync_AcceptsUTF16Characters()
         {
             // Arrange
             var expectedInt = 10;
@@ -346,7 +346,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task ReadsSerializableErrorXml()
+        public async Task ReadAsync_ReadsSerializableErrorXml()
         {
             // Arrange
             var serializableErrorXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
@@ -366,7 +366,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithRootName()
+        public async Task ReadAsync_ThrowsWhenNotConfiguredWithRootName()
         {
             // Arrange
             var SubstituteRootName = "SomeOtherClass";
@@ -385,7 +385,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterReadsWhenConfiguredWithRootName()
+        public async Task ReadAsync_ReadsWhenConfiguredWithRootName()
         {
             // Arrange
             var expectedInt = 10;
@@ -421,7 +421,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterThrowsWhenNotConfiguredWithKnownTypes()
+        public async Task ReadAsync_ThrowsWhenNotConfiguredWithKnownTypes()
         {
             // Arrange
             var KnownTypeName = "SomeDummyClass";
@@ -441,7 +441,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public async Task XmlDataContractSerializerFormatterReadsWhenConfiguredWithKnownTypes()
+        public async Task ReadAsync_ReadsWhenConfiguredWithKnownTypes()
         {
             // Arrange
             var expectedInt = 10;
