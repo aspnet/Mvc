@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNET50
 using System;
 using System.IO;
 using System.Linq;
@@ -16,9 +15,9 @@ using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Core
 {
-    public class XmlDataContractSerializerInputFormatterTest
+    public class XmlDataContractSerializerInputFormatterTests
     {
         [DataContract(Name = "DummyClass", Namespace = "")]
         public class DummyClass
@@ -508,4 +507,3 @@ namespace Microsoft.AspNet.Mvc
         }
     }
 }
-#endif
