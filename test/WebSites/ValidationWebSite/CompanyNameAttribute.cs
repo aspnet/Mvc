@@ -11,8 +11,9 @@ namespace ValidationWebSite
         {
             if (value == null)
             {
-                return new ValidationResult("CompanyName cannot be null");
+                return new ValidationResult("CompanyName cannot be null.");
             }
+
             return null;
         }
     }

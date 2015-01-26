@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new ValidationWebSite.Startup().Configure;
 
         [Fact]
-        public async Task InvalidProperties_ModelStateContainsErrorBeforecallingTryValidateModel()
+        public async Task TryValidateModel_InvalidProperties_ModelStateContainsErrorBeforeCallToTryValidateModel()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -38,20 +38,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(8, json.Count);
-            Assert.Equal("CompanyName cannot be null", json["product.CompanyName"]);
+            Assert.Equal("CompanyName cannot be null.", json["product.CompanyName"]);
             Assert.Equal("The field Price must be between 20 and 100.", json["product.Price"]);
             Assert.Equal("The Category field is required.", json["product.Category"]);
-            Assert.Equal("The field ContactUs must be a string with a maximum length of 20."+
-                "The field ContactUs must match the regular expression '^[0-9]*$'.", json["product.Contact"]);
-            Assert.Equal("CompanyName cannot be null", json["CompanyName"]);
+            Assert.Equal("The field Contact Us must be a string with a maximum length of 20."+
+                "The field Contact Us must match the regular expression '^[0-9]*$'.", json["product.Contact"]);
+            Assert.Equal("CompanyName cannot be null.", json["CompanyName"]);
             Assert.Equal("The field Price must be between 20 and 100.", json["Price"]);
             Assert.Equal("The Category field is required.", json["Category"]);
-            Assert.Equal("The field ContactUs must be a string with a maximum length of 20."+
-                "The field ContactUs must match the regular expression '^[0-9]*$'.", json["Contact"]);
+            Assert.Equal("The field Contact Us must be a string with a maximum length of 20."+
+                "The field Contact Us must match the regular expression '^[0-9]*$'.", json["Contact"]);
         }
 
         [Fact]
-        public async Task InvalidTypeOnDerivedModel()
+        public async Task TryValidateModel_InvalidTypeOnDerivedModel_ModelStateContainsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -66,11 +66,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(1, json.Count);
-            Assert.Equal("Country and Name fields don't have the right values", json[""]);
+            Assert.Equal("Product must be made in the USA if it is not named.", json["software"]);
         }
 
         [Fact]
-        public async Task ValidDerivedModel()
+        public async Task TryValidateModel_ValidDerivedModel_ResponseBodyEmpty()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);

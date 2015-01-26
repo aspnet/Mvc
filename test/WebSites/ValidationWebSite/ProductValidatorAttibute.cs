@@ -10,26 +10,33 @@ namespace ValidationWebSite
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-
-            if (value is ProductViewModel)
+            var product = value as ProductViewModel;
+            if (product != null)
             {
-                var product = (ProductViewModel)value;
-                if (!product.Country.Equals("USA") && string.IsNullOrEmpty(product.Name))
+                if (!product.Country.Equals("USA") || string.IsNullOrEmpty(product.Name))
                 {
-                    return new ValidationResult("Country and Name fields don't have the right values");
+                    return new ValidationResult("Product must be made in the USA if it is not named.");
                 }
-
-            }
-            else
-            {
-                var software = (SoftwareViewModel)value;
-                if (!software.Country.Equals("USA") && string.IsNullOrEmpty(software.Name))
+                else
                 {
-                    return new ValidationResult("Country and Name fields don't have the right values");
+                    return null;
                 }
             }
+            var software = value as SoftwareViewModel;
+            if (software != null)
+            {
+                if (!software.Country.Equals("USA") || string.IsNullOrEmpty(software.Name))
+                {
+                    return new ValidationResult("Product must be made in the USA if it is not named.");
+                }
+                else
+                {
+                    return null;
+                }
+            }
 
-            return null;
+            return new ValidationResult("Expected either ProductViewModel or SoftwareViewModel instance but got "
+                + value.GetType() + " instance");
         }
     }
 }

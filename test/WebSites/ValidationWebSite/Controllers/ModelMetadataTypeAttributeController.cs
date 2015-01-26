@@ -12,13 +12,13 @@ namespace ValidationWebSite.Controllers
     public class ModelMetadataTypeValidationController : Controller
     {
         [HttpPost]
-        public object ValidateProductViewModelInclMetadata([FromBody] ProductViewModel product)
+        public object ValidateProductViewModelIncludingMetadata([FromBody] ProductViewModel product)
         {
             return CreateValidationDictionary();
         }
 
         [HttpPost]
-        public object ValidateSoftwareViewModelInclMetadata([FromBody] SoftwareViewModel software)
+        public object ValidateSoftwareViewModelIncludingMetadata([FromBody] SoftwareViewModel software)
         {
             return CreateValidationDictionary();
         }
@@ -26,6 +26,7 @@ namespace ValidationWebSite.Controllers
         [HttpPost]
         public object TryValidateModelProductViewModelWithErrorInParameter(int id, [FromBody] ProductViewModel product)
         {
+            //Clear ModelState entry if id is 0. TryValidateModel should not add entries that are cleared.
             if (id == 0)
             {
                 ModelState["id"].Errors.Clear();
@@ -38,18 +39,18 @@ namespace ValidationWebSite.Controllers
         [HttpGet]
         public object TryValidateModelSoftwareViewModelNoPrefix()
         {
-            var softwareVm = new SoftwareViewModel
+            var softwareViewModel = new SoftwareViewModel
             {
                 Category = "Technology",
                 CompanyName = "Microsoft",
                 Contact = "4258393231",
                 Country = "UK",
-                DatePurchased = new DateTime(10, 10, 10),
+                DatePurchased = new DateTime(2010, 10, 10),
                 Price = 110,
                 Version = "2"
             };
 
-            TryValidateModel(softwareVm);
+            TryValidateModel(softwareViewModel, "software");
 
             return CreateValidationDictionary();
         }
@@ -57,19 +58,19 @@ namespace ValidationWebSite.Controllers
         [HttpGet]
         public object TryValidateModelValidModelNoPrefix()
         {
-            var softwareVm = new SoftwareViewModel
+            var softwareViewModel = new SoftwareViewModel
             {
                 Category = "Technology",
                 CompanyName = "Microsoft",
                 Contact = "4258393231",
                 Country = "USA",
-                DatePurchased = new DateTime(10, 10, 10),
+                DatePurchased = new DateTime(2010, 10, 10),
                 Name = "MVC",
                 Price = 110,
                 Version = "2"
             };
 
-            TryValidateModel(softwareVm);
+            TryValidateModel(softwareViewModel);
 
             return CreateValidationDictionary();
         }
@@ -87,7 +88,7 @@ namespace ValidationWebSite.Controllers
                         errorMessage = errorMessage + error.ErrorMessage;
                     }
                 }
-                if (errorMessage != string.Empty)
+                if (!string.IsNullOrEmpty(errorMessage))
                 {
                     result.Add(item.Key, errorMessage);
                 }
@@ -95,6 +96,5 @@ namespace ValidationWebSite.Controllers
 
             return result;
         }
-
     }
 }

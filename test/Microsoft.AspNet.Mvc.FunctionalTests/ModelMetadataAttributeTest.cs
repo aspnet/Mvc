@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new ValidationWebSite.Startup().Configure;
 
         [Fact]
-        public async Task ValidBaseClass_Product()
+        public async Task ModelMetaDataTypeAttribute_ValidBaseClass_EmptyResponseBody()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -29,8 +29,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 " \"Detail2\": \"d2\", \"Detail3\": \"d3\"}}";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelIncludingMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -41,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InvalidPropertiesAndSubPropertiesOnBaseClass_Product()
+        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesAndSubPropertiesOnBaseClass_ModelStateErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -49,8 +48,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var input = "{ \"Price\": 2, \"ProductDetails\": {\"Detail1\": \"d1\"}}";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelIncludingMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -59,16 +57,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(6, json.Count);
-            Assert.Equal("CompanyName cannot be null", json["product.CompanyName"]);
+            Assert.Equal("CompanyName cannot be null.", json["product.CompanyName"]);
             Assert.Equal("The field Price must be between 20 and 100.", json["product.Price"]);
             Assert.Equal("The Category field is required.", json["product.Category"]);
-            Assert.Equal("The ContactUs field is required.", json["product.Contact"]);
+            Assert.Equal("The Contact Us field is required.", json["product.Contact"]);
             Assert.Equal("The Detail2 field is required.", json["product.ProductDetails.Detail2"]);
             Assert.Equal("The Detail3 field is required.", json["product.ProductDetails.Detail3"]);
         }
 
         [Fact]
-        public async Task InvalidComplexTypePropertyOnBaseClass_Product()
+        public async Task ModelMetaDataTypeAttribute_InvalidComplexTypePropertyOnBaseClass_ModelStateErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -77,8 +75,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 21 }";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelIncludingMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -91,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InvalidClassAttributeOnBaseClass_Product()
+        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClass_ModelStateErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -102,8 +99,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateProductViewModelIncludingMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -112,11 +108,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(1, json.Count);
-            Assert.Equal("Country and Name fields don't have the right values", json["product"]);
+            Assert.Equal("Product must be made in the USA if it is not named.", json["product"]);
         }
 
         [Fact]
-        public async Task ValidDerivedClass_Software()
+        public async Task ModelMetaDataTypeAttribute_ValidDerivedClass_EmptyResponseBody()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -126,8 +122,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "\"DatePurchased\": \"/Date(1297246301973)/\", \"Price\" : \"110\" }";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelIncludingMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -138,14 +133,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InvalidPropertiesOnDerivedClass_Software()
+        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesOnDerivedClass_ModelStateErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelIncludingMetadata";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             var version = "2.2";
@@ -168,7 +162,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task InvalidClassAttributeOnBaseClass_Software()
+        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClassProduct_ModelStateErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -178,8 +172,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "\"DatePurchased\": \"/Date(1297246301973)/\", \"Price\" : \"110\" }";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            var url =
-                "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelInclMetadata";
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelIncludingMetadata";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -188,7 +181,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
             Assert.Equal(1, json.Count);
-            Assert.Equal("Country and Name fields don't have the right values", json["software"]);
+            Assert.Equal("Product must be made in the USA if it is not named.", json["software"]);
         }
 
     }

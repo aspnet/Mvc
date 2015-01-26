@@ -13,7 +13,7 @@ namespace ValidationWebSite.Models
 
         [StringLength(20)]
         [RegularExpression("^[0-9]*$")]
-        [Display(Name = "ContactUs")]
+        [Display(Name = "Contact Us")]
         public string Contact { get; set; }
 
         [Range(0, 100)]
