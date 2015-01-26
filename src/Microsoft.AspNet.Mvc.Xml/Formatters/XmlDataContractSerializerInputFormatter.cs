@@ -121,11 +121,11 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// Gets the type of the object to be serialized.
+        /// Gets the type to which the XML will be deserialized.
         /// </summary>
         /// <param name="declaredType">The declared type.</param>
-        /// <returns>The type of the object to be serialized.</returns>
-        protected virtual Type GetSerializableType([NotNull]Type declaredType)
+        /// <returns>The type to which the XML will be deserialized.</returns>
+        protected virtual Type GetSerializableType([NotNull] Type declaredType)
         {
             return SerializableErrorWrapper.CreateSerializableType(declaredType);
         }
@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         /// </summary>
         /// <param name="type">The type of object for which the serializer should be created.</param>
         /// <returns>The <see cref="DataContractSerializer"/> used during deserialization.</returns>
-        protected virtual DataContractSerializer CreateSerializer([NotNull]Type type)
+        protected virtual DataContractSerializer CreateSerializer([NotNull] Type type)
         {
             return new DataContractSerializer(type, _serializerSettings);
         }
