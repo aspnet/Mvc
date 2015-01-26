@@ -2,16 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// This attribute is used on action parameters to indicate that
-    /// they will be bound using route data of the incoming request.
+    /// Specifies that a parameter or property should be bound using route-data from the current request.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class FromRouteAttribute : Attribute, IRouteDataValueProviderMetadata
+    public class FromRouteAttribute : Attribute, IBindingSourceMetadata
     {
+        /// <inheritdoc />
+        public BindingSource BindingSource { get { return BindingSource.Path; } }
     }
 }

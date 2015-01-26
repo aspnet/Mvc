@@ -90,9 +90,15 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             foreach (var parameter in candidate.Action.Parameters)
             {
-                // We only consider parameters that are bound from the URL.
-                if ((parameter.BinderMetadata is IRouteDataValueProviderMetadata ||
-                    parameter.BinderMetadata is IQueryValueProviderMetadata) &&
+                // We only consider parameters that are marked as bound from the URL.
+                var source = GetBindingSource(parameter.BinderMetadata);
+                if (source == null)
+                {
+                    continue;
+                }
+
+                if ((source.CanAcceptDataFrom(BindingSource.Path) ||
+                    source.CanAcceptDataFrom(BindingSource.Query)) &&
                     ValueProviderResult.CanConvertFromString(parameter.ParameterType))
                 {
                     var optionalMetadata = parameter.BinderMetadata as IOptionalBinderMetadata;
@@ -143,6 +149,12 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             }
 
             return keys;
+        }
+
+        private static BindingSource GetBindingSource(IBinderMetadata metadata)
+        {
+            var source = (metadata as IBindingSourceMetadata)?.BindingSource;
+            return source;
         }
 
         private class OverloadedParameter

@@ -54,16 +54,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var isTopLevelObject = bindingContext.ModelMetadata.ContainerType == null;
             var hasExplicitAlias = bindingContext.ModelMetadata.BinderModelName != null;
 
-            // The fact that this has reached here,
-            // it is a complex object which was not directly bound by any previous model binders.
-            // Check if this was supposed to be handled by a non value provider based binder.
-            // if it was then it should be not be bound using mutable object binder.
-            // This check would prevent it from recursing in if a model contains a property of its own type.
+            // If we get here the model is a complex object which was not directly bound by any previous model binder,
+            // so we want to decide if we want to continue binding. This is important to get right to avoid infinite
+            // recursion.
+            //
+            // First, we want to make sure this object is allowed to come from a value provider source as this binder
+            // will always include value provider data. For instance if the model is marked with [FromBody], then we
+            // can just skip it.
+            //
+            // If the model isn't marked with ANY binding source, then we assume it's ok also.
+            //
             // We skip this check if it is a top level object because we want to always evaluate
             // the creation of top level object (this is also required for ModelBinderAttribute to work.)
+            var bindingSource = GetBindingSource(bindingContext.ModelMetadata.BinderMetadata);
             if (!isTopLevelObject &&
-                bindingContext.ModelMetadata.BinderMetadata != null &&
-                !(bindingContext.ModelMetadata.BinderMetadata is IValueProviderMetadata))
+                bindingSource != null &&
+                !bindingSource.IsValueProvider)
             {
                 return false;
             }
@@ -113,8 +119,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             foreach (var propertyMetadata in context.PropertyMetadata)
             {
                 // This check will skip properties which are marked explicitly using a non value binder.
-                if (propertyMetadata.BinderMetadata == null ||
-                    propertyMetadata.BinderMetadata is IValueProviderMetadata)
+                var bindingSource = GetBindingSource(propertyMetadata.BinderMetadata);
+                if (bindingSource == null ||
+                    bindingSource.IsValueProvider)
                 {
                     isAnyPropertyEnabledForValueProviderBasedBinding = true;
 
@@ -141,15 +148,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private async Task<bool> CanBindValue(ModelBindingContext bindingContext, ModelMetadata metadata)
         {
             var valueProvider = bindingContext.ValueProvider;
-            var valueProviderMetadata = metadata.BinderMetadata as IValueProviderMetadata;
-            if (valueProviderMetadata != null)
+
+            var bindingSource = GetBindingSource(metadata.BinderMetadata);
+            if (bindingSource != null && bindingSource.IsValueProvider)
             {
                 // if there is a binder metadata and since the property can be bound using a value provider.
                 var metadataAwareValueProvider =
-                    bindingContext.OperationBindingContext.ValueProvider as IMetadataAwareValueProvider;
+                    bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
                 if (metadataAwareValueProvider != null)
                 {
-                    valueProvider = metadataAwareValueProvider.Filter(valueProviderMetadata);
+                    valueProvider = metadataAwareValueProvider.Filter(bindingSource);
                 }
             }
 
@@ -512,6 +520,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return addedError;
+        }
+
+        private static BindingSource GetBindingSource(IBinderMetadata metadata)
+        {
+            var source = (metadata as IBindingSourceMetadata)?.BindingSource;
+            return source;
         }
 
         internal sealed class PropertyValidationInfo

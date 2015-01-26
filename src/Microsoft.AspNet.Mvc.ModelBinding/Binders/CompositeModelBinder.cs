@@ -138,8 +138,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             newBindingContext.OperationBindingContext.BodyBindingState = GetBodyBindingState(oldBindingContext);
 
             // look at the value providers and see if they need to be restricted.
-            var metadata = oldBindingContext.ModelMetadata.BinderMetadata as IValueProviderMetadata;
-            if (metadata != null)
+            var bindingSource = GetBindingSource(oldBindingContext.ModelMetadata.BinderMetadata);
+            if (bindingSource != null && bindingSource.IsValueProvider)
             {
                 // ValueProvider property might contain a filtered list of value providers.
                 // While deciding to bind a particular property which is annotated with a IValueProviderMetadata,
@@ -148,10 +148,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // IValueProviderMetadata can restrict model binding to only use value providers which support this
                 // IValueProviderMetadata.
                 var valueProvider =
-                    oldBindingContext.OperationBindingContext.ValueProvider as IMetadataAwareValueProvider;
+                    oldBindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
                 if (valueProvider != null)
                 {
-                    newBindingContext.ValueProvider = valueProvider.Filter(metadata);
+                    newBindingContext.ValueProvider = valueProvider.Filter(bindingSource);
                 }
             }
 
@@ -160,33 +160,41 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private static BodyBindingState GetBodyBindingState(ModelBindingContext oldBindingContext)
         {
-            var binderMetadata = oldBindingContext.ModelMetadata.BinderMetadata;
-            var newIsFormatterBasedMetadataFound = binderMetadata is IFormatterBinderMetadata;
-            var newIsFormBasedMetadataFound = binderMetadata is IFormDataValueProviderMetadata;
-            var currentModelNeedsToReadBody = newIsFormatterBasedMetadataFound || newIsFormBasedMetadataFound;
+            var bindingSource = GetBindingSource(oldBindingContext.ModelMetadata.BinderMetadata);
+
+            var willReadBodyWithFormatter = bindingSource == BindingSource.Body;
+            var willReadBodyAsFormData = bindingSource == BindingSource.Form;
+
+            var currentModelNeedsToReadBody = willReadBodyWithFormatter || willReadBodyAsFormData;
             var oldState = oldBindingContext.OperationBindingContext.BodyBindingState;
 
             // We need to throw if there are multiple models which can cause body to be read multiple times.
             // Reading form data multiple times is ok since we cache form data. For the models marked to read using
             // formatters, multiple reads are not allowed.
             if (oldState == BodyBindingState.FormatterBased && currentModelNeedsToReadBody ||
-                oldState == BodyBindingState.FormBased && newIsFormatterBasedMetadataFound)
+                oldState == BodyBindingState.FormBased && willReadBodyWithFormatter)
             {
                 throw new InvalidOperationException(Resources.MultipleBodyParametersOrPropertiesAreNotAllowed);
             }
 
             var state = oldBindingContext.OperationBindingContext.BodyBindingState;
-            if (newIsFormatterBasedMetadataFound)
+            if (willReadBodyWithFormatter)
             {
                 state = BodyBindingState.FormatterBased;
             }
-            else if (newIsFormBasedMetadataFound && oldState != BodyBindingState.FormatterBased)
+            else if (willReadBodyAsFormData && oldState != BodyBindingState.FormatterBased)
             {
                 // Only update the model binding state if we have not discovered formatter based state already.
                 state = BodyBindingState.FormBased;
             }
 
             return state;
+        }
+
+        private static BindingSource GetBindingSource(IBinderMetadata metadata)
+        {
+            var source = (metadata as IBindingSourceMetadata)?.BindingSource;
+            return source;
         }
     }
 }

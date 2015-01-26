@@ -2,16 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// This attribute is used on action parameters to indicate
-    /// they are bound from the body of the incoming request.
+    /// Specifies that a parameter or property should be bound using the request body.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class FromBodyAttribute : Attribute, IFormatterBinderMetadata
+    public class FromBodyAttribute : Attribute, IBindingSourceMetadata
     {
+        /// <inheritdoc />
+        public BindingSource BindingSource { get { return BindingSource.Body; } }
     }
 }
