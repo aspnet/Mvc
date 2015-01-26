@@ -1,12 +1,26 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.AspNet.Mvc
 {
     internal static class StringHelper
     {
+        public static IEnumerable<string> SplitString(string original)
+        {
+            if (string.IsNullOrEmpty(original))
+            {
+                return new string[0];
+            }
+
+            var split = original.Split(',')
+                                .Select(piece => piece.Trim())
+                                .Where(trimmed => !string.IsNullOrEmpty(trimmed));
+            return split;
+        }
+
         public static string TrimSpacesAndChars(string value, params char[] chars)
         {
             if (string.IsNullOrWhiteSpace(value))

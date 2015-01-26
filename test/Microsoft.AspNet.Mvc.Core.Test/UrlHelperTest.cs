@@ -13,7 +13,7 @@ using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test
+namespace Microsoft.AspNet.Mvc
 {
     public class UrlHelperTest
     {
@@ -692,10 +692,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        private static UrlHelper CreateUrlHelperWithRouteCollection(string appPrefix)
+        internal static UrlHelper CreateUrlHelperWithRouteCollection(string appPrefix)
         {
             var routeCollection = GetRouter();
-            return CreateUrlHelper("/app", routeCollection);
+            return CreateUrlHelper(appPrefix, routeCollection);
         }
 
         private static IRouter GetRouter()
