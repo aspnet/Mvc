@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Security;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Models;
 
