@@ -375,6 +375,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 { "user.password", "password" },
                 { "user.confirmpassword", "password2" },
             };
+
             var bindingContext = CreateBindingContext(binder, valueProvider, typeof(User), validatorProvider);
             bindingContext.ModelState.MaxAllowedErrors = 2;
             bindingContext.ModelState.AddModelError("key1", "error1");
