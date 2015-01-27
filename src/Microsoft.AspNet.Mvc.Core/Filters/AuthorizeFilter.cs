@@ -10,7 +10,7 @@ using Microsoft.Framework.DependencyInjection;
 namespace Microsoft.AspNet.Mvc
 {
     // REVIEW: figure out how to propery rationalize this with AuthorizationFilterAttribute
-    public class AuthorizationFilter : IAsyncAuthorizationFilter, IAuthorizationFilter, IOrderedFilter
+    public class AuthorizeFilter : IAsyncAuthorizationFilter, IAuthorizationFilter, IOrderedFilter
     {
         public int Order { get; set; }
 

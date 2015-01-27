@@ -259,7 +259,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
             foreach (var authorizeAttribute in attributes.OfType<AuthorizeAttribute>())
             {
-                actionModel.Filters.Add(new AuthorizationFilter
+                actionModel.Filters.Add(new AuthorizeFilter
                 {
                     Policy = authorizeAttribute.Policy,
                     Roles = authorizeAttribute.Roles?.Split(','),

@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_ValidClaimShouldNotFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewPage" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewPage" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization(null, options =>
@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
-            var authorizeFilter = new AuthorizationFilter();
+            var authorizeFilter = new AuthorizeFilter();
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddAuthorization(),
                 anonymous: true);
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_EmptyClaimsWithAllowAnonymousAttributeShouldNotRejectAnonymousUser()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter();
+            var authorizeFilter = new AuthorizeFilter();
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -74,7 +74,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_EmptyClaimsShouldAuthorizeAuthenticatedUser()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter();
+            var authorizeFilter = new AuthorizeFilter();
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -92,7 +92,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_SingleValidClaimShouldSucceed()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewCommentOrPage" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewCommentOrPage" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization(null, options =>
@@ -114,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_RequireAdminRoleShouldFailWithNoHandlers()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Roles = new string[] { "Administrator" } };
+            var authorizeFilter = new AuthorizeFilter { Roles = new string[] { "Administrator" } };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddOptions();
@@ -132,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_RequireAdminAndUserRoleWithNoPolicyShouldSucceed()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Roles = new string[] { "Administrator" } };
+            var authorizeFilter = new AuthorizeFilter { Roles = new string[] { "Administrator" } };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -150,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_RequireUnknownRoleShouldFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Roles = new string[] { "Wut" } };
+            var authorizeFilter = new AuthorizeFilter { Roles = new string[] { "Wut" } };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -168,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_RequireAdminRoleButFailPolicyShouldFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Roles = new string[] { "Administrator" }, Policy = "Basic" };
+            var authorizeFilter = new AuthorizeFilter { Roles = new string[] { "Administrator" }, Policy = "Basic" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization(null, options =>
@@ -190,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_InvalidClaimShouldFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewComment" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewComment" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization(null, options =>
@@ -222,7 +222,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                     return Task.FromResult(true);
                 });
 
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewComment" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewComment" };
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance(authorizationService.Object)
                 );
@@ -240,7 +240,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_FailWhenLookingForClaimInOtherIdentity()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewComment" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewComment" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization(null, options =>
@@ -262,7 +262,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_CanLookingForClaimsInMultipleIdentities()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewCommentCupBearer" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewCommentCupBearer" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization(null, options =>
@@ -285,7 +285,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task Invoke_NoPoliciesShouldNotFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizationFilter { Policy = "CanViewPage" };
+            var authorizeFilter = new AuthorizeFilter { Policy = "CanViewPage" };
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();

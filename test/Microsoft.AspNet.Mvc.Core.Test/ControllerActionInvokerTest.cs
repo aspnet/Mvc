@@ -387,21 +387,21 @@ namespace Microsoft.AspNet.Mvc
                 .Returns<ActionContext>((context) => Task.FromResult(true))
                 .Verifiable();
 
-            var authorizationFilter = new Mock<IAuthorizationFilter>(MockBehavior.Strict);
-            authorizationFilter
+            var AuthorizeFilter = new Mock<IAuthorizationFilter>(MockBehavior.Strict);
+            AuthorizeFilter
                 .Setup(f => f.OnAuthorization(It.IsAny<AuthorizationContext>()))
                 .Callback<AuthorizationContext>(c => c.Result = challenge.Object)
                 .Verifiable();
 
             var resultFilter = new Mock<IResultFilter>(MockBehavior.Strict);
 
-            var invoker = CreateInvoker(new IFilter[] { authorizationFilter.Object, resultFilter.Object });
+            var invoker = CreateInvoker(new IFilter[] { AuthorizeFilter.Object, resultFilter.Object });
 
             // Act
             await invoker.InvokeAsync();
 
             // Assert
-            authorizationFilter.Verify(f => f.OnAuthorization(It.IsAny<AuthorizationContext>()), Times.Once());
+            AuthorizeFilter.Verify(f => f.OnAuthorization(It.IsAny<AuthorizationContext>()), Times.Once());
             challenge.Verify(c => c.ExecuteResultAsync(It.IsAny<ActionContext>()), Times.Once());
         }
 
@@ -1835,15 +1835,15 @@ namespace Microsoft.AspNet.Mvc
                 })
                 .Verifiable();
 
-            var authorizationFilter = new Mock<IAuthorizationFilter>(MockBehavior.Strict);
-            authorizationFilter
+            var AuthorizeFilter = new Mock<IAuthorizationFilter>(MockBehavior.Strict);
+            AuthorizeFilter
                 .Setup(f => f.OnAuthorization(It.IsAny<AuthorizationContext>()))
                 .Callback<AuthorizationContext>((c) =>
                 {
                     c.Result = _result;
                 });
 
-            var invoker = CreateInvoker(new IFilter[] { authorizationFilter.Object, resourceFilter.Object, });
+            var invoker = CreateInvoker(new IFilter[] { AuthorizeFilter.Object, resourceFilter.Object, });
 
             // Act
             await invoker.InvokeAsync();
