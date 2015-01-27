@@ -50,10 +50,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var metadata = viewData.ModelMetadata;
                 var orderer = new ErrorsOrderer(metadata);
 
-                // For simple keys (those without prefixes), order by ModelMetadata.Order then PropertyName.
                 return viewData.ModelState
                     .OrderBy(data => orderer.GetOrder(data.Key))
-                    .ThenBy(data => orderer.GetName(data.Key))
                     .Select(ms => ms.Value);
             }
         }
@@ -81,17 +79,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 }
 
                 return ModelMetadata.DefaultOrder;
-            }
-
-            public string GetName(string key)
-            {
-                if (_ordering.ContainsKey(key))
-                {
-                    return key;
-                }
-
-                // Cache misses occur when key contains more than simple property name. Don't reorder in that case.
-                return string.Empty;
             }
         }
     }

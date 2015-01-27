@@ -304,25 +304,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             get
             {
+                // ModelMetadata does not reorder properties Reflection returns without an Order override.
                 return new TheoryData<IEnumerable<string>, IEnumerable<string>>
                 {
-                    // Same order if already alphabetic.
                     {
                         new List<string> { "Property1", "Property2", "Property3", "Property4", },
                         new List<string> { "Property1", "Property2", "Property3", "Property4", }
                     },
-                    // Rest of the orderings get updated within ModelMetadata.
                     {
                         new List<string> { "Property4", "Property3", "Property2", "Property1", },
-                        new List<string> { "Property1", "Property2", "Property3", "Property4", }
+                        new List<string> { "Property4", "Property3", "Property2", "Property1", }
                     },
                     {
                         new List<string> { "Delta", "Bravo", "Charlie", "Alpha", },
-                        new List<string> { "Alpha", "Bravo", "Charlie", "Delta", }
+                        new List<string> { "Delta", "Bravo", "Charlie", "Alpha", }
                     },
                     {
                         new List<string> { "John", "Jonathan", "Jon", "Joan", },
-                        new List<string> { "Joan", "John", "Jon", "Jonathan", }
+                        new List<string> { "John", "Jonathan", "Jon", "Joan", }
                     },
                 };
             }
@@ -360,7 +359,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 return new TheoryData<IEnumerable<KeyValuePair<string, int>>, IEnumerable<string>>
                 {
-                    // Same order if already alphabetic.
                     {
                         new List<KeyValuePair<string, int>>
                         {
@@ -403,6 +401,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         },
                         new List<string> { "Charlie", "Bravo", "Delta", "Alpha", }
                     },
+                    // Jonathan and Jon will not be reordered.
                     {
                         new List<KeyValuePair<string, int>>
                         {
@@ -411,7 +410,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                             new KeyValuePair<string, int>("Jon", 0),
                             new KeyValuePair<string, int>("John", -1),
                         },
-                        new List<string> { "John", "Jon", "Jonathan", "Joan", }
+                        new List<string> { "John", "Jonathan", "Jon", "Joan", }
                     },
                 };
             }

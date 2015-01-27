@@ -580,12 +580,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 "DateOfBirth",
                 "DateOfDeath",
+                "ValueTypeRequired",
                 "FirstName",
                 "LastName",
                 "PropertyWithDefaultValue",
                 "PropertyWithInitializedValue",
                 "PropertyWithInitializedValueAndDefault",
-                "ValueTypeRequired",
             };
             var bindingContext = new ModelBindingContext
             {

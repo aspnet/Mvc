@@ -164,12 +164,12 @@ namespace Microsoft.AspNet.Mvc.Core
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
             var expectedProperties = new List<string>
             {
-                "OrderedProperty1",
-                "OrderedProperty2",
                 "OrderedProperty3",
+                "OrderedProperty2",
+                "OrderedProperty1",
+                "Property3",
                 "Property1",
                 "Property2",
-                "Property3",
                 "LastProperty",
             };
 

@@ -170,19 +170,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Proper order of invocation:
             // 1. OnValidating()
-            // 2. Child validators -- ordered using ModelMetadata.Order, then property name.
+            // 2. Child validators -- ordered using ModelMetadata.Order.
             // 3. OnValidated()
 
             // Arrange
             var expected = new[]
             {
                 "In OnValidating()",
-                "In LoggingValidatonAttribute.IsValid(OrderedProperty1)",
-                "In LoggingValidatonAttribute.IsValid(OrderedProperty2)",
                 "In LoggingValidatonAttribute.IsValid(OrderedProperty3)",
+                "In LoggingValidatonAttribute.IsValid(OrderedProperty2)",
+                "In LoggingValidatonAttribute.IsValid(OrderedProperty1)",
+                "In LoggingValidatonAttribute.IsValid(Property3)",
                 "In LoggingValidatonAttribute.IsValid(Property1)",
                 "In LoggingValidatonAttribute.IsValid(Property2)",
-                "In LoggingValidatonAttribute.IsValid(Property3)",
                 "In LoggingValidatonAttribute.IsValid(LastProperty)",
                 "In OnValidated()"
             };
@@ -211,7 +211,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Proper order of invocation:
             // 1. OnValidating()
-            // 2. Child validators -- ordered using ChildNodes, then ModelMetadata.Order, then property name.
+            // 2. Child validators -- ordered using ChildNodes, then ModelMetadata.Order.
             // 3. OnValidated()
 
             // Arrange
@@ -219,12 +219,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 "In OnValidating()",
                 "In LoggingValidatonAttribute.IsValid(LastProperty)",
-                "In LoggingValidatonAttribute.IsValid(OrderedProperty1)",
-                "In LoggingValidatonAttribute.IsValid(OrderedProperty2)",
                 "In LoggingValidatonAttribute.IsValid(OrderedProperty3)",
+                "In LoggingValidatonAttribute.IsValid(OrderedProperty2)",
+                "In LoggingValidatonAttribute.IsValid(OrderedProperty1)",
+                "In LoggingValidatonAttribute.IsValid(Property3)",
                 "In LoggingValidatonAttribute.IsValid(Property1)",
                 "In LoggingValidatonAttribute.IsValid(Property2)",
-                "In LoggingValidatonAttribute.IsValid(Property3)",
                 "In OnValidated()"
             };
 
@@ -406,7 +406,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 RangedInt = 0 /* error */,
                 ValidString = "cat"  /* error */
             };
-            var expectedMessage = ValidationAttributeUtil.GetRangeErrorMessage(10, 30, "RangedInt");
+            var expectedMessage = ValidationAttributeUtil.GetRequiredErrorMessage("RequiredString");
 
             var modelMetadata = GetModelMetadata(model);
             var node = new ModelValidationNode(modelMetadata, "theKey")
@@ -427,14 +427,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var error = Assert.Single(modelState.Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
 
-            // RangedInt is validated first due to ModelMetadata.Properties ordering (alphabetic in this case).
-            modelState = context.ModelState["theKey.RangedInt"];
+            // RequiredString is validated first due to ModelMetadata.Properties ordering (Reflection-based).
+            modelState = context.ModelState["theKey.RequiredString"];
             Assert.NotNull(modelState);
             error = Assert.Single(modelState.Errors);
             Assert.Equal(expectedMessage, error.ErrorMessage);
 
             // No room for the other validation errors.
-            Assert.DoesNotContain("theKey.RequiredString", context.ModelState.Keys);
+            Assert.DoesNotContain("theKey.RangedInt", context.ModelState.Keys);
             Assert.DoesNotContain("theKey.ValidString", context.ModelState.Keys);
         }
 

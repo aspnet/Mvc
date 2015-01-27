@@ -111,12 +111,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     "<li>This is an error for Property3.Property2.</li>" + Environment.NewLine +
                     "<li>This is an error for Property3.OrderedProperty3.</li>" + Environment.NewLine +
                     "<li>This is an error for Property3.OrderedProperty2.</li>" + Environment.NewLine +
-                    "<li>This is an error for the model root.</li>" + Environment.NewLine +
-                    "<li>This is another error for the model root.</li>" + Environment.NewLine +
-                    // Remaining errors match properties in the model type. Therefore they are re-ordered.
+                    "<li>This is an error for Property3.</li>" + Environment.NewLine +
                     "<li>This is an error for Property2.</li>" + Environment.NewLine +
                     "<li>This is another error for Property2.</li>" + Environment.NewLine +
-                    "<li>This is an error for Property3.</li>" + Environment.NewLine +
+                    "<li>This is an error for the model root.</li>" + Environment.NewLine +
+                    "<li>This is another error for the model root.</li>" + Environment.NewLine +
                     "</ul></div>";
 
                 return new TheoryData<bool, string, string>
@@ -306,16 +305,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var expected = "<div class=\"validation-summary-errors\" data-valmsg-summary=\"true\"><ul>" +
-                "<li>This is an error for OrderedProperty1.</li>" + Environment.NewLine +
+                "<li>This is an error for OrderedProperty3.</li>" + Environment.NewLine +
                 "<li>This is an error for OrderedProperty2.</li>" + Environment.NewLine +
                 "<li>This is another error for OrderedProperty2.</li>" + Environment.NewLine +
                 "<li>This is yet-another error for OrderedProperty2.</li>" + Environment.NewLine +
-                "<li>This is an error for OrderedProperty3.</li>" + Environment.NewLine +
-                "<li>This is an error for Property1.</li>" + Environment.NewLine +
-                "<li>This is another error for Property1.</li>" + Environment.NewLine +
+                "<li>This is an error for OrderedProperty1.</li>" + Environment.NewLine +
+                "<li>This is an error for Property3.</li>" + Environment.NewLine +
                 "<li>This is an error for Property2.</li>" + Environment.NewLine +
                 "<li>This is another error for Property2.</li>" + Environment.NewLine +
-                "<li>This is an error for Property3.</li>" + Environment.NewLine +
+                "<li>This is an error for Property1.</li>" + Environment.NewLine +
+                "<li>This is another error for Property1.</li>" + Environment.NewLine +
                 "<li>This is an error for LastProperty.</li>" + Environment.NewLine +
                 "</ul></div>";
 
