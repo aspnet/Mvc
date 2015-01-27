@@ -1429,5 +1429,29 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("test.txt", fileDetails.Filename);
             Assert.Equal("Test Content", fileDetails.Content);
         }
+
+        [Fact]
+        public async Task TryUpdateModel_DerivedTypeCasted_ReturnsDerivedAndBaseProperties()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetEmployeeAsync_TypeCastedAsPerson" +
+                "?Parent.Name=fatherName&Parent.Parent.Name=grandFatherName&Department=Sales");
+
+            // Assert
+            var employee = JsonConvert.DeserializeObject<Employee>(response);
+
+            // Act
+            Assert.Equal("fatherName", employee.Parent.Name);
+            Assert.Equal("Sales", employee.Department);
+
+            // Includes this as there is data from value providers, the include filter
+            // only works for top level objects.
+            Assert.Equal("grandFatherName", employee.Parent.Parent.Name);
+        }
     }
 }
