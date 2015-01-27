@@ -1431,7 +1431,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task TryUpdateModel_DerivedTypeCasted_ReturnsDerivedAndBaseProperties()
+        public async Task TryUpdateModel_ReturnDerivedAndBaseProperties()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -1439,7 +1439,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
-                "GetEmployeeAsync_TypeCastedAsPerson" +
+                "GetEmployeeAsync_BindToBaseDeclaredType" +
                 "?Parent.Name=fatherName&Parent.Parent.Name=grandFatherName&Department=Sales");
 
             // Assert
