@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Security;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -255,6 +256,15 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
             AddRange(actionModel.ActionConstraints, attributes.OfType<IActionConstraintMetadata>());
             AddRange(actionModel.Filters, attributes.OfType<IFilter>());
+
+            foreach (var authorizeAttribute in attributes.OfType<AuthorizeAttribute>())
+            {
+                actionModel.Filters.Add(new AuthorizationFilter
+                {
+                    Policy = authorizeAttribute.Policy,
+                    Roles = authorizeAttribute.Roles?.Split(','),
+                });
+            }
 
             var actionName = attributes.OfType<ActionNameAttribute>().FirstOrDefault();
             if (actionName?.Name != null)

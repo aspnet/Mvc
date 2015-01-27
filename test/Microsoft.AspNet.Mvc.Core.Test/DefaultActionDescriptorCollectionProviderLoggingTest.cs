@@ -5,6 +5,7 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.AspNet.Security;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.NestedProviders;
 using Microsoft.Framework.Logging;
@@ -72,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Assert.Empty(controllerModelValues.AttributeRoutes);
             Assert.Empty(controllerModelValues.RouteConstraints);
             Assert.NotEmpty(controllerModelValues.Attributes);
-            Assert.Single(controllerModelValues.Filters);
+            Assert.Empty(controllerModelValues.Filters);
         }
 
         [Fact]
@@ -108,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Assert.Equal(typeof(BasicController), actionDescriptorValues.ControllerTypeInfo);
             Assert.Null(actionDescriptorValues.AttributeRouteInfo.Name);
             Assert.NotEmpty(actionDescriptorValues.ActionConstraints);
-            Assert.Equal(2, actionDescriptorValues.FilterDescriptors.Count);
+            Assert.Equal(1, actionDescriptorValues.FilterDescriptors.Count);
             Assert.Empty(actionDescriptorValues.Parameters);
 
             actionDescriptorValues = sink.Writes[5].State as ActionDescriptorValues;
@@ -118,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Assert.Equal(typeof(BasicController), actionDescriptorValues.ControllerTypeInfo);
             Assert.Null(actionDescriptorValues.AttributeRouteInfo.Name);
             Assert.NotEmpty(actionDescriptorValues.ActionConstraints);
-            Assert.Single(actionDescriptorValues.FilterDescriptors);
+            Assert.Empty(actionDescriptorValues.FilterDescriptors);
             Assert.Single(actionDescriptorValues.RouteConstraints);
             Assert.Single(actionDescriptorValues.Parameters);
         }
