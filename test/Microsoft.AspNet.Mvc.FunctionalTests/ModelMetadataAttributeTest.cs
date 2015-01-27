@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesAndSubPropertiesOnBaseClass_ModelStateErrors()
+        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesAndSubPropertiesOnBaseClass_ReturnsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidComplexTypePropertyOnBaseClass_ModelStateErrors()
+        public async Task ModelMetaDataTypeAttribute_InvalidComplexTypePropertyOnBaseClass_ReturnsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -88,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClass_ModelStateErrors()
+        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClass_ReturnsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -133,25 +133,19 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesOnDerivedClass_ModelStateErrors()
+        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesOnDerivedClass_ReturnsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-
-            var url = "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelIncludingMetadata";
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-
-            var version = "2.2";
-            request.Headers.TryAddWithoutValidation("version", version);
-
             var input = "{ \"Name\": \"MVC\", \"Contact\":\"425-895-9019\", \"Category\":\"Technology\"," +
                 "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 2}";
+            var content = new StringContent(input, Encoding.UTF8, "application/json");
 
-            request.Content = new StringContent(input, Encoding.UTF8, "application/json");
+            var url = "http://localhost/ModelMetadataTypeValidation/ValidateSoftwareViewModelIncludingMetadata";
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await client.PostAsync(url, content);
 
             // Assert
             var body = await response.Content.ReadAsStringAsync();
@@ -162,7 +156,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClassProduct_ModelStateErrors()
+        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClassProduct_ReturnsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);

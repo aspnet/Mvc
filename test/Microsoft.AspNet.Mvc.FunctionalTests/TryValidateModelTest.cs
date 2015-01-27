@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new ValidationWebSite.Startup().Configure;
 
         [Fact]
-        public async Task TryValidateModel_InvalidProperties_ModelStateContainsErrorBeforeCallToTryValidateModel()
+        public async Task TryValidateModel_ClearParameterValidationError_ReturnsErrorsForInvalidProperties()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -29,7 +29,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "\"ProductDetails\": {\"Detail1\": \"d1\", \"Detail2\": \"d2\", \"Detail3\": \"d3\"}}";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
             var url =
-                "http://localhost/ModelMetadataTypeValidation/TryValidateModelProductViewModelWithErrorInParameter/0";
+                "http://localhost/ModelMetadataTypeValidation/" +
+                "TryValidateModelAfterClearingValidationErrorInParameter?theImpossibleString=test";
 
             // Act
             var response = await client.PostAsync(url, content);
@@ -51,13 +52,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task TryValidateModel_InvalidTypeOnDerivedModel_ModelStateContainsErrors()
+        public async Task TryValidateModel_InvalidTypeOnDerivedModel_ReturnsErrors()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
             var url =
-                "http://localhost/ModelMetadataTypeValidation/TryValidateModelSoftwareViewModelNoPrefix";
+                "http://localhost/ModelMetadataTypeValidation/TryValidateModelSoftwareViewModelWithPrefix";
 
             // Act
             var response = await client.GetAsync(url);
@@ -70,7 +71,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task TryValidateModel_ValidDerivedModel_ResponseBodyEmpty()
+        public async Task TryValidateModel_ValidDerivedModel_ReturnsEmptyResponseBody()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);

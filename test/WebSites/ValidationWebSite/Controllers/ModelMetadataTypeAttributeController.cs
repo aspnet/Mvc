@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNet.Mvc;
 using ValidationWebSite.ViewModels;
@@ -24,20 +25,20 @@ namespace ValidationWebSite.Controllers
         }
 
         [HttpPost]
-        public object TryValidateModelProductViewModelWithErrorInParameter(int id, [FromBody] ProductViewModel product)
+        public object TryValidateModelAfterClearingValidationErrorInParameter(
+            [Required, MaxLength(3), StringLength(10, MinimumLength = 3)] string theImpossibleString,
+            [FromBody] ProductViewModel product)
         {
-            //Clear ModelState entry if id is 0. TryValidateModel should not add entries that are cleared.
-            if (id == 0)
-            {
-                ModelState["id"].Errors.Clear();
-            }
+            // Clear ModelState entry. TryValidateModel should not add entries that are cleared.
+            ModelState["theImpossibleString"].Errors.Clear();
+
             TryValidateModel(product);
 
             return CreateValidationDictionary();
         }
 
         [HttpGet]
-        public object TryValidateModelSoftwareViewModelNoPrefix()
+        public object TryValidateModelSoftwareViewModelWithPrefix()
         {
             var softwareViewModel = new SoftwareViewModel
             {

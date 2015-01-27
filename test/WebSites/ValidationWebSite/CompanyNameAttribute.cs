@@ -9,7 +9,8 @@ namespace ValidationWebSite
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            if (value == null)
+            var valueString = value as string;
+            if (string.IsNullOrEmpty(valueString))
             {
                 return new ValidationResult("CompanyName cannot be null.");
             }
