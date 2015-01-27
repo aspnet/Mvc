@@ -177,7 +177,7 @@ namespace Microsoft.AspNet.Mvc
         private class FilteredViewComponentSelector : DefaultViewComponentSelector
         {
             public FilteredViewComponentSelector()
-                : base(new StaticAssemblyProvider())
+                : base(new StaticAssemblyProvider(new[] { typeof(FilteredViewComponentSelector).GetTypeInfo().Assembly }))
             {
                 AllowedTypes = typeof(DefaultViewComponentSelectorTest).GetNestedTypes(BindingFlags.NonPublic);
             }

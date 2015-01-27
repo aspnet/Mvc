@@ -1611,6 +1611,21 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
+        /// Property '{0}' on controller '{1}' cannot be activated.
+        /// </summary>
+        internal static string ControllerFactory_PropertyCannotBeActivated
+        {
+            get { return GetString("ControllerFactory_PropertyCannotBeActivated"); }
+        }
+
+        /// <summary>
+        /// Property '{0}' on controller '{1}' cannot be activated.
+        /// </summary>
+        internal static string FormatControllerFactory_PropertyCannotBeActivated(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ControllerFactory_PropertyCannotBeActivated"), p0, p1);
+        }
+        /// <summary>
         /// The media type "{0}" is not valid. MediaTypes containing wildcards (*) are not allowed in formatter mappings.
         /// </summary>
         internal static string FormatterMappings_NotValidMediaType
