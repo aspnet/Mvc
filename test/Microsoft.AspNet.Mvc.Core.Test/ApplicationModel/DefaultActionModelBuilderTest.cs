@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Security;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -318,6 +319,27 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             Assert.Equal("Update", action.ActionName);
             Assert.Null(action.AttributeRouteModel);
             Assert.IsType<CustomHttpMethodsAttribute>(Assert.Single(action.Attributes));
+        }
+
+        [Fact]
+        public void GetActions_AuthorizeFiltersAreCombinedWhenOverriden()
+        {
+            // Arrange
+            var builder = new DefaultActionModelBuilder();
+            var typeInfo = typeof(DerivedController).GetTypeInfo();
+            var actionName = nameof(DerivedController.Authorize);
+
+            // Act
+            var actions = builder.BuildActionModels(typeInfo, typeInfo.GetMethod(actionName));
+
+            // Assert
+            var action = Assert.Single(actions);
+            Assert.Equal("Authorize", action.ActionName);
+            Assert.Null(action.AttributeRouteModel);
+            var authorizeFilters = action.Filters.OfType<AuthorizeFilter>();
+            Assert.Equal(2, authorizeFilters.Count());
+            Assert.Equal("Derived", authorizeFilters.First().Policy);
+            Assert.Equal("Base", authorizeFilters.Last().Policy);
         }
 
         [Fact]
@@ -674,6 +696,12 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             {
                 return base.Redirect(url + "#RedirectOverride");
             }
+
+            [Authorize(Policy = "Base")]
+            public virtual void Authorize()
+            {
+            }
+
         }
 
         private class DerivedController : BaseController
@@ -690,6 +718,12 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             public new void NewMethod() // Valid action method.
             {
             }
+
+            [Authorize(Policy = "Derived")]
+            public override void Authorize()
+            {
+            }
+
 
             public void GenericMethod<T>()
             {

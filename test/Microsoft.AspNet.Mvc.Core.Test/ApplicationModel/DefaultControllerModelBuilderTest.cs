@@ -7,6 +7,8 @@ using Microsoft.AspNet.Mvc.ApplicationModels.DefaultControllerModelBuilderTestCo
 using Xunit;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Security;
+using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -181,6 +183,20 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             Assert.IsType<ControllerActionFilter>(filter);
         }
 
+        [Fact]
+        public void BuildControllerModel_AuthorizeAttributeAddsAuthorizeFilter()
+        {
+            // Arrange
+            var builder = new AccessibleControllerModelBuilder();
+            var typeInfo = typeof(AccountController).GetTypeInfo();
+
+            // Act
+            var model = builder.BuildControllerModel(typeInfo);
+
+            // Assert
+            Assert.True(model.Filters.Any(f => f is AuthorizeFilter));
+        }
+
         // This class has a filter attribute, but doesn't implement any filter interfaces,
         // so ControllerFilter is not present.
         [Fact]
@@ -278,6 +294,11 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels.DefaultControllerModelBuilderTe
     }
 
     public class NoSuffix : Mvc.Controller
+    {
+    }
+
+    [Authorize]
+    public class AccountController
     {
     }
 
