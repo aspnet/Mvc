@@ -12,7 +12,7 @@ using Moq;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
-    public class AuthorizeAttributeTestsBase
+    public class AuthorizeFilterTestsBase
     {
         protected AuthorizationContext GetAuthorizationContext(Action<ServiceCollection> registerServices, bool anonymous = false)
         {
