@@ -10,7 +10,7 @@ using Microsoft.Framework.DependencyInjection;
 namespace Microsoft.AspNet.Mvc
 {
     // REVIEW: figure out how to propery rationalize this with AuthorizationFilterAttribute
-    public class AuthorizeFilter : IAsyncAuthorizationFilter, IAuthorizationFilter, IOrderedFilter
+    public class AuthorizeFilter : IAsyncAuthorizationFilter, IOrderedFilter
     {
         public int Order { get; set; }
 
@@ -53,11 +53,6 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 #pragma warning restore 1998
-
-        public virtual void OnAuthorization([NotNull] AuthorizationContext context)
-        {
-            // TODO: implement once we have sync version of auth
-        }
 
         protected virtual bool HasAllowAnonymous([NotNull] AuthorizationContext context)
         {
