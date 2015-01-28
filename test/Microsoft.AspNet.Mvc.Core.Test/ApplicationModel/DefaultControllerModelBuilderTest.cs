@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Reflection;
-using Microsoft.AspNet.Mvc.Filters;
-using Microsoft.AspNet.Mvc.ApplicationModels.DefaultControllerModelBuilderTestControllers;
-using Xunit;
 using System;
-using System.Threading.Tasks;
-using Microsoft.AspNet.Security;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.ApplicationModels.DefaultControllerModelBuilderTestControllers;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Security;
+using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
