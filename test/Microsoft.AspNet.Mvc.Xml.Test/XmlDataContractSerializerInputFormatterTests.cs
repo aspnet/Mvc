@@ -15,7 +15,7 @@ using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class XmlDataContractSerializerInputFormatterTests
     {

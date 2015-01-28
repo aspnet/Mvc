@@ -13,7 +13,7 @@ using Microsoft.AspNet.Mvc.Xml;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class XmlSerializerOutputFormatterTests
     {
