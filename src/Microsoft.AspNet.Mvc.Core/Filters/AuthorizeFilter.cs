@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc
             if (Roles != null && Roles.Any())
             {
                 var rolesPolicy = new AuthorizationPolicyBuilder();
-                rolesPolicy.RequiresRole(Roles.ToArray());
+                rolesPolicy.RequiresRole(Roles);
                 if (!await authService.AuthorizeAsync(httpContext.User, context, rolesPolicy.Build()))
                 {
                     Fail(context);
