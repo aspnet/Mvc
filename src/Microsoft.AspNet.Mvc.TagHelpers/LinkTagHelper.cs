@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -23,10 +25,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
-
+        
         private static readonly Assembly ResourcesAssembly = typeof(LinkTagHelper).GetTypeInfo().Assembly;
 
         private static Lazy<string> FallbackJavaScriptTemplate = new Lazy<string>(LoadJavaScriptTemplate);
+
+        private readonly ILogger _logger;
+
+        public LinkTagHelper()
+        {
+            _logger = LoggerFactory.Create<LinkTagHelper>();
+        }
 
         /// <summary>
         /// The URL of a CSS stylesheet to fallback to in the case the primary one fails (as specified in the href
@@ -53,6 +62,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [HtmlAttributeName(FallbackTestValueAttributeName)]
         public string FallbackTestValue { get; set; }
 
+        [Activate]
+        internal ILoggerFactory LoggerFactory { get; set; }        
+
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
@@ -65,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
 
-            // Build the <link /> tag that loads the primary stylesheet
+            // Rebuild the <link /> tag that loads the primary stylesheet
             content.Append("<link ");
             foreach (var a in output.Attributes)
             {
@@ -82,10 +94,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // indicating that the primary stylesheet failed to load.
             content.Append("<script>");
             content.AppendFormat(CultureInfo.InvariantCulture,
-                                     FallbackJavaScriptTemplate.Value,
-                                     JavaScriptStringEncode(FallbackTestProperty),
-                                     JavaScriptStringEncode(FallbackTestValue),
-                                     JavaScriptStringEncode(FallbackHref));
+                                 FallbackJavaScriptTemplate.Value,
+                                 JavaScriptStringEncode(FallbackTestProperty),
+                                 JavaScriptStringEncode(FallbackTestValue),
+                                 JavaScriptStringEncode(FallbackHref));
             content.Append("</script>");
 
             output.TagName = null;
@@ -95,9 +107,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private bool ShouldProcess(TagHelperContext context)
         {
             // TODO: Check for all attribute values & log warning if invalid combination found
-            return context.AllAttributes.ContainsKey(FallbackHrefAttributeName)
+            var result = context.AllAttributes.ContainsKey(FallbackHrefAttributeName)
                    && context.AllAttributes[FallbackHrefAttributeName] != null
                    && !string.IsNullOrWhiteSpace(context.AllAttributes[FallbackHrefAttributeName].ToString());
+
+            if (!result)
+            {
+
+            }
+
+            return result;
         }
 
         private static string LoadJavaScriptTemplate()
@@ -105,6 +124,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Load the fallback JavaScript template from embedded resource
             using (var resourceStream = ResourcesAssembly.GetManifestResourceStream(FallbackJavaScriptResourceName))
             {
+                Debug.Assert(resourceStream != null, "Embedded resource missing. Ensure 'prebuild' script has run.");
+
                 using (var streamReader = new StreamReader(resourceStream))
                 {
                     return streamReader.ReadToEndAsync().Result
