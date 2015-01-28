@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class XmlDataContractSerializerOutputFormatterTests
+    public class XmlDataContractSerializerOutputFormatterTest
     {
         [DataContract(Name = "DummyClass", Namespace = "")]
         public class DummyClass

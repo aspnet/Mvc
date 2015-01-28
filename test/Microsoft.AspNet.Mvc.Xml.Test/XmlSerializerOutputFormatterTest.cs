@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class XmlSerializerOutputFormatterTests
+    public class XmlSerializerOutputFormatterTest
     {
         public class DummyClass
         {
