@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Security;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -25,6 +27,20 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // Assert
             var filter = Assert.Single(model.Filters);
             Assert.IsType<ControllerActionFilter>(filter);
+        }
+
+        [Fact]
+        public void BuildControllerModel_AuthorizeAttributeAddsAuthorizeFilter()
+        {
+            // Arrange
+            var builder = new AccessibleControllerModelBuilder();
+            var typeInfo = typeof(AccountController).GetTypeInfo();
+
+            // Act
+            var model = builder.BuildControllerModel(typeInfo);
+
+            // Assert
+            Assert.True(model.Filters.Any(f => f is AuthorizeFilter));
         }
 
         // This class has a filter attribute, but doesn't implement any filter interfaces,
@@ -81,11 +97,16 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         }
 
         [Produces("application/json")]
-        private class NoFiltersController
+        public class NoFiltersController
         {
         }
 
-        private class SomeFiltersController : IAsyncActionFilter, IResultFilter
+        [Authorize]
+        public class AccountController
+        {
+        }
+
+        public class SomeFiltersController : IAsyncActionFilter, IResultFilter
         {
             public Task OnActionExecutionAsync(
                 [NotNull] ActionExecutingContext context,
