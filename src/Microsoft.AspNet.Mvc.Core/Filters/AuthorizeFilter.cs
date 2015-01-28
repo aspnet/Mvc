@@ -9,7 +9,9 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
-    // REVIEW: figure out how to propery rationalize this with AuthorizationFilterAttribute
+    /// <summary>
+    /// An implementation of <see cref="IAsyncAuthorizationFilter"/> which corresponds to [Authorize]
+    /// </summary>
     public class AuthorizeFilter : IAsyncAuthorizationFilter, IOrderedFilter
     {
         public int Order { get; set; }
@@ -18,7 +20,6 @@ namespace Microsoft.AspNet.Mvc
 
         public IEnumerable<string> Roles { get; set; }
 
-#pragma warning disable 1998
         public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
             var httpContext = context.HttpContext;
@@ -52,7 +53,6 @@ namespace Microsoft.AspNet.Mvc
                 Fail(context);
             }
         }
-#pragma warning restore 1998
 
         protected virtual bool HasAllowAnonymous([NotNull] AuthorizationContext context)
         {

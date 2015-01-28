@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Security;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -71,6 +72,15 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             AddRange(controllerModel.ActionConstraints, attributes.OfType<IActionConstraintMetadata>());
             AddRange(controllerModel.Filters, attributes.OfType<IFilter>());
             AddRange(controllerModel.RouteConstraints, attributes.OfType<IRouteConstraintProvider>());
+
+            foreach (var authorizeAttribute in attributes.OfType<AuthorizeAttribute>())
+            {
+                controllerModel.Filters.Add(new AuthorizeFilter
+                {
+                    Policy = authorizeAttribute.Policy,
+                    Roles = authorizeAttribute.Roles?.Split(','),
+                });
+            }
 
             AddRange(
                 controllerModel.AttributeRoutes,

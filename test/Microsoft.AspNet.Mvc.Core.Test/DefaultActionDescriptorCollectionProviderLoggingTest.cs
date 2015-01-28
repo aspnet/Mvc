@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Assert.Empty(controllerModelValues.AttributeRoutes);
             Assert.Empty(controllerModelValues.RouteConstraints);
             Assert.NotEmpty(controllerModelValues.Attributes);
-            Assert.Empty(controllerModelValues.Filters);
+            Assert.Single(controllerModelValues.Filters);
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Assert.Equal(typeof(BasicController), actionDescriptorValues.ControllerTypeInfo);
             Assert.Null(actionDescriptorValues.AttributeRouteInfo.Name);
             Assert.NotEmpty(actionDescriptorValues.ActionConstraints);
-            Assert.Equal(1, actionDescriptorValues.FilterDescriptors.Count);
+            Assert.Equal(2, actionDescriptorValues.FilterDescriptors.Count);
             Assert.Empty(actionDescriptorValues.Parameters);
 
             actionDescriptorValues = Assert.IsType<ActionDescriptorValues>(sink.Writes[4].State);
@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.Logging
             Assert.Equal(typeof(BasicController), actionDescriptorValues.ControllerTypeInfo);
             Assert.Null(actionDescriptorValues.AttributeRouteInfo.Name);
             Assert.NotEmpty(actionDescriptorValues.ActionConstraints);
-            Assert.Empty(actionDescriptorValues.FilterDescriptors);
+            Assert.Single(actionDescriptorValues.FilterDescriptors);
             Assert.Single(actionDescriptorValues.RouteConstraints);
             Assert.Single(actionDescriptorValues.Parameters);
         }

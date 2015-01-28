@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
-    public class AuthorizeAttributeTests : AuthorizeAttributeTestsBase
+    public class AuthorizeFilterTests : AuthorizeFilterTestsBase
     {
         [Fact]
         public async Task Invoke_ValidClaimShouldNotFail()
