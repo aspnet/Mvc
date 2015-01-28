@@ -4,6 +4,8 @@
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Console;
 using TagHelperSample.Web.Services;
 
 namespace TagHelperSample.Web
@@ -20,8 +22,10 @@ namespace TagHelperSample.Web
             services.AddSingleton<MoviesService>();
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddConsole((name, logLevel) => name.IndexOf("TagHelper") >= 0);
+            
             app.UseErrorPage();
 
             app.UseStaticFiles();

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -30,11 +30,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private static Lazy<string> FallbackJavaScriptTemplate = new Lazy<string>(LoadJavaScriptTemplate);
 
-        private readonly ILogger _logger;
+        private ILogger _logger;
 
         public LinkTagHelper()
         {
-            _logger = LoggerFactory.Create<LinkTagHelper>();
+            
         }
 
         /// <summary>
@@ -63,13 +63,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string FallbackTestValue { get; set; }
 
         [Activate]
-        internal ILoggerFactory LoggerFactory { get; set; }        
+        protected internal ILoggerFactory LoggerFactory { get; set; }        
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            _logger = LoggerFactory.Create<LinkTagHelper>();
+            
             if (!ShouldProcess(context))
             {
+                _logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
                 return;
             }
 
@@ -106,17 +109,46 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private bool ShouldProcess(TagHelperContext context)
         {
-            // TODO: Check for all attribute values & log warning if invalid combination found
-            var result = context.AllAttributes.ContainsKey(FallbackHrefAttributeName)
-                   && context.AllAttributes[FallbackHrefAttributeName] != null
-                   && !string.IsNullOrWhiteSpace(context.AllAttributes[FallbackHrefAttributeName].ToString());
-
-            if (!result)
+            // Check for all attribute values & log warning if invalid combination found.
+            // NOTE: All attributes are required for the LinkTagHelper to process.
+            var attrNames = new []
             {
-
+                FallbackHrefAttributeName,
+                FallbackTestClassAttributeName,
+                FallbackTestPropertyAttributeName,
+                FallbackTestValueAttributeName
+            };
+            var presentAttrNames = new List<string>();
+            var missingAttrNames = new List<string>();
+            
+            foreach (var attr in attrNames)
+            {
+                if (!context.AllAttributes.ContainsKey(attr)
+                    || context.AllAttributes[attr] == null
+                    || string.IsNullOrWhiteSpace(context.AllAttributes[attr].ToString()))
+                {
+                    // Missing attribute!
+                    missingAttrNames.Add(attr);
+                }
+                else
+                {
+                    presentAttrNames.Add(attr);
+                }
             }
-
-            return result;
+            
+            if (missingAttrNames.Any())
+            {
+                if (presentAttrNames.Any())
+                {
+                    // At least 1 attribute was present indicating the user intended to use the tag helper,
+                    // but at least 1 was missing too, so log a warning with the details.
+                    _logger.WriteWarning(new MissingAttributeStructure(context.UniqueId, missingAttrNames));
+                }
+                return false;
+            }
+            
+            // All attributes present and valid
+            return true;
         }
 
         private static string LoadJavaScriptTemplate()
@@ -167,6 +199,40 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
 
             return result.ToString();
+        }
+        
+        private class MissingAttributeStructure : ILoggerStructure
+        {
+            private readonly string _uniqueId;
+            private readonly IEnumerable<string> _missingAttributes;
+            
+            public MissingAttributeStructure(string uniqueId, IEnumerable<string> missingAttributes)
+            {
+                _uniqueId = uniqueId;
+                _missingAttributes = missingAttributes;
+            }
+            
+            string ILoggerStructure.Message
+            {
+                get
+                {
+                    return "Tag Helper skipped due to missing required attributes.";
+                }
+            }
+
+            IEnumerable<KeyValuePair<string, object>> ILoggerStructure.GetValues()
+            {
+                return new Dictionary<string, object>
+                {
+                    { "UniqueId", _uniqueId },
+                    { "MissingAttributes", _missingAttributes }   
+                };
+            }
+
+            string ILoggerStructure.Format()
+            {
+                return string.Format("Tag Helper unique ID: {0}, Missing attributes: {1}", _uniqueId, string.Join(",", _missingAttributes));
+            }
         }
     }
 }
