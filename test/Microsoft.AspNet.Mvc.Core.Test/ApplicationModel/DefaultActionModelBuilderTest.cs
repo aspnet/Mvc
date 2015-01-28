@@ -322,7 +322,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         }
 
         [Fact]
-        public void GetActions_AuthorizeFiltersAreCombinedWhenOverriden()
+        public void GetActions_BaseAuthorizeFiltersAreStillValidWhenOverriden()
         {
             // Arrange
             var builder = new DefaultActionModelBuilder();
