@@ -14,19 +14,24 @@ namespace ModelBindingWebSite
 {
     public class VehicleController : Controller
     {
-        private static Dictionary<int, VehicleViewModel> _vehicles = new Dictionary<int, VehicleViewModel>
+        private static VehicleViewModel _vehicle = new VehicleViewModel
         {
+            InspectedDates = new[]
             {
-                42,
-                new VehicleViewModel
-                {
-                    InspectedDates = new[] { DateTimeOffset.Parse("1 April 2001"), },
-                    Make = "Fast Cars",
-                    Model = "the Fastener",
-                    Vin = "87654321",
-                    Year = 2013,
-                }
+                // 01/04/2001 00:00:00 -08:00
+                new DateTimeOffset(
+                            year: 2001,
+                            month: 4,
+                            day: 1,
+                            hour: 0,
+                            minute: 0,
+                            second: 0,
+                            offset: TimeSpan.FromHours(-8)),
             },
+            Make = "Fast Cars",
+            Model = "the Fastener",
+            Vin = "87654321",
+            Year = 2013,
         };
 
         [HttpPut("/api/vehicles/{id}")]
@@ -62,25 +67,24 @@ namespace ModelBindingWebSite
         [HttpGet("/vehicles/{id:int}")]
         public IActionResult Details(int id)
         {
-            VehicleViewModel vehicle;
-            if (!_vehicles.TryGetValue(id, out vehicle))
+            if (id != 42)
             {
                 return HttpNotFound();
             }
 
-            return View(vehicle);
+            return View(_vehicle);
         }
 
         [HttpGet("/vehicles/{id:int}/edit")]
         public IActionResult Edit(int id)
         {
-            VehicleViewModel vehicle;
-            if (!_vehicles.TryGetValue(id, out vehicle))
+            if (id != 42)
             {
                 return HttpNotFound();
             }
 
             // Provide room for one additional inspection if not already full.
+            var vehicle = _vehicle;
             var length = vehicle.InspectedDates.Length;
             if (length < 10)
             {
@@ -105,7 +109,7 @@ namespace ModelBindingWebSite
         [HttpPost("/vehicles/{id:int}/edit")]
         public IActionResult Edit(int id, VehicleViewModel vehicle)
         {
-            if (!_vehicles.ContainsKey(id))
+            if (id != 42)
             {
                 return HttpNotFound();
             }
@@ -122,7 +126,7 @@ namespace ModelBindingWebSite
                 vehicle.InspectedDates = nonEmptyDates;
             }
 
-            _vehicles[id] = vehicle;
+            _vehicle = vehicle;
 
             return RedirectToAction(nameof(Details), new { id = id });
         }

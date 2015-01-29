@@ -597,6 +597,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return base.IsComplexType;
         }
 
+        /// <summary>
+        /// Calculate the <see cref="NullDisplayText"/> value.
+        /// </summary>
+        /// <returns>Calculated <see cref="NullDisplayText"/> value.</returns>
         protected virtual string ComputeNullDisplayText()
         {
             return base.NullDisplayText;

@@ -405,19 +405,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             // Act and Assert
-            Assert.True(dictionary.CanAddErrors);
+            Assert.False(dictionary.HasReachedMaxErrors);
             var result = dictionary.TryAddModelError("key1", "error1");
             Assert.True(result);
 
-            Assert.True(dictionary.CanAddErrors);
+            Assert.False(dictionary.HasReachedMaxErrors);
             result = dictionary.TryAddModelError("key2", new Exception());
             Assert.True(result);
 
-            Assert.True(dictionary.CanAddErrors); // though addition will add TooManyModelErrorsException instead.
+            Assert.False(dictionary.HasReachedMaxErrors); // Still room for TooManyModelErrorsException.
             result = dictionary.TryAddModelError("key3", "error3");
             Assert.False(result);
 
-            Assert.False(dictionary.CanAddErrors);
+            Assert.True(dictionary.HasReachedMaxErrors);
             result = dictionary.TryAddModelError("key4", "error4"); // no-op
             Assert.False(result);
 

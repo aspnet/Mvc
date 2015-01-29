@@ -267,6 +267,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return (PrototypeCache.Required != null) || base.ComputeIsRequired();
         }
 
+        /// <summary>
+        /// Calculate the <see cref="ModelMetadata.NullDisplayText"/> value based on the presence of a
+        /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.NullDisplayText"/> value.
+        /// </summary>
+        /// <returns>
+        /// Calculated <see cref="ModelMetadata.NullDisplayText"/> value.
+        /// <see cref="DisplayFormatAttribute.NullDisplayText"/> if a <see cref="DisplayFormatAttribute"/> exists and
+        /// its <see cref="DisplayFormatAttribute.NullDisplayText"/> has been set; <c>null</c> otherwise.
+        /// </returns>
         protected override string ComputeNullDisplayText()
         {
             return PrototypeCache.DisplayFormat != null
@@ -280,8 +289,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <returns>
         /// Calculated <see cref="ModelMetadata.Order"/> value. <see cref="DisplayAttribute.GetOrder"/> if a
-        /// <see cref="DisplayAttribute"/> exists and its <see cref="ModelMetadata.Order"/> has been set; <c>10000</c>
-        /// otherwise.
+        /// <see cref="DisplayAttribute"/> exists and its <see cref="DisplayAttribute.Order"/> has been set;
+        /// <c>10000</c> otherwise.
         /// </returns>
         protected override int ComputeOrder()
         {
