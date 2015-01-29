@@ -2,12 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
@@ -26,7 +21,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly Assembly ResourcesAssembly = typeof(LinkTagHelper).GetTypeInfo().Assembly;
         // NOTE: All attributes are required for the LinkTagHelper to process.
         private static readonly string[] RequiredAttributes = new[]
         {
@@ -35,10 +29,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             FallbackTestPropertyAttributeName,
             FallbackTestValueAttributeName
         };
-
-        private static Lazy<string> FallbackJavaScriptTemplate = new Lazy<string>(LoadJavaScriptTemplate);
-
-        private ILogger _logger;
 
         /// <summary>
         /// The URL of a CSS stylesheet to fallback to in the case the primary one fails (as specified in the href
@@ -72,17 +62,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            _logger = LoggerFactory.Create<LinkTagHelper>();
+            var logger = LoggerFactory.Create<LinkTagHelper>();
 
-            if (!ShouldProcess(context, RequiredAttributes, _logger))
+            if (!context.ShouldProcess(RequiredAttributes, logger))
             {
-                _logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
+                // TODO: Should we trace the current view/request path here too?
+                logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
                 return;
             }
 
             var content = new StringBuilder();
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
+
+            // We've taken over rendering here so prevent the element rendering the outer tag
+            output.TagName = null;
 
             // Rebuild the <link /> tag that loads the primary stylesheet
             content.Append("<link ");
@@ -93,108 +87,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             content.AppendLine("/>");
 
             // Build the <meta /> tag that's used to test for the presence of the stylesheet
-            content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate,
-                FallbackTestClass));
+            content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate, FallbackTestClass));
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
             // indicating that the primary stylesheet failed to load.
             content.Append("<script>");
             content.AppendFormat(CultureInfo.InvariantCulture,
-                                 FallbackJavaScriptTemplate.Value,
-                                 JavaScriptStringEncode(FallbackTestProperty),
-                                 JavaScriptStringEncode(FallbackTestValue),
-                                 JavaScriptStringEncode(FallbackHref));
+                                 JavaScriptHelpers.GetEmbeddedJavaScript(FallbackJavaScriptResourceName, isFormatString: true),
+                                 JavaScriptHelpers.JavaScriptStringEncode(FallbackTestProperty),
+                                 JavaScriptHelpers.JavaScriptStringEncode(FallbackTestValue),
+                                 JavaScriptHelpers.JavaScriptStringEncode(FallbackHref));
             content.Append("</script>");
-
-            output.TagName = null;
+            
             output.Content = content.ToString();
-        }
-
-        private static bool ShouldProcess(TagHelperContext context, IEnumerable<string> requiredAttributes, ILogger logger)
-        {
-            // Check for all attribute values & log warning if invalid combination found.
-            var atLeastOnePresent = false;
-            var missingAttrNames = new List<string>();
-
-            foreach (var attr in requiredAttributes)
-            {
-                if (!context.AllAttributes.ContainsKey(attr)
-                    || context.AllAttributes[attr] == null
-                    || string.IsNullOrWhiteSpace(context.AllAttributes[attr].ToString()))
-                {
-                    // Missing attribute!
-                    missingAttrNames.Add(attr);
-                }
-                else
-                {
-                    atLeastOnePresent = true;
-                }
-            }
-
-            if (missingAttrNames.Any())
-            {
-                if (atLeastOnePresent)
-                {
-                    // At least 1 attribute was present indicating the user intended to use the tag helper,
-                    // but at least 1 was missing too, so log a warning with the details.
-                    logger.WriteWarning(new MissingAttributeStructure(context.UniqueId, missingAttrNames));
-                }
-                return false;
-            }
-
-            // All attributes present and valid
-            return true;
-        }
-
-        private static string LoadJavaScriptTemplate()
-        {
-            // Load the fallback JavaScript template from embedded resource
-            using (var resourceStream = ResourcesAssembly.GetManifestResourceStream(FallbackJavaScriptResourceName))
-            {
-                Debug.Assert(resourceStream != null, "Embedded resource missing. Ensure 'prebuild' script has run.");
-
-                using (var streamReader = new StreamReader(resourceStream))
-                {
-                    return streamReader.ReadToEndAsync().Result
-                        .Replace("{", "{{")
-                        .Replace("}", "}}")
-                        .Replace("[[[", "{")
-                        .Replace("]]]", "}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
-        /// </summary>
-        private static string JavaScriptStringEncode(string value)
-        {
-            var map = new Dictionary<char, string>
-            {
-                { '<', @"\u003c" },
-                { '>', @"\u003e" },
-                { '\'', @"\u0027" },
-                { '"', @"\u0022" },
-                { '\\', @"\\" },
-                { '\r', "\\r" },
-                { '\n', "\\n" }
-            };
-            var result = new StringBuilder();
-
-            foreach (var c in value)
-            {
-                if (map.ContainsKey(c))
-                {
-                    result.Append(map[c]);
-                }
-                else
-                {
-                    result.Append(c);
-                }
-            }
-
-            return result.ToString();
         }
     }
 }

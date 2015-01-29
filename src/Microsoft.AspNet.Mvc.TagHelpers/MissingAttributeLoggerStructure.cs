@@ -3,18 +3,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
-	internal class MissingAttributeStructure : ILoggerStructure
+	internal class MissingAttributeLoggerStructure : ILoggerStructure
 	{
 		private readonly string _uniqueId;
 	    private readonly IEnumerable<string> _missingAttributes;
 	    
-	    public MissingAttributeStructure(string uniqueId, IEnumerable<string> missingAttributes)
+	    public MissingAttributeLoggerStructure(string uniqueId, IEnumerable<string> missingAttributes)
 	    {
 	        _uniqueId = uniqueId;
 	        _missingAttributes = missingAttributes;
