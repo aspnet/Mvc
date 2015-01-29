@@ -78,10 +78,17 @@ namespace Microsoft.AspNet.Mvc
 
         /// <summary>
         /// Gets a list of <see cref="ExcludeValidationDescriptor"/> which are used to construct a list
-        /// of exclude filters by <see cref="IValidationExcludeFiltersProvider"/>,
+        /// of exclude filters by <see cref="IValidationExcludeFiltersProvider"/>.
         /// </summary>
         public List<ExcludeValidationDescriptor> ValidationExcludeFilters { get; }
             = new List<ExcludeValidationDescriptor>();
+
+        /// <summary>
+        /// Gets a list of <see cref="CacheProfile"/> which are pre-defined settings for
+        /// <see cref="ResponseCacheFilter"/>.
+        /// </summary>
+        public List<CacheProfile> CacheProfiles { get; }
+            = new List<CacheProfile>();
 
         /// <summary>
         /// Gets or sets the maximum number of validation errors that are allowed by this application before further

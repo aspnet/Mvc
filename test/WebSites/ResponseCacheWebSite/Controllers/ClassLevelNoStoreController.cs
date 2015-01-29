@@ -18,5 +18,11 @@ namespace ResponseCacheWebSite
         {
             return "Conflict";
         }
+
+        [ResponseCache(CacheProfileName = "PublicCache30Sec", VaryByHeader = "Accept")]
+        public string CacheThisActionWithProfileSettings()
+        {
+            return "Conflict";
+        }
     }
 }

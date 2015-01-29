@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Routing;
@@ -9,13 +8,13 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ResponseCacheAttributeTest
+    public class ResponseCacheFilterTest
     {
         [Fact]
         public void OnActionExecuting_DoesNotThrow_WhenNoStoreIsTrue()
         {
             // Arrange
-            var cache = new ResponseCacheAttribute() { NoStore = true };
+            var cache = new ResponseCacheFilter(0, ResponseCacheLocation.Any, true, null);
             var context = GetActionExecutingContext(new List<IFilter> { cache });
 
             // Act
@@ -25,61 +24,56 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("no-store", context.HttpContext.Response.Headers.Get("Cache-control"));
         }
 
-        [Fact]
-        public void OnActionExecuting_ThrowsIfDurationIsNotSet_WhenNoStoreIsFalse()
-        {
-            // Arrange
-            var cache = new ResponseCacheAttribute() { NoStore = false };
-            var context = GetActionExecutingContext(new List<IFilter> { cache });
-
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => { cache.OnActionExecuting(context); });
-            Assert.Equal("If the 'NoStore' property is not set to true, 'Duration' property must be specified.",
-                exception.Message);
-        }
-
         public static IEnumerable<object[]> CacheControlData
         {
             get
             {
-                yield return new object[] { new ResponseCacheAttribute { NoStore = true, Duration = 0 }, "no-store" };
+                yield return new object[] {
+                    new ResponseCacheFilter(
+                        duration: 0, location: ResponseCacheLocation.Any, noStore: true, varyByHeader: null),
+                    "no-store"
+                };
                 // If no-store is set, then location is ignored.
                 yield return new object[] {
-                    new ResponseCacheAttribute
-                        { NoStore = true, Duration = 0, Location = ResponseCacheLocation.Client },
+                    new ResponseCacheFilter(
+                        duration: 0, location: ResponseCacheLocation.Client, noStore: true, varyByHeader: null),
                     "no-store"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute { NoStore = true, Duration = 0, Location = ResponseCacheLocation.Any },
+                    new ResponseCacheFilter(
+                        duration: 0, location: ResponseCacheLocation.Any, noStore: true, varyByHeader: null),
                     "no-store"
                 };
                 // If no-store is set, then duration is ignored.
                 yield return new object[] {
-                    new ResponseCacheAttribute { NoStore = true, Duration = 100 }, "no-store"
+                    new ResponseCacheFilter(
+                        duration: 100, location: ResponseCacheLocation.Any, noStore: true, varyByHeader: null),
+                    "no-store"
                 };
 
                 yield return new object[] {
-                    new ResponseCacheAttribute { Location = ResponseCacheLocation.Client, Duration = 10 },
+                    new ResponseCacheFilter(
+                        duration: 10, location: ResponseCacheLocation.Client, noStore: false, varyByHeader: null),
                     "private,max-age=10"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute { Location = ResponseCacheLocation.Any, Duration = 10 },
+                    new ResponseCacheFilter(
+                        duration: 10, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: null),
                     "public,max-age=10"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute { Location = ResponseCacheLocation.None, Duration = 10 },
+                    new ResponseCacheFilter(
+                        duration: 10, location: ResponseCacheLocation.None, noStore: false, varyByHeader: null),
                     "no-cache,max-age=10"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute { Location = ResponseCacheLocation.Client, Duration = 10 },
-                    "private,max-age=10"
-                };
-                yield return new object[] {
-                    new ResponseCacheAttribute { Location = ResponseCacheLocation.Any, Duration = 31536000 },
+                    new ResponseCacheFilter(
+                        duration: 31536000, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: null),
                     "public,max-age=31536000"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute { Duration = 20 },
+                    new ResponseCacheFilter(
+                        duration: 20, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: null),
                     "public,max-age=20"
                 };
             }
@@ -87,7 +81,7 @@ namespace Microsoft.AspNet.Mvc
 
         [Theory]
         [MemberData(nameof(CacheControlData))]
-        public void OnActionExecuting_CanSetCacheControlHeaders(ResponseCacheAttribute cache, string output)
+        public void OnActionExecuting_CanSetCacheControlHeaders(ResponseCacheFilter cache, string output)
         {
             // Arrange
             var context = GetActionExecutingContext(new List<IFilter> { cache });
@@ -105,17 +99,20 @@ namespace Microsoft.AspNet.Mvc
             {
                 // If no-store is set, then location is ignored.
                 yield return new object[] {
-                    new ResponseCacheAttribute
-                    { NoStore = true, Location = ResponseCacheLocation.Client, Duration = 0 },
+                    new ResponseCacheFilter(
+                        duration: 0, location: ResponseCacheLocation.Client, noStore: true, varyByHeader: null),
                     "no-store"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute { NoStore = true, Location = ResponseCacheLocation.Any, Duration = 0 },
+                    new ResponseCacheFilter(
+                        duration: 0, location: ResponseCacheLocation.Any, noStore: true, varyByHeader: null),
                     "no-store"
                 };
                 // If no-store is set, then duration is ignored.
                 yield return new object[] {
-                    new ResponseCacheAttribute { NoStore = true, Duration = 100 }, "no-store"
+                    new ResponseCacheFilter(
+                        duration: 100, location: ResponseCacheLocation.Any, noStore: true, varyByHeader: null),
+                    "no-store"
                 };
             }
         }
@@ -123,7 +120,7 @@ namespace Microsoft.AspNet.Mvc
         [Theory]
         [MemberData(nameof(NoStoreData))]
         public void OnActionExecuting_DoesNotSetLocationOrDuration_IfNoStoreIsSet(
-            ResponseCacheAttribute cache, string output)
+            ResponseCacheFilter cache, string output)
         {
             // Arrange
             var context = GetActionExecutingContext(new List<IFilter> { cache });
@@ -140,41 +137,31 @@ namespace Microsoft.AspNet.Mvc
             get
             {
                 yield return new object[] {
-                    new ResponseCacheAttribute { VaryByHeader = "Accept", Duration = 10 },
+                    new ResponseCacheFilter(
+                        duration: 10, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: "Accept"),
                     "Accept",
                     "public,max-age=10" };
                 yield return new object[] {
-                    new ResponseCacheAttribute { VaryByHeader = "Accept", NoStore = true, Duration = 0 },
+                    new ResponseCacheFilter(
+                        duration: 0, location: ResponseCacheLocation.Any, noStore: true, varyByHeader: "Accept"),
                     "Accept",
                     "no-store"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute {
-                        Location = ResponseCacheLocation.Client, Duration = 10, VaryByHeader = "Accept"
-                    },
+                    new ResponseCacheFilter(
+                        duration: 10, location: ResponseCacheLocation.Client, noStore: false, varyByHeader: "Accept"),
                     "Accept",
                     "private,max-age=10"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute {
-                        Location = ResponseCacheLocation.Any, Duration = 10, VaryByHeader = "Test"
-                    },
-                    "Test",
-                    "public,max-age=10"
-                };
-                yield return new object[] {
-                    new ResponseCacheAttribute {
-                        Location = ResponseCacheLocation.Client, Duration = 10, VaryByHeader = "Test"
-                    },
+                    new ResponseCacheFilter(
+                        duration: 10, location: ResponseCacheLocation.Client, noStore: false, varyByHeader: "Test"),
                     "Test",
                     "private,max-age=10"
                 };
                 yield return new object[] {
-                    new ResponseCacheAttribute {
-                        Location = ResponseCacheLocation.Any,
-                        Duration = 31536000,
-                        VaryByHeader = "Test"
-                    },
+                    new ResponseCacheFilter(
+                        duration: 31536000, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: "Test"),
                     "Test",
                     "public,max-age=31536000"
                 };
@@ -183,7 +170,7 @@ namespace Microsoft.AspNet.Mvc
 
         [Theory]
         [MemberData(nameof(VaryData))]
-        public void ResponseCacheCanSetVary(ResponseCacheAttribute cache, string varyOutput, string cacheControlOutput)
+        public void ResponseCacheCanSetVary(ResponseCacheFilter cache, string varyOutput, string cacheControlOutput)
         {
             // Arrange
             var context = GetActionExecutingContext(new List<IFilter> { cache });
@@ -200,12 +187,8 @@ namespace Microsoft.AspNet.Mvc
         public void SetsPragmaOnNoCache()
         {
             // Arrange
-            var cache = new ResponseCacheAttribute()
-                            {
-                                NoStore = true,
-                                Location = ResponseCacheLocation.None,
-                                Duration = 0
-                            };
+            var cache = new ResponseCacheFilter(
+                duration: 0, location: ResponseCacheLocation.None, noStore: true, varyByHeader: null);
             var context = GetActionExecutingContext(new List<IFilter> { cache });
 
             // Act
@@ -221,14 +204,16 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var caches = new List<IFilter>();
-            caches.Add(new ResponseCacheAttribute());
-            caches.Add(new ResponseCacheAttribute());
+            caches.Add(new ResponseCacheFilter(
+                duration: 0, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: null));
+            caches.Add(new ResponseCacheFilter(
+                duration: 0, location: ResponseCacheLocation.Any, noStore: false, varyByHeader: null));
 
             var context = GetActionExecutingContext(caches);
 
             // Act & Assert
-            Assert.True((caches[0] as ResponseCacheAttribute).IsOverridden(context));
-            Assert.False((caches[1] as ResponseCacheAttribute).IsOverridden(context));
+            Assert.True((caches[0] as ResponseCacheFilter).IsOverridden(context));
+            Assert.False((caches[1] as ResponseCacheFilter).IsOverridden(context));
         }
 
         private ActionExecutingContext GetActionExecutingContext(List<IFilter> filters = null)
