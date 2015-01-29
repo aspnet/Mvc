@@ -4,15 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public class RazorHashTest
+    public class RazorFileHashTest
     {
         public static IEnumerable<object[]> GetHashCodeData
         {
@@ -53,8 +55,24 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Theory]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(2)]
+        [InlineData(14)]
+        public void GetHash_ThrowsIfHashAlgorithmVersionIsUnknown(int hashAlgorithmVersion)
+        {
+            // Arrange
+            var file = new TestFileInfo();
+
+            // Act and Assert
+            ExceptionAssert.ThrowsArgument(() => RazorFileHash.GetHash(file, hashAlgorithmVersion),
+                                           "hashAlgorithmVersion",
+                                           "Unsupported hash algorithm.");
+        }
+
+        [Theory]
         [MemberData(nameof(GetHashCodeData))]
-        public void GetHashCode_CalculatesHashCodeForFile(int bytesToRead, string content, long expected)
+        public void GetHash_CalculatesHashCodeForFile(int bytesToRead, string content, long expected)
         {
             // Arrange
             var bytes = Encoding.UTF8.GetBytes(content);
@@ -63,13 +81,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                 .Returns(new SlowStream(bytes, bytesToRead));
 
             // Act
-            var result = RazorFileHash.GetHash(file.Object);
+            var result = RazorFileHash.GetHash(file.Object, hashAlgorithmVersion: 1);
 
             // Assert
             Assert.Equal(expected, result);
         }
 
-        private class SlowStream : System.IO.MemoryStream
+        private class SlowStream : MemoryStream
         {
             private readonly int _bytesToRead;
 

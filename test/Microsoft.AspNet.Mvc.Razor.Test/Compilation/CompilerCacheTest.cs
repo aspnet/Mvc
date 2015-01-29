@@ -82,7 +82,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 Add(new RazorFileInfo()
                 {
                     FullTypeName = typeof(PreCompile).FullName,
-                    Hash = RazorFileHash.GetHash(GetMemoryStream(content)),
+                    Hash = Crc32.Calculate(GetMemoryStream(content)),
+                    HashAlgorithmVersion = 1,
                     LastModified = DateTime.FromFileTimeUtc(10000),
                     Length = length,
                     RelativePath = "ab",
@@ -127,7 +128,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorFileInfo = new RazorFileInfo
             {
                 FullTypeName = typeof(PreCompile).FullName,
-                Hash = RazorFileHash.GetHash(GetMemoryStream(precompiledContent)),
+                Hash = Crc32.Calculate(GetMemoryStream(precompiledContent)),
+                HashAlgorithmVersion = 1,
                 LastModified = DateTime.FromFileTimeUtc(10000),
                 Length = Encoding.UTF8.GetByteCount(precompiledContent),
                 RelativePath = "ab",
@@ -169,7 +171,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorFileInfo = new RazorFileInfo
             {
                 FullTypeName = typeof(PreCompile).FullName,
-                Hash = RazorFileHash.GetHash(GetMemoryStream(precompiledContent)),
+                Hash = Crc32.Calculate(GetMemoryStream(precompiledContent)),
+                HashAlgorithmVersion = 1,
                 LastModified = DateTime.FromFileTimeUtc(10000),
                 Length = Encoding.UTF8.GetByteCount(precompiledContent),
                 RelativePath = "ab",
@@ -210,7 +213,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             fileProvider.AddFile("_ViewStart.cshtml", viewStartFileInfo);
             var viewStartRazorFileInfo = new RazorFileInfo
             {
-                Hash = RazorFileHash.GetHash(GetMemoryStream(viewStartContent)),
+                Hash = Crc32.Calculate(GetMemoryStream(viewStartContent)),
+                HashAlgorithmVersion = 1,
                 LastModified = viewStartFileInfo.LastModified,
                 Length = viewStartFileInfo.Length,
                 RelativePath = "_ViewStart.cshtml",
@@ -295,7 +299,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 FullTypeName = typeof(RuntimeCompileIdentical).FullName,
                 RelativePath = viewStartFileInfo.PhysicalPath,
                 LastModified = viewStartFileInfo.LastModified,
-                Hash = RazorFileHash.GetHash(viewStartFileInfo),
+                Hash = RazorFileHash.GetHash(viewStartFileInfo, hashAlgorithmVersion: 1),
+                HashAlgorithmVersion = 1,
                 Length = viewStartFileInfo.Length
             };
             fileProvider.AddFile(viewStartFileInfo.PhysicalPath, viewStartFileInfo);
@@ -332,7 +337,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 var razorFileInfo = new RazorFileInfo
                 {
-                    Hash = RazorFileHash.GetHash(contentStream),
+                    Hash = Crc32.Calculate(contentStream),
+                    HashAlgorithmVersion = 1,
                     LastModified = lastModified,
                     Length = length,
                     RelativePath = path
@@ -381,7 +387,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorFileInfo = new RazorFileInfo
             {
                 FullTypeName = typeof(PreCompile).FullName,
-                Hash = RazorFileHash.GetHash(fileInfo),
+                Hash = RazorFileHash.GetHash(fileInfo, hashAlgorithmVersion: 1),
+                HashAlgorithmVersion = 1,
                 LastModified = lastModified,
                 Length = Encoding.UTF8.GetByteCount(content),
                 RelativePath = fileInfo.PhysicalPath,

@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             Length = info.Length;
             LastModified = info.LastModified;
             Hash = info.Hash;
+            HashAlgorithmVersion = info.HashAlgorithmVersion;
             IsPreCompiled = true;
         }
 
@@ -62,6 +63,14 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets the file hash, should only be available for pre compiled files.
         /// </summary>
         public long Hash { get; }
+
+        /// <summary>
+        /// Gets the version of the hash algorithm used to generate <see cref="Hash"/>.
+        /// </summary>
+        /// <remarks>
+        /// This value is only initialized for precompiled views.
+        /// </remarks>
+        public int HashAlgorithmVersion { get; }
 
         /// <summary>
         /// Gets a flag that indicates if the file is precompiled.
