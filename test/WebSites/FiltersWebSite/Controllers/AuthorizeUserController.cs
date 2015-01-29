@@ -6,7 +6,7 @@ using Microsoft.AspNet.Security;
 
 namespace FiltersWebSite
 {
-    [AuthorizeUser]
+    [Authenticate("Basic")]
     [Authorize("RequireBasic")]
     public class AuthorizeUserController : Controller
     {
