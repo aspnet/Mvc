@@ -32,11 +32,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private ILogger _logger;
 
-        public LinkTagHelper()
-        {
-            
-        }
-
         /// <summary>
         /// The URL of a CSS stylesheet to fallback to in the case the primary one fails (as specified in the href
         /// attribute).
@@ -199,40 +194,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
 
             return result.ToString();
-        }
-        
-        private class MissingAttributeStructure : ILoggerStructure
-        {
-            private readonly string _uniqueId;
-            private readonly IEnumerable<string> _missingAttributes;
-            
-            public MissingAttributeStructure(string uniqueId, IEnumerable<string> missingAttributes)
-            {
-                _uniqueId = uniqueId;
-                _missingAttributes = missingAttributes;
-            }
-            
-            string ILoggerStructure.Message
-            {
-                get
-                {
-                    return "Tag Helper skipped due to missing required attributes.";
-                }
-            }
-
-            IEnumerable<KeyValuePair<string, object>> ILoggerStructure.GetValues()
-            {
-                return new Dictionary<string, object>
-                {
-                    { "UniqueId", _uniqueId },
-                    { "MissingAttributes", _missingAttributes }   
-                };
-            }
-
-            string ILoggerStructure.Format()
-            {
-                return string.Format("Tag Helper unique ID: {0}, Missing attributes: {1}", _uniqueId, string.Join(",", _missingAttributes));
-            }
         }
     }
 }

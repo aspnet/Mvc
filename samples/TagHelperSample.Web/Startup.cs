@@ -24,7 +24,7 @@ namespace TagHelperSample.Web
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole((name, logLevel) => name.IndexOf("TagHelper") >= 0);
+            loggerFactory.AddConsole((name, logLevel) => name.IndexOf("TagHelper") >= 0 || name.IndexOf("WebListener") >= 0 && logLevel >= LogLevel.Information);
             
             app.UseErrorPage();
 
