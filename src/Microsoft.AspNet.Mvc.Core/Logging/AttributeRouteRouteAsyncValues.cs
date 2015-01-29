@@ -8,7 +8,7 @@ using Microsoft.AspNet.Routing.Template;
 namespace Microsoft.AspNet.Mvc.Logging
 {
     /// <summary>
-    /// Represents the state of <see cref="Microsoft.AspNet.Mvc.Routing.AttributeRoute.RouteAsync(
+    /// Represents the state of <see cref="Microsoft.AspNet.Mvc.Routing.InnerAttributeRoute.RouteAsync(
     /// AspNet.Routing.RouteContext)"/>.
     /// </summary>
     public class AttributeRouteRouteAsyncValues

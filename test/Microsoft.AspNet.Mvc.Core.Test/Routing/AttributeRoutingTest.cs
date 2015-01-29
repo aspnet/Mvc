@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -93,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         }
 
         [Fact]
-        public void AttributeRouting_WithReflectedActionDescriptor()
+        public void AttributeRouting_WithControllerActionDescriptor()
         {
             // Arrange
             var controllerType = typeof(HomeController);
@@ -169,6 +170,10 @@ namespace Microsoft.AspNet.Mvc.Routing
             services
                 .Setup(s => s.GetService(typeof(IInlineConstraintResolver)))
                 .Returns(new DefaultInlineConstraintResolver(routeOptions.Object));
+
+            services
+                .Setup(s => s.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
 
             return services.Object;
         }

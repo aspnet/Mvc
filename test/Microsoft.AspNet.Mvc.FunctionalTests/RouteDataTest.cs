@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(new string[]
                 {
                     typeof(RouteCollection).FullName,
-                    typeof(AttributeRoute).FullName,
+                    typeof(InnerAttributeRoute).FullName,
                     typeof(TemplateRoute).FullName,
                     typeof(MvcRouteHandler).FullName,
                 },
