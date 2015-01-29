@@ -103,7 +103,7 @@ namespace __ASP_ASSEMBLY
                 " + nameof(RazorFileInfo.Length) + @" = {1:D},
                 " + nameof(RazorFileInfo.RelativePath) + @" = @""{2}"",
                 " + nameof(RazorFileInfo.FullTypeName) + @" = @""{3}"",
-                " + nameof(RazorFileInfo.Hash) + @" = @""{4}"",
+                " + nameof(RazorFileInfo.Hash) + @" = {4},
             }};
             fileInfos.Add(info);
 ";

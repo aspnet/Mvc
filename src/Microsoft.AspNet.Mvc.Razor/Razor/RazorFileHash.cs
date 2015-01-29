@@ -3,14 +3,13 @@
 
 using System;
 using System.IO;
-using System.Security.Cryptography;
 using Microsoft.AspNet.FileProviders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     public static class RazorFileHash
     {
-        public static string GetHash([NotNull] IFileInfo file)
+        public static long GetHash([NotNull] IFileInfo file)
         {
             try
             {
@@ -22,16 +21,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             catch (Exception)
             {
                 // Don't throw if reading the file fails.
-                return string.Empty;
+                return 0;
             }
         }
 
-        internal static string GetHash(Stream stream)
+        internal static long GetHash(Stream stream)
         {
-            using (var md5 = MD5.Create())
-            {
-                return BitConverter.ToString(md5.ComputeHash(stream));
-            }
+            return Crc32.Calculate(stream);
         }
     }
 }

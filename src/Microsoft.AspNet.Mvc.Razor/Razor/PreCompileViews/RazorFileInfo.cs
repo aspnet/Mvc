@@ -30,6 +30,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// A hash of the file content.
         /// </summary>
-        public string Hash { get; set; }
+        public long Hash { get; set; }
     }
 }

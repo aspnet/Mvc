@@ -134,7 +134,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 // Timestamp doesn't match but it might be because of deployment, compare the hash.
                 if (cacheEntry.IsPreCompiled &&
-                    string.Equals(cacheEntry.Hash, RazorFileHash.GetHash(fileInfo), StringComparison.Ordinal))
+                    cacheEntry.Hash == RazorFileHash.GetHash(fileInfo))
                 {
                     // Cache hit, but we need to update the entry.
                     // Assigning to LastModified is an atomic operation and will result in a safe race if it is
