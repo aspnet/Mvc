@@ -25,8 +25,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
-        
+
         private static readonly Assembly ResourcesAssembly = typeof(LinkTagHelper).GetTypeInfo().Assembly;
+        // NOTE: All attributes are required for the LinkTagHelper to process.
+        private static readonly string[] RequiredAttributes = new[]
+        {
+            FallbackHrefAttributeName,
+            FallbackTestClassAttributeName,
+            FallbackTestPropertyAttributeName,
+            FallbackTestValueAttributeName
+        };
 
         private static Lazy<string> FallbackJavaScriptTemplate = new Lazy<string>(LoadJavaScriptTemplate);
 
@@ -57,15 +65,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [HtmlAttributeName(FallbackTestValueAttributeName)]
         public string FallbackTestValue { get; set; }
 
+        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
         [Activate]
-        protected internal ILoggerFactory LoggerFactory { get; set; }        
+        protected internal ILoggerFactory LoggerFactory { get; set; }
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             _logger = LoggerFactory.Create<LinkTagHelper>();
-            
-            if (!ShouldProcess(context))
+
+            if (!ShouldProcess(context, RequiredAttributes, _logger))
             {
                 _logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
                 return;
@@ -102,21 +111,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             output.Content = content.ToString();
         }
 
-        private bool ShouldProcess(TagHelperContext context)
+        private static bool ShouldProcess(TagHelperContext context, IEnumerable<string> requiredAttributes, ILogger logger)
         {
             // Check for all attribute values & log warning if invalid combination found.
-            // NOTE: All attributes are required for the LinkTagHelper to process.
-            var attrNames = new []
-            {
-                FallbackHrefAttributeName,
-                FallbackTestClassAttributeName,
-                FallbackTestPropertyAttributeName,
-                FallbackTestValueAttributeName
-            };
-            var presentAttrNames = new List<string>();
+            var atLeastOnePresent = false;
             var missingAttrNames = new List<string>();
-            
-            foreach (var attr in attrNames)
+
+            foreach (var attr in requiredAttributes)
             {
                 if (!context.AllAttributes.ContainsKey(attr)
                     || context.AllAttributes[attr] == null
@@ -127,21 +128,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
                 else
                 {
-                    presentAttrNames.Add(attr);
+                    atLeastOnePresent = true;
                 }
             }
-            
+
             if (missingAttrNames.Any())
             {
-                if (presentAttrNames.Any())
+                if (atLeastOnePresent)
                 {
                     // At least 1 attribute was present indicating the user intended to use the tag helper,
                     // but at least 1 was missing too, so log a warning with the details.
-                    _logger.WriteWarning(new MissingAttributeStructure(context.UniqueId, missingAttrNames));
+                    logger.WriteWarning(new MissingAttributeStructure(context.UniqueId, missingAttrNames));
                 }
                 return false;
             }
-            
+
             // All attributes present and valid
             return true;
         }
