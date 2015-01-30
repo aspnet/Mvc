@@ -14,6 +14,11 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// A <see cref="ValidationAttribute"/> which configures Unobtrusive validation to send an Ajax request to the
+    /// web site. The invoked action should return JSON indicating whether the value is valid.
+    /// </summary>
+    /// <remarks>Does no server-side validation of the final form submission.</remarks>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class RemoteAttribute : ValidationAttribute, IClientModelValidator
     {
@@ -118,7 +123,9 @@ namespace Microsoft.AspNet.Mvc
             set
             {
                 _additionalFields = value ?? string.Empty;
-                _additionalFieldsSplit = SplitString(value).AsArray();
+                _additionalFieldsSplit = SplitString(value)
+                    .Select(field => FormatPropertyForClientValidation(field))
+                    .ToArray();
             }
         }
 
@@ -151,13 +158,15 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "property");
             }
 
-            var delimitedAdditionalFields = FormatPropertyForClientValidation(property);
-            foreach (var field in _additionalFieldsSplit)
+            var delimitedAdditionalFields = string.Join(",", _additionalFieldsSplit);
+            if (!string.IsNullOrEmpty(delimitedAdditionalFields))
             {
-                delimitedAdditionalFields += "," + FormatPropertyForClientValidation(field);
+                delimitedAdditionalFields = "," + delimitedAdditionalFields;
             }
 
-            return delimitedAdditionalFields;
+            var formattedString = FormatPropertyForClientValidation(property) + delimitedAdditionalFields;
+
+            return formattedString;
         }
 
         /// <summary>
@@ -200,6 +209,10 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Always returns <c>true</c> since this <see cref="ValidationAttribute"/> does no validation itself.
+        /// Related validations occur only when the client sends a validation request.
+        /// </remarks>
         public override bool IsValid(object value)
         {
             return true;

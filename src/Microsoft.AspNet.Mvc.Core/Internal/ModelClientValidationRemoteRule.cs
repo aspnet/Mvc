@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Internal
         /// <param name="errorMessage">Error message client should display when validation fails.</param>
         /// <param name="url">URL where client should send a validation request.</param>
         /// <param name="httpMethod">
-        /// HTTP method (<c>"Get"</c> or <c>"Post"</c>) client should use when sending a validation request.
+        /// HTTP method (<c>"GET"</c> or <c>"POST"</c>) client should use when sending a validation request.
         /// </param>
         /// <param name="additionalFields">
         /// Comma-separated names of fields the client should include in a validation request.
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.Internal
             : base(validationType: RemoteValidationType, errorMessage: errorMessage)
         {
             ValidationParameters[UrlValidationParameter] = url;
-            if (!String.IsNullOrEmpty(httpMethod))
+            if (!string.IsNullOrEmpty(httpMethod))
             {
                 ValidationParameters[TypeValidationParameter] = httpMethod;
             }

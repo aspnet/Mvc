@@ -210,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = _metadataProvider.GetMetadataForProperty(
                 modelAccessor: null,
                 containerType: typeof(string),
-                propertyName: nameof(String.Length));
+                propertyName: nameof(string.Length));
             var serviceCollection = new ServiceCollection();
             var requestServices = serviceCollection.BuildServiceProvider();
             var context = new ClientModelValidationContext(metadata, _metadataProvider, requestServices);
@@ -231,7 +231,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = _metadataProvider.GetMetadataForProperty(
                 modelAccessor: null,
                 containerType: typeof(string),
-                propertyName: nameof(String.Length));
+                propertyName: nameof(string.Length));
             var serviceCollection = new ServiceCollection();
             var requestServices = serviceCollection.BuildServiceProvider();
             var context = new ClientModelValidationContext(metadata, _metadataProvider, requestServices);

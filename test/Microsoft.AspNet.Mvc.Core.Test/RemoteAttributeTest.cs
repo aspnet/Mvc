@@ -18,6 +18,12 @@ namespace Microsoft.AspNet.Mvc
 {
     public class RemoteAttributeTest
     {
+        private static readonly IModelMetadataProvider _metadataProvider = new EmptyModelMetadataProvider();
+        private static readonly ModelMetadata _metadata = _metadataProvider.GetMetadataForProperty(
+            modelAccessor: null,
+            containerType: typeof(string),
+            propertyName: "Length");
+
         public static TheoryData<string> SomeNames
         {
             get
@@ -178,8 +184,8 @@ namespace Microsoft.AspNet.Mvc
         public void GetClientValidationRules_WithBadRouteName_Throws()
         {
             // Arrange
-            var attribute = new RemoteAttribute("RouteName");
-            var context = GetValidationContext();
+            var attribute = new RemoteAttribute("nonexistentRoute");
+            var context = GetValidationContextWithArea(currentArea: null);
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() => attribute.GetClientValidationRules(context));
@@ -202,13 +208,11 @@ namespace Microsoft.AspNet.Mvc
         public void GetClientValidationRules_WithRoute_CallsUrlHelperWithExpectedValues()
         {
             // Arrange
-            var attribute = new RemoteAttribute("RouteName");
+            var routeName = "RouteName";
+            var attribute = new RemoteAttribute(routeName);
             var url = "/my/URL";
-            var context = GetValidationContext(
-                url,
-                expectedRoute: "RouteName",
-                expectedAction: null,
-                expectedController: null);
+            var urlHelper = new MockUrlHelper(url, routeName);
+            var context = GetValidationContext(urlHelper);
 
             // Act & Assert
             var rule = Assert.Single(attribute.GetClientValidationRules(context));
@@ -218,6 +222,9 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(2, rule.ValidationParameters.Count);
             Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
             Assert.Equal(url, rule.ValidationParameters["url"]);
+
+            var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
+            Assert.Empty(routeDictionary);
         }
 
         [Fact]
@@ -226,11 +233,8 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller");
             var url = "/Controller/Action";
-            var context = GetValidationContext(
-                url,
-                expectedRoute: null,
-                expectedAction: "Action",
-                expectedController: "Controller");
+            var urlHelper = new MockUrlHelper(url, routeName: null);
+            var context = GetValidationContext(urlHelper);
 
             // Act & Assert
             var rule = Assert.Single(attribute.GetClientValidationRules(context));
@@ -240,6 +244,11 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(2, rule.ValidationParameters.Count);
             Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
             Assert.Equal(url, rule.ValidationParameters["url"]);
+
+            var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
+            Assert.Equal(2, routeDictionary.Count);
+            Assert.Equal("Action", routeDictionary["action"] as string);
+            Assert.Equal("Controller", routeDictionary["controller"] as string);
         }
 
         [Fact]
@@ -252,11 +261,8 @@ namespace Microsoft.AspNet.Mvc
                 AdditionalFields = "Password,ConfirmPassword",
             };
             var url = "/Controller/Action";
-            var context = GetValidationContext(
-                url,
-                expectedRoute: null,
-                expectedAction: "Action",
-                expectedController: "Controller");
+            var urlHelper = new MockUrlHelper(url, routeName: null);
+            var context = GetValidationContext(urlHelper);
 
             // Act & Assert
             var rule = Assert.Single(attribute.GetClientValidationRules(context));
@@ -267,6 +273,11 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("*.Length,*.Password,*.ConfirmPassword", rule.ValidationParameters["additionalfields"]);
             Assert.Equal("POST", rule.ValidationParameters["type"]);
             Assert.Equal(url, rule.ValidationParameters["url"]);
+
+            var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
+            Assert.Equal(2, routeDictionary.Count);
+            Assert.Equal("Action", routeDictionary["action"] as string);
+            Assert.Equal("Controller", routeDictionary["controller"] as string);
         }
 
         [Fact]
@@ -278,12 +289,8 @@ namespace Microsoft.AspNet.Mvc
                 HttpMethod = "POST",
             };
             var url = "/Test/Controller/Action";
-            var context = GetValidationContext(
-                url,
-                expectedRoute: null,
-                expectedAction: "Action",
-                expectedController: "Controller",
-                expectedArea: "Test");
+            var urlHelper = new MockUrlHelper(url, routeName: null);
+            var context = GetValidationContext(urlHelper);
 
             // Act & Assert
             var rule = Assert.Single(attribute.GetClientValidationRules(context));
@@ -294,6 +301,12 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
             Assert.Equal("POST", rule.ValidationParameters["type"]);
             Assert.Equal(url, rule.ValidationParameters["url"]);
+
+            var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
+            Assert.Equal(3, routeDictionary.Count);
+            Assert.Equal("Action", routeDictionary["action"] as string);
+            Assert.Equal("Controller", routeDictionary["controller"] as string);
+            Assert.Equal("Test", routeDictionary["area"] as string);
         }
 
         // Root area is current in this case.
@@ -424,123 +437,13 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("/AnotherArea/Controller/Action", rule.ValidationParameters["url"]);
         }
 
-        private static ClientModelValidationContext GetValidationContext()
+        private static ClientModelValidationContext GetValidationContext(IUrlHelper urlHelper)
         {
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-
             var serviceCollection = GetServiceCollection();
-            var urlHelper = UrlHelperTest.CreateUrlHelperWithRouteCollection("/app");
             serviceCollection.AddInstance<IUrlHelper>(urlHelper);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
-        }
-
-        private static ClientModelValidationContext GetValidationContext(string url)
-        {
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-
-            var serviceCollection = GetServiceCollection();
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            var urlHelper = GetUrlHelper(serviceProvider, url);
-            urlHelper
-                .Setup(helper => helper.RouteUrl(
-                    It.IsAny<string>(), // routeName
-                    It.IsAny<object>(), // values
-                    null,               // protocol
-                    null,               // host
-                    null))              // fragment
-                .Returns(url);
-
-            serviceCollection.AddInstance<IUrlHelper>(urlHelper.Object);
-            serviceProvider = serviceCollection.BuildServiceProvider();
-
-            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
-        }
-
-        private static ClientModelValidationContext GetValidationContext(
-            string url,
-            string expectedRoute,
-            string expectedAction,
-            string expectedController)
-        {
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-
-            var serviceCollection = GetServiceCollection();
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            var urlHelper = GetUrlHelper(serviceProvider, url);
-            urlHelper
-                .Setup(helper => helper.RouteUrl(
-                    expectedRoute,      // routeName
-                    It.IsAny<object>(), // values
-                    null,               // protocol
-                    null,               // host
-                    null))              // fragment
-                .Callback((string routeName, object values, string protocol, string host, string fragment) =>
-                {
-                    var routeDictionary = Assert.IsType<RouteValueDictionary>(values);
-                    Assert.Equal(expectedAction, (string)routeDictionary["action"]);
-                    Assert.Equal(expectedController, (string)routeDictionary["controller"]);
-                    Assert.False(routeDictionary.ContainsKey("area")); // Ensure no value is present.
-                })
-                .Returns(url);
-
-            serviceCollection.AddInstance<IUrlHelper>(urlHelper.Object);
-            serviceProvider = serviceCollection.BuildServiceProvider();
-
-            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
-        }
-
-        private static ClientModelValidationContext GetValidationContext(
-            string url,
-            string expectedRoute,
-            string expectedAction,
-            string expectedController,
-            string expectedArea)
-        {
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-
-            var serviceCollection = GetServiceCollection();
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            var urlHelper = GetUrlHelper(serviceProvider, url);
-            urlHelper
-                .Setup(helper => helper.RouteUrl(
-                    expectedRoute,      // routeName
-                    It.IsAny<object>(), // values
-                    null,               // protocol
-                    null,               // host
-                    null))              // fragment
-                .Callback((string routeName, object values, string protocol, string host, string fragment) =>
-                {
-                    var routeDictionary = Assert.IsType<RouteValueDictionary>(values);
-                    Assert.Equal(expectedAction, (string)routeDictionary["action"]);
-                    Assert.Equal(expectedController, (string)routeDictionary["controller"]);
-
-                    Assert.True(routeDictionary.ContainsKey("area")); // Ensure value is present, even if expecting null.
-                    Assert.Equal(expectedArea, (string)routeDictionary["area"]);
-                })
-                .Returns(url);
-
-            serviceCollection.AddInstance<IUrlHelper>(urlHelper.Object);
-            serviceProvider = serviceCollection.BuildServiceProvider();
-
-            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
+            return new ClientModelValidationContext(_metadata, _metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContextWithArea(string currentArea)
@@ -571,13 +474,7 @@ namespace Microsoft.AspNet.Mvc
             serviceCollection.AddInstance<IUrlHelper>(urlHelper);
             serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-
-            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
+            return new ClientModelValidationContext(_metadata, _metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContextWithNoController()
@@ -599,38 +496,17 @@ namespace Microsoft.AspNet.Mvc
             serviceCollection.AddInstance<IUrlHelper>(urlHelper);
             serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-
-            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
+            return new ClientModelValidationContext(_metadata, _metadataProvider, serviceProvider);
         }
 
         private static IRouter GetRouteCollectionWithArea(IServiceProvider serviceProvider)
         {
-            var builder = new RouteBuilder
-            {
-                ServiceProvider = serviceProvider,
-            };
+            var builder = GetRouteBuilder(serviceProvider, isBound: true);
 
-            var handler = new Mock<IRouter>(MockBehavior.Strict);
-            handler
-                .Setup(e => e.GetVirtualPath(It.IsAny<VirtualPathContext>()))
-                .Callback<VirtualPathContext>(context =>
-                {
-                    builder.ToString();
-
-                    // This makes order of the routes below matter. Normal selection is more complicated and does not
-                    // rely on route ordering.
-                    context.IsBound = true;
-                })
-                .Returns<VirtualPathContext>(context => null);
-            builder.DefaultHandler = handler.Object;
-
-            // First try the route that requires the area value.
-            builder.MapRoute("areaRoute", "{area:exists}/{controller}/{action}");
+            // Setting IsBound to true makes order more important than usual. First try the route that requires the
+            // area value. Skip usual "area:exists" constraint because that isn't relevant for link generation and it
+            // complicates the setup significantly.
+            builder.MapRoute("areaRoute", "{area}/{controller}/{action}");
             builder.MapRoute("default", "{controller}/{action}", new { controller = "Home", action = "Index" });
 
             return builder.Build();
@@ -638,6 +514,14 @@ namespace Microsoft.AspNet.Mvc
 
         private static IRouter GetRouteCollectionWithNoController(IServiceProvider serviceProvider)
         {
+            var builder = GetRouteBuilder(serviceProvider, isBound: false);
+            builder.MapRoute("default", "static/route");
+
+            return builder.Build();
+        }
+
+        private static RouteBuilder GetRouteBuilder(IServiceProvider serviceProvider, bool isBound)
+        {
             var builder = new RouteBuilder
             {
                 ServiceProvider = serviceProvider,
@@ -645,27 +529,12 @@ namespace Microsoft.AspNet.Mvc
 
             var handler = new Mock<IRouter>(MockBehavior.Strict);
             handler
-                .Setup(e => e.GetVirtualPath(It.IsAny<VirtualPathContext>()))
-                .Callback<VirtualPathContext>(context =>
-                {
-                    builder.ToString();
-                    context.IsBound = false;
-                })
-                .Returns<VirtualPathContext>(context => null);
+                .Setup(router => router.GetVirtualPath(It.IsAny<VirtualPathContext>()))
+                .Callback<VirtualPathContext>(context => context.IsBound = isBound)
+                .Returns((string)null);
             builder.DefaultHandler = handler.Object;
 
-            builder.MapRoute("default", "static/route");
-
-            return builder.Build();
-        }
-
-        private static Mock<UrlHelper> GetUrlHelper(IServiceProvider serviceProvider, string url)
-        {
-            var contextAccessor = GetContextAccessor(serviceProvider);
-            var actionSelector = Mock.Of<IActionSelector>();
-            var urlHelper = new Mock<UrlHelper>(MockBehavior.Strict, contextAccessor, actionSelector);
-
-            return urlHelper;
+            return builder;
         }
 
         private static IScopedInstance<ActionContext> GetContextAccessor(
@@ -697,57 +566,12 @@ namespace Microsoft.AspNet.Mvc
             return contextAccessor.Object;
         }
 
-        private static IServiceProvider GetServiceProvider()
-        {
-            var serviceCollection = GetServiceCollection();
-
-            return serviceCollection.BuildServiceProvider();
-        }
-
         private static ServiceCollection GetServiceCollection()
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddInstance<ILoggerFactory>(new NullLoggerFactory());
 
-            var descriptors = new List<ActionDescriptor>
-            {
-                new ActionDescriptor
-                {
-                    RouteConstraints = new List<RouteDataActionConstraint>
-                    {
-                        new RouteDataActionConstraint("area", null),
-                    },
-                },
-                new ActionDescriptor
-                {
-                    RouteConstraints = new List<RouteDataActionConstraint>
-                    {
-                        new RouteDataActionConstraint("area", "Test"),
-                    },
-                },
-                new ActionDescriptor
-                {
-                    RouteConstraints = new List<RouteDataActionConstraint>
-                    {
-                        new RouteDataActionConstraint("area", "AnotherArea"),
-                    },
-                },
-            };
-
-            var collection = new ActionDescriptorsCollection(descriptors, version: 1);
-            var collectionProvider = new Mock<IActionDescriptorsCollectionProvider>(MockBehavior.Strict);
-            collectionProvider
-                .SetupGet(provider => provider.ActionDescriptors)
-                .Returns(collection);
-            serviceCollection.AddInstance<IActionDescriptorsCollectionProvider>(collectionProvider.Object);
-
-            var routeOptions = new RouteOptions
-            {
-                ConstraintMap =
-                {
-                    { "exists", typeof(KnownRouteValueConstraint) },
-                },
-            };
+            var routeOptions = new RouteOptions();
             var accessor = new Mock<IOptions<RouteOptions>>();
             accessor
                 .SetupGet(options => options.Options)
@@ -760,6 +584,53 @@ namespace Microsoft.AspNet.Mvc
                 routeOptions: accessor.Object));
 
             return serviceCollection;
+        }
+
+        private class MockUrlHelper : IUrlHelper
+        {
+            private readonly string _routeName;
+            private readonly string _url;
+
+            public MockUrlHelper(string url, string routeName)
+            {
+                _routeName = routeName;
+                _url = url;
+            }
+
+            public object RouteValues { get; private set; }
+
+            public string Action(
+                string action,
+                string controller,
+                object values,
+                string protocol,
+                string host,
+                string fragment)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string Content(string contentPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsLocalUrl(string url)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
+            {
+                Assert.Equal(_routeName, routeName);
+                Assert.Null(protocol);
+                Assert.Null(host);
+                Assert.Null(fragment);
+
+                RouteValues = values;
+
+                return _url;
+            }
         }
 
         private class TestableRemoteAttribute : RemoteAttribute

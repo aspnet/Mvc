@@ -692,7 +692,7 @@ namespace Microsoft.AspNet.Mvc
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        internal static UrlHelper CreateUrlHelperWithRouteCollection(string appPrefix)
+        private static UrlHelper CreateUrlHelperWithRouteCollection(string appPrefix)
         {
             var routeCollection = GetRouter();
             return CreateUrlHelper(appPrefix, routeCollection);
@@ -708,13 +708,9 @@ namespace Microsoft.AspNet.Mvc
             var rt = new RouteBuilder();
             var target = new Mock<IRouter>(MockBehavior.Strict);
             target
-                .Setup(e => e.GetVirtualPath(It.IsAny<VirtualPathContext>()))
-                .Callback<VirtualPathContext>(c =>
-                {
-                    rt.ToString();
-                    c.IsBound = true;
-                })
-                .Returns<VirtualPathContext>(rc => null);
+                .Setup(router => router.GetVirtualPath(It.IsAny<VirtualPathContext>()))
+                .Callback<VirtualPathContext>(context => context.IsBound = true)
+                .Returns<VirtualPathContext>(context => null);
             rt.DefaultHandler = target.Object;
             var serviceProviderMock = new Mock<IServiceProvider>();
             var accessorMock = new Mock<IOptions<RouteOptions>>();
