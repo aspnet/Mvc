@@ -34,15 +34,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         if (isFormatString)
                         {
                             // Replace unescaped/escaped chars with their equivalent
-                            return script.Replace("{", "{{")
-                                         .Replace("}", "}}")
-                                         .Replace("[[[", "{")
-                                         .Replace("]]]", "}");
+                            return PrepareFormatString(script);
                         }
                         return script;
                     }
                 }
             });
+        }
+        
+        // Internal so we can test this separately
+        internal static string PrepareFormatString(string input)
+        {
+            return input.Replace("{", "{{")
+                        .Replace("}", "}}")
+                        .Replace("[[[", "{")
+                        .Replace("]]]", "}");
         }
         
         /// <summary>

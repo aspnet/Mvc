@@ -56,6 +56,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string FallbackTestValue { get; set; }
 
         // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        // TODO: Change this to activate ILogger<LinkTagHelper> directly once https://github.com/aspnet/Hosting/pull/147 is in
         [Activate]
         protected internal ILoggerFactory LoggerFactory { get; set; }
 
