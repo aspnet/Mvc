@@ -18,58 +18,6 @@ namespace Microsoft.AspNet.Mvc.Test
 {
     public class AuthorizeFilterTest
     {
-        private AuthorizationContext GetAuthorizationContext(Action<ServiceCollection> registerServices, bool anonymous = false)
-        {
-            var validUser = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                    new Claim[] {
-                        new Claim("Permission", "CanViewPage"),
-                        new Claim(ClaimTypes.Role, "Administrator"),
-                        new Claim(ClaimTypes.Role, "User"),
-                        new Claim(ClaimTypes.NameIdentifier, "John")},
-                        "Basic"));
-
-            validUser.AddIdentity(
-                new ClaimsIdentity(
-                    new Claim[] {
-                        new Claim("Permission", "CupBearer"),
-                        new Claim(ClaimTypes.Role, "Token"),
-                        new Claim(ClaimTypes.NameIdentifier, "John Bear")},
-                        "Bearer"));
-
-            // ServiceProvider
-            var serviceCollection = new ServiceCollection();
-            if (registerServices != null)
-            {
-                registerServices(serviceCollection);
-            }
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-
-            // HttpContext
-            var httpContext = new Mock<HttpContext>();
-            httpContext.SetupProperty(c => c.User);
-            if (!anonymous)
-            {
-                httpContext.Object.User = validUser;
-            }
-            httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
-
-            // AuthorizationContext
-            var actionContext = new ActionContext(
-                httpContext: httpContext.Object,
-                routeData: new RouteData(),
-                actionDescriptor: null
-                );
-
-            var authorizationContext = new AuthorizationContext(
-                actionContext,
-                Enumerable.Empty<IFilter>().ToList()
-            );
-
-            return authorizationContext;
-        }
-
         [Fact]
         public void InvalidUser()
         {
@@ -331,6 +279,7 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.NotNull(authorizationContext.Result);
         }
 
+        [Fact]
         public async Task Invoke_NoPoliciesShouldNotFail()
         {
             // Arrange
@@ -346,6 +295,58 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.Null(authorizationContext.Result);
+        }
+
+        private AuthorizationContext GetAuthorizationContext(Action<ServiceCollection> registerServices, bool anonymous = false)
+        {
+            var validUser = new ClaimsPrincipal(
+                new ClaimsIdentity(
+                    new Claim[] {
+                        new Claim("Permission", "CanViewPage"),
+                        new Claim(ClaimTypes.Role, "Administrator"),
+                        new Claim(ClaimTypes.Role, "User"),
+                        new Claim(ClaimTypes.NameIdentifier, "John")},
+                        "Basic"));
+
+            validUser.AddIdentity(
+                new ClaimsIdentity(
+                    new Claim[] {
+                        new Claim("Permission", "CupBearer"),
+                        new Claim(ClaimTypes.Role, "Token"),
+                        new Claim(ClaimTypes.NameIdentifier, "John Bear")},
+                        "Bearer"));
+
+            // ServiceProvider
+            var serviceCollection = new ServiceCollection();
+            if (registerServices != null)
+            {
+                registerServices(serviceCollection);
+            }
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            // HttpContext
+            var httpContext = new Mock<HttpContext>();
+            httpContext.SetupProperty(c => c.User);
+            if (!anonymous)
+            {
+                httpContext.Object.User = validUser;
+            }
+            httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
+
+            // AuthorizationContext
+            var actionContext = new ActionContext(
+                httpContext: httpContext.Object,
+                routeData: new RouteData(),
+                actionDescriptor: null
+                );
+
+            var authorizationContext = new AuthorizationContext(
+                actionContext,
+                Enumerable.Empty<IFilter>().ToList()
+            );
+
+            return authorizationContext;
         }
     }
 }
