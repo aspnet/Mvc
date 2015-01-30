@@ -12,9 +12,9 @@ namespace Microsoft.AspNet.Mvc
     public class ResponseCacheAttributeTest
     {
         [Theory]
-        [InlineData("Blah")]
+        [InlineData("Cache20Sec")]
         // To verify case-insensitive lookup.
-        [InlineData("blah")]
+        [InlineData("cache20sec")]
         public void CreateInstance_SelectsTheAppropriateCacheProfile(string profileName)
         {
             // Arrange
@@ -22,8 +22,8 @@ namespace Microsoft.AspNet.Mvc
                 CacheProfileName = profileName
             };
             var cacheProfiles = new List<CacheProfile>();
-            cacheProfiles.Add(new CacheProfile { Name = "Blah", NoStore = true });
-            cacheProfiles.Add(new CacheProfile { Name = "Test", Duration = 20 });
+            cacheProfiles.Add(new CacheProfile("Cache20Sec") { NoStore = true });
+            cacheProfiles.Add(new CacheProfile("Test") { Duration = 20 });
 
             // Act
             var createdFilter = responseCache.CreateInstance(GetServiceProvider(cacheProfiles));
@@ -31,6 +31,23 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             var responseCacheFilter = Assert.IsType<ResponseCacheFilter>(createdFilter);
             Assert.True(responseCacheFilter.NoStore);
+        }
+
+        [Fact]
+        public void CreateInstance_ThrowsIfThereAreNoMatchingCacheProfiles()
+        {
+            // Arrange
+            var responseCache = new ResponseCacheAttribute()
+            {
+                CacheProfileName = "HelloWorld"
+            };
+            var cacheProfiles = new List<CacheProfile>();
+            cacheProfiles.Add(new CacheProfile("Cache20Sec") { NoStore = true });
+            cacheProfiles.Add(new CacheProfile("Test") { Duration = 20 });
+
+            // Act
+            Assert.Throws<InvalidOperationException>(
+                () => responseCache.CreateInstance(GetServiceProvider(cacheProfiles)));
         }
 
         public static IEnumerable<object[]> OverrideData
@@ -42,7 +59,7 @@ namespace Microsoft.AspNet.Mvc
                     new ResponseCacheAttribute()
                     { Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = "Accept" },
                     null,
-                    new CacheProfile()
+                    new CacheProfile("Cache20Sec")
                     { Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = "Accept" }
                 };
 
@@ -57,15 +74,14 @@ namespace Microsoft.AspNet.Mvc
                         VaryByHeader = "Accept",
                         CacheProfileName = "TestCacheProfile"
                     },
-                    new CacheProfile()
+                    new CacheProfile("TestCacheProfile")
                     {
-                        Name = "TestCacheProfile",
                         Duration = 10,
                         Location = ResponseCacheLocation.Client,
                         NoStore = true,
                         VaryByHeader = "Test"
                     },
-                    new CacheProfile()
+                    new CacheProfile("Cache20Sec")
                     { Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = "Accept" }
                 };
 
@@ -76,15 +92,14 @@ namespace Microsoft.AspNet.Mvc
                         Duration = 534,
                         CacheProfileName = "TestCacheProfile"
                     },
-                    new CacheProfile()
+                    new CacheProfile("TestCacheProfile")
                     {
-                        Name = "TestCacheProfile",
                         Duration = 10,
                         Location = ResponseCacheLocation.Client,
                         NoStore = false,
                         VaryByHeader = "Test"
                     },
-                    new CacheProfile()
+                    new CacheProfile("Cache534sec")
                     { Duration = 534, Location = ResponseCacheLocation.Client, NoStore = false, VaryByHeader = "Test" }
                 };
 
@@ -95,14 +110,13 @@ namespace Microsoft.AspNet.Mvc
                         Duration = 534,
                         CacheProfileName = "TestCacheProfile"
                     },
-                    new CacheProfile()
+                    new CacheProfile("TestCacheProfile")
                     {
-                        Name = "TestCacheProfile",
                         Location = ResponseCacheLocation.Client,
                         NoStore = false,
                         VaryByHeader = "Test"
                     },
-                    new CacheProfile()
+                    new CacheProfile("Cache534Sec")
                     { Duration = 534, Location = ResponseCacheLocation.Client, NoStore = false, VaryByHeader = "Test" }
                 };
 
@@ -113,11 +127,8 @@ namespace Microsoft.AspNet.Mvc
                         Duration = 5234,
                         CacheProfileName = "TestCacheProfile"
                     },
-                    new CacheProfile()
-                    {
-                        Name = "TestCacheProfile",
-                    },
-                    new CacheProfile()
+                    new CacheProfile("TestCacheProfile"),
+                    new CacheProfile("Cache5234Sec")
                     { Duration = 5234, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = null }
                 };
             }
@@ -155,7 +166,7 @@ namespace Microsoft.AspNet.Mvc
                 CacheProfileName = "Test"
             };
             var cacheProfiles = new List<CacheProfile>();
-            cacheProfiles.Add(new CacheProfile { Name = "Test", NoStore = false });
+            cacheProfiles.Add(new CacheProfile("Test") { NoStore = false });
 
             // Act & Assert
             Assert.Throws<InvalidOperationException>(

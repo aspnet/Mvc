@@ -18,23 +18,20 @@ namespace ResponseCacheWebSite
                 services.AddMvc(configuration);
                 services.Configure<MvcOptions>(options =>
                 {
-                    options.CacheProfiles.Add(new CacheProfile()
+                    options.CacheProfiles.Add(new CacheProfile(name: "PublicCache30Sec")
                     {
-                        Name = "PublicCache30Sec",
                         Duration = 30,
                         Location = ResponseCacheLocation.Any
                     });
 
-                    options.CacheProfiles.Add(new CacheProfile()
+                    options.CacheProfiles.Add(new CacheProfile(name: "PrivateCache30Sec")
                     {
-                        Name = "PrivateCache30Sec",
                         Duration = 30,
                         Location = ResponseCacheLocation.Client
                     });
 
-                    options.CacheProfiles.Add(new CacheProfile()
+                    options.CacheProfiles.Add(new CacheProfile(name: "NoCache")
                     {
-                        Name = "NoCache",
                         NoStore = true,
                         Duration = 0,
                         Location = ResponseCacheLocation.None

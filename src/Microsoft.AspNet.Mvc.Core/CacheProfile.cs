@@ -5,15 +5,20 @@ namespace Microsoft.AspNet.Mvc
 {
 	public class CacheProfile
 	{
+        public CacheProfile(string name)
+        {
+            Name = name;
+        }
+
         /// <summary>
         /// Gets or sets the name of the CacheProfile.
         /// The CacheProfile is referred in the ResponseCache attribute using this name.
+        /// This is a required parameter.
         /// </summary>
         public string Name { get; set; }
 
 		/// <summary>
         /// Gets or sets the duration in seconds for which the response is cached.
-        /// This is a required parameter.
         /// This sets "max-age" in "Cache-control" header.
         /// </summary>
         public int? Duration { get; set; }
@@ -26,7 +31,7 @@ namespace Microsoft.AspNet.Mvc
 
         /// <summary>
         /// Gets or sets the value which determines whether the data should be stored or not.
-        /// When set to true, it sets "Cache-control" header to "no-store".
+        /// When set to <see langword="true"/>, it sets "Cache-control" header to "no-store".
         /// Ignores the "Location" parameter for values other than "None".
         /// Ignores the "duration" parameter.
         /// </summary>

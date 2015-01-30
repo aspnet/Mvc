@@ -1788,6 +1788,22 @@ namespace Microsoft.AspNet.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("RemoteAttribute_RemoteValidationFailed"), p0);
         }
 
+        /// <summary>
+        /// The '{0}' cache profile is not defined. Please define it in MvcOptions.
+        /// </summary>
+        internal static string CacheProfileNotFound
+        {
+            get { return GetString("CacheProfileNotFound"); }
+        }
+
+        /// <summary>
+        /// The '{0}' cache profile is not defined. Please define it in MvcOptions.
+        /// </summary>
+        internal static string FormatCacheProfileNotFound(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CacheProfileNotFound"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

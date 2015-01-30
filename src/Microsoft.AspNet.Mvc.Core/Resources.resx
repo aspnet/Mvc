@@ -463,4 +463,7 @@
   <data name="RemoteAttribute_RemoteValidationFailed" xml:space="preserve">
     <value>'{0}' is invalid.</value>
   </data>
+  <data name="CacheProfileNotFound" xml:space="preserve">
+    <value>The '{0}' cache profile is not defined. Please define it in MvcOptions.</value>
+  </data>
 </root>
