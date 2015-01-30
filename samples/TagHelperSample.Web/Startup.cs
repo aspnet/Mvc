@@ -12,18 +12,18 @@ namespace TagHelperSample.Web
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddMvc();
-
-            // Setup services with a test AssemblyProvider so that only the sample's assemblies are loaded. This
-            // prevents loading controllers from other assemblies when the sample is used in functional tests.
-            services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
-            services.AddSingleton<MoviesService>();
-        }
-
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
+            app.UseServices(services => 
+            { 
+                services.AddMvc(); 
+                 
+                // Setup services with a test AssemblyProvider so that only the sample's assemblies are loaded. This 
+                // prevents loading controllers from other assemblies when the sample is used in functional tests. 
+                services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>(); 
+                services.AddSingleton<MoviesService>(); 
+            }); 
+
             loggerFactory.AddConsole((name, logLevel) => name.IndexOf("TagHelper") >= 0 || name.IndexOf("WebListener") >= 0 && logLevel >= LogLevel.Information);
             
             app.UseErrorPage();
