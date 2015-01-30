@@ -1707,22 +1707,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Argument is of type '{0}', but this method requires a value of type '{1}'.
-        /// </summary>
-        internal static string ArgumentUnexpectedType
-        {
-            get { return GetString("ArgumentUnexpectedType"); }
-        }
-
-        /// <summary>
-        /// Argument is of type '{0}', but this method requires a value of type '{1}'.
-        /// </summary>
-        internal static string FormatArgumentUnexpectedType(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ArgumentUnexpectedType"), p0, p1);
-        }
-
-        /// <summary>
         /// No URL for remote validation could be found.
         /// </summary>
         internal static string RemoteAttribute_NoUrlFound

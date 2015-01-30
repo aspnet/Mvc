@@ -10,7 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering.Expressions;
 using Microsoft.Framework.DependencyInjection;
@@ -727,7 +726,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var validatorProvider = _bindingContextAccessor.Value.ValidatorProvider;
             metadata = metadata ??
                 ExpressionMetadataProvider.FromStringExpression(name, viewContext.ViewData, _metadataProvider);
-            var validationContext = new MvcClientModelValidationContext(metadata, _metadataProvider, _urlHelper);
+            var validationContext =
+                new ClientModelValidationContext(metadata, _metadataProvider, viewContext.HttpContext.RequestServices);
 
             return validatorProvider
                 .GetValidators(metadata)

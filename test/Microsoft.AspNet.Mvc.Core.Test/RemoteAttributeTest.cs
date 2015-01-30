@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http.Core;
-using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.Fallback;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
@@ -18,23 +18,21 @@ namespace Microsoft.AspNet.Mvc
 {
     public class RemoteAttributeTest
     {
-        // Action, controller, and route names containing just whitespace are not legal.
-        public static TheoryData<string> InvalidNames
+        public static TheoryData<string> SomeNames
         {
             get
             {
                 return new TheoryData<string>
                 {
-                    null,
                     string.Empty,
-                    "   ",
-                    "\t \t",
-                    " \r\n"
+                    "Action",
+                    "In a controller",
+                    "  slightly\t odd\t whitespace\t\r\n",
                 };
             }
         }
 
-        // Property names containing just whitespace are legal.
+        // Null or empty property names are invalid. (Those containing just whitespace are legal.)
         public static TheoryData<string> NullOrEmptyNames
         {
             get
@@ -55,28 +53,96 @@ namespace Microsoft.AspNet.Mvc
             Assert.True(new RemoteAttribute("ActionName", "ControllerName", "ParameterName").IsValid(null));
         }
 
-        [Theory]
-        [MemberData(nameof(InvalidNames))]
-        public void Constructor_WithInvalidRouteName_Throws(string routeName)
+        [Fact]
+        public void Constructor_WithNullAction_IgnoresArgument()
         {
-            // Arrange & Act & Assert
-            Assert.Throws<ArgumentException>("routeName", () => new RemoteAttribute(routeName));
+            // Arrange & Act
+            var attribute = new TestableRemoteAttribute(action: null, controller: "AController");
+
+            // Assert
+            var keyValuePair = Assert.Single(attribute.RouteData);
+            Assert.Equal(keyValuePair.Key, "controller");
+        }
+
+        [Fact]
+        public void Constructor_WithNullController_IgnoresArgument()
+        {
+            // Arrange & Act
+            var attribute = new TestableRemoteAttribute("AnAction", controller: null);
+
+            // Assert
+            var keyValuePair = Assert.Single(attribute.RouteData);
+            Assert.Equal(keyValuePair.Key, "action");
+            Assert.Null(attribute.RouteName);
         }
 
         [Theory]
-        [MemberData(nameof(InvalidNames))]
-        public void Constructor_WithInvalidActionName_Throws(string action)
+        [InlineData(null)]
+        [MemberData(nameof(SomeNames))]
+        public void Constructor_WithRouteName_UpdatesProperty(string routeName)
         {
-            // Arrange & Act & Assert
-            Assert.Throws<ArgumentException>("action", () => new RemoteAttribute(action, "Controller"));
+            // Arrange & Act
+            var attribute = new TestableRemoteAttribute(routeName);
+
+            // Assert
+            Assert.Empty(attribute.RouteData);
+            Assert.Equal(routeName, attribute.RouteName);
         }
 
         [Theory]
-        [MemberData(nameof(InvalidNames))]
-        public void Constructor_WithInvalidControllerName_Throws(string controller)
+        [MemberData(nameof(SomeNames))]
+        public void Constructor_WithActionController_UpdatesActionRouteData(string action)
         {
-            // Arrange & Act & Assert
-            Assert.Throws<ArgumentException>("controller", () => new RemoteAttribute("Action", controller));
+            // Arrange & Act
+            var attribute = new TestableRemoteAttribute(action, "AController");
+
+            // Assert
+            Assert.Equal(2, attribute.RouteData.Count);
+            Assert.Contains("controller", attribute.RouteData.Keys);
+            var resultName = Assert.Single(
+                    attribute.RouteData,
+                    keyValuePair => string.Equals(keyValuePair.Key, "action", StringComparison.Ordinal))
+                .Value;
+            Assert.Equal(action, resultName);
+            Assert.Null(attribute.RouteName);
+        }
+
+        [Theory]
+        [MemberData(nameof(SomeNames))]
+        public void Constructor_WithActionController_UpdatesControllerRouteData(string controller)
+        {
+            // Arrange & Act
+            var attribute = new TestableRemoteAttribute("AnAction", controller);
+
+            // Assert
+            Assert.Equal(2, attribute.RouteData.Count);
+            Assert.Contains("action", attribute.RouteData.Keys);
+            var resultName = Assert.Single(
+                    attribute.RouteData,
+                    keyValuePair => string.Equals(keyValuePair.Key, "controller", StringComparison.Ordinal))
+                .Value;
+            Assert.Equal(controller, resultName);
+            Assert.Null(attribute.RouteName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [MemberData(nameof(SomeNames))]
+        public void Constructor_WithActionControllerAreaName_UpdatesAreaRouteData(string areaName)
+        {
+            // Arrange & Act
+            var attribute = new TestableRemoteAttribute("AnAction", "AController", areaName: areaName);
+
+            // Assert
+            Assert.Equal(3, attribute.RouteData.Count);
+            Assert.Contains("action", attribute.RouteData.Keys);
+            Assert.Contains("controller", attribute.RouteData.Keys);
+            var resultName = Assert.Single(
+                    attribute.RouteData,
+                    keyValuePair => string.Equals(keyValuePair.Key, "area", StringComparison.Ordinal))
+                .Value;
+            Assert.Equal(areaName, resultName);
+            Assert.Null(attribute.RouteName);
         }
 
         [Theory]
@@ -85,37 +151,27 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var attribute = new RemoteAttribute(routeName: "default");
+            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: property";
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(
+            var exception = Assert.Throws<ArgumentException>(
                 "property",
                 () => attribute.FormatAdditionalFieldsForClientValidation(property));
+            Assert.Equal(expected, exception.Message);
         }
 
         [Theory]
         [MemberData(nameof(NullOrEmptyNames))]
         public void FormatPropertyForClientValidation_WithInvalidPropertyName_Throws(string property)
         {
-            // Arrange & Act & Assert
-            Assert.Throws<ArgumentException>(
-                "property",
-                () => RemoteAttribute.FormatPropertyForClientValidation(property));
-        }
-
-        [Fact]
-        public void GetClientValidationRules_WithInvalidContext_Throws()
-        {
             // Arrange
-            var attribute = new RemoteAttribute(routeName: "default");
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: null,
-                containerType: typeof(string),
-                propertyName: "Length");
-            var context = new ClientModelValidationContext(metadata, metadataProvider);
+            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: property";
 
             // Act & Assert
-            Assert.Throws<ArgumentException>("context", () => attribute.GetClientValidationRules(context));
+            var exception = Assert.Throws<ArgumentException>(
+                "property",
+                () => RemoteAttribute.FormatPropertyForClientValidation(property));
+            Assert.Equal(expected, exception.Message);
         }
 
         [Fact]
@@ -244,7 +300,7 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void GetClientValidationRules_WithActionController_FindsControllerInCurrentArea()
         {
-            // Arrange XYZ
+            // Arrange
             var attribute = new RemoteAttribute("Action", "Controller");
             var context = GetValidationContextWithArea(currentArea: null);
 
@@ -262,7 +318,7 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void GetClientValidationRules_WithActionControllerInArea_FindsControllerInCurrentArea()
         {
-            // Arrange XYZ
+            // Arrange
             var attribute = new RemoteAttribute("Action", "Controller");
             var context = GetValidationContextWithArea(currentArea: "Test");
 
@@ -318,7 +374,7 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void GetClientValidationRules_WithActionControllerArea_FindsControllerInNamedArea()
         {
-            // Arrange XYZ
+            // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "Test");
             var context = GetValidationContextWithArea(currentArea: null);
 
@@ -336,7 +392,7 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void GetClientValidationRules_WithActionControllerAreaInArea_FindsControllerInNamedArea()
         {
-            // Arrange XYZ
+            // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "Test");
             var context = GetValidationContextWithArea(currentArea: "Test");
 
@@ -354,7 +410,7 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void GetClientValidationRules_WithActionControllerAreaInArea_FindsControllerInDifferentArea()
         {
-            // Arrange XYZ
+            // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "AnotherArea");
             var context = GetValidationContextWithArea(currentArea: "Test");
 
@@ -376,9 +432,12 @@ namespace Microsoft.AspNet.Mvc
                 containerType: typeof(string),
                 propertyName: "Length");
 
+            var serviceCollection = GetServiceCollection();
             var urlHelper = UrlHelperTest.CreateUrlHelperWithRouteCollection("/app");
+            serviceCollection.AddInstance<IUrlHelper>(urlHelper);
+            var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            return new MvcClientModelValidationContext(metadata, metadataProvider, urlHelper);
+            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContext(string url)
@@ -389,7 +448,8 @@ namespace Microsoft.AspNet.Mvc
                 containerType: typeof(string),
                 propertyName: "Length");
 
-            var serviceProvider = GetServiceProvider();
+            var serviceCollection = GetServiceCollection();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             var urlHelper = GetUrlHelper(serviceProvider, url);
             urlHelper
                 .Setup(helper => helper.RouteUrl(
@@ -400,7 +460,10 @@ namespace Microsoft.AspNet.Mvc
                     null))              // fragment
                 .Returns(url);
 
-            return new MvcClientModelValidationContext(metadata, metadataProvider, urlHelper.Object);
+            serviceCollection.AddInstance<IUrlHelper>(urlHelper.Object);
+            serviceProvider = serviceCollection.BuildServiceProvider();
+
+            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContext(
@@ -415,7 +478,8 @@ namespace Microsoft.AspNet.Mvc
                 containerType: typeof(string),
                 propertyName: "Length");
 
-            var serviceProvider = GetServiceProvider();
+            var serviceCollection = GetServiceCollection();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             var urlHelper = GetUrlHelper(serviceProvider, url);
             urlHelper
                 .Setup(helper => helper.RouteUrl(
@@ -433,7 +497,10 @@ namespace Microsoft.AspNet.Mvc
                 })
                 .Returns(url);
 
-            return new MvcClientModelValidationContext(metadata, metadataProvider, urlHelper.Object);
+            serviceCollection.AddInstance<IUrlHelper>(urlHelper.Object);
+            serviceProvider = serviceCollection.BuildServiceProvider();
+
+            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContext(
@@ -449,7 +516,8 @@ namespace Microsoft.AspNet.Mvc
                 containerType: typeof(string),
                 propertyName: "Length");
 
-            var serviceProvider = GetServiceProvider();
+            var serviceCollection = GetServiceCollection();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             var urlHelper = GetUrlHelper(serviceProvider, url);
             urlHelper
                 .Setup(helper => helper.RouteUrl(
@@ -469,12 +537,16 @@ namespace Microsoft.AspNet.Mvc
                 })
                 .Returns(url);
 
-            return new MvcClientModelValidationContext(metadata, metadataProvider, urlHelper.Object);
+            serviceCollection.AddInstance<IUrlHelper>(urlHelper.Object);
+            serviceProvider = serviceCollection.BuildServiceProvider();
+
+            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContextWithArea(string currentArea)
         {
-            var serviceProvider = GetServiceProvider();
+            var serviceCollection = GetServiceCollection();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             var routeCollection = GetRouteCollectionWithArea(serviceProvider);
             var routeData = new RouteData
             {
@@ -496,18 +568,22 @@ namespace Microsoft.AspNet.Mvc
             var contextAccessor = GetContextAccessor(serviceProvider, routeData);
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             var urlHelper = new UrlHelper(contextAccessor, actionSelector.Object);
+            serviceCollection.AddInstance<IUrlHelper>(urlHelper);
+            serviceProvider = serviceCollection.BuildServiceProvider();
+
             var metadataProvider = new EmptyModelMetadataProvider();
             var metadata = metadataProvider.GetMetadataForProperty(
                 modelAccessor: null,
                 containerType: typeof(string),
                 propertyName: "Length");
 
-            return new MvcClientModelValidationContext(metadata, metadataProvider, urlHelper);
+            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
         }
 
         private static ClientModelValidationContext GetValidationContextWithNoController()
         {
-            var serviceProvider = GetServiceProvider();
+            var serviceCollection = GetServiceCollection();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             var routeCollection = GetRouteCollectionWithNoController(serviceProvider);
             var routeData = new RouteData
             {
@@ -520,13 +596,16 @@ namespace Microsoft.AspNet.Mvc
             var contextAccessor = GetContextAccessor(serviceProvider, routeData);
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             var urlHelper = new UrlHelper(contextAccessor, actionSelector.Object);
+            serviceCollection.AddInstance<IUrlHelper>(urlHelper);
+            serviceProvider = serviceCollection.BuildServiceProvider();
+
             var metadataProvider = new EmptyModelMetadataProvider();
             var metadata = metadataProvider.GetMetadataForProperty(
                 modelAccessor: null,
                 containerType: typeof(string),
                 propertyName: "Length");
 
-            return new MvcClientModelValidationContext(metadata, metadataProvider, urlHelper);
+            return new ClientModelValidationContext(metadata, metadataProvider, serviceProvider);
         }
 
         private static IRouter GetRouteCollectionWithArea(IServiceProvider serviceProvider)
@@ -593,6 +672,8 @@ namespace Microsoft.AspNet.Mvc
             IServiceProvider serviceProvider,
             RouteData routeData = null)
         {
+            // Set IServiceProvider properties because TemplateRoute gets services (e.g. an ILoggerFactory instance)
+            // through the HttpContext.
             var httpContext = new DefaultHttpContext
             {
                 ApplicationServices = serviceProvider,
@@ -618,10 +699,15 @@ namespace Microsoft.AspNet.Mvc
 
         private static IServiceProvider GetServiceProvider()
         {
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider
-                .Setup(services => services.GetService(typeof(ILoggerFactory)))
-                .Returns(new NullLoggerFactory());
+            var serviceCollection = GetServiceCollection();
+
+            return serviceCollection.BuildServiceProvider();
+        }
+
+        private static ServiceCollection GetServiceCollection()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddInstance<ILoggerFactory>(new NullLoggerFactory());
 
             var descriptors = new List<ActionDescriptor>
             {
@@ -653,9 +739,7 @@ namespace Microsoft.AspNet.Mvc
             collectionProvider
                 .SetupGet(provider => provider.ActionDescriptors)
                 .Returns(collection);
-            serviceProvider
-                .Setup(services => services.GetService(typeof(IActionDescriptorsCollectionProvider)))
-                .Returns(collectionProvider.Object);
+            serviceCollection.AddInstance<IActionDescriptorsCollectionProvider>(collectionProvider.Object);
 
             var routeOptions = new RouteOptions
             {
@@ -668,11 +752,48 @@ namespace Microsoft.AspNet.Mvc
             accessor
                 .SetupGet(options => options.Options)
                 .Returns(routeOptions);
-            serviceProvider
-                .Setup(services => services.GetService(typeof(IInlineConstraintResolver)))
-                .Returns(new DefaultInlineConstraintResolver(serviceProvider.Object, accessor.Object));
 
-            return serviceProvider.Object;
+            // DefaultInlineConstraintResolver constructor does not currently check its serviceProvider parameter (e.g.
+            // for null) and the class does not look up any services.
+            serviceCollection.AddInstance<IInlineConstraintResolver>(new DefaultInlineConstraintResolver(
+                serviceProvider: null,
+                routeOptions: accessor.Object));
+
+            return serviceCollection;
+        }
+
+        private class TestableRemoteAttribute : RemoteAttribute
+        {
+            public TestableRemoteAttribute(string routeName)
+                : base(routeName)
+            {
+            }
+
+            public TestableRemoteAttribute(string action, string controller)
+                : base(action, controller)
+            {
+            }
+
+            public TestableRemoteAttribute(string action, string controller, string areaName)
+                : base(action, controller, areaName)
+            {
+            }
+
+            public new string RouteName
+            {
+                get
+                {
+                    return base.RouteName;
+                }
+            }
+
+            public new RouteValueDictionary RouteData
+            {
+                get
+                {
+                    return base.RouteData;
+                }
+            }
         }
     }
 }

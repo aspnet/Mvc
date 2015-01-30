@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Linq;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -42,11 +44,6 @@ namespace Microsoft.AspNet.Mvc
         public RemoteAttribute(string routeName)
             : this()
         {
-            if (string.IsNullOrWhiteSpace(routeName))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "routeName");
-            }
-
             RouteName = routeName;
         }
 
@@ -60,34 +57,42 @@ namespace Microsoft.AspNet.Mvc
         /// The controller name used when generating the URL where client should send a validation request.
         /// </param>
         /// <remarks>
-        /// Finds the <paramref name="controller"/> in the current area.
+        /// <para>
+        /// If either <paramref name="action"/> or <paramref name="controller"/> is <c>null</c>, uses the corresponding
+        /// ambient value.
+        /// </para>
+        /// <para>Finds the <paramref name="controller"/> in the current area.</para>
         /// </remarks>
         public RemoteAttribute(string action, string controller)
             : this()
         {
-            if (string.IsNullOrWhiteSpace(action))
+            if (action != null)
             {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "action");
-            }
-            if (string.IsNullOrWhiteSpace(controller))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, "controller");
+                RouteData["action"] = action;
             }
 
-            RouteData["controller"] = controller;
-            RouteData["action"] = action;
+            if (controller != null)
+            {
+                RouteData["controller"] = controller;
+            }
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoteAttribute"/> class.
         /// </summary>
-        /// <param name="action">The action name.</param>
-        /// <param name="controller">The controller name.</param>
-        /// <param name="areaName">
-        /// The name of the area containing the <paramref name="controller"/>. If <c>null</c>, finds the
-        /// <paramref name="controller"/> in the root area.
+        /// <param name="action">
+        /// The action name used when generating the URL where client should send a validation request.
         /// </param>
+        /// <param name="controller">
+        /// The controller name used when generating the URL where client should send a validation request.
+        /// </param>
+        /// <param name="areaName">The name of the area containing the <paramref name="controller"/>.</param>
         /// <remarks>
+        /// <para>
+        /// If either <paramref name="action"/> or <paramref name="controller"/> is <c>null</c>, uses the corresponding
+        /// ambient value.
+        /// </para>
+        /// If <paramref name="areaName"/> is <c>null</c>, finds the <paramref name="controller"/> in the root area.
         /// Use the <see cref="RemoteAttribute(string, string)"/> overload find the <paramref name="controller"/> in
         /// the current area. Or explicitly pass the current area's name as the <paramref name="areaName"/> argument to
         /// this overload.
@@ -113,7 +118,7 @@ namespace Microsoft.AspNet.Mvc
             set
             {
                 _additionalFields = value ?? string.Empty;
-                _additionalFieldsSplit = StringHelper.SplitString(value).AsArray();
+                _additionalFieldsSplit = SplitString(value).AsArray();
             }
         }
 
@@ -174,16 +179,12 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Returns the URL where the client should send a validation request.
         /// </summary>
-        /// <param name="context">The <see cref="MvcClientModelValidationContext"/> used to generate the URL.</param>
+        /// <param name="context">The <see cref="ClientModelValidationContext"/> used to generate the URL.</param>
         /// <returns>The URL where the client should send a validation request.</returns>
-        protected virtual string GetUrl([NotNull] MvcClientModelValidationContext context)
+        protected virtual string GetUrl([NotNull] ClientModelValidationContext context)
         {
-            var url = context.UrlHelper.RouteUrl(
-                routeName: RouteName,
-                values: RouteData,
-                protocol: null,
-                host: null,
-                fragment: null);
+            var urlHelper = context.RequestServices.GetRequiredService<IUrlHelper>();
+            var url = urlHelper.RouteUrl(RouteName, values: RouteData, protocol: null, host: null, fragment: null);
             if (url == null)
             {
                 throw new InvalidOperationException(Resources.RemoteAttribute_NoUrlFound);
@@ -205,33 +206,33 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentException">
-        /// Thrown if provided <paramref name="context"/> is not a <see cref="MvcClientModelValidationContext"/>
-        /// instance.
-        /// </exception>
         /// <exception cref="InvalidOperationException">
         /// Thrown if unable to generate a target URL for a validation request.
         /// </exception>
         public virtual IEnumerable<ModelClientValidationRule> GetClientValidationRules(
             [NotNull] ClientModelValidationContext context)
         {
-            var mvcContext = context as MvcClientModelValidationContext;
-            if (mvcContext == null)
-            {
-                var message = Resources.FormatArgumentUnexpectedType(
-                    context.GetType().FullName,
-                    typeof(MvcClientModelValidationContext).FullName);
-                throw new ArgumentException(message, nameof(context));
-            }
-
             var metadata = context.ModelMetadata;
             var rule = new ModelClientValidationRemoteRule(
                 FormatErrorMessage(metadata.GetDisplayName()),
-                GetUrl(mvcContext),
+                GetUrl(context),
                 HttpMethod,
                 FormatAdditionalFieldsForClientValidation(metadata.PropertyName));
 
             return new[] { rule };
+        }
+
+        private static IEnumerable<string> SplitString(string original)
+        {
+            if (string.IsNullOrEmpty(original))
+            {
+                return new string[0];
+            }
+
+            var split = original.Split(',')
+                                .Select(piece => piece.Trim())
+                                .Where(trimmed => !string.IsNullOrEmpty(trimmed));
+            return split;
         }
     }
 }
