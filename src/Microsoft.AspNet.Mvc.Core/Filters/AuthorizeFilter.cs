@@ -40,6 +40,8 @@ namespace Microsoft.AspNet.Mvc
         {
             var httpContext = context.HttpContext;
 
+            await OnAuthenticateAsync(context);
+
             // Allow Anonymous skips all authorization
             if (HasAllowAnonymous(context))
             {
@@ -49,14 +51,14 @@ namespace Microsoft.AspNet.Mvc
             // REFER to security for how they compare anonymous
             if (httpContext.User == null || !httpContext.User.Identities.Any(i => i.IsAuthenticated))
             {
-                Fail(context);
+                context.Result = new ChallengeResult(Policy.ActiveAuthenticationTypes.ToArray());
                 return;
             }
 
             var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
             if (!await authService.AuthorizeAsync(httpContext.User, context, Policy))
             {
-                Fail(context);
+                context.Result = new HttpStatusCodeResult(403);
                 return;
             }
         }

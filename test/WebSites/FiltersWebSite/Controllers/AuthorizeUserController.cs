@@ -6,12 +6,23 @@ using Microsoft.AspNet.Security;
 
 namespace FiltersWebSite
 {
-    [Authenticate("Basic")]
-    [Authorize("RequireBasic")]
+    [Authorize("Api")]
     public class AuthorizeUserController : Controller
     {
-        [Authorize("CanViewPage")]
-        public string ReturnHelloWorldOnlyForAuthorizedUser()
+        [Authorize("Api-Manager")]
+        public string ApiManagers()
+        {
+            return "Hello World!";
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public string AdminRole()
+        {
+            return "Hello World!";
+        }
+
+        [Authorize("Interactive")]
+        public string InteractiveUsers()
         {
             return "Hello World!";
         }
@@ -28,6 +39,5 @@ namespace FiltersWebSite
         {
             return "Hello World!";
         }
-
     }
 }

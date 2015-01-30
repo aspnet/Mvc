@@ -3,6 +3,7 @@
 
 using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http.Security;
 using Microsoft.AspNet.Security;
@@ -15,10 +16,8 @@ namespace FiltersWebSite
     {
         public BasicOptions()
         {
-            AuthenticationType = "Basic";
             AuthenticationMode = AuthenticationMode.Passive;
         }
-
     }
 
     public class AuthorizeBasicMiddleware : AuthenticationMiddleware<BasicOptions>
@@ -26,9 +25,12 @@ namespace FiltersWebSite
         public AuthorizeBasicMiddleware(
             RequestDelegate next, 
             IServiceProvider services, 
-            IOptions<BasicOptions> options) : 
-                base(next, services, options, null)
-        { }
+            IOptions<BasicOptions> options,
+            string authType) : 
+                base(next, services, options, 
+                    new ConfigureOptions<BasicOptions>(o => o.AuthenticationType = authType) { Name = authType })
+        {
+        }
 
         protected override AuthenticationHandler<BasicOptions> CreateHandler()
         {
@@ -49,12 +51,13 @@ namespace FiltersWebSite
         protected override AuthenticationTicket AuthenticateCore()
         {
             var id = new ClaimsIdentity(
-                    new Claim[] {
-                        new Claim("Permission", "CanViewPage"),
-                        new Claim(ClaimTypes.Role, "Administrator"),
-                        new Claim(ClaimTypes.NameIdentifier, "John")},
-                        "Basic");
-
+                new Claim[] {
+                    new Claim("Permission", "CanViewPage"),
+                    new Claim("Manager", "yes"),
+                    new Claim(ClaimTypes.Role, "Administrator"),
+                    new Claim(ClaimTypes.NameIdentifier, "John")
+                },
+                Options.AuthenticationType);
             return new AuthenticationTicket(id, new AuthenticationProperties());
         }
     }
