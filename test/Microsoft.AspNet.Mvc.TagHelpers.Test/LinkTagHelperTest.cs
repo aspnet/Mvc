@@ -46,19 +46,27 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
         }
         
         [Fact]
-        public void PreservesOrderOfSourceAttributes()
+        public void PreservesOrderOfSourceAttributesWhenRun()
         {
             // Arrange
             var context = MakeTagHelperContext(
                 attributes: new Dictionary<string, object>
                 {
-                    {},
+                    { "rel", "stylesheet"},
+                    { "data-extra", "something"},
+                    { "href", "test.css"},
                     { "asp-fallback-href", "test.css" },
                     { "asp-fallback-test-class", "hidden" },
                     { "asp-fallback-test-property", "visible" },
-                    { "asp-fallback-test-value", "hidden" },
+                    { "asp-fallback-test-value", "hidden" }
                 });
-            var output = MakeTagHelperOutput("link");
+            var output = MakeTagHelperOutput("link",
+                attributes: new Dictionary<string, string>
+                {
+                    { "rel", "stylesheet"},
+                    { "data-extra", "something"},
+                    { "href", "test.css"}
+                });
             var loggerFactory = new Mock<ILoggerFactory>();
 
             // Act
@@ -73,9 +81,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             helper.Process(context, output);
 
             // Assert
-            Assert.Null(output.TagName);
-            Assert.NotNull(output.Content);
-            Assert.True(output.ContentSet);
+            Assert.StartsWith("<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content);
         }
         
         [Fact]

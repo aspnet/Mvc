@@ -51,6 +51,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         .Replace("]]]", "}");
         }
         
+        // TODO: Remove this when we get WebUtility.JavaScriptStringEncode
         /// <summary>
         /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
         /// </summary>
@@ -58,13 +59,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             var map = new Dictionary<char, string>
             {
-                { '<', @"\u003c" },
-                { '>', @"\u003e" },
-                { '\'', @"\u0027" },
-                { '"', @"\u0022" },
-                { '\\', @"\\" },
-                { '\r', "\\r" },
-                { '\n', "\\n" }
+                { '<', @"\u003c" },  // opening angle-bracket
+                { '>', @"\u003e" },  // closing angle-bracket
+                { '\'', @"\u0027" }, // single quote
+                { '"', @"\u0022" },  // double quote
+                { '\\', @"\\" },     // back slash
+                { '\r', "\\r" },     // carriage return
+                { '\n', "\\n" }      // new line
             };
             var result = new StringBuilder();
 
