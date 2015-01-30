@@ -10,6 +10,7 @@ using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Security;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -20,15 +21,17 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     {
         private readonly IActionModelBuilder _actionModelBuilder;
         private readonly ILogger _logger;
+        private readonly AuthorizationOptions _authorizationOptions;
 
         /// <summary>
         /// Creates a new <see cref="DefaultControllerModelBuilder"/>.
         /// </summary>
         /// <param name="actionModelBuilder">The <see cref="IActionModelBuilder"/> used to create actions.</param>
-        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder, ILoggerFactory loggerFactory)
+        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder, ILoggerFactory loggerFactory, IOptions<AuthorizationOptions> options = null)
         {
             _actionModelBuilder = actionModelBuilder;
             _logger = loggerFactory.Create<DefaultControllerModelBuilder>();
+            _authorizationOptions = options?.Options ?? new AuthorizationOptions();
         }
 
         /// <inheritdoc />
@@ -73,13 +76,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             AddRange(controllerModel.Filters, attributes.OfType<IFilter>());
             AddRange(controllerModel.RouteConstraints, attributes.OfType<IRouteConstraintProvider>());
 
-            foreach (var authorizeAttribute in attributes.OfType<AuthorizeAttribute>())
+            var policy = AuthorizationPolicy.Combine(_authorizationOptions, attributes.OfType<AuthorizeAttribute>());
+            if (policy != null)
             {
-                controllerModel.Filters.Add(new AuthorizeFilter
-                {
-                    Policy = authorizeAttribute.Policy,
-                    Roles = authorizeAttribute.Roles?.Split(','),
-                });
+                controllerModel.Filters.Add(new AuthorizeFilter(policy));
             }
 
             AddRange(

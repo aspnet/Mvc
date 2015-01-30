@@ -9,6 +9,7 @@ using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Security;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -17,6 +18,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     /// </summary>
     public class DefaultActionModelBuilder : IActionModelBuilder
     {
+        private readonly AuthorizationOptions _authorizationOptions;
+
+        public DefaultActionModelBuilder(IOptions<AuthorizationOptions> options = null)
+        {
+            _authorizationOptions = options?.Options ?? new AuthorizationOptions();
+        }
+
         /// <inheritdoc />
         public IEnumerable<ActionModel> BuildActionModels([NotNull] TypeInfo typeInfo, [NotNull] MethodInfo methodInfo)
         {
@@ -257,13 +265,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             AddRange(actionModel.ActionConstraints, attributes.OfType<IActionConstraintMetadata>());
             AddRange(actionModel.Filters, attributes.OfType<IFilter>());
 
-            foreach (var authorizeAttribute in attributes.OfType<AuthorizeAttribute>())
+            var policy = AuthorizationPolicy.Combine(_authorizationOptions, attributes.OfType<AuthorizeAttribute>());
+            if (policy != null)
             {
-                actionModel.Filters.Add(new AuthorizeFilter
-                {
-                    Policy = authorizeAttribute.Policy,
-                    Roles = authorizeAttribute.Roles?.Split(','),
-                });
+                actionModel.Filters.Add(new AuthorizeFilter(policy));
             }
 
             var actionName = attributes.OfType<ActionNameAttribute>().FirstOrDefault();

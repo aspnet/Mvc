@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Security;
 using Microsoft.Framework.DependencyInjection;
@@ -10,22 +11,29 @@ using Microsoft.Framework.DependencyInjection;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An implementation of <see cref="IAsyncAuthorizationFilter"/> which corresponds to [Authorize]
+    /// An implementation of <see cref="IAsyncAuthorizationFilter"/>
     /// </summary>
-    public class AuthorizeFilter : IAsyncAuthorizationFilter, IOrderedFilter
+    public class AuthorizeFilter : IAsyncAuthorizationFilter
     {
-        /// <inheritdoc />
-        public int Order { get; set; }
-
         /// <summary>
-        /// Policy name used for authorization
+        /// Authorize filter for the given policy
         /// </summary>
-        public string Policy { get; set; }
+        /// <param name="policy"></param>
+        public AuthorizeFilter([NotNull] AuthorizationPolicy policy)
+        {
+            Policy = policy;
+        }
 
-        /// <summary>
-        /// User must be a member of one of these Roles if any are specified
-        /// </summary>
-        public IEnumerable<string> Roles { get; set; }
+        public AuthorizationPolicy Policy { get; private set; } // Effective Combined Policy
+
+        public virtual async Task OnAuthenticateAsync([NotNull] AuthorizationContext context)
+        {
+            if (Policy.ActiveAuthenticationTypes != null && Policy.ActiveAuthenticationTypes.Any())
+            {
+                var results = await context.HttpContext.AuthenticateAsync(Policy.ActiveAuthenticationTypes);
+                context.HttpContext.User = new ClaimsPrincipal(results.Where(r => r.Identity != null).Select(r => r.Identity));
+            }
+        }
 
         /// <inheritdoc />
         public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
@@ -38,27 +46,18 @@ namespace Microsoft.AspNet.Mvc
                 return;
             }
 
-            var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
-
-            // Build a policy for the requested roles if specified
-            if (Roles != null && Roles.Any())
-            {
-                var rolesPolicy = new AuthorizationPolicyBuilder();
-                rolesPolicy.RequiresRole(Roles);
-                if (!await authService.AuthorizeAsync(httpContext.User, context, rolesPolicy.Build()))
-                {
-                    Fail(context);
-                    return;
-                }
-            }
-
-            var authorized = (Policy == null)
-                // [Authorize] with no policy just requires any authenticated user
-                ? await authService.AuthorizeAsync(httpContext.User, context, BuildAnyAuthorizedUserPolicy())
-                : await authService.AuthorizeAsync(httpContext.User, context, Policy);
-            if (!authorized)
+            // REFER to security for how they compare anonymous
+            if (httpContext.User == null || !httpContext.User.Identities.Any(i => i.IsAuthenticated))
             {
                 Fail(context);
+                return;
+            }
+
+            var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
+            if (!await authService.AuthorizeAsync(httpContext.User, context, Policy))
+            {
+                Fail(context);
+                return;
             }
         }
 
@@ -72,15 +71,9 @@ namespace Microsoft.AspNet.Mvc
             return context.Filters.Any(item => item is IAllowAnonymous);
         }
 
-        /// <inheritdoc />
         protected virtual void Fail([NotNull] AuthorizationContext context)
         {
-            context.Result = new HttpStatusCodeResult(401);
-        }
-
-        private static AuthorizationPolicy BuildAnyAuthorizedUserPolicy()
-        {
-            return new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+            context.Result = new ChallengeResult(Policy.ActiveAuthenticationTypes.ToArray());
         }
     }
 }

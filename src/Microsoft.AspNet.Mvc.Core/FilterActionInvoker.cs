@@ -25,7 +25,6 @@ namespace Microsoft.AspNet.Mvc
         private IFilter[] _filters;
         private FilterCursor _cursor;
 
-        private AuthenticationContext _authenticationContext;
         private AuthorizationContext _authorizationContext;
 
         private ResourceExecutingContext _resourceExecutingContext;
@@ -98,8 +97,6 @@ namespace Microsoft.AspNet.Mvc
             _filters = GetFilters();
             _cursor = new FilterCursor(_filters);
 
-            await InvokeAllAuthenticationFiltersAsync();
-
             await InvokeAllAuthorizationFiltersAsync();
 
             // If Authorization Filters return a result, it's a short circuit because
@@ -151,30 +148,6 @@ namespace Microsoft.AspNet.Mvc
             _filterProvider.Invoke(filterProviderContext);
 
             return filterProviderContext.Results.Select(item => item.Filter).Where(filter => filter != null).ToArray();
-        }
-
-        private async Task InvokeAllAuthenticationFiltersAsync()
-        {
-            _cursor.SetStage(FilterStage.AuthenticationFilters);
-
-            _authenticationContext = new AuthenticationContext(ActionContext, _filters);
-            await InvokeAuthenticationFilterAsync();
-        }
-
-        private async Task InvokeAuthenticationFilterAsync()
-        {
-            // We should never get here if we already have a result.
-            Debug.Assert(_authenticationContext != null);
-
-            var current = _cursor.GetNextFilter<IAuthenticationFilter, IAsyncAuthenticationFilter>();
-            if (current.FilterAsync != null)
-            {
-                await current.FilterAsync.OnAuthenticationAsync(_authenticationContext);
-            }
-            else if (current.Filter != null)
-            {
-                current.Filter.OnAuthentication(_authenticationContext);
-            }
         }
 
         private async Task InvokeAllAuthorizationFiltersAsync()
@@ -680,7 +653,6 @@ namespace Microsoft.AspNet.Mvc
         private enum FilterStage
         {
             Undefined,
-            AuthenticationFilters,
             AuthorizationFilters,
             ResourceFilters,
             ExceptionFilters,
