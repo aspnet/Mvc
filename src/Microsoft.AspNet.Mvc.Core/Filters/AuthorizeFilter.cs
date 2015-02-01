@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
     public class AuthorizeFilter : IAsyncAuthorizationFilter
     {
         /// <summary>
-        /// Authorize filter for the given policy
+        /// Authorize filter for a specific policy
         /// </summary>
         /// <param name="policy"></param>
         public AuthorizeFilter([NotNull] AuthorizationPolicy policy)
@@ -23,53 +23,36 @@ namespace Microsoft.AspNet.Mvc
             Policy = policy;
         }
 
-        public AuthorizationPolicy Policy { get; private set; } // Effective Combined Policy
+        /// <summary>
+        /// Authorization policy to be used
+        /// </summary>
+        public AuthorizationPolicy Policy { get; private set; }
 
-        public virtual async Task OnAuthenticateAsync([NotNull] AuthorizationContext context)
+        /// <inheritdoc />
+        public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
+            // Build a ClaimsPrincipal with the Policy's required authentication types
             if (Policy.ActiveAuthenticationTypes != null && Policy.ActiveAuthenticationTypes.Any())
             {
                 var results = await context.HttpContext.AuthenticateAsync(Policy.ActiveAuthenticationTypes);
                 context.HttpContext.User = new ClaimsPrincipal(results.Where(r => r.Identity != null).Select(r => r.Identity));
             }
-        }
-
-        /// <inheritdoc />
-        public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
-        {
-            var httpContext = context.HttpContext;
-
-            await OnAuthenticateAsync(context);
 
             // Allow Anonymous skips all authorization
-            if (HasAllowAnonymous(context))
+            if (context.Filters.Any(item => item is IAllowAnonymous))
             {
                 return;
             }
 
-            // REFER to security for how they compare anonymous
-            if (httpContext.User == null || !httpContext.User.Identities.Any(i => i.IsAuthenticated))
+            var httpContext = context.HttpContext;
+            var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
+            // Note: Default Anonymous User is new ClaimsPrincipal(new ClaimsIdentity())
+            if (httpContext.User == null ||
+                !httpContext.User.Identities.Any(i => i.IsAuthenticated) ||
+                !await authService.AuthorizeAsync(httpContext.User, context, Policy))
             {
                 context.Result = new ChallengeResult(Policy.ActiveAuthenticationTypes.ToArray());
-                return;
             }
-
-            var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
-            if (!await authService.AuthorizeAsync(httpContext.User, context, Policy))
-            {
-                context.Result = new HttpStatusCodeResult(403);
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if there is an IAllowAnonymous<see cref="IAllowAnonymous" /> filter
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected virtual bool HasAllowAnonymous([NotNull] AuthorizationContext context)
-        {
-            return context.Filters.Any(item => item is IAllowAnonymous);
         }
     }
 }
