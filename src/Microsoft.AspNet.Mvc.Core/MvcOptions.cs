@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.Mvc.ApplicationModels;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
@@ -82,14 +83,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         public List<ExcludeValidationDescriptor> ValidationExcludeFilters { get; }
             = new List<ExcludeValidationDescriptor>();
-
-        /// <summary>
-        /// Gets a list of <see cref="CacheProfile"/> which are pre-defined settings for
-        /// <see cref="ResponseCacheFilter"/>.
-        /// </summary>
-        public List<CacheProfile> CacheProfiles { get; }
-            = new List<CacheProfile>();
-
+        
         /// <summary>
         /// Gets or sets the maximum number of validation errors that are allowed by this application before further
         /// errors are ignored.
@@ -145,5 +139,36 @@ namespace Microsoft.AspNet.Mvc
         /// when it contains the media type */*. <see langword="false"/> by default.
         /// </summary>
         public bool RespectBrowserAcceptHeader { get; set; } = false;
+        
+        /// <summary>
+        /// Adds a <see cref="CacheProfile"/>.
+        /// </summary>
+        /// <param name="profile">The cache profile which needs to be added.</param>
+        public void AddCacheProfile([NotNull] CacheProfile profile)
+        {
+            if (CacheProfiles.Any(p => p.Name == profile.Name))
+            {
+                throw new InvalidOperationException(Resources.CacheProfileAlreadyExists);
+            }
+
+            CacheProfiles.Add(profile);
+        }
+
+        /// <summary>
+        /// Gets a particular <see cref="CacheProfile"/>.
+        /// </summary>
+        /// <param name="cacheProfileName">The name of the <see cref="CacheProfile"/> which needs to be added.</param>
+        /// <returns>The <see cref="CacheProfile"/> if it exists in the list or null.</returns>
+        public CacheProfile GetCacheProfile([NotNull] string cacheProfileName)
+        {
+            return CacheProfiles.SingleOrDefault(
+                p => string.Equals(p.Name, cacheProfileName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Gets a list of <see cref="CacheProfile"/> which are pre-defined settings for
+        /// <see cref="ResponseCacheFilter"/>.
+        /// </summary>
+        private List<CacheProfile> CacheProfiles { get; } = new List<CacheProfile>();
     }
 }

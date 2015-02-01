@@ -128,7 +128,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Accept", data);
             data = Assert.Single(response.Headers.GetValues("Cache-control"));
             Assert.Equal("public, max-age=10", data);
-            Assert.Throws<InvalidOperationException>(() => response.Headers.GetValues("Pragma"));
+            IEnumerable<string> pragmaValues;
+            response.Headers.TryGetValues("Pragma", out pragmaValues);
+            Assert.Null(pragmaValues);
         }
 
         [Fact]
@@ -239,7 +241,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ClassLevelHeadersAreUnsetByActionLevelProfiles()
+        public async Task ResponseCacheAttribute_OnAction_OverridesTheValuesOnClass()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -253,7 +255,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Accept", data);
             data = Assert.Single(response.Headers.GetValues("Cache-control"));
             Assert.Equal("public, max-age=30", data);
-            Assert.Throws<InvalidOperationException>(() => response.Headers.GetValues("Pragma"));
+            IEnumerable<string> pragmaValues;
+            response.Headers.TryGetValues("Pragma", out pragmaValues);
+            Assert.Null(pragmaValues);
         }
     }
 }

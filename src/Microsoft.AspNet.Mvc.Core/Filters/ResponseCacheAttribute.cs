@@ -2,15 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// Specifies the parameters necessary for setting appropriate headers in response caching.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class ResponseCacheAttribute : Attribute, IFilterFactory
+    public class ResponseCacheAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
         // A nullable-int cannot be used as an Attribute parameter.
         // Hence this nullable-int is present to back the Duration property.
@@ -74,9 +76,14 @@ namespace Microsoft.AspNet.Mvc
         public string VaryByHeader { get; set; }
 
         /// <summary>
-        /// Gets or sets the value of the Cache Profile.
+        /// Gets or sets the value of the cache profile name.
         /// </summary>
         public string CacheProfileName { get; set; }
+
+        /// <summary>
+        /// The order of the filter.
+        /// </summary>
+        public int Order { get; set; }
 
         public IFilter CreateInstance([NotNull] IServiceProvider serviceProvider)
         {
@@ -85,8 +92,7 @@ namespace Microsoft.AspNet.Mvc
             CacheProfile selectedProfile = null;
             if (!string.IsNullOrEmpty(CacheProfileName))
             {
-                selectedProfile = optionsAccessor.Options.CacheProfiles.FirstOrDefault(
-                    p => string.Equals(p.Name, CacheProfileName, StringComparison.OrdinalIgnoreCase));
+                selectedProfile = optionsAccessor.Options.GetCacheProfile(CacheProfileName);
 
                 if (selectedProfile == null)
                 {
@@ -103,20 +109,17 @@ namespace Microsoft.AspNet.Mvc
             _noStore = _noStore ?? selectedProfile?.NoStore;
             _location = _location ?? selectedProfile?.Location;
             VaryByHeader = VaryByHeader ?? selectedProfile?.VaryByHeader;
-
-            if (!NoStore)
-            {
-                // Duration MUST be set if NoStore is false. Either in the cache profile or in the attribute.
-                if (_duration == null)
-                {
-                    throw new InvalidOperationException(
-                            Resources.FormatResponseCache_SpecifyDuration(nameof(NoStore), nameof(Duration)));
-                }
-            }
-
+            
             // ResponseCacheFilter cannot take any null values. Hence, if there are any null values,
-            // the properties convert them to thier defaults and are passed on.
-            return new ResponseCacheFilter(Duration, Location, NoStore, VaryByHeader);
+            // the properties convert them to their defaults and are passed on.
+            return new ResponseCacheFilter(
+                new CacheProfile("")
+                {
+                    Duration = _duration,
+                    Location = _location,
+                    NoStore = _noStore,
+                    VaryByHeader = VaryByHeader
+                });
         }
     }
 }

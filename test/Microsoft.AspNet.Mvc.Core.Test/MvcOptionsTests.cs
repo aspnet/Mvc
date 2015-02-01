@@ -30,5 +30,66 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => options.MaxModelValidationErrors = -1);
             Assert.Equal("value", ex.ParamName);
         }
+
+        [Fact]
+        public void AddCacheProfile_AddsCacheProfiles()
+        {
+            // Arrange
+            var options = new MvcOptions();
+            var cacheProfile = new CacheProfile("Sample")
+            {
+                Duration = 20
+            };
+
+            // Act
+            options.AddCacheProfile(cacheProfile);
+
+            // Assert
+            Assert.Equal(cacheProfile, options.GetCacheProfile("Sample"));
+        }
+
+        [Fact]
+        public void AddCacheProfile_AddsCacheProfiles_WithDifferentNames()
+        {
+            // Arrange
+            var options = new MvcOptions();
+            var cacheProfile1 = new CacheProfile("Sample1")
+            {
+                Duration = 20
+            };
+            var cacheProfile2 = new CacheProfile("Sample2")
+            {
+                Duration = 0,
+                NoStore = true,
+                Location = ResponseCacheLocation.None
+            };
+
+            // Act
+            options.AddCacheProfile(cacheProfile1);
+            options.AddCacheProfile(cacheProfile2);
+
+            // Assert
+            Assert.Equal(cacheProfile1, options.GetCacheProfile("Sample1"));
+            Assert.Equal(cacheProfile2, options.GetCacheProfile("Sample2"));
+        }
+
+        [Fact]
+        public void AddCacheProfile_ThrowsWhenMultipleCacheProfilesWithSameNameAreAdded()
+        {
+            // Arrange
+            var options = new MvcOptions();
+            var cacheProfile1 = new CacheProfile("Sample")
+            {
+                Duration = 20
+            };
+            var cacheProfile2 = new CacheProfile("Sample")
+            {
+                Location = ResponseCacheLocation.Any
+            };
+
+            // Act & Assert
+            options.AddCacheProfile(cacheProfile1);
+            Assert.Throws<InvalidOperationException>(() => options.AddCacheProfile(cacheProfile2));
+        }
     }
 }

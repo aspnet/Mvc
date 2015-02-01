@@ -1789,6 +1789,22 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
+        /// A profile with the name '{0}' already exists.
+        /// </summary>
+        internal static string CacheProfileAlreadyExists
+        {
+            get { return GetString("CacheProfileAlreadyExists"); }
+        }
+
+        /// <summary>
+        /// A profile with the name '{0}' already exists.
+        /// </summary>
+        internal static string FormatCacheProfileAlreadyExists(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CacheProfileAlreadyExists"), p0);
+        }
+
+        /// <summary>
         /// The '{0}' cache profile is not defined. Please define it in MvcOptions.
         /// </summary>
         internal static string CacheProfileNotFound

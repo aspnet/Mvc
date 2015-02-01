@@ -4,15 +4,40 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using Microsoft.AspNet.Mvc.Core;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An <see cref="ActionFilterAttribute"/> which sets the appropriate headers related to Response caching.
+    /// An <see cref="ActionFilterAttribute"/> which sets the appropriate headers related to response caching.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class ResponseCacheFilter : ActionFilterAttribute, IResponseCacheFilter
     {
+        /// <summary>
+        /// Creates a new instance of <see cref="ResponseCacheFilter"/>
+        /// </summary>
+        /// <param name="duration">The duration for which the content must be cached.</param>
+        /// <param name="location">The location where the content must be cached.</param>
+        /// <param name="noStore">The boolean defines if the content must be stored or not.</param>
+        /// <param name="varyByHeader">The value for the 'Vary' header.</param>
+        public ResponseCacheFilter(CacheProfile cacheProfile)
+        {
+            if (!(cacheProfile.NoStore ?? false))
+            {
+                // Duration MUST be set if NoStore is false. Either in the cache profile or in the attribute.
+                if (cacheProfile.Duration == null)
+                {
+                    throw new InvalidOperationException(
+                            Resources.FormatResponseCache_SpecifyDuration(nameof(NoStore), nameof(Duration)));
+                }
+            }
+
+            Duration = cacheProfile.Duration ?? 0;
+            Location = cacheProfile.Location ?? ResponseCacheLocation.Any;
+            NoStore = cacheProfile.NoStore ?? false;
+            VaryByHeader = cacheProfile.VaryByHeader;
+        }
+
         /// <summary>
         /// Gets or sets the duration in seconds for which the response is cached.
         /// This is a required parameter.
@@ -37,15 +62,7 @@ namespace Microsoft.AspNet.Mvc
         /// Gets or sets the value for the Vary response header.
         /// </summary>
         public string VaryByHeader { get; set; }
-
-        public ResponseCacheFilter(int duration, ResponseCacheLocation location, bool noStore, string varyByHeader)
-        {
-            Duration = duration;
-            Location = location;
-            NoStore = noStore;
-            VaryByHeader = varyByHeader;
-        }
-
+        
         // <inheritdoc />
         public override void OnActionExecuting([NotNull] ActionExecutingContext context)
         {

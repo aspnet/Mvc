@@ -63,6 +63,14 @@ namespace Microsoft.AspNet.Mvc
                     { Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = "Accept" }
                 };
 
+                yield return new object[] {
+                    new ResponseCacheAttribute()
+                    { Duration = 0, Location = ResponseCacheLocation.None, NoStore = true, VaryByHeader = null },
+                    null,
+                    new CacheProfile("Cache20Sec")
+                    { Duration = 0, Location = ResponseCacheLocation.None, NoStore = true, VaryByHeader = null }
+                };
+
                 // Everything gets overriden if attribute parameters are present,
                 // when a particular cache profile is chosen.
                 yield return new object[] {
@@ -182,7 +190,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (CacheProfile p in cacheProfiles)
                 {
-                    options.CacheProfiles.Add(p);
+                    options.AddCacheProfile(p);
                 }
             }
 
