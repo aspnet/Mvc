@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private static TestRazorPage CreateTestRazorPage()
         {
-            var activator = new RazorPageActivator();
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var serviceProvider = new Mock<IServiceProvider>();
             var myService = new MyService();
             serviceProvider.Setup(mock => mock.GetService(typeof(MyService)))

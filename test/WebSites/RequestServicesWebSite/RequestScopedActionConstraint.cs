@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.DependencyInjection;
 
@@ -11,6 +12,8 @@ namespace RequestServicesWebSite
     public class RequestScopedActionConstraintAttribute : Attribute, IActionConstraintFactory
     {
         private readonly string _requestId;
+        private static readonly ConcurrentDictionary<Type, Func<IServiceProvider, object[], object>> _constraintCache =
+               new ConcurrentDictionary<Type, Func<IServiceProvider, object[], object>>();
 
         public RequestScopedActionConstraintAttribute(string requestId)
         {
@@ -19,7 +22,10 @@ namespace RequestServicesWebSite
 
         public IActionConstraint CreateInstance(IServiceProvider services)
         {
-            return ActivatorUtilities.CreateInstance<Constraint>(services, _requestId);
+            var constraintType = typeof(Constraint);
+            var constraintFactory = _constraintCache.GetOrAdd(constraintType, ActivatorUtilities.CreateFactory(constraintType, new[] { _requestId.GetType() }));
+            return (Constraint)constraintFactory(services, new[] { _requestId });
+            //return ActivatorUtilities.CreateInstance<Constraint>(services, _requestId);
         }
 
         private class Constraint : IActionConstraint
