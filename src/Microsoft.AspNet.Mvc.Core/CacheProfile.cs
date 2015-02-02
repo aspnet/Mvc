@@ -9,22 +9,6 @@ namespace Microsoft.AspNet.Mvc
 	public class CacheProfile
     {
         /// <summary>
-        /// Creates a new instance of <see cref="CacheProfile"/>.
-        /// </summary>
-        /// <param name="name">The name of the <see cref="CacheProfile"/>.</param>
-        public CacheProfile(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// Gets or sets the name of the <see cref="CacheProfile"/>.
-        /// The CacheProfile is referred in the ResponseCache attribute using this name.
-        /// This is a required parameter.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
         /// Gets or sets the duration in seconds for which the response is cached.
         /// If this property is set to a non null value,
         /// the "max-age" in "Cache-control" header is set in the <see cref="HttpContext.Response" />.

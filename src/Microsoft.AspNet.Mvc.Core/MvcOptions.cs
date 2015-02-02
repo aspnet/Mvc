@@ -141,34 +141,10 @@ namespace Microsoft.AspNet.Mvc
         public bool RespectBrowserAcceptHeader { get; set; } = false;
         
         /// <summary>
-        /// Adds a <see cref="CacheProfile"/>.
-        /// </summary>
-        /// <param name="profile">The cache profile which needs to be added.</param>
-        public void AddCacheProfile([NotNull] CacheProfile profile)
-        {
-            if (CacheProfiles.Any(p => p.Name == profile.Name))
-            {
-                throw new InvalidOperationException(Resources.CacheProfileAlreadyExists);
-            }
-
-            CacheProfiles.Add(profile);
-        }
-
-        /// <summary>
-        /// Gets a particular <see cref="CacheProfile"/>.
-        /// </summary>
-        /// <param name="cacheProfileName">The name of the <see cref="CacheProfile"/> which needs to be added.</param>
-        /// <returns>The <see cref="CacheProfile"/> if it exists in the list or null.</returns>
-        public CacheProfile GetCacheProfile([NotNull] string cacheProfileName)
-        {
-            return CacheProfiles.SingleOrDefault(
-                p => string.Equals(p.Name, cacheProfileName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Gets a list of <see cref="CacheProfile"/> which are pre-defined settings for
+        /// Gets a Dictionary of CacheProfile Names, <see cref="CacheProfile"/> which are pre-defined settings for
         /// <see cref="ResponseCacheFilter"/>.
         /// </summary>
-        private List<CacheProfile> CacheProfiles { get; } = new List<CacheProfile>();
+        public Dictionary<string, CacheProfile> CacheProfiles { get; }
+            = new Dictionary<string, CacheProfile>(StringComparer.OrdinalIgnoreCase);
     }
 }

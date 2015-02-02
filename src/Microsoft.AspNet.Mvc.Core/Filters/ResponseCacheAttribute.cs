@@ -92,8 +92,7 @@ namespace Microsoft.AspNet.Mvc
             CacheProfile selectedProfile = null;
             if (!string.IsNullOrEmpty(CacheProfileName))
             {
-                selectedProfile = optionsAccessor.Options.GetCacheProfile(CacheProfileName);
-
+                optionsAccessor.Options.CacheProfiles.TryGetValue(CacheProfileName, out selectedProfile);
                 if (selectedProfile == null)
                 {
                     throw new InvalidOperationException(Resources.FormatCacheProfileNotFound(CacheProfileName));
@@ -113,7 +112,7 @@ namespace Microsoft.AspNet.Mvc
             // ResponseCacheFilter cannot take any null values. Hence, if there are any null values,
             // the properties convert them to their defaults and are passed on.
             return new ResponseCacheFilter(
-                new CacheProfile("")
+                new CacheProfile
                 {
                     Duration = _duration,
                     Location = _location,

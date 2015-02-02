@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var cache = new ResponseCacheFilter(
-                new CacheProfile("")
+                new CacheProfile
                 {
                     NoStore = true,
                     Duration = null
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange, Act & Assert
             Assert.Throws<InvalidOperationException>(
                 () => new ResponseCacheFilter(
-                    new CacheProfile("")
+                    new CacheProfile
                     {
                         Duration = null
                     }));
@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 0, Location = ResponseCacheLocation.Any, NoStore = true, VaryByHeader = null
                         }),
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc
                 // If no-store is set, then location is ignored.
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 0, Location = ResponseCacheLocation.Client, NoStore = true, VaryByHeader = null
                         }),
@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 0, Location = ResponseCacheLocation.Any, NoStore = true, VaryByHeader = null
                         }),
@@ -74,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
                 // If no-store is set, then duration is ignored.
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 100, Location = ResponseCacheLocation.Any, NoStore = true, VaryByHeader = null
                         }),
@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc
 
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 10, Location = ResponseCacheLocation.Client,
                             NoStore = false, VaryByHeader = null
@@ -92,7 +92,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = null
                         }),
@@ -100,7 +100,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 10, Location = ResponseCacheLocation.None, NoStore = false, VaryByHeader = null
                         }),
@@ -108,7 +108,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 31536000, Location = ResponseCacheLocation.Any,
                             NoStore = false, VaryByHeader = null
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = null
                         }),
@@ -147,7 +147,7 @@ namespace Microsoft.AspNet.Mvc
                 // If no-store is set, then location is ignored.
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 0, Location = ResponseCacheLocation.Client, NoStore = true, VaryByHeader = null
                         }),
@@ -155,7 +155,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 0, Location = ResponseCacheLocation.Any, NoStore = true, VaryByHeader = null
                         }),
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Mvc
                 // If no-store is set, then duration is ignored.
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 100, Location = ResponseCacheLocation.Any, NoStore = true, VaryByHeader = null
                         }),
@@ -194,7 +194,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 10, Location = ResponseCacheLocation.Any,
                             NoStore = false, VaryByHeader = "Accept"
@@ -203,7 +203,7 @@ namespace Microsoft.AspNet.Mvc
                     "public,max-age=10" };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 0, Location= ResponseCacheLocation.Any,
                             NoStore = true, VaryByHeader = "Accept"
@@ -213,7 +213,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 10, Location = ResponseCacheLocation.Client,
                             NoStore = false, VaryByHeader = "Accept"
@@ -223,7 +223,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 10, Location = ResponseCacheLocation.Client,
                             NoStore = false, VaryByHeader = "Test"
@@ -233,7 +233,7 @@ namespace Microsoft.AspNet.Mvc
                 };
                 yield return new object[] {
                     new ResponseCacheFilter(
-                        new CacheProfile("")
+                        new CacheProfile
                         {
                             Duration = 31536000, Location = ResponseCacheLocation.Any,
                             NoStore = false, VaryByHeader = "Test"
@@ -264,7 +264,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var cache = new ResponseCacheFilter(
-                new CacheProfile("")
+                new CacheProfile
                 {
                     Duration = 0, Location = ResponseCacheLocation.None, NoStore = true, VaryByHeader = null
                 });
@@ -284,12 +284,12 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var caches = new List<IFilter>();
             caches.Add(new ResponseCacheFilter(
-                new CacheProfile("")
+                new CacheProfile
                 {
                     Duration = 0, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = null
                 }));
             caches.Add(new ResponseCacheFilter(
-                new CacheProfile("")
+                new CacheProfile
                 {
                     Duration = 0, Location = ResponseCacheLocation.Any, NoStore = false, VaryByHeader = null
                 }));

@@ -12,30 +12,32 @@ namespace ResponseCacheWebSite
         public void Configure(IApplicationBuilder app)
         {
             var configuration = app.GetTestConfiguration();
-
             app.UseServices(services =>
             {
                 services.AddMvc(configuration);
                 services.Configure<MvcOptions>(options =>
                 {
-                    options.AddCacheProfile(new CacheProfile(name: "PublicCache30Sec")
-                    {
-                        Duration = 30,
-                        Location = ResponseCacheLocation.Any
-                    });
+                    options.CacheProfiles.Add(
+                        "PublicCache30Sec", new CacheProfile
+                        {
+                            Duration = 30,
+                            Location = ResponseCacheLocation.Any
+                        });
 
-                    options.AddCacheProfile(new CacheProfile(name: "PrivateCache30Sec")
-                    {
-                        Duration = 30,
-                        Location = ResponseCacheLocation.Client
-                    });
+                    options.CacheProfiles.Add(
+                        "PrivateCache30Sec", new CacheProfile
+                        {
+                            Duration = 30,
+                            Location = ResponseCacheLocation.Client
+                        });
 
-                    options.AddCacheProfile(new CacheProfile(name: "NoCache")
-                    {
-                        NoStore = true,
-                        Duration = 0,
-                        Location = ResponseCacheLocation.None
-                    });
+                    options.CacheProfiles.Add(
+                        "NoCache", new CacheProfile
+                        {
+                            NoStore = true,
+                            Duration = 0,
+                            Location = ResponseCacheLocation.None
+                        });
                 });
             });
 
