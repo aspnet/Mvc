@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 		public void JavaScriptEncode_EncodesCorrectly(string input, string expectedOutput)
 		{
 			// Act
-			var result = JavaScriptHelpers.JavaScriptStringEncode(input);
+			var result = JavaScriptUtility.JavaScriptStringEncode(input);
 			
 			// Assert
 			Assert.Equal(expectedOutput, result);
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 		public void PrepareFormatString_PreparesJavaScriptCorrectly(string input, string expectedOutput)
 		{
 			// Act
-			var result = JavaScriptHelpers.PrepareFormatString(input);
+			var result = JavaScriptUtility.PrepareFormatString(input);
 			
 			// Assert
 			Assert.Equal(expectedOutput, result);

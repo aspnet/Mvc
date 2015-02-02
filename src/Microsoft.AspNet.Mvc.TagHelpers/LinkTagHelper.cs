@@ -60,6 +60,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Activate]
         protected internal ILoggerFactory LoggerFactory { get; set; }
 
+        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        [Activate]
+        protected internal ViewContext ViewContext { get; set; }
+
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
@@ -67,8 +71,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             if (!context.ShouldProcess(RequiredAttributes, logger))
             {
-                // TODO: Should we trace the current view/request path here too?
-                logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
+                if (logger.IsEnabled(LogLevel.Verbose))
+                {
+                    // TODO: We should trace the current view path here too, see https://github.com/aspnet/Mvc/issues/1940
+                    logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
+                }
                 return;
             }
 
@@ -81,9 +88,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Rebuild the <link /> tag that loads the primary stylesheet
             content.Append("<link ");
-            foreach (var a in output.Attributes)
+            foreach (var attribute in output.Attributes)
             {
-                content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", a.Key, a.Value);
+                content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
             }
             content.AppendLine("/>");
 
@@ -95,10 +102,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // indicating that the primary stylesheet failed to load.
             content.Append("<script>");
             content.AppendFormat(CultureInfo.InvariantCulture,
-                                 JavaScriptHelpers.GetEmbeddedJavaScript(FallbackJavaScriptResourceName, isFormatString: true),
-                                 JavaScriptHelpers.JavaScriptStringEncode(FallbackTestProperty),
-                                 JavaScriptHelpers.JavaScriptStringEncode(FallbackTestValue),
-                                 JavaScriptHelpers.JavaScriptStringEncode(FallbackHref));
+                                 JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
+                                 JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
+                                 JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
+                                 JavaScriptUtility.JavaScriptStringEncode(FallbackHref));
             content.Append("</script>");
             
             output.Content = content.ToString();

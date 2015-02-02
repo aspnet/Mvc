@@ -11,7 +11,6 @@ using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
-using Microsoft.AspNet.Routing;
 
 #if ASPNET50
 using Autofac;

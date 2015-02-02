@@ -33,8 +33,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             "/Home/Index",
         };
 
-        // Path relative to Mvc\\test\Microsoft.AspNet.Mvc.FunctionalTests
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
+        // Path relative to Mvc\\test\Microsoft.AspNet.Mvc.FunctionalTests
         private readonly IServiceProvider _services =
             TestHelper.CreateServices("TagHelperSample.Web", Path.Combine("..", "..", "samples"));
         private readonly Action<IApplicationBuilder, ILoggerFactory> _app = new TagHelperSample.Web.Startup().Configure;
