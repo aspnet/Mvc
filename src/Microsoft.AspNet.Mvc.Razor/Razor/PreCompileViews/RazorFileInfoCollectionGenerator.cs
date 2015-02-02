@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.Framework.Runtime.Roslyn;
@@ -12,23 +12,26 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private string _fileFormat;
 
-        public RazorFileInfoCollectionGenerator([NotNull] IEnumerable<RazorFileInfo> fileInfos,
+        public RazorFileInfoCollectionGenerator([NotNull] RazorFileInfoCollection fileInfoCollection,
                                                 [NotNull] CompilationSettings compilationSettings)
         {
-            FileInfos = fileInfos;
+            RazorFileInfoCollection = fileInfoCollection;
             CompilationSettings = compilationSettings;
         }
 
-        protected IEnumerable<RazorFileInfo> FileInfos { get; }
+        protected RazorFileInfoCollection RazorFileInfoCollection { get; }
 
         protected CompilationSettings CompilationSettings { get; }
 
         public virtual SyntaxTree GenerateCollection()
         {
             var builder = new StringBuilder();
-            builder.Append(Top);
+            builder.AppendFormat(CultureInfo.InvariantCulture,
+                                 TopFormat,
+                                 RazorFileInfoCollection.AssemblyResourceName,
+                                 RazorFileInfoCollection.SymbolsResourceName);
 
-            foreach (var fileInfo in FileInfos)
+            foreach (var fileInfo in RazorFileInfoCollection.FileInfos)
             {
                 var perFileEntry = GenerateFile(fileInfo);
                 builder.Append(perFileEntry);
@@ -55,25 +58,24 @@ namespace Microsoft.AspNet.Mvc.Razor
                                  fileInfo.HashAlgorithmVersion);
         }
 
-        protected virtual string Top
+        protected virtual string TopFormat
         {
             get
             {
                 return
-@"using System;
+$@"using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Razor;
 
 namespace __ASP_ASSEMBLY
-{
-    public class __PreGeneratedViewCollection : " + nameof(RazorFileInfoCollection) + @"
-    {
+{{{{
+    public class __PreGeneratedViewCollection : {nameof(RazorFileInfoCollection)}
+    {{{{
         public __PreGeneratedViewCollection()
-        {
-            var fileInfos = new List<" + nameof(RazorFileInfo) + @">();
-            " + nameof(RazorFileInfoCollection.FileInfos) + @" = fileInfos;
-            " + nameof(RazorFileInfo) + @" info;
-
+        {{{{
+            {nameof(RazorFileInfoCollection.AssemblyResourceName)} = ""{{0}}"";
+            {nameof(RazorFileInfoCollection.SymbolsResourceName)} = ""{{1}}"";
+            {nameof(RazorFileInfo)} info;
 ";
             }
         }
@@ -83,9 +85,20 @@ namespace __ASP_ASSEMBLY
             get
             {
                 return
-    @"        }
-    }
-}
+    $@"        }}
+    }}
+
+    private static Assembly _loadedAssembly;
+
+    public override Assembly LoadAssembly(IAssemblyLoadContext loadContext)
+    {{
+         if (_loadedAssembly == null)
+         {{
+            _loadedAssembly = base.LoadAssembly(loadContext);
+         }}
+         return _loadedAssembly;   
+    }}
+}}
 ";
             }
         }
@@ -97,17 +110,17 @@ namespace __ASP_ASSEMBLY
                 if (_fileFormat == null)
                 {
                     _fileFormat =
-                    "            info = new "
-                    + nameof(RazorFileInfo) + @"
-            {{
-                " + nameof(RazorFileInfo.LastModified) + @" = DateTime.FromFileTimeUtc({0:D}).ToLocalTime(),
-                " + nameof(RazorFileInfo.Length) + @" = {1:D},
-                " + nameof(RazorFileInfo.RelativePath) + @" = @""{2}"",
-                " + nameof(RazorFileInfo.FullTypeName) + @" = @""{3}"",
-                " + nameof(RazorFileInfo.Hash) + @" = ""{4}"",
-                " + nameof(RazorFileInfo.HashAlgorithmVersion) + @" = {5},
-            }};
-            fileInfos.Add(info);
+         $@"
+            info = new {nameof(RazorFileInfo)}
+            {{{{
+                {nameof(RazorFileInfo.LastModified)} = DateTime.FromFileTimeUtc({{0:D}}).ToLocalTime(),
+                {nameof(RazorFileInfo.Length)} = {{1:D}},
+                {nameof(RazorFileInfo.RelativePath)} = @""{{2}}"",
+                {nameof(RazorFileInfo.FullTypeName)} = @""{{3}}"",
+                {nameof(RazorFileInfo.Hash)} = ""{{4}}"",
+                {nameof(RazorFileInfo.HashAlgorithmVersion)} = {{5}},
+            }}}};
+            {nameof(RazorFileInfoCollection.FileInfos)}.Add(info);
 ";
                 }
 

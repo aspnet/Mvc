@@ -5,9 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Mvc.Razor.Directives;
+using Microsoft.AspNet.Mvc.Razor.Internal;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
@@ -21,9 +26,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IFileProvider _fileProvider;
 
         public RazorPreCompiler([NotNull] IServiceProvider designTimeServiceProvider,
+                                [NotNull] IBeforeCompileContext compileContext,
                                 [NotNull] IMemoryCache precompilationCache,
                                 [NotNull] CompilationSettings compilationSettings) :
             this(designTimeServiceProvider,
+                 compileContext,
+                 designTimeServiceProvider.GetRequiredService<IAssemblyLoadContextAccessor>(),
                  designTimeServiceProvider.GetRequiredService<IOptions<RazorViewEngineOptions>>(),
                  precompilationCache,
                  compilationSettings)
@@ -31,15 +39,24 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         public RazorPreCompiler([NotNull] IServiceProvider designTimeServiceProvider,
+                                [NotNull] IBeforeCompileContext compileContext,
+                                [NotNull] IAssemblyLoadContextAccessor loadContextAccessor,
                                 [NotNull] IOptions<RazorViewEngineOptions> optionsAccessor,
                                 [NotNull] IMemoryCache precompilationCache,
                                 [NotNull] CompilationSettings compilationSettings)
         {
             _serviceProvider = designTimeServiceProvider;
+            CompileContext = compileContext;
+            LoadContext = loadContextAccessor.GetLoadContext(GetType().GetTypeInfo().Assembly);
             _fileProvider = optionsAccessor.Options.FileProvider;
             CompilationSettings = compilationSettings;
             PreCompilationCache = precompilationCache;
+            TagHelperTypeResolver = new PrecompilationTagHelperTypeResolver(CompileContext, LoadContext);
         }
+
+        protected IBeforeCompileContext CompileContext { get; }
+
+        protected IAssemblyLoadContext LoadContext { get; }
 
         protected CompilationSettings CompilationSettings { get; }
 
@@ -49,32 +66,37 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected virtual int MaxDegreesOfParallelism { get; } = Environment.ProcessorCount;
 
+        protected virtual TagHelperTypeResolver TagHelperTypeResolver { get; }
 
-        public virtual void CompileViews([NotNull] IBeforeCompileContext context)
+        public virtual void CompileViews()
         {
-            var descriptors = CreateCompilationDescriptors(context);
+            var result = CreateFileInfoCollection();
 
-            if (descriptors.Any())
+            if (result != null)
             {
                 var collectionGenerator = new RazorFileInfoCollectionGenerator(
-                                                descriptors,
+                                                result,
                                                 CompilationSettings);
 
                 var tree = collectionGenerator.GenerateCollection();
-                context.Compilation = context.Compilation.AddSyntaxTrees(tree);
+                CompileContext.Compilation = CompileContext.Compilation.AddSyntaxTrees(tree);
             }
         }
 
-        protected virtual IEnumerable<RazorFileInfo> CreateCompilationDescriptors(
-            [NotNull] IBeforeCompileContext context)
+        protected virtual RazorFileInfoCollection CreateFileInfoCollection()
         {
             var filesToProcess = new List<RelativeFileInfo>();
             GetFileInfosRecursive(root: string.Empty, razorFiles: filesToProcess);
+            if (filesToProcess.Count == 0)
+            {
+                return null;
+            }
 
             var razorFiles = new RazorFileInfo[filesToProcess.Count];
             var syntaxTrees = new SyntaxTree[filesToProcess.Count];
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = MaxDegreesOfParallelism };
             var diagnosticsLock = new object();
+            var hasErrors = false;
 
             Parallel.For(0, filesToProcess.Count, parallelOptions, index =>
             {
@@ -91,25 +113,91 @@ namespace Microsoft.AspNet.Mvc.Razor
                     }
                     else
                     {
+                        hasErrors = true;
                         lock (diagnosticsLock)
                         {
-                            foreach (var diagnostic in cacheEntry.Diagnostics)
-                            {
-                                context.Diagnostics.Add(diagnostic);
-                            }
+                            AddRange(CompileContext.Diagnostics, cacheEntry.Diagnostics);
                         }
                     }
                 }
             });
 
-            context.Compilation = context.Compilation
-                                         .AddSyntaxTrees(syntaxTrees.Where(tree => tree != null));
-            return razorFiles.Where(file => file != null);
+            if (hasErrors)
+            {
+                // If any of the Razor files had syntax errors, don't emit the precompiled views assembly.
+                return null;
+            }
+
+            return GeneratePrecompiledAssembly(syntaxTrees.Where(tree => tree != null),
+                                               razorFiles.Where(file => file != null));
+        }
+
+        protected virtual RazorFileInfoCollection GeneratePrecompiledAssembly(
+            [NotNull] IEnumerable<SyntaxTree> syntaxTrees,
+            [NotNull] IEnumerable<RazorFileInfo> razorFileInfos)
+        {
+            var resourcePrefix = string.Join(".", CompileContext.CSharpCompilation.AssemblyName,
+                                                  nameof(RazorPreCompiler),
+                                                  Path.GetRandomFileName());
+            var assemblyResourceName = resourcePrefix + ".dll";
+
+
+            var applicationReference = CompileContext.CSharpCompilation.ToMetadataReference();
+            var references = CompileContext.CSharpCompilation.References
+                                                             .Concat(new[] { applicationReference });
+
+            var preCompilationOptions = CompilationSettings.CompilationOptions
+                                                           .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+
+            var compilation = CSharpCompilation.Create(assemblyResourceName,
+                                                       options: preCompilationOptions,
+                                                       syntaxTrees: syntaxTrees,
+                                                       references: references);
+
+            var supportsPdbGeneration = SymbolsUtility.SupportsSymbolsGeneration();
+            // These streams are returned to the runtime and consequently cannot be disposed.
+            var assemblyStream = new MemoryStream();
+            var pdbStream = supportsPdbGeneration ? new MemoryStream() : null;
+            var emitResult = compilation.Emit(assemblyStream, pdbStream);
+            if (!emitResult.Success)
+            {
+                AddRange(CompileContext.Diagnostics, emitResult.Diagnostics);
+                return null;
+            }
+            else
+            {
+                assemblyStream.Position = 0;
+                var assemblyResource = new ResourceDescription(assemblyResourceName,
+                                                               () => assemblyStream,
+                                                               isPublic: true);
+                CompileContext.Resources.Add(assemblyResource);
+
+                string symbolsResourceName = null;
+                if (pdbStream != null)
+                {
+                    symbolsResourceName = resourcePrefix + ".pdb";
+                    pdbStream.Position = 0;
+
+                    var pdbResource = new ResourceDescription(symbolsResourceName,
+                                                              () => pdbStream,
+                                                              isPublic: true);
+
+                    CompileContext.Resources.Add(pdbResource);
+                }
+
+                return new PrecompileRazorFileInfoCollection(assemblyResourceName,
+                                                             symbolsResourceName,
+                                                             razorFileInfos.ToList());
+            }
         }
 
         protected IMvcRazorHost GetRazorHost()
         {
-            return _serviceProvider.GetRequiredService<IMvcRazorHost>();
+            var descriptorResolver = new TagHelperDescriptorResolver(TagHelperTypeResolver);
+            return new MvcRazorHost(new DefaultCodeTreeCache(_fileProvider))
+            {
+                TagHelperDescriptorResolver = descriptorResolver
+            };
         }
 
         private PrecompilationCacheEntry OnCacheMiss(ICacheSetContext cacheSetContext)
@@ -192,6 +280,26 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             return null;
+        }
+
+        private static void AddRange<TVal>(IList<TVal> target, IEnumerable<TVal> source)
+        {
+            foreach (var diagnostic in source)
+            {
+                target.Add(diagnostic);
+            }
+        }
+
+        private class PrecompileRazorFileInfoCollection : RazorFileInfoCollection
+        {
+            public PrecompileRazorFileInfoCollection(string assemblyResourceName,
+                                                     string symbolsResourceName, 
+                                                     IReadOnlyList<RazorFileInfo> fileInfos)
+            {
+                AssemblyResourceName = assemblyResourceName;
+                SymbolsResourceName = symbolsResourceName;
+                FileInfos = fileInfos;
+            }
         }
     }
 }

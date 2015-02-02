@@ -113,6 +113,9 @@ namespace Microsoft.AspNet.Mvc
 
             // The host is designed to be discarded after consumption and is very inexpensive to initialize.
             yield return describe.Transient<IMvcRazorHost, MvcRazorHost>();
+            
+            // The IPrecompiledViewsProvider is used once during initialization of CompilerCache.
+            yield return describe.Transient<IPrecompiledViewsProvider, DefaultPrecompiledViewsProvider>();
 
             // Caches compilation artifacts across the lifetime of the application.
             yield return describe.Singleton<ICompilerCache, CompilerCache>();

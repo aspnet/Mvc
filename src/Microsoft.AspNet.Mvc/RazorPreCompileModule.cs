@@ -45,8 +45,8 @@ namespace Microsoft.AspNet.Mvc
             sc.AddMvc();
 
             var serviceProvider = BuildFallbackServiceProvider(sc, _appServices);
-            var viewCompiler = new RazorPreCompiler(serviceProvider, _memoryCache, compilationSettings);
-            viewCompiler.CompileViews(context);
+            var viewCompiler = new RazorPreCompiler(serviceProvider, context, _memoryCache, compilationSettings);
+            viewCompiler.CompileViews();
         }
 
         public void AfterCompile(IAfterCompileContext context)
