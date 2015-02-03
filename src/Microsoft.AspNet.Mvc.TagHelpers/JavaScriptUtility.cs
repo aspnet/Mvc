@@ -12,11 +12,15 @@ using System.Text;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
+    /// <summary>
+    /// Utility methods for dealing with JavaScript.
+    /// </summary>
     public static class JavaScriptUtility
     {
         private static readonly Assembly ResourcesAssembly = typeof(JavaScriptUtility).GetTypeInfo().Assembly;
 
-        private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> Cache =
+            new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
 
         private static readonly IDictionary<char, string> EncodingMap = new Dictionary<char, string>
         {
@@ -32,14 +36,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         };
 
         /// <summary>
-        /// Gets an embedded JavaScript file resource and optionally decodes it for use as a .NET format string.
+        /// Gets an embedded JavaScript file resource and decodes it for use as a .NET format string.
         /// </summary>
         public static string GetEmbeddedJavaScript(string resourceName)
         {
             return Cache.GetOrAdd(resourceName, key =>
             {
                 // Load the JavaScript from embedded resource
-                using (var resourceStream = ResourcesAssembly.GetManifestResourceStream(resourceName))
+                using (var resourceStream = ResourcesAssembly.GetManifestResourceStream(key))
                 {
                     Debug.Assert(resourceStream != null, "Embedded resource missing. Ensure 'prebuild' script has run.");
 
@@ -71,32 +75,32 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             var result = new StringBuilder();
 
-            foreach (var c in value)
+            foreach (var character in value)
             {
-                if (CharRequiresJavaScriptEncoding(c))
+                if (CharRequiresJavaScriptEncoding(character))
                 {
-                    EncodeAndAppendChar(result, c);
+                    EncodeAndAppendChar(result, character);
                 }
                 else
                 {
-                    result.Append(c);
+                    result.Append(character);
                 }
             }
 
             return result.ToString();
         }
 
-        private static bool CharRequiresJavaScriptEncoding(char c)
+        private static bool CharRequiresJavaScriptEncoding(char character)
         {
-            return c < 0x20 // Control chars
-                || EncodingMap.ContainsKey(c);
+            return character < 0x20 // Control chars
+                || EncodingMap.ContainsKey(character);
         }
 
-        private static void EncodeAndAppendChar(StringBuilder builder, char c)
+        private static void EncodeAndAppendChar(StringBuilder builder, char character)
         {
-            builder.Append(EncodingMap.ContainsKey(c)
-                ? EncodingMap[c]
-                : ((int)c).ToString("x4", CultureInfo.InvariantCulture));
+            builder.Append(EncodingMap.ContainsKey(character)
+                ? EncodingMap[character]
+                : ((int)character).ToString("x4", CultureInfo.InvariantCulture));
         }
     }
 }
