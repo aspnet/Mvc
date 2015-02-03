@@ -97,9 +97,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private static void EncodeAndAppendChar(StringBuilder builder, char character)
         {
-            builder.Append(EncodingMap.ContainsKey(character)
-                ? EncodingMap[character]
-                : ((int)character).ToString("x4", CultureInfo.InvariantCulture));
+            string mapped;
+
+            if (!EncodingMap.TryGetValue(character, out mapped))
+            {
+                mapped = ((int)character).ToString("x4", CultureInfo.InvariantCulture);
+            }
+
+            builder.Append(mapped);
         }
     }
 }
