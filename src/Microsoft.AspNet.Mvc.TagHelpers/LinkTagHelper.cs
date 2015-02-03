@@ -56,7 +56,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string FallbackTestValue { get; set; }
 
         // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        // TODO: Change this to activate ILogger<LinkTagHelper> directly once https://github.com/aspnet/Hosting/pull/147 is in
         [Activate]
         protected internal ILoggerFactory LoggerFactory { get; set; }
         
@@ -69,7 +68,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 if (logger.IsEnabled(LogLevel.Verbose))
                 {
-                    // TODO: We should trace the current view path here too, see https://github.com/aspnet/Mvc/issues/1940
                     logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
                 }
                 return;
