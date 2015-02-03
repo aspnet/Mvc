@@ -14,6 +14,17 @@ namespace ConnegWebSite
 
         public User UserInfo()
         {
+            return CreateUser();
+        }
+
+        [Produces(typeof(User))]
+        public IActionResult UserInfo_WithProducesWithTypeOnly()
+        {
+            return new ObjectResult(CreateUser());
+        }
+
+        private User CreateUser()
+        {
             return new User() { Name = "John", Address = "One Microsoft Way" };
         }
     }

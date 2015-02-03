@@ -91,6 +91,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task ProducesAttributeWithTypeOnly_RunsRegularContentNegotiation()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
+            var expectedOutput = "{\"Name\":\"John\",\"Address\":\"One Microsoft Way\"}";
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/UserInfo_WithProducesWithTypeOnly");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
+            var actual = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedOutput, actual);
+        }
+
+        [Fact]
         public async Task NoMatchingFormatter_ForTheGivenContentType_Returns406()
         {
             // Arrange
