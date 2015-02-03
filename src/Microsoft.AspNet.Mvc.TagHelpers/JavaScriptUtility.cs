@@ -67,7 +67,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         .Replace("]]]", "}");
         }
 
-        // TODO: Remove this when we get WebUtility.JavaScriptStringEncode https://github.com/aspnet/HttpAbstractions/issues/72
         /// <summary>
         /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
         /// </summary>

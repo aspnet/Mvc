@@ -59,11 +59,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         // TODO: Change this to activate ILogger<LinkTagHelper> directly once https://github.com/aspnet/Hosting/pull/147 is in
         [Activate]
         protected internal ILoggerFactory LoggerFactory { get; set; }
-
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        [Activate]
-        protected internal ViewContext ViewContext { get; set; }
-
+        
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
