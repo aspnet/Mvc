@@ -11,15 +11,13 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// An <see cref="ActionFilterAttribute"/> which sets the appropriate headers related to response caching.
     /// </summary>
-    public class ResponseCacheFilter : ActionFilterAttribute, IResponseCacheFilter
+    public class ResponseCacheFilter : IActionFilter, IResponseCacheFilter
     {
         /// <summary>
         /// Creates a new instance of <see cref="ResponseCacheFilter"/>
         /// </summary>
-        /// <param name="duration">The duration for which the content must be cached.</param>
-        /// <param name="location">The location where the content must be cached.</param>
-        /// <param name="noStore">The boolean defines if the content must be stored or not.</param>
-        /// <param name="varyByHeader">The value for the 'Vary' header.</param>
+        /// <param name="cacheProfile">The profile which contains the settings for
+        /// <see cref="ResponseCacheFilter"/>.</param>
         public ResponseCacheFilter(CacheProfile cacheProfile)
         {
             if (!(cacheProfile.NoStore ?? false))
@@ -64,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
         public string VaryByHeader { get; set; }
         
         // <inheritdoc />
-        public override void OnActionExecuting([NotNull] ActionExecutingContext context)
+        public void OnActionExecuting([NotNull] ActionExecutingContext context)
         {
             // If there are more filters which can override the values written by this filter,
             // then skip execution of this filter.
@@ -125,6 +123,11 @@ namespace Microsoft.AspNet.Mvc
                     headers.Set("Cache-control", cacheControlValue);
                 }
             }
+        }
+
+        // <inheritdoc />
+        public void OnActionExecuted([NotNull]ActionExecutedContext context)
+        {
         }
 
         // internal for Unit Testing purposes.

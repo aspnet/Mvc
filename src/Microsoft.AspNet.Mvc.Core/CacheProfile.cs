@@ -6,7 +6,7 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// Defines a set of settings which can be used for response caching.
     /// </summary>
-	public class CacheProfile
+    public class CacheProfile
     {
         /// <summary>
         /// Gets or sets the duration in seconds for which the response is cached.
