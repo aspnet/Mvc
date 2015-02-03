@@ -8,7 +8,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Xunit;
 
@@ -65,7 +64,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             public void AddProvider(ILoggerProvider provider)
             {
-                
+
             }
             
             public ILogger Create(string name)
@@ -88,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             
             public void Write(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
             {
-                
+
             }
         }
         
@@ -96,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             public void Dispose()
             {
-                
+
             }
         }
     }
