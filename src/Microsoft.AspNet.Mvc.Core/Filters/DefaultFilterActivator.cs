@@ -10,21 +10,22 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultFilterActivator : IFilterActivator
     {
-        private readonly IServiceProvider _provider;
+        private readonly IServiceProvider _serviceProvider;
+        private static readonly Func<Type, ObjectFactory> CreateFactory =
+            (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
         private static readonly ConcurrentDictionary<Type, ObjectFactory> _filterCache =
                new ConcurrentDictionary<Type, ObjectFactory>();
 
-        public DefaultFilterActivator([NotNull] IServiceProvider provider)
+        public DefaultFilterActivator([NotNull] IServiceProvider serviceProvider)
         {
-            _provider = provider;
+            _serviceProvider = serviceProvider;
         }
 
         public IFilter CreateInstance([NotNull] Type filterType)
         {
 
-            var filterFact = _filterCache.GetOrAdd(filterType,
-                ActivatorUtilities.CreateFactory(filterType, Type.EmptyTypes));
-            var filter = filterFact(_provider, null) as IFilter;
+            var filterFactory = _filterCache.GetOrAdd(filterType, CreateFactory);
+            var filter = filterFactory(_serviceProvider, null) as IFilter;
 
             if (filter == null)
             {
