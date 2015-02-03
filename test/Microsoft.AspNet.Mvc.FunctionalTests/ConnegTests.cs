@@ -2,14 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 using ConnegWebSite;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
+using Microsoft.AspNet.Mvc.Xml;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -101,7 +106,39 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var expectedOutput = "{\"Name\":\"John\",\"Address\":\"One Microsoft Way\"}";
 
             // Act
-            var response = await client.GetAsync("http://localhost/Home/UserInfo_WithProducesWithTypeOnly");
+            var response = await client.GetAsync("http://localhost/Home/UserInfo_ProducesWithTypeOnly");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
+            var actual = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedOutput, actual);
+        }
+
+        [Fact]
+        public async Task ProducesAttribute_WithTypeAndContentType_UsesContentType()
+        {
+            // Arrange
+            var server = TestServer.Create(_provider, _app);
+            var client = server.CreateClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            var expectedContentType = MediaTypeHeaderValue.Parse("application/xml;charset=utf-8");
+            var dataContractSerializer = new DataContractSerializer(typeof(User));
+            var stream = new MemoryStream();
+            using (var xmlWriter = XmlWriter.Create(stream, FormattingUtilities.GetDefaultXmlWriterSettings()))
+            {
+                dataContractSerializer.WriteObject(xmlWriter, new User()
+                {
+                    Name = "John",
+                    Address = "One Microsoft Way"
+                });
+            }
+            stream.Position = 0;
+            var streamReader = new StreamReader(stream);
+            var expectedOutput = await streamReader.ReadToEndAsync();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/UserInfo_ProducesWithTypeAndContentType");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -446,7 +483,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
-            var client = server.CreateClient();            
+            var client = server.CreateClient();
 
             // Act
             var response = await client.GetAsync("http://localhost/FormatFilter/MethodWithFormatFilter");

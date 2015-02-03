@@ -18,7 +18,13 @@ namespace ConnegWebSite
         }
 
         [Produces(typeof(User))]
-        public IActionResult UserInfo_WithProducesWithTypeOnly()
+        public IActionResult UserInfo_ProducesWithTypeOnly()
+        {
+            return new ObjectResult(CreateUser());
+        }
+
+        [Produces("application/xml", Type = typeof(User))]
+        public IActionResult UserInfo_ProducesWithTypeAndContentType()
         {
             return new ObjectResult(CreateUser());
         }
