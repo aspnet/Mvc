@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             if (!EncodingMap.TryGetValue(character, out mapped))
             {
-                mapped = ((int)character).ToString("x4", CultureInfo.InvariantCulture);
+                mapped = "\\u" + ((int)character).ToString("x4", CultureInfo.InvariantCulture);
             }
 
             builder.Append(mapped);
