@@ -60,7 +60,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <returns>The message.</returns>
         public string Format()
         {
-            return string.Format("Tag Helper unique ID: {0}, Missing attributes: {1}", _uniqueId, string.Join(",", _missingAttributes));
+            return string.Format("Tag Helper unique ID: {0}, Missing attributes: {1}",
+                _uniqueId,
+                string.Join(",", _missingAttributes));
         }
     }
 }

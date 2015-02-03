@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             var logger = LoggerFactory.Create<LinkTagHelper>();
 
-            if (!context.ShouldProcess(RequiredAttributes, logger))
+            if (!context.AllRequiredAttributesArePresent(RequiredAttributes, logger))
             {
                 if (logger.IsEnabled(LogLevel.Verbose))
                 {
