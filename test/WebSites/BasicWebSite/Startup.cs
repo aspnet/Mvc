@@ -20,6 +20,11 @@ namespace BasicWebSite
                 services.AddMvc(configuration);
 
                 services.AddSingleton<INestedProvider<ActionDescriptorProviderContext>, ActionDescriptorCreationCounter>();
+
+                services.ConfigureMvcOptions(options =>
+                {
+                    options.Filters.Add(typeof(GlobalActionFilter));
+                });
             });
 
             // Add MVC to the request pipeline

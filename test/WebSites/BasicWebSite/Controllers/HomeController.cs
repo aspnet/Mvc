@@ -57,5 +57,10 @@ namespace BasicWebSite.Controllers
         {
             return View();
         }
+        
+        public string GetTextFromFilterAddedByOptions()
+        {
+            return "Hello World!";
+        }
     }
 }
