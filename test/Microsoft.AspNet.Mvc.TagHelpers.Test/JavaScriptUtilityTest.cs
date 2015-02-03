@@ -6,11 +6,11 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 {
-    public class JavaScriptHelperTest
+    public class JavaScriptUtilityTest
     {
         [Theory]
         [InlineData("Hello World", "Hello World")]
-        [InlineData("Hello & World", "Hello & World")]
+        [InlineData("Hello & World", "Hello \\u0026 World")]
         [InlineData("Hello \r World", "Hello \\r World")]
         [InlineData("Hello \n World", "Hello \\n World")]
         [InlineData("Hello < World", "Hello \\u003c World")]
@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
         [InlineData("Hello ' World", "Hello \\u0027 World")]
         [InlineData("Hello \" World", "Hello \\u0022 World")]
         [InlineData("Hello \\ World", "Hello \\\\ World")]
-        [InlineData("Hello \r\n <ah /> 'eep' \"hey\" World", "Hello \\r\\n \\u003cah /\\u003e \\u0027eep\\u0027 \\u0022hey\\u0022 World")]
+        [InlineData("Hello \r\n <ah /> 'eep' & \"hey\" World", "Hello \\r\\n \\u003cah /\\u003e \\u0027eep\\u0027 \\u0026 \\u0022hey\\u0022 World")]
         public void JavaScriptEncode_EncodesCorrectly(string input, string expectedOutput)
         {
             // Act
