@@ -68,6 +68,32 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         /// <summary>
+        /// Encodes a .NET string array for safe use as a JavaScript array literal, including inline in an HTML file.
+        /// </summary>
+        internal static string JavaScriptArrayEncode(IEnumerable<string> values)
+        {
+            var result = new StringBuilder();
+            result.Append("[");
+
+            var firstAdded = false;
+
+            foreach (var value in values)
+            {
+                if (firstAdded)
+                {
+                    result.Append(",");
+                }
+
+                result.AppendFormat("\"{0}\"", JavaScriptStringEncode(value));
+                firstAdded = true;
+            }
+
+            result.Append("]");
+
+            return result.ToString();
+        }
+
+        /// <summary>
         /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
         /// </summary>
         internal static string JavaScriptStringEncode(string value)

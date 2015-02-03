@@ -4,9 +4,16 @@
     // document.write.
     var doc = document,
         scriptElements = doc.getElementsByTagName("SCRIPT"),
-        meta = scriptElements[scriptElements.length - 1].previousElementSibling;
+        meta = scriptElements[scriptElements.length - 1].previousElementSibling,
+        i;
 
     if (doc.defaultView.getComputedStyle(meta)[cssTestPropertyName] !== cssTestPropertyValue) {
-        doc.write('<link rel="stylesheet" href="' + fallbackHref + '"/>');
+        if (Object.prototype.toString.call(fallbackHref) === "[object Array]") {
+            for (i = 0; i < fallbackHref.length; i++) {
+                doc.write('<link rel="stylesheet" href="' + fallbackHref[i] + '"/>');
+            }
+        } else {
+            doc.write('<link rel="stylesheet" href="' + fallbackHref + '"/>');
+        }
     }
-})("[[[0]]]", "[[[1]]]", "[[[2]]]");
+})("[[[0]]]", "[[[1]]]", [[[2]]]);

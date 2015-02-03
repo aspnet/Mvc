@@ -10,6 +10,8 @@ using Microsoft.Framework.FileSystemGlobbing;
 using Microsoft.Framework.FileSystemGlobbing.Abstractions;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
+using System.IO;
+using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -73,9 +75,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Activate]
         protected internal IApplicationEnvironment ApplicationEnvironment { get; set; }
 
+        private DirectoryInfoBase _appBase;
+
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            _appBase = new DirectoryInfoWrapper(new DirectoryInfo(ApplicationEnvironment.ApplicationBasePath));
+
             if (!context.AllRequiredAttributesArePresent(RequiredAttributes, Logger))
             {
                 if (Logger.IsEnabled(LogLevel.Verbose))
@@ -92,16 +98,52 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // We've taken over rendering here so prevent the element rendering the outer tag
             output.TagName = null;
 
-            // Rebuild the <link /> tag that loads the primary stylesheet
-            content.Append("<link ");
-            foreach (var attribute in output.Attributes)
+            if (string.IsNullOrEmpty(Href))
             {
-                content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
+                // Just build a <link /> tag to match the original one in the source file
+                content.Append("<link ");
+                foreach (var attribute in output.Attributes)
+                {
+                    content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
+                }
+                content.AppendLine("/>");
             }
-            content.AppendLine("/>");
+            else
+            {
+                var hrefs = new HashSet<string>(StringComparer.Ordinal);
+
+                // Add the standard href if present
+                string plainHref;
+                if (output.Attributes.TryGetValue("href", out plainHref))
+                {
+                    hrefs.Add(plainHref);
+                }
+
+                // Add hrefs that match the globbing pattern specified
+                foreach (var matchedHref in ExpandGlobbedHref(Href))
+                {
+                    hrefs.Add(matchedHref);
+                }
+
+                foreach (var href in hrefs)
+                {
+                    // Build a <link /> tag for each matched href
+                    content.AppendFormat("<link href=\"{0}\" ", href);
+                    foreach (var attribute in output.Attributes)
+                    {
+                        if (!string.Equals(attribute.Key, "href", StringComparison.Ordinal))
+                        {
+                            content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
+                        }
+                    }
+                    content.AppendLine("/>");
+                }
+            }
 
             // Build the <meta /> tag that's used to test for the presence of the stylesheet
             content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate, FallbackTestClass));
+
+            var matchedFallbackHrefs = ExpandGlobbedHref(FallbackHref);
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
@@ -111,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                  JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
                                  JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
                                  JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
-                                 JavaScriptUtility.JavaScriptStringEncode(FallbackHref));
+                                 JavaScriptUtility.JavaScriptArrayEncode(matchedFallbackHrefs));
             content.Append("</script>");
 
             output.Content = content.ToString();
@@ -119,22 +161,19 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private IEnumerable<string> ExpandGlobbedHref(string href)
         {
-            var segments = href.Split(',');
-            var matcher = new Matcher();
+            // TODO: Should we cache these so we don't have to look it up every time?
+            var patterns = href.Split(',');
 
-            foreach (var path in segments)
+            if (patterns.Length == 0)
             {
-                if (path.StartsWith("!"))
-                {
-                    matcher.AddExclude(path);
-                }
-                else
-                {
-                    matcher.AddInclude(path);
-                }
+                return Enumerable.Empty<string>();
             }
 
-            // Get the app base as a DirectoryInfo
+            var matcher = new Matcher();
+            matcher.AddPatterns(patterns);
+            var matches = matcher.Execute(_appBase);
+
+            return matches.Files;
         }
     }
 }
