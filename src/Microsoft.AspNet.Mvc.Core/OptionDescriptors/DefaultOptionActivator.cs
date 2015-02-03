@@ -17,9 +17,9 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
 
         public TOption CreateInstance([NotNull] Type optionType)
         {
-            var optionFactory = _optionActivatorCache.GetOrAdd(optionType, ActivatorUtilities.CreateFactory(optionType, Type.EmptyTypes));
+            var optionFactory = _optionActivatorCache.GetOrAdd(optionType,
+                ActivatorUtilities.CreateFactory(optionType, Type.EmptyTypes));
             return (TOption)optionFactory(_provider, null);
-            //return (TOption)ActivatorUtilities.CreateInstance(_provider, optionType);
         }
     }
 }

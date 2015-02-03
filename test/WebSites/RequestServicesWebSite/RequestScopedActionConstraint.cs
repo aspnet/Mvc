@@ -12,8 +12,8 @@ namespace RequestServicesWebSite
     public class RequestScopedActionConstraintAttribute : Attribute, IActionConstraintFactory
     {
         private readonly string _requestId;
-        private static readonly ConcurrentDictionary<Type, Func<IServiceProvider, object[], object>> _constraintCache =
-               new ConcurrentDictionary<Type, Func<IServiceProvider, object[], object>>();
+        private static readonly ConcurrentDictionary<Type, ObjectFactory> _constraintCache =
+               new ConcurrentDictionary<Type, ObjectFactory>();
 
         public RequestScopedActionConstraintAttribute(string requestId)
         {
@@ -23,9 +23,9 @@ namespace RequestServicesWebSite
         public IActionConstraint CreateInstance(IServiceProvider services)
         {
             var constraintType = typeof(Constraint);
-            var constraintFactory = _constraintCache.GetOrAdd(constraintType, ActivatorUtilities.CreateFactory(constraintType, new[] { _requestId.GetType() }));
+            var constraintFactory = _constraintCache.GetOrAdd(constraintType,
+                ActivatorUtilities.CreateFactory(constraintType, new[] { _requestId.GetType() }));
             return (Constraint)constraintFactory(services, new[] { _requestId });
-            //return ActivatorUtilities.CreateInstance<Constraint>(services, _requestId);
         }
 
         private class Constraint : IActionConstraint

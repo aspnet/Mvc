@@ -22,8 +22,8 @@ namespace Microsoft.AspNet.Mvc
         public IFilter CreateInstance([NotNull] Type filterType)
         {
 
-            var filterFact = _filterCache.GetOrAdd(filterType, ActivatorUtilities.CreateFactory(filterType, Type.EmptyTypes));
-            //var filter = ActivatorUtilities.CreateInstance(_provider, filterType) as IFilter;
+            var filterFact = _filterCache.GetOrAdd(filterType,
+                ActivatorUtilities.CreateFactory(filterType, Type.EmptyTypes));
             var filter = filterFact(_provider, null) as IFilter;
 
             if (filter == null)

@@ -63,10 +63,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             var createRazorPage = _razorPageCache.GetOrAdd(result.CompiledType,
                 ActivatorUtilities.CreateFactory(result.CompiledType, Type.EmptyTypes));
 
-            var page = (IRazorPage)createRazorPage(_serviceProvider, null);
-            page.Path = relativePath;
+                var razorPageFactory = _razorPageCache.GetOrAdd(result.CompiledType,
 
-            return page;
+                var page = (IRazorPage)razorPageFactory(_serviceProvider, null);
         }
     }
 }

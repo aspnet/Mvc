@@ -20,9 +20,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public object CreateInstance([NotNull] Type binderType)
         {
-            var modelBindeFactory = _modelBinderActivatorCache.GetOrAdd(binderType, ActivatorUtilities.CreateFactory(binderType, Type.EmptyTypes));
-            return modelBindeFactory(_provider, null);
-            //return ActivatorUtilities.CreateInstance(_provider, binderType);
+            var modelBinderFactory = _modelBinderActivatorCache.GetOrAdd(binderType,
+                ActivatorUtilities.CreateFactory(binderType, Type.EmptyTypes));
+            return modelBinderFactory(_provider, null);
         }
     }
 }

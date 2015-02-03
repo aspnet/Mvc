@@ -17,9 +17,9 @@ namespace Microsoft.AspNet.Mvc
 
         public object CreateInstance([NotNull] Type componentType)
         {
-            var viewComponentFactory = _viewComponentCache.GetOrAdd(componentType, ActivatorUtilities.CreateFactory(componentType, Type.EmptyTypes));
+            var viewComponentFactory = _viewComponentCache.GetOrAdd(componentType,
+                ActivatorUtilities.CreateFactory(componentType, Type.EmptyTypes));
             return viewComponentFactory(_provider, null);
-          //  return ActivatorUtilities.CreateInstance(_provider, componentType);
         }
     }
 }
