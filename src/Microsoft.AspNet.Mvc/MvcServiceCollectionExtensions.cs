@@ -18,23 +18,13 @@ namespace Microsoft.Framework.DependencyInjection
         }
 
         /// <summary>
-        /// Configures a set of MvcOptions for the application.
+        /// Configures a set of <see cref="MvcOptions"/> for the application.
         /// </summary>
         /// <param name="services">The services available in the application.</param>
-        /// <param name="setupAction">The MvcOptions which need to be configured.</param>
+        /// <param name="setupAction">The <see cref="MvcOptions"/> which need to be configured.</param>
         public static void ConfigureMvcOptions(
-            this IServiceCollection services, [NotNull]Action<MvcOptions> setupAction)
-        {
-            services.Configure(setupAction);
-        }
-
-        /// <summary>
-        /// Configures a set of RouteOptions for the application.
-        /// </summary>
-        /// <param name="services">The services available in the application.</param>
-        /// <param name="setupAction">The RouteOptions which need to be configured.</param>
-        public static void ConfigureRouteOptions(
-            this IServiceCollection services, [NotNull]Action<RouteOptions> setupAction)
+            this IServiceCollection services,
+            [NotNull] Action<MvcOptions> setupAction)
         {
             services.Configure(setupAction);
         }

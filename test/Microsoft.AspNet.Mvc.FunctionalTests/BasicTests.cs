@@ -268,12 +268,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = new HttpClient(server.CreateHandler(), false);
 
             // Act
-            var response = await client.GetAsync("http://localhost/Home/GetTextFromFilterAddedByOptions");
+            var response = await client.GetAsync("http://localhost/Home/GetApplicaitonDescription");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseData = await response.Content.ReadAsStringAsync();
-            Assert.Equal("This was added by filter.", responseData);
+            Assert.Equal("This is a basic website.", responseData);
         }
     }
 }

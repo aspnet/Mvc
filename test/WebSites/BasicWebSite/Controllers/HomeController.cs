@@ -58,9 +58,10 @@ namespace BasicWebSite.Controllers
             return View();
         }
         
-        public string GetTextFromFilterAddedByOptions()
+        public string GetApplicaitonDescription()
         {
-            return "Hello World!";
+            var actionDescriptor = (ControllerActionDescriptor)ActionContext.ActionDescriptor;
+            return actionDescriptor.Properties["description"].ToString();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace BasicWebSite
 
                 services.ConfigureMvcOptions(options =>
                 {
-                    options.Filters.Add(typeof(GlobalActionFilter));
+                    options.ApplicationModelConventions.Add(new ApplicationDescription("This is a basic website."));
                 });
             });
 
