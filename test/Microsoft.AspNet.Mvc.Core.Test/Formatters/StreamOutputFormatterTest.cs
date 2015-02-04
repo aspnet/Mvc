@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using Microsoft.AspNet.Mvc;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -11,6 +10,7 @@ namespace Microsoft.AspNet.Mvc
 {
     public class StreamOutputFormatterTest
     {
+        [Theory]
         [InlineData(typeof(Stream), typeof(FileStream), "text/plain", "text/plain")]
         [InlineData(typeof(object), typeof(FileStream), "text/plain", "text/plain")]
         [InlineData(typeof(object), typeof(MemoryStream), "text/plain", "text/plain")]
@@ -19,9 +19,10 @@ namespace Microsoft.AspNet.Mvc
         [InlineData(typeof(object), null, "text/plain", null)]
         [InlineData(typeof(IActionResult), null, "text/plain", null)]
         [InlineData(typeof(IActionResult), typeof(IActionResult), "text/plain", null)]
-        [Theory]
-        public void GetSupportedContentTypes_ReturnsAppropriateValues(Type declaredType, Type runtimeType,
-                                                                      string contentType, string expected)
+        public void GetSupportedContentTypes_ReturnsAppropriateValues(Type declaredType,
+                                                                      Type runtimeType,
+                                                                      string contentType,
+                                                                      string expected)
         {
             // Arrange
             var formatter = new StreamOutputFormatter();
@@ -42,10 +43,10 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        [Theory]
         [InlineData(typeof(object))]
         [InlineData(typeof(SimplePOCO))]
         [InlineData(null)]
-        [Theory]
         public void CanWriteResult_OnlyActsOnStreams(Type type)
         {
             // Arrange

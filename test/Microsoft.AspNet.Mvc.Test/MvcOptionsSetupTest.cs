@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class MvcOptionSetupTest
+    public class MvcOptionsSetupTest
     {
         [Fact]
         public void Setup_SetsUpViewEngines()
@@ -86,8 +86,8 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(4, mvcOptions.OutputFormatters.Count);
             Assert.IsType<HttpNoContentOutputFormatter>(mvcOptions.OutputFormatters[0].Instance);
             Assert.IsType<StringOutputFormatter>(mvcOptions.OutputFormatters[1].Instance);
-            Assert.IsType<StreamOutputFormatter>(mvcOptions.OutputFormatters[1].Instance);
-            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[2].Instance);
+            Assert.IsType<StreamOutputFormatter>(mvcOptions.OutputFormatters[2].Instance);
+            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[3].Instance);
         }
 
         [Fact]

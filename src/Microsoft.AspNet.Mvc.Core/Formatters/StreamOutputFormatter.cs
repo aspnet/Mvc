@@ -44,7 +44,6 @@ namespace Microsoft.AspNet.Mvc
         public bool CanWriteResult([NotNull] OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
             // Ignore the passed in content type, if the object is a Stream.
-            // always return it as a text/plain format.
             if (context.Object is Stream)
             {
                 context.SelectedContentType = contentType;
@@ -57,16 +56,17 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public async Task WriteAsync([NotNull] OutputFormatterContext context)
         {
-            var valueAsStream = ((Stream)context.Object);
-
-            var response = context.ActionContext.HttpContext.Response;
-
-            if (context.SelectedContentType != null)
+            using (var valueAsStream = ((Stream)context.Object))
             {
-                response.ContentType = context.SelectedContentType.ToString();
-            }
+                var response = context.ActionContext.HttpContext.Response;
 
-            await valueAsStream.CopyToAsync(response.Body);
+                if (context.SelectedContentType != null)
+                {
+                    response.ContentType = context.SelectedContentType.ToString();
+                }
+
+                await valueAsStream.CopyToAsync(response.Body);
+            }
         }
     }
 }

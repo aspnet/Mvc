@@ -3,7 +3,6 @@
 
 using System.IO;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Net.Http.Headers;
 
 namespace FormatterWebSite
 {
@@ -40,7 +39,7 @@ namespace FormatterWebSite
         [Produces("text/plain")]
         public Stream MemoryStreamOverridesContentTypeWithProduces()
         {
-            // Produces will set a ContentType on the implicit ObjecResult and
+            // Produces will set a ContentType on the implicit ObjectResult and
             // ContentType on response are overriden by content types from ObjectResult.
             Response.ContentType = "text/html";
 
@@ -55,7 +54,7 @@ namespace FormatterWebSite
             writer.Flush();
             stream.Seek(0, SeekOrigin.Begin);
 
-            return stream;            
+            return stream;
         }
     }
 }
