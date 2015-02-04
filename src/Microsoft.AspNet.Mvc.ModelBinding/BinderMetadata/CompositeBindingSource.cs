@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             [NotNull] string id, 
             string displayName, 
             [NotNull] IEnumerable<BindingSource> bindingSources)
-            : base(id, displayName, isGreedy: true, isFromRequest: true)
+            : base(id, displayName, isGreedy: false, isFromRequest: true)
         {
             BindingSources = bindingSources;
         }
