@@ -12,6 +12,7 @@ using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNet.Hosting;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -37,7 +38,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         };
 
         /// <summary>
-        /// 
+        /// A comma separated list of globbed file patterns of CSS stylesheets to load.
+        /// Patterns starting with a "!" will be added as excludes. All other patterns will be added as includes.
         /// </summary>
         [HtmlAttributeName(HrefAttributeName)]
         public string Href { get; set; }
@@ -73,14 +75,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
         [Activate]
-        protected internal IApplicationEnvironment ApplicationEnvironment { get; set; }
+        protected internal IHostingEnvironment HostingEnvironment { get; set; }
 
-        private DirectoryInfoBase _appBase;
+        private DirectoryInfoBase _webRoot;
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            _appBase = new DirectoryInfoWrapper(new DirectoryInfo(ApplicationEnvironment.ApplicationBasePath));
+            _webRoot = new DirectoryInfoWrapper(new DirectoryInfo(HostingEnvironment.WebRoot));
 
             if (!context.AllRequiredAttributesArePresent(RequiredAttributes, Logger))
             {
@@ -120,9 +122,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
 
                 // Add hrefs that match the globbing pattern specified
-                foreach (var matchedHref in ExpandGlobbedHref(Href))
+                var matchedHrefs = ExpandGlobbedHref(Href);
+                if (matchedHrefs.Any())
                 {
-                    hrefs.Add(matchedHref);
+                    foreach (var matchedHref in matchedHrefs)
+                    {
+                        hrefs.Add(matchedHref);
+                    }
                 }
 
                 foreach (var href in hrefs)
@@ -133,7 +139,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     {
                         if (!string.Equals(attribute.Key, "href", StringComparison.Ordinal))
                         {
-                            content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
+                            content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ",
+                                attribute.Key,
+                                attribute.Value);
                         }
                     }
                     content.AppendLine("/>");
@@ -170,8 +178,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
 
             var matcher = new Matcher();
-            matcher.AddPatterns(patterns);
-            var matches = matcher.Execute(_appBase);
+            matcher.AddPatterns(patterns.Select(p => p.TrimStart('/')));
+            var matches = matcher.Execute(_webRoot);
 
             return matches.Files;
         }
