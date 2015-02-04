@@ -19,6 +19,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// <see cref="BindingSourceModelBinder"/> is greedy, meaning that a given instance expects to handle all
     /// parameters and properties annotated with the corresponding <see cref="ModelBinding.BindingSource"/> and
     /// will short-circuit the model binding process to prevent other binders from running.
+    /// <see cref="ModelBinding.BindingSource.IsGreedy"/> of <see cref="BindingSource"/> must be set to <c>true.</c>
     /// </para>
     /// </remarks>
     public abstract class BindingSourceModelBinder : IModelBinder
@@ -28,21 +29,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="bindingSource">
         /// The <see cref="ModelBinding.BindingSource"/>. Must be a single-source (non-composite) with
-        /// <see cref="ModelBinding.BindingSource.IsValueProvider"/> equal to <c>false</c>.
+        /// <see cref="ModelBinding.BindingSource.IsGreedy"/> equal to <c>true</c>.
         /// </param>
         protected BindingSourceModelBinder([NotNull] BindingSource bindingSource)
         {
-            if (bindingSource.IsValueProvider)
+            // This class implements a pattern that's only useful for greedy model binders. If you need
+            // to implement something non-greedy then don't use the base class.
+            if (!bindingSource.IsGreedy)
             {
-                var message = Resources.FormatBindingSource_CannotBeValueProvider(
-                    bindingSource.DisplayName,
-                    nameof(BindingSourceModelBinder));
-                throw new ArgumentException(message, nameof(bindingSource));
-            }
-
-            if (bindingSource is CompositeBindingSource)
-            {
-                var message = Resources.FormatBindingSource_CannotBeComposite(
+                var message = Resources.FormatBindingSource_MustBeGreedy(
                     bindingSource.DisplayName,
                     nameof(BindingSourceModelBinder));
                 throw new ArgumentException(message, nameof(bindingSource));

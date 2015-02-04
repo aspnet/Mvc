@@ -25,5 +25,47 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.Equal(expected, ex.Message);
         }
+
+        [Fact]
+        public void NoBinderType_NoBindingSource()
+        {
+            // Arrange
+            var attribute = new ModelBinderAttribute();
+
+            // Act
+            var source = attribute.BindingSource;
+
+            // Assert
+            Assert.Null(source);
+        }
+
+        [Fact]
+        public void BinderType_CustomBindingSource()
+        {
+            // Arrange
+            var attribute = new ModelBinderAttribute();
+            attribute.BinderType = typeof(ByteArrayModelBinder);
+
+            // Act
+            var source = attribute.BindingSource;
+
+            // Assert
+            Assert.Equal(BindingSource.Custom, source);
+        }
+
+        [Fact]
+        public void BinderType_OverrideCustomBindingSource()
+        {
+            // Arrange
+            var attribute = new ModelBinderAttribute();
+            attribute.BindingSource = BindingSource.Query;
+            attribute.BinderType = typeof(ByteArrayModelBinder);
+
+            // Act
+            var source = attribute.BindingSource;
+
+            // Assert
+            Assert.Equal(BindingSource.Query, source);
+        }
     }
 }

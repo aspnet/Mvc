@@ -253,7 +253,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 .Setup(o => o.Filter(It.IsAny<BindingSource>()))
                 .Returns<BindingSource>(source =>
                 {
-                    if (source== BindingSource.Query)
+                    if (source == BindingSource.Query)
                     {
                         return mockOriginalValueProvider.Object;
                     }

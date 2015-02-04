@@ -140,7 +140,7 @@ namespace Microsoft.AspNet.Mvc.Description
             {
                 // Remove any 'hidden' parameters. These are things that can't come from user input,
                 // so they aren't worth showing.
-                if (!context.Results[i].Source.IsUserInput)
+                if (!context.Results[i].Source.IsFromRequest)
                 {
                     context.Results.RemoveAt(i);
                 }
@@ -479,8 +479,8 @@ namespace Microsoft.AspNet.Mvc.Description
             /// </remarks>
             private bool Visit(ModelMetadata modelMetadata, BindingSource ambientSource, string containerName)
             {
-                var source = GetSource(modelMetadata);
-                if (source != null && !source.IsValueProvider)
+                var source = BindingSource.GetBindingSource(modelMetadata.BinderMetadata);
+                if (source != null && source.IsGreedy)
                 {
                     // We have a definite answer for this model. This is a greedy source like
                     // [FromBody] so there's no need to consider properties.
@@ -620,12 +620,6 @@ namespace Microsoft.AspNet.Mvc.Description
                 {
                     return ModelBindingHelper.CreatePropertyModelName(containerName, metadata.PropertyName);
                 }
-            }
-
-            private static BindingSource GetSource(ModelMetadata metadata)
-            {
-                var sourceMetadata = metadata.BinderMetadata as IBindingSourceMetadata;
-                return sourceMetadata?.BindingSource;
             }
 
             private struct PropertyKey

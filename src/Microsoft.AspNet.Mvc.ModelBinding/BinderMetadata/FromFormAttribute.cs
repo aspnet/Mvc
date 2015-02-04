@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc
 {

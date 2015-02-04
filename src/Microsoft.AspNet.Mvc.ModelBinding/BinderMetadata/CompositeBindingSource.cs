@@ -27,17 +27,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             foreach (var bindingSource in bindingSources)
             {
-                if (!bindingSource.IsValueProvider)
+                if (bindingSource.IsGreedy)
                 {
-                    var message = Resources.FormatBindingSource_MustBeValueProvider(
+                    var message = Resources.FormatBindingSource_CannotBeGreedy(
                         bindingSource.DisplayName,
                         nameof(CompositeBindingSource));
                     throw new ArgumentException(message, "bindingSources");
                 }
 
-                if (!bindingSource.IsUserInput)
+                if (!bindingSource.IsFromRequest)
                 {
-                    var message = Resources.FormatBindingSource_MustBeUserInput(
+                    var message = Resources.FormatBindingSource_MustBeFromRequest(
                         bindingSource.DisplayName,
                         nameof(CompositeBindingSource));
                     throw new ArgumentException(message, "bindingSources");
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             [NotNull] string id, 
             string displayName, 
             [NotNull] IEnumerable<BindingSource> bindingSources)
-            : base(id, displayName, isValueProvider: true, isUserInput: true)
+            : base(id, displayName, isGreedy: true, isFromRequest: true)
         {
             BindingSources = bindingSources;
         }
@@ -71,18 +71,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public IEnumerable<BindingSource> BindingSources { get; }
 
         /// <inheritdoc />
-        public override bool CanAcceptDataFrom([NotNull] BindingSource source)
+        public override bool CanAcceptDataFrom([NotNull] BindingSource bindingSource)
         {
-            if (source is CompositeBindingSource)
+            if (bindingSource is CompositeBindingSource)
             {
-                throw new InvalidOperationException(Resources.FormatBindingSource_CannotBeComposite(
-                    source.DisplayName,
-                    nameof(CanAcceptDataFrom)));
+                var message = Resources.FormatBindingSource_CannotBeComposite(
+                    bindingSource.DisplayName,
+                    nameof(CanAcceptDataFrom));
+                throw new ArgumentException(message, nameof(bindingSource));
             }
 
-            foreach (var bindingSource in BindingSources)
+            foreach (var source in BindingSources)
             {
-                if (bindingSource.CanAcceptDataFrom(source))
+                if (source.CanAcceptDataFrom(bindingSource))
                 {
                     return true;
                 }

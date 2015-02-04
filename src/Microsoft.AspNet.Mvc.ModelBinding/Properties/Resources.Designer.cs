@@ -619,51 +619,51 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// The provided binding source '{0}' is not a user input binding source. '{1}' requires that the source must represent user input.
+        /// The provided binding source '{0}' is not a request-based binding source. '{1}' requires that the source must represent data from an HTTP request.
         /// </summary>
-        internal static string BindingSource_MustBeUserInput
+        internal static string BindingSource_MustBeFromRequest
         {
-            get { return GetString("BindingSource_MustBeUserInput"); }
+            get { return GetString("BindingSource_MustBeFromRequest"); }
         }
 
         /// <summary>
-        /// The provided binding source '{0}' is not a user input binding source. '{1}' requires that the source must represent user input.
+        /// The provided binding source '{0}' is not a request-based binding source. '{1}' requires that the source must represent data from an HTTP request.
         /// </summary>
-        internal static string FormatBindingSource_MustBeUserInput(object p0, object p1)
+        internal static string FormatBindingSource_MustBeFromRequest(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeUserInput"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeFromRequest"), p0, p1);
         }
 
         /// <summary>
-        /// The provided binding source '{0}' is a value provider data source. '{1}' does not support value provider data sources.
+        /// The provided binding source '{0}' is a greedy data source. '{1}' does not support greedy data sources.
         /// </summary>
-        internal static string BindingSource_CannotBeValueProvider
+        internal static string BindingSource_CannotBeGreedy
         {
-            get { return GetString("BindingSource_CannotBeValueProvider"); }
+            get { return GetString("BindingSource_CannotBeGreedy"); }
         }
 
         /// <summary>
-        /// The provided binding source '{0}' is a value provider data source. '{1}' does not support value provider data sources.
+        /// The provided binding source '{0}' is a greedy data source. '{1}' does not support greedy data sources.
         /// </summary>
-        internal static string FormatBindingSource_CannotBeValueProvider(object p0, object p1)
+        internal static string FormatBindingSource_CannotBeGreedy(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_CannotBeValueProvider"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_CannotBeGreedy"), p0, p1);
         }
 
         /// <summary>
-        /// The provided binding source '{0}' is not a value provider data source. '{1}' only supports value provider data sources.
+        /// The provided binding source '{0}' is not a greedy data source. '{1}' only supports greedy data sources.
         /// </summary>
-        internal static string BindingSource_MustBeValueProvider
+        internal static string BindingSource_MustBeGreedy
         {
-            get { return GetString("BindingSource_MustBeValueProvider"); }
+            get { return GetString("BindingSource_MustBeGreedy"); }
         }
 
         /// <summary>
-        /// The provided binding source '{0}' is not a value provider data source. '{1}' only supports value provider data sources.
+        /// The provided binding source '{0}' is not a greedy data source. '{1}' only supports greedy data sources.
         /// </summary>
-        internal static string FormatBindingSource_MustBeValueProvider(object p0, object p1)
+        internal static string FormatBindingSource_MustBeGreedy(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeValueProvider"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeGreedy"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

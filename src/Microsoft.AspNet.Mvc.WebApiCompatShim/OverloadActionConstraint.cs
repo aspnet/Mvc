@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             foreach (var parameter in candidate.Action.Parameters)
             {
                 // We only consider parameters that are marked as bound from the URL.
-                var source = GetBindingSource(parameter.BinderMetadata);
+                var source = BindingSource.GetBindingSource(parameter.BinderMetadata);
                 if (source == null)
                 {
                     continue;
@@ -149,12 +149,6 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             }
 
             return keys;
-        }
-
-        private static BindingSource GetBindingSource(IBinderMetadata metadata)
-        {
-            var source = (metadata as IBindingSourceMetadata)?.BindingSource;
-            return source;
         }
 
         private class OverloadedParameter

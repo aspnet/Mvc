@@ -61,7 +61,7 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                if (_bindingSource == null &&_binderType != null)
+                if (_bindingSource == null && _binderType != null)
                 {
                     return BindingSource.Custom;
                 }

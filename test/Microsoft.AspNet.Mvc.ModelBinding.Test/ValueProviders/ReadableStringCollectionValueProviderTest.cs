@@ -214,8 +214,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var bindingSource = new BindingSource(
                 BindingSource.Query.Id,
                 displayName: null,
-                isValueProvider: true,
-                isUserInput: true);
+                isGreedy: true,
+                isFromRequest: true);
 
             // Act
             var result = provider.Filter(bindingSource);
@@ -234,8 +234,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var bindingSource = new BindingSource(
                 "Test",
                 displayName: null,
-                isValueProvider: true,
-                isUserInput: true);
+                isGreedy: true,
+                isFromRequest: true);
 
             // Act
             var result = provider.Filter(bindingSource);

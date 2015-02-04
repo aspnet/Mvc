@@ -137,16 +137,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             newBindingContext.OperationBindingContext.BodyBindingState = GetBodyBindingState(oldBindingContext);
 
-            // look at the value providers and see if they need to be restricted.
-            var bindingSource = GetBindingSource(oldBindingContext.ModelMetadata.BinderMetadata);
-            if (bindingSource != null && bindingSource.IsValueProvider)
+            // If the property has a specified data binding sources, we need to filter the set of value providers
+            // to just those that match. We can skip filtering when IsGreedy == true, because that can't use
+            // value providers.
+            //
+            // We also want to base this filtering on the - top-level value profider in case the data source
+            // on this property doesn't intersect with the ambient data source.
+            //
+            // Ex:
+            //
+            // public class Person
+            // {
+            //      [FromQuery]
+            //      public int Id { get; set; }
+            // }
+            //
+            // public IActionResult UpdatePerson([FromForm] Person person) { }
+            //
+            // In this example, [FromQuery] overrides the ambient data source (form).
+            var bindingSource = BindingSource.GetBindingSource(oldBindingContext.ModelMetadata.BinderMetadata);
+            if (bindingSource != null && !bindingSource.IsGreedy)
             {
-                // ValueProvider property might contain a filtered list of value providers.
-                // While deciding to bind a particular property which is annotated with a IValueProviderMetadata,
-                // instead of refiltering an already filtered list, we need to filter value providers from a global
-                // list of all value providers. This is so that every artifact that is explicitly marked using an
-                // IValueProviderMetadata can restrict model binding to only use value providers which support this
-                // IValueProviderMetadata.
                 var valueProvider =
                     oldBindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
                 if (valueProvider != null)
@@ -160,7 +171,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private static BodyBindingState GetBodyBindingState(ModelBindingContext oldBindingContext)
         {
-            var bindingSource = GetBindingSource(oldBindingContext.ModelMetadata.BinderMetadata);
+            var bindingSource = BindingSource.GetBindingSource(oldBindingContext.ModelMetadata.BinderMetadata);
 
             var willReadBodyWithFormatter = bindingSource == BindingSource.Body;
             var willReadBodyAsFormData = bindingSource == BindingSource.Form;
@@ -189,12 +200,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return state;
-        }
-
-        private static BindingSource GetBindingSource(IBinderMetadata metadata)
-        {
-            var source = (metadata as IBindingSourceMetadata)?.BindingSource;
-            return source;
         }
     }
 }

@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 get
                 {
-                    return new BindingSource("Test", displayName: null, isValueProvider: true, isUserInput: true);
+                    return new BindingSource("Test", displayName: null, isGreedy: true, isFromRequest: true);
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 get
                 {
-                    return new BindingSource("Unrelated", displayName: null, isValueProvider: true, isUserInput: true);
+                    return new BindingSource("Unrelated", displayName: null, isGreedy: true, isFromRequest: true);
                 }
             }
         }

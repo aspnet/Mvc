@@ -231,14 +231,14 @@
   <data name="BindingSource_CannotBeComposite" xml:space="preserve">
     <value>The provided binding source '{0}' is a composite. '{1}' requires that the source must represent a single type of input.</value>
   </data>
-  <data name="BindingSource_MustBeUserInput" xml:space="preserve">
-    <value>The provided binding source '{0}' is not a user input binding source. '{1}' requires that the source must represent user input.</value>
+  <data name="BindingSource_MustBeFromRequest" xml:space="preserve">
+    <value>The provided binding source '{0}' is not a request-based binding source. '{1}' requires that the source must represent data from an HTTP request.</value>
   </data>
-  <data name="BindingSource_CannotBeValueProvider" xml:space="preserve">
-    <value>The provided binding source '{0}' is a value provider data source. '{1}' does not support value provider data sources.</value>
+  <data name="BindingSource_CannotBeGreedy" xml:space="preserve">
+    <value>The provided binding source '{0}' is a greedy data source. '{1}' does not support greedy data sources.</value>
   </data>
-  <data name="BindingSource_MustBeValueProvider" xml:space="preserve">
-    <value>The provided binding source '{0}' is not a value provider data source. '{1}' only supports value provider data sources.</value>
+  <data name="BindingSource_MustBeGreedy" xml:space="preserve">
+    <value>The provided binding source '{0}' is not a greedy data source. '{1}' only supports greedy data sources.</value>
   </data>
   <data name="ModelBinderUtil_ValueInvalid" xml:space="preserve">
     <value>The value '{0}' is not valid for {1}.</value>

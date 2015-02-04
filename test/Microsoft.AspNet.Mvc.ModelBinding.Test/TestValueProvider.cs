@@ -10,8 +10,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource TestBindingSource = new BindingSource(
             id: "Test",
             displayName: "Test",
-            isValueProvider: true,
-            isUserInput: true);
+            isGreedy: false,
+            isFromRequest: true);
 
         public TestValueProvider(IDictionary<string, object> values)
             : base(TestBindingSource, values)

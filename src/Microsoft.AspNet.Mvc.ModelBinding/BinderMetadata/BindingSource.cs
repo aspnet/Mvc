@@ -18,8 +18,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource Body = new BindingSource(
             "Body",
             Resources.BindingSource_Body,
-            isValueProvider: false,
-            isUserInput: true);
+            isGreedy: true,
+            isFromRequest: true);
 
         /// <summary>
         /// A <see cref="ApiParameterSource"/> for a custom model binder (unknown data source).
@@ -27,8 +27,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource Custom = new BindingSource(
             "Custom",
             Resources.BindingSource_Custom,
-            isValueProvider: false,
-            isUserInput: true);
+            isGreedy: true,
+            isFromRequest: true);
 
         /// <summary>
         /// A <see cref="ApiParameterSource"/> for the request form-data.
@@ -36,8 +36,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource Form = new BindingSource(
             "Form",
             Resources.BindingSource_Form,
-            isValueProvider: true,
-            isUserInput: true);
+            isGreedy: false,
+            isFromRequest: true);
 
         /// <summary>
         /// A <see cref="BindingSource"/> for the request headers.
@@ -45,8 +45,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource Header = new BindingSource(
             "Header",
             Resources.BindingSource_Header,
-            isValueProvider: false,
-            isUserInput: true);
+            isGreedy: true,
+            isFromRequest: true);
 
         /// <summary>
         /// A <see cref="BindingSource"/> for model binding. Includes form-data, query-string
@@ -55,26 +55,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource ModelBinding = new BindingSource(
             "ModelBinding",
             Resources.BindingSource_ModelBinding,
-            isValueProvider: true,
-            isUserInput: true);
+            isGreedy: false,
+            isFromRequest: true);
 
         /// <summary>
-        /// An <see cref="ApiParameterSource"/> for the request url path.
+        /// A <see cref="BindingSource"/> for the request url path.
         /// </summary>
         public static readonly BindingSource Path = new BindingSource(
             "Path",
             Resources.BindingSource_Path,
-            isValueProvider: true,
-            isUserInput: true);
+            isGreedy: false,
+            isFromRequest: true);
 
         /// <summary>
-        /// An <see cref="ApiParameterSource"/> for the request query-string.
+        /// A <see cref="BindingSource"/> for the request query-string.
         /// </summary>
         public static readonly BindingSource Query = new BindingSource(
             "Query",
             Resources.BindingSource_Query,
-            isValueProvider: true,
-            isUserInput: true);
+            isGreedy: false,
+            isFromRequest: true);
 
         /// <summary>
         /// A <see cref="BindingSource"/> for request services.
@@ -82,36 +82,71 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static readonly BindingSource Services = new BindingSource(
             "Services",
             Resources.BindingSource_Services,
-            isValueProvider: false,
-            isUserInput: false);
+            isGreedy: true,
+            isFromRequest: false);
 
-        public BindingSource([NotNull] string id, string displayName, bool isValueProvider, bool isUserInput)
+        /// <summary>
+        /// Creates a new <see cref="BindingSource"/>.
+        /// </summary>
+        /// <param name="id">The id, a unique identifier.</param>
+        /// <param name="displayName">The display name.</param>
+        /// <param name="isGreedy">A value indicating whether or not the source is greedy.</param>
+        /// <param name="isFromRequest">
+        /// A value indicating whether or not the data comes from the HTTP request.
+        /// </param>
+        public BindingSource([NotNull] string id, string displayName, bool isGreedy, bool isFromRequest)
         {
             Id = id;
             DisplayName = displayName;
-            IsValueProvider = isValueProvider;
-            IsUserInput = isUserInput;
+            IsGreedy = isGreedy;
+            IsFromRequest = isFromRequest;
         }
 
+        /// <summary>
+        /// Gets the display name for the source.
+        /// </summary>
         public string DisplayName { get; }
 
         /// <summary>
-        /// Gets an 
+        /// Gets the unique identifier for the source. Sources are compared based on their Id.
         /// </summary>
         public string Id { get; }
 
-        public bool IsValueProvider { get; }
+        /// <summary>
+        /// Gets a value indicating whether or not a source is greedy. A greedy source will bind a model in
+        /// a single operation, and will not decompose the model into sub-properties.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// For sources based on a <see cref="IValueProvider"/>, setting <see cref="IsGreedy"/> to <c>false</c>
+        /// will most closely describe the behavior. This value is used inside the default model binders to 
+        /// determine whether or not to attempt to bind properties of a model.
+        /// </para>
+        /// <para>
+        /// Set <see cref="IsGreedy"/> to <c>true</c> for most custom <see cref="IModelBinder"/> implementations.
+        /// </para>
+        /// <para>
+        /// If a source represents an <see cref="IModelBinder"/> which will recursively traverse a model's properties
+        /// and bind them individually using <see cref="IValueProvider"/>, then set <see cref="IsGreedy"/> to
+        /// <c>true</c>.
+        /// </para>
+        /// </remarks>
+        public bool IsGreedy { get; }
 
         /// <summary>
-        /// Gets a value indicating whether or not the binding source contains user input.
+        /// Gets a value indicating whether or not the binding source uses input from the current HTTP request.
         /// </summary>
-        public bool IsUserInput { get; }
+        /// <remarks>
+        /// Some sources (like <see cref="BindingSource.Services"/>) are based on application state and not user
+        /// input. These are excluded by default from ApiExplorer diagnostics.
+        /// </remarks>
+        public bool IsFromRequest { get; }
 
         /// <summary>
         /// Gets a value indicating whether or not the <see cref="BindingSource"/> can accept
-        /// data from <paramref name="source"/>.
+        /// data from <paramref name="bindingSource"/>.
         /// </summary>
-        /// <param name="source">The <see cref="BindingSource"/> to consider as input.</param>
+        /// <param name="bindingSource">The <see cref="BindingSource"/> to consider as input.</param>
         /// <returns><c>True</c> if the source is compatible, otherwise <c>false</c>.</returns>
         /// <remarks>
         /// When using this method, it is expected that the left-hand-side is metadata specified
@@ -121,16 +156,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// This distinction is important as the left-hand-side may be a composite, but the right
         /// may not.
         /// </remarks>
-        public virtual bool CanAcceptDataFrom([NotNull] BindingSource source)
+        public virtual bool CanAcceptDataFrom([NotNull] BindingSource bindingSource)
         {
-            if (source is CompositeBindingSource)
+            if (bindingSource is CompositeBindingSource)
             {
-                throw new InvalidOperationException(Resources.FormatBindingSource_CannotBeComposite(
-                    source.DisplayName,
-                    nameof(CanAcceptDataFrom)));
+                var message = Resources.FormatBindingSource_CannotBeComposite(
+                    bindingSource.DisplayName,
+                    nameof(CanAcceptDataFrom));
+                throw new ArgumentException(message, nameof(bindingSource));
             }
 
-            return this == source;
+            return this == bindingSource;
         }
 
         /// <inheritdoc />
@@ -166,6 +202,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static bool operator !=(BindingSource s1, BindingSource s2)
         {
             return !(s1 == s2);
+        }
+
+        // THIS IS TEMP CODE, this will be moved to model metadata
+        public static BindingSource GetBindingSource(IBinderMetadata metadata)
+        {
+            return (metadata as IBindingSourceMetadata)?.BindingSource;
         }
     }
 }

@@ -219,7 +219,7 @@ namespace Microsoft.AspNet.Mvc.Description
             var action = CreateActionDescriptor(methodName);
             action.AttributeRouteInfo = new AttributeRouteInfo { Template = template };
 
-            var expected = new BindingSource(source, displayName: null, isValueProvider: false, isUserInput: false);
+            var expected = new BindingSource(source, displayName: null, isGreedy: false, isFromRequest: false);
 
             // Act
             var descriptions = GetApiDescriptions(action);
@@ -250,7 +250,7 @@ namespace Microsoft.AspNet.Mvc.Description
             var action = CreateActionDescriptor(methodName);
             action.AttributeRouteInfo = new AttributeRouteInfo { Template = template };
 
-            var expected = new BindingSource(source, displayName: null, isValueProvider: false, isUserInput: false);
+            var expected = new BindingSource(source, displayName: null, isGreedy: false, isFromRequest: false);
 
             // Act
             var descriptions = GetApiDescriptions(action);

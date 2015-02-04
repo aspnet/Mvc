@@ -30,13 +30,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="bindingSource">
         /// The <see cref="ModelBinding.BindingSource"/>. Must be a single-source (non-composite) with
-        /// <see cref="ModelBinding.BindingSource.IsValueProvider"/> equal to <c>true</c>.
+        /// <see cref="ModelBinding.BindingSource.IsGreedy"/> equal to <c>false</c>.
         /// </param>
         public BindingSourceValueProvider([NotNull] BindingSource bindingSource)
         {
-            if (!bindingSource.IsValueProvider)
+            if (bindingSource.IsGreedy)
             {
-                var message = Resources.FormatBindingSource_MustBeValueProvider(
+                var message = Resources.FormatBindingSource_CannotBeGreedy(
                     bindingSource.DisplayName,
                     nameof(BindingSourceValueProvider));
                 throw new ArgumentException(message, nameof(bindingSource));
@@ -53,6 +53,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             BindingSource = bindingSource;
         }
 
+        /// <summary>
+        /// Gets the corresponding <see cref="ModelBinding.BindingSource"/>.
+        /// </summary>
         protected BindingSource BindingSource { get; }
 
         /// <inheritdoc />

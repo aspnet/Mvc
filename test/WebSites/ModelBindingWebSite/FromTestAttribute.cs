@@ -11,8 +11,8 @@ namespace ModelBindingWebSite
         public static readonly BindingSource TestBindingSource = new BindingSource(
             "Test",
             displayName: null,
-            isValueProvider: false,
-            isUserInput: true);
+            isGreedy: false,
+            isFromRequest: true);
 
         public BindingSource BindingSource { get { return TestBindingSource; } }
 
