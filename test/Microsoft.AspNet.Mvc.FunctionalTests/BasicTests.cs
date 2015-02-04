@@ -268,7 +268,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = new HttpClient(server.CreateHandler(), false);
 
             // Act
-            var response = await client.GetAsync("http://localhost/Home/GetApplicaitonDescription");
+            var response = await client.GetAsync("http://localhost/Home/GetApplicationDescription");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
