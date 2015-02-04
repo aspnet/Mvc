@@ -29,13 +29,25 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly string[] RequiredAttributes = new[]
+        private static readonly IDictionary<Mode, IEnumerable<string>> ModeAttributeSets =
+            new Dictionary<Mode, IEnumerable<string>>
+            {
+                { Mode.Fallback, new[]
+                    {
+                        FallbackHrefAttributeName,
+                        FallbackTestClassAttributeName,
+                        FallbackTestPropertyAttributeName,
+                        FallbackTestValueAttributeName
+                    }
+                },
+                { Mode.GlobbedHref, new [] { HrefAttributeName } }
+            };
+
+        public enum Mode
         {
-            FallbackHrefAttributeName,
-            FallbackTestClassAttributeName,
-            FallbackTestPropertyAttributeName,
-            FallbackTestValueAttributeName
-        };
+            GlobbedHref,
+            Fallback
+        }
 
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to load.
@@ -84,7 +96,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             _webRoot = new DirectoryInfoWrapper(new DirectoryInfo(HostingEnvironment.WebRoot));
 
-            if (!context.AllRequiredAttributesArePresent(RequiredAttributes, Logger))
+            var modeResult = context.DetermineMode(ModeAttributeSets);
+
+            if (!modeResult.Matched)
             {
                 if (Logger.IsEnabled(LogLevel.Verbose))
                 {
@@ -148,21 +162,24 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
             }
 
-            // Build the <meta /> tag that's used to test for the presence of the stylesheet
-            content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate, FallbackTestClass));
+            if (modeResult.Mode == Mode.Fallback)
+            {
+                // Build the <meta /> tag that's used to test for the presence of the stylesheet
+                content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate, FallbackTestClass));
 
-            var matchedFallbackHrefs = ExpandGlobbedHref(FallbackHref);
+                var matchedFallbackHrefs = ExpandGlobbedHref(FallbackHref);
 
-            // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
-            // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
-            // indicating that the primary stylesheet failed to load.
-            content.Append("<script>");
-            content.AppendFormat(CultureInfo.InvariantCulture,
-                                 JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                                 JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
-                                 JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
-                                 JavaScriptUtility.JavaScriptArrayEncode(matchedFallbackHrefs));
-            content.Append("</script>");
+                // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
+                // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
+                // indicating that the primary stylesheet failed to load.
+                content.Append("<script>");
+                content.AppendFormat(CultureInfo.InvariantCulture,
+                                     JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
+                                     JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
+                                     JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
+                                     JavaScriptUtility.JavaScriptArrayEncode(matchedFallbackHrefs));
+                content.Append("</script>");
+            }
 
             output.Content = content.ToString();
         }
@@ -184,7 +201,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // This isn't a set of globbing patterns so just return the original href
                 return new[] { href };
             }
-            
+
             matcher.AddPatterns(patterns.Select(p => p.TrimStart('/')));
             var matches = matcher.Execute(_webRoot);
 

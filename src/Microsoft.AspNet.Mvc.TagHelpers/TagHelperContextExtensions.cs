@@ -62,5 +62,42 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             // All required attributes present
             return true;
         }
+
+        public static ModeResult<TMode> DetermineMode<TMode>(
+            this TagHelperContext context,
+            IDictionary<TMode, IEnumerable<string>> attributeSets)
+        {
+            foreach (var mode in attributeSets.Keys)
+            {
+                if (AllRequiredAttributesArePresent(context, attributeSets[mode]))
+                {
+                    return ModeResult.Matched(mode);
+                }
+            }
+
+            return ModeResult<TMode>.Unmatched;
+        }
+    }
+
+    public static class ModeResult
+    {
+        public static ModeResult<TMode> Matched<TMode>(TMode mode)
+        {
+            return new ModeResult<TMode> { Matched = true, Mode = mode };
+        }
+    }
+
+    public class ModeResult<TMode>
+    {
+        private static readonly ModeResult<TMode> _unmatched = new ModeResult<TMode> { Matched = false };
+
+        public TMode Mode { get; set; }
+
+        public bool Matched { get; set; }
+
+        public static ModeResult<TMode> Unmatched
+        {
+            get { return _unmatched; }
+        }
     }
 }
