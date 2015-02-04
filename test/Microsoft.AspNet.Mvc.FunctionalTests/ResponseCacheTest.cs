@@ -156,8 +156,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => client.GetAsync("http://localhost/CacheHeaders/ThrowsWhenDurationIsNotSet"));
+            Assert.Equal("The 'HelloWorld' cache profile is not defined.", ex.Message);
         }
 
         // Cache Profiles

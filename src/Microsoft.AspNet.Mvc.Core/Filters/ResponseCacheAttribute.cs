@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc
             var optionsAccessor = serviceProvider.GetRequiredService<IOptions<MvcOptions>>();
 
             CacheProfile selectedProfile = null;
-            if (!string.IsNullOrEmpty(CacheProfileName))
+            if (CacheProfileName != null)
             {
                 optionsAccessor.Options.CacheProfiles.TryGetValue(CacheProfileName, out selectedProfile);
                 if (selectedProfile == null)

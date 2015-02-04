@@ -46,8 +46,9 @@ namespace Microsoft.AspNet.Mvc
             cacheProfiles.Add("Test", new CacheProfile { Duration = 20 });
 
             // Act
-            Assert.Throws<InvalidOperationException>(
+            var ex = Assert.Throws<InvalidOperationException>(
                 () => responseCache.CreateInstance(GetServiceProvider(cacheProfiles)));
+            Assert.Equal("The 'HelloWorld' cache profile is not defined.", ex.Message);
         }
 
         public static IEnumerable<object[]> OverrideData
@@ -172,8 +173,11 @@ namespace Microsoft.AspNet.Mvc
             cacheProfiles.Add("Test", new CacheProfile { NoStore = false });
 
             // Act & Assert
-            Assert.Throws<InvalidOperationException>(
+            var ex = Assert.Throws<InvalidOperationException>(
                 () => responseCache.CreateInstance(GetServiceProvider(cacheProfiles)));
+            Assert.Equal(
+                "If the 'NoStore' property is not set to true, 'Duration' property must be specified.",
+                ex.Message);
         }
 
         private IServiceProvider GetServiceProvider(Dictionary<string, CacheProfile> cacheProfiles)

@@ -34,12 +34,15 @@ namespace Microsoft.AspNet.Mvc
         public void ResponseCacheFilter_ThrowsIfDurationIsNotSet_WhenNoStoreIsFalse()
         {
             // Arrange, Act & Assert
-            Assert.Throws<InvalidOperationException>(
+            var ex = Assert.Throws<InvalidOperationException>(
                 () => new ResponseCacheFilter(
                     new CacheProfile
                     {
                         Duration = null
                     }));
+            Assert.Equal(
+                "If the 'NoStore' property is not set to true, 'Duration' property must be specified.",
+                ex.Message);
         }
 
         public static IEnumerable<object[]> CacheControlData

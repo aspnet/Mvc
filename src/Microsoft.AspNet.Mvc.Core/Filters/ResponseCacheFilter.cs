@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc
         {
             if (!(cacheProfile.NoStore ?? false))
             {
-                // Duration MUST be set if NoStore is false. Either in the cache profile or in the attribute.
+                // Duration MUST be set (either in the cache profile or in the attribute) unless NoStore is true.
                 if (cacheProfile.Duration == null)
                 {
                     throw new InvalidOperationException(
