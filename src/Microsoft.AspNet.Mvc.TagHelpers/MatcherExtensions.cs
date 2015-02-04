@@ -32,5 +32,16 @@ namespace Microsoft.Framework.FileSystemGlobbing
                 }
             }
         }
+
+        /// <summary>
+        /// Determines whether a path contains characters suggesting it should be processed as a globbing pattern.
+        /// </summary>
+        /// <param name="matcher">The <see cref="Matcher"/>.</param>
+        /// <param name="pattern">The value to test.</param>
+        /// <returns></returns>
+        public static bool IsGlobbingPattern([NotNull]this Matcher matcher, [NotNull] string pattern)
+        {
+            return pattern.IndexOf("*", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
     }
 }

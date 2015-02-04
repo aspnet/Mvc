@@ -178,6 +178,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
 
             var matcher = new Matcher();
+
+            if (patterns.Length == 1 && !matcher.IsGlobbingPattern(patterns[0]))
+            {
+                // This isn't a set of globbing patterns so just return the original href
+                return new[] { href };
+            }
+            
             matcher.AddPatterns(patterns.Select(p => p.TrimStart('/')));
             var matches = matcher.Execute(_webRoot);
 
