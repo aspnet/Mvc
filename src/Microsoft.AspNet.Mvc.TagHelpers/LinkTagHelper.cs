@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 { Mode.GlobbedHref, new [] { HrefAttributeName } }
             };
 
-        public enum Mode
+        private enum Mode
         {
             GlobbedHref,
             Fallback
@@ -202,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return new[] { href };
             }
 
-            matcher.AddPatterns(patterns.Select(p => p.TrimStart('/')));
+            matcher.AddPatterns(patterns);
             var matches = matcher.Execute(_webRoot);
 
             return matches.Files;

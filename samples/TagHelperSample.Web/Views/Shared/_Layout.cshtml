@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <link asp-href="~/**/blank.css" rel="stylesheet" />
-    <link href="~/site.min.css" rel="stylesheet"
-          asp-fallback-href="~/**/site.css"
-          asp-fallback-test-class="fallback-test"
-          asp-fallback-test-property="visibility"
-          asp-fallback-test-value="hidden" />
+    <link href="~/blank.css" rel="stylesheet" data-test="value" />
+    <link href="~/site.min.css" rel="stylesheet" data-test="value"
+            asp-fallback-href="~/*.css"
+            asp-fallback-test-class="fallback-test"
+            asp-fallback-test-property="visibility"
+            asp-fallback-test-value="hidden" />
 </head>
 <body>
     @RenderBody()

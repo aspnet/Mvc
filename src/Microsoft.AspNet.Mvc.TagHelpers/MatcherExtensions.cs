@@ -24,11 +24,11 @@ namespace Microsoft.Framework.FileSystemGlobbing
             {
                 if (pattern.StartsWith("!", StringComparison.OrdinalIgnoreCase))
                 {
-                    matcher.AddExclude(pattern);
+                    matcher.AddExclude(pattern.TrimStart('!', '/'));
                 }
                 else
                 {
-                    matcher.AddInclude(pattern);
+                    matcher.AddInclude(pattern.TrimStart('/'));
                 }
             }
         }
