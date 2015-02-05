@@ -1,4 +1,6 @@
-﻿(
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+(
  /**
   * This function finds the previous element (assumed to be meta) and tests its current CSS style using the passed
   * values, to determine if a stylesheet was loaded. If not, this function loads the fallback stylesheet via

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
@@ -157,9 +158,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
 
-            // We've taken over rendering here so prevent the element rendering the outer tag
-            output.TagName = null;
-
             if (modeResult.Mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
             {
                 // No globbing to do, just build a <link /> tag to match the original one in the source file
@@ -173,7 +171,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             else
             {
                 // Process href globbing include/excludes
-                
                 string plainHref;
                 output.Attributes.TryGetValue("href", out plainHref);
 
@@ -182,7 +179,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 foreach (var href in hrefs)
                 {
                     // Build a <link /> tag for each matched href
-                    content.AppendFormat("<link href=\"{0}\" ", href);
+                    content.AppendFormat("<link href=\"{0}\" ", WebUtility.HtmlEncode(href));
                     foreach (var attribute in output.Attributes)
                     {
                         if (!string.Equals(attribute.Key, "href", StringComparison.Ordinal))
@@ -210,15 +207,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
                 // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
                 // indicating that the primary stylesheet failed to load.
-                content.Append("<script>");
-                content.AppendFormat(CultureInfo.InvariantCulture,
+                content.Append("<script>")
+                       .AppendFormat(CultureInfo.InvariantCulture,
                                      JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
                                      JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
                                      JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
-                                     JavaScriptUtility.JavaScriptArrayEncode(fallbackHrefs));
-                content.Append("</script>");
+                                     JavaScriptUtility.JavaScriptArrayEncode(fallbackHrefs))
+                       .Append("</script>");
             }
 
+            // We've taken over rendering here so prevent the element rendering the outer tag
+            output.TagName = null;
             output.Content = content.ToString();
         }
 
@@ -258,10 +257,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var matcher = new Matcher();
 
-            if (includePatterns.Length == 1 && !matcher.IsGlobbingPattern(includePatterns[0]))
+            if (!includePatterns.Any(pattern => matcher.IsGlobbingPattern(pattern)))
             {
-                // This isn't a set of globbing patterns so just return the original include string
-                return new[] { include };
+                // This isn't a set of globbing patterns so just return the original set
+                return includePatterns;
             }
 
             var excludePatterns = exclude?.Split(',');
@@ -269,16 +268,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             matcher.AddPatterns(includePatterns, excludePatterns);
             var matches = matcher.Execute(_webRoot);
             
-            return matches.Files.Select(path => ResolveMatchedPath(path, ViewContext.HttpContext.Request.PathBase));
+            return matches.Files.Select(ResolveMatchedPath);
         }
 
-        private static string ResolveMatchedPath(string matchedPath, PathString basePath)
+        private string ResolveMatchedPath(string matchedPath)
         {
-            // TODO: This needs to resolve each to webRoot based on the request path.
-            //       See example at https://github.com/aspnet/Mvc/blob/614dbccaf8d32fd6e0fbebd0b88e0831fb3e1313/src/Microsoft.AspNet.Mvc.TagHelpers/ScriptTagHelper%20.cs#L66
-
+            // Resolve the path to absolute root
             var relativePath = new PathString("/" + matchedPath);
-            return basePath.Add(relativePath).ToString();
+            return ViewContext.HttpContext.Request.PathBase.Add(relativePath).ToString();
         }
     }
 }
