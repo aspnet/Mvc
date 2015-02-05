@@ -12,11 +12,11 @@ namespace Microsoft.AspNet.Mvc
         private TestSink _sink;
         private string _name;
 
-	    public TestLogger(string name, TestSink sink)
-	    {
+        public TestLogger(string name, TestSink sink)
+        {
             _sink = sink;
             _name = name;
-	    }
+        }
 
         public string Name { get; set; }
 
@@ -33,11 +33,11 @@ namespace Microsoft.AspNet.Mvc
             return NullDisposable.Instance;
         }
 
-        public bool WriteCore(TraceType eventType, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+        public void Write(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
         {
-            _sink.Write(new WriteCoreContext()
+            _sink.Write(new WriteContext()
             {
-                EventType = eventType,
+                LogLevel = logLevel,
                 EventId = eventId,
                 State = state,
                 Exception = exception,
@@ -45,7 +45,10 @@ namespace Microsoft.AspNet.Mvc
                 LoggerName = _name,
                 Scope = _scope
             });
+        }
 
+        public bool IsEnabled(LogLevel logLevel)
+        {
             return true;
         }
     }

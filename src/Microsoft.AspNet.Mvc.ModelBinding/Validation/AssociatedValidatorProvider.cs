@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -19,8 +20,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return GetValidatorsForType(metadata);
         }
 
-        protected abstract IEnumerable<IModelValidator> GetValidators(ModelMetadata metadata, 
-                                                                      IEnumerable<Attribute> attributes);
+        protected abstract IEnumerable<IModelValidator> GetValidators(ModelMetadata metadata,
+                                                                      IEnumerable<object> attributes);
 
         private IEnumerable<IModelValidator> GetValidatorsForProperty(ModelMetadata metadata)
         {
@@ -28,25 +29,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
             var property = metadata.ContainerType
                                    .GetProperty(propertyName, bindingFlags);
-                
+
             if (property == null)
             {
                 throw new ArgumentException(
                     Resources.FormatCommon_PropertyNotFound(
-                        metadata.ContainerType.FullName, 
+                        metadata.ContainerType.FullName,
                         metadata.PropertyName),
                     "metadata");
             }
 
-            var attributes = property.GetCustomAttributes();
+            var attributes = ModelAttributes.GetAttributesForProperty(metadata.ContainerType, property);
             return GetValidators(metadata, attributes);
         }
 
         private IEnumerable<IModelValidator> GetValidatorsForType(ModelMetadata metadata)
         {
-            var attributes = metadata.ModelType
-                                     .GetTypeInfo()
-                                     .GetCustomAttributes();
+            var attributes = ModelAttributes.GetAttributesForType(metadata.ModelType);
+
             return GetValidators(metadata, attributes);
         }
     }

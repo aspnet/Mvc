@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNet.Mvc;
@@ -22,7 +25,7 @@ namespace MvcSample.Web
         {
             var time = _timer.ElapsedMilliseconds;
             context.HttpContext.Response.Headers.Add(
-                "ActionElapsedTime", 
+                "ActionElapsedTime",
                 new string[] { time.ToString(CultureInfo.InvariantCulture) + " ms" });
         }
 
@@ -35,7 +38,7 @@ namespace MvcSample.Web
         {
             var time = _timer.ElapsedMilliseconds;
             context.HttpContext.Response.Headers.Add(
-                "ResultElapsedTime", 
+                "ResultElapsedTime",
                 new string[] { time.ToString(CultureInfo.InvariantCulture) + " ms" });
         }
     }

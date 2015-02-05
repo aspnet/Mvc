@@ -7,10 +7,10 @@ namespace Microsoft.AspNet.Mvc.Logging
 {
     internal static class LoggerExtensions
     {
-        public static bool WriteValues([NotNull] this ILogger logger, object values)
+        public static void WriteValues([NotNull] this ILogger logger, object values)
         {
-            return logger.WriteCore(
-                eventType: TraceType.Information,
+            logger.Write(
+                logLevel: LogLevel.Verbose,
                 eventId: 0,
                 state: values,
                 exception: null,

@@ -3,41 +3,42 @@
 
 using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class JsonOutputFormatter : OutputFormatter
+    public class JsonOutputFormatter : OutputFormatter, IJsonOutputFormatter
     {
-        private readonly JsonSerializerSettings _settings;
-        private readonly bool _indent;
+        private JsonSerializerSettings _serializerSettings;
 
-        public JsonOutputFormatter([NotNull] JsonSerializerSettings settings, bool indent)
+        public JsonOutputFormatter()
         {
-            _settings = settings;
-            _indent = indent;
             SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/json"));
+
+            _serializerSettings = new JsonSerializerSettings();
         }
 
-        public static JsonSerializerSettings CreateDefaultSettings()
+        /// <summary>
+        /// Gets or sets the <see cref="JsonSerializerSettings"/> used to configure the <see cref="JsonSerializer"/>.
+        /// </summary>
+        public JsonSerializerSettings SerializerSettings
         {
-            return new JsonSerializerSettings()
+            get { return _serializerSettings; }
+            set
             {
-                MissingMemberHandling = MissingMemberHandling.Ignore,
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
 
-                // Do not change this setting
-                // Setting this to None prevents Json.NET from loading malicious, unsafe, or security-sensitive types.
-                TypeNameHandling = TypeNameHandling.None
-            };
+                _serializerSettings = value;
+            }
         }
 
         public void WriteObject([NotNull] TextWriter writer, object value)
@@ -52,11 +53,6 @@ namespace Microsoft.AspNet.Mvc
         private JsonWriter CreateJsonWriter(TextWriter writer)
         {
             var jsonWriter = new JsonTextWriter(writer);
-            if (_indent)
-            {
-                jsonWriter.Formatting = Formatting.Indented;
-            }
-
             jsonWriter.CloseOutput = false;
 
             return jsonWriter;
@@ -64,7 +60,7 @@ namespace Microsoft.AspNet.Mvc
 
         private JsonSerializer CreateJsonSerializer()
         {
-            var jsonSerializer = JsonSerializer.Create(_settings);
+            var jsonSerializer = JsonSerializer.Create(_serializerSettings);
             return jsonSerializer;
         }
 
@@ -73,8 +69,8 @@ namespace Microsoft.AspNet.Mvc
             var response = context.ActionContext.HttpContext.Response;
             var selectedEncoding = context.SelectedEncoding;
 
-            using (var delegatingStream = new DelegatingStream(response.Body))
-            using (var writer = new StreamWriter(delegatingStream, selectedEncoding, 1024, leaveOpen: true))
+            using (var nonDisposableStream = new NonDisposableStream(response.Body))
+            using (var writer = new StreamWriter(nonDisposableStream, selectedEncoding, 1024, leaveOpen: true))
             {
                 WriteObject(writer, context.Object);
             }

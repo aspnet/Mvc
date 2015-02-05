@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value", 
+                    throw new ArgumentNullException("value",
                                                     Resources.FormatPropertyOfTypeCannotBeNull(
                                                                 "FormFieldName", typeof(AntiForgeryOptions)));
                 }
@@ -94,7 +94,6 @@ namespace Microsoft.AspNet.Mvc
             set;
         }
 
-        // TODO: Replace the stub.
         private string GetAntiForgeryCookieName()
         {
             return AntiForgeryTokenFieldName;

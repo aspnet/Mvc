@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc
                 if (valueAsString != null)
                 {
                     var allValues = GetAndCacheAllMatchingValues(routeKey, httpContext);
-                    var match = allValues.Any(existingRouteValue => 
+                    var match = allValues.Any(existingRouteValue =>
                                                 existingRouteValue.Equals(
                                                                     valueAsString,
                                                                     StringComparison.OrdinalIgnoreCase));
@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.Mvc
         private static ActionDescriptorsCollection GetAndValidateActionDescriptorsCollection(HttpContext httpContext)
         {
             var provider = httpContext.RequestServices
-                                      .GetService<IActionDescriptorsCollectionProvider>();
+                                      .GetRequiredService<IActionDescriptorsCollectionProvider>();
             var descriptors = provider.ActionDescriptors;
 
             if (descriptors == null)

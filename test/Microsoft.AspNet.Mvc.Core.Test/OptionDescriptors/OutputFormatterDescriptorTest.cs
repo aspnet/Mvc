@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.Net.Http.Headers;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Testing;
 using Xunit;
@@ -25,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.Core
             ExceptionAssert.ThrowsArgument(() => new OutputFormatterDescriptor(type), "type", expected);
         }
 
-         [Fact]
+        [Fact]
         public void ConstructorSets_OutputFormatterType()
         {
             // Arrange
@@ -58,6 +59,13 @@ namespace Microsoft.AspNet.Mvc.Core
             public bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
             {
                 throw new NotImplementedException();
+            }
+
+            public IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(Type declaredType,
+                                                                                Type runtimeType,
+                                                                                MediaTypeHeaderValue contentType)
+            {
+                return null;
             }
 
             public Task WriteAsync(OutputFormatterContext context)

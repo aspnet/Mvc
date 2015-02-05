@@ -43,17 +43,18 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private ViewDataDictionary CreateViewDataDictionary(ViewContext context, PageActivationInfo activationInfo)
         {
-            // Create a ViewDataDictionary<TModel> if the ViewContext.ViewData is not set or the type of 
+            // Create a ViewDataDictionary<TModel> if the ViewContext.ViewData is not set or the type of
             // ViewContext.ViewData is an incompatibile type.
             if (context.ViewData == null)
             {
-                // Create ViewDataDictionary<TModel>(metadataProvider);
+                // Create ViewDataDictionary<TModel>(IModelMetadataProvider, ModelStateDictionary).
                 return (ViewDataDictionary)_typeActivator.CreateInstance(context.HttpContext.RequestServices,
-                                                                         activationInfo.ViewDataDictionaryType);
+                                                                         activationInfo.ViewDataDictionaryType,
+                                                                         context.ModelState);
             }
             else if (context.ViewData.GetType() != activationInfo.ViewDataDictionaryType)
             {
-                // Create ViewDataDictionary<TModel>(ViewDataDictionary);
+                // Create ViewDataDictionary<TModel>(ViewDataDictionary).
                 return (ViewDataDictionary)_typeActivator.CreateInstance(context.HttpContext.RequestServices,
                                                                          activationInfo.ViewDataDictionaryType,
                                                                          context.ViewData);
@@ -64,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private PageActivationInfo CreateViewActivationInfo(Type type)
         {
-            // Look for a property named "Model". If it is non-null, we'll assume this is 
+            // Look for a property named "Model". If it is non-null, we'll assume this is
             // the equivalent of TModel Model property on RazorPage<TModel>
             var modelProperty = type.GetRuntimeProperty(ModelPropertyName);
             if (modelProperty == null)
@@ -97,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 valueAccessor = context =>
                {
                    var serviceProvider = context.HttpContext.RequestServices;
-                   var value = serviceProvider.GetService(property.PropertyType);
+                   var value = serviceProvider.GetRequiredService(property.PropertyType);
                    var canHasViewContext = value as ICanHasViewContext;
                    if (canHasViewContext != null)
                    {

@@ -1,5 +1,8 @@
-﻿using Microsoft.Framework.Logging;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -27,7 +30,11 @@ namespace Microsoft.AspNet.Mvc
             return NullDisposable.Instance;
         }
 
-        public bool WriteCore(TraceType eventType, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+        public void Write(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+        {
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
         {
             return false;
         }

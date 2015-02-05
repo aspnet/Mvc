@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Http.Core;
 using Moq;
 using Xunit;
-using System;
-using System.Threading;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var context = CreateContext("some-content-type");
             var factory = new FormValueProviderFactory();
-            
+
             // Act
             var result = factory.GetValueProvider(context);
 
@@ -33,7 +33,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         [Theory]
         [InlineData("application/x-www-form-urlencoded")]
         [InlineData("application/x-www-form-urlencoded;charset=utf-8")]
-        public void GetValueProvider_ReturnsValueProviderInstaceWithInvariantCulture(string contentType)
+        [InlineData("multipart/form-data")]
+        [InlineData("multipart/form-data;charset=utf-8")]
+        public void GetValueProvider_ReturnsValueProviderInstanceWithInvariantCulture(string contentType)
         {
             // Arrange
             var context = CreateContext(contentType);
@@ -43,22 +45,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = factory.GetValueProvider(context);
 
             // Assert
-            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider>(result);
+            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider<IFormDataValueProviderMetadata>>(result);
             Assert.Equal(CultureInfo.CurrentCulture, valueProvider.Culture);
         }
 
         private static ValueProviderFactoryContext CreateContext(string contentType)
         {
-            var collection = Mock.Of<IReadableStringCollection>();
+            var collection = Mock.Of<IFormCollection>();
             var request = new Mock<HttpRequest>();
-            request.Setup(f => f.GetFormAsync(CancellationToken.None)).Returns(Task.FromResult(collection));
+            request.Setup(f => f.ReadFormAsync(CancellationToken.None)).Returns(Task.FromResult(collection));
             request.SetupGet(r => r.ContentType).Returns(contentType);
+            request.SetupGet(r => r.HasFormContentType).Returns(new FormFeature(request.Object).HasFormContentType);
 
             var context = new Mock<HttpContext>();
             context.SetupGet(c => c.Request).Returns(request.Object);
 
             return new ValueProviderFactoryContext(
-                context.Object, 
+                context.Object,
                 new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase));
         }
     }

@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 
-namespace ConnegWebsite
+namespace ConnegWebSite
 {
     public class TextPlainController : Controller
     {
@@ -20,7 +20,7 @@ namespace ConnegWebsite
 
         public Task<object> ReturnTaskOfObject_ObjectValue()
         {
-            return Task.FromResult<object>(new object());
+            return Task.FromResult(new object());
         }
 
         public string ReturnString()

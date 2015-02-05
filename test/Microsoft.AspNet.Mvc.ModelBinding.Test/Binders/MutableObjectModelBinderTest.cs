@@ -1,14 +1,17 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -16,6 +19,316 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class MutableObjectModelBinderTest
     {
+        [Theory]
+        [InlineData(typeof(Person), true)]
+        [InlineData(typeof(Person), false)]
+        [InlineData(typeof(EmptyModel), true)]
+        [InlineData(typeof(EmptyModel), false)]
+        public async Task
+            CanCreateModel_CreatesModel_ForTopLevelObjectIfThereIsExplicitPrefix(Type modelType, bool isPrefixProvided)
+        {
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(false));
+
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    // Random type.
+                    ModelMetadata = GetMetadataForType(typeof(Person)),
+                    ValueProvider = mockValueProvider.Object,
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValueProvider = mockValueProvider.Object,
+                        MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    },
+
+                    // Setting it to empty ensures that model does not get created becasue of no model name.
+                    ModelName = "dummyModelName",
+                }
+            };
+
+            bindingContext.ModelBindingContext.ModelMetadata.BinderModelName = isPrefixProvided ? "prefix" : null;
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
+                                                                bindingContext.ModelBindingContext);
+
+            // Act
+            var retModel = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.Equal(isPrefixProvided, retModel);
+        }
+
+        [Theory]
+        [InlineData(typeof(Person), true)]
+        [InlineData(typeof(Person), false)]
+        [InlineData(typeof(EmptyModel), true)]
+        [InlineData(typeof(EmptyModel), false)]
+        public async Task
+            CanCreateModel_CreatesModel_ForTopLevelObjectIfThereIsEmptyModelName(Type modelType, bool emptyModelName)
+        {
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(false));
+
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    // Random type.
+                    ModelMetadata = GetMetadataForType(typeof(Person)),
+                    ValueProvider = mockValueProvider.Object,
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                        ValueProvider = mockValueProvider.Object,
+                        MetadataProvider = new DataAnnotationsModelMetadataProvider()
+                    }
+                }
+            };
+
+            bindingContext.ModelBindingContext.ModelName = emptyModelName ? string.Empty : "dummyModelName";
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
+                                                                bindingContext.ModelBindingContext);
+
+            // Act
+            var retModel = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.Equal(emptyModelName, retModel);
+        }
+
+        [Fact]
+        public async Task CanCreateModel_ReturnsFalse_ForNonTopLevelModel_IfModelIsMarkedWithBinderMetadata()
+        {
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    // Get the property metadata so that it is not a top level object.
+                    ModelMetadata = GetMetadataForType(typeof(Document))
+                                        .Properties
+                                        .First(metadata => metadata.PropertyName == nameof(Document.SubDocument)),
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    }
+                }
+            };
+
+            var mutableBinder = new MutableObjectModelBinder();
+
+            // Act
+            var canCreate = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.False(canCreate);
+        }
+
+        [Fact]
+        public async Task CanCreateModel_ReturnsTrue_ForTopLevelModel_IfModelIsMarkedWithBinderMetadata()
+        {
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    // Here the metadata represents a top level object.
+                    ModelMetadata = GetMetadataForType(typeof(Document)),
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    }
+                }
+            };
+
+            var mutableBinder = new MutableObjectModelBinder();
+
+            // Act
+            var canCreate = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.True(canCreate);
+        }
+
+        [Fact]
+        public async Task CanCreateModel_CreatesModel_IfTheModelIsBinderPoco()
+        {
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(false));
+
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    ModelMetadata = GetMetadataForType(typeof(BinderMetadataPocoType)),
+                    ValueProvider = mockValueProvider.Object,
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                        ValueProvider = mockValueProvider.Object,
+                        MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                    },
+
+                    // Setting it to empty ensures that model does not get created becasue of no model name.
+                    ModelName = "dummyModelName",
+                },
+            };
+
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
+                                                                bindingContext.ModelBindingContext);
+
+            // Act
+            var retModel = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.True(retModel);
+        }
+
+        [Theory]
+        [InlineData(typeof(TypeWithNoBinderMetadata), false)]
+        [InlineData(typeof(TypeWithNoBinderMetadata), true)]
+        [InlineData(typeof(TypeWithAtLeastOnePropertyMarkedUsingValueBinderMetadata), false)]
+        [InlineData(typeof(TypeWithAtLeastOnePropertyMarkedUsingValueBinderMetadata), true)]
+        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), false)]
+        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), true)]
+        public async Task
+            CanCreateModel_CreatesModelForValueProviderBasedBinderMetadatas_IfAValueProviderProvidesValue
+                (Type modelType, bool valueProviderProvidesValue)
+        {
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(valueProviderProvidesValue));
+
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    ModelMetadata = GetMetadataForType(modelType),
+                    ValueProvider = mockValueProvider.Object,
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                        ValueProvider = mockValueProvider.Object,
+                        MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                    },
+                    // Setting it to empty ensures that model does not get created becasue of no model name.
+                    ModelName = "dummyName"
+                }
+            };
+
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
+                                                                bindingContext.ModelBindingContext);
+
+            // Act
+            var retModel = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.Equal(valueProviderProvidesValue, retModel);
+        }
+
+        [Theory]
+        [InlineData(typeof(TypeWithAtLeastOnePropertyMarkedUsingValueBinderMetadata), false)]
+        [InlineData(typeof(TypeWithAtLeastOnePropertyMarkedUsingValueBinderMetadata), true)]
+        public async Task CanCreateModel_ForExplicitValueProviderMetadata_UsesOriginalValueProvider(Type modelType, bool originalValueProviderProvidesValue)
+        {
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(false));
+
+            var mockOriginalValueProvider = new Mock<IMetadataAwareValueProvider>();
+            mockOriginalValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                                     .Returns(Task.FromResult(originalValueProviderProvidesValue));
+            mockOriginalValueProvider.Setup(o => o.Filter(It.IsAny<IValueProviderMetadata>()))
+                                     .Returns<IValueProviderMetadata>(
+                                        valueProviderMetadata =>
+                                                {
+                                                    if (valueProviderMetadata is ValueBinderMetadataAttribute)
+                                                    {
+                                                        return mockOriginalValueProvider.Object;
+                                                    }
+
+                                                    return null;
+                                                });
+
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    ModelMetadata = GetMetadataForType(modelType),
+                    ValueProvider = mockValueProvider.Object,
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValueProvider = mockOriginalValueProvider.Object,
+                        MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    },
+
+                    // Setting it to empty ensures that model does not get created becasue of no model name.
+                    ModelName = "dummyName"
+                }
+            };
+
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
+                                                                bindingContext.ModelBindingContext);
+
+            // Act
+            var retModel = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.Equal(originalValueProviderProvidesValue, retModel);
+        }
+
+        [Theory]
+        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), false)]
+        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), true)]
+        [InlineData(typeof(TypeWithNoBinderMetadata), false)]
+        [InlineData(typeof(TypeWithNoBinderMetadata), true)]
+        public async Task CanCreateModel_UnmarkedProperties_UsesCurrentValueProvider(Type modelType, bool valueProviderProvidesValue)
+        {
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(valueProviderProvidesValue));
+
+            var mockOriginalValueProvider = new Mock<IValueProvider>();
+            mockOriginalValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                                     .Returns(Task.FromResult(false));
+
+            var bindingContext = new MutableObjectBinderContext
+            {
+                ModelBindingContext = new ModelBindingContext
+                {
+                    ModelMetadata = GetMetadataForType(modelType),
+                    ValueProvider = mockValueProvider.Object,
+                    OperationBindingContext = new OperationBindingContext
+                    {
+                        ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                        ValueProvider = mockOriginalValueProvider.Object,
+                        MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                    },
+                    // Setting it to empty ensures that model does not get created becasue of no model name.
+                    ModelName = "dummyName"
+                }
+            };
+
+            var mutableBinder = new TestableMutableObjectModelBinder();
+            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
+                                                                bindingContext.ModelBindingContext);
+
+            // Act
+            var retModel = await mutableBinder.CanCreateModel(bindingContext);
+
+            // Assert
+            Assert.Equal(valueProviderProvidesValue, retModel);
+        }
+
         [Fact]
         public async Task BindModel_InitsInstance()
         {
@@ -30,9 +343,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelMetadata = GetMetadataForObject(new Person()),
                 ModelName = "someName",
                 ValueProvider = mockValueProvider.Object,
-                ModelBinder = mockDtoBinder.Object,
-                MetadataProvider = new DataAnnotationsModelMetadataProvider(),
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ModelBinder = mockDtoBinder.Object,
+                    MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                }
             };
 
             mockDtoBinder
@@ -45,8 +361,53 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder.Setup(o => o.EnsureModelPublic(bindingContext)).Verifiable();
-            testableBinder.Setup(o => o.GetMetadataForPropertiesPublic(bindingContext))
-                              .Returns(new ModelMetadata[0]).Verifiable();
+            testableBinder.Setup(o => o.GetMetadataForProperties(bindingContext))
+                              .Returns(new ModelMetadata[0]);
+
+            // Act
+            var retValue = await testableBinder.Object.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.True(retValue);
+            Assert.IsType<Person>(bindingContext.Model);
+            Assert.True(bindingContext.ValidationNode.ValidateAllProperties);
+            testableBinder.Verify();
+        }
+
+        [Fact]
+        public async Task BindModel_InitsInstance_ForEmptyModelName()
+        {
+            // Arrange
+            var mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                             .Returns(Task.FromResult(false));
+
+            var mockDtoBinder = new Mock<IModelBinder>();
+            var bindingContext = new ModelBindingContext
+            {
+                ModelMetadata = GetMetadataForObject(new Person()),
+                ModelName = "",
+                ValueProvider = mockValueProvider.Object,
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ModelBinder = mockDtoBinder.Object,
+                    MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                }
+            };
+
+            mockDtoBinder
+                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Returns((ModelBindingContext mbc) =>
+                {
+                    // just return the DTO unchanged
+                    return Task.FromResult(true);
+                });
+
+            var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
+            testableBinder.Setup(o => o.EnsureModelPublic(bindingContext)).Verifiable();
+            testableBinder.Setup(o => o.GetMetadataForProperties(bindingContext))
+                              .Returns(new ModelMetadata[0]);
 
             // Act
             var retValue = await testableBinder.Object.BindModelAsync(bindingContext);
@@ -176,9 +537,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                           .Returns(new Person()).Verifiable();
 
             // Act
-            object originalModel = bindingContext.Model;
+            var originalModel = bindingContext.Model;
             testableBinder.Object.EnsureModelPublic(bindingContext);
-            object newModel = bindingContext.Model;
+            var newModel = bindingContext.Model;
 
             // Assert
             Assert.Null(originalModel);
@@ -194,13 +555,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var bindingContext = new ModelBindingContext
             {
                 ModelMetadata = GetMetadataForType(typeof(PersonWithBindExclusion)),
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    MetadataProvider = new DataAnnotationsModelMetadataProvider()
+                }
             };
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            var propertyMetadatas = testableBinder.GetMetadataForPropertiesPublic(bindingContext);
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
             var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
 
             // Assert
@@ -211,17 +576,85 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void GetMetadataForProperties_WithoutBindAttribute()
         {
             // Arrange
-            var expectedPropertyNames = new[] { "DateOfBirth", "DateOfDeath", "ValueTypeRequired", "FirstName", "LastName", "PropertyWithDefaultValue" };
+            var expectedPropertyNames = new[]
+            {
+                "DateOfBirth",
+                "DateOfDeath",
+                "ValueTypeRequired",
+                "FirstName",
+                "LastName",
+                "PropertyWithDefaultValue",
+                "PropertyWithInitializedValue",
+                "PropertyWithInitializedValueAndDefault",
+            };
             var bindingContext = new ModelBindingContext
             {
                 ModelMetadata = GetMetadataForType(typeof(Person)),
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    MetadataProvider = new DataAnnotationsModelMetadataProvider()
+                },
             };
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            var propertyMetadatas = testableBinder.GetMetadataForPropertiesPublic(bindingContext);
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
+            var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
+
+            // Assert
+            Assert.Equal(expectedPropertyNames, returnedPropertyNames);
+        }
+
+        [Fact]
+        public void GetMetadataForProperties_DoesNotReturn_ExcludedProperties()
+        {
+            // Arrange
+            var expectedPropertyNames = new[] { "IncludedByDefault1", "IncludedByDefault2" };
+            var bindingContext = new ModelBindingContext
+            {
+                ModelMetadata = GetMetadataForType(typeof(TypeWithExcludedPropertiesUsingBindAttribute)),
+                OperationBindingContext = new OperationBindingContext
+                {
+                    HttpContext = new DefaultHttpContext
+                    {
+                        RequestServices = CreateServices()
+                    },
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                }
+            };
+
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // Act
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
+            var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
+
+            // Assert
+            Assert.Equal(expectedPropertyNames, returnedPropertyNames);
+        }
+
+        [Fact]
+        public void GetMetadataForProperties_ReturnsOnlyIncludedProperties_UsingBindAttributeInclude()
+        {
+            // Arrange
+            var expectedPropertyNames = new[] { "IncludedExplicitly1", "IncludedExplicitly2" };
+            var bindingContext = new ModelBindingContext
+            {
+                ModelMetadata = GetMetadataForType(typeof(TypeWithIncludedPropertiesUsingBindAttribute)),
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
+                    MetadataProvider = new DataAnnotationsModelMetadataProvider(),
+                }
+            };
+
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // Act
+            var propertyMetadatas = testableBinder.GetMetadataForProperties(bindingContext);
             var returnedPropertyNames = propertyMetadatas.Select(o => o.PropertyName).ToArray();
 
             // Assert
@@ -235,7 +668,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var bindingContext = new ModelBindingContext
             {
                 ModelMetadata = GetMetadataForObject(new ModelWithMixedBindingBehaviors()),
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                }
             };
 
             // Act
@@ -309,12 +745,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 ModelMetadata = containerMetadata,
                 ModelName = "theModel",
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                }
             };
             var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
 
             var nameProperty = dto.PropertyMetadata.Single(o => o.PropertyName == "Name");
-            dto.Results[nameProperty] = new ComplexModelDtoResult("John Doe", new ModelValidationNode(nameProperty, ""));
+            dto.Results[nameProperty] = new ComplexModelDtoResult(
+                "John Doe",
+                isModelBound: true,
+                validationNode: new ModelValidationNode(nameProperty, ""));
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
@@ -323,15 +765,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
-            Assert.Equal(1, modelStateDictionary.Count);
+            Assert.False(modelStateDictionary.IsValid);
+            Assert.Single(modelStateDictionary);
 
             // Check Age error.
             ModelState modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.Age", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
-
-            var modelError = modelState.Errors[0];
+            var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
             Assert.Equal("The 'Age' property is required.", modelError.ErrorMessage);
@@ -354,10 +794,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelMetadata = containerMetadata,
                 ModelName = "theModel",
                 ModelState = new ModelStateDictionary(),
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                }
             };
             var validationContext = new ModelValidationContext(new EmptyModelMetadataProvider(),
-                                                               bindingContext.ValidatorProvider,
+                                                               bindingContext.OperationBindingContext
+                                                                             .ValidatorProvider,
                                                                bindingContext.ModelState,
                                                                containerMetadata,
                                                                null);
@@ -366,14 +810,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new TestableMutableObjectModelBinder();
 
             var propertyMetadata = dto.PropertyMetadata.Single(o => o.PropertyName == "Name");
-            dto.Results[propertyMetadata] =
-                new ComplexModelDtoResult("John Doe", new ModelValidationNode(propertyMetadata, "theModel.Name"));
+            dto.Results[propertyMetadata] = new ComplexModelDtoResult(
+                "John Doe",
+                isModelBound: true,
+                validationNode: new ModelValidationNode(propertyMetadata, "theModel.Name"));
 
             // Attempt to set non-Nullable property to null. BindRequiredAttribute should not be relevant in this
             // case because the binding exists.
             propertyMetadata = dto.PropertyMetadata.Single(o => o.PropertyName == "Age");
-            dto.Results[propertyMetadata] =
-                new ComplexModelDtoResult(null, new ModelValidationNode(propertyMetadata, "theModel.Age"));
+            dto.Results[propertyMetadata] = new ComplexModelDtoResult(
+                null,
+                isModelBound: true,
+                validationNode: new ModelValidationNode(propertyMetadata, "theModel.Age"));
 
             // Act; must also Validate because null-check error handler is late-bound
             testableBinder.ProcessDto(bindingContext, dto);
@@ -381,7 +829,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
+            Assert.False(modelStateDictionary.IsValid);
             Assert.Equal(2, modelStateDictionary.Count);
 
             // Check Name field
@@ -392,10 +840,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Check Age error.
             Assert.True(modelStateDictionary.TryGetValue("theModel.Age", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
             Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
 
-            var modelError = modelState.Errors[0];
+            var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
             Assert.Equal("A value is required.", modelError.ErrorMessage);
@@ -419,27 +866,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
+            Assert.False(modelStateDictionary.IsValid);
             Assert.Equal(2, modelStateDictionary.Count);
 
             // Check Age error.
             ModelState modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.Age", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
 
-            var modelError = modelState.Errors[0];
+            var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("The Age field is required.", modelError.ErrorMessage);
+            var expected = ValidationAttributeUtil.GetRequiredErrorMessage(nameof(ModelWithRequired.Age));
+            Assert.Equal(expected, modelError.ErrorMessage);
 
             // Check City error.
             Assert.True(modelStateDictionary.TryGetValue("theModel.City", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
 
-            modelError = modelState.Errors[0];
+            modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("The City field is required.", modelError.ErrorMessage);
+            expected = ValidationAttributeUtil.GetRequiredErrorMessage(nameof(ModelWithRequired.City));
+            Assert.Equal(expected, modelError.ErrorMessage);
         }
 
         [Fact]
@@ -456,29 +903,34 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Make Age valid and City invalid.
             var propertyMetadata = dto.PropertyMetadata.Single(p => p.PropertyName == "Age");
-            dto.Results[propertyMetadata] =
-                new ComplexModelDtoResult(23, new ModelValidationNode(propertyMetadata, "theModel.Age"));
+            dto.Results[propertyMetadata] = new ComplexModelDtoResult(
+                23,
+                isModelBound: true,
+                validationNode: new ModelValidationNode(propertyMetadata, "theModel.Age"));
+
             propertyMetadata = dto.PropertyMetadata.Single(p => p.PropertyName == "City");
-            dto.Results[propertyMetadata] =
-                new ComplexModelDtoResult(null, new ModelValidationNode(propertyMetadata, "theModel.City"));
+            dto.Results[propertyMetadata] = new ComplexModelDtoResult(
+                null,
+                isModelBound: true,
+                validationNode: new ModelValidationNode(propertyMetadata, "theModel.City"));
 
             // Act
             testableBinder.ProcessDto(bindingContext, dto);
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
-            Assert.Equal(1, modelStateDictionary.Count);
+            Assert.False(modelStateDictionary.IsValid);
+            Assert.Single(modelStateDictionary);
 
             // Check City error.
             ModelState modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.City", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
 
-            var modelError = modelState.Errors[0];
+            var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("The City field is required.", modelError.ErrorMessage);
+            var expected = ValidationAttributeUtil.GetRequiredErrorMessage(nameof(ModelWithRequired.City));
+            Assert.Equal(expected, modelError.ErrorMessage);
         }
 
         [Fact]
@@ -498,15 +950,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
-            Assert.Equal(1, modelStateDictionary.Count);
+            Assert.False(modelStateDictionary.IsValid);
+            Assert.Single(modelStateDictionary);
 
             // Check ValueTypeRequired error.
             ModelState modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.ValueTypeRequired", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
 
-            var modelError = modelState.Errors[0];
+            var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
             Assert.Equal("Sample message", modelError.ErrorMessage);
@@ -521,28 +972,29 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var bindingContext = CreateContext(containerMetadata);
 
-            ComplexModelDto dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
-            TestableMutableObjectModelBinder testableBinder = new TestableMutableObjectModelBinder();
+            var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
+            var testableBinder = new TestableMutableObjectModelBinder();
 
             // Make ValueTypeRequired invalid.
             var propertyMetadata = dto.PropertyMetadata.Single(p => p.PropertyName == "ValueTypeRequired");
-            dto.Results[propertyMetadata] =
-                new ComplexModelDtoResult(null, new ModelValidationNode(propertyMetadata, "theModel.ValueTypeRequired"));
+            dto.Results[propertyMetadata] = new ComplexModelDtoResult(
+                null,
+                isModelBound: true,
+                validationNode: new ModelValidationNode(propertyMetadata, "theModel.ValueTypeRequired"));
 
             // Act
             testableBinder.ProcessDto(bindingContext, dto);
 
             // Assert
-            ModelStateDictionary modelStateDictionary = bindingContext.ModelState;
-            Assert.Equal(false, modelStateDictionary.IsValid);
-            Assert.Equal(1, modelStateDictionary.Count);
+            var modelStateDictionary = bindingContext.ModelState;
+            Assert.False(modelStateDictionary.IsValid);
+            Assert.Single(modelStateDictionary);
 
             // Check ValueTypeRequired error.
             ModelState modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.ValueTypeRequired", out modelState));
-            Assert.Equal(1, modelState.Errors.Count);
 
-            ModelError modelError = modelState.Errors[0];
+            var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
             Assert.Equal("Sample message", modelError.ErrorMessage);
@@ -563,9 +1015,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
 
             var firstNameProperty = dto.PropertyMetadata.Single(o => o.PropertyName == "FirstName");
-            dto.Results[firstNameProperty] = new ComplexModelDtoResult("John", new ModelValidationNode(firstNameProperty, ""));
+            dto.Results[firstNameProperty] = new ComplexModelDtoResult(
+                "John",
+                isModelBound: true,
+                validationNode: new ModelValidationNode(firstNameProperty, ""));
+
             var lastNameProperty = dto.PropertyMetadata.Single(o => o.PropertyName == "LastName");
-            dto.Results[lastNameProperty] = new ComplexModelDtoResult("Doe", new ModelValidationNode(lastNameProperty, ""));
+            dto.Results[lastNameProperty] = new ComplexModelDtoResult(
+                "Doe",
+                isModelBound: true,
+                validationNode: new ModelValidationNode(lastNameProperty, ""));
+
             var dobProperty = dto.PropertyMetadata.Single(o => o.PropertyName == "DateOfBirth");
             dto.Results[dobProperty] = null;
 
@@ -578,7 +1038,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal("John", model.FirstName);
             Assert.Equal("Doe", model.LastName);
             Assert.Equal(dob, model.DateOfBirth);
-            Assert.Equal(true, bindingContext.ModelState.IsValid);
+            Assert.True(bindingContext.ModelState.IsValid);
         }
 
         [Fact]
@@ -589,20 +1049,80 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var propertyMetadata = bindingContext.ModelMetadata.Properties.First(o => o.PropertyName == "PropertyWithDefaultValue");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo");
-            var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
-            var requiredValidator = bindingContext.ValidatorProvider
+
+            var dtoResult = new ComplexModelDtoResult(
+                model: null,
+                isModelBound: false,
+                validationNode: validationNode);
+
+            var requiredValidator = bindingContext.OperationBindingContext
+                                                  .ValidatorProvider
                                                   .GetValidators(propertyMetadata)
                                                   .FirstOrDefault(v => v.IsRequired);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
 
             // Assert
             var person = Assert.IsType<Person>(bindingContext.Model);
             Assert.Equal(123.456m, person.PropertyWithDefaultValue);
-            Assert.Equal(true, bindingContext.ModelState.IsValid);
+            Assert.True(bindingContext.ModelState.IsValid);
+        }
+
+        [Fact]
+        public void SetProperty_PropertyIsPreinitialized_NoValue_DoesNothing()
+        {
+            // Arrange
+            var bindingContext = CreateContext(GetMetadataForObject(new Person()));
+
+            var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(
+                o => o.PropertyName == "PropertyWithInitializedValue");
+            var validationNode = new ModelValidationNode(propertyMetadata, "foo");
+
+            // This value won't be used because IsModelBound = false.
+            var dtoResult = new ComplexModelDtoResult(
+                model: "bad-value",
+                isModelBound: false,
+                validationNode: validationNode);
+
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // Act
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator: null);
+
+            // Assert
+            var person = Assert.IsType<Person>(bindingContext.Model);
+            Assert.Equal("preinitialized", person.PropertyWithInitializedValue);
+            Assert.True(bindingContext.ModelState.IsValid);
+        }
+
+        [Fact]
+        public void SetProperty_PropertyIsPreinitialized_WithDefaultValue_NoValue_CallsSetter()
+        {
+            // Arrange
+            var bindingContext = CreateContext(GetMetadataForObject(new Person()));
+
+            var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(
+                o => o.PropertyName == "PropertyWithInitializedValueAndDefault");
+            var validationNode = new ModelValidationNode(propertyMetadata, "foo");
+
+            // This value won't be used because IsModelBound = false.
+            var dtoResult = new ComplexModelDtoResult(
+                model: "bad-value",
+                isModelBound: false,
+                validationNode: validationNode);
+
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // Act
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator: null);
+
+            // Assert
+            var person = Assert.IsType<Person>(bindingContext.Model);
+            Assert.Equal("default", person.PropertyWithInitializedValueAndDefault);
+            Assert.True(bindingContext.ModelState.IsValid);
         }
 
         [Fact]
@@ -612,12 +1132,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var bindingContext = CreateContext(GetMetadataForObject(new Person()));
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "NonUpdateableProperty");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo");
-            var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
+
+            var dtoResult = new ComplexModelDtoResult(
+                model: null,
+                isModelBound: false,
+                validationNode: validationNode);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator: null);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator: null);
 
             // Assert
             // If didn't throw, success!
@@ -632,8 +1156,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "DateOfBirth");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo");
-            var dtoResult = new ComplexModelDtoResult(new DateTime(2001, 1, 1), validationNode);
-            var requiredValidator = bindingContext.ValidatorProvider
+
+            var dtoResult = new ComplexModelDtoResult(
+                new DateTime(2001, 1, 1),
+                isModelBound: true,
+                validationNode: validationNode);
+
+            var requiredValidator = bindingContext.OperationBindingContext
+                                                  .ValidatorProvider
                                                   .GetValidators(propertyMetadata)
                                                   .FirstOrDefault(v => v.IsRequired);
             var validationContext = new ModelValidationContext(bindingContext, propertyMetadata);
@@ -641,11 +1171,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
 
             // Assert
             validationNode.Validate(validationContext);
-            Assert.Equal(true, bindingContext.ModelState.IsValid);
+            Assert.True(bindingContext.ModelState.IsValid);
             Assert.Equal(new DateTime(2001, 1, 1), model.DateOfBirth);
         }
 
@@ -662,12 +1192,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "DateOfDeath");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo");
-            var dtoResult = new ComplexModelDtoResult(new DateTime(1800, 1, 1), validationNode);
+            var dtoResult = new ComplexModelDtoResult(
+                new DateTime(1800, 1, 1),
+                isModelBound: true,
+                validationNode: validationNode);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator: null);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator: null);
 
             // Assert
             Assert.Equal("Date of death can't be before date of birth." + Environment.NewLine
@@ -680,21 +1213,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Arrange
             var bindingContext = CreateContext(GetMetadataForObject(new Person()));
+
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "DateOfBirth");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo");
-            var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
+            var dtoResult = new ComplexModelDtoResult(
+                model: null,
+                isModelBound: true,
+                validationNode: validationNode);
+
             var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
             var validationContext = new ModelValidationContext(bindingContext, propertyMetadata);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
 
             // Assert
-            Assert.Equal(true, bindingContext.ModelState.IsValid);
+            Assert.True(bindingContext.ModelState.IsValid);
             validationNode.Validate(validationContext, bindingContext.ValidationNode);
-            Assert.Equal(false, bindingContext.ModelState.IsValid);
+            Assert.False(bindingContext.ModelState.IsValid);
         }
 
         [Fact]
@@ -703,18 +1241,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             var bindingContext = CreateContext(GetMetadataForObject(new Person()));
             bindingContext.ModelName = " foo";
+
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "ValueTypeRequired");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo.ValueTypeRequired");
-            var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
+            var dtoResult = new ComplexModelDtoResult(
+                model: null,
+                isModelBound: true,
+                validationNode: validationNode);
+
             var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
 
             // Assert
-            Assert.Equal(false, bindingContext.ModelState.IsValid);
+            Assert.False(bindingContext.ModelState.IsValid);
             Assert.Equal("Sample message", bindingContext.ModelState["foo.ValueTypeRequired"].Errors[0].ErrorMessage);
         }
 
@@ -725,18 +1268,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             var bindingContext = CreateContext(GetMetadataForObject(new ModelWhosePropertySetterThrows()));
             bindingContext.ModelName = "foo";
+
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "NameNoAttribute");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo.NameNoAttribute");
-            var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
+            var dtoResult = new ComplexModelDtoResult(
+                model: null,
+                isModelBound: true,
+                validationNode: validationNode);
+
             var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
 
             // Assert
-            Assert.Equal(false, bindingContext.ModelState.IsValid);
+            Assert.False(bindingContext.ModelState.IsValid);
             Assert.Equal(1, bindingContext.ModelState["foo.NameNoAttribute"].Errors.Count);
             Assert.Equal("This is a different exception." + Environment.NewLine
                        + "Parameter name: value",
@@ -749,44 +1297,50 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             var bindingContext = CreateContext(GetMetadataForObject(new ModelWhosePropertySetterThrows()));
             bindingContext.ModelName = "foo";
+
             var propertyMetadata = bindingContext.ModelMetadata.Properties.Single(o => o.PropertyName == "Name");
             var validationNode = new ModelValidationNode(propertyMetadata, "foo.Name");
-            var dtoResult = new ComplexModelDtoResult(model: null, validationNode: validationNode);
+            var dtoResult = new ComplexModelDtoResult(model: null,
+                isModelBound: true,
+                validationNode: validationNode);
+
             var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
+            testableBinder.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
 
             // Assert
-            Assert.Equal(false, bindingContext.ModelState.IsValid);
-            Assert.Equal(1, bindingContext.ModelState["foo.Name"].Errors.Count);
-            Assert.Equal("This message comes from the [Required] attribute.", bindingContext.ModelState["foo.Name"].Errors[0].ErrorMessage);
+            Assert.False(bindingContext.ModelState.IsValid);
+            var error = Assert.Single(bindingContext.ModelState["foo.Name"].Errors);
+            Assert.Equal("This message comes from the [Required] attribute.", error.ErrorMessage);
         }
 
         private static ModelBindingContext CreateContext(ModelMetadata metadata)
         {
-            var provider = new Mock<IModelValidatorProviderProvider>();
-            provider.SetupGet(p => p.ModelValidatorProviders)
-                    .Returns(new IModelValidatorProvider[]
-                    {
-                        new DataAnnotationsModelValidatorProvider(),
-                        new DataMemberModelValidatorProvider()
-                    });
+            var providers = new IModelValidatorProvider[]
+            {
+                new DataAnnotationsModelValidatorProvider(),
+                new DataMemberModelValidatorProvider()
+            };
 
             return new ModelBindingContext
             {
                 ModelState = new ModelStateDictionary(),
                 ModelMetadata = metadata,
                 ModelName = "theModel",
-                ValidatorProvider = new CompositeModelValidatorProvider(provider.Object)
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = new CompositeModelValidatorProvider(providers)
+                }
             };
         }
 
         private static IModelValidator GetRequiredValidator(ModelBindingContext bindingContext, ModelMetadata propertyMetadata)
         {
-            return bindingContext.ValidatorProvider
+            return bindingContext.OperationBindingContext
+                                 .ValidatorProvider
                                  .GetValidators(propertyMetadata)
                                  .FirstOrDefault(v => v.IsRequired);
         }
@@ -807,6 +1361,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             return metadataProvider.GetMetadataForType(null, t);
+        }
+
+        private static ModelMetadata GetMetadataForParameter(MethodInfo methodInfo, string parameterName)
+        {
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            return metadataProvider.GetMetadataForParameter(
+                modelAccessor: null,
+                methodInfo: methodInfo,
+                parameterName: parameterName);
+        }
+
+        private class EmptyModel
+        {
         }
 
         private class Person
@@ -837,6 +1404,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             [DefaultValue(typeof(decimal), "123.456")]
             public decimal PropertyWithDefaultValue { get; set; }
+
+            public string PropertyWithInitializedValue { get; set; } = "preinitialized";
+
+            [DefaultValue("default")]
+            public string PropertyWithInitializedValueAndDefault { get; set; } = "preinitialized";
         }
 
         private class PersonWithBindExclusion
@@ -908,6 +1480,105 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
+        private class TypeWithNoBinderMetadata
+        {
+            public int UnMarkedProperty { get; set; }
+        }
+
+        private class BinderMetadataPocoType
+        {
+            [NonValueBinderMetadata]
+            public string MarkedWithABinderMetadata { get; set; }
+        }
+
+        // Not a Metadata poco because there is a property with value binder Metadata.
+        private class TypeWithAtLeastOnePropertyMarkedUsingValueBinderMetadata
+        {
+            [NonValueBinderMetadata]
+            public string MarkedWithABinderMetadata { get; set; }
+
+            [ValueBinderMetadata]
+            public string MarkedWithAValueBinderMetadata { get; set; }
+        }
+
+        // not a Metadata poco because there is an unmarked property.
+        private class TypeWithUnmarkedAndBinderMetadataMarkedProperties
+        {
+            public int UnmarkedProperty { get; set; }
+
+            [NonValueBinderMetadata]
+            public string MarkedWithABinderMetadata { get; set; }
+        }
+
+        [Bind(new[] { nameof(IncludedExplicitly1), nameof(IncludedExplicitly2) })]
+        private class TypeWithIncludedPropertiesUsingBindAttribute
+        {
+            public int ExcludedByDefault1 { get; set; }
+
+            public int ExcludedByDefault2 { get; set; }
+
+            public int IncludedExplicitly1 { get; set; }
+
+            public int IncludedExplicitly2 { get; set; }
+        }
+
+        [Bind(typeof(ExcludedProvider))]
+        private class TypeWithExcludedPropertiesUsingBindAttribute
+        {
+            public int Excluded1 { get; set; }
+
+            public int Excluded2 { get; set; }
+
+            public int IncludedByDefault1 { get; set; }
+            public int IncludedByDefault2 { get; set; }
+        }
+
+        public class Document
+        {
+            [NonValueBinderMetadata]
+            public string Version { get; set; }
+
+            [NonValueBinderMetadata]
+            public Document SubDocument { get; set; }
+        }
+
+        private class NonValueBinderMetadataAttribute : Attribute, IBinderMetadata
+        {
+        }
+
+        private class ValueBinderMetadataAttribute : Attribute, IValueProviderMetadata
+        {
+        }
+
+        public class ExcludedProvider : IPropertyBindingPredicateProvider
+        {
+            public Func<ModelBindingContext, string, bool> PropertyFilter
+            {
+                get
+                {
+                    return (context, propertyName) =>
+                       !string.Equals("Excluded1", propertyName, StringComparison.OrdinalIgnoreCase) &&
+                       !string.Equals("Excluded2", propertyName, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+        }
+
+        private IServiceProvider CreateServices()
+        {
+            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
+
+            var typeActivator = new Mock<ITypeActivator>(MockBehavior.Strict);
+            typeActivator
+                .Setup(f => f.CreateInstance(It.IsAny<IServiceProvider>(), typeof(ExcludedProvider)))
+                .Returns(new ExcludedProvider());
+
+            services
+                .Setup(s => s.GetService(typeof(ITypeActivator)))
+                .Returns(typeActivator.Object);
+
+            return services.Object;
+        }
+
         public class TestableMutableObjectModelBinder : MutableObjectModelBinder
         {
             public virtual bool CanUpdatePropertyPublic(ModelMetadata propertyMetadata)
@@ -940,24 +1611,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 EnsureModelPublic(bindingContext);
             }
 
-            public virtual IEnumerable<ModelMetadata> GetMetadataForPropertiesPublic(ModelBindingContext bindingContext)
+            public virtual new IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
             {
                 return base.GetMetadataForProperties(bindingContext);
             }
 
-            protected override IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
-            {
-                return GetMetadataForPropertiesPublic(bindingContext);
-            }
-
-            public virtual void SetPropertyPublic(ModelBindingContext bindingContext, ModelMetadata propertyMetadata, ComplexModelDtoResult dtoResult, IModelValidator requiredValidator)
+            public new void SetProperty(ModelBindingContext bindingContext,
+                                                ModelMetadata propertyMetadata,
+                                                ComplexModelDtoResult dtoResult,
+                                                IModelValidator requiredValidator)
             {
                 base.SetProperty(bindingContext, propertyMetadata, dtoResult, requiredValidator);
-            }
-
-            protected override void SetProperty(ModelBindingContext bindingContext, ModelMetadata propertyMetadata, ComplexModelDtoResult dtoResult, IModelValidator requiredValidator)
-            {
-                SetPropertyPublic(bindingContext, propertyMetadata, dtoResult, requiredValidator);
             }
         }
     }

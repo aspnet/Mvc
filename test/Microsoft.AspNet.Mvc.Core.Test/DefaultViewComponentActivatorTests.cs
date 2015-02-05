@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
@@ -25,6 +25,8 @@ namespace Microsoft.AspNet.Mvc
             var helper = Mock.Of<IHtmlHelper<object>>();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(ICompositeViewEngine))).Returns(Mock.Of<ICompositeViewEngine>());
+            serviceProvider.Setup(p => p.GetService(typeof(IUrlHelper))).Returns(Mock.Of<IUrlHelper>());
             var viewContext = GetViewContext(serviceProvider.Object);
 
             // Act
@@ -44,6 +46,8 @@ namespace Microsoft.AspNet.Mvc
             var helper = Mock.Of<IHtmlHelper<object>>();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(ICompositeViewEngine))).Returns(Mock.Of<ICompositeViewEngine>());
+            serviceProvider.Setup(p => p.GetService(typeof(IUrlHelper))).Returns(Mock.Of<IUrlHelper>());
             var viewContext = GetViewContext(serviceProvider.Object);
 
             // Act
@@ -63,6 +67,8 @@ namespace Microsoft.AspNet.Mvc
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>))).Returns(helper);
             serviceProvider.Setup(p => p.GetService(typeof(MyService))).Returns(myTestService);
+            serviceProvider.Setup(p => p.GetService(typeof(ICompositeViewEngine))).Returns(Mock.Of<ICompositeViewEngine>());
+            serviceProvider.Setup(p => p.GetService(typeof(IUrlHelper))).Returns(Mock.Of<IUrlHelper>());
             var viewContext = GetViewContext(serviceProvider.Object);
             var instance = new TestViewComponentWithCustomDataType();
 
@@ -98,11 +104,11 @@ namespace Microsoft.AspNet.Mvc
             var httpContext = new Mock<DefaultHttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(serviceProvider);
-            var routeContext = new RouteContext(httpContext.Object);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
             return new ViewContext(actionContext,
                                               Mock.Of<IView>(),
-                                              new ViewDataDictionary(Mock.Of<IModelMetadataProvider>()),
+                                              new ViewDataDictionary(new EmptyModelMetadataProvider()),
                                               TextWriter.Null);
         }
 

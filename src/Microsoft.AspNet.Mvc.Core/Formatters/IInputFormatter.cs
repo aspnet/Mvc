@@ -1,10 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -18,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
         /// an object of the specified type.
         /// </summary>
         /// <param name="context">Input formatter context associated with this call.</param>
-        /// <returns>True if this <see cref="IInputFormatter"/> supports the passed in 
+        /// <returns>True if this <see cref="IInputFormatter"/> supports the passed in
         /// request's content-type and is able to de-serialize the request body.
         /// False otherwise.</returns>
         bool CanRead(InputFormatterContext context);

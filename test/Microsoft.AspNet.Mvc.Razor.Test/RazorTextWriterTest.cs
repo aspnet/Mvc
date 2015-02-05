@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.Write('m');
 
             // Assert
-            Assert.Equal<object>(expected, writer.Buffer.BufferEntries);
+            Assert.Equal<object>(expected, writer.BufferedWriter.Buffer.BufferEntries);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.Write(2.718m);
 
             // Assert
-            Assert.Empty(writer.Buffer.BufferEntries);
+            Assert.Empty(writer.BufferedWriter.Buffer.BufferEntries);
             foreach (var item in expected)
             {
                 unbufferedWriter.Verify(v => v.Write(item), Times.Once());
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(buffer1);
 
             // Assert
-            Assert.Empty(writer.Buffer.BufferEntries);
+            Assert.Empty(writer.BufferedWriter.Buffer.BufferEntries);
             unbufferedWriter.Verify(v => v.Write('x'), Times.Once());
             unbufferedWriter.Verify(v => v.Write(buffer1, 1, 2), Times.Once());
             unbufferedWriter.Verify(v => v.Write(buffer1, 0, 4), Times.Once());
@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync("gh");
 
             // Assert
-            Assert.Empty(writer.Buffer.BufferEntries);
+            Assert.Empty(writer.BufferedWriter.Buffer.BufferEntries);
             unbufferedWriter.Verify(v => v.Write("a"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteLine("ab"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteAsync("ef"), Times.Once());
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         [ReplaceCulture]
         public void WriteLine_WritesDataTypes_ToBuffer()
         {
-            // Arrange 
+            // Arrange
             var newLine = Environment.NewLine;
             var expected = new List<object> { "False", newLine, "1.1", newLine, "3", newLine };
             var writer = new RazorTextWriter(TextWriter.Null, Encoding.UTF8);
@@ -128,7 +128,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.WriteLine(3L);
 
             // Assert
-            Assert.Equal(expected, writer.Buffer.BufferEntries);
+            Assert.Equal(expected, writer.BufferedWriter.Buffer.BufferEntries);
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.WriteLine(3L);
 
             // Assert
-            Assert.Empty(writer.Buffer.BufferEntries);
+            Assert.Empty(writer.BufferedWriter.Buffer.BufferEntries);
             unbufferedWriter.Verify(v => v.Write("False"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("1.1"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("3"), Times.Once());
@@ -168,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(input3.Array, input3.Offset, input3.Count);
 
             // Assert
-            var buffer = writer.Buffer.BufferEntries;
+            var buffer = writer.BufferedWriter.Buffer.BufferEntries;
             Assert.Equal(4, buffer.Count);
             Assert.Equal("bcd", buffer[0]);
             Assert.Equal("ef", buffer[1]);
@@ -188,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync();
 
             // Assert
-            var actual = writer.Buffer.BufferEntries;
+            var actual = writer.BufferedWriter.Buffer.BufferEntries;
             Assert.Equal<object>(new[] { newLine, newLine }, actual);
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(input4);
 
             // Assert
-            var actual = writer.Buffer.BufferEntries;
+            var actual = writer.BufferedWriter.Buffer.BufferEntries;
             Assert.Equal<object>(new[] { input1, input2, newLine, input3, input4, newLine }, actual);
         }
 
@@ -228,9 +228,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.Buffer.BufferEntries.Count);
-            Assert.Equal(1, target.Buffer.BufferEntries.Count);
-            Assert.Same(source.Buffer.BufferEntries, target.Buffer.BufferEntries[0]);
+            Assert.Equal(2, source.BufferedWriter.Buffer.BufferEntries.Count);
+            Assert.Equal(1, target.BufferedWriter.Buffer.BufferEntries.Count);
+            Assert.Same(source.BufferedWriter.Buffer.BufferEntries, target.BufferedWriter.Buffer.BufferEntries[0]);
         }
 
         [Fact]
@@ -244,13 +244,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             // Act
             target.Flush();
             source.Write("Hello world");
-            source.Write(new [] { 'a', 'b', 'c', 'd' }, 1, 2);
+            source.Write(new[] { 'a', 'b', 'c', 'd' }, 1, 2);
             source.CopyTo(target);
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.Buffer.BufferEntries.Count);
-            Assert.Empty(target.Buffer.BufferEntries);
+            Assert.Equal(2, source.BufferedWriter.Buffer.BufferEntries.Count);
+            Assert.Empty(target.BufferedWriter.Buffer.BufferEntries);
             unbufferedWriter.Verify(v => v.Write("Hello world"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("bc"), Times.Once());
         }
@@ -277,7 +277,7 @@ abc";
         public async Task CopyAsync_WritesContent_IfTargetTextWriterIsARazorTextWriterAndBuffering()
         {
             // Arrange
-            var source = new RazorTextWriter(TextWriter.Null,Encoding.UTF8);
+            var source = new RazorTextWriter(TextWriter.Null, Encoding.UTF8);
             var target = new RazorTextWriter(TextWriter.Null, Encoding.UTF8);
 
             // Act
@@ -286,9 +286,9 @@ abc";
             await source.CopyToAsync(target);
 
             // Assert
-            Assert.Equal(3, source.Buffer.BufferEntries.Count);
-            Assert.Equal(1, target.Buffer.BufferEntries.Count);
-            Assert.Same(source.Buffer.BufferEntries, target.Buffer.BufferEntries[0]);
+            Assert.Equal(3, source.BufferedWriter.Buffer.BufferEntries.Count);
+            Assert.Equal(1, target.BufferedWriter.Buffer.BufferEntries.Count);
+            Assert.Same(source.BufferedWriter.Buffer.BufferEntries, target.BufferedWriter.Buffer.BufferEntries[0]);
         }
 
         [Fact]
@@ -302,13 +302,13 @@ abc";
             // Act
             await target.FlushAsync();
             source.WriteLine("Hello from Asp.Net");
-            await source.WriteAsync(new [] { 'x', 'y', 'z', 'u' }, 0, 3);
+            await source.WriteAsync(new[] { 'x', 'y', 'z', 'u' }, 0, 3);
             await source.CopyToAsync(target);
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(3, source.Buffer.BufferEntries.Count);
-            Assert.Empty(target.Buffer.BufferEntries);
+            Assert.Equal(3, source.BufferedWriter.Buffer.BufferEntries.Count);
+            Assert.Empty(target.BufferedWriter.Buffer.BufferEntries);
             unbufferedWriter.Verify(v => v.WriteAsync("Hello from Asp.Net"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteAsync(Environment.NewLine), Times.Once());
             unbufferedWriter.Verify(v => v.WriteAsync("xyz"), Times.Once());

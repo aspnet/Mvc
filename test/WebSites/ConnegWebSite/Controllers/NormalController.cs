@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Newtonsoft.Json;
 
-namespace ConnegWebsite
+namespace ConnegWebSite
 {
     public class NormalController : Controller
     {
@@ -15,8 +15,10 @@ namespace ConnegWebsite
             {
                 result.Formatters.Add(new PlainTextFormatter());
                 result.Formatters.Add(new CustomFormatter("application/custom"));
-                result.Formatters.Add(new JsonOutputFormatter(JsonOutputFormatter.CreateDefaultSettings(),
-                                                              indent: true));
+
+                var jsonFormatter = new JsonOutputFormatter();
+                jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
+                result.Formatters.Add(jsonFormatter);
             }
 
             base.OnActionExecuted(context);

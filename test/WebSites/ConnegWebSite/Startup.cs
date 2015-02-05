@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.DependencyInjection;
 
-namespace ConnegWebsite
+namespace ConnegWebSite
 {
     public class Startup
     {
-        public void Configure(IBuilder app)
+        public void Configure(IApplicationBuilder app)
         {
             var configuration = app.GetTestConfiguration();
 
@@ -18,7 +18,14 @@ namespace ConnegWebsite
             {
                 // Add MVC services to the services container
                 services.AddMvc(configuration);
+
+                services.Configure<MvcOptions>(options =>
+                {
+                    options.AddXmlDataContractSerializerFormatter();
+                });
             });
+
+            app.UseErrorReporter();
 
             // Add MVC to the request pipeline
             app.UseMvc(routes =>

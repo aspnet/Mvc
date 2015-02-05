@@ -17,15 +17,27 @@ namespace RoutingWebSite
 
         [HttpGet("Store/Shop/Products")]
         public IActionResult ListProducts()
-	    {
+        {
             return _generator.Generate("/Store/Shop/Products");
-	    }
+        }
 
         // Intentionally designed to conflict with HomeController#About.
         [HttpGet("Home/About")]
         public IActionResult About()
         {
             return _generator.Generate("/Home/About");
+        }
+
+        [Route("Store/Shop/Orders")]
+        public IActionResult Orders()
+        {
+            return _generator.Generate("/Store/Shop/Orders");
+        }
+
+        [HttpGet("Store/Shop/Orders")]
+        public IActionResult GetOrders()
+        {
+            return _generator.Generate("/Store/Shop/Orders");
         }
     }
 }

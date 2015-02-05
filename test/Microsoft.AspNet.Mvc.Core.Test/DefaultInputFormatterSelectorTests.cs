@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -19,19 +17,19 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var actionContext = GetActionContext();
-            var context = new InputFormatterContext(actionContext, typeof(int));
-            actionContext.InputFormatters = new List<IInputFormatter>()
-                                                    {
-                                                        new TestInputFormatter(false, 0),
-                                                        new TestInputFormatter(false, 1),
-                                                        new TestInputFormatter(true, 2),
-                                                        new TestInputFormatter(true, 3)
-                                                    };
+            var inputFormatters = new List<IInputFormatter>()
+            {
+                new TestInputFormatter(false, 0),
+                new TestInputFormatter(false, 1),
+                new TestInputFormatter(true, 2),
+                new TestInputFormatter(true, 3)
+            };
 
+            var context = new InputFormatterContext(actionContext, typeof(int));
             var selector = new DefaultInputFormatterSelector();
 
-            // Act 
-            var selectedFormatter = selector.SelectFormatter(context);
+            // Act
+            var selectedFormatter = selector.SelectFormatter(inputFormatters, context);
 
             // Assert
             var testFormatter = Assert.IsType<TestInputFormatter>(selectedFormatter);
@@ -40,9 +38,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         private static ActionContext GetActionContext()
         {
-            var httpContext = Mock.Of<HttpContext>();
-            return new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-           
+            return new ActionContext(Mock.Of<HttpContext>(), new RouteData(), new ActionDescriptor());
+
         }
 
         private class TestInputFormatter : IInputFormatter

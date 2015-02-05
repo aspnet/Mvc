@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
         private readonly AntiForgeryOptions _config;
         private readonly IAntiForgeryAdditionalDataProvider _additionalDataProvider;
 
-        internal TokenProvider(AntiForgeryOptions config, 
+        internal TokenProvider(AntiForgeryOptions config,
                                IClaimUidExtractor claimUidExtractor,
                                IAntiForgeryAdditionalDataProvider additionalDataProvider)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc
                                                   ClaimsIdentity identity,
                                                   AntiForgeryToken cookieToken)
         {
-            Contract.Assert(IsCookieTokenValid(cookieToken));
+            Debug.Assert(IsCookieTokenValid(cookieToken));
 
             var formToken = new AntiForgeryToken()
             {

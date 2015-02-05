@@ -11,6 +11,7 @@ namespace Microsoft.AspNet.Mvc
     {
         public ActionDescriptor()
         {
+            Properties = new Dictionary<object, object>();
             RouteValueDefaults = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -22,9 +23,10 @@ namespace Microsoft.AspNet.Mvc
 
         public Dictionary<string, object> RouteValueDefaults { get; private set; }
 
-        public List<HttpMethodConstraint> MethodConstraints { get; set; }
-
-        public List<IActionConstraint> DynamicConstraints { get; set; }
+        /// <summary>
+        /// The set of constraints for this action. Must all be satisfied for the action to be selected.
+        /// </summary>
+        public List<IActionConstraintMetadata> ActionConstraints { get; set; }
 
         public List<ParameterDescriptor> Parameters { get; set; }
 
@@ -34,5 +36,10 @@ namespace Microsoft.AspNet.Mvc
         /// A friendly name for this action.
         /// </summary>
         public virtual string DisplayName { get; set; }
+
+        /// <summary>
+        /// Stores arbitrary metadata properties associated with the <see cref="ActionDescriptor"/>.
+        /// </summary>
+        public IDictionary<object, object> Properties { get; private set; }
     }
 }

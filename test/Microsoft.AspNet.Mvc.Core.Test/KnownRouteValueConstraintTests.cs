@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Routing.Tests
             var values = new Dictionary<string, object>();
             var httpContext = GetHttpContext(new ActionDescriptor());
             var route = (new Mock<IRouter>()).Object;
-            
+
             // Act
             var match = _constraint.Match(httpContext, route, keyName, values, direction);
 
@@ -142,9 +142,9 @@ namespace Microsoft.AspNet.Routing.Tests
                                     () => _constraint.Match(httpContext.Object,
                                                             null,
                                                             "area",
-                                                            new Dictionary<string, object>{ { "area", "area" } },
+                                                            new Dictionary<string, object> { { "area", "area" } },
                                                             direction));
-            Assert.Equal("The 'ActionDescriptors' property of "+
+            Assert.Equal("The 'ActionDescriptors' property of " +
                          "'Castle.Proxies.IActionDescriptorsCollectionProviderProxy' must not be null.",
                          ex.Message);
         }
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Routing.Tests
                    .Returns(actionProvider.Object);
             context.Setup(o => o.RequestServices
                                .GetService(typeof(IActionDescriptorsCollectionProvider)))
-                   .Returns(new DefaultActionDescriptorsCollectionProvider(context.Object.RequestServices));
+                   .Returns(new DefaultActionDescriptorsCollectionProvider(context.Object.RequestServices, new NullLoggerFactory()));
             return context.Object;
         }
 
@@ -178,17 +178,17 @@ namespace Microsoft.AspNet.Routing.Tests
 
             actionDescriptor.RouteConstraints.Add(
                 area == null ?
-                new RouteDataActionConstraint("area", RouteKeyHandling.DenyKey) :
+                new RouteDataActionConstraint("area", null) :
                 new RouteDataActionConstraint("area", area));
 
             actionDescriptor.RouteConstraints.Add(
                 controller == null ?
-                new RouteDataActionConstraint("controller", RouteKeyHandling.DenyKey) :
+                new RouteDataActionConstraint("controller", null) :
                 new RouteDataActionConstraint("controller", controller));
 
             actionDescriptor.RouteConstraints.Add(
                 action == null ?
-                new RouteDataActionConstraint("action", RouteKeyHandling.DenyKey) :
+                new RouteDataActionConstraint("action", null) :
                 new RouteDataActionConstraint("action", action));
 
             return actionDescriptor;

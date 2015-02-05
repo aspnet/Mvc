@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc
         private readonly ITypeActivator _typeActivator;
         private readonly IControllerActivator _controllerActivator;
 
-        public DefaultControllerFactory(IServiceProvider serviceProvider, 
+        public DefaultControllerFactory(IServiceProvider serviceProvider,
                                         ITypeActivator typeActivator,
                                         IControllerActivator controllerActivator)
         {
@@ -24,20 +24,19 @@ namespace Microsoft.AspNet.Mvc
 
         public object CreateController(ActionContext actionContext)
         {
-            var actionDescriptor = actionContext.ActionDescriptor as ReflectedActionDescriptor;
+            var actionDescriptor = actionContext.ActionDescriptor as ControllerActionDescriptor;
             if (actionDescriptor == null)
             {
                 throw new ArgumentException(
-                    Resources.FormatDefaultControllerFactory_ActionDescriptorMustBeReflected(
-                        typeof(ReflectedActionDescriptor)),
-                    "actionContext");
+                    Resources.FormatActionDescriptorMustBeBasedOnControllerAction(
+                        typeof(ControllerActionDescriptor)),
+                    nameof(actionContext));
             }
 
             var controller = _typeActivator.CreateInstance(
                 _serviceProvider,
-                actionDescriptor.ControllerDescriptor.ControllerTypeInfo.AsType());
+                actionDescriptor.ControllerTypeInfo.AsType());
 
-            actionContext.Controller = controller;
             _controllerActivator.Activate(controller, actionContext);
 
             return controller;

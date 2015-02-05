@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var convertedValue = valueProviderResult.ConvertTo(typeof(string));
 
-            Assert.Equal(null, convertedValue);
+            Assert.Null(convertedValue);
         }
 
         [Fact]
@@ -289,18 +289,39 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [Theory]
         [InlineData(new object[] { new[] { 1, 0 } })]
         [InlineData(new object[] { new[] { "Value1", "Value0" } })]
+        [InlineData(new object[] { new[] { "Value1", "value0" } })]
         public void ConvertTo_ConvertsEnumArrays(object value)
         {
             // Arrange
             var vpr = new ValueProviderResult(value, null, CultureInfo.InvariantCulture);
 
             // Act
-            var outValue = (MyEnum[])vpr.ConvertTo(typeof(MyEnum[]));
+            var outValue = vpr.ConvertTo(typeof(MyEnum[]));
 
             // Assert
-            Assert.Equal(2, outValue.Length);
-            Assert.Equal(MyEnum.Value1, outValue[0]);
-            Assert.Equal(MyEnum.Value0, outValue[1]);
+            var result = Assert.IsType<MyEnum[]>(outValue);
+            Assert.Equal(2, result.Length);
+            Assert.Equal(MyEnum.Value1, result[0]);
+            Assert.Equal(MyEnum.Value0, result[1]);
+        }
+
+        [Theory]
+        [InlineData(new object[] { new[] { 1, 2 }, new[] { FlagsEnum.Value1, FlagsEnum.Value2 } })]
+        [InlineData(new object[] { new[] { "Value1", "Value2" }, new[] { FlagsEnum.Value1, FlagsEnum.Value2 } })]
+        [InlineData(new object[] { new[] { 5, 2 }, new[] { FlagsEnum.Value1 | FlagsEnum.Value4, FlagsEnum.Value2 } })]
+        public void ConvertTo_ConvertsFlagsEnumArrays(object value, FlagsEnum[] expected)
+        {
+            // Arrange
+            var vpr = new ValueProviderResult(value, null, CultureInfo.InvariantCulture);
+
+            // Act
+            var outValue = vpr.ConvertTo(typeof(FlagsEnum[]));
+
+            // Assert
+            var result = Assert.IsType<FlagsEnum[]>(outValue);
+            Assert.Equal(2, result.Length);
+            Assert.Equal(expected[0], result[0]);
+            Assert.Equal(expected[1], result[1]);
         }
 
         [Fact]
@@ -318,16 +339,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Theory]
-        [InlineData(typeof(int), typeof(FormatException))]
-        [InlineData(typeof(double?), typeof(FormatException))]
-        [InlineData(typeof(MyEnum?), typeof(ArgumentException))]
-        public void ConvertToThrowsIfConverterThrows(Type destinationType, Type exceptionType)
+        [InlineData(typeof(int), typeof(InvalidOperationException), typeof(Exception))]
+        [InlineData(typeof(double?), typeof(InvalidOperationException), typeof(Exception))]
+        [InlineData(typeof(MyEnum?), typeof(InvalidOperationException), typeof(FormatException))]
+        public void ConvertToThrowsIfConverterThrows(Type destinationType, Type exceptionType, Type innerExceptionType)
         {
             // Arrange
             var vpr = new ValueProviderResult("this-is-not-a-valid-value", null, CultureInfo.InvariantCulture);
 
             // Act & Assert
-            Assert.Throws(exceptionType, () => vpr.ConvertTo(destinationType));
+            var ex = Assert.Throws(exceptionType, () => vpr.ConvertTo(destinationType));
+            Assert.IsType(innerExceptionType, ex.InnerException);
         }
 
         [Fact]
@@ -354,12 +376,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var frCulture = new CultureInfo("fr-FR");
 
             // Act
-            var cultureResult = (decimal)vpr.ConvertTo(typeof(decimal), frCulture);
-            var result = (decimal)vpr.ConvertTo(typeof(decimal));
+            var cultureResult = vpr.ConvertTo(typeof(decimal), frCulture);
 
             // Assert
             Assert.Equal(12.5M, cultureResult);
-            Assert.Equal(125, result);
+            Assert.Throws<InvalidOperationException>(() => vpr.ConvertTo(typeof(decimal)));
         }
 
         [Fact]
@@ -373,7 +394,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Theory]
-        [MemberData("IntrinsicConversionData")]
+        [MemberData(nameof(IntrinsicConversionData))]
         public void ConvertToCanConvertIntrinsics<T>(object initialValue, T expectedValue)
         {
             // Arrange
@@ -387,14 +408,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             get
             {
-                yield return new object[] { 42, 42M };
                 yield return new object[] { 42, 42L };
+                yield return new object[] { 42, (short)42 };
                 yield return new object[] { 42, (float)42.0 };
                 yield return new object[] { 42, (double)42.0 };
                 yield return new object[] { 42M, 42 };
                 yield return new object[] { 42L, 42 };
+                yield return new object[] { 42, (byte)42 };
+                yield return new object[] { (short)42, 42 };
                 yield return new object[] { (float)42.0, 42 };
                 yield return new object[] { (double)42.0, 42 };
+                yield return new object[] { (byte)42, 42 };
                 yield return new object[] { "2008-01-01", new DateTime(2008, 01, 01) };
                 yield return new object[] { "00:00:20", TimeSpan.FromSeconds(20) };
                 yield return new object[]
@@ -444,6 +468,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(expectedMessage, ex.Message);
         }
 
+        [Theory]
+        [InlineData(new object[] { 2, FlagsEnum.Value2 })]
+        [InlineData(new object[] { 5, FlagsEnum.Value1 | FlagsEnum.Value4 })]
+        [InlineData(new object[] { 15, FlagsEnum.Value1 | FlagsEnum.Value2 | FlagsEnum.Value4 | FlagsEnum.Value8 })]
+        [InlineData(new object[] { 16, (FlagsEnum)16 })]
+        [InlineData(new object[] { 0, (FlagsEnum)0 })]
+        [InlineData(new object[] { null, (FlagsEnum)0 })]
+        [InlineData(new object[] { "Value1,Value2", (FlagsEnum)3 })]
+        [InlineData(new object[] { "Value1,Value2,value4, value8", (FlagsEnum)15 })]
+        public void ConvertTo_ConvertsEnumFlags(object value, object expected)
+        {
+            // Arrange
+            var vpr = new ValueProviderResult(value, null, CultureInfo.InvariantCulture);
+
+            // Act
+            var outValue = (FlagsEnum)vpr.ConvertTo(typeof(FlagsEnum));
+
+            // Assert
+            Assert.Equal(expected, outValue);
+        }
+
         private class MyClassWithoutConverter
         {
         }
@@ -452,6 +497,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             Value0 = 0,
             Value1 = 1
+        }
+
+        [Flags]
+        public enum FlagsEnum
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
         }
     }
 }

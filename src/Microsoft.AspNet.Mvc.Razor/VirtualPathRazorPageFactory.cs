@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -13,32 +15,61 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class VirtualPathRazorPageFactory : IRazorPageFactory
     {
-        private readonly IRazorCompilationService _compilationService;
         private readonly ITypeActivator _activator;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IFileInfoCache _fileInfoCache;
+        private readonly IRazorFileProviderCache _fileProviderCache;
+        private readonly ICompilerCache _compilerCache;
+        private IRazorCompilationService _razorcompilationService;
 
-        public VirtualPathRazorPageFactory(IRazorCompilationService compilationService,
-                                           ITypeActivator typeActivator,
+        public VirtualPathRazorPageFactory(ITypeActivator typeActivator,
                                            IServiceProvider serviceProvider,
-                                           IFileInfoCache fileInfoCache)
+                                           ICompilerCache compilerCache,
+                                           IRazorFileProviderCache fileProviderCache)
         {
-            _compilationService = compilationService;
             _activator = typeActivator;
             _serviceProvider = serviceProvider;
-            _fileInfoCache = fileInfoCache;
+            _compilerCache = compilerCache;
+            _fileProviderCache = fileProviderCache;
+        }
+
+        private IRazorCompilationService RazorCompilationService
+        {
+            get
+            {
+                if (_razorcompilationService == null)
+                {
+                    // it is ok to use the cached service provider because both this, and the
+                    // resolved service are in a lifetime of Scoped.
+                    // We don't want to get it upfront because it will force Roslyn to load.
+                    _razorcompilationService = _serviceProvider.GetRequiredService<IRazorCompilationService>();
+                }
+
+                return _razorcompilationService;
+            }
         }
 
         /// <inheritdoc />
-        public IRazorPage CreateInstance([NotNull] string path)
+        public IRazorPage CreateInstance([NotNull] string relativePath)
         {
-            var fileInfo = _fileInfoCache.GetFileInfo(path);
-
-            if (fileInfo != null)
+            if (relativePath.StartsWith("~/", StringComparison.Ordinal))
             {
-                var result = _compilationService.Compile(fileInfo);
+                // For tilde slash paths, drop the leading ~ to make it work with the underlying IFileProvider.
+                relativePath = relativePath.Substring(1);
+            }
+
+            var fileInfo = _fileProviderCache.GetFileInfo(relativePath);
+
+            if (fileInfo.Exists)
+            {
+                var relativeFileInfo = new RelativeFileInfo(fileInfo, relativePath);
+
+                var result = _compilerCache.GetOrAdd(
+                    relativeFileInfo,
+                    RazorCompilationService.Compile);
+
                 var page = (IRazorPage)_activator.CreateInstance(_serviceProvider, result.CompiledType);
-                page.Path = path;
+                page.Path = relativePath;
+
                 return page;
             }
 

@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Routing;
 using Moq;
@@ -18,7 +21,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpContext.Setup(o => o.Response).Returns(httpResponse.Object);
 
             var routeData = new RouteData();
-            routeData.Values = new Dictionary<string, object>();
             routeData.Routers.Add(Mock.Of<IRouter>());
 
             var actionContext = new ActionContext(httpContext.Object,

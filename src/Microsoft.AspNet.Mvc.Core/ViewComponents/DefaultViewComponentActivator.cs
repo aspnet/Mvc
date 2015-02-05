@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -15,7 +16,7 @@ namespace Microsoft.AspNet.Mvc
     public class DefaultViewComponentActivator : IViewComponentActivator
     {
         private readonly Func<Type, PropertyActivator<ViewContext>[]> _getPropertiesToActivate;
-        private readonly IReadOnlyDictionary<Type, Func<ViewContext, object>> _valueAccessorLookup;
+        private readonly IDictionary<Type, Func<ViewContext, object>> _valueAccessorLookup;
         private readonly ConcurrentDictionary<Type, PropertyActivator<ViewContext>[]> _injectActions;
 
         /// <summary>
@@ -31,7 +32,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public void Activate([NotNull] object viewComponent, [NotNull] ViewContext context)
+        public virtual void Activate([NotNull] object viewComponent, [NotNull] ViewContext context)
         {
             var propertiesToActivate = _injectActions.GetOrAdd(viewComponent.GetType(),
                                                                _getPropertiesToActivate);
@@ -47,7 +48,7 @@ namespace Microsoft.AspNet.Mvc
         /// Creates a lookup dictionary for the values to be activated.
         /// </summary>
         /// <returns>Returns a readonly dictionary of the values corresponding to the types.</returns>
-        protected virtual IReadOnlyDictionary<Type, Func<ViewContext, object>> CreateValueAccessorLookup()
+        protected virtual IDictionary<Type, Func<ViewContext, object>> CreateValueAccessorLookup()
         {
             return new Dictionary<Type, Func<ViewContext, object>>
             {
@@ -56,10 +57,7 @@ namespace Microsoft.AspNet.Mvc
                     typeof(ViewDataDictionary),
                     (context) =>
                     {
-                        return new ViewDataDictionary(context.ViewData)
-                        {
-                            Model = null
-                        };
+                        return new ViewDataDictionary(context.ViewData);
                     }
                 }
             };
@@ -73,7 +71,7 @@ namespace Microsoft.AspNet.Mvc
                 valueAccessor = (viewContext) =>
                 {
                     var serviceProvider = viewContext.HttpContext.RequestServices;
-                    var service = serviceProvider.GetService(property.PropertyType);
+                    var service = serviceProvider.GetRequiredService(property.PropertyType);
                     if (typeof(ICanHasViewContext).IsAssignableFrom(property.PropertyType))
                     {
                         ((ICanHasViewContext)service).Contextualize(viewContext);

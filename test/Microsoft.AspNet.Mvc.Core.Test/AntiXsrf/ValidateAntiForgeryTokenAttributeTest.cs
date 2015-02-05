@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.Security.DataProtection;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
-using Microsoft.AspNet.Security.DataProtection;
+using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
-using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var claimExtractor = new Mock<IClaimUidExtractor>();
             var dataProtectionProvider = new Mock<IDataProtectionProvider>();
             var additionalDataProvider = new Mock<IAntiForgeryAdditionalDataProvider>();
-            var optionsAccessor = new Mock<IOptionsAccessor<MvcOptions>>();
+            var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor.SetupGet(o => o.Options).Returns(new MvcOptions());
             return new AntiForgery(claimExtractor.Object,
                                    dataProtectionProvider.Object,

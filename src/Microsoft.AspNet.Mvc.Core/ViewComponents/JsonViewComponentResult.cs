@@ -1,55 +1,71 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// An <see cref="IViewComponentResult"/> which renders JSON text when executed.
+    /// </summary>
     public class JsonViewComponentResult : IViewComponentResult
     {
-        private JsonSerializerSettings _jsonSerializerSettings;
-
-        public JsonViewComponentResult([NotNull] object data)
+        /// <summary>
+        /// Initializes a new <see cref="JsonViewComponentResult"/>.
+        /// </summary>
+        /// <param name="value">The value to format as JSON text.</param>
+        public JsonViewComponentResult(object value)
         {
-            Data = data;
-            _jsonSerializerSettings = JsonOutputFormatter.CreateDefaultSettings();
-        }
-
-        public object Data { get; private set; }
-
-        public JsonSerializerSettings SerializerSettings
-        {
-            get { return _jsonSerializerSettings; }
-
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
-                _jsonSerializerSettings = value;
-            }
+            Value = value;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to indent elements when writing data.
+        /// Initializes a new <see cref="JsonViewComponentResult"/>.
         /// </summary>
-        public bool Indent { get; set; }
+        /// <param name="value">The value to format as JSON text.</param>
+        /// <param name="formatter">The <see cref="JsonOutputFormatter"/> to use.</param>
+        public JsonViewComponentResult(object value, JsonOutputFormatter formatter)
+        {
+            Value = value;
+            Formatter = formatter;
+        }
 
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        public object Value { get; }
+
+        /// <summary>
+        /// Gets the formatter.
+        /// </summary>
+        public JsonOutputFormatter Formatter { get; }
+
+        /// <summary>
+        /// Renders JSON text to the output.
+        /// </summary>
+        /// <param name="context">The <see cref="ViewComponentContext"/>.</param>
         public void Execute([NotNull] ViewComponentContext context)
         {
-            var formatter = new JsonOutputFormatter(SerializerSettings, Indent);
-            formatter.WriteObject(context.Writer, Data);
+            var formatter = Formatter ?? ResolveFormatter(context);
+            formatter.WriteObject(context.Writer, Value);
         }
 
-        #pragma warning disable 1998
-        public async Task ExecuteAsync([NotNull] ViewComponentContext context)
+        /// <summary>
+        /// Renders JSON text to the output.
+        /// </summary>
+        /// <param name="context">The <see cref="ViewComponentContext"/>.</param>
+        /// <returns>A completed <see cref="Task"/>.</returns>
+        public Task ExecuteAsync([NotNull] ViewComponentContext context)
         {
             Execute(context);
+            return Task.FromResult(true);
         }
-        #pragma warning restore 1998
+
+        private static JsonOutputFormatter ResolveFormatter(ViewComponentContext context)
+        {
+            var services = context.ViewContext.HttpContext.RequestServices;
+            return services.GetRequiredService<JsonOutputFormatter>();
+        }
     }
 }

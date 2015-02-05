@@ -4,36 +4,59 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// A <see cref="IViewComponentResult"/> that renders a partial view when executed.
+    /// </summary>
     public class ViewViewComponentResult : IViewComponentResult
     {
         // {0} is the component name, {1} is the view name.
         private const string ViewPathFormat = "Components/{0}/{1}";
-        private readonly IViewEngine _viewEngine;
 
-        public ViewViewComponentResult([NotNull] IViewEngine viewEngine, string viewName,
-            ViewDataDictionary viewData)
-        {
-            _viewEngine = viewEngine;
-            ViewName = viewName;
-            ViewData = viewData;
-        }
+        /// <summary>
+        /// Gets or sets the view name.
+        /// </summary>
+        public string ViewName { get; set; }
 
-        public string ViewName { get; private set; }
+        /// <summary>
+        /// Gets or sets the <see cref="ViewDataDictionary"/>.
+        /// </summary>
+        public ViewDataDictionary ViewData { get; set; }
 
-        public ViewDataDictionary ViewData { get; private set; }
+        /// <summary>
+        /// Gets or sets the <see cref="ViewEngine"/>.
+        /// </summary>
+        public IViewEngine ViewEngine { get; set; }
 
+        /// <summary>
+        /// Locates and renders a view specified by <see cref="ViewName"/>. If <see cref="ViewName"/> is <c>null</c>,
+        /// then the view name searched for is<c>&quot;Default&quot;</c>.
+        /// </summary>
+        /// <param name="context">The <see cref="ViewComponentContext"/> for the current component execution.</param>
+        /// <remarks>
+        /// This method synchronously calls and blocks on <see cref="ExecuteAsync(ViewComponentContext)"/>.
+        /// </remarks>
         public void Execute([NotNull] ViewComponentContext context)
         {
-            throw new NotImplementedException("There's no support for syncronous views right now.");
+            var task = ExecuteAsync(context);
+            TaskHelper.WaitAndThrowIfFaulted(task);
         }
 
+        /// <summary>
+        /// Locates and renders a view specified by <see cref="ViewName"/>. If <see cref="ViewName"/> is <c>null</c>,
+        /// then the view name searched for is<c>&quot;Default&quot;</c>.
+        /// </summary>
+        /// <param name="context">The <see cref="ViewComponentContext"/> for the current component execution.</param>
+        /// <returns>A <see cref="Task"/> which will complete when view rendering is completed.</returns>
         public async Task ExecuteAsync([NotNull] ViewComponentContext context)
         {
+            var viewEngine = ViewEngine ?? ResolveViewEngine(context);
+            var viewData = ViewData ?? context.ViewContext.ViewData;
+
             string qualifiedViewName;
             if (ViewName != null && ViewName.Length > 0 && ViewName[0] == '/')
             {
@@ -60,7 +83,7 @@ namespace Microsoft.AspNet.Mvc
                     ViewName ?? "Default");
             }
 
-            var view = FindView(context.ViewContext, qualifiedViewName);
+            var view = FindView(context.ViewContext, viewEngine, qualifiedViewName);
 
             var childViewContext = new ViewContext(
                 context.ViewContext,
@@ -74,22 +97,14 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private IView FindView(ActionContext context, string viewName)
+        private static IView FindView(ActionContext context, IViewEngine viewEngine, string viewName)
         {
-            var result = _viewEngine.FindPartialView(context, viewName);
-            if (!result.Success)
-            {
-                var locations = string.Empty;
-                if (result.SearchedLocations != null)
-                {
-                    locations = Environment.NewLine +
-                        string.Join(Environment.NewLine, result.SearchedLocations);
-                }
+            return viewEngine.FindPartialView(context, viewName).EnsureSuccessful().View;
+        }
 
-                throw new InvalidOperationException(Resources.FormatViewEngine_ViewNotFound(viewName, locations));
-            }
-
-            return result.View;
+        private static IViewEngine ResolveViewEngine(ViewComponentContext context)
+        {
+            return context.ViewContext.HttpContext.RequestServices.GetRequiredService<ICompositeViewEngine>();
         }
     }
 }

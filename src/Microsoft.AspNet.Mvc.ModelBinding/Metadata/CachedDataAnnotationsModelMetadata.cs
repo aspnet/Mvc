@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -12,25 +13,68 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     // is correct.
     public class CachedDataAnnotationsModelMetadata : CachedModelMetadata<CachedDataAnnotationsMetadataAttributes>
     {
+        private static readonly string HtmlName = DataType.Html.ToString();
         private bool _isEditFormatStringFromCache;
 
-        public CachedDataAnnotationsModelMetadata(CachedDataAnnotationsModelMetadata prototype, 
+        public CachedDataAnnotationsModelMetadata(CachedDataAnnotationsModelMetadata prototype,
                                                   Func<object> modelAccessor)
             : base(prototype, modelAccessor)
         {
         }
 
-        public CachedDataAnnotationsModelMetadata(DataAnnotationsModelMetadataProvider provider, 
-                                                  Type containerType, 
-                                                  Type modelType, 
-                                                  string propertyName, 
-                                                  IEnumerable<Attribute> attributes)
-            : base(provider, 
-                   containerType, 
-                   modelType, 
-                   propertyName, 
+        public CachedDataAnnotationsModelMetadata(DataAnnotationsModelMetadataProvider provider,
+                                                  Type containerType,
+                                                  Type modelType,
+                                                  string propertyName,
+                                                  IEnumerable<object> attributes)
+            : base(provider,
+                   containerType,
+                   modelType,
+                   propertyName,
                    new CachedDataAnnotationsMetadataAttributes(attributes))
         {
+        }
+
+        protected override Type ComputeBinderType()
+        {
+            if (PrototypeCache.BinderTypeProviders != null)
+            {
+                // We want to respect the value set by the parameter (if any), and use the value specifed
+                // on the type as a fallback.
+                //
+                // We generalize this process, in case someone adds ordered providers (with count > 2) through
+                // extensibility.
+                foreach (var provider in PrototypeCache.BinderTypeProviders)
+                {
+                    if (provider.BinderType != null)
+                    {
+                        return provider.BinderType;
+                    }
+                }
+            }
+
+            return base.ComputeBinderType();
+        }
+
+        protected override IBinderMetadata ComputeBinderMetadata()
+        {
+            return PrototypeCache.BinderMetadata != null
+                      ? PrototypeCache.BinderMetadata
+                      : base.ComputeBinderMetadata();
+        }
+
+        protected override string ComputeBinderModelNamePrefix()
+        {
+            return PrototypeCache.BinderModelNameProvider != null
+                      ? PrototypeCache.BinderModelNameProvider.Name
+                      : base.ComputeBinderModelNamePrefix();
+        }
+
+        protected override IPropertyBindingPredicateProvider ComputePropertyBindingPredicateProvider()
+        {
+            return PrototypeCache.PropertyBindingPredicateProviders.Any()
+                ? new CompositePredicateProvider(PrototypeCache.PropertyBindingPredicateProviders.ToArray())
+                : null;
         }
 
         protected override bool ComputeConvertEmptyStringToNull()
@@ -40,11 +84,29 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                        : base.ComputeConvertEmptyStringToNull();
         }
 
-        protected override string ComputeNullDisplayText()
+        /// <summary>
+        /// Calculate <see cref="ModelMetadata.DataTypeName"/> based on presence of a <see cref="DataTypeAttribute"/>
+        /// and its <see cref="DataTypeAttribute.GetDataTypeName()"/> method.
+        /// </summary>
+        /// <returns>
+        /// Calculated <see cref="ModelMetadata.DataTypeName"/> value.
+        /// <see cref="DataTypeAttribute.GetDataTypeName()"/> value if a <see cref="DataTypeAttribute"/> exists.
+        /// <c>"Html"</c> if a <see cref="DisplayFormatAttribute"/> exists with its
+        /// <see cref="DisplayFormatAttribute.HtmlEncode"/> value <c>false</c>. <c>null</c> otherwise.
+        /// </returns>
+        protected override string ComputeDataTypeName()
         {
-            return PrototypeCache.DisplayFormat != null
-                       ? PrototypeCache.DisplayFormat.NullDisplayText
-                       : base.ComputeNullDisplayText();
+            if (PrototypeCache.DataType != null)
+            {
+                return PrototypeCache.DataType.GetDataTypeName();
+            }
+
+            if (PrototypeCache.DisplayFormat != null && !PrototypeCache.DisplayFormat.HtmlEncode)
+            {
+                return HtmlName;
+            }
+
+            return base.ComputeDataTypeName();
         }
 
         protected override string ComputeDescription()
@@ -55,19 +117,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Calculate <see cref="ModelMetadata.DisplayFormatString"/> based on presence of an
+        /// Calculate <see cref="ModelMetadata.DisplayFormatString"/> based on presence of a
         /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.DataFormatString"/> value.
         /// </summary>
         /// <returns>
         /// Calculated <see cref="ModelMetadata.DisplayFormatString"/> value.
-        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if an <see cref="DisplayFormatAttribute"/> exists.
+        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if a <see cref="DisplayFormatAttribute"/> exists.
         /// <c>null</c> otherwise.
         /// </returns>
         protected override string ComputeDisplayFormatString()
         {
             return PrototypeCache.DisplayFormat != null
                 ? PrototypeCache.DisplayFormat.DataFormatString
-                : base.ComputeEditFormatString();
+                : base.ComputeDisplayFormatString();
         }
 
         protected override string ComputeDisplayName()
@@ -88,13 +150,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Calculate <see cref="ModelMetadata.EditFormatString"/> based on presence of an
+        /// Calculate <see cref="ModelMetadata.EditFormatString"/> based on presence of a
         /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.ApplyFormatInEditMode"/> and
         /// <see cref="DisplayFormatAttribute.DataFormatString"/> values.
         /// </summary>
         /// <returns>
         /// Calculated <see cref="ModelMetadata.DisplayFormatString"/> value.
-        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if an <see cref="DisplayFormatAttribute"/> exists and
+        /// <see cref="DisplayFormatAttribute.DataFormatString"/> if a <see cref="DisplayFormatAttribute"/> exists and
         /// its <see cref="DisplayFormatAttribute.ApplyFormatInEditMode"/> is <c>true</c>; <c>null</c> otherwise.
         /// </returns>
         /// <remarks>
@@ -171,6 +233,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return base.ComputeHideSurroundingHtml();
         }
 
+        /// <summary>
+        /// Calculate <see cref="ModelMetadata.HtmlEncode"/> based on presence of a
+        /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.HtmlEncode"/> value.
+        /// </summary>
+        /// <returns>
+        /// Calculated <see cref="ModelMetadata.HtmlEncode"/> value. <c>false</c> if a
+        /// <see cref="DisplayFormatAttribute"/> exists and its <see cref="DisplayFormatAttribute.HtmlEncode"/> value
+        /// is <c>false</c>. <c>true</c> otherwise.
+        /// </returns>
+        protected override bool ComputeHtmlEncode()
+        {
+            if (PrototypeCache.DisplayFormat != null)
+            {
+                return PrototypeCache.DisplayFormat.HtmlEncode;
+            }
+
+            return base.ComputeHtmlEncode();
+        }
+
         protected override bool ComputeIsReadOnly()
         {
             if (PrototypeCache.Editable != null)
@@ -184,6 +265,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         protected override bool ComputeIsRequired()
         {
             return (PrototypeCache.Required != null) || base.ComputeIsRequired();
+        }
+
+        /// <summary>
+        /// Calculate the <see cref="ModelMetadata.NullDisplayText"/> value based on the presence of a
+        /// <see cref="DisplayFormatAttribute"/> and its <see cref="DisplayFormatAttribute.NullDisplayText"/> value.
+        /// </summary>
+        /// <returns>
+        /// Calculated <see cref="ModelMetadata.NullDisplayText"/> value.
+        /// <see cref="DisplayFormatAttribute.NullDisplayText"/> if a <see cref="DisplayFormatAttribute"/> exists;
+        /// <c>null</c> otherwise.
+        /// </returns>
+        protected override string ComputeNullDisplayText()
+        {
+            return PrototypeCache.DisplayFormat != null
+                       ? PrototypeCache.DisplayFormat.NullDisplayText
+                       : base.ComputeNullDisplayText();
+        }
+
+        /// <summary>
+        /// Calculate the <see cref="ModelMetadata.Order"/> value based on presence of a <see cref="DisplayAttribute"/>
+        /// and its <see cref="DisplayAttribute.Order"/> value.
+        /// </summary>
+        /// <returns>
+        /// Calculated <see cref="ModelMetadata.Order"/> value. <see cref="DisplayAttribute.GetOrder"/> if a
+        /// <see cref="DisplayAttribute"/> exists and its <see cref="DisplayAttribute.Order"/> has been set;
+        /// <c>10000</c> otherwise.
+        /// </returns>
+        protected override int ComputeOrder()
+        {
+            var result = PrototypeCache.Display?.GetOrder();
+
+            return result ?? base.ComputeOrder();
         }
 
         protected override string ComputeSimpleDisplayText()
@@ -235,6 +348,45 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 throw new InvalidOperationException(
                         Resources.FormatDataAnnotationsModelMetadataProvider_UnreadableProperty(
                         modelType.FullName, displayColumnAttribute.DisplayColumn));
+            }
+        }
+
+        private class CompositePredicateProvider : IPropertyBindingPredicateProvider
+        {
+            private readonly IPropertyBindingPredicateProvider[] _providers;
+
+            public CompositePredicateProvider(IPropertyBindingPredicateProvider[] providers)
+            {
+                _providers = providers;
+            }
+
+            public Func<ModelBindingContext, string, bool> PropertyFilter
+            {
+                get
+                {
+                    return CreatePredicate();
+                }
+            }
+
+            private Func<ModelBindingContext, string, bool> CreatePredicate()
+            {
+                var predicates = _providers
+                    .Select(p => p.PropertyFilter)
+                    .Where(p => p != null)
+                    .ToArray();
+
+                return (context, propertyName) =>
+                {
+                    foreach (var predicate in predicates)
+                    {
+                        if (!predicate(context, propertyName))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
             }
         }
     }

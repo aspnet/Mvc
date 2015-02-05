@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.Fallback;
 using Moq;
 using Xunit;
 
@@ -27,6 +29,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext
                 .Setup(o => o.Request.Cookies)
                 .Returns(requestCookies.Object);
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
+            mockHttpContext.SetupGet(o => o.RequestServices)
+                           .Returns(GetServiceProvider(contextAccessor));
             var config = new AntiForgeryOptions()
             {
                 CookieName = _cookieName
@@ -41,6 +46,41 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.Null(token);
+        }
+
+        [Fact]
+        public void GetCookieToken_CookieIsMissingInRequest_LooksUpCookieInAntiForgeryContext()
+        {
+            // Arrange
+            var requestCookies = new Mock<IReadableStringCollection>();
+            requestCookies
+                .Setup(o => o.Get(It.IsAny<string>()))
+                .Returns(string.Empty);
+            var mockHttpContext = new Mock<HttpContext>();
+            mockHttpContext
+                .Setup(o => o.Request.Cookies)
+                .Returns(requestCookies.Object);
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
+            mockHttpContext.SetupGet(o => o.RequestServices)
+                           .Returns(GetServiceProvider(contextAccessor));
+
+            // add a cookie explicitly.
+            var cookie = new AntiForgeryToken();
+            contextAccessor.Value = new AntiForgeryContext() { CookieToken = cookie };
+            var config = new AntiForgeryOptions()
+            {
+                CookieName = _cookieName
+            };
+
+            var tokenStore = new AntiForgeryTokenStore(
+                config: config,
+                serializer: null);
+
+            // Act
+            var token = tokenStore.GetCookieToken(mockHttpContext.Object);
+
+            // Assert
+            Assert.Equal(cookie, token);
         }
 
         [Fact]
@@ -124,13 +164,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var mockHttpContext = new Mock<HttpContext>();
             var requestContext = new Mock<HttpRequest>();
-            IReadableStringCollection formsCollection =
-                new MockCookieCollection(new Dictionary<string, string>() { { "form-field-name", string.Empty } });
-            requestContext.Setup(o => o.GetFormAsync(CancellationToken.None))
-                          .Returns(Task.FromResult(formsCollection));
+            var formCollection = new Mock<IFormCollection>();
+            formCollection.Setup(f => f["form-field-name"]).Returns(string.Empty);
+            requestContext.Setup(o => o.ReadFormAsync(CancellationToken.None))
+                          .Returns(Task.FromResult(formCollection.Object));
             mockHttpContext.Setup(o => o.Request)
                            .Returns(requestContext.Object);
-
             var config = new AntiForgeryOptions()
             {
                 FormFieldName = "form-field-name"
@@ -151,12 +190,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public async Task GetFormToken_FormFieldIsInvalid_PropagatesException()
         {
             // Arrange
-            IReadableStringCollection formsCollection =
-                new MockCookieCollection(new Dictionary<string, string>() { { "form-field-name", "invalid-value" } });
+            var formCollection = new Mock<IFormCollection>();
+            formCollection.Setup(f => f["form-field-name"]).Returns("invalid-value");
 
             var requestContext = new Mock<HttpRequest>();
-            requestContext.Setup(o => o.GetFormAsync(CancellationToken.None))
-                          .Returns(Task.FromResult(formsCollection));
+            requestContext.Setup(o => o.ReadFormAsync(CancellationToken.None))
+                          .Returns(Task.FromResult(formCollection.Object));
 
             var mockHttpContext = new Mock<HttpContext>();
             mockHttpContext.Setup(o => o.Request)
@@ -193,10 +232,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var mockHttpContext = new Mock<HttpContext>();
             var requestContext = new Mock<HttpRequest>();
-            IReadableStringCollection formsCollection =
-                new MockCookieCollection(new Dictionary<string, string>() { { "form-field-name", "valid-value" } });
-            requestContext.Setup(o => o.GetFormAsync(CancellationToken.None))
-                          .Returns(Task.FromResult(formsCollection));
+            var formCollection = new Mock<IFormCollection>();
+            formCollection.Setup(f => f["form-field-name"]).Returns("valid-value");
+            requestContext.Setup(o => o.ReadFormAsync(CancellationToken.None))
+                          .Returns(Task.FromResult(formCollection.Object));
             mockHttpContext.Setup(o => o.Request)
                            .Returns(requestContext.Object);
 
@@ -229,7 +268,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var token = new AntiForgeryToken();
             var mockCookies = new Mock<IResponseCookies>();
 
-            // TODO : Once we decide on where to pick this value from enable this.
             bool defaultCookieSecureValue = expectedCookieSecureFlag ?? false; // pulled from config; set by ctor
             var cookies = new MockResponseCookieCollection();
 
@@ -237,6 +275,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var mockHttpContext = new Mock<HttpContext>();
             mockHttpContext.Setup(o => o.Response.Cookies)
                            .Returns(cookies);
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
+            mockHttpContext.SetupGet(o => o.RequestServices)
+                           .Returns(GetServiceProvider(contextAccessor));
 
             var mockSerializer = new Mock<IAntiForgeryTokenSerializer>();
             mockSerializer.Setup(o => o.Serialize(token))
@@ -257,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.Equal(1, cookies.Count);
-
+            Assert.NotNull(contextAccessor.Value.CookieToken);
             Assert.NotNull(cookies);
             Assert.Equal(_cookieName, cookies.Key);
             Assert.Equal("serialized-value", cookies.Value);
@@ -276,7 +317,18 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockHttpContext.Setup(o => o.Request)
                            .Returns(request.Object);
 
+            var contextAccessor = new ScopedInstance<AntiForgeryContext>();
+            mockHttpContext.SetupGet(o => o.RequestServices)
+                           .Returns(GetServiceProvider(contextAccessor));
+
             return mockHttpContext.Object;
+        }
+
+        private static IServiceProvider GetServiceProvider(IScopedInstance<AntiForgeryContext> contextAccessor)
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddInstance<IScopedInstance<AntiForgeryContext>>(contextAccessor);
+            return serviceCollection.BuildServiceProvider();
         }
 
         private class MockResponseCookieCollection : IResponseCookies

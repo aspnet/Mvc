@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 
-namespace ConnegWebsite
+namespace ConnegWebSite
 {
     public class NoContentController : Controller
     {
@@ -26,6 +26,15 @@ namespace ConnegWebsite
         public object ReturnObject_NullValue()
         {
             return null;
+        }
+
+        public Task ReturnTask()
+        {
+            return Task.FromResult<bool>(true);
+        }
+
+        public void ReturnVoid()
+        {
         }
     }
 }

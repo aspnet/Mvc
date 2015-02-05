@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -227,12 +227,13 @@ namespace Microsoft.AspNet.Mvc.Test
             return new ActionExecutingContext(
                 CreateActionContext(),
                 new IFilter[] { filter, },
-                new Dictionary<string, object>());
+                new Dictionary<string, object>(),
+                controller: new object());
         }
 
         private static ActionExecutedContext CreateActionExecutedContext(ActionExecutingContext context)
         {
-            return new ActionExecutedContext(context, context.Filters)
+            return new ActionExecutedContext(context, context.Filters, context.Controller)
             {
                 Result = context.Result,
             };
@@ -243,12 +244,13 @@ namespace Microsoft.AspNet.Mvc.Test
             return new ResultExecutingContext(
                 CreateActionContext(),
                 new IFilter[] { filter, },
-                new NoOpResult());
+                new NoOpResult(),
+                controller: new object());
         }
 
         private static ResultExecutedContext CreateResultExecutedContext(ResultExecutingContext context)
         {
-            return new ResultExecutedContext(context, context.Filters, context.Result);
+            return new ResultExecutedContext(context, context.Filters, context.Result, context.Controller);
         }
 
         private static ActionContext CreateActionContext()
@@ -260,7 +262,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             public Task ExecuteResultAsync(ActionContext context)
             {
-                return Task.FromResult<object>(null);
+                return Task.FromResult(true);
             }
         }
     }

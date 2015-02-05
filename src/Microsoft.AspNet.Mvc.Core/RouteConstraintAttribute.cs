@@ -7,26 +7,24 @@ using Microsoft.AspNet.Mvc.Core;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An attribute which specifies a required route value for an action or controller. 
-    /// 
+    /// An attribute which specifies a required route value for an action or controller.
+    ///
     /// When placed on an action, the route data of a request must match the expectations of the route
-    /// constraint in order for the action to be selected. See <see cref="RouteKeyHandling"/> for 
+    /// constraint in order for the action to be selected. See <see cref="RouteKeyHandling"/> for
     /// the expectations that must be satisfied by the route data.
-    /// 
+    ///
     /// When placed on a controller, unless overridden by the action, the constraint applies to all
     /// actions defined by the controller.
-    /// 
-    /// 
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
-    public abstract class RouteConstraintAttribute : Attribute
+    public abstract class RouteConstraintAttribute : Attribute, IRouteConstraintProvider
     {
         /// <summary>
         /// Creates a new <see cref="RouteConstraintAttribute"/>.
         /// </summary>
         /// <param name="routeKey">The route value key.</param>
         /// <param name="keyHandling">
-        /// The <see cref="RouteKeyHandling"/> value. Must be <see cref="RouteKeyHandling.CatchAll "/> 
+        /// The <see cref="RouteKeyHandling"/> value. Must be <see cref="RouteKeyHandling.CatchAll "/>
         /// or <see cref="RouteKeyHandling.DenyKey"/>.
         /// </param>
         protected RouteConstraintAttribute(
@@ -47,7 +45,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Creates a new <see cref="RouteConstraintAttribute"/> with 
+        /// Creates a new <see cref="RouteConstraintAttribute"/> with
         /// <see cref="RouteConstraintAttribute.RouteKeyHandling"/> set to <see cref="RouteKeyHandling.RequireKey"/>.
         /// </summary>
         /// <param name="routeKey">The route value key.</param>
@@ -56,8 +54,8 @@ namespace Microsoft.AspNet.Mvc
         /// Set to true to negate this constraint on all actions that do not define a behavior for this route key.
         /// </param>
         protected RouteConstraintAttribute(
-            [NotNull]string routeKey, 
-            [NotNull]string routeValue, 
+            [NotNull]string routeKey,
+            [NotNull]string routeValue,
             bool blockNonAttributedActions)
         {
             RouteKey = routeKey;
@@ -65,25 +63,16 @@ namespace Microsoft.AspNet.Mvc
             BlockNonAttributedActions = blockNonAttributedActions;
         }
 
-        /// <summary>
-        /// The route value key.
-        /// </summary>
+        /// <inheritdoc />
         public string RouteKey { get; private set; }
 
-        /// <summary>
-        /// The <see cref="RouteKeyHandling"/>.
-        /// </summary>
+        /// <inheritdoc />
         public RouteKeyHandling RouteKeyHandling { get; private set; }
 
-        /// <summary>
-        /// The expected route value. Will be null unless <see cref="RouteConstraintAttribute.RouteKeyHandling"/> is
-        /// set to <see cref="RouteKeyHandling.RequireKey"/>.
-        /// </summary>
+        /// <inheritdoc />
         public string RouteValue { get; private set; }
 
-        /// <summary>
-        /// Set to true to negate this constraint on all actions that do not define a behavior for this route key.
-        /// </summary>
+        /// <inheritdoc />
         public bool BlockNonAttributedActions { get; private set; }
     }
 }

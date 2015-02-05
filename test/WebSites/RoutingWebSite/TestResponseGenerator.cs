@@ -14,7 +14,7 @@ namespace RoutingWebSite
     {
         private readonly ActionContext _actionContext;
 
-        public TestResponseGenerator(IContextAccessor<ActionContext> contextAccessor)
+        public TestResponseGenerator(IScopedInstance<ActionContext> contextAccessor)
         {
             _actionContext = contextAccessor.Value;
             if (_actionContext == null)
@@ -33,7 +33,7 @@ namespace RoutingWebSite
                     .Where(kvp => kvp.Key != "link" && kvp.Key != "link_action" && kvp.Key != "link_controller")
                     .ToDictionary(kvp => kvp.Key.Substring("link_".Length), kvp => (object)kvp.Value[0]);
 
-                var urlHelper = _actionContext.HttpContext.RequestServices.GetService<IUrlHelper>();
+                var urlHelper = _actionContext.HttpContext.RequestServices.GetRequiredService<IUrlHelper>();
                 link = urlHelper.Action(query["link_action"], query["link_controller"], values);
             }
 
@@ -47,7 +47,7 @@ namespace RoutingWebSite
                 routeValues = new Dictionary<string, object>(_actionContext.RouteData.Values),
 
                 action = _actionContext.ActionDescriptor.Name,
-                controller = ((ReflectedActionDescriptor)_actionContext.ActionDescriptor).ControllerDescriptor.Name,
+                controller = ((ControllerActionDescriptor)_actionContext.ActionDescriptor).ControllerName,
 
                 link,
             });

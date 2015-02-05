@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace ConnegWebsite
+namespace ConnegWebSite
 {
     [Produces("application/custom_ProducesContentOnClassController")]
     public class ProducesContentOnClassController : ProducesContentBaseController
@@ -21,7 +21,7 @@ namespace ConnegWebsite
             base.OnActionExecuted(context);
         }
 
-        // No Content type defined by the derived class action. 
+        // No Content type defined by the derived class action.
         public override string ReturnClassName()
         {
             // should be written using the content defined at base class's action.

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.AspNet.Mvc;
 
 namespace RazorWebSite.Controllers
@@ -37,10 +38,38 @@ namespace RazorWebSite.Controllers
             return View(model);
         }
 
+        public IActionResult ViewWithPartialTakingModelFromIEnumerable()
+        {
+            var model = new List<Person>()
+            {
+                new Person() { Name = "Hello" },
+                new Person() { Name = "World" }
+            };
+
+            return View(model);
+        }
+
         public ViewResult ViewPassesViewDataToLayout()
         {
             ViewData["Title"] = "Controller title";
             return View("ViewWithTitle");
+        }
+
+        public IActionResult ViewWithDataFromController()
+        {
+            ViewData["data-from-controller"] = "hello from controller";
+            return View("ViewWithDataFromController");
+        }
+
+        public ViewResult ViewWithComponentThatHasLayout()
+        {
+            ViewData["Title"] = "View With Component With Layout";
+            return View();
+        }
+
+        public ViewResult ViewWithComponentThatHasViewStart()
+        {
+            return View();
         }
     }
 }

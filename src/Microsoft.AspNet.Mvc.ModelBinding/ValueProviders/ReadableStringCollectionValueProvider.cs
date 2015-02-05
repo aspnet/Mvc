@@ -3,24 +3,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public class ReadableStringCollectionValueProvider : IEnumerableValueProvider
+    public class ReadableStringCollectionValueProvider<TBinderMetadata> :
+        MetadataAwareValueProvider<TBinderMetadata>, IEnumerableValueProvider
+        where TBinderMetadata : IValueProviderMetadata
     {
         private readonly CultureInfo _culture;
-        private PrefixContainer _prefixContainer;
         private readonly Func<Task<IReadableStringCollection>> _valuesFactory;
+        private PrefixContainer _prefixContainer;
         private IReadableStringCollection _values;
 
         /// <summary>
-        /// Creates a NameValuePairsProvider wrapping an existing set of key value pairs.
+        /// Creates a provider for <see cref="IReadableStringCollection"/> wrapping an existing set of key value pairs.
         /// </summary>
         /// <param name="values">The key value pairs to wrap.</param>
         /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
@@ -30,6 +31,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _culture = culture;
         }
 
+        /// <summary>
+        /// Creates a provider for <see cref="IReadableStringCollection"/> wrapping an
+        /// existing set of key value pairs provided by the delegate.
+        /// </summary>
+        /// <param name="values">The delegate that provides the key value pairs to wrap.</param>
+        /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
         public ReadableStringCollectionValueProvider([NotNull] Func<Task<IReadableStringCollection>> valuesFactory,
                                                      CultureInfo culture)
         {
@@ -45,19 +52,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        public virtual async Task<bool> ContainsPrefixAsync(string prefix)
+        /// <inheritdoc />
+        public override async Task<bool> ContainsPrefixAsync(string prefix)
         {
             var prefixContainer = await GetPrefixContainerAsync();
             return prefixContainer.ContainsPrefix(prefix);
         }
 
+        /// <inheritdoc />
         public virtual async Task<IDictionary<string, string>> GetKeysFromPrefixAsync([NotNull] string prefix)
         {
             var prefixContainer = await GetPrefixContainerAsync();
             return prefixContainer.GetKeysFromPrefix(prefix);
         }
 
-        public virtual async Task<ValueProviderResult> GetValueAsync([NotNull] string key)
+        /// <inheritdoc />
+        public override async Task<ValueProviderResult> GetValueAsync([NotNull] string key)
         {
             var collection = await GetValueCollectionAsync();
             var values = collection.GetValues(key);
@@ -84,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             if (_values == null)
             {
-                Contract.Assert(_valuesFactory != null);
+                Debug.Assert(_valuesFactory != null);
                 _values = await _valuesFactory();
             }
 

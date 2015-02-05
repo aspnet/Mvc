@@ -2,8 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -70,7 +69,6 @@ namespace Microsoft.AspNet.Mvc
                 if (user != null)
                 {
                     // We only support ClaimsIdentity.
-                    // Todo remove this once httpContext.User moves to ClaimsIdentity.
                     return user.Identity as ClaimsIdentity;
                 }
             }
@@ -104,19 +102,8 @@ namespace Microsoft.AspNet.Mvc
             var tokenSet = GetTokens(httpContext, oldCookieToken);
             var newCookieToken = tokenSet.CookieToken;
             var formToken = tokenSet.FormToken;
-            if (newCookieToken != null)
-            {
-                // If a new cookie was generated, persist it.
-                _tokenStore.SaveCookieToken(httpContext, newCookieToken);
-            }
 
-            if (!_config.SuppressXFrameOptionsHeader)
-            {
-                // Adding X-Frame-Options header to prevent ClickJacking. See
-                // http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-10
-                // for more information.
-                httpContext.Response.Headers.Set("X-Frame-Options", "SAMEORIGIN");
-            }
+            SaveCookieTokenAndHeader(httpContext, newCookieToken);
 
             // <input type="hidden" name="__AntiForgeryToken" value="..." />
             var retVal = new TagBuilder("input");
@@ -145,26 +132,22 @@ namespace Microsoft.AspNet.Mvc
 
         private AntiForgeryTokenSetInternal GetTokens(HttpContext httpContext, AntiForgeryToken oldCookieToken)
         {
-            AntiForgeryToken newCookieToken = null;
-            if (!_validator.IsCookieTokenValid(oldCookieToken))
+            var newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
+            if (newCookieToken != null)
             {
-                // Need to make sure we're always operating with a good cookie token.
-                oldCookieToken = newCookieToken = _generator.GenerateCookieToken();
+                oldCookieToken = newCookieToken;
             }
-
-            Contract.Assert(_validator.IsCookieTokenValid(oldCookieToken));
-
             var formToken = _generator.GenerateFormToken(
                 httpContext,
                 ExtractIdentity(httpContext),
                 oldCookieToken);
 
             return new AntiForgeryTokenSetInternal()
-                            {
-                                // Note : The new cookie would be null if the old cookie is valid.
-                                CookieToken = newCookieToken,
-                                FormToken = formToken
-                            };
+            {
+                // Note : The new cookie would be null if the old cookie is valid.
+                CookieToken = newCookieToken,
+                FormToken = formToken
+            };
         }
 
         private string Serialize(AntiForgeryToken token)
@@ -204,6 +187,54 @@ namespace Microsoft.AspNet.Mvc
                 ExtractIdentity(httpContext),
                 deserializedCookieToken,
                 deserializedFormToken);
+        }
+
+
+        /// <summary>
+        /// Generates and sets an anti-forgery cookie if one is not available or not valid. Also sets response headers.
+        /// </summary>
+        /// <param name="context">The HTTP context associated with the current call.</param>
+        public void SetCookieTokenAndHeader([NotNull] HttpContext httpContext)
+        {
+            CheckSSLConfig(httpContext);
+
+            var oldCookieToken = GetCookieTokenNoThrow(httpContext);
+            var newCookieToken = ValidateAndGenerateNewToken(oldCookieToken);
+            
+            SaveCookieTokenAndHeader(httpContext, newCookieToken);
+        }
+
+        // This method returns null if oldCookieToken is valid.
+        private AntiForgeryToken ValidateAndGenerateNewToken(AntiForgeryToken oldCookieToken)
+        {
+            if (!_validator.IsCookieTokenValid(oldCookieToken))
+            {
+                // Need to make sure we're always operating with a good cookie token.
+                var newCookieToken = _generator.GenerateCookieToken();
+                Debug.Assert(_validator.IsCookieTokenValid(newCookieToken));
+                return newCookieToken;
+            }
+
+            return null;
+        }
+
+        private void SaveCookieTokenAndHeader(
+            [NotNull] HttpContext httpContext,
+            AntiForgeryToken newCookieToken)
+        {
+            if (newCookieToken != null)
+            {
+                // Persist the new cookie if it is not null.
+                _tokenStore.SaveCookieToken(httpContext, newCookieToken);
+            }
+
+            if (!_config.SuppressXFrameOptionsHeader)
+            {
+                // Adding X-Frame-Options header to prevent ClickJacking. See
+                // http://tools.ietf.org/html/draft-ietf-websec-x-frame-options-10
+                // for more information.
+                httpContext.Response.Headers.Set("X-Frame-Options", "SAMEORIGIN");
+            }
         }
 
         private class AntiForgeryTokenSetInternal

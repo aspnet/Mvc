@@ -2,16 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using Microsoft.AspNet.FileSystems;
-using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Generator.Compiler.CSharp;
+using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
-using Microsoft.AspNet.Razor.Text;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -104,75 +99,15 @@ Environment.NewLine +
             Assert.Equal(expected, code);
         }
 
-        [Fact]
-        public void ModelVisitor_GeneratesCorrectLineMappings()
+        private static CodeBuilderContext CreateContext()
         {
-            // Arrange
-            var host = new MvcRazorHost("appRoot", Mock.Of<IFileSystem>())
-            {
-                DesignTimeMode = true
-            };
-            host.NamespaceImports.Clear();
-            var engine = new RazorTemplateEngine(host);
-            var source = ReadResource("TestFiles/Input/Model.cshtml");
-            var expectedCode = ReadResource("TestFiles/Output/Model.cs");
-            var expectedLineMappings = new List<LineMapping>
-            {
-                BuildLineMapping(7, 0, 7, 151, 6, 7, 30),
-            };
-
-            // Act
-            GeneratorResults results;
-            using (var buffer = new StringTextBuffer(source))
-            {
-                results = engine.GenerateCode(buffer);
-            }
-
-            // Assert
-            Assert.True(results.Success);
-            Assert.Equal(expectedCode, results.GeneratedCode);
-            Assert.Empty(results.ParserErrors);
-            Assert.Equal(expectedLineMappings, results.DesignTimeLineMappings);
-        }
-
-        private string ReadResource(string resourceName)
-        {
-            var assembly = typeof(ModelChunkVisitorTest).Assembly;
-
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            using (var streamReader = new StreamReader(stream))
-            {
-                return streamReader.ReadToEnd();
-            }
-        }
-
-        private static CodeGeneratorContext CreateContext()
-        {
-            return CodeGeneratorContext.Create(new MvcRazorHost("appRoot", Mock.Of<IFileSystem>()),
-                                              "MyClass",
-                                              "MyNamespace",
-                                              string.Empty,
-                                              shouldGenerateLinePragmas: true);
-        }
-
-        private static LineMapping BuildLineMapping(int documentAbsoluteIndex,
-                                                    int documentLineIndex,
-                                                    int documentCharacterIndex,
-                                                    int generatedAbsoluteIndex,
-                                                    int generatedLineIndex,
-                                                    int generatedCharacterIndex,
-                                                    int contentLength)
-        {
-            var documentLocation = new SourceLocation(documentAbsoluteIndex,
-                                                      documentLineIndex,
-                                                      documentCharacterIndex);
-            var generatedLocation = new SourceLocation(generatedAbsoluteIndex,
-                                                       generatedLineIndex,
-                                                       generatedCharacterIndex);
-
-            return new LineMapping(
-                documentLocation: new MappingLocation(documentLocation, contentLength),
-                generatedLocation: new MappingLocation(generatedLocation, contentLength));
+            return new CodeBuilderContext(
+                new CodeGeneratorContext(new MvcRazorHost(new TestFileProvider()),
+                                         "MyClass",
+                                         "MyNamespace",
+                                         string.Empty,
+                                         shouldGenerateLinePragmas: true),
+                new ParserErrorSink());
         }
     }
 }

@@ -1,17 +1,19 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
-using Microsoft.Framework.Logging;
 
-namespace Microsoft.AspNet.Mvc.Core.Test
+namespace Microsoft.AspNet.Mvc
 {
     public class UrlHelperTest
     {
@@ -38,10 +40,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData(null, "~/Home/About", "/Home/About")]
         [InlineData("/", "~/Home/About", "/Home/About")]
         [InlineData("/", "~/", "/")]
-        [InlineData("", "~/Home/About", "/Home/About")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
         [InlineData("", "~/Home/About", "/Home/About")]
-        [InlineData("/myapproot", "~/", "/myapproot/")]
+        [InlineData("/myapproot", "~/Content/bootstrap.css", "/myapproot/Content/bootstrap.css")]
         public void Content_ReturnsAppRelativePath_WhenItStartsWithToken(string appRoot,
                                                                          string contentPath,
                                                                          string expectedPath)
@@ -58,9 +59,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(expectedPath, path);
         }
 
+        // UrlHelper.IsLocalUrl depends on the UrlUtility.IsLocalUrl method. 
+        // To avoid duplicate tests, all the tests exercising IsLocalUrl verify  
+        // both of UrlHelper.IsLocalUrl and UrlUtility.IsLocalUrl
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        [InlineData(" ")]
         public void IsLocalUrl_ReturnsFalseOnEmpty(string url)
         {
             // Arrange
@@ -68,6 +73,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -87,6 +98,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.True(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
+
+            // Assert
+            Assert.True(result);
         }
 
         [Theory]
@@ -99,6 +116,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.True(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.True(result);
@@ -115,6 +138,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -135,6 +164,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
         }
 
         [Theory]
@@ -147,6 +182,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -165,6 +206,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
         }
 
         [Theory]
@@ -176,6 +223,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -196,6 +249,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
         }
 
         [Theory]
@@ -204,7 +263,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("HtTpS://///www.example.com/foo.html")]
         [InlineData("http:///www.example.com/foo.html")]
         [InlineData("http:////www.example.com/foo.html")]
-        [InlineData("http://///www.example.com/foo.html")]
         public void IsLocalUrl_RejectsUrlsWithTooManySchemeSeparatorCharacters(string url)
         {
             // Arrange
@@ -212,6 +270,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -234,6 +298,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Assert
             Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
         }
 
         [Theory]
@@ -248,6 +318,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = helper.IsLocalUrl(url);
+
+            // Assert
+            Assert.False(result);
+
+            // Arrange & Act
+            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -382,15 +458,36 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
                                          values: new
-                                                    {
-                                                        Action = "newaction",
-                                                        Controller = "home2",
-                                                        id = "someid"
-                                                    },
+                                         {
+                                             Action = "newaction",
+                                             Controller = "home2",
+                                             id = "someid"
+                                         },
                                          protocol: "https");
 
             // Assert
             Assert.Equal("https://localhost/app/named/home2/newaction/someid", url);
+        }
+
+        [Fact]
+        public void RouteUrl_WithUnicodeHost_DoesNotPunyEncodeTheHost()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+
+            // Act
+            var url = urlHelper.RouteUrl(routeName: "namedroute",
+                                         values: new
+                                         {
+                                             Action = "newaction",
+                                             Controller = "home2",
+                                             id = "someid"
+                                         },
+                                         protocol: "https",
+                                         host: "pingüino");
+
+            // Assert
+            Assert.Equal("https://pingüino/app/named/home2/newaction/someid", url);
         }
 
         [Fact]
@@ -436,19 +533,92 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
                                          values: new
-                                            {
-                                                Action = "newaction",
-                                                Controller = "home2",
-                                                id = "someid"
-                                            });
+                                         {
+                                             Action = "newaction",
+                                             Controller = "home2",
+                                             id = "someid"
+                                         });
 
             // Assert
             Assert.Equal("/app/named/home2/newaction/someid", url);
         }
 
+        [Fact]
+        public void UrlAction_RouteValuesAsDictionary_CaseSensitive()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+
+            // We're using a dictionary with a case-sensitive comparer and loading it with data
+            // using casings differently from the route. This should still successfully generate a link.
+            var dict = new Dictionary<string, object>();
+            var id = "suppliedid";
+            var isprint = "true";
+            dict["ID"] = id;
+            dict["isprint"] = isprint;
+
+            // Act
+            var url = urlHelper.Action(
+                                    action: "contact",
+                                    controller: "home",
+                                    values: dict);
+
+            // Assert
+            Assert.Equal(2, dict.Count);
+            Assert.Same(id, dict["ID"]);
+            Assert.Same(isprint, dict["isprint"]);
+            Assert.Equal("/app/home/contact/suppliedid?isprint=true", url);
+        }
+
+        [Fact]
+        public void UrlAction_WithUnicodeHost_DoesNotPunyEncodeTheHost()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+
+            // Act
+            var url = urlHelper.Action(
+                                    action: "contact",
+                                    controller: "home",
+                                    values: null,
+                                    protocol: "http",
+                                    host: "pingüino");
+
+            // Assert
+            Assert.Equal("http://pingüino/app/home/contact", url);
+        }
+
+        [Fact]
+        public void UrlRouteUrl_RouteValuesAsDictionary_CaseSensitive()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+
+            // We're using a dictionary with a case-sensitive comparer and loading it with data
+            // using casings differently from the route. This should still successfully generate a link.
+            var dict = new Dictionary<string, object>();
+            var action = "contact";
+            var controller = "home";
+            var id = "suppliedid";
+
+            dict["ACTION"] = action;
+            dict["Controller"] = controller;
+            dict["ID"] = id;
+
+            // Act
+            var url = urlHelper.RouteUrl(routeName: "namedroute", values: dict);
+
+            // Assert
+            Assert.Equal(3, dict.Count);
+            Assert.Same(action, dict["ACTION"]);
+            Assert.Same(controller, dict["Controller"]);
+            Assert.Same(id, dict["ID"]);
+            Assert.Equal("/app/named/home/contact/suppliedid", url);
+        }
+
         private static HttpContext CreateHttpContext(string appRoot, ILoggerFactory factory = null)
         {
-            if(factory == null)
+            if (factory == null)
             {
                 factory = NullLoggerFactory.Instance;
             }
@@ -468,21 +638,20 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return context.Object;
         }
 
-        private static IContextAccessor<ActionContext> CreateActionContext(HttpContext context)
+        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context)
         {
             return CreateActionContext(context, (new Mock<IRouter>()).Object);
         }
 
-        private static IContextAccessor<ActionContext> CreateActionContext(HttpContext context, IRouter router)
+        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context, IRouter router)
         {
             var routeData = new RouteData();
-            routeData.Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             routeData.Routers.Add(router);
 
             var actionContext = new ActionContext(context,
                                                   routeData,
                                                   new ActionDescriptor());
-            var contextAccessor = new Mock<IContextAccessor<ActionContext>>();
+            var contextAccessor = new Mock<IScopedInstance<ActionContext>>();
             contextAccessor.SetupGet(c => c.Value)
                            .Returns(actionContext);
             return contextAccessor.Object;
@@ -508,7 +677,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        private static UrlHelper CreateUrlHelper(IContextAccessor<ActionContext> contextAccessor)
+        private static UrlHelper CreateUrlHelper(IScopedInstance<ActionContext> contextAccessor)
         {
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(contextAccessor, actionSelector.Object);
@@ -526,7 +695,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         private static UrlHelper CreateUrlHelperWithRouteCollection(string appPrefix)
         {
             var routeCollection = GetRouter();
-            return CreateUrlHelper("/app", routeCollection);
+            return CreateUrlHelper(appPrefix, routeCollection);
         }
 
         private static IRouter GetRouter()
@@ -539,21 +708,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var rt = new RouteBuilder();
             var target = new Mock<IRouter>(MockBehavior.Strict);
             target
-                .Setup(e => e.GetVirtualPath(It.IsAny<VirtualPathContext>()))
-                .Callback<VirtualPathContext>(c =>
-                {
-                    rt.ToString();
-                    c.IsBound = true;
-                })
-                .Returns<VirtualPathContext>(rc => null);
+                .Setup(router => router.GetVirtualPath(It.IsAny<VirtualPathContext>()))
+                .Callback<VirtualPathContext>(context => context.IsBound = true)
+                .Returns<VirtualPathContext>(context => null);
             rt.DefaultHandler = target.Object;
             var serviceProviderMock = new Mock<IServiceProvider>();
-            var accessorMock = new Mock<IOptionsAccessor<RouteOptions>>();
+            var accessorMock = new Mock<IOptions<RouteOptions>>();
             accessorMock.SetupGet(o => o.Options).Returns(new RouteOptions());
             serviceProviderMock.Setup(o => o.GetService(typeof(IInlineConstraintResolver)))
-                               .Returns(new DefaultInlineConstraintResolver(serviceProviderMock.Object,
-                                                                            accessorMock.Object));
-          
+                               .Returns(new DefaultInlineConstraintResolver(accessorMock.Object));
+
             rt.ServiceProvider = serviceProviderMock.Object;
             rt.MapRoute(string.Empty,
                         "{controller}/{action}/{id}",

@@ -5,10 +5,10 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
 using Moq;
-using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Mvc.Core.Test
 {
@@ -18,11 +18,20 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             var validUser = new ClaimsPrincipal(
                 new ClaimsIdentity(
-                    new Claim[] { 
+                    new Claim[] {
                         new Claim("Permission", "CanViewPage"),
-                        new Claim(ClaimTypes.Role, "Administrator"), 
+                        new Claim(ClaimTypes.Role, "Administrator"),
+                        new Claim(ClaimTypes.Role, "User"),
                         new Claim(ClaimTypes.NameIdentifier, "John")},
                         "Basic"));
+
+            validUser.AddIdentity(
+                new ClaimsIdentity(
+                    new Claim[] {
+                        new Claim("Permission", "CupBearer"),
+                        new Claim(ClaimTypes.Role, "Token"),
+                        new Claim(ClaimTypes.NameIdentifier, "John Bear")},
+                        "Bearer"));
 
             // ServiceProvider
             var serviceCollection = new ServiceCollection();

@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNet.Mvc
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 _jsonSerializerSettings = value;
@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets or sets if deserialization errors are captured. When set, these errors appear in 
+        /// Gets or sets if deserialization errors are captured. When set, these errors appear in
         /// the <see cref="ActionContext.ModelState"/> instance of <see cref="InputFormatterContext"/>.
         /// </summary>
         public bool CaptureDeserilizationErrors { get; set; }
@@ -148,9 +148,9 @@ namespace Microsoft.AspNet.Mvc
                     errorHandler = (sender, e) =>
                     {
                         var exception = e.ErrorContext.Error;
-                        context.ActionContext.ModelState.AddModelError(e.ErrorContext.Path, e.ErrorContext.Error);
+                        context.ActionContext.ModelState.TryAddModelError(e.ErrorContext.Path, e.ErrorContext.Error);
                         // Error must always be marked as handled
-                        // Failure to do so can cause the exception to be rethrown at every recursive level and 
+                        // Failure to do so can cause the exception to be rethrown at every recursive level and
                         // overflow the stack for x64 CLR processes
                         e.ErrorContext.Handled = true;
                     };

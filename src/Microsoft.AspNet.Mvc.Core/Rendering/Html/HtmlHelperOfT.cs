@@ -16,12 +16,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Initializes a new instance of the <see cref="HtmlHelper{TModel}"/> class.
         /// </summary>
         public HtmlHelper(
+            [NotNull] IHtmlGenerator htmlGenerator,
             [NotNull] ICompositeViewEngine viewEngine,
-            [NotNull] IModelMetadataProvider metadataProvider,
-            [NotNull] IUrlHelper urlHelper,
-            [NotNull] AntiForgery antiForgeryInstance,
-            [NotNull] IActionBindingContextProvider actionBindingContextProvider)
-            : base(viewEngine, metadataProvider, urlHelper, antiForgeryInstance, actionBindingContextProvider)
+            [NotNull] IModelMetadataProvider metadataProvider)
+            : base(htmlGenerator, viewEngine, metadataProvider)
         {
         }
 
@@ -100,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             var metadata = ExpressionMetadataProvider.FromLambdaExpression<TModelItem, TValue>(
                 expression,
-                new ViewDataDictionary<TModelItem>(MetadataProvider),
+                new ViewDataDictionary<TModelItem>(ViewData, model: null),
                 MetadataProvider);
 
             var expressionText = ExpressionHelper.GetExpressionText(expression);

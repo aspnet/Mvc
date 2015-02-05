@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc
     public class DefaultControllerActivator : IControllerActivator
     {
         private readonly Func<Type, PropertyActivator<ActionContext>[]> _getPropertiesToActivate;
-        private readonly IReadOnlyDictionary<Type, Func<ActionContext, object>> _valueAccessorLookup;
+        private readonly IDictionary<Type, Func<ActionContext, object>> _valueAccessorLookup;
         private readonly ConcurrentDictionary<Type, PropertyActivator<ActionContext>[]> _injectActions;
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="controller">The controller to activate.</param>
         /// <param name="context">The context of the executing action.</param>
-        public void Activate([NotNull] object controller, [NotNull] ActionContext context)
+        public virtual void Activate([NotNull] object controller, [NotNull] ActionContext context)
         {
             var controllerType = controller.GetType();
             var controllerTypeInfo = controllerType.GetTypeInfo();
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        protected virtual IReadOnlyDictionary<Type, Func<ActionContext, object>> CreateValueAccessorLookup()
+        protected virtual IDictionary<Type, Func<ActionContext, object>> CreateValueAccessorLookup()
         {
             var dictionary = new Dictionary<Type, Func<ActionContext, object>>
             {
@@ -72,8 +72,17 @@ namespace Microsoft.AspNet.Mvc
                     {
                         var serviceProvider = context.HttpContext.RequestServices;
                         return new ViewDataDictionary(
-                            serviceProvider.GetService<IModelMetadataProvider>(),
+                            serviceProvider.GetRequiredService<IModelMetadataProvider>(),
                             context.ModelState);
+                    }
+                },
+                {
+                    typeof(ActionBindingContext),
+                    (context) =>
+                    {
+                        var serviceProvider = context.HttpContext.RequestServices;
+                        var accessor = serviceProvider.GetRequiredService<IScopedInstance<ActionBindingContext>>();
+                        return accessor.Value;
                     }
                 }
             };
@@ -89,7 +98,7 @@ namespace Microsoft.AspNet.Mvc
                 valueAccessor = (actionContext) =>
                 {
                     var serviceProvider = actionContext.HttpContext.RequestServices;
-                    return serviceProvider.GetService(property.PropertyType);
+                    return serviceProvider.GetRequiredService(property.PropertyType);
                 };
             }
 

@@ -1,58 +1,92 @@
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
+using System.Security.Claims;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Razor;
+using Microsoft.AspNet.Security;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
 
-#if NET45 
+#if ASPNET50
 using Autofac;
 using Microsoft.Framework.DependencyInjection.Autofac;
-using Microsoft.Framework.OptionsModel;
 #endif
 
 namespace MvcSample.Web
 {
     public class Startup
     {
-        public void Configure(IBuilder app)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseFileServer();
-#if NET45
+#if ASPNET50
+            // Set up configuration sources.
             var configuration = new Configuration()
-                                    .AddJsonFile(@"App_Data\config.json")
-                                    .AddEnvironmentVariables();
-
+                    .AddJsonFile("config.json")
+                    .AddEnvironmentVariables();
             string diSystem;
 
-            if (configuration.TryGet("DependencyInjection", out diSystem) && 
+            if (configuration.TryGet("DependencyInjection", out diSystem) &&
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {
                 app.UseMiddleware<MonitoringMiddlware>();
 
-                var services = new ServiceCollection();
+                app.UseServices(services =>
+                {
+                    services.ConfigureAuthorization(auth =>
+                    {
+                        auth.AddPolicy("CanViewPage", 
+                            new AuthorizationPolicyBuilder()
+                                .RequiresClaim("Permission", "CanViewPage", "CanViewAnything").Build());
+                        auth.AddPolicy("CanViewAnything", 
+                            new AuthorizationPolicyBuilder()
+                                .RequiresClaim("Permission", "CanViewAnything").Build());
+                        // This policy basically requires that the auth type is present
+                        var basicPolicy = new AuthorizationPolicyBuilder("Basic").RequiresClaim(ClaimTypes.NameIdentifier);
+                        auth.AddPolicy("RequireBasic", basicPolicy.Build());
+                    });
 
-                services.AddMvc();
-                services.AddSingleton<PassThroughAttribute>();
-                services.AddSingleton<UserNameService>();
-                services.AddTransient<ITestService, TestService>();                
-                services.Add(OptionsServices.GetDefaultServices());
+                    services.AddMvc();
+                    services.AddSingleton<PassThroughAttribute>();
+                    services.AddSingleton<UserNameService>();
+                    services.AddTransient<ITestService, TestService>();
 
-                // Create the autofac container 
-                ContainerBuilder builder = new ContainerBuilder();
+                    // Setup services with a test AssemblyProvider so that only the
+                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
+                    // when the sample is used in the Functional Tests.
+                    services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
+                    services.ConfigureMvcOptions(options =>
+                    {
+                        options.Filters.Add(typeof(PassThroughAttribute), order: 17);
+                        options.AddXmlDataContractSerializerFormatter();                        
+                        options.Filters.Add(new FormatFilterAttribute());
+                    });
+                    services.ConfigureRazorViewEngineOptions(options =>
+                    {
+                        var expander = new LanguageViewLocationExpander(
+                            context => context.HttpContext.Request.Query["language"]);
+                        options.ViewLocationExpanders.Insert(0, expander);
+                    });
 
-                // Create the container and use the default application services as a fallback 
-                AutofacRegistration.Populate(
-                    builder,
-                    services,
-                    fallbackServiceProvider: app.ApplicationServices);
+                    // Create the autofac container
+                    ContainerBuilder builder = new ContainerBuilder();
 
-                builder.RegisterModule<MonitoringModule>();
+                    // Create the container and use the default application services as a fallback
+                    AutofacRegistration.Populate(
+                        builder,
+                        services);
 
-                IContainer container = builder.Build();
+                    builder.RegisterModule<MonitoringModule>();
 
-                app.UseServices(container.Resolve<IServiceProvider>());
+                    IContainer container = builder.Build();
+
+                    return container.Resolve<IServiceProvider>();
+                });
             }
             else
 #endif
@@ -63,13 +97,24 @@ namespace MvcSample.Web
                     services.AddSingleton<PassThroughAttribute>();
                     services.AddSingleton<UserNameService>();
                     services.AddTransient<ITestService, TestService>();
+                    
+                    // Setup services with a test AssemblyProvider so that only the
+                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
+                    // when the sample is used in the Functional Tests.
+                    services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
+
+                    services.ConfigureMvcOptions(options =>
+                    {
+                        options.Filters.Add(typeof(PassThroughAttribute), order: 17);
+                        options.AddXmlDataContractSerializerFormatter();
+                        options.Filters.Add(new FormatFilterAttribute());
+                    });
                 });
             }
 
             app.UseMvc(routes =>
             {
                 routes.MapRoute("areaRoute", "{area:exists}/{controller}/{action}");
-
                 routes.MapRoute(
                     "controllerActionRoute",
                     "{controller}/{action}",

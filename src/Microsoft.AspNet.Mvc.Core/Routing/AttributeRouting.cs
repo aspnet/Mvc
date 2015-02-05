@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         {
             var actions = GetActionDescriptors(services);
 
-            var inlineConstraintResolver = services.GetService<IInlineConstraintResolver>();
+            var inlineConstraintResolver = services.GetRequiredService<IInlineConstraintResolver>();
             var routeInfos = GetRouteInfos(inlineConstraintResolver, actions);
 
             // We're creating one AttributeRouteGenerationEntry per action. This allows us to match the intended
@@ -79,12 +79,12 @@ namespace Microsoft.AspNet.Mvc.Routing
                 target,
                 matchingEntries,
                 generationEntries,
-                services.GetService<ILoggerFactory>());
+                services.GetRequiredService<ILoggerFactory>());
         }
 
         private static IReadOnlyList<ActionDescriptor> GetActionDescriptors(IServiceProvider services)
         {
-            var actionDescriptorProvider = services.GetService<IActionDescriptorsCollectionProvider>();
+            var actionDescriptorProvider = services.GetRequiredService<IActionDescriptorsCollectionProvider>();
 
             var actionDescriptorsCollection = actionDescriptorProvider.ActionDescriptors;
             return actionDescriptorsCollection.Items;
@@ -113,8 +113,8 @@ namespace Microsoft.AspNet.Mvc.Routing
             var errors = new List<RouteInfo>();
 
             // This keeps a cache of 'Template' objects. It's a fairly common case that multiple actions
-            // will use the same route template string; thus, the `Template` object can be shared. 
-            // 
+            // will use the same route template string; thus, the `Template` object can be shared.
+            //
             // For a relatively simple route template, the `Template` object will hold about 500 bytes
             // of memory, so sharing is worthwhile.
             var templateCache = new Dictionary<string, RouteTemplate>(StringComparer.OrdinalIgnoreCase);
@@ -184,7 +184,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 if (!templateCache.TryGetValue(action.AttributeRouteInfo.Template, out parsedTemplate))
                 {
                     // Parsing with throw if the template is invalid.
-                    parsedTemplate = TemplateParser.Parse(action.AttributeRouteInfo.Template, constraintResolver);
+                    parsedTemplate = TemplateParser.Parse(action.AttributeRouteInfo.Template);
                     templateCache.Add(action.AttributeRouteInfo.Template, parsedTemplate);
                 }
 
@@ -218,9 +218,25 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             routeInfo.Name = action.AttributeRouteInfo.Name;
 
-            routeInfo.Constraints = routeInfo.ParsedTemplate.Parameters
-                .Where(p => p.InlineConstraint != null)
-                .ToDictionary(p => p.Name, p => p.InlineConstraint, StringComparer.OrdinalIgnoreCase);
+            var constraintBuilder = new RouteConstraintBuilder(constraintResolver, routeInfo.RouteTemplate);
+
+            foreach (var parameter in routeInfo.ParsedTemplate.Parameters)
+            {
+                if (parameter.InlineConstraints != null)
+                {
+                    if (parameter.IsOptional)
+                    {
+                        constraintBuilder.SetOptional(parameter.Name);
+                    }
+
+                    foreach (var inlineConstraint in parameter.InlineConstraints)
+                    {
+                        constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Constraint);
+                    }
+                }
+            }
+
+            routeInfo.Constraints = constraintBuilder.Build();
 
             routeInfo.Defaults = routeInfo.ParsedTemplate.Parameters
                 .Where(p => p.DefaultValue != null)
@@ -233,9 +249,9 @@ namespace Microsoft.AspNet.Mvc.Routing
         {
             public ActionDescriptor ActionDescriptor { get; set; }
 
-            public IDictionary<string, IRouteConstraint> Constraints { get; set; }
+            public IReadOnlyDictionary<string, IRouteConstraint> Constraints { get; set; }
 
-            public IDictionary<string, object> Defaults { get; set; }
+            public IReadOnlyDictionary<string, object> Defaults { get; set; }
 
             public string ErrorMessage { get; set; }
 

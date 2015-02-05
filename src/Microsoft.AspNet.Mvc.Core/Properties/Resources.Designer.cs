@@ -11,6 +11,38 @@ namespace Microsoft.AspNet.Mvc.Core
             = new ResourceManager("Microsoft.AspNet.Mvc.Core.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
+        /// The argument '{0}' is invalid. Media types which match all types or match all subtypes are not supported.
+        /// </summary>
+        internal static string MatchAllContentTypeIsNotAllowed
+        {
+            get { return GetString("MatchAllContentTypeIsNotAllowed"); }
+        }
+
+        /// <summary>
+        /// The argument '{0}' is invalid. Media types which match all types or match all subtypes are not supported.
+        /// </summary>
+        internal static string FormatMatchAllContentTypeIsNotAllowed(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("MatchAllContentTypeIsNotAllowed"), p0);
+        }
+
+        /// <summary>
+        /// The content-type '{0}' added in the '{1}' property is invalid. Media types which match all types or match all subtypes are not supported.
+        /// </summary>
+        internal static string ObjectResult_MatchAllContentType
+        {
+            get { return GetString("ObjectResult_MatchAllContentType"); }
+        }
+
+        /// <summary>
+        /// The content-type '{0}' added in the '{1}' property is invalid. Media types which match all types or match all subtypes are not supported.
+        /// </summary>
+        internal static string FormatObjectResult_MatchAllContentType(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ObjectResult_MatchAllContentType"), p0, p1);
+        }
+
+        /// <summary>
         /// The provided anti-forgery token failed a custom data check.
         /// </summary>
         internal static string AntiForgeryToken_AdditionalDataCheckFailed
@@ -235,7 +267,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The view component name '{0}' matched multiple types: {1}
+        /// The view component name '{0}' matched multiple types:{1}{2}
         /// </summary>
         internal static string ViewComponent_AmbiguousTypeMatch
         {
@@ -243,11 +275,11 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The view component name '{0}' matched multiple types: {1}
+        /// The view component name '{0}' matched multiple types:{1}{2}
         /// </summary>
-        internal static string FormatViewComponent_AmbiguousTypeMatch(object p0, object p1)
+        internal static string FormatViewComponent_AmbiguousTypeMatch(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AmbiguousTypeMatch"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AmbiguousTypeMatch"), p0, p1, p2);
         }
 
         /// <summary>
@@ -413,21 +445,21 @@ namespace Microsoft.AspNet.Mvc.Core
         /// <summary>
         /// The action descriptor must be of type '{0}'.
         /// </summary>
-        internal static string DefaultControllerFactory_ActionDescriptorMustBeReflected
+        internal static string ActionDescriptorMustBeBasedOnControllerAction
         {
-            get { return GetString("DefaultControllerFactory_ActionDescriptorMustBeReflected"); }
+            get { return GetString("ActionDescriptorMustBeBasedOnControllerAction"); }
         }
 
         /// <summary>
         /// The action descriptor must be of type '{0}'.
         /// </summary>
-        internal static string FormatDefaultControllerFactory_ActionDescriptorMustBeReflected(object p0)
+        internal static string FormatActionDescriptorMustBeBasedOnControllerAction(object p0)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("DefaultControllerFactory_ActionDescriptorMustBeReflected"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("ActionDescriptorMustBeBasedOnControllerAction"), p0);
         }
 
         /// <summary>
-        /// The value cannot be null or empty.
+        /// Value cannot be null or empty.
         /// </summary>
         internal static string ArgumentCannotBeNullOrEmpty
         {
@@ -435,7 +467,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The value cannot be null or empty.
+        /// Value cannot be null or empty.
         /// </summary>
         internal static string FormatArgumentCannotBeNullOrEmpty()
         {
@@ -616,6 +648,22 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatExpressionHelper_InvalidIndexerExpression(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ExpressionHelper_InvalidIndexerExpression"), p0, p1);
+        }
+
+        /// <summary>
+        /// The passed expression of expression node type '{0}' is invalid. Only simple member access expressions for model properties are supported.
+        /// </summary>
+        internal static string Invalid_IncludePropertyExpression
+        {
+            get { return GetString("Invalid_IncludePropertyExpression"); }
+        }
+
+        /// <summary>
+        /// The passed expression of expression node type '{0}' is invalid. Only simple member access expressions for model properties are supported.
+        /// </summary>
+        internal static string FormatInvalid_IncludePropertyExpression(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Invalid_IncludePropertyExpression"), p0);
         }
 
         /// <summary>
@@ -1352,6 +1400,422 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatAttributeRoute_AggregateErrorMessage_ErrorNumber(object p0, object p1, object p2)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_AggregateErrorMessage_ErrorNumber"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// Could not find a replacement for view expansion token '{0}'.
+        /// </summary>
+        internal static string TemplatedViewLocationExpander_NoReplacementToken
+        {
+            get { return GetString("TemplatedViewLocationExpander_NoReplacementToken"); }
+        }
+
+        /// <summary>
+        /// Could not find a replacement for view expansion token '{0}'.
+        /// </summary>
+        internal static string FormatTemplatedViewLocationExpander_NoReplacementToken(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("TemplatedViewLocationExpander_NoReplacementToken"), p0);
+        }
+
+        /// <summary>
+        /// {0} must be executed before {1} can be invoked.
+        /// </summary>
+        internal static string TemplatedExpander_PopulateValuesMustBeInvokedFirst
+        {
+            get { return GetString("TemplatedExpander_PopulateValuesMustBeInvokedFirst"); }
+        }
+
+        /// <summary>
+        /// {0} must be executed before {1} can be invoked.
+        /// </summary>
+        internal static string FormatTemplatedExpander_PopulateValuesMustBeInvokedFirst(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("TemplatedExpander_PopulateValuesMustBeInvokedFirst"), p0, p1);
+        }
+
+        /// <summary>
+        /// The result of value factory cannot be null.
+        /// </summary>
+        internal static string TemplatedExpander_ValueFactoryCannotReturnNull
+        {
+            get { return GetString("TemplatedExpander_ValueFactoryCannotReturnNull"); }
+        }
+
+        /// <summary>
+        /// The result of value factory cannot be null.
+        /// </summary>
+        internal static string FormatTemplatedExpander_ValueFactoryCannotReturnNull()
+        {
+            return GetString("TemplatedExpander_ValueFactoryCannotReturnNull");
+        }
+
+        /// <summary>
+        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
+        /// </summary>
+        internal static string AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod
+        {
+            get { return GetString("AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod"); }
+        }
+
+        /// <summary>
+        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
+        /// </summary>
+        internal static string FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// Action: '{0}' - Route Template: '{1}' - HTTP Verbs: '{2}'
+        /// </summary>
+        internal static string AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item
+        {
+            get { return GetString("AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item"); }
+        }
+
+        /// <summary>
+        /// Action: '{0}' - Route Template: '{1}' - HTTP Verbs: '{2}'
+        /// </summary>
+        internal static string FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// (none)
+        /// </summary>
+        internal static string AttributeRoute_NullTemplateRepresentation
+        {
+            get { return GetString("AttributeRoute_NullTemplateRepresentation"); }
+        }
+
+        /// <summary>
+        /// (none)
+        /// </summary>
+        internal static string FormatAttributeRoute_NullTemplateRepresentation()
+        {
+            return GetString("AttributeRoute_NullTemplateRepresentation");
+        }
+
+        /// <summary>
+        /// Multiple actions matched. The following actions matched route data and had all constraints satisfied:{0}{0}{1}
+        /// </summary>
+        internal static string DefaultActionSelector_AmbiguousActions
+        {
+            get { return GetString("DefaultActionSelector_AmbiguousActions"); }
+        }
+
+        /// <summary>
+        /// Multiple actions matched. The following actions matched route data and had all constraints satisfied:{0}{0}{1}
+        /// </summary>
+        internal static string FormatDefaultActionSelector_AmbiguousActions(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("DefaultActionSelector_AmbiguousActions"), p0, p1);
+        }
+
+        /// <summary>
+        /// Could not find file: {0}
+        /// </summary>
+        internal static string FileResult_InvalidPath
+        {
+            get { return GetString("FileResult_InvalidPath"); }
+        }
+
+        /// <summary>
+        /// Could not find file: {0}
+        /// </summary>
+        internal static string FormatFileResult_InvalidPath(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FileResult_InvalidPath"), p0);
+        }
+
+        /// <summary>
+        /// Type: '{0}' - Name: '{1}'
+        /// </summary>
+        internal static string ViewComponent_AmbiguousTypeMatch_Item
+        {
+            get { return GetString("ViewComponent_AmbiguousTypeMatch_Item"); }
+        }
+
+        /// <summary>
+        /// Type: '{0}' - Name: '{1}'
+        /// </summary>
+        internal static string FormatViewComponent_AmbiguousTypeMatch_Item(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AmbiguousTypeMatch_Item"), p0, p1);
+        }
+
+        /// <summary>
+        /// The input was not valid.
+        /// </summary>
+        internal static string SerializableError_DefaultError
+        {
+            get { return GetString("SerializableError_DefaultError"); }
+        }
+
+        /// <summary>
+        /// The input was not valid.
+        /// </summary>
+        internal static string FormatSerializableError_DefaultError()
+        {
+            return GetString("SerializableError_DefaultError");
+        }
+
+        /// <summary>
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
+        /// </summary>
+        internal static string AsyncResourceFilter_InvalidShortCircuit
+        {
+            get { return GetString("AsyncResourceFilter_InvalidShortCircuit"); }
+        }
+
+        /// <summary>
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
+        /// </summary>
+        internal static string FormatAsyncResourceFilter_InvalidShortCircuit(object p0, object p1, object p2, object p3)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AsyncResourceFilter_InvalidShortCircuit"), p0, p1, p2, p3);
+        }
+
+        /// <summary>
+        /// If the '{0}' property is not set to true, '{1}' property must be specified.
+        /// </summary>
+        internal static string ResponseCache_SpecifyDuration
+        {
+            get { return GetString("ResponseCache_SpecifyDuration"); }
+        }
+
+        /// <summary>
+        /// If the '{0}' property is not set to true, '{1}' property must be specified.
+        /// </summary>
+        internal static string FormatResponseCache_SpecifyDuration(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ResponseCache_SpecifyDuration"), p0, p1);
+        }
+
+        /// <summary>
+        /// Body
+        /// </summary>
+        internal static string ApiParameterSource_Body
+        {
+            get { return GetString("ApiParameterSource_Body"); }
+        }
+
+        /// <summary>
+        /// Body
+        /// </summary>
+        internal static string FormatApiParameterSource_Body()
+        {
+            return GetString("ApiParameterSource_Body");
+        }
+
+        /// <summary>
+        /// Custom
+        /// </summary>
+        internal static string ApiParameterSource_Custom
+        {
+            get { return GetString("ApiParameterSource_Custom"); }
+        }
+
+        /// <summary>
+        /// Custom
+        /// </summary>
+        internal static string FormatApiParameterSource_Custom()
+        {
+            return GetString("ApiParameterSource_Custom");
+        }
+
+        /// <summary>
+        /// Header
+        /// </summary>
+        internal static string ApiParameterSource_Header
+        {
+            get { return GetString("ApiParameterSource_Header"); }
+        }
+
+        /// <summary>
+        /// Header
+        /// </summary>
+        internal static string FormatApiParameterSource_Header()
+        {
+            return GetString("ApiParameterSource_Header");
+        }
+
+        /// <summary>
+        /// Hidden
+        /// </summary>
+        internal static string ApiParameterSource_Hidden
+        {
+            get { return GetString("ApiParameterSource_Hidden"); }
+        }
+
+        /// <summary>
+        /// Hidden
+        /// </summary>
+        internal static string FormatApiParameterSource_Hidden()
+        {
+            return GetString("ApiParameterSource_Hidden");
+        }
+
+        /// <summary>
+        /// ModelBinding
+        /// </summary>
+        internal static string ApiParameterSource_ModelBinding
+        {
+            get { return GetString("ApiParameterSource_ModelBinding"); }
+        }
+
+        /// <summary>
+        /// ModelBinding
+        /// </summary>
+        internal static string FormatApiParameterSource_ModelBinding()
+        {
+            return GetString("ApiParameterSource_ModelBinding");
+        }
+
+        /// <summary>
+        /// Path
+        /// </summary>
+        internal static string ApiParameterSource_Path
+        {
+            get { return GetString("ApiParameterSource_Path"); }
+        }
+
+        /// <summary>
+        /// Path
+        /// </summary>
+        internal static string FormatApiParameterSource_Path()
+        {
+            return GetString("ApiParameterSource_Path");
+        }
+
+        /// <summary>
+        /// Query
+        /// </summary>
+        internal static string ApiParameterSource_Query
+        {
+            get { return GetString("ApiParameterSource_Query"); }
+        }
+
+        /// <summary>
+        /// Query
+        /// </summary>
+        internal static string FormatApiParameterSource_Query()
+        {
+            return GetString("ApiParameterSource_Query");
+        }
+
+        /// <summary>
+        /// Form
+        /// </summary>
+        internal static string ApiParameterSource_Form
+        {
+            get { return GetString("ApiParameterSource_Form"); }
+        }
+
+        /// <summary>
+        /// Form
+        /// </summary>
+        internal static string FormatApiParameterSource_Form()
+        {
+            return GetString("ApiParameterSource_Form");
+        }
+
+        /// <summary>
+        /// The action '{0}' has ApiExplorer enabled, but is using conventional routing. Only actions which use attribute routing support ApiExplorer.
+        /// </summary>
+        internal static string ApiExplorer_UnsupportedAction
+        {
+            get { return GetString("ApiExplorer_UnsupportedAction"); }
+        }
+
+        /// <summary>
+        /// The action '{0}' has ApiExplorer enabled, but is using conventional routing. Only actions which use attribute routing support ApiExplorer.
+        /// </summary>
+        internal static string FormatApiExplorer_UnsupportedAction(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ApiExplorer_UnsupportedAction"), p0);
+        }
+
+        /// <summary>
+        /// The media type "{0}" is not valid. MediaTypes containing wildcards (*) are not allowed in formatter mappings.
+        /// </summary>
+        internal static string FormatterMappings_NotValidMediaType
+        {
+            get { return GetString("FormatterMappings_NotValidMediaType"); }
+        }
+
+        /// <summary>
+        /// The media type "{0}" is not valid. MediaTypes containing wildcards (*) are not allowed in formatter mappings.
+        /// </summary>
+        internal static string FormatFormatterMappings_NotValidMediaType(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FormatterMappings_NotValidMediaType"), p0);
+        }
+
+        /// <summary>
+        /// The format provided is invalid '{0}'. A format must be a non-empty file-extension, optionally prefixed with a '.' character.
+        /// </summary>
+        internal static string Format_NotValid
+        {
+            get { return GetString("Format_NotValid"); }
+        }
+
+        /// <summary>
+        /// The format provided is invalid '{0}'. A format must be a non-empty file-extension, optionally prefixed with a '.' character.
+        /// </summary>
+        internal static string FormatFormat_NotValid(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Format_NotValid"), p0);
+        }
+
+        /// <summary>
+        /// No URL for remote validation could be found.
+        /// </summary>
+        internal static string RemoteAttribute_NoUrlFound
+        {
+            get { return GetString("RemoteAttribute_NoUrlFound"); }
+        }
+
+        /// <summary>
+        /// No URL for remote validation could be found.
+        /// </summary>
+        internal static string FormatRemoteAttribute_NoUrlFound()
+        {
+            return GetString("RemoteAttribute_NoUrlFound");
+        }
+
+        /// <summary>
+        /// '{0}' is invalid.
+        /// </summary>
+        internal static string RemoteAttribute_RemoteValidationFailed
+        {
+            get { return GetString("RemoteAttribute_RemoteValidationFailed"); }
+        }
+
+        /// <summary>
+        /// '{0}' is invalid.
+        /// </summary>
+        internal static string FormatRemoteAttribute_RemoteValidationFailed(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("RemoteAttribute_RemoteValidationFailed"), p0);
+        }
+
+        /// <summary>
+        /// The '{0}' cache profile is not defined.
+        /// </summary>
+        internal static string CacheProfileNotFound
+        {
+            get { return GetString("CacheProfileNotFound"); }
+        }
+
+        /// <summary>
+        /// The '{0}' cache profile is not defined.
+        /// </summary>
+        internal static string FormatCacheProfileNotFound(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CacheProfileNotFound"), p0);
         }
 
         private static string GetString(string name, params string[] formatterNames)

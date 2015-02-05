@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Microsoft.AspNet.Mvc;
 
 namespace RoutingWebSite
@@ -24,6 +26,12 @@ namespace RoutingWebSite
         public IActionResult UpdateEmployee()
         {
             return _generator.Generate("/api/Employee");
+        }
+
+        [AcceptVerbs("PUT", "PATCH", Route = "Manager")]
+        public IActionResult UpdateManager()
+        {
+            return _generator.Generate("/api/Employee/Manager");
         }
 
         [HttpMerge("{id}")]
@@ -54,6 +62,12 @@ namespace RoutingWebSite
         public IActionResult DeleteAdministrator(int id)
         {
             return _generator.Generate("/api/Employee/" + id + "/Administrator");
+        }
+
+        [Route("{id}/Salary")]
+        public IActionResult Salary(int id)
+        {
+            return _generator.Generate("/api/Employee/" + id + "/Salary");
         }
     }
 }

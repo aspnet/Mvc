@@ -3,14 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
+using System.Diagnostics;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// An implementation of <see cref="IUrlHelper"/> that contains methods to
+    /// build URLs for ASP.NET MVC within an application.
+    /// </summary>
     public class UrlHelper : IUrlHelper
     {
         private readonly HttpContext _httpContext;
@@ -18,7 +22,16 @@ namespace Microsoft.AspNet.Mvc
         private readonly IDictionary<string, object> _ambientValues;
         private readonly IActionSelector _actionSelector;
 
-        public UrlHelper(IContextAccessor<ActionContext> contextAccessor, IActionSelector actionSelector)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified action context and
+        /// action selector.
+        /// </summary>
+        /// <param name="contextAccessor">The <see cref="IScopedInstance{TContext}"/> to access the action context
+        /// of the current request.</param>
+        /// <param name="actionSelector">The <see cref="IActionSelector"/> to be used for verifying the correctness of
+        /// supplied parameters for a route.
+        /// </param>
+        public UrlHelper(IScopedInstance<ActionContext> contextAccessor, IActionSelector actionSelector)
         {
             _httpContext = contextAccessor.Value.HttpContext;
             _router = contextAccessor.Value.RouteData.Routers[0];
@@ -26,12 +39,13 @@ namespace Microsoft.AspNet.Mvc
             _actionSelector = actionSelector;
         }
 
-        public string Action(
-            string action, 
-            string controller, 
-            object values, 
-            string protocol, 
-            string host, 
+        /// <inheritdoc />
+        public virtual string Action(
+            string action,
+            string controller,
+            object values,
+            string protocol,
+            string host,
             string fragment)
         {
             var valuesDictionary = TypeHelper.ObjectToDictionary(values);
@@ -55,21 +69,17 @@ namespace Microsoft.AspNet.Mvc
             return GenerateUrl(protocol, host, path, fragment);
         }
 
+        /// <inheritdoc />
         public bool IsLocalUrl(string url)
         {
-            return
-                !string.IsNullOrEmpty(url) &&
-
-                // Allows "/" or "/foo" but not "//" or "/\".
-                ((url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\'))) ||
-
-                // Allows "~/" or "~/foo".
-                (url.Length > 1 && url[0] == '~' && url[1] == '/'));
+            return UrlUtility.IsLocalUrl(url);
         }
 
-        public string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
+        /// <inheritdoc />
+        public virtual string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
         {
             var valuesDictionary = TypeHelper.ObjectToDictionary(values);
+
             var path = GeneratePathFromRoute(routeName, valuesDictionary);
             if (path == null)
             {
@@ -84,7 +94,14 @@ namespace Microsoft.AspNet.Mvc
             return GeneratePathFromRoute(routeName: null, values: values);
         }
 
-        private string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
+        /// <summary>
+        /// Generates the absolute path of the url for the specified route values by
+        /// using the specified route name.
+        /// </summary>
+        /// <param name="routeName">The name of the route that is used to generate the URL.</param>
+        /// <param name="values">A dictionary that contains the parameters for a route.</param>
+        /// <returns>The absolute path of the URL.</returns>
+        protected virtual string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
         {
             var context = new VirtualPathContext(_httpContext, _ambientValues, values, routeName);
             var path = _router.GetVirtualPath(context);
@@ -110,7 +127,8 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public string Content([NotNull] string contentPath)
+        /// <inheritdoc />
+        public virtual string Content([NotNull] string contentPath)
         {
             return GenerateClientUrl(_httpContext.Request.PathBase, contentPath);
         }
@@ -129,7 +147,7 @@ namespace Microsoft.AspNet.Mvc
         private string GenerateUrl(string protocol, string host, string path, string fragment)
         {
             // We should have a robust and centrallized version of this code. See HttpAbstractions#28
-            Contract.Assert(path != null);
+            Debug.Assert(path != null);
 
             var url = path;
             if (!string.IsNullOrEmpty(fragment))

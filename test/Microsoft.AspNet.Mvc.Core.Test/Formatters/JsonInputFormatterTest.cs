@@ -1,22 +1,24 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class JsonInputFormatterTest
-    {      
+    {
 
         [Theory]
         [InlineData("application/json", true)]
@@ -48,14 +50,14 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void DefaultMediaType_ReturnsApplicationJson()
         {
-            // Arrange 
+            // Arrange
             var formatter = new JsonInputFormatter();
 
             // Act
             var mediaType = formatter.SupportedMediaTypes[0];
 
             // Assert
-            Assert.Equal("application/json", mediaType.RawValue);
+            Assert.Equal("application/json", mediaType.ToString());
         }
 
         public static IEnumerable<object[]> JsonFormatterReadSimpleTypesData
@@ -64,13 +66,13 @@ namespace Microsoft.AspNet.Mvc
             {
                 yield return new object[] { "100", typeof(int), 100 };
                 yield return new object[] { "'abcd'", typeof(string), "abcd" };
-                yield return new object[] { "'2012-02-01 12:45 AM'", typeof(DateTime), 
+                yield return new object[] { "'2012-02-01 12:45 AM'", typeof(DateTime),
                                             new DateTime(2012, 02, 01, 00, 45, 00) };
             }
         }
 
         [Theory]
-        [MemberData("JsonFormatterReadSimpleTypesData")]
+        [MemberData(nameof(JsonFormatterReadSimpleTypesData))]
         public async Task JsonFormatterReadsSimpleTypes(string content, Type type, object expected)
         {
             // Arrange
@@ -144,6 +146,96 @@ namespace Microsoft.AspNet.Mvc
                          actionContext.ModelState["Age"].Errors[0].Exception.Message);
         }
 
+        [Fact]
+        public async Task ReadAsync_UsesTryAddModelValidationErrorsToModelState_WhenCaptureErrorsIsSet()
+        {
+            // Arrange
+            var content = "{name: 'Person Name', Age: 'not-an-age'}";
+            var formatter = new JsonInputFormatter { CaptureDeserilizationErrors = true };
+            var contentBytes = Encoding.UTF8.GetBytes(content);
+
+            var actionContext = GetActionContext(contentBytes);
+            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(null, typeof(User));
+            var context = new InputFormatterContext(actionContext, metadata.ModelType);
+            actionContext.ModelState.MaxAllowedErrors = 3;
+            actionContext.ModelState.AddModelError("key1", "error1");
+            actionContext.ModelState.AddModelError("key2", "error2");
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.False(actionContext.ModelState.ContainsKey("age"));
+            var error = Assert.Single(actionContext.ModelState[""].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+        }
+
+        [Fact]
+        public void Creates_SerializerSettings_ByDefault()
+        {
+            // Arrange
+            // Act
+            var jsonFormatter = new JsonInputFormatter();
+
+            // Assert
+            Assert.NotNull(jsonFormatter.SerializerSettings);
+        }
+
+        [Fact]
+        public async Task ChangesTo_DefaultSerializerSettings_TakesEffect()
+        {
+            // Arrange
+            // missing password property here
+            var contentBytes = Encoding.UTF8.GetBytes("{ \"UserName\" : \"John\"}");
+
+            var jsonFormatter = new JsonInputFormatter() { CaptureDeserilizationErrors = true };
+            // by default we ignore missing members, so here explicitly changing it
+            jsonFormatter.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Error;
+
+            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
+            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(modelAccessor: null,
+                                                                                modelType: typeof(UserLogin));
+            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            // Act
+            var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
+
+            // Assert
+            Assert.False(actionContext.ModelState.IsValid);
+
+            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            Assert.Contains("Required property 'Password' not found in JSON", modelErrorMessage);
+        }
+
+        [Fact]
+        public async Task CustomSerializerSettingsObject_TakesEffect()
+        {
+            // Arrange
+            // missing password property here
+            var contentBytes = Encoding.UTF8.GetBytes("{ \"UserName\" : \"John\"}");
+
+            var jsonFormatter = new JsonInputFormatter() { CaptureDeserilizationErrors = true };
+            // by default we ignore missing members, so here explicitly changing it
+            jsonFormatter.SerializerSettings = new JsonSerializerSettings()
+            {
+                MissingMemberHandling = MissingMemberHandling.Error
+            };
+
+            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
+            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(modelAccessor: null,
+                                                                            modelType: typeof(UserLogin));
+            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            // Act
+            var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
+
+            // Assert
+            Assert.False(actionContext.ModelState.IsValid);
+
+            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            Assert.Contains("Required property 'Password' not found in JSON", modelErrorMessage);
+        }
+
         private static ActionContext GetActionContext(byte[] contentBytes,
                                                  string contentType = "application/xml")
         {
@@ -152,7 +244,7 @@ namespace Microsoft.AspNet.Mvc
                                      new ActionDescriptor());
         }
 
-        private static HttpContext GetHttpContext(byte[] contentBytes, 
+        private static HttpContext GetHttpContext(byte[] contentBytes,
                                                         string contentType = "application/json")
         {
             var request = new Mock<HttpRequest>();
@@ -172,6 +264,15 @@ namespace Microsoft.AspNet.Mvc
             public string Name { get; set; }
 
             public decimal Age { get; set; }
+        }
+
+        private sealed class UserLogin
+        {
+            [JsonProperty(Required = Required.Always)]
+            public string UserName { get; set; }
+
+            [JsonProperty(Required = Required.Always)]
+            public string Password { get; set; }
         }
     }
 }

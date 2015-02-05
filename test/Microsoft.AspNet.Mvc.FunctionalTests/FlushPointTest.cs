@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.Fallback;
 using RazorWebSite;
 using Xunit;
 
@@ -17,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     public class FlushPointTest
     {
         private readonly IServiceProvider _provider = TestHelper.CreateServices("RazorWebSite");
-        private readonly Action<IBuilder> _app = new Startup().Configure;
+        private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         [Fact]
         public async Task FlushPointsAreExecutedForPagesWithLayouts()
@@ -64,11 +63,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             waitService.WaitForServer();
 
             // Assert - 3
-            Assert.Equal("Final content", GetTrimmedString(stream));
+            Assert.Equal("Inside partial", GetTrimmedString(stream));
+            waitService.WaitForServer();
+                
+            // Assert - 4
+            Assert.Equal(@"After flush inside partial
+<form action=""/FlushPoint/PageWithoutLayout"" method=""post""><input id=""Name1"" name=""Name1"" type=""text"" value="""" />",
+            GetTrimmedString(stream));
+            waitService.WaitForServer();
+
+            // Assert - 5
+            Assert.Equal(@"<input id=""Name2"" name=""Name2"" type=""text"" value="""" /></form>",
+                        GetTrimmedString(stream));
         }
 
-        [Fact]
-        public async Task FlushPointsAreExecutedForPagesWithComponentsAndPartials()
+        [Theory]
+        [InlineData("PageWithPartialsAndViewComponents", "FlushAsync invoked inside RenderSection")]
+        [InlineData("PageWithRenderSectionAsync", "FlushAsync invoked inside RenderSectionAsync")]
+        public async Task FlushPointsAreExecutedForPagesWithComponentsPartialsAndSections(string action, string title)
         {
             var waitService = new WaitService();
             var serviceProvider = GetServiceProvider(waitService);
@@ -77,30 +89,91 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act
-            var stream = await client.GetStreamAsync("http://localhost/FlushPoint/PageWithPartialsAndViewComponents");
+            var stream = await client.GetStreamAsync("http://localhost/FlushPoint/" + action);
 
             // Assert - 1
-            Assert.Equal(
-@"<title>Page With Components and Partials</title>
-
-RenderBody content", GetTrimmedString(stream));
+            Assert.Equal(string.Join(Environment.NewLine,
+                                     "<title>" + title + "</title>",
+                                     "",
+                                     "RenderBody content"), GetTrimmedString(stream));
             waitService.WaitForServer();
 
             // Assert - 2
-            Assert.Equal("partial-content", GetTrimmedString(stream));
+            Assert.Equal(string.Join(
+                Environment.NewLine,
+                "partial-content",
+                "",
+                "Value from TaskReturningString",
+                "<p>section-content</p>"), GetTrimmedString(stream));
             waitService.WaitForServer();
 
             // Assert - 3
-            Assert.Equal(
-@"component-content
-    <span>Content that takes time to produce</span>", GetTrimmedString(stream));
+            Assert.Equal(string.Join(
+                Environment.NewLine,
+                "component-content",
+                "    <span>Content that takes time to produce</span>",
+                "",
+                "More content from layout"), GetTrimmedString(stream));
+        }
+
+        [Fact]
+        public async Task FlushPointsNestedLayout()
+        {
+            // Arrange
+            var waitService = new WaitService();
+            var serviceProvider = GetServiceProvider(waitService);
+
+            var server = TestServer.Create(serviceProvider, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var stream = await client.GetStreamAsync("http://localhost/FlushPoint/PageWithNestedLayout");
+
+            // Assert - 1
+            Assert.Equal(@"Inside Nested Layout
+
+<title>Nested Page With Layout</title>",
+                GetTrimmedString(stream));
+            waitService.WaitForServer();
+
+            // Assert - 2
+            Assert.Equal("<span>Nested content that takes time to produce</span>", GetTrimmedString(stream));
+        }
+
+        [Fact]
+        public async Task FlushBeforeCallingLayout()
+        {
+            var waitService = new WaitService();
+            var serviceProvider = GetServiceProvider(waitService);
+
+            var server = TestServer.Create(serviceProvider, _app);
+            var client = server.CreateClient();
+
+             var expectedMessage = "A layout page cannot be rendered after 'FlushAsync' has been invoked.";
+
+            // Act
+            var stream = await client.GetStreamAsync("http://localhost/FlushPoint/PageWithFlushBeforeLayout");
+
+            // Assert - 1
+            Assert.Equal("Initial content", GetTrimmedString(stream));
+            waitService.WaitForServer();
+
+            //Assert - 2
+            try
+            {
+                GetTrimmedString(stream);
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal(expectedMessage, ex.InnerException.Message);
+            }
         }
 
         private IServiceProvider GetServiceProvider(WaitService waitService)
         {
             var services = new ServiceCollection();
             services.AddInstance(waitService);
-            return services.BuildServiceProvider(_provider);
+            return TestHelper.CreateServices("RazorWebSite", services);
         }
 
         private string GetTrimmedString(Stream stream)

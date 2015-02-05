@@ -3,6 +3,8 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.Fallback;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -18,7 +20,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = provider.GetMetadataForProperty(() => null, typeof(string), "Length");
             var attribute = new MaxLengthAttribute(10);
             var adapter = new MaxLengthAttributeAdapter(attribute);
-            var context = new ClientModelValidationContext(metadata, provider);
+            var serviceCollection = new ServiceCollection();
+            var requestServices = serviceCollection.BuildServiceProvider();
+            var context = new ClientModelValidationContext(metadata, provider, requestServices);
 
             // Act
             var rules = adapter.GetClientValidationRules(context);
@@ -28,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal("maxlength", rule.ValidationType);
             Assert.Equal(1, rule.ValidationParameters.Count);
             Assert.Equal(10, rule.ValidationParameters["max"]);
-            Assert.Equal("The field Length must be a string or array type with a maximum length of '10'.", rule.ErrorMessage);
+            Assert.Equal(attribute.FormatErrorMessage("Length"), rule.ErrorMessage);
         }
 
         [Fact]
@@ -42,7 +46,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadata = provider.GetMetadataForProperty(() => null, typeof(string), propertyName);
             var attribute = new MaxLengthAttribute(5) { ErrorMessage = message };
             var adapter = new MaxLengthAttributeAdapter(attribute);
-            var context = new ClientModelValidationContext(metadata, provider);
+            var serviceCollection = new ServiceCollection();
+            var requestServices = serviceCollection.BuildServiceProvider();
+            var context = new ClientModelValidationContext(metadata, provider, requestServices);
 
             // Act
             var rules = adapter.GetClientValidationRules(context);

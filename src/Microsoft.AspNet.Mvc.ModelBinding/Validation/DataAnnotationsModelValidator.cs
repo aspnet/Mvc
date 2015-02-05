@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // the returned MemberNames if specified (e.g. person.Address.FirstName). For property validation, the
                 // ModelKey can be constructed using the ModelMetadata and we should ignore MemberName (we don't want
                 // (person.Name.Name). However the invoking validator does not have a way to distinguish between these
-                // two cases. Consequently we'll only set MemberName if this validation returns a MemberName that is 
+                // two cases. Consequently we'll only set MemberName if this validation returns a MemberName that is
                 // different from the property being validated.
 
                 var errorMemberName = result.MemberNames.FirstOrDefault();
@@ -61,6 +61,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public virtual IEnumerable<ModelClientValidationRule> GetClientValidationRules(
             [NotNull] ClientModelValidationContext context)
         {
+            var customValidator = Attribute as IClientModelValidator;
+            if (customValidator != null)
+            {
+                return customValidator.GetClientValidationRules(context);
+            }
+
             return Enumerable.Empty<ModelClientValidationRule>();
         }
 

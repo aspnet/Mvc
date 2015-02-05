@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.DependencyInjection;
 
@@ -10,17 +10,14 @@ namespace Microsoft.AspNet.Mvc.Filters
 {
     public class DefaultFilterProvider : INestedProvider<FilterProviderContext>
     {
-        private readonly ITypeActivator _typeActivator;
-
-        public DefaultFilterProvider(IServiceProvider serviceProvider, ITypeActivator typeActivator)
+        public DefaultFilterProvider(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider;
-            _typeActivator = typeActivator;
         }
 
         public int Order
         {
-            get { return 0; }
+            get { return DefaultOrder.DefaultFrameworkSortOrder; }
         }
 
         protected IServiceProvider ServiceProvider { get; private set; }
@@ -33,12 +30,6 @@ namespace Microsoft.AspNet.Mvc.Filters
                 {
                     ProvideFilter(context, item);
                 }
-            }
-
-            var controllerFilter = context.ActionContext.Controller as IFilter;
-            if (controllerFilter != null)
-            {
-                InsertControllerAsFilter(context, controllerFilter);
             }
 
             if (callNext != null)
@@ -76,41 +67,10 @@ namespace Microsoft.AspNet.Mvc.Filters
             }
         }
 
-        private void InsertControllerAsFilter(FilterProviderContext context, IFilter controllerFilter)
-        {
-            // If the controller implements a filter, and doesn't specify order, then it should
-            // run closest to the action.
-            var order = Int32.MaxValue;
-            var orderedControllerFilter = controllerFilter as IOrderedFilter;
-            if (orderedControllerFilter != null)
-            {
-                order = orderedControllerFilter.Order;
-            }
-
-            var descriptor = new FilterDescriptor(controllerFilter, FilterScope.Controller);
-            var item = new FilterItem(descriptor, controllerFilter);
-
-            // BinarySearch will return the index of where the item _should_be_ in the list.
-            //
-            // If index > 0: 
-            //      Other items in the list have the same order and scope - the item was 'found'.
-            //
-            // If index < 0: 
-            //      No other items in the list have the same order and scope - the item was not 'found'
-            //      Index will be the bitwise compliment of of the 'right' location.
-            var index = context.Results.BinarySearch(item, FilterItemOrderComparer.Comparer);
-            if (index < 0)
-            {
-                index = ~index;
-            }
-
-            context.Results.Insert(index, item);
-        }
-
         private void ApplyFilterToContainer(object actualFilter, IFilter filterMetadata)
         {
-            Contract.Assert(actualFilter != null, "actualFilter should not be null");
-            Contract.Assert(filterMetadata != null, "filterMetadata should not be null");
+            Debug.Assert(actualFilter != null, "actualFilter should not be null");
+            Debug.Assert(filterMetadata != null, "filterMetadata should not be null");
 
             var container = actualFilter as IFilterContainer;
 

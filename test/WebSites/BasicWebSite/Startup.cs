@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNet.Builder;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Routing;
-using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 
 namespace BasicWebSite
 {
     public class Startup
     {
-        public void Configure(IBuilder app)
+        public void Configure(IApplicationBuilder app)
         {
             var configuration = app.GetTestConfiguration();
 
@@ -19,6 +20,11 @@ namespace BasicWebSite
                 services.AddMvc(configuration);
 
                 services.AddSingleton<INestedProvider<ActionDescriptorProviderContext>, ActionDescriptorCreationCounter>();
+
+                services.ConfigureMvcOptions(options =>
+                {
+                    options.ApplicationModelConventions.Add(new ApplicationDescription("This is a basic website."));
+                });
             });
 
             // Add MVC to the request pipeline

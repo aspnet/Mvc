@@ -1,0 +1,19 @@
+﻿@inject WaitService WaitService
+@inject TaskReturningService TaskReturningService
+
+@{
+    Layout = "/Views/Shared/_LayoutWithRenderSectionAsync.cshtml";
+    ViewBag.Title = "FlushAsync invoked inside RenderSectionAsync";
+}
+RenderBody content
+@section content
+{
+@await TaskReturningService.GetValueAsync()
+<p>section-content</p>
+    @{
+        await FlushAsync();
+        WaitService.WaitForClient();
+    }
+    @await Component.InvokeAsync("ComponentThatSetsTitle")
+    <span>Content that takes time to produce</span>
+}

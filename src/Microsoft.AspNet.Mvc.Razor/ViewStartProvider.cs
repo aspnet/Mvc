@@ -4,32 +4,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <inheritdoc />
     public class ViewStartProvider : IViewStartProvider
     {
-        private readonly string _appRoot;
         private readonly IRazorPageFactory _pageFactory;
 
-        public ViewStartProvider(IApplicationEnvironment appEnv,
-                                 IRazorPageFactory pageFactory)
+        public ViewStartProvider(IRazorPageFactory pageFactory)
         {
-            _appRoot = appEnv.ApplicationBasePath;
             _pageFactory = pageFactory;
         }
 
         /// <inheritdoc />
         public IEnumerable<IRazorPage> GetViewStartPages([NotNull] string path)
         {
-            var viewStartLocations = ViewStartUtility.GetViewStartLocations(_appRoot, path);
+            var viewStartLocations = ViewStartUtility.GetViewStartLocations(path);
             var viewStarts = viewStartLocations.Select(_pageFactory.CreateInstance)
-                                                .Where(p => p != null)
-                                                .ToArray();
+                                               .Where(p => p != null)
+                                               .ToArray();
 
-            // GetViewStartLocations return ViewStarts inside-out that is the _ViewStart closest to the page 
+            // GetViewStartLocations return ViewStarts inside-out that is the _ViewStart closest to the page
             // is the first: e.g. [ /Views/Home/_ViewStart, /Views/_ViewStart, /_ViewStart ]
             // However they need to be executed outside in, so we'll reverse the sequence.
             Array.Reverse(viewStarts);

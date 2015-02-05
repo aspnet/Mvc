@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc
         public AntiForgery([NotNull] IClaimUidExtractor claimUidExtractor,
                            [NotNull] IDataProtectionProvider dataProtectionProvider,
                            [NotNull] IAntiForgeryAdditionalDataProvider additionalDataProvider,
-                           [NotNull] IOptionsAccessor<MvcOptions> mvcOptions)
+                           [NotNull] IOptions<MvcOptions> mvcOptions)
         {
             var config = mvcOptions.Options.AntiForgeryOptions;
             var serializer = new AntiForgeryTokenSerializer(dataProtectionProvider.CreateProtector(_purpose));
@@ -41,10 +41,10 @@ namespace Microsoft.AspNet.Mvc
         /// This method has a side effect:
         /// A response cookie is set if there is no valid cookie associated with the request.
         /// </remarks>
-        public HtmlString GetHtml([NotNull] HttpContext context)
+        public TagBuilder GetHtml([NotNull] HttpContext context)
         {
             var builder = _worker.GetFormInputElement(context);
-            return builder.ToHtmlString(TagRenderMode.SelfClosing);
+            return builder;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="context">The HTTP context associated with the current call.</param>
         public async Task ValidateAsync([NotNull] HttpContext context)
         {
-           await _worker.ValidateAsync(context);
+            await _worker.ValidateAsync(context);
         }
 
         /// <summary>
@@ -96,6 +96,15 @@ namespace Microsoft.AspNet.Mvc
         public void Validate([NotNull] HttpContext context, AntiForgeryTokenSet antiForgeryTokenSet)
         {
             Validate(context, antiForgeryTokenSet.CookieToken, antiForgeryTokenSet.FormToken);
+        }
+
+        /// <summary>
+        /// Generates and sets an anti-forgery cookie if one is not available or not valid. Also sets response headers.
+        /// </summary>
+        /// <param name="context">The HTTP context associated with the current call.</param>
+        public void SetCookieTokenAndHeader([NotNull] HttpContext context)
+        {
+            _worker.SetCookieTokenAndHeader(context);
         }
     }
 }

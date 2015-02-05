@@ -11,7 +11,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             = new ResourceManager("Microsoft.AspNet.Mvc.ModelBinding.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
-        /// The value cannot be null or empty.
+        /// More than one parameter and/or property is bound to the HTTP request's content.
+        /// </summary>
+        internal static string MultipleBodyParametersOrPropertiesAreNotAllowed
+        {
+            get { return GetString("MultipleBodyParametersOrPropertiesAreNotAllowed"); }
+        }
+
+        /// <summary>
+        /// More than one parameter and/or property is bound to the HTTP request's content.
+        /// </summary>
+        internal static string FormatMultipleBodyParametersOrPropertiesAreNotAllowed()
+        {
+            return GetString("MultipleBodyParametersOrPropertiesAreNotAllowed");
+        }
+
+        /// <summary>
+        /// Value cannot be null or empty.
         /// </summary>
         internal static string ArgumentCannotBeNullOrEmpty
         {
@@ -19,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// The value cannot be null or empty.
+        /// Value cannot be null or empty.
         /// </summary>
         internal static string FormatArgumentCannotBeNullOrEmpty()
         {
@@ -40,6 +56,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         internal static string FormatCommon_PropertyNotFound(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("Common_PropertyNotFound"), p0, p1);
+        }
+
+        /// <summary>
+        /// The parameter '{0}' could not be found.
+        /// </summary>
+        internal static string Common_ParameterNotFound
+        {
+            get { return GetString("Common_ParameterNotFound"); }
+        }
+
+        /// <summary>
+        /// The parameter '{0}' could not be found.
+        /// </summary>
+        internal static string FormatCommon_ParameterNotFound(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Common_ParameterNotFound"), p0);
         }
 
         /// <summary>
@@ -219,19 +251,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// The type '{0}' must derive from '{1}'.
+        /// The type '{0}' does not implement the interface '{1}'.
         /// </summary>
-        internal static string TypeMustDeriveFromType
+        internal static string PropertyBindingPredicateProvider_WrongType
         {
-            get { return GetString("TypeMustDeriveFromType"); }
+            get { return GetString("PropertyBindingPredicateProvider_WrongType"); }
         }
 
         /// <summary>
-        /// The type '{0}' must derive from '{1}'.
+        /// The type '{0}' does not implement the interface '{1}'.
         /// </summary>
-        internal static string FormatTypeMustDeriveFromType(object p0, object p1)
+        internal static string FormatPropertyBindingPredicateProvider_WrongType(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TypeMustDeriveFromType"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("PropertyBindingPredicateProvider_WrongType"), p0, p1);
         }
 
         /// <summary>
@@ -392,6 +424,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         internal static string FormatDataAnnotationsModelMetadataProvider_UnreadableProperty(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("DataAnnotationsModelMetadataProvider_UnreadableProperty"), p0, p1);
+        }
+
+        /// <summary>
+        /// The maximum number of allowed model errors has been reached.
+        /// </summary>
+        internal static string ModelStateDictionary_MaxModelStateErrors
+        {
+            get { return GetString("ModelStateDictionary_MaxModelStateErrors"); }
+        }
+
+        /// <summary>
+        /// The maximum number of allowed model errors has been reached.
+        /// </summary>
+        internal static string FormatModelStateDictionary_MaxModelStateErrors()
+        {
+            return GetString("ModelStateDictionary_MaxModelStateErrors");
+        }
+
+        /// <summary>
+        /// The type '{0}' must implement either '{1}' or '{2}' to be used as a model binder.
+        /// </summary>
+        internal static string BinderType_MustBeIModelBinderOrIModelBinderProvider
+        {
+            get { return GetString("BinderType_MustBeIModelBinderOrIModelBinderProvider"); }
+        }
+
+        /// <summary>
+        /// The type '{0}' must implement either '{1}' or '{2}' to be used as a model binder.
+        /// </summary>
+        internal static string FormatBinderType_MustBeIModelBinderOrIModelBinderProvider(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("BinderType_MustBeIModelBinderOrIModelBinderProvider"), p0, p1, p2);
         }
 
         private static string GetString(string name, params string[] formatterNames)

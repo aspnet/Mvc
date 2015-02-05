@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
@@ -25,11 +25,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     { "someName[0]", new KeyValuePair<int, string>(42, "forty-two") },
                     { "someName[1]", new KeyValuePair<int, string>(84, "eighty-four") }
                 },
-                ModelBinder = CreateKvpBinder(),
-                MetadataProvider = metadataProvider
-            };            
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ModelBinder = CreateKvpBinder(),
+                    MetadataProvider = metadataProvider
+                }
+            };
             var binder = new DictionaryModelBinder<int, string>();
-            
+
             // Act
             bool retVal = await binder.BindModelAsync(bindingContext);
 

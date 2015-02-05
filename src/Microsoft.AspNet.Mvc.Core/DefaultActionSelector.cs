@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Logging;
-using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc
@@ -18,173 +18,206 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly IActionDescriptorsCollectionProvider _actionDescriptorsCollectionProvider;
         private readonly IActionSelectorDecisionTreeProvider _decisionTreeProvider;
-        private readonly IActionBindingContextProvider _bindingProvider;
+        private readonly INestedProviderManager<ActionConstraintProviderContext> _actionConstraintProvider;
         private ILogger _logger;
 
         public DefaultActionSelector(
             [NotNull] IActionDescriptorsCollectionProvider actionDescriptorsCollectionProvider,
-            [NotNull] IActionSelectorDecisionTreeProvider decisionTreeProvider, 
-            [NotNull] IActionBindingContextProvider bindingProvider,
+            [NotNull] IActionSelectorDecisionTreeProvider decisionTreeProvider,
+            [NotNull] INestedProviderManager<ActionConstraintProviderContext> actionConstraintProvider,
             [NotNull] ILoggerFactory loggerFactory)
         {
             _actionDescriptorsCollectionProvider = actionDescriptorsCollectionProvider;
             _decisionTreeProvider = decisionTreeProvider;
-            _bindingProvider = bindingProvider;
+            _actionConstraintProvider = actionConstraintProvider;
             _logger = loggerFactory.Create<DefaultActionSelector>();
         }
 
-        public async Task<ActionDescriptor> SelectAsync([NotNull] RouteContext context)
+        public Task<ActionDescriptor> SelectAsync([NotNull] RouteContext context)
         {
             using (_logger.BeginScope("DefaultActionSelector.SelectAsync"))
             {
                 var tree = _decisionTreeProvider.DecisionTree;
                 var matchingRouteConstraints = tree.Select(context.RouteData.Values);
 
-                var matchingRouteAndMethodConstraints =
-                    matchingRouteConstraints.Where(ad =>
-                        MatchMethodConstraints(ad, context)).ToList();
-
-                var matchingRouteAndMethodAndDynamicConstraints =
-                    matchingRouteAndMethodConstraints.Where(ad =>
-                        MatchDynamicConstraints(ad, context)).ToList();
-
-                var matching = matchingRouteAndMethodAndDynamicConstraints;
-
-                var matchesWithConstraints = new List<ActionDescriptor>();
-                foreach (var match in matching)
+                var candidates = new List<ActionSelectorCandidate>();
+                foreach (var action in matchingRouteConstraints)
                 {
-                    if (match.DynamicConstraints != null && match.DynamicConstraints.Any() ||
-                        match.MethodConstraints != null && match.MethodConstraints.Any())
+                    var constraints = GetConstraints(action);
+                    candidates.Add(new ActionSelectorCandidate(action, constraints));
+                }
+
+                var matchingActionConstraints =
+                    EvaluateActionConstraints(context, candidates, startingOrder: null);
+
+                List<ActionDescriptor> matchingActions = null;
+                if (matchingActionConstraints != null)
+                {
+                    matchingActions = new List<ActionDescriptor>(matchingActionConstraints.Count);
+                    foreach (var candidate in matchingActionConstraints)
                     {
-                        matchesWithConstraints.Add(match);
+                        matchingActions.Add(candidate.Action);
                     }
                 }
 
-                // If any action that's applicable has constraints, this is considered better than 
-                // an action without.
-                if (matchesWithConstraints.Any())
-                {
-                    matching = matchesWithConstraints;
-                }
+                var finalMatches = SelectBestActions(matchingActions);
 
-                if (matching.Count == 0)
+                if (finalMatches == null || finalMatches.Count == 0)
                 {
-                    if (_logger.IsEnabled(TraceType.Information))
+                    if (_logger.IsEnabled(LogLevel.Verbose))
                     {
                         _logger.WriteValues(new DefaultActionSelectorSelectAsyncValues()
                         {
                             ActionsMatchingRouteConstraints = matchingRouteConstraints,
-                            ActionsMatchingRouteAndMethodConstraints = matchingRouteAndMethodConstraints,
-                            ActionsMatchingRouteAndMethodAndDynamicConstraints = 
-                                matchingRouteAndMethodAndDynamicConstraints,
-                            ActionsMatchingWithConstraints = matchesWithConstraints
+                            ActionsMatchingActionConstraints = matchingActions,
+                            FinalMatches = finalMatches,
                         });
                     }
 
-                    return null;
+                    return Task.FromResult<ActionDescriptor>(null);
                 }
-                else
+                else if (finalMatches.Count == 1)
                 {
-                    var selectedAction = await SelectBestCandidate(context, matching);
+                    var selectedAction = finalMatches[0];
 
-                    if (_logger.IsEnabled(TraceType.Information))
+                    if (_logger.IsEnabled(LogLevel.Verbose))
                     {
                         _logger.WriteValues(new DefaultActionSelectorSelectAsyncValues()
                         {
                             ActionsMatchingRouteConstraints = matchingRouteConstraints,
-                            ActionsMatchingRouteAndMethodConstraints = matchingRouteAndMethodConstraints,
-                            ActionsMatchingRouteAndMethodAndDynamicConstraints = 
-                                matchingRouteAndMethodAndDynamicConstraints,
-                            ActionsMatchingWithConstraints = matchesWithConstraints,
+                            ActionsMatchingActionConstraints = matchingActions,
+                            FinalMatches = finalMatches,
                             SelectedAction = selectedAction
                         });
                     }
 
-                    return selectedAction;
+                    return Task.FromResult(selectedAction);
+                }
+                else
+                {
+                    if (_logger.IsEnabled(LogLevel.Verbose))
+                    {
+                        _logger.WriteValues(new DefaultActionSelectorSelectAsyncValues()
+                        {
+                            ActionsMatchingRouteConstraints = matchingRouteConstraints,
+                            ActionsMatchingActionConstraints = matchingActions,
+                            FinalMatches = finalMatches,
+                        });
+                    }
+
+                    var actionNames = string.Join(
+                        Environment.NewLine,
+                        finalMatches.Select(a => a.DisplayName));
+
+                    var message = Resources.FormatDefaultActionSelector_AmbiguousActions(
+                        Environment.NewLine,
+                        actionNames);
+
+                    throw new AmbiguousActionException(message);
                 }
             }
         }
 
-        private bool MatchMethodConstraints(ActionDescriptor descriptor, RouteContext context)
+        /// <summary>
+        /// Returns the set of best matching actions.
+        /// </summary>
+        /// <param name="actions">The set of actions that satisfy all constraints.</param>
+        /// <returns>A list of the best matching actions.</returns>
+        protected virtual IReadOnlyList<ActionDescriptor> SelectBestActions(IReadOnlyList<ActionDescriptor> actions)
         {
-            return descriptor.MethodConstraints == null ||
-                    descriptor.MethodConstraints.All(c => c.Accept(context));
+            return actions;
         }
 
-        private bool MatchDynamicConstraints(ActionDescriptor descriptor, RouteContext context)
-        {
-            return descriptor.DynamicConstraints == null ||
-                    descriptor.DynamicConstraints.All(c => c.Accept(context));
-        }
-
-        protected virtual async Task<ActionDescriptor> SelectBestCandidate(
+        private IReadOnlyList<ActionSelectorCandidate> EvaluateActionConstraints(
             RouteContext context,
-            List<ActionDescriptor> candidates)
+            IReadOnlyList<ActionSelectorCandidate> candidates,
+            int? startingOrder)
         {
-            var applicableCandiates = new List<ActionDescriptorCandidate>();
-            foreach (var action in candidates)
+            // Find the next group of constraints to process. This will be the lowest value of
+            // order that is higher than startingOrder.
+            int? order = null;
+            foreach (var candidate in candidates)
             {
-                var isApplicable = true;
-                var candidate = new ActionDescriptorCandidate()
+                if (candidate.Constraints != null)
                 {
-                    Action = action,
-                };
-
-                var actionContext = new ActionContext(context, action);
-                var actionBindingContext = await _bindingProvider.GetActionBindingContextAsync(actionContext);
-
-                foreach (var parameter in action.Parameters.Where(p => p.ParameterBindingInfo != null))
-                {
-                    if (!ValueProviderResult.CanConvertFromString(parameter.ParameterBindingInfo.ParameterType))
+                    foreach (var constraint in candidate.Constraints)
                     {
-                        continue;
-                    }
-
-                    if (await actionBindingContext.ValueProvider.ContainsPrefixAsync(
-                        parameter.ParameterBindingInfo.Prefix))
-                    {
-                        candidate.FoundParameters++;
-                        if (parameter.IsOptional)
+                        if ((startingOrder == null || constraint.Order > startingOrder) &&
+                            (order == null || constraint.Order < order))
                         {
-                            candidate.FoundOptionalParameters++;
+                            order = constraint.Order;
                         }
                     }
-                    else if (!parameter.IsOptional)
-                    {
-                        isApplicable = false;
-                        break;
-                    }
-                }
-
-                if (isApplicable)
-                {
-                    applicableCandiates.Add(candidate);
                 }
             }
 
-            if (applicableCandiates.Count == 0)
+            // If we don't find a 'next' then there's nothing left to do.
+            if (order == null)
+            {
+                return candidates;
+            }
+
+            // Since we have a constraint to process, bisect the set of actions into those with and without a
+            // constraint for the 'current order'.
+            var actionsWithConstraint = new List<ActionSelectorCandidate>();
+            var actionsWithoutConstraint = new List<ActionSelectorCandidate>();
+
+            var constraintContext = new ActionConstraintContext();
+            constraintContext.Candidates = candidates;
+            constraintContext.RouteContext = context;
+
+            foreach (var candidate in candidates)
+            {
+                var isMatch = true;
+                var foundMatchingConstraint = false;
+
+                if (candidate.Constraints != null)
+                {
+                    constraintContext.CurrentCandidate = candidate;
+                    foreach (var constraint in candidate.Constraints)
+                    {
+                        if (constraint.Order == order)
+                        {
+                            foundMatchingConstraint = true;
+
+                            if (!constraint.Accept(constraintContext))
+                            {
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (isMatch && foundMatchingConstraint)
+                {
+                    actionsWithConstraint.Add(candidate);
+                }
+                else if (isMatch)
+                {
+                    actionsWithoutConstraint.Add(candidate);
+                }
+            }
+
+            // If we have matches with constraints, those are 'better' so try to keep processing those
+            if (actionsWithConstraint.Count > 0)
+            {
+                var matches = EvaluateActionConstraints(context, actionsWithConstraint, order);
+                if (matches?.Count > 0)
+                {
+                    return matches;
+                }
+            }
+
+            // If the set of matches with constraints can't work, then process the set without constraints.
+            if (actionsWithoutConstraint.Count == 0)
             {
                 return null;
             }
-
-            var mostParametersSatisfied =
-                applicableCandiates
-                .GroupBy(c => c.FoundParameters)
-                .OrderByDescending(g => g.Key)
-                .First();
-
-            var fewestOptionalParameters =
-                mostParametersSatisfied
-                .GroupBy(c => c.FoundOptionalParameters)
-                .OrderBy(g => g.Key).First()
-                .ToArray();
-
-            if (fewestOptionalParameters.Length > 1)
+            else
             {
-                throw new InvalidOperationException("The actions are ambiguious.");
+                return EvaluateActionConstraints(context, actionsWithoutConstraint, order);
             }
-
-            return fewestOptionalParameters[0].Action;
         }
 
         // This method attempts to ensure that the route that's about to generate a link will generate a link
@@ -200,13 +233,10 @@ namespace Microsoft.AspNet.Mvc
                 return false;
             }
 
-            var actions =
-                GetActions().Where(
-                    action =>
-                        action.RouteConstraints == null ||
-                        action.RouteConstraints.All(constraint => constraint.Accept(context.ProvidedValues)));
+            var tree = _decisionTreeProvider.DecisionTree;
+            var matchingRouteConstraints = tree.Select(context.ProvidedValues);
 
-            return actions.Any();
+            return matchingRouteConstraints.Count > 0;
         }
 
         private IReadOnlyList<ActionDescriptor> GetActions()
@@ -223,13 +253,23 @@ namespace Microsoft.AspNet.Mvc
             return descriptors.Items;
         }
 
-        private class ActionDescriptorCandidate
+        private IReadOnlyList<IActionConstraint> GetConstraints(ActionDescriptor action)
         {
-            public ActionDescriptor Action { get; set; }
+            if (action.ActionConstraints == null || action.ActionConstraints.Count == 0)
+            {
+                return null;
+            }
 
-            public int FoundParameters { get; set; }
+            var items = action.ActionConstraints.Select(c => new ActionConstraintItem(c)).ToList();
+            var context = new ActionConstraintProviderContext(action, items);
 
-            public int FoundOptionalParameters { get; set; }
+            _actionConstraintProvider.Invoke(context);
+
+            return
+                context.Results
+                .Where(item => item.Constraint != null)
+                .Select(item => item.Constraint)
+                .ToList();
         }
     }
 }

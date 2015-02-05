@@ -11,19 +11,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public IValueProvider GetValueProvider([NotNull] ValueProviderFactoryContext context)
         {
-            // Process the query collection once-per request. 
+            // Process the query collection once-per request.
             var storage = context.HttpContext.Items;
             object value;
             IValueProvider provider;
             if (!storage.TryGetValue(_cacheKey, out value))
             {
                 var queryCollection = context.HttpContext.Request.Query;
-                provider = new ReadableStringCollectionValueProvider(queryCollection, CultureInfo.InvariantCulture);
+                provider = new ReadableStringCollectionValueProvider<IQueryValueProviderMetadata>(queryCollection,
+                                                                                         CultureInfo.InvariantCulture);
                 storage[_cacheKey] = provider;
             }
             else
             {
-                provider = (ReadableStringCollectionValueProvider)value;
+                provider = (ReadableStringCollectionValueProvider<IQueryValueProviderMetadata>)value;
             }
             return provider;
         }

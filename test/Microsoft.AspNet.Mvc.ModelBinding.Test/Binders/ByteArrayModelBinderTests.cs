@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Testing;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
@@ -58,6 +59,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModelAddsModelErrorsOnInvalidCharacters()
         {
             // Arrange
+            var expected = TestPlatformHelper.IsMono ?
+                "Invalid length." :
+                 "The input is not a valid Base-64 string as it contains a non-base 64 character," +
+                " more than two padding characters, or an illegal character among the padding characters. ";
+
             var valueProvider = new SimpleHttpValueProvider()
             {
                 { "foo", "\"Fys1\"" }
@@ -72,10 +78,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Assert
             Assert.True(binderResult);
             Assert.False(bindingContext.ModelState.IsValid);
-            Assert.Equal(1, bindingContext.ModelState.Values.Count);
-            Assert.Equal("The input is not a valid Base-64 string as it contains a non-base 64 character," +
-                " more than two padding characters, or an illegal character among the padding characters. ",
-                bindingContext.ModelState.Values.First().Errors[0].ErrorMessage);
+            var error = Assert.Single(bindingContext.ModelState["foo"].Errors);
+            Assert.Equal(expected, error.ErrorMessage);
         }
 
         [Fact]
@@ -119,7 +123,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = metadataProvider.GetMetadataForType(null, modelType),
                 ModelName = "foo",
                 ValueProvider = valueProvider,
-                MetadataProvider = metadataProvider
+                OperationBindingContext  = new OperationBindingContext
+                {
+                    MetadataProvider = metadataProvider
+                }
             };
             return bindingContext;
         }

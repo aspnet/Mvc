@@ -26,6 +26,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var target = new ModelStateDictionary(source);
 
             // Assert
+            Assert.Equal(0, target.ErrorCount);
             Assert.Equal(1, target.Count);
             Assert.Same(modelState, target["key"]);
             Assert.IsType<CopyOnWriteDictionary<string, ModelState>>(target.InnerDictionary);
@@ -41,6 +42,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary.AddModelError("some key", "some error");
 
             // Assert
+            Assert.Equal(1, dictionary.ErrorCount);
             var kvp = Assert.Single(dictionary);
             Assert.Equal("some key", kvp.Key);
             var error = Assert.Single(kvp.Value.Errors);
@@ -59,6 +61,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary.AddModelError("some key", ex);
 
             // Assert
+            Assert.Equal(2, dictionary.ErrorCount);
             var kvp = Assert.Single(dictionary);
             Assert.Equal("some key", kvp.Key);
 
@@ -364,6 +367,177 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.Equal(ModelValidationState.Valid, validationState);
         }
+
+        [Fact]
+        public void AddModelError_WithErrorString_AddsTooManyModelErrors_WhenMaxErrorsIsReached()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 5
+            };
+            dictionary.AddModelError("key1", "error1");
+            dictionary.AddModelError("key2", new Exception());
+            dictionary.AddModelError("key3", new Exception());
+            dictionary.AddModelError("key4", "error4");
+            dictionary.AddModelError("key5", "error5");
+
+            // Act and Assert
+            Assert.True(dictionary.HasReachedMaxErrors);
+            Assert.Equal(5, dictionary.ErrorCount);
+            var error = Assert.Single(dictionary[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
+
+            // TooManyModelErrorsException added instead of key5 error.
+            Assert.DoesNotContain("key5", dictionary.Keys);
+        }
+
+        [Fact]
+        public void TryAddModelError_WithErrorString_ReturnsFalse_AndAddsMaxModelErrorMessage()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 3
+            };
+
+            // Act and Assert
+            Assert.False(dictionary.HasReachedMaxErrors);
+            var result = dictionary.TryAddModelError("key1", "error1");
+            Assert.True(result);
+
+            Assert.False(dictionary.HasReachedMaxErrors);
+            result = dictionary.TryAddModelError("key2", new Exception());
+            Assert.True(result);
+
+            Assert.False(dictionary.HasReachedMaxErrors); // Still room for TooManyModelErrorsException.
+            result = dictionary.TryAddModelError("key3", "error3");
+            Assert.False(result);
+
+            Assert.True(dictionary.HasReachedMaxErrors);
+            result = dictionary.TryAddModelError("key4", "error4"); // no-op
+            Assert.False(result);
+
+            Assert.True(dictionary.HasReachedMaxErrors);
+            Assert.Equal(3, dictionary.ErrorCount);
+            Assert.Equal(3, dictionary.Count);
+
+            var error = Assert.Single(dictionary[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
+
+            // TooManyModelErrorsException added instead of key3 error.
+            Assert.DoesNotContain("key3", dictionary.Keys);
+
+            // Last addition did nothing.
+            Assert.DoesNotContain("key4", dictionary.Keys);
+        }
+
+        [Fact]
+        public void AddModelError_WithException_AddsTooManyModelError_WhenMaxErrorIsReached()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 4
+            };
+            dictionary.AddModelError("key1", new Exception());
+            dictionary.AddModelError("key2", "error2");
+            dictionary.AddModelError("key3", "error3");
+            dictionary.AddModelError("key3", new Exception());
+
+            // Act and Assert
+            Assert.True(dictionary.HasReachedMaxErrors);
+            Assert.Equal(4, dictionary.ErrorCount);
+            Assert.Equal(4, dictionary.Count);
+            var error = Assert.Single(dictionary[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
+
+            // Second key3 model error resulted in TooManyModelErrorsException instead.
+            error = Assert.Single(dictionary["key3"].Errors);
+            Assert.Null(error.Exception);
+            Assert.Equal("error3", error.ErrorMessage);
+        }
+
+        [Fact]
+        public void TryAddModelError_WithException_ReturnsFalse_AndAddsMaxModelErrorMessage()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 3
+            };
+
+            // Act and Assert
+            var result = dictionary.TryAddModelError("key1", "error1");
+            Assert.True(result);
+
+            result = dictionary.TryAddModelError("key2", new Exception());
+            Assert.True(result);
+
+            result = dictionary.TryAddModelError("key3", new Exception());
+            Assert.False(result);
+
+            Assert.Equal(3, dictionary.Count);
+            var error = Assert.Single(dictionary[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_TracksAddedErrorsOverCopyConstructor()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 3
+            };
+
+            // Act
+            dictionary.AddModelError("key1", "error1");
+            dictionary.TryAddModelError("key3", new Exception());
+
+            var copy = new ModelStateDictionary(dictionary);
+            copy.AddModelError("key2", "error2");
+
+            // Assert
+            Assert.Equal(3, copy.Count);
+            var error = Assert.Single(copy[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
+        }
+
+        [Theory]
+        [InlineData(2, false)]
+        [InlineData(3, true)]
+        [InlineData(4, true)]
+        public void ModelStateDictionary_HasReachedMaxErrors(int errorCount, bool expected)
+        {
+            // Arrange
+            var dictionary = new ModelStateDictionary()
+            {
+                MaxAllowedErrors = 3
+            };
+
+            for (var i = 0; i < errorCount; i++)
+            {
+                dictionary.AddModelError("key" + i, "error");
+            }
+
+            // Act
+            var canAdd = dictionary.HasReachedMaxErrors;
+
+            // Assert
+            Assert.Equal(expected, canAdd);
+        }
+
 
         private static ValueProviderResult GetValueProviderResult(object rawValue = null, string attemptedValue = null)
         {

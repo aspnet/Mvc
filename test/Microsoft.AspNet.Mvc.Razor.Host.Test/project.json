@@ -1,21 +1,18 @@
 {
-  "compilationOptions": {
-    "warningsAsErrors": false
-  },
-  "resources": "TestFiles\\**",
-  "dependencies": {
-    "Microsoft.AspNet.Mvc.Razor.Host": "",
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Xunit.KRunner": "1.0.0-*"
-  },
-  "commands": {
-    "test": "Xunit.KRunner"
-  },
-  "frameworks": {
-    "net45": {
-      "dependencies": {
-        "Moq": "4.2.1312.1622"
-      }
+    "resources": "TestFiles/**",
+    "dependencies": {
+        "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-*",
+        "Microsoft.AspNet.Testing": "1.0.0-*",
+        "xunit.runner.kre": "1.0.0-*"
+    },
+    "commands": {
+        "test": "xunit.runner.kre"
+    },
+    "frameworks": {
+        "aspnet50": {
+            "dependencies": {
+                "Moq": "4.2.1312.1622"
+            }
+        }
     }
-  }
 }

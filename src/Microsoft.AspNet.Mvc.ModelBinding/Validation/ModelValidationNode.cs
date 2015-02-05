@@ -102,9 +102,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public void Validate([NotNull] ModelValidationContext validationContext, ModelValidationNode parentNode)
         {
-            if (SuppressValidation)
+            if (SuppressValidation || validationContext.ModelState.HasReachedMaxErrors)
             {
-                // no-op
+                // Short circuit if validation does not need to be applied or if we've reached the max number of
+                // validation errors.
                 return;
             }
 
@@ -171,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         {
                             var thisErrorKey = ModelBindingHelper.CreatePropertyModelName(propertyKeyRoot,
                                                                                           propertyResult.MemberName);
-                            modelState.AddModelError(thisErrorKey, propertyResult.Message);
+                            modelState.TryAddModelError(thisErrorKey, propertyResult.Message);
                         }
                     }
                 }
@@ -187,14 +188,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return;
             }
 
-            // If the Model at the current node is null and there is no parent, we cannot validate, and the 
-            // DataAnnotationsModelValidator will throw. So we intercept here to provide a catch-all value-required 
+            // If the Model at the current node is null and there is no parent, we cannot validate, and the
+            // DataAnnotationsModelValidator will throw. So we intercept here to provide a catch-all value-required
             // validation error
-            var modelStateKey = ModelBindingHelper.CreatePropertyModelName(ModelStateKey,
-                                                                           ModelMetadata.GetDisplayName());
             if (parentNode == null && ModelMetadata.Model == null)
             {
-                modelState.AddModelError(modelStateKey, Resources.Validation_ValueNotFound);
+                modelState.TryAddModelError(ModelStateKey, Resources.Validation_ValueNotFound);
                 return;
             }
 
@@ -207,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     var currentModelStateKey = ModelBindingHelper.CreatePropertyModelName(ModelStateKey,
                                                                                           validationResult.MemberName);
-                    modelState.AddModelError(currentModelStateKey, validationResult.Message);
+                    modelState.TryAddModelError(currentModelStateKey, validationResult.Message);
                 }
             }
         }

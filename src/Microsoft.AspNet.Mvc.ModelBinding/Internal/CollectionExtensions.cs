@@ -3,19 +3,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
 {
     public static class CollectionExtensions
     {
         /// <summary>
-        /// Convert an ICollection to an array, removing null values. Fast path for case where 
+        /// Convert an ICollection to an array, removing null values. Fast path for case where
         /// there are no null values.
         /// </summary>
         public static T[] ToArrayWithoutNulls<T>(this ICollection<T> collection) where T : class
         {
-            Contract.Assert(collection != null);
+            Debug.Assert(collection != null);
 
             var result = new T[collection.Count];
             var count = 0;

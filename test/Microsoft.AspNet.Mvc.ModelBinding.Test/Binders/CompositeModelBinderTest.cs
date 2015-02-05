@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -31,7 +31,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 {
                     { "someName", "dummyValue" }
                 },
-                ValidatorProvider = GetValidatorProvider()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = GetValidatorProvider()
+                }
             };
 
             var mockIntBinder = new Mock<IModelBinder>();
@@ -78,7 +81,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 {
                     { "someOtherName", "dummyValue" }
                 },
-                ValidatorProvider = GetValidatorProvider()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = GetValidatorProvider()
+                }
             };
 
             var mockIntBinder = new Mock<IModelBinder>();
@@ -110,7 +116,98 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.True(isBound);
             Assert.Equal(expectedModel, bindingContext.Model);
             Assert.True(validationCalled);
-            Assert.Equal(true, bindingContext.ModelState.IsValid);
+            Assert.True(bindingContext.ModelState.IsValid);
+        }
+
+        [Fact]
+        public async Task ModelBinder_ReturnsTrue_WithoutSettingValue_SkipsValidation()
+        {
+            // Arrange
+            var validationCalled = false;
+
+            var bindingContext = new ModelBindingContext
+            {
+                FallbackToEmptyPrefix = true,
+                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(null, typeof(List<int>)),
+                ModelName = "someName",
+                ModelState = new ModelStateDictionary(),
+                ValueProvider = new SimpleHttpValueProvider
+                {
+                    { "someOtherName", "dummyValue" }
+                },
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = GetValidatorProvider()
+                }
+            };
+
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
+                .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback<ModelBindingContext>(context =>
+                {
+                    context.ValidationNode.Validating += delegate { validationCalled = true; };
+                })
+                .Returns(Task.FromResult(true));
+
+            var composite = CreateCompositeBinder(modelBinder.Object);
+
+            // Act
+            var isBound = await composite.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.True(isBound);
+
+            Assert.Null(bindingContext.Model);
+            Assert.False(validationCalled);
+            Assert.False(bindingContext.IsModelSet);
+            Assert.True(bindingContext.ModelState.IsValid);
+        }
+
+        [Fact]
+        public async Task ModelBinder_ReturnsTrue_SetsNullValue_RunsValidation()
+        {
+            // Arrange
+            var validationCalled = false;
+
+            var bindingContext = new ModelBindingContext
+            {
+                FallbackToEmptyPrefix = true,
+                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(null, typeof(List<int>)),
+                ModelName = "someName",
+                ModelState = new ModelStateDictionary(),
+                ValueProvider = new SimpleHttpValueProvider
+                {
+                    { "someOtherName", "dummyValue" }
+                },
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ValidatorProvider = GetValidatorProvider()
+                }
+            };
+
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
+                .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback<ModelBindingContext>(context =>
+                {
+                    context.Model = null;
+                    context.ValidationNode.Validating += delegate { validationCalled = true; };
+                })
+                .Returns(Task.FromResult(true));
+
+            var composite = CreateCompositeBinder(modelBinder.Object);
+
+            // Act
+            var isBound = await composite.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.True(isBound);
+
+            Assert.Null(bindingContext.Model);
+            Assert.True(validationCalled);
+            Assert.True(bindingContext.IsModelSet);
+            Assert.False(bindingContext.ModelState.IsValid);
         }
 
         [Fact]
@@ -136,7 +233,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Assert
             Assert.False(isBound);
             Assert.Null(bindingContext.Model);
-            Assert.Equal(true, bindingContext.ModelState.IsValid);
+            Assert.True(bindingContext.ModelState.IsValid);
             mockListBinder.Verify();
         }
 
@@ -151,7 +248,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(null, typeof(int)),
-                ModelState = new ModelStateDictionary()
+                ModelState = new ModelStateDictionary(),
+                OperationBindingContext = Mock.Of<OperationBindingContext>(),
             };
 
             // Act
@@ -266,6 +364,37 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal("Password does not meet complexity requirements.", error.ErrorMessage);
         }
 
+        [Fact]
+        public async Task BindModel_UsesTryAddModelError()
+        {
+            // Arrange
+            var validatorProvider = new DataAnnotationsModelValidatorProvider();
+            var binder = CreateBinderWithDefaults();
+            var valueProvider = new SimpleHttpValueProvider
+            {
+                { "user.password", "password" },
+                { "user.confirmpassword", "password2" },
+            };
+            var bindingContext = CreateBindingContext(binder, valueProvider, typeof(User), validatorProvider);
+            bindingContext.ModelState.MaxAllowedErrors = 2;
+            bindingContext.ModelState.AddModelError("key1", "error1");
+            bindingContext.ModelName = "user";
+
+            // Act
+            await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            var modelState = bindingContext.ModelState["user.confirmpassword"];
+            Assert.Empty(modelState.Errors);
+
+            modelState = bindingContext.ModelState["user"];
+            Assert.Empty(modelState.Errors);
+
+            var error = Assert.Single(bindingContext.ModelState[""].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+        }
+
+
         private static ModelBindingContext CreateBindingContext(IModelBinder binder,
                                                                 IValueProvider valueProvider,
                                                                 Type type,
@@ -275,13 +404,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
             var bindingContext = new ModelBindingContext
             {
-                ModelBinder = binder,
                 FallbackToEmptyPrefix = true,
-                MetadataProvider = metadataProvider,
                 ModelMetadata = metadataProvider.GetMetadataForType(null, type),
                 ModelState = new ModelStateDictionary(),
                 ValueProvider = valueProvider,
-                ValidatorProvider = validatorProvider
+                OperationBindingContext = new OperationBindingContext
+                {
+                    MetadataProvider = metadataProvider,
+                    ModelBinder = binder,
+                    ValidatorProvider = validatorProvider
+                }
             };
             return bindingContext;
         }
@@ -302,20 +434,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 new TypeConverterModelBinder(),
                 new MutableObjectModelBinder()
             };
-            var binderProviders = new Mock<IModelBinderProvider>();
-            binderProviders.SetupGet(p => p.ModelBinders)
-                           .Returns(binders);
-            var binder = new CompositeModelBinder(binderProviders.Object);
+
+            var binder = new CompositeModelBinder(binders);
             return binder;
         }
 
         private static CompositeModelBinder CreateCompositeBinder(IModelBinder mockIntBinder)
         {
-            var binderProvider = new Mock<IModelBinderProvider>();
-            binderProvider.SetupGet(p => p.ModelBinders)
-                          .Returns(new[] { mockIntBinder });
-
-            var shimBinder = new CompositeModelBinder(binderProvider.Object);
+            var shimBinder = new CompositeModelBinder(new[] { mockIntBinder });
             return shimBinder;
         }
 

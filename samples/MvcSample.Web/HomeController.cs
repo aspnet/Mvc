@@ -1,5 +1,11 @@
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -17,6 +23,11 @@ namespace MvcSample.Web
             return View("MyView", CreateUser());
         }
 
+        public IActionResult NullUser()
+        {
+            return View();
+        }
+
         public ActionResult ValidationSummary()
         {
             ModelState.AddModelError("something", "Something happened, show up in validation summary.");
@@ -32,6 +43,16 @@ namespace MvcSample.Web
         public ActionResult NotFound()
         {
             return HttpNotFound();
+        }
+
+        public ActionResult SendFileFromDisk()
+        {
+            return File("sample.txt", "text/plain");
+        }
+
+        public ActionResult SendFileFromDiskWithName()
+        {
+            return File("sample.txt", "text/plain", "sample-file.txt");
         }
 
         public bool IsDefaultNameSpace()
@@ -71,6 +92,26 @@ namespace MvcSample.Web
             return View("MyView", user);
         }
 
+        [Activate]
+        public IHostingEnvironment HostingEnvironment { get; set; }
+
+        /// <summary>
+        /// Action that shows multiple file upload.
+        /// </summary>
+        public async Task<ActionResult> PostFile(IList<IFormFile> files)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("MyView");
+            }
+
+            foreach (var f in files)
+            {
+                await f.SaveAsAsync(Path.Combine(HostingEnvironment.WebRoot, "test-file" + files.IndexOf(f)));
+            }
+            return View();
+        }
+
         /// <summary>
         /// Action that exercises input formatter
         /// </summary>
@@ -95,6 +136,11 @@ namespace MvcSample.Web
         public void Raw()
         {
             Context.Response.WriteAsync("Hello World raw");
+        }
+
+        public ActionResult Language()
+        {
+            return View();
         }
 
         [Produces("application/json", "application/xml", "application/custom", "text/json", Type = typeof(User))]

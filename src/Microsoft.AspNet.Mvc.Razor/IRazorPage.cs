@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.PageExecutionInstrumentation;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -21,7 +22,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets or sets the action invoked to render the body.
         /// </summary>
-        // TODO: https://github.com/aspnet/Mvc/issues/845 tracks making this async
         Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <remarks>
         /// Sections defined in a page are deferred and executed as part of the layout page.
-        /// When this flag is set, all write operations performed by the page are part of a 
+        /// When this flag is set, all write operations performed by the page are part of a
         /// section being rendered.
         /// </remarks>
         bool IsLayoutBeingRendered { get; set; }
@@ -45,14 +45,25 @@ namespace Microsoft.AspNet.Mvc.Razor
         string Layout { get; set; }
 
         /// <summary>
+        /// Gets or sets a value that determines if the current instance of <see cref="IRazorPage"/> is being executed
+        /// from a partial view.
+        /// </summary>
+        bool IsPartial { get; set; }
+
+        /// <summary>
+        /// Gets or sets a <see cref="IPageExecutionContext"/> instance used to instrument the page execution.
+        /// </summary>
+        IPageExecutionContext PageExecutionContext { get; set; }
+
+        /// <summary>
         /// Gets or sets the sections that can be rendered by this page.
         /// </summary>
-        Dictionary<string, HelperResult> PreviousSectionWriters { get; set; }
+        Dictionary<string, RenderAsyncDelegate> PreviousSectionWriters { get; set; }
 
         /// <summary>
         /// Gets the sections that are defined by this page.
         /// </summary>
-        Dictionary<string, HelperResult> SectionWriters { get; }
+        Dictionary<string, RenderAsyncDelegate> SectionWriters { get; }
 
         /// <summary>
         /// Renders the page and writes the output to the <see cref="ViewContext.Writer"/>.

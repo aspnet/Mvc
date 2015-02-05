@@ -19,17 +19,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private EfficientTypePropertyKey<Type, string> _cacheKey;
 
         // Backing fields for virtual properties with default values.
-        private bool _convertEmptyStringToNull;
-        private bool _isRequired;
+        private bool _convertEmptyStringToNull = true;
+        private bool _htmlEncode = true;
+        private bool _showForDisplay = true;
+        private bool _showForEdit = true;
 
         private object _model;
         private Func<object> _modelAccessor;
         private int _order = DefaultOrder;
-        private IEnumerable<ModelMetadata> _properties;
+        private bool _isRequired;
+        private ModelPropertyCollection _properties;
         private Type _realModelType;
         private string _simpleDisplayText;
-        private bool _showForDisplay = true;
-        private bool _showForEdit = true;
 
         public ModelMetadata([NotNull] IModelMetadataProvider provider,
                              Type containerType,
@@ -43,10 +44,31 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _modelAccessor = modelAccessor;
             _modelType = modelType;
             _propertyName = propertyName;
-
-            _convertEmptyStringToNull = true;
             _isRequired = !modelType.AllowsNullValue();
         }
+
+        /// <summary>
+        /// Gets or sets the name of a model if specified explicitly using <see cref="IModelNameProvider"/>.
+        /// </summary>
+        public virtual string BinderModelName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="Type"/> of an <see cref="IModelBinder"/> or an
+        /// <see cref="IModelBinderProvider"/> of a model if specified explicitly using 
+        /// <see cref="IBinderTypeProviderMetadata"/>.
+        /// </summary>
+        public virtual Type BinderType { get; set; }
+
+        /// <summary>
+        /// Gets or sets a binder metadata for this model.
+        /// </summary>
+        public virtual IBinderMetadata BinderMetadata { get; set; }
+
+        /// <summary>
+        /// A reference to the model's container <see cref="object"/>.
+        /// Will be non-<c>null</c> if the model represents a property.
+        /// </summary>
+        public object Container { get; set; }
 
         public Type ContainerType
         {
@@ -59,6 +81,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             set { _convertEmptyStringToNull = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the name of the <see cref="Model"/>'s datatype.  Overrides <see cref="ModelType"/> in some
+        /// display scenarios.
+        /// </summary>
+        /// <value><c>null</c> unless set manually or through additional metadata e.g. attributes.</value>
         public virtual string DataTypeName { get; set; }
 
         public virtual string Description { get; set; }
@@ -88,6 +115,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public virtual bool HasNonDefaultEditFormat { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the value should be HTML-encoded.
+        /// </summary>
+        /// <value>If <c>true</c>, value should be HTML-encoded. Default is <c>true</c>.</value>
+        public virtual bool HtmlEncode
+        {
+            get { return _htmlEncode; }
+            set { _htmlEncode = value; }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the "HiddenInput" display template should return
         /// <c>string.Empty</c> (not the expression value) and whether the "HiddenInput" editor template should not
         /// also return the expression value (together with the hidden &lt;input&gt; element).
@@ -100,9 +137,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </remarks>
         public virtual bool HideSurroundingHtml { get; set; }
 
+        public virtual bool IsCollectionType
+        {
+            get { return TypeHelper.IsCollectionType(ModelType); }
+        }
+
         public virtual bool IsComplexType
         {
-            get { return !ValueProviderResult.CanConvertFromString(ModelType); }
+            get { return !TypeHelper.HasStringConverter(ModelType); }
         }
 
         public bool IsNullableValueType
@@ -118,6 +160,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             set { _isRequired = value; }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating where the current metadata should be ordered relative to other properties
+        /// in its containing type.
+        /// </summary>
+        /// <remarks>
+        /// <para>For example this property is used to order items in <see cref="Properties"/>.</para>
+        /// <para>The default order is <c>10000</c>.</para>
+        /// </remarks>
+        /// <value>The order value of the current metadata.</value>
         public virtual int Order
         {
             get { return _order; }
@@ -151,19 +202,28 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public virtual string NullDisplayText { get; set; }
 
-        public virtual IEnumerable<ModelMetadata> Properties
+        /// <summary>
+        /// Gets the collection of <see cref="ModelMetadata"/> instances for the model's properties.
+        /// </summary>
+        public virtual ModelPropertyCollection Properties
         {
             get
             {
                 if (_properties == null)
                 {
                     var properties = Provider.GetMetadataForProperties(Model, RealModelType);
-                    _properties = properties.OrderBy(m => m.Order).ToList();
+                    _properties = new ModelPropertyCollection(properties.OrderBy(m => m.Order));
                 }
 
                 return _properties;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IPropertyBindingPredicateProvider"/>, which can determine which properties
+        /// should be model bound.
+        /// </summary>
+        public virtual IPropertyBindingPredicateProvider PropertyBindingPredicateProvider { get; set; }
 
         public string PropertyName
         {
@@ -290,7 +350,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                                              string propertyName)
         {
             // If metadata is for a property then containerType != null && propertyName != null
-            // If metadata is for a type then containerType == null && propertyName == null, 
+            // If metadata is for a type then containerType == null && propertyName == null,
             // so we have to use modelType for the cache key.
             return new EfficientTypePropertyKey<Type, string>(containerType ?? modelType, propertyName);
         }

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using Microsoft.AspNet.Mvc;
 using MvcSample.Web.Filters;
@@ -21,10 +24,9 @@ namespace MvcSample.Web
             CustomUser = new User() { Name = "User Name", Address = "Home Address" };
         }
 
-        // TODO: Add a real filter here
         [ServiceFilter(typeof(PassThroughAttribute))]
         [AllowAnonymous]
-        [AgeEnhancer]
+        [AgeEnhancerFilter]
         [Delay(500)]
         public ActionResult Index(int age = 20, string userName = "SampleUser")
         {
@@ -48,14 +50,14 @@ namespace MvcSample.Web
             return new ChallengeResult();
         }
 
-        [Authorize("Permission", "CanViewPage")]
+        [Authorize("CanViewPage")]
         public ActionResult NotGrantedClaim(int age = 20, string userName = "SampleUser")
         {
             return Index(age, userName);
         }
 
         [FakeUser]
-        [Authorize("Permission", "CanViewPage", "CanViewAnything")]
+        [Authorize("CanViewAnything")]
         public ActionResult AllGranted(int age = 20, string userName = "SampleUser")
         {
             return Index(age, userName);

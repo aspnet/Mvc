@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,13 +50,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_SubBindingSucceeds()
         {
             // Arrange
-            var binderProviders = new Mock<IModelBinderProvider>();
-            binderProviders.SetupGet(b => b.ModelBinders)
-                           .Returns(new[] { CreateStringBinder(), CreateIntBinder() });
-            var innerBinder = new CompositeModelBinder(binderProviders.Object);
+            var innerBinder = new CompositeModelBinder(new[] { CreateStringBinder(), CreateIntBinder() });
             var valueProvider = new SimpleHttpValueProvider();
             var bindingContext = GetBindingContext(valueProvider, innerBinder);
-            
+
             var binder = new KeyValuePairModelBinder<int, string>();
 
             // Act
@@ -98,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     return Task.FromResult(true);
                 });
             var bindingContext = GetBindingContext(new SimpleHttpValueProvider(), innerBinder.Object);
-            
+
 
             var binder = new KeyValuePairModelBinder<int, string>();
 
@@ -120,13 +117,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = metataProvider.GetMetadataForType(null, typeof(KeyValuePair<int, string>)),
                 ModelName = "someName",
                 ValueProvider = valueProvider,
-                ModelBinder = innerBinder ?? CreateIntBinder(),
-                MetadataProvider = metataProvider,
-                ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ModelBinder = innerBinder ?? CreateIntBinder(),
+                    MetadataProvider = metataProvider,
+                    ValidatorProvider = Mock.Of<IModelValidatorProvider>()
+                }
             };
             return bindingContext;
         }
-        
+
         private static IModelBinder CreateIntBinder()
         {
             var mockIntBinder = new Mock<IModelBinder>();

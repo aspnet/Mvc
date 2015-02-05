@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -91,8 +91,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = metadataProvider.GetMetadataForType(null, typeof(int[])),
                 ModelName = "someName",
                 ValueProvider = valueProvider,
-                ModelBinder = CreateIntBinder(),
-                MetadataProvider = metadataProvider
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ModelBinder = CreateIntBinder(),
+                    MetadataProvider = metadataProvider
+                },
             };
             return bindingContext;
         }

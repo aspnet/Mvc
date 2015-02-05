@@ -84,8 +84,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var result = new StringBuilder();
 
                 var serviceProvider = html.ViewContext.HttpContext.RequestServices;
-                var metadataProvider = serviceProvider.GetService<IModelMetadataProvider>();
-                var viewEngine = serviceProvider.GetService<ICompositeViewEngine>();
+                var metadataProvider = serviceProvider.GetRequiredService<IModelMetadataProvider>();
+                var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
 
                 var index = 0;
                 foreach (var item in collection)
@@ -212,6 +212,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return htmlAttributes;
         }
 
+        public static string MultilineTemplate(IHtmlHelper html)
+        {
+            var htmlString = html.TextArea(
+                name: string.Empty,
+                value: html.ViewContext.ViewData.TemplateInfo.FormattedModelValue.ToString(),
+                rows: 0,
+                columns: 0,
+                htmlAttributes: CreateHtmlAttributes(html, "text-box multi-line"));
+            return htmlString.ToString();
+        }
+
         public static string ObjectTemplate(IHtmlHelper html)
         {
             var viewData = html.ViewData;
@@ -221,11 +232,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             if (templateInfo.TemplateDepth > 1)
             {
-                return modelMetadata.Model == null ? modelMetadata.NullDisplayText : modelMetadata.SimpleDisplayText;
+                if (modelMetadata.Model == null)
+                {
+                    return modelMetadata.NullDisplayText;
+                }
+
+                var text = modelMetadata.SimpleDisplayText;
+                if (modelMetadata.HtmlEncode)
+                {
+                    text = html.Encode(text);
+                }
+
+                return text;
             }
 
             var serviceProvider = html.ViewContext.HttpContext.RequestServices;
-            var viewEngine = serviceProvider.GetService<ICompositeViewEngine>();
+            var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
 
             foreach (var propertyMetadata in modelMetadata.Properties.Where(pm => ShouldShow(pm, templateInfo)))
             {

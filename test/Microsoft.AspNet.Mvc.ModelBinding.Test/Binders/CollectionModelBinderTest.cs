@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#if ASPNET50
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+#endif
 using System.Threading.Tasks;
-#if NET45
+#if ASPNET50
 using Moq;
 #endif
 using Xunit;
@@ -14,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
     public class CollectionModelBinderTest
     {
-#if NET45
+#if ASPNET50
         [Fact]
         public async Task BindComplexCollectionFromIndexes_FiniteIndexes()
         {
@@ -124,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Null(boundCollection);
         }
 
-#if NET45
+#if ASPNET50
         [Fact]
         public async Task BindSimpleCollection_SubBindingSucceeds()
         {
@@ -133,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var bindingContext = GetModelBindingContext(new SimpleHttpValueProvider());
 
             ModelValidationNode childValidationNode = null;
-            Mock.Get<IModelBinder>(bindingContext.ModelBinder)
+            Mock.Get<IModelBinder>(bindingContext.OperationBindingContext.ModelBinder)
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
                 .Returns((ModelBindingContext mbc) =>
                 {
@@ -160,8 +162,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = metadataProvider.GetMetadataForType(null, typeof(int)),
                 ModelName = "someName",
                 ValueProvider = valueProvider,
-                ModelBinder = CreateIntBinder(),
-                MetadataProvider = metadataProvider
+                OperationBindingContext = new OperationBindingContext
+                {
+                    ModelBinder = CreateIntBinder(),
+                    MetadataProvider = metadataProvider
+                }
             };
             return bindingContext;
         }

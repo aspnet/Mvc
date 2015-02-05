@@ -18,9 +18,9 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="options">An accessor to the <see cref="MvcOptions"/> configured for this application.</param>
         /// <param name="typeActivator">An <see cref="ITypeActivator"/> instance used to instantiate types.</param>
-        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the 
+        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
-        public DefaultOutputFormattersProvider(IOptionsAccessor<MvcOptions> optionsAccessor,
+        public DefaultOutputFormattersProvider(IOptions<MvcOptions> optionsAccessor,
                                            ITypeActivator typeActivator,
                                            IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.OutputFormatters, typeActivator, serviceProvider)

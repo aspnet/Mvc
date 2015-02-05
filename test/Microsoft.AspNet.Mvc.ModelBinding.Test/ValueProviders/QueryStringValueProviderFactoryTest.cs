@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#if ASPNET50
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNet.Http;
-#if NET45
 using Moq;
-#endif
 using Xunit;
-using Microsoft.AspNet.Routing;
-using System;
+#endif
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
@@ -17,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
     {
         private readonly QueryStringValueProviderFactory _factory = new QueryStringValueProviderFactory();
 
-#if NET45
+#if ASPNET50
         [Fact]
         public void GetValueProvider_ReturnsQueryStringValueProviderInstaceWithInvariantCulture()
         {
@@ -27,13 +26,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var context = new Mock<HttpContext>();
             context.SetupGet(c => c.Items).Returns(new Dictionary<object, object>());
             context.SetupGet(c => c.Request).Returns(request.Object);
-            var factoryContext = new ValueProviderFactoryContext(context.Object, new Dictionary<String, object>(StringComparer.OrdinalIgnoreCase));
+            var factoryContext = new ValueProviderFactoryContext(
+                context.Object,
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase));
 
             // Act
             var result = _factory.GetValueProvider(factoryContext);
 
             // Assert
-            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider>(result);
+            var valueProvider = Assert.IsType<ReadableStringCollectionValueProvider<IQueryValueProviderMetadata>>(result);
             Assert.Equal(CultureInfo.InvariantCulture, valueProvider.Culture);
         }
 #endif

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -73,6 +72,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 modelAccessor,
                 typeof(TValue),
                 propertyName,
+                container,
                 containerType,
                 metadataProvider);
         }
@@ -83,12 +83,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
         {
             if (string.IsNullOrEmpty(expression))
             {
-                return viewData.ModelMetadata;
-            }
-
-            if (expression.Length == 0)
-            {
-                // Empty string really means "model metadata for the current model"
+                // Empty string really means "ModelMetadata for the current model".
                 return FromModel(viewData, metadataProvider);
             }
 
@@ -97,12 +92,14 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             Type modelType = null;
             Func<object> modelAccessor = null;
             string propertyName = null;
+            object container = null;
 
             if (viewDataInfo != null)
             {
                 if (viewDataInfo.Container != null)
                 {
                     containerType = viewDataInfo.Container.GetType();
+                    container = viewDataInfo.Container;
                 }
 
                 modelAccessor = () => viewDataInfo.Value;
@@ -118,36 +115,63 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                     modelType = viewDataInfo.Value.GetType();
                 }
             }
-            else if (viewData.ModelMetadata != null)
+            else
             {
                 //  Try getting a property from ModelMetadata if we couldn't find an answer in ViewData
-                var propertyMetadata =
-                    viewData.ModelMetadata.Properties.Where(p => p.PropertyName == expression).FirstOrDefault();
+                var propertyMetadata = viewData.ModelMetadata.Properties[expression];
                 if (propertyMetadata != null)
                 {
                     return propertyMetadata;
                 }
             }
 
-            return GetMetadataFromProvider(modelAccessor, modelType ?? typeof(string), propertyName, containerType,
-                metadataProvider);
+            return GetMetadataFromProvider(modelAccessor,
+                                           modelType ?? typeof(string),
+                                           propertyName,
+                                           container,
+                                           containerType,
+                                           metadataProvider);
         }
 
         private static ModelMetadata FromModel([NotNull] ViewDataDictionary viewData,
                                                IModelMetadataProvider metadataProvider)
         {
-            return viewData.ModelMetadata ?? GetMetadataFromProvider(null, typeof(string), propertyName: null,
-                containerType: null, metadataProvider: metadataProvider);
+            if (viewData.ModelMetadata.ModelType == typeof(object))
+            {
+                // Use common simple type rather than object so e.g. Editor() at least generates a TextBox.
+                return GetMetadataFromProvider(
+                    modelAccessor: null,
+                    modelType: typeof(string),
+                    propertyName: null,
+                    container: null,
+                    containerType: null,
+                    metadataProvider: metadataProvider);
+            }
+            else
+            {
+                return viewData.ModelMetadata;
+            }
         }
 
         // An IModelMetadataProvider is not required unless this method is called. Therefore other methods in this
         // class lack [NotNull] attributes for their corresponding parameter.
-        private static ModelMetadata GetMetadataFromProvider(Func<object> modelAccessor, Type modelType,
-            string propertyName, Type containerType, [NotNull] IModelMetadataProvider metadataProvider)
+        private static ModelMetadata GetMetadataFromProvider(Func<object> modelAccessor,
+                                                             Type modelType,
+                                                             string propertyName,
+                                                             object container,
+                                                             Type containerType,
+                                                             [NotNull] IModelMetadataProvider metadataProvider)
         {
             if (containerType != null && !string.IsNullOrEmpty(propertyName))
             {
-                return metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
+                var metadata =
+                    metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
+                if (metadata != null)
+                {
+                    metadata.Container = container;
+                }
+
+                return metadata;
             }
 
             return metadataProvider.GetMetadataForType(modelAccessor, modelType);

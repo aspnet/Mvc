@@ -3,6 +3,8 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.Fallback;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -14,11 +16,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void GetClientValidationRules_ReturnsValidationParameters()
         {
             // Arrange
+            var expected = ValidationAttributeUtil.GetRequiredErrorMessage("Length");
             var provider = new DataAnnotationsModelMetadataProvider();
             var metadata = provider.GetMetadataForProperty(() => null, typeof(string), "Length");
             var attribute = new RequiredAttribute();
             var adapter = new RequiredAttributeAdapter(attribute);
-            var context = new ClientModelValidationContext(metadata, provider);
+            var serviceCollection = new ServiceCollection();
+            var requestServices = serviceCollection.BuildServiceProvider();
+            var context = new ClientModelValidationContext(metadata, provider, requestServices);
 
             // Act
             var rules = adapter.GetClientValidationRules(context);
@@ -27,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var rule = Assert.Single(rules);
             Assert.Equal("required", rule.ValidationType);
             Assert.Empty(rule.ValidationParameters);
-            Assert.Equal("The Length field is required.", rule.ErrorMessage);
+            Assert.Equal(expected, rule.ErrorMessage);
         }
     }
 }

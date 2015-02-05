@@ -1,15 +1,19 @@
 ﻿@inject WaitService WaitService
+@inject TaskReturningService TaskReturningService
+
 @{
     Layout = "/Views/Shared/_LayoutWithPartialAndFlush.cshtml";
-    ViewBag.Title = "Page With Components and Partials";
+    ViewBag.Title = "FlushAsync invoked inside RenderSection";
 }
 RenderBody content
 @section content
 {
+@await TaskReturningService.GetValueAsync()
+<p>section-content</p>
     @{
-        FlushAsync().Wait();
+        await FlushAsync();
         WaitService.WaitForClient();
     }
-    @Component.InvokeAsync("ComponentThatSetsTitle").Result
+    @await Component.InvokeAsync("ComponentThatSetsTitle")
     <span>Content that takes time to produce</span>
 }

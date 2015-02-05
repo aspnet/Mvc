@@ -2,145 +2,61 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// Represents an <see cref="ActionResult"/> that renders a view to the response.
+    /// </summary>
     public class ViewResult : ActionResult
     {
-        private const int BufferSize = 1024;
+        /// <summary>
+        /// Gets or sets the HTTP status code.
+        /// </summary>
+        public int? StatusCode { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name of the view to render.
+        /// </summary>
+        /// <remarks>
+        /// When <c>null</c>, defaults to <see cref="ActionDescriptor.Name"/>.
+        /// </remarks>
         public string ViewName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the <see cref="ViewDataDictionary"/> for this result.
+        /// </summary>
         public ViewDataDictionary ViewData { get; set; }
 
+        /// <summary>
+        /// Gets or sets the <see cref="IViewEngine"/> used to locate views.
+        /// </summary>
+        /// <remarks>When <c>null</c>, an instance of <see cref="ICompositeViewEngine"/> from
+        /// <c>ActionContext.HttpContext.RequestServices</c> is used.</remarks>
         public IViewEngine ViewEngine { get; set; }
 
+        /// <inheritdoc />
         public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
-            var viewEngine = ViewEngine ?? context.HttpContext.RequestServices.GetService<ICompositeViewEngine>();
+            var viewEngine = ViewEngine ??
+                             context.HttpContext.RequestServices.GetRequiredService<ICompositeViewEngine>();
 
             var viewName = ViewName ?? context.ActionDescriptor.Name;
-            var view = FindView(viewEngine, context, viewName);
+            var view = viewEngine.FindView(context, viewName)
+                                 .EnsureSuccessful()
+                                 .View;
+
+            if (StatusCode != null)
+            {
+                context.HttpContext.Response.StatusCode = StatusCode.Value;
+            }
 
             using (view as IDisposable)
             {
-                context.HttpContext.Response.ContentType = "text/html; charset=utf-8";
-                var wrappedStream = new StreamWrapper(context.HttpContext.Response.Body);
-                var encoding = Encodings.UTF8EncodingWithoutBOM;
-                using (var writer = new StreamWriter(wrappedStream, encoding, BufferSize, leaveOpen: true))
-                {
-                    try
-                    {
-                        var viewContext = new ViewContext(context, view, ViewData, writer);
-                        await view.RenderAsync(viewContext);
-                    }
-                    catch
-                    {
-                        // Need to prevent writes/flushes on dispose because the StreamWriter will flush even if
-                        // nothing got written. This leads to a response going out on the wire prematurely in case an
-                        // exception is being thrown inside the try catch block.
-                        wrappedStream.BlockWrites = true;
-                        throw;
-                    }
-                }
-            }
-        }
-
-        private static IView FindView(IViewEngine viewEngine, ActionContext context, string viewName)
-        {
-            var result = viewEngine.FindView(context, viewName);
-            if (!result.Success)
-            {
-                var locations = string.Empty;
-                if (result.SearchedLocations != null)
-                {
-                    locations = Environment.NewLine +
-                        string.Join(Environment.NewLine, result.SearchedLocations);
-                }
-
-                throw new InvalidOperationException(Resources.FormatViewEngine_ViewNotFound(viewName, locations));
-            }
-
-            return result.View;
-        }
-
-        private class StreamWrapper : Stream
-        {
-            private readonly Stream _wrappedStream;
-
-            public StreamWrapper([NotNull] Stream stream)
-            {
-                _wrappedStream = stream;
-            }
-
-            public bool BlockWrites { get; set; }
-
-            public override bool CanRead
-            {
-                get { return _wrappedStream.CanRead; }
-            }
-
-            public override bool CanSeek
-            {
-                get { return _wrappedStream.CanSeek; }
-            }
-
-            public override bool CanWrite
-            {
-                get { return _wrappedStream.CanWrite; }
-            }
-
-            public override void Flush()
-            {
-                if (!BlockWrites)
-                {
-                    _wrappedStream.Flush();
-                }
-            }
-
-            public override long Length
-            {
-                get { return _wrappedStream.Length; }
-            }
-
-            public override long Position
-            {
-                get
-                {
-                    return _wrappedStream.Position;
-                }
-                set
-                {
-                    _wrappedStream.Position = value;
-                }
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                return _wrappedStream.Read(buffer, offset, count);
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return Seek(offset, origin);
-            }
-
-            public override void SetLength(long value)
-            {
-                SetLength(value);
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                if (!BlockWrites)
-                {
-                    _wrappedStream.Write(buffer, offset, count);
-                }
+                await ViewExecutor.ExecuteAsync(view, context, ViewData, contentType: null);
             }
         }
     }

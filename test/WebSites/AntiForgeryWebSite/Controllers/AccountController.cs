@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 
 namespace AntiForgeryWebSite
@@ -18,14 +17,37 @@ namespace AntiForgeryWebSite
             return View();
         }
 
+        [AllowAnonymous]
+        public string UseFacebookLogin()
+        {
+            return "somestring";
+        }
+
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginViewModel model, string returnUrl)
+        public string Login(LoginViewModel model)
         {
-            // Send to register which gets another html antiforgery token.
-            return RedirectToAction("Index", "Home");
+            return "OK";
+        }
+
+        // GET: /Account/FlushAsyncLogin
+        [AllowAnonymous]
+        public ActionResult FlushAsyncLogin(string returnUrl = null)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+
+            return View();
+        }
+
+        // POST: /Account/FlushAsyncLogin
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public string FlushAsyncLogin(LoginViewModel model)
+        {
+            return "OK";
         }
     }
 }

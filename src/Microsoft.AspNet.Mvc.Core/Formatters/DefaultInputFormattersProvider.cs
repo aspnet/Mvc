@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 
@@ -18,9 +17,9 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// </summary>
         /// <param name="options">An accessor to the <see cref="MvcOptions"/> configured for this application.</param>
         /// <param name="typeActivator">An <see cref="ITypeActivator"/> instance used to instantiate types.</param>
-        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the 
+        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
-        public DefaultInputFormattersProvider(IOptionsAccessor<MvcOptions> optionsAccessor,
+        public DefaultInputFormattersProvider(IOptions<MvcOptions> optionsAccessor,
                                               ITypeActivator typeActivator,
                                               IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.InputFormatters, typeActivator, serviceProvider)

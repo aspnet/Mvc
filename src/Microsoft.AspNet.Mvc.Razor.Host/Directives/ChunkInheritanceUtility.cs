@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.AspNet.FileSystems;
+using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
@@ -13,86 +13,93 @@ using Microsoft.AspNet.Razor.Parser;
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
     /// <summary>
-    /// A utility type for supporting inheritance of chunks into a page from _ViewStart pages that apply to it.
+    /// A utility type for supporting inheritance of tag helpers and chunks into a page from applicable _ViewStart
+    /// pages.
     /// </summary>
     public class ChunkInheritanceUtility
     {
+        private readonly Dictionary<string, CodeTree> _parsedCodeTrees;
+        private readonly MvcRazorHost _razorHost;
+        private readonly IFileProvider _fileProvider;
         private readonly IReadOnlyList<Chunk> _defaultInheritedChunks;
 
         /// <summary>
-        /// Instantiates a new instance of <see cref="ChunkInheritanceUtility"/>.
+        /// Initializes a new instance of <see cref="ChunkInheritanceUtility"/>.
         /// </summary>
-        /// <param name="codeTree">The <see cref="CodeTree"/> instance to add <see cref="Chunk"/>s to.</param>
-        /// <param name="defaultInheritedChunks">The list of <see cref="Chunk"/>s inherited by default.</param>
-        /// <param name="defaultModel">The model type used in the event no model is specified via the
-        /// <c>@model</c> keyword.</param>
-        public ChunkInheritanceUtility([NotNull] CodeTree codeTree,
-                                       [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks,
-                                       [NotNull] string defaultModel)
+        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse _ViewStart pages.</param>
+        /// <param name="fileProvider">The fileProvider that represents the application.</param>
+        /// <param name="defaultInheritedChunks">Sequence of <see cref="Chunk"/>s inherited by default.</param>
+        public ChunkInheritanceUtility([NotNull] MvcRazorHost razorHost,
+                                       [NotNull] IFileProvider fileProvider,
+                                       [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks)
         {
-            CodeTree = codeTree;
+            _razorHost = razorHost;
+            _fileProvider = fileProvider;
             _defaultInheritedChunks = defaultInheritedChunks;
-            ChunkMergers = GetMergerMappings(codeTree, defaultModel);
+            _parsedCodeTrees = new Dictionary<string, CodeTree>(StringComparer.Ordinal);
         }
 
         /// <summary>
-        /// Gets the CodeTree to add inherited <see cref="Chunk"/> instances to.
+        /// Gets an ordered <see cref="IReadOnlyList{T}"/> of parsed <see cref="CodeTree"/> for each _ViewStart that
+        /// is applicable to the page located at <paramref name="pagePath"/>. The list is ordered so that the
+        /// <see cref="CodeTree"/> for the _ViewStart closest to the <paramref name="pagePath"/> in the fileProvider
+        /// appears first.
         /// </summary>
-        public CodeTree CodeTree { get; private set; }
-
-        /// <summary>
-        /// Gets a dictionary mapping <see cref="Chunk"/> type to the <see cref="IChunkMerger"/> used to merge
-        /// chunks of that type.
-        /// </summary>
-        public IDictionary<Type, IChunkMerger> ChunkMergers { get; private set; }
-
-        /// <summary>
-        /// Gets the list of chunks that are to be inherited by a specified page.
-        /// Chunks are inherited from _ViewStarts that are applicable to the page.
-        /// </summary>
-        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse _ViewStart pages.</param>
-        /// <param name="fileSystem">The filesystem that represents the application.</param>
-        /// <param name="appRoot">The root of the application.</param>
         /// <param name="pagePath">The path of the page to locate inherited chunks for.</param>
-        /// <returns>A list of chunks that are applicable to the given page.</returns>
-        public List<Chunk> GetInheritedChunks([NotNull] MvcRazorHost razorHost,
-                                              [NotNull] IFileSystem fileSystem,
-                                              [NotNull] string appRoot,
-                                              [NotNull] string pagePath)
+        /// <returns>A <see cref="IReadOnlyList{CodeTree}"/> of parsed _ViewStart <see cref="CodeTree"/>s.</returns>
+        public IReadOnlyList<CodeTree> GetInheritedCodeTrees([NotNull] string pagePath)
         {
-            var inheritedChunks = new List<Chunk>();
+            var inheritedCodeTrees = new List<CodeTree>();
 
-            var templateEngine = new RazorTemplateEngine(razorHost);
-            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(appRoot, pagePath))
+            var templateEngine = new RazorTemplateEngine(_razorHost);
+            foreach (var viewStartPath in ViewStartUtility.GetViewStartLocations(pagePath))
             {
-                IFileInfo fileInfo;
-                if (fileSystem.TryGetFileInfo(viewStart, out fileInfo))
+                CodeTree codeTree;
+
+                if (_parsedCodeTrees.TryGetValue(viewStartPath, out codeTree))
                 {
-                    var parsedTree = ParseViewFile(templateEngine, fileInfo);
-                    var chunksToAdd = parsedTree.Chunks
-                                                .Where(chunk => ChunkMergers.ContainsKey(chunk.GetType()));
-                    inheritedChunks.AddRange(chunksToAdd);
+                    inheritedCodeTrees.Add(codeTree);
+                }
+                else
+                {
+                    var fileInfo = _fileProvider.GetFileInfo(viewStartPath);
+                    if (fileInfo.Exists)
+                    {
+                        // viewStartPath contains the app-relative path of the ViewStart.
+                        // Since the parsing of a _ViewStart would cause parent _ViewStarts to be parsed
+                        // we need to ensure the paths are app-relative to allow the GetViewStartLocations
+                        // for the current _ViewStart to succeed.
+                        codeTree = ParseViewFile(templateEngine, fileInfo, viewStartPath);
+                        _parsedCodeTrees.Add(viewStartPath, codeTree);
+
+                        inheritedCodeTrees.Add(codeTree);
+                    }
                 }
             }
 
-            inheritedChunks.AddRange(_defaultInheritedChunks);
-
-            return inheritedChunks;
+            return inheritedCodeTrees;
         }
 
         /// <summary>
-        /// Merges a list of chunks into the <see cref="CodeTree"/> instance.
+        /// Merges <see cref="Chunk"/> inherited by default and <see cref="CodeTree"/> instances produced by parsing
+        /// _ViewStart files into the specified <paramref name="codeTree"/>.
         /// </summary>
-        /// <param name="inherited">The list of chunks to merge.</param>
-        public void MergeInheritedChunks(List<Chunk> inherited)
+        /// <param name="codeTree">The <see cref="CodeTree"/> to merge in to.</param>
+        /// <param name="inheritedCodeTrees"><see cref="IReadOnlyList{CodeTree}"/> inherited from _ViewStart
+        /// files.</param>
+        /// <param name="defaultModel">The list of chunks to merge.</param>
+        public void MergeInheritedCodeTrees([NotNull] CodeTree codeTree,
+                                            [NotNull] IReadOnlyList<CodeTree> inheritedCodeTrees,
+                                            string defaultModel)
         {
-            var current = CodeTree.Chunks;
+            var mergerMappings = GetMergerMappings(codeTree, defaultModel);
+            IChunkMerger merger;
 
             // We merge chunks into the codeTree in two passes. In the first pass, we traverse the CodeTree visiting
             // a mapped IChunkMerger for types that are registered.
-            foreach (var chunk in current)
+            foreach (var chunk in codeTree.Chunks)
             {
-                if (ChunkMergers.TryGetValue(chunk.GetType(), out var merger))
+                if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
                 {
                     merger.VisitChunk(chunk);
                 }
@@ -101,13 +108,16 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             // In the second phase we invoke IChunkMerger.Merge for each chunk that has a mapped merger.
             // During this phase, the merger can either add to the CodeTree or ignore the chunk based on the merging
             // rules.
-            foreach (var chunk in inherited)
+            // Read the chunks outside in - that is chunks from the _ViewStart closest to the page get merged in first
+            // and the furthest one last. This allows the merger to ignore a directive like @model that was previously
+            // seen.
+            var chunksToMerge = inheritedCodeTrees.SelectMany(tree => tree.Chunks)
+                                                  .Concat(_defaultInheritedChunks);
+            foreach (var chunk in chunksToMerge)
             {
-                if (ChunkMergers.TryGetValue(chunk.GetType(), out var merger))
+                if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
                 {
-                    // TODO: When mapping chunks, we should remove mapping information since it would be incorrect
-                    // to generate it in the page that inherits it. Tracked by #945
-                    merger.Merge(CodeTree, chunk);
+                    merger.Merge(codeTree, chunk);
                 }
             }
         }
@@ -123,22 +133,23 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             };
         }
 
-        // TODO: This needs to be cached (#1016)
-        private CodeTree ParseViewFile(RazorTemplateEngine engine,
-                                       IFileInfo fileInfo)
+        private static CodeTree ParseViewFile(RazorTemplateEngine engine,
+                                              IFileInfo fileInfo,
+                                              string viewStartPath)
         {
             using (var stream = fileInfo.CreateReadStream())
             {
                 using (var streamReader = new StreamReader(stream))
                 {
-                    var parseResults = engine.ParseTemplate(streamReader);
+                    var parseResults = engine.ParseTemplate(streamReader, viewStartPath);
                     var className = ParserHelpers.SanitizeClassName(fileInfo.Name);
                     var language = engine.Host.CodeLanguage;
                     var codeGenerator = language.CreateCodeGenerator(className,
                                                                      engine.Host.DefaultNamespace,
-                                                                     fileInfo.PhysicalPath,
+                                                                     viewStartPath,
                                                                      engine.Host);
                     codeGenerator.Visit(parseResults);
+
                     return codeGenerator.Context.CodeTreeBuilder.CodeTree;
                 }
             }

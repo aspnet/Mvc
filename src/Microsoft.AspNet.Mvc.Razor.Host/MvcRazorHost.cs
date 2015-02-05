@@ -3,13 +3,13 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.AspNet.FileSystems;
+using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Mvc.Razor.Directives;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
-using Microsoft.Framework.Runtime;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -31,41 +31,39 @@ namespace Microsoft.AspNet.Mvc.Razor
             new InjectChunk("Microsoft.AspNet.Mvc.IUrlHelper", "Url"),
         };
 
-        private readonly string _appRoot;
-        private readonly IFileSystem _fileSystem;
-        // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>. 
+        private readonly IFileProvider _fileProvider;
+
+        // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>.
         // This field holds the type name without the generic decoration (MyBaseType)
         private readonly string _baseType;
+        private ChunkInheritanceUtility _chunkInheritanceUtility;
 
+#if NET45
         /// <summary>
         /// Initializes a new instance of <see cref="MvcRazorHost"/> with the specified
-        /// <param name="appEnvironment"/>.
+        /// <param name="root"/>.
         /// </summary>
-        /// <param name="appEnvironment">Contains information about the executing application.</param>
-        public MvcRazorHost(IApplicationEnvironment appEnvironment)
-            : this(appEnvironment.ApplicationBasePath,
-                   new PhysicalFileSystem(appEnvironment.ApplicationBasePath))
+        /// <param name="root">The path to the application base.</param>
+        public MvcRazorHost(string root) :
+            this(new PhysicalFileProvider(root))
         {
         }
-
+#endif
         /// <summary>
-        /// Initializes a new instance of <see cref="MvcRazorHost"/> at the specified application root
-        /// and <paramref name="fileSystem"/>.
+        /// Initializes a new instance of <see cref="MvcRazorHost"/> using the specified <paramref name="fileProvider"/>.
         /// </summary>
-        /// <param name="applicationBasePath">The base path of the application.</param>
-        /// <param name="fileSystem">
-        /// A <see cref="IFileSystem"/> rooted at the <paramref name="applicationBasePath"/>.
-        /// </param>
-        protected internal MvcRazorHost(string applicationBasePath,
-                                        IFileSystem fileSystem)
+        /// <param name="fileProvider">A <see cref="IFileProvider"/> rooted at the application base path.</param>
+        public MvcRazorHost(IFileProvider fileProvider)
             : base(new CSharpRazorCodeLanguage())
         {
-            _appRoot = applicationBasePath;
-            _fileSystem = fileSystem;
+            _fileProvider = fileProvider;
             _baseType = BaseType;
 
-            DefaultBaseClass = BaseType + '<' + DefaultModel + '>';
+            TagHelperDescriptorResolver = new TagHelperDescriptorResolver();
+            DefaultBaseClass = BaseType + "<" + DefaultModel + ">";
             DefaultNamespace = "Asp";
+            // Enable instrumentation by default to allow precompiled views to work with BrowserLink.
+            EnableInstrumentation = true;
             GeneratedClassContext = new GeneratedClassContext(
                 executeMethodName: "ExecuteAsync",
                 writeMethodName: "Write",
@@ -73,9 +71,36 @@ namespace Microsoft.AspNet.Mvc.Razor
                 writeToMethodName: "WriteTo",
                 writeLiteralToMethodName: "WriteLiteralTo",
                 templateTypeName: "Microsoft.AspNet.Mvc.Razor.HelperResult",
-                defineSectionMethodName: "DefineSection")
+                defineSectionMethodName: "DefineSection",
+                generatedTagHelperContext: new GeneratedTagHelperContext
+                {
+                    ExecutionContextTypeName = typeof(TagHelperExecutionContext).FullName,
+                    ExecutionContextAddMethodName = nameof(TagHelperExecutionContext.Add),
+                    ExecutionContextAddTagHelperAttributeMethodName =
+                        nameof(TagHelperExecutionContext.AddTagHelperAttribute),
+                    ExecutionContextAddHtmlAttributeMethodName = nameof(TagHelperExecutionContext.AddHtmlAttribute),
+                    ExecutionContextOutputPropertyName = nameof(TagHelperExecutionContext.Output),
+
+                    RunnerTypeName = typeof(TagHelperRunner).FullName,
+                    RunnerRunAsyncMethodName = nameof(TagHelperRunner.RunAsync),
+
+                    ScopeManagerTypeName = typeof(TagHelperScopeManager).FullName,
+                    ScopeManagerBeginMethodName = nameof(TagHelperScopeManager.Begin),
+                    ScopeManagerEndMethodName = nameof(TagHelperScopeManager.End),
+
+                    OutputGenerateStartTagMethodName = nameof(TagHelperOutput.GenerateStartTag),
+                    OutputGenerateContentMethodName = nameof(TagHelperOutput.GenerateContent),
+                    OutputGenerateEndTagMethodName = nameof(TagHelperOutput.GenerateEndTag),
+
+                    // Can't use nameof because RazorPage is not accessible here.
+                    CreateTagHelperMethodName = "CreateTagHelper",
+                    StartWritingScopeMethodName = "StartWritingScope",
+                    EndWritingScopeMethodName = "EndWritingScope",
+                })
             {
-                ResolveUrlMethodName = "Href"
+                ResolveUrlMethodName = "Href",
+                BeginContextMethodName = "BeginContext",
+                EndContextMethodName = "EndContext"
             };
 
             foreach (var ns in _defaultNamespaces)
@@ -91,6 +116,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         public virtual string DefaultModel
         {
             get { return "dynamic"; }
+        }
+
+        /// <inheritdoc />
+        public string MainClassNamePrefix
+        {
+            get { return "ASPV_"; }
         }
 
         /// <summary>
@@ -110,15 +141,50 @@ namespace Microsoft.AspNet.Mvc.Razor
             get { return "Microsoft.AspNet.Mvc.ActivateAttribute"; }
         }
 
+        /// <summary>
+        /// Gets the type name used to represent <see cref="ITagHelper"/> model expression properties.
+        /// </summary>
+        public virtual string ModelExpressionType
+        {
+            get { return "Microsoft.AspNet.Mvc.Rendering.ModelExpression"; }
+        }
+
+        /// <summary>
+        /// Gets the method name used to create model expressions.
+        /// </summary>
+        public virtual string CreateModelExpressionMethod
+        {
+            get { return "CreateModelExpression"; }
+        }
+
+        private ChunkInheritanceUtility ChunkInheritanceUtility
+        {
+            get
+            {
+                if (_chunkInheritanceUtility == null)
+                {
+                    // This needs to be lazily evaluated to support DefaultInheritedChunks being virtual.
+                    _chunkInheritanceUtility = new ChunkInheritanceUtility(this, _fileProvider, DefaultInheritedChunks);
+                }
+
+                return _chunkInheritanceUtility;
+            }
+        }
+
         /// <inheritdoc />
         public GeneratorResults GenerateCode(string rootRelativePath, Stream inputStream)
         {
-            var className = ParserHelpers.SanitizeClassName(rootRelativePath);
-            using (var reader = new StreamReader(inputStream))
-            {
-                var engine = new RazorTemplateEngine(this);
-                return engine.GenerateCode(reader, className, DefaultNamespace, rootRelativePath);
-            }
+            // Adding a prefix so that the main view class can be easily identified.
+            var className = MainClassNamePrefix + ParserHelpers.SanitizeClassName(rootRelativePath);
+            var engine = new RazorTemplateEngine(this);
+            return engine.GenerateCode(inputStream, className, DefaultNamespace, rootRelativePath);
+        }
+
+        /// <inheritdoc />
+        public override RazorParser DecorateRazorParser([NotNull] RazorParser razorParser, string sourceFileName)
+        {
+            var inheritedCodeTrees = ChunkInheritanceUtility.GetInheritedCodeTrees(sourceFileName);
+            return new MvcRazorParser(razorParser, inheritedCodeTrees, DefaultInheritedChunks);
         }
 
         /// <inheritdoc />
@@ -129,19 +195,22 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <inheritdoc />
         public override CodeBuilder DecorateCodeBuilder([NotNull] CodeBuilder incomingBuilder,
-                                                        [NotNull] CodeGeneratorContext context)
+                                                        [NotNull] CodeBuilderContext context)
         {
-            UpdateCodeBuilder(context);
-            return new MvcCSharpCodeBuilder(context, DefaultModel, ActivateAttribute);
-        }
+            var inheritedChunks = ChunkInheritanceUtility.GetInheritedCodeTrees(context.SourceFile);
 
-        private void UpdateCodeBuilder(CodeGeneratorContext context)
-        {
-            var chunkUtility = new ChunkInheritanceUtility(context.CodeTreeBuilder.CodeTree,
-                                                           DefaultInheritedChunks,
-                                                           DefaultModel);
-            var inheritedChunks = chunkUtility.GetInheritedChunks(this, _fileSystem, _appRoot, context.SourceFile);
-            chunkUtility.MergeInheritedChunks(inheritedChunks);
+            ChunkInheritanceUtility.MergeInheritedCodeTrees(context.CodeTreeBuilder.CodeTree,
+                                                         inheritedChunks,
+                                                         DefaultModel);
+
+            return new MvcCSharpCodeBuilder(context,
+                                            DefaultModel,
+                                            ActivateAttribute,
+                                            new GeneratedTagHelperAttributeContext
+                                            {
+                                                ModelExpressionTypeName = ModelExpressionType,
+                                                CreateModelExpressionMethodName = CreateModelExpressionMethod
+                                            });
         }
     }
 }

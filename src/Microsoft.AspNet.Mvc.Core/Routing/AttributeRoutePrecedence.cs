@@ -3,7 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
+using System.Linq;
 using Microsoft.AspNet.Routing.Template;
 
 namespace Microsoft.AspNet.Mvc.Routing
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 var segment = template.Segments[i];
 
                 var digit = ComputeDigit(segment);
-                Contract.Assert(digit >= 0 && digit < 10);
+                Debug.Assert(digit >= 0 && digit < 10);
 
                 precedence += Decimal.Divide(digit, (decimal)Math.Pow(10, i));
             }
@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
                 // If there is a route constraint for the parameter, reduce order by 1
                 // Constrained parameters end up with order 2, Constrained catch alls end up with order 4
-                if (part.InlineConstraint != null)
+                if (part.InlineConstraints != null && part.InlineConstraints.Any())
                 {
                     digit--;
                 }

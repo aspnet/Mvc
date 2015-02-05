@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
@@ -22,16 +22,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             _activator = activator;
         }
 
-        public Task<bool> BindModelAsync(ModelBindingContext bindingContext)
+        public async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
         {
             var binderType = ResolveBinderType(bindingContext.ModelType);
             if (binderType != null)
             {
                 var binder = (IModelBinder)_activator.CreateInstance(_serviceProvider, binderType);
-                return binder.BindModelAsync(bindingContext);
+                await binder.BindModelAsync(bindingContext);
+
+                // Was able to resolve a binder type, hence we should tell the model binding system to return
+                // true so that none of the other model binders participate.
+                return true;
             }
 
-            return Task.FromResult(false);
+            return false;
         }
 
         private static Type ResolveBinderType(Type modelType)
@@ -90,9 +94,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                  Type openBinderType,
                                                  Type modelType)
         {
-            Contract.Assert(supportedInterfaceType != null);
-            Contract.Assert(openBinderType != null);
-            Contract.Assert(modelType != null);
+            Debug.Assert(supportedInterfaceType != null);
+            Debug.Assert(openBinderType != null);
+            Debug.Assert(modelType != null);
 
             var modelTypeArguments = GetGenericBinderTypeArgs(supportedInterfaceType, modelType);
 

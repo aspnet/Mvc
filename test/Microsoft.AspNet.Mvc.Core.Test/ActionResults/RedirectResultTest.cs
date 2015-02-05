@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
@@ -72,8 +71,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("/", "~/", "/")]
         [InlineData("", "~/Home/About", "/Home/About")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
-        [InlineData("", "~/Home/About", "/Home/About")]
-        [InlineData("/myapproot", "~/", "/myapproot/")]
         public void Execute_ReturnsAppRelativePath_WhenItStartsWithTilde(string appRoot,
                                                                          string contentPath,
                                                                          string expectedPath)
@@ -97,10 +94,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         private static ActionContext GetActionContext(HttpContext httpContext)
         {
-            var routeData = new RouteData()
-            {
-                Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase),
-            };
+            var routeData = new RouteData();
             routeData.Routers.Add(new Mock<IRouter>().Object);
 
             return new ActionContext(httpContext,
@@ -115,14 +109,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return serviceCollection.BuildServiceProvider();
         }
 
-        private static HttpContext GetHttpContext(string appRoot, 
+        private static HttpContext GetHttpContext(string appRoot,
                                                      string contentPath,
                                                      string expectedPath,
                                                      HttpResponse response)
         {
             var httpContext = new Mock<HttpContext>();
             var actionContext = GetActionContext(httpContext.Object);
-            var mockContentAccessor = new Mock<IContextAccessor<ActionContext>>();
+            var mockContentAccessor = new Mock<IScopedInstance<ActionContext>>();
             mockContentAccessor.SetupGet(o => o.Value).Returns(actionContext);
             var mockActionSelector = new Mock<IActionSelector>();
             var urlHelper = new UrlHelper(mockContentAccessor.Object, mockActionSelector.Object);

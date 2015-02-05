@@ -1,12 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET45
+#if ASPNET50
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.OptionsModel;
 using Moq;
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Routing
@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             var controllerType = typeof(HomeController);
             var actionMethod = controllerType.GetMethod("Index");
 
-            var action = new ReflectedActionDescriptor();
+            var action = new ControllerActionDescriptor();
             action.DisplayName = "Microsoft.AspNet.Mvc.Routing.AttributeRoutingTest+HomeController.Index";
             action.MethodInfo = actionMethod;
             action.RouteConstraints = new List<RouteDataActionConstraint>()
@@ -161,14 +161,14 @@ namespace Microsoft.AspNet.Mvc.Routing
                 .Setup(s => s.GetService(typeof(IActionDescriptorsCollectionProvider)))
                 .Returns(actionDescriptorProvider.Object);
 
-            var routeOptions = new Mock<IOptionsAccessor<RouteOptions>>();
+            var routeOptions = new Mock<IOptions<RouteOptions>>();
             routeOptions
                 .SetupGet(o => o.Options)
                 .Returns(new RouteOptions());
 
             services
                 .Setup(s => s.GetService(typeof(IInlineConstraintResolver)))
-                .Returns(new DefaultInlineConstraintResolver(services.Object, routeOptions.Object));
+                .Returns(new DefaultInlineConstraintResolver(routeOptions.Object));
 
             return services.Object;
         }
