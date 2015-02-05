@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Initializes an instance of <see cref="ProducesAttribute"/>.
         /// </summary>
-        /// <param name="type">The type of object that is going to be written in the response.</param>
+        /// <param name="type">The <see cref="Type"/> of object that is going to be written in the response.</param>
         public ProducesAttribute([NotNull] Type type)
         {
             Type = type;

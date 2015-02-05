@@ -123,19 +123,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             var expectedContentType = MediaTypeHeaderValue.Parse("application/xml;charset=utf-8");
-            var dataContractSerializer = new DataContractSerializer(typeof(User));
-            var stream = new MemoryStream();
-            using (var xmlWriter = XmlWriter.Create(stream, FormattingUtilities.GetDefaultXmlWriterSettings()))
-            {
-                dataContractSerializer.WriteObject(xmlWriter, new User()
-                {
-                    Name = "John",
-                    Address = "One Microsoft Way"
-                });
-            }
-            stream.Position = 0;
-            var streamReader = new StreamReader(stream);
-            var expectedOutput = await streamReader.ReadToEndAsync();
+            var expectedOutput = "<User xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                "xmlns=\"http://schemas.datacontract.org/2004/07/ConnegWebSite\">" +
+                                "<Address>One Microsoft Way</Address><Name>John</Name></User>";
 
             // Act
             var response = await client.GetAsync("http://localhost/Home/UserInfo_ProducesWithTypeAndContentType");
@@ -144,7 +134,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
             var actual = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedOutput, actual);
+            XmlAssert.Equal(expectedOutput, actual);
         }
 
         [Fact]
