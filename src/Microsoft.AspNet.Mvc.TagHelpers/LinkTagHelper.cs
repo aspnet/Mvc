@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly IEnumerable<Tuple<Mode, string[]>> ModeAttributeSets =
+        private static readonly IEnumerable<Tuple<Mode, string[]>> ModeInfo =
             new List<Tuple<Mode, string[]>>
             {
                 Tuple.Create(Mode.Fallback, new[]
@@ -143,7 +143,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             _webRoot = new DirectoryInfoWrapper(new DirectoryInfo(HostingEnvironment.WebRoot));
 
-            var modeResult = context.DetermineMode(ModeAttributeSets, Logger);
+            var modeResult = context.DetermineMode(ModeInfo, Logger);
 
             if (!modeResult.Matched)
             {
