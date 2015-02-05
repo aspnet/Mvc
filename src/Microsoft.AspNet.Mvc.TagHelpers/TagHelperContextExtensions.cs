@@ -48,15 +48,25 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return true;
         }
 
-        public static ModeResult<TMode> DetermineMode<TMode, TSet>(
+        /// <summary>
+        /// Determines the mode a <see cref="ITagHelper" /> should run in based on which mode has all its required
+        /// attributes present, non null, non empty, and non whitepsace.
+        /// </summary>
+        /// <typeparam name="TMode">The type representing the <see cref="ITagHelper" />'s modes.</typeparam>
+        /// <typeparam name="TSet">The type representing which attributes are required for which mode.</typeparam>
+        /// <param name="context">The <see cref="TagHelperContext"/>.</param>
+        /// <param name="modeRequiredAttributes">The modes and their required attributes.</param>
+        /// <param name="logger">An <see cref="ILogger"/> to log messages to.</param>
+        /// <returns>The <see cref="ModeMatchResult{TMode}"/>.</returns>
+        public static ModeMatchResult<TMode> DetermineMode<TMode, TSet>(
             this TagHelperContext context,
-            IEnumerable<Tuple<TMode, TSet>> attributeSets,
+            IEnumerable<Tuple<TMode, TSet>> modeRequiredAttributes,
             ILogger logger = null)
             where TSet : IEnumerable<string>
         {
-            var modeCandidates = new List<Tuple<TMode, IEnumerable<string>>>();
+            List<Tuple<TMode, IEnumerable<string>>> modeCandidates = null;
 
-            foreach (var set in attributeSets)
+            foreach (var set in modeRequiredAttributes)
             {
                 var attributes = GetPresentMissingAttributes(context, set.Item2);
                 var present = attributes.Item1;
@@ -64,29 +74,27 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
                 if (!missing.Any())
                 {
-                    return ModeResult.Matched(set.Item1);
+                    return ModeMatchResult.Matched(set.Item1);
                 }
 
                 if (missing.Any() && present.Any())
                 {
                     // The set had some present attributes but others missing so capture details of those missing to
                     // log later on if no match is found
+                    modeCandidates = modeCandidates ?? new List<Tuple<TMode, IEnumerable<string>>>();
                     modeCandidates.Add(Tuple.Create(set.Item1, missing));
                 }
             }
 
-            // No match found, log a warning
-            if (modeCandidates.Any())
+            // If a partial was match found, log a warning
+            if (modeCandidates != null && logger != null && logger.IsEnabled(LogLevel.Warning))
             {
-                logger.WriteWarning("Partial mode matches for {0} with ID {1} were found:", nameof(LinkTagHelper), context.UniqueId);
-                foreach (var mode in modeCandidates)
-                {
-                    logger.WriteWarning(new MissingAttributeLoggerStructure(context.UniqueId, mode.Item2,
-                        new Dictionary<string, object> { { "Mode", mode.Item1.ToString() } }));
-                }
+                logger.WriteWarning(new PartialModeMatchLoggerStructure(context.UniqueId,
+                    modeCandidates.Select(candidate =>
+                        Tuple.Create(candidate.Item1.ToString(), candidate.Item2.ToArray()))));
             }
 
-            return ModeResult<TMode>.Unmatched;
+            return ModeMatchResult<TMode>.Unmatched;
         }
 
         private static Tuple<IEnumerable<string>, IEnumerable<string>> GetPresentMissingAttributes(
@@ -113,80 +121,6 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             }
 
             return Tuple.Create((IEnumerable<string>)presentAttrNames, (IEnumerable<string>)missingAttrNames);
-        }
-
-        private class BufferedLogger : ILogger
-        {
-            private readonly ILogger _logger;
-            private readonly List<LogCall> _logs = new List<LogCall>();
-
-            public BufferedLogger(ILogger logger)
-            {
-                _logger = logger;
-            }
-
-            public IDisposable BeginScope(object state)
-            {
-                return _logger.BeginScope(state);
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                return _logger.IsEnabled(logLevel);
-            }
-
-            public void Write(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
-            {
-                _logs.Add(new LogCall(logLevel, eventId, state, exception, formatter));
-            }
-
-            public void Flush()
-            {
-                foreach (var log in _logs)
-                {
-                    _logger.Write(log.LogLevel, log.EventId, log.State, log.Exception, log.Formatter);
-                }
-            }
-
-            private class LogCall
-            {
-                public LogCall(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
-                {
-                    LogLevel = logLevel;
-                    EventId = eventId;
-                    State = state;
-                    Exception = exception;
-                    Formatter = formatter;
-                }
-
-                public LogLevel LogLevel { get; set; }
-                public int EventId { get; set; }
-                public object State { get; set; }
-                public Exception Exception { get; set; }
-                public Func<object, Exception, string> Formatter { get; set; }
-            }
-        }
-    }
-
-    public static class ModeResult
-    {
-        public static ModeResult<TMode> Matched<TMode>(TMode mode)
-        {
-            return new ModeResult<TMode> { Matched = true, Mode = mode };
-        }
-    }
-
-    public class ModeResult<TMode>
-    {
-        private static readonly ModeResult<TMode> _unmatched = new ModeResult<TMode> { Matched = false };
-
-        public TMode Mode { get; set; }
-
-        public bool Matched { get; set; }
-
-        public static ModeResult<TMode> Unmatched
-        {
-            get { return _unmatched; }
         }
     }
 }

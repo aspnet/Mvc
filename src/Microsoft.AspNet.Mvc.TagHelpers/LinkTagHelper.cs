@@ -255,16 +255,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return Enumerable.Empty<string>();
             }
 
-            var matcher = new Matcher();
-
-            if (!includePatterns.Any(pattern => matcher.IsGlobbingPattern(pattern)))
-            {
-                // This isn't a set of globbing patterns so just return the original set
-                return includePatterns;
-            }
-
             var excludePatterns = exclude?.Split(',');
-
+            var matcher = new Matcher();
             matcher.AddPatterns(includePatterns, excludePatterns);
             var matches = matcher.Execute(_webRoot);
             

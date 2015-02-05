@@ -34,7 +34,6 @@ namespace Microsoft.Framework.FileSystemGlobbing
                 }
             }
         }
-
         
         /// <summary>
         /// Determines whether a path contains characters suggesting it should be processed as a globbing pattern.
