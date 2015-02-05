@@ -1,9 +1,10 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <link href="~/blank.css" asp-href="/**/blank.css" rel="stylesheet" data-test="value" />
+    <link href="~/blank.css" asp-href-include="**/blank.css" rel="stylesheet" data-test="value" />
     <link href="~/site.min.css" rel="stylesheet" data-test="value"
-          asp-fallback-href="~/*.css,!~/blank.css"
+          asp-fallback-href="~/site.css"
+          asp-fallback-href-include="**/blank.css"
           asp-fallback-test-class="fallback-test"
           asp-fallback-test-property="visibility"
           asp-fallback-test-value="hidden" />

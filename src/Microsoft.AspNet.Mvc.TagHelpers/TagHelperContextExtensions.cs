@@ -63,15 +63,17 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return true;
         }
 
-        public static ModeResult<TMode> DetermineMode<TMode>(
+        public static ModeResult<TMode> DetermineMode<TMode, TSet>(
             this TagHelperContext context,
-            IDictionary<TMode, IEnumerable<string>> attributeSets)
+            IEnumerable<Tuple<TMode, TSet>> attributeSets)
+            where TSet : IEnumerable<string>
         {
-            foreach (var mode in attributeSets.Keys)
+            foreach (var set in attributeSets)
             {
-                if (AllRequiredAttributesArePresent(context, attributeSets[mode]))
+                // TODO: Flow the ILogger through here but only log warnings if NO matches are found
+                if (AllRequiredAttributesArePresent(context, set.Item2))
                 {
-                    return ModeResult.Matched(mode);
+                    return ModeResult.Matched(set.Item1);
                 }
             }
 

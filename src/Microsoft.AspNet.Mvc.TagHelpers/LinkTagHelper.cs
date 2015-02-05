@@ -4,16 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
+using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.FileSystemGlobbing;
 using Microsoft.Framework.FileSystemGlobbing.Abstractions;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.Runtime;
-using System.IO;
-using System.Linq;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -22,47 +21,89 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// </summary>
     public class LinkTagHelper : TagHelper
     {
-        private const string HrefAttributeName = "asp-href";
+        private const string HrefIncludeAttributeName = "asp-href-include";
+        private const string HrefExcludeAttributeName = "asp-href-exclude";
         private const string FallbackHrefAttributeName = "asp-fallback-href";
+        private const string FallbackHrefIncludeAttributeName = "asp-fallback-href-include";
+        private const string FallbackHrefExcludeAttributeName = "asp-fallback-href-exclude";
         private const string FallbackTestClassAttributeName = "asp-fallback-test-class";
         private const string FallbackTestPropertyAttributeName = "asp-fallback-test-property";
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly IDictionary<Mode, IEnumerable<string>> ModeAttributeSets =
-            new Dictionary<Mode, IEnumerable<string>>
+        private static readonly IEnumerable<Tuple<Mode, string[]>> ModeAttributeSets =
+            new List<Tuple<Mode, string[]>>
             {
-                { Mode.Fallback, new[]
-                    {
-                        FallbackHrefAttributeName,
-                        FallbackTestClassAttributeName,
-                        FallbackTestPropertyAttributeName,
-                        FallbackTestValueAttributeName
-                    }
-                },
-                { Mode.GlobbedHref, new [] { HrefAttributeName } }
+                Tuple.Create(Mode.Fallback, new[]
+                {
+                    FallbackHrefAttributeName,
+                    FallbackTestClassAttributeName,
+                    FallbackTestPropertyAttributeName,
+                    FallbackTestValueAttributeName
+                }),
+                Tuple.Create(Mode.Fallback, new[]
+                {
+                    FallbackHrefIncludeAttributeName,
+                    FallbackTestClassAttributeName,
+                    FallbackTestPropertyAttributeName,
+                    FallbackTestValueAttributeName
+                }),
+                Tuple.Create(Mode.Fallback, new[]
+                {
+                    FallbackHrefIncludeAttributeName,
+                    FallbackHrefExcludeAttributeName,
+                    FallbackTestClassAttributeName,
+                    FallbackTestPropertyAttributeName,
+                    FallbackTestValueAttributeName
+                }),
+                Tuple.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
+                Tuple.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName, HrefExcludeAttributeName })
             };
 
         private enum Mode
         {
-            GlobbedHref,
-            Fallback
+            Fallback,
+            GlobbedHref
         }
 
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to load.
-        /// Patterns starting with a "!" will be added as excludes. All other patterns will be added as includes.
+        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
         /// </summary>
-        [HtmlAttributeName(HrefAttributeName)]
-        public string Href { get; set; }
+        [HtmlAttributeName(HrefIncludeAttributeName)]
+        public string HrefInclude { get; set; }
 
         /// <summary>
+        /// A comma separated list of globbed file patterns of CSS stylesheets to exclude from loading.
+        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// Must be used in conjunction with <see cref="HrefInclude"/>.
+        /// </summary>
+        [HtmlAttributeName(HrefExcludeAttributeName)]
+        public string HrefExclude { get; set; }
+
         /// The URL of a CSS stylesheet to fallback to in the case the primary one fails (as specified in the href
         /// attribute).
         /// </summary>
         [HtmlAttributeName(FallbackHrefAttributeName)]
         public string FallbackHref { get; set; }
+
+        /// <summary>
+        /// A comma separated list of globbed file patterns of CSS stylesheets to fallback to in the case the primary
+        /// one fails (as specified in the href attribute).
+        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// </summary>
+        [HtmlAttributeName(FallbackHrefIncludeAttributeName)]
+        public string FallbackHrefInclude { get; set; }
+
+        /// <summary>
+        /// A comma separated list of globbed file patterns of CSS stylesheets to exclude from the fallback list, in
+        /// the case the primary one fails (as specified in the href attribute).
+        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// Must be used in conjunction with <see cref="FallbackHrefInclude"/>.
+        /// </summary>
+        [HtmlAttributeName(FallbackHrefExcludeAttributeName)]
+        public string FallbackHrefExclude { get; set; }
 
         /// <summary>
         /// The class name defined in the stylesheet to use for the fallback test.
@@ -90,6 +131,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Activate]
         protected internal IHostingEnvironment HostingEnvironment { get; set; }
 
+        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        [Activate]
+        protected internal ViewContext ViewContext { get; set; }
+
         private DirectoryInfoBase _webRoot;
 
         /// <inheritdoc />
@@ -115,9 +160,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // We've taken over rendering here so prevent the element rendering the outer tag
             output.TagName = null;
 
-            if (string.IsNullOrEmpty(Href))
+            if (modeResult.Mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
             {
-                // Just build a <link /> tag to match the original one in the source file
+                // No globbing to do, just build a <link /> tag to match the original one in the source file
                 content.Append("<link ");
                 foreach (var attribute in output.Attributes)
                 {
@@ -127,24 +172,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
             else
             {
-                var hrefs = new HashSet<string>(StringComparer.Ordinal);
-
-                // Add the standard href if present
+                // Process href globbing include/excludes
+                
                 string plainHref;
-                if (output.Attributes.TryGetValue("href", out plainHref))
-                {
-                    hrefs.Add(plainHref);
-                }
+                output.Attributes.TryGetValue("href", out plainHref);
 
-                // Add hrefs that match the globbing pattern specified
-                var matchedHrefs = ExpandGlobbedHref(Href);
-                if (matchedHrefs.Any())
-                {
-                    foreach (var matchedHref in matchedHrefs)
-                    {
-                        hrefs.Add(matchedHref);
-                    }
-                }
+                var hrefs = BuildHrefList(plainHref, HrefInclude, HrefExclude);
 
                 foreach (var href in hrefs)
                 {
@@ -172,7 +205,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     FallbackTestMetaTemplate,
                     FallbackTestClass));
 
-                var matchedFallbackHrefs = ExpandGlobbedHref(FallbackHref);
+                var fallbackHrefs = BuildHrefList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
 
                 // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
                 // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
@@ -182,34 +215,70 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                      JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
                                      JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
                                      JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
-                                     JavaScriptUtility.JavaScriptArrayEncode(matchedFallbackHrefs));
+                                     JavaScriptUtility.JavaScriptArrayEncode(fallbackHrefs));
                 content.Append("</script>");
             }
 
             output.Content = content.ToString();
         }
 
-        private IEnumerable<string> ExpandGlobbedHref(string href)
+        private IEnumerable<string> BuildHrefList(string href, string includePattern, string excludePattern)
         {
-            var patterns = href.Split(',');
+            var hrefs = new HashSet<string>(StringComparer.Ordinal);
 
-            if (patterns.Length == 0)
+            // Add the standard fallback href if present
+            if (!string.IsNullOrWhiteSpace(href))
+            {
+                hrefs.Add(href);
+            }
+
+            // Add fallback hrefs that match the globbing patterns specified
+            var matchedFallbackHrefs = ExpandGlobbedHref(includePattern, excludePattern);
+            foreach (var matchedHref in matchedFallbackHrefs)
+            {
+                hrefs.Add(matchedHref);
+            }
+
+            return hrefs;
+        }
+
+        private IEnumerable<string> ExpandGlobbedHref(string include, string exclude = null)
+        {
+            if (string.IsNullOrEmpty(include))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            var includePatterns = include.Split(',');
+
+            if (includePatterns.Length == 0)
             {
                 return Enumerable.Empty<string>();
             }
 
             var matcher = new Matcher();
 
-            if (patterns.Length == 1 && !matcher.IsGlobbingPattern(patterns[0]))
+            if (includePatterns.Length == 1 && !matcher.IsGlobbingPattern(includePatterns[0]))
             {
-                // This isn't a set of globbing patterns so just return the original href
-                return new[] { href };
+                // This isn't a set of globbing patterns so just return the original include string
+                return new[] { include };
             }
 
-            matcher.AddPatterns(patterns);
-            var matches = matcher.Execute(_webRoot);
+            var excludePatterns = exclude?.Split(',');
 
-            return matches.Files;
+            matcher.AddPatterns(includePatterns, excludePatterns);
+            var matches = matcher.Execute(_webRoot);
+            
+            return matches.Files.Select(path => ResolveMatchedPath(path, ViewContext.HttpContext.Request.PathBase));
+        }
+
+        private static string ResolveMatchedPath(string matchedPath, PathString basePath)
+        {
+            // TODO: This needs to resolve each to webRoot based on the request path.
+            //       See example at https://github.com/aspnet/Mvc/blob/614dbccaf8d32fd6e0fbebd0b88e0831fb3e1313/src/Microsoft.AspNet.Mvc.TagHelpers/ScriptTagHelper%20.cs#L66
+
+            var relativePath = new PathString("/" + matchedPath);
+            return basePath.Add(relativePath).ToString();
         }
     }
 }

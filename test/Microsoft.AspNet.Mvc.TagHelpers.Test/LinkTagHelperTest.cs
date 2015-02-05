@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var helper = new LinkTagHelper
             {
                 Logger = logger.Object,
-                FallbackHref = "test.css",
+                FallbackHrefInclude = "test.css",
                 FallbackTestClass = "hidden",
                 FallbackTestProperty = "visible",
                 FallbackTestValue = "hidden"
@@ -73,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var helper = new LinkTagHelper
             {
                 Logger = logger.Object,
-                FallbackHref = "test.css",
+                FallbackHrefInclude = "test.css",
                 FallbackTestClass = "hidden",
                 FallbackTestProperty = "visible",
                 FallbackTestValue = "hidden"

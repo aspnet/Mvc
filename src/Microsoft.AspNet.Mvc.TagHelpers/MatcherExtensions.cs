@@ -14,22 +14,23 @@ namespace Microsoft.Framework.FileSystemGlobbing
     {
         /// <summary>
         /// Adds include and exclude patterns.
-        /// Patterns starting with a "!" will be added as excludes. All other patterns will be added as includes.
-        /// Leading forward slashes (/) and tildes (~) are trimmed from the pattern before being added.
         /// </summary>
         /// <param name="matcher">The <see cref="Matcher"/>.</param>
-        /// <param name="patterns">The set of globbing patterns.</param>
-        public static void AddPatterns([NotNull]this Matcher matcher, [NotNull]IEnumerable<string> patterns)
+        /// <param name="includePatterns">The set of include globbing patterns.</param>
+        /// <param name="excludePatterns">The set of exclude globbing patterns.</param>
+        public static void AddPatterns([NotNull]this Matcher matcher,
+            [NotNull]IEnumerable<string> includePatterns,
+            IEnumerable<string> excludePatterns = null)
         {
-            foreach (var pattern in patterns)
+            foreach (var pattern in includePatterns)
             {
-                if (pattern.StartsWith("!", StringComparison.OrdinalIgnoreCase))
+                matcher.AddInclude(pattern);
+            }
+            if (excludePatterns != null)
+            {
+                foreach (var pattern in excludePatterns)
                 {
-                    matcher.AddExclude(TrimLeadingTildeSlash(pattern.Substring(1)));
-                }
-                else
-                {
-                    matcher.AddInclude(TrimLeadingTildeSlash(pattern));
+                    matcher.AddExclude(pattern);
                 }
             }
         }
@@ -44,14 +45,6 @@ namespace Microsoft.Framework.FileSystemGlobbing
         public static bool IsGlobbingPattern([NotNull]this Matcher matcher, [NotNull]string pattern)
         {
             return pattern.IndexOf("*", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private static string TrimLeadingTildeSlash(string pattern)
-        {
-            var trimmedPattern = pattern;
-            trimmedPattern = trimmedPattern.StartsWith("~") ? trimmedPattern.Substring(1) : trimmedPattern;
-            trimmedPattern = trimmedPattern.StartsWith("/") ? trimmedPattern.Substring(1) : trimmedPattern;
-            return trimmedPattern;
         }
     }
 }
