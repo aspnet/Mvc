@@ -16,13 +16,16 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
     {
         private readonly IEnumerable<OptionDescriptor<TOption>> _optionDescriptors;
         private IOptionActivator<TOption> _optionActivator;
+        private readonly IServiceProvider _serviceProvider;
 
         public OptionDescriptorBasedProvider(
             [NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
-            [NotNull] IOptionActivator<TOption> optionActivator)
+            [NotNull] IOptionActivator<TOption> optionActivator,
+            [NotNull] IServiceProvider serviceProvider)
         {
             _optionDescriptors = optionDescriptors;
             _optionActivator = optionActivator;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -38,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
                     var instance = descriptor.Instance;
                     if (instance == null)
                     {
-                        instance = _optionActivator.CreateInstance(descriptor.OptionType);
+                        instance = _optionActivator.CreateInstance(_serviceProvider, descriptor.OptionType);
                     }
 
                     result.Add(instance);

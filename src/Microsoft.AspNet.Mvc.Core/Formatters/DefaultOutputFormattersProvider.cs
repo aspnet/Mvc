@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.Framework.OptionsModel;
@@ -18,8 +19,9 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public DefaultOutputFormattersProvider(IOptions<MvcOptions> optionsAccessor,
-                                               IOptionActivator<IOutputFormatter> optionActivator)
-            : base(optionsAccessor.Options.OutputFormatters, optionActivator)
+                                               IOptionActivator<IOutputFormatter> optionActivator,
+                                               IServiceProvider serviceProvider)
+            : base(optionsAccessor.Options.OutputFormatters, optionActivator, serviceProvider)
         {
         }
 

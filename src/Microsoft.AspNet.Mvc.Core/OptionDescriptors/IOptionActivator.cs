@@ -4,6 +4,6 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
 {
     public interface IOptionActivator<TOption>
     {
-        TOption CreateInstance(Type optionType);
+        TOption CreateInstance(IServiceProvider serviceProvider, Type optionType);
     }
 }

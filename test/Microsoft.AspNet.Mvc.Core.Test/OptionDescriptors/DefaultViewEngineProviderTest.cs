@@ -21,14 +21,14 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var optionActivator = new DefaultOptionActivator<IViewEngine>(serviceProvider.Object);
+            var optionActivator = new DefaultOptionActivator<IViewEngine>();
             var options = new MvcOptions();
             options.ViewEngines.Add(viewEngine);
             options.ViewEngines.Add(type);
             var accessor = new Mock<IOptions<MvcOptions>>();
             accessor.SetupGet(a => a.Options)
                     .Returns(options);
-            var provider = new DefaultViewEngineProvider(accessor.Object, optionActivator);
+            var provider = new DefaultViewEngineProvider(accessor.Object, optionActivator, serviceProvider.Object);
 
             // Act
             var result = provider.ViewEngines;

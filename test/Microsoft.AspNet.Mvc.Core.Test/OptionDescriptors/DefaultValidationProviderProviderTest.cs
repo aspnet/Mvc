@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var optionActivator = new DefaultOptionActivator<IModelValidatorProvider>(serviceProvider.Object);
+            var optionActivator = new DefaultOptionActivator<IModelValidatorProvider>();
             var options = new MvcOptions();
             options.ModelValidatorProviders.Add(type);
             options.ModelValidatorProviders.Add(validationProvider);
@@ -30,7 +30,8 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             accessor.SetupGet(a => a.Options)
                     .Returns(options);
             var provider = new DefaultModelValidatorProviderProvider(accessor.Object,
-                                                                     optionActivator);
+                                                                     optionActivator,
+                                                                     serviceProvider.Object);
 
             // Act
             var result = provider.ModelValidatorProviders;

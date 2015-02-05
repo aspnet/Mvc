@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var optionActivator = new DefaultOptionActivator<IViewLocationExpander>(serviceProvider.Object);
+            var optionActivator = new DefaultOptionActivator<IViewLocationExpander>();
             var options = new RazorViewEngineOptions();
             options.ViewLocationExpanders.Add(type);
             options.ViewLocationExpanders.Add(expander);
@@ -30,7 +30,8 @@ namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
             accessor.SetupGet(a => a.Options)
                     .Returns(options);
             var provider = new DefaultViewLocationExpanderProvider(accessor.Object,
-                                                                   optionActivator);
+                                                                   optionActivator,
+                                                                   serviceProvider.Object);
 
             // Act
             var result = provider.ViewLocationExpanders;
