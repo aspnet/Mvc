@@ -61,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("application/xml; charset=utf-8", response.Content.Headers.ContentType.ToString());
             var responseData = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedResponseData, responseData);
+            XmlAssert.Equal(expectedResponseData, responseData);
         }
 
         [Theory]
