@@ -1138,6 +1138,43 @@ namespace Microsoft.AspNet.Mvc.Test
             binder.Verify();
         }
 
+        [Fact]
+        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_UsesPassedArguments()
+        {
+            // Arrange
+            var modelName = "mymodel";
+
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
+                string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
+
+            var binder = new Mock<IModelBinder>();
+            var valueProvider = Mock.Of<IValueProvider>();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Callback((ModelBindingContext context) =>
+                  {
+                      Assert.Equal(modelName, context.ModelName);
+                      Assert.Same(valueProvider, context.ValueProvider);
+
+                      Assert.True(context.PropertyFilter(context, "include1"));
+                      Assert.True(context.PropertyFilter(context, "include2"));
+
+                      Assert.False(context.PropertyFilter(context, "exclude1"));
+                      Assert.False(context.PropertyFilter(context, "exclude2"));
+                  })
+                  .Returns(Task.FromResult(true))
+                  .Verifiable();
+
+            var controller = GetController(binder.Object, valueProvider);
+            var model = new MyModel();
+
+            // Act
+            await controller.TryUpdateModelAsync(model, model.GetType(), modelName, includePredicate);
+
+            // Assert
+            binder.Verify();
+        }
+
 #endif
 
         [Fact]

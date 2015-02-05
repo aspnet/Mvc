@@ -1096,6 +1096,44 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
+        /// Updates the specified <paramref name="model"/> instance using values from the controller's current
+        /// <see cref="IValueProvider"/> and a <paramref name="prefix"/>.
+        /// </summary>
+        /// <param name="model">The model instance to update.</param>
+        /// <param name="modelType">The type of model instance to update.</param>
+        /// <param name="prefix">The prefix to use when looking up values in the current <see cref="IValueProvider"/>.
+        /// </param>
+        /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
+        /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful</returns>
+        [NonAction]
+        public async Task<bool> TryUpdateModelAsync(
+            [NotNull] object model,
+            [NotNull] Type modelType,
+            string prefix,
+            [NotNull] Func<ModelBindingContext, string, bool> predicate)
+        {
+            if (BindingContext == null)
+            {
+                var message = Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(BindingContext),
+                    typeof(Controller).FullName);
+                throw new InvalidOperationException(message);
+            }
+
+            return await ModelBindingHelper.TryUpdateModelAsync(
+                model,
+                modelType,
+                prefix,
+                ActionContext.HttpContext,
+                ModelState,
+                MetadataProvider,
+                BindingContext.ModelBinder,
+                BindingContext.ValueProvider,
+                BindingContext.ValidatorProvider,
+                predicate);
+        }
+
+        /// <summary>
         /// Validates the specified <paramref name="model"/> instance.
         /// </summary>
         /// <param name="model">The model to validate.</param>

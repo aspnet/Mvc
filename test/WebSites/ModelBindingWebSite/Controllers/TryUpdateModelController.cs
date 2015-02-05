@@ -100,12 +100,22 @@ namespace ModelBindingWebSite.Controllers
 
         public async Task<Employee> GetEmployeeAsync_BindToBaseDeclaredType()
         {
-            var employee = new Employee();
-            await TryUpdateModelAsync<Person>(
+            Person employee = new Employee();
+            await TryUpdateModelAsync(
                 employee,
-                prefix: string.Empty);
+                employee.GetType(),
+                string.Empty,
+                (content, propertyName) => true);
 
-            return employee;
+            return (Employee)employee;
+        }
+
+        public async Task<User> GetUserAsync_ModelType_IncludeAll(int id)
+        {
+            var user = GetUser(id);
+
+            await TryUpdateModelAsync(user, user.GetType(), string.Empty, (content, propertyName) => true);
+            return user;
         }
 
         private User GetUser(int id)
