@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Mvc;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc;
 
 namespace Microsoft.Framework.FileSystemGlobbing
 {
@@ -15,6 +15,7 @@ namespace Microsoft.Framework.FileSystemGlobbing
         /// <summary>
         /// Adds include and exclude patterns.
         /// Patterns starting with a "!" will be added as excludes. All other patterns will be added as includes.
+        /// Leading forward slashes (/) and tildes (~) are trimmed from the pattern before being added.
         /// </summary>
         /// <param name="matcher">The <see cref="Matcher"/>.</param>
         /// <param name="patterns">The set of globbing patterns.</param>
@@ -24,24 +25,33 @@ namespace Microsoft.Framework.FileSystemGlobbing
             {
                 if (pattern.StartsWith("!", StringComparison.OrdinalIgnoreCase))
                 {
-                    matcher.AddExclude(pattern.TrimStart('!', '/'));
+                    matcher.AddExclude(TrimLeadingTildeSlash(pattern.Substring(1)));
                 }
                 else
                 {
-                    matcher.AddInclude(pattern.TrimStart('/'));
+                    matcher.AddInclude(TrimLeadingTildeSlash(pattern));
                 }
             }
         }
 
+        
         /// <summary>
         /// Determines whether a path contains characters suggesting it should be processed as a globbing pattern.
         /// </summary>
         /// <param name="matcher">The <see cref="Matcher"/>.</param>
         /// <param name="pattern">The value to test.</param>
-        /// <returns></returns>
-        public static bool IsGlobbingPattern([NotNull]this Matcher matcher, [NotNull] string pattern)
+        /// <returns>A <see cref="bool"/> indicating whether the path contains globbing characters.</returns>
+        public static bool IsGlobbingPattern([NotNull]this Matcher matcher, [NotNull]string pattern)
         {
             return pattern.IndexOf("*", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static string TrimLeadingTildeSlash(string pattern)
+        {
+            var trimmedPattern = pattern;
+            trimmedPattern = trimmedPattern.StartsWith("~") ? trimmedPattern.Substring(1) : trimmedPattern;
+            trimmedPattern = trimmedPattern.StartsWith("/") ? trimmedPattern.Substring(1) : trimmedPattern;
+            return trimmedPattern;
         }
     }
 }

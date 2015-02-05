@@ -13,6 +13,7 @@ using Microsoft.Framework.Runtime;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -122,7 +123,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 {
                     content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
                 }
-                content.AppendLine("/>");
+                content.Append("/>");
             }
             else
             {
@@ -158,14 +159,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                 attribute.Value);
                         }
                     }
-                    content.AppendLine("/>");
+                    content.Append("/>");
                 }
             }
 
             if (modeResult.Mode == Mode.Fallback)
             {
+                content.AppendLine();
+
                 // Build the <meta /> tag that's used to test for the presence of the stylesheet
-                content.AppendLine(string.Format(CultureInfo.InvariantCulture, FallbackTestMetaTemplate, FallbackTestClass));
+                content.AppendLine(string.Format(CultureInfo.InvariantCulture,
+                    FallbackTestMetaTemplate,
+                    FallbackTestClass));
 
                 var matchedFallbackHrefs = ExpandGlobbedHref(FallbackHref);
 
@@ -186,7 +191,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private IEnumerable<string> ExpandGlobbedHref(string href)
         {
-            // TODO: Should we cache these so we don't have to look it up every time?
             var patterns = href.Split(',');
 
             if (patterns.Length == 0)
