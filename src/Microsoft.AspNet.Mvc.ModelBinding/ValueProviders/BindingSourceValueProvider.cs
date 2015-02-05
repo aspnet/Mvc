@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-
     /// <summary>
     /// A value provider which provides data from a specific <see cref="BindingSource"/>.
     /// </summary>

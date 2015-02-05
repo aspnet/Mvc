@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             isFromRequest: true);
 
         /// <summary>
-        /// A <see cref="ApiParameterSource"/> for a custom model binder (unknown data source).
+        /// A <see cref="BindingSource"/> for a custom model binder (unknown data source).
         /// </summary>
         public static readonly BindingSource Custom = new BindingSource(
             "Custom",
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             isFromRequest: true);
 
         /// <summary>
-        /// A <see cref="ApiParameterSource"/> for the request form-data.
+        /// A <see cref="BindingSource"/> for the request form-data.
         /// </summary>
         public static readonly BindingSource Form = new BindingSource(
             "Form",

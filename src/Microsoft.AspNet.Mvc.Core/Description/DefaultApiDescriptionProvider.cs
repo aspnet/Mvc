@@ -466,7 +466,7 @@ namespace Microsoft.AspNet.Mvc.Description
             /// model properties where we can definitely compute an answer. 
             /// </summary>
             /// <param name="modelMetadata">The metadata for the model.</param>
-            /// <param name="ambientSource">The <see cref="ApiParameterSource"/> from the ambient context.</param>
+            /// <param name="ambientSource">The <see cref="BindingSource"/> from the ambient context.</param>
             /// <param name="containerName">The current name prefix (to prepend to property names).</param>
             /// <returns>
             /// <c>true</c> if the set of <see cref="ApiParameterDescription"/> objects were created for the model.

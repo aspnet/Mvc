@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void BinderType_CustomBindingSource()
+        public void BinderType_DefaultCustomBindingSource()
         {
             // Arrange
             var attribute = new ModelBinderAttribute();
@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void BinderType_OverrideCustomBindingSource()
+        public void BinderType_SettingBindingSource_OverridesDefaultCustomBindingSource()
         {
             // Arrange
             var attribute = new ModelBinderAttribute();

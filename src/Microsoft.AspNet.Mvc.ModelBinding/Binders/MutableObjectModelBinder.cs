@@ -112,8 +112,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // We want to check to see if any of the properties of the model can be bound using the value providers,
             // because that's all that MutableObjectModelBinder can handle.
             //
+            // However, because a property might specify a custom binding source ([FromForm]), it's not correct
+            // for us to just try bindingContext.ValueProvider.ContainsPrefixAsync(bindingContext.ModelName),
+            // because that may include ALL value providers - that would lead us to mistakenly create the model
+            // when the data is coming from a source we should use (ex: value found in query string, but the 
+            // model has [FromForm]).
+            //
             // To do this we need to enumerate the properties, and see which of them provide a binding source
-            // through metadata, then we decided what to do.
+            // through metadata, then we decide what to do.
             //
             //      If a property has a binding source, and it's a greedy source, then it's not
             //      allowed to come from a value provider, so we skip it.
@@ -124,13 +130,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             //
             //      If a property does not have a binding source, then it's fair game for any value provider.
             //
+            // If any property meets the above conditions and has a value from valueproviders, then we'll
+            // create the model and try to bind it. OR if ALL properties of the model have a greedy source, 
+            // then we go ahead and create it.
+            //
             var isAnyPropertyEnabledForValueProviderBasedBinding = false;
             foreach (var propertyMetadata in context.PropertyMetadata)
             {
                 // This check will skip properties which are marked explicitly using a non value binder.
                 var bindingSource = BindingSource.GetBindingSource(propertyMetadata.BinderMetadata);
-                if (bindingSource == null ||
-                    !bindingSource.IsGreedy)
+                if (bindingSource == null || !bindingSource.IsGreedy)
                 {
                     isAnyPropertyEnabledForValueProviderBasedBinding = true;
 
@@ -161,11 +170,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var bindingSource = BindingSource.GetBindingSource(metadata.BinderMetadata);
             if (bindingSource != null && !bindingSource.IsGreedy)
             {
-                var metadataAwareValueProvider =
-                    bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
-                if (metadataAwareValueProvider != null)
+                var rootValueProvider = bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
+                if (rootValueProvider != null)
                 {
-                    valueProvider = metadataAwareValueProvider.Filter(bindingSource);
+                    valueProvider = rootValueProvider.Filter(bindingSource);
                 }
             }
 

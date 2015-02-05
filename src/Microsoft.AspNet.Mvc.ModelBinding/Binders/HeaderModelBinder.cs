@@ -48,10 +48,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         bindingContext.ModelType,
                         values);
                 }
-                }
+            }
 
             // Always return true as header model binder is supposed to always handle IHeaderBinderMetadata.
-                return Task.FromResult(true);
-            }
+            return Task.FromResult(true);
+        }
     }
 }
