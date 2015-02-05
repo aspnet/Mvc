@@ -65,19 +65,82 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
         public static ModeResult<TMode> DetermineMode<TMode, TSet>(
             this TagHelperContext context,
-            IEnumerable<Tuple<TMode, TSet>> attributeSets)
+            IEnumerable<Tuple<TMode, TSet>> attributeSets,
+            ILogger logger = null)
             where TSet : IEnumerable<string>
         {
+            var bufferedLogger = logger != null ? new BufferedLogger(logger) : null;
+
             foreach (var set in attributeSets)
             {
-                // TODO: Flow the ILogger through here but only log warnings if NO matches are found
-                if (AllRequiredAttributesArePresent(context, set.Item2))
+                if (AllRequiredAttributesArePresent(context, set.Item2, bufferedLogger))
                 {
                     return ModeResult.Matched(set.Item1);
                 }
             }
 
+            // TODO: This might need some more work, possibly just refactor the AllRequiredAttributesArePresent to
+            //       support getting the missed attributes back and then write this out more cleanly here.
+            // No match found, flush any log messages that were written while checking
+            if (bufferedLogger != null)
+            {
+                logger.WriteWarning("Partial mode matches for {0} with ID {1} were found:", nameof(LinkTagHelper), context.UniqueId);
+                bufferedLogger.Flush();
+            }
+
             return ModeResult<TMode>.Unmatched;
+        }
+
+        private class BufferedLogger : ILogger
+        {
+            private readonly ILogger _logger;
+            private readonly List<LogCall> _logs = new List<LogCall>();
+
+            public BufferedLogger(ILogger logger)
+            {
+                _logger = logger;
+            }
+
+            public IDisposable BeginScope(object state)
+            {
+                return _logger.BeginScope(state);
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return _logger.IsEnabled(logLevel);
+            }
+
+            public void Write(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+            {
+                _logs.Add(new LogCall(logLevel, eventId, state, exception, formatter));
+            }
+
+            public void Flush()
+            {
+                foreach (var log in _logs)
+                {
+                    _logger.Write(log.LogLevel, log.EventId, log.State, log.Exception, log.Formatter);
+                }
+            }
+
+            private class LogCall
+            {
+                public LogCall(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+                {
+                    LogLevel = logLevel;
+                    EventId = eventId;
+                    State = state;
+                    Exception = exception;
+                    Formatter = formatter;
+                }
+
+                public LogLevel LogLevel { get; set; }
+                public int EventId { get; set; }
+                public object State { get; set; }
+                public Exception Exception { get; set; }
+                public Func<object, Exception, string> Formatter { get; set; }
+            }
         }
     }
 

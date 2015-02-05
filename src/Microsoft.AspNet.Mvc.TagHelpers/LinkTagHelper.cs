@@ -142,7 +142,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             _webRoot = new DirectoryInfoWrapper(new DirectoryInfo(HostingEnvironment.WebRoot));
 
-            var modeResult = context.DetermineMode(ModeAttributeSets);
+            var modeResult = context.DetermineMode(ModeAttributeSets, Logger);
 
             if (!modeResult.Matched)
             {
