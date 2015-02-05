@@ -666,38 +666,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeGreedy"), p0, p1);
         }
 
-        /// <summary>
-        /// The value '{0}' is not valid for {1}.
-        /// </summary>
-        internal static string ModelBinderUtil_ValueInvalid
-        {
-            get { return GetString("ModelBinderUtil_ValueInvalid"); }
-        }
-
-        /// <summary>
-        /// The value '{0}' is not valid for {1}.
-        /// </summary>
-        internal static string FormatModelBinderUtil_ValueInvalid(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinderUtil_ValueInvalid"), p0, p1);
-        }
-
-        /// <summary>
-        /// The supplied value is invalid for {0}.
-        /// </summary>
-        internal static string ModelBinderUtil_ValueInvalidGeneric
-        {
-            get { return GetString("ModelBinderUtil_ValueInvalidGeneric"); }
-        }
-
-        /// <summary>
-        /// The supplied value is invalid for {0}.
-        /// </summary>
-        internal static string FormatModelBinderUtil_ValueInvalidGeneric(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinderUtil_ValueInvalidGeneric"), p0);
-        }
-
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

@@ -35,8 +35,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Arrange
             var expected =
-                "The provided binding source 'Test Source' is a greedy data source. " +
-                "'BindingSourceValueProvider' does not support greedy data sources." + Environment.NewLine +
+                "The provided binding source 'Test Source' is a composite. " +
+                "'BindingSourceValueProvider' requires that the source must represent a single type of input." + 
+                Environment.NewLine +
                 "Parameter name: bindingSource";
 
             var bindingSource = CompositeBindingSource.Create(
