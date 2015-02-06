@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal(acceptHeader, response.Content.Headers.ContentType.MediaType);
             var responseData = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedXml, responseData);
+            XmlAssert.Equal(expectedXml, responseData);
         }
 
         [Theory]
@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal(acceptHeader, response.Content.Headers.ContentType.MediaType);
             var responseData = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedXml, responseData);
+            XmlAssert.Equal(expectedXml, responseData);
         }
 
         [Theory]
@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             var responseData = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expected, responseData);
+            XmlAssert.Equal(expected, responseData);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfInt xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+            XmlAssert.Equal("<ArrayOfInt xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                          "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><int>10</int>" +
                          "<int>20</int></ArrayOfInt>",
                          result);
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfString xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+            XmlAssert.Equal("<ArrayOfString xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                          "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><string>value1</string>" +
                          "<string>value2</string></ArrayOfString>",
                          result);
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfString xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+            XmlAssert.Equal("<ArrayOfString xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                 " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xsi:nil=\"true\" />",
                 result);
         }
@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfString xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+            XmlAssert.Equal("<ArrayOfString xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                 " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" />",
                 result);
         }
@@ -125,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfPersonWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+            XmlAssert.Equal("<ArrayOfPersonWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                          "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><PersonWrapper><Id>10</Id>" +
                          "<Name>Mike</Name><Age>35</Age></PersonWrapper><PersonWrapper><Id>11</Id>" +
                          "<Name>Jimmy</Name><Age>35</Age></PersonWrapper></ArrayOfPersonWrapper>",
@@ -149,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfPersonWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+            XmlAssert.Equal("<ArrayOfPersonWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                 " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" />",
                 result);
         }
@@ -172,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfPersonWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+            XmlAssert.Equal("<ArrayOfPersonWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                 " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xsi:nil=\"true\" />",
                 result);
         }
@@ -192,7 +192,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadAsStringAsync();
-            Assert.Equal("<ArrayOfSerializableErrorWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+            XmlAssert.Equal("<ArrayOfSerializableErrorWrapper xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                 " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SerializableErrorWrapper><key1>key1-error</key1>" +
                 "<key2>key2-error</key2></SerializableErrorWrapper><SerializableErrorWrapper><key3>key1-error</key3>" +
                 "<key4>key2-error</key4></SerializableErrorWrapper></ArrayOfSerializableErrorWrapper>",
