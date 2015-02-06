@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc
 
         public MvcOptions()
         {
-            ApplicationModelConventions = new List<IApplicationModelConvention>();
+            Conventions = new List<IApplicationModelConvention>();
             ModelBinders = new List<ModelBinderDescriptor>();
             ViewEngines = new List<ViewEngineDescriptor>();
             ValueProviderFactories = new List<ValueProviderFactoryDescriptor>();
@@ -132,7 +132,7 @@ namespace Microsoft.AspNet.Mvc
         /// Gets a list of <see cref="IApplicationModelConvention"/> instances that will be applied to
         /// the <see cref="ApplicationModel"/> when discovering actions.
         /// </summary>
-        public List<IApplicationModelConvention> ApplicationModelConventions { get; private set; }
+        public List<IApplicationModelConvention> Conventions { get; private set; }
 
         /// <summary>
         /// Gets or sets the flag which causes content negotiation to ignore Accept header 

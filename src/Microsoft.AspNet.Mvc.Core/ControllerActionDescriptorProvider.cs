@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc
             _assemblyProvider = assemblyProvider;
             _applicationModelBuilder = applicationModelBuilder;
             _globalFilters = globalFilters.Filters;
-            _modelConventions = optionsAccessor.Options.ApplicationModelConventions;
+            _modelConventions = optionsAccessor.Options.Conventions;
             _logger = loggerFactory.Create<ControllerActionDescriptorProvider>();
         }
 
