@@ -24,13 +24,27 @@ namespace Microsoft.Framework.FileSystemGlobbing
         {
             foreach (var pattern in includePatterns)
             {
-                matcher.AddInclude(pattern);
+                var includePattern = pattern;
+                if (includePattern.StartsWith("/", StringComparison.Ordinal)
+                    || includePattern.StartsWith("\\", StringComparison.Ordinal))
+                {
+                    // Trim the leading slash as the matcher runs from the provided root only anyway
+                    includePattern = includePattern.Substring(1);
+                }
+                matcher.AddInclude(includePattern);
             }
             if (excludePatterns != null)
             {
                 foreach (var pattern in excludePatterns)
                 {
-                    matcher.AddExclude(pattern);
+                    var excludePattern = pattern;
+                    if (excludePattern.StartsWith("/", StringComparison.Ordinal)
+                        || excludePattern.StartsWith("\\", StringComparison.Ordinal))
+                    {
+                        // Trim the leading slash as the matcher runs from the provided root only anyway
+                        excludePattern = excludePattern.Substring(1);
+                    }
+                    matcher.AddExclude(excludePattern);
                 }
             }
         }
