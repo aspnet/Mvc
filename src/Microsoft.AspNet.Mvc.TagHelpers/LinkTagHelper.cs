@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.FileSystemGlobbing;
 using Microsoft.Framework.FileSystemGlobbing.Abstractions;
 using Microsoft.Framework.Logging;
@@ -136,6 +137,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Activate]
         protected internal ViewContext ViewContext { get; set; }
 
+        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        [Activate]
+        protected internal IMemoryCache Cache { get; set; }
+
         private DirectoryInfoBase _webRoot;
 
         /// <inheritdoc />
@@ -243,24 +248,35 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private IEnumerable<string> ExpandGlobbedHref(string include, string exclude = null)
         {
-            if (string.IsNullOrEmpty(include))
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            var includePatterns = include.Split(',');
-
-            if (includePatterns.Length == 0)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            var excludePatterns = exclude?.Split(',');
-            var matcher = new Matcher();
-            matcher.AddPatterns(includePatterns, excludePatterns);
-            var matches = matcher.Execute(_webRoot);
+            var cacheKey = $"GlobbedFiles-inc:{include}-exc:{exclude}";
             
-            return matches.Files.Select(ResolveMatchedPath);
+            return Cache.GetOrSet(cacheKey, cacheSetContext =>
+            {
+                if (string.IsNullOrEmpty(include))
+                {
+                    return Enumerable.Empty<string>();
+                }
+
+                var includePatterns = include.Split(',');
+
+                if (includePatterns.Length == 0)
+                {
+                    return Enumerable.Empty<string>();
+                }
+
+                foreach (var pattern in includePatterns)
+                {
+                    var trigger = HostingEnvironment.WebRootFileProvider.Watch(pattern);
+                    cacheSetContext.AddExpirationTrigger(trigger);
+                }
+                
+                var excludePatterns = exclude?.Split(',');
+                var matcher = new Matcher();
+                matcher.AddPatterns(includePatterns, excludePatterns);
+                var matches = matcher.Execute(_webRoot);
+
+                return matches.Files.Select(ResolveMatchedPath);
+            });
         }
 
         private string ResolveMatchedPath(string matchedPath)
