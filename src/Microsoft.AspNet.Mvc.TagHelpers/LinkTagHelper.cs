@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Net;
 using System.Text;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Logging;
@@ -142,11 +143,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            GlobbingUtil = GlobbingUtil ?? new GlobbingUtility(
-                Cache,
-                HostingEnvironment.WebRootDirectoryInfo(),
-                HostingEnvironment.WebRootFileProvider,
-                ViewContext.HttpContext.Request.PathBase);
+            if (GlobbingUtil == null)
+            {
+                GlobbingUtil = new GlobbingUtility(
+                    Cache,
+                    HostingEnvironment.WebRootFileProvider,
+                    ViewContext.HttpContext.Request.PathBase);
+            }
 
             var modeResult = context.DetermineMode(ModeInfo, Logger);
 

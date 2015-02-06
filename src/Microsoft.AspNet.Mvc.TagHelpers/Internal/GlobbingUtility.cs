@@ -6,60 +6,40 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.FileSystemGlobbing;
-using Microsoft.Framework.FileSystemGlobbing.Abstractions;
 
-namespace Microsoft.AspNet.Mvc.TagHelpers
+namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
     /// Utility methods for <see cref="ITagHelper"/>'s that support attributes containing file globbing patterns.
     /// </summary>
     public class GlobbingUtility
     {
-        /// <summary>
-        /// Creates a new <see cref="GlobbingUtility"/>.
-        /// </summary>
-        /// <param name="cache">The <see cref="IMemoryCache"/> to cache globbing results in.</param>
-        /// <param name="baseDirectory">The base directory to perform file globbing matches against.</param>
-        /// <param name="fileProvider">
-        ///     The <see cref="IFileProvider"/> used to watch for changes to file globbing results.
-        /// </param>
-        /// <param name="requestPathBase">
-        ///     The base path of the current request (e.g. <see cref="HttpRequest.PathBase"/>).
-        /// </param>
-        public GlobbingUtility(
-            IMemoryCache cache,
-            DirectoryInfoBase baseDirectory,
-            IFileProvider fileProvider,
-            PathString requestPathBase)
+        private FileProviderGlobbingDirectory _baseGlobbingDirectory;
+
+        public GlobbingUtility(IMemoryCache cache, IFileProvider fileProvider, PathString requestPathBase)
         {
             Cache = cache;
-            BaseDirectory = baseDirectory;
             FileProvider = fileProvider;
             RequestPathBase = requestPathBase;
+            _baseGlobbingDirectory = new FileProviderGlobbingDirectory(fileProvider, fileInfo: null, parent: null);
         }
 
         /// <summary>
         /// The <see cref="IMemoryCache"/> to cache globbing results in.
         /// </summary>
-        public virtual IMemoryCache Cache { get; private set; }
-
-        /// <summary>
-        /// The base directory to perform file globbing matches against.
-        /// </summary>
-        public virtual DirectoryInfoBase BaseDirectory { get; private set; }
+        public IMemoryCache Cache { get; set; }
 
         /// <summary>
         /// The <see cref="IFileProvider"/> used to watch for changes to file globbing results.
         /// </summary>
-        public virtual IFileProvider FileProvider { get; private set; }
+        public IFileProvider FileProvider { get; set; }
 
         /// <summary>
         /// The base path of the current request (e.g. <see cref="HttpRequest.PathBase"/>).
         /// </summary>
-        public virtual PathString RequestPathBase { get; private set; }
+        public PathString RequestPathBase { get; set; }
 
         /// <summary>
         /// Builds a list of URLs.
@@ -73,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var urls = new HashSet<string>(StringComparer.Ordinal);
 
             // Add the statically declared url if present
-            if (!string.IsNullOrWhiteSpace(staticUrl))
+            if (staticUrl != null)
             {
                 urls.Add(staticUrl);
             }
@@ -90,35 +70,44 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private IEnumerable<string> ExpandGlobbedUrl(string include, string exclude = null)
         {
-            var cacheKey = $"{nameof(GlobbingUtility)}-inc:{include}-exc:{exclude}";
-
-            return Cache.GetOrSet(cacheKey, cacheSetContext =>
+            if (string.IsNullOrEmpty(include))
             {
-                if (string.IsNullOrEmpty(include))
+                return Enumerable.Empty<string>();
+            }
+
+            var includePatterns = include.Split(',');
+            var excludePatterns = exclude?.Split(',');
+
+            if (includePatterns.Length == 0)
+            {
+                return Enumerable.Empty<string>();
+            }
+            
+            if (Cache != null)
+            {
+                var cacheKey = $"{nameof(GlobbingUtility)}-inc:{include}-exc:{exclude}";
+                return Cache.GetOrSet(cacheKey, cacheSetContext =>
                 {
-                    return Enumerable.Empty<string>();
-                }
+                    foreach (var pattern in includePatterns)
+                    {
+                        var trigger = FileProvider.Watch(pattern);
+                        cacheSetContext.AddExpirationTrigger(trigger);
+                    }
 
-                var includePatterns = include.Split(',');
+                    return FindFiles(includePatterns, excludePatterns);
+                });
+            }
 
-                if (includePatterns.Length == 0)
-                {
-                    return Enumerable.Empty<string>();
-                }
+            return FindFiles(includePatterns, excludePatterns);
+        }
 
-                foreach (var pattern in includePatterns)
-                {
-                    var trigger = FileProvider.Watch(pattern);
-                    cacheSetContext.AddExpirationTrigger(trigger);
-                }
+        private IEnumerable<string> FindFiles(IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
+        {
+            var matcher = new Matcher();
+            matcher.AddPatterns(includePatterns, excludePatterns);
+            var matches = matcher.Execute(_baseGlobbingDirectory);
 
-                var excludePatterns = exclude?.Split(',');
-                var matcher = new Matcher();
-                matcher.AddPatterns(includePatterns, excludePatterns);
-                var matches = matcher.Execute(BaseDirectory);
-
-                return matches.Files.Select(ResolveMatchedPath);
-            });
+            return matches.Files.Select(ResolveMatchedPath);
         }
 
         private string ResolveMatchedPath(string matchedPath)
