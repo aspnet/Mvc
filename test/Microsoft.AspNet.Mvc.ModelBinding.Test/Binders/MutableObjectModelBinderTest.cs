@@ -1574,7 +1574,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var modelBinderActivator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
             modelBinderActivator
-                .Setup(f => f.CreateInstance(typeof(ExcludedProvider)))
+                .Setup(f => f.CreateInstance(services.Object, typeof(ExcludedProvider)))
                 .Returns(new ExcludedProvider());
 
             services

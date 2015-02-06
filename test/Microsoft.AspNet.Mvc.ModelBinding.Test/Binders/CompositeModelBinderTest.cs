@@ -422,7 +422,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var serviceProvider = Mock.Of<IServiceProvider>();
             var modelBinderActivator = new Mock<IModelBinderActivator>();
             modelBinderActivator
-                .Setup(t => t.CreateInstance(It.IsAny<Type>()))
+                .Setup(t => t.CreateInstance(serviceProvider, It.IsAny<Type>()))
                 .Returns((Type t) => Activator.CreateInstance(t));
             var binders = new IModelBinder[]
             {

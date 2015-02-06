@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc
                     var services = context.OperationBindingContext.HttpContext.RequestServices;
                     var modelBinderActivator = services.GetRequiredService<IModelBinderActivator>();
 
-                    var provider = (IPropertyBindingPredicateProvider)modelBinderActivator.CreateInstance(predicateProviderType);
+                    var provider = (IPropertyBindingPredicateProvider)modelBinderActivator.CreateInstance(services, predicateProviderType);
 
                     initialized = true;
                     predicate = provider.PropertyFilter ?? _defaultFilter;

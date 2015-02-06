@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binderType = ResolveBinderType(bindingContext.ModelType);
             if (binderType != null)
             {
-                var binder = (IModelBinder)_modelBinderActivator.CreateInstance(binderType);
+                var binder = (IModelBinder)_modelBinderActivator.CreateInstance(_serviceProvider, binderType);
                 await binder.BindModelAsync(bindingContext);
 
                 // Was able to resolve a binder type, hence we should tell the model binding system to return

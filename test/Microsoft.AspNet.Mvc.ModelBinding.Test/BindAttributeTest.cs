@@ -74,14 +74,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 HttpContext = new DefaultHttpContext(),
             };
-
+            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             var activator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
             activator
-                .Setup(a => a.CreateInstance(typeof(TestProvider)))
+                .Setup(a => a.CreateInstance(services.Object, typeof(TestProvider)))
                 .Returns(new TestProvider())
                 .Verifiable();
 
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             services
                 .Setup(s => s.GetService(typeof(IModelBinderActivator)))
                 .Returns(activator.Object);
@@ -109,13 +108,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 HttpContext = new DefaultHttpContext(),
             };
 
+            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             var activator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
             activator
-                .Setup(a => a.CreateInstance(typeof(TestProvider)))
+                .Setup(a => a.CreateInstance(services.Object, typeof(TestProvider)))
                 .Returns(new TestProvider())
                 .Verifiable();
 
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             services
                 .Setup(s => s.GetService(typeof(IModelBinderActivator)))
                 .Returns(activator.Object);
@@ -131,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             activator
                 .Verify(
-                    a => a.CreateInstance(typeof(TestProvider)),
+                    a => a.CreateInstance(services.Object, typeof(TestProvider)),
                     Times.Once());
         }
 #endif

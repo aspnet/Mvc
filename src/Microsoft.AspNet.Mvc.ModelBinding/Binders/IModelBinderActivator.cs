@@ -7,6 +7,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public interface IModelBinderActivator
     {
-        object CreateInstance(Type binderType);
+        object CreateInstance(IServiceProvider provider, Type binderType);
     }
 }
