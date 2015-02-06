@@ -4,16 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Cache.Memory;
-using Microsoft.Framework.FileSystemGlobbing;
-using Microsoft.Framework.FileSystemGlobbing.Abstractions;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -34,11 +29,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly IEnumerable<Tuple<Mode, string[]>> ModeInfo =
-            new List<Tuple<Mode, string[]>>
+        private static readonly Tuple<Mode, string[]>[] ModeInfo =
+            new []
             {
                 Tuple.Create(Mode.Fallback, new[]
                 {
+                    // Static fallback only
                     FallbackHrefAttributeName,
                     FallbackTestClassAttributeName,
                     FallbackTestPropertyAttributeName,
@@ -46,6 +42,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }),
                 Tuple.Create(Mode.Fallback, new[]
                 {
+                    // Globbed fallback, include pattern only (static fallback optional)
                     FallbackHrefIncludeAttributeName,
                     FallbackTestClassAttributeName,
                     FallbackTestPropertyAttributeName,
@@ -53,6 +50,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }),
                 Tuple.Create(Mode.Fallback, new[]
                 {
+                    // Globbed fallback, include & exclude patterns (static fallback optional)
                     FallbackHrefIncludeAttributeName,
                     FallbackHrefExcludeAttributeName,
                     FallbackTestClassAttributeName,
@@ -125,28 +123,30 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [HtmlAttributeName(FallbackTestValueAttributeName)]
         public string FallbackTestValue { get; set; }
 
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        // Properties are protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
         [Activate]
         protected internal ILogger<LinkTagHelper> Logger { get; set; }
-
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        
         [Activate]
         protected internal IHostingEnvironment HostingEnvironment { get; set; }
 
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
         [Activate]
         protected internal ViewContext ViewContext { get; set; }
-
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
+        
         [Activate]
         protected internal IMemoryCache Cache { get; set; }
 
-        private DirectoryInfoBase _webRoot;
+        // Internal for ease of use when testing.
+        protected internal GlobbingUtility GlobbingUtil { get; set; }
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            _webRoot = new DirectoryInfoWrapper(new DirectoryInfo(HostingEnvironment.WebRoot));
+            GlobbingUtil = GlobbingUtil ?? new GlobbingUtility(
+                Cache,
+                HostingEnvironment.WebRootDirectoryInfo(),
+                HostingEnvironment.WebRootFileProvider,
+                ViewContext.HttpContext.Request.PathBase);
 
             var modeResult = context.DetermineMode(ModeInfo, Logger);
 
@@ -159,131 +159,78 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            var content = new StringBuilder();
-
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
 
+            var content = new StringBuilder();
+            
             if (modeResult.Mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
             {
                 // No globbing to do, just build a <link /> tag to match the original one in the source file
-                content.Append("<link ");
-                foreach (var attribute in output.Attributes)
-                {
-                    content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
-                }
-                content.Append("/>");
+                BuildLinkTag(output.Attributes, content);
             }
             else
             {
-                // Process href globbing include/excludes
-                string plainHref;
-                output.Attributes.TryGetValue("href", out plainHref);
-
-                var hrefs = BuildHrefList(plainHref, HrefInclude, HrefExclude);
-
-                foreach (var href in hrefs)
-                {
-                    // Build a <link /> tag for each matched href
-                    content.AppendFormat("<link href=\"{0}\" ", WebUtility.HtmlEncode(href));
-                    foreach (var attribute in output.Attributes)
-                    {
-                        if (!string.Equals(attribute.Key, "href", StringComparison.Ordinal))
-                        {
-                            content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ",
-                                attribute.Key,
-                                attribute.Value);
-                        }
-                    }
-                    content.Append("/>");
-                }
+                BuildGlobbedLinkTags(output.Attributes, content);
             }
 
             if (modeResult.Mode == Mode.Fallback)
             {
-                content.AppendLine();
-
-                // Build the <meta /> tag that's used to test for the presence of the stylesheet
-                content.AppendLine(string.Format(CultureInfo.InvariantCulture,
-                    FallbackTestMetaTemplate,
-                    FallbackTestClass));
-
-                var fallbackHrefs = BuildHrefList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
-
-                // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
-                // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
-                // indicating that the primary stylesheet failed to load.
-                content.Append("<script>")
-                       .AppendFormat(CultureInfo.InvariantCulture,
-                                     JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                                     JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
-                                     JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
-                                     JavaScriptUtility.JavaScriptArrayEncode(fallbackHrefs))
-                       .Append("</script>");
+                BuildFallbackBlock(content);
             }
 
-            // We've taken over rendering here so prevent the element rendering the outer tag
+            // We've taken over rendering so prevent the element rendering the outer tag
             output.TagName = null;
             output.Content = content.ToString();
         }
 
-        private IEnumerable<string> BuildHrefList(string href, string includePattern, string excludePattern)
+        private void BuildGlobbedLinkTags(IDictionary<string, string> attributes, StringBuilder content)
         {
-            var hrefs = new HashSet<string>(StringComparer.Ordinal);
+            // Build a <link /> tag for each matched href as well as the original one in the source file
+            string staticHref;
+            attributes.TryGetValue("href", out staticHref);
 
-            // Add the standard fallback href if present
-            if (!string.IsNullOrWhiteSpace(href))
+            var hrefs = GlobbingUtil.BuildUrlList(staticHref, HrefInclude, HrefExclude);
+
+            foreach (var href in hrefs)
             {
-                hrefs.Add(href);
+                attributes["href"] = WebUtility.HtmlEncode(href);
+                BuildLinkTag(attributes, content);
             }
+        }
+        
+        private void BuildFallbackBlock(StringBuilder content)
+        {
+            content.AppendLine();
 
-            // Add fallback hrefs that match the globbing patterns specified
-            var matchedFallbackHrefs = ExpandGlobbedHref(includePattern, excludePattern);
-            foreach (var matchedHref in matchedFallbackHrefs)
-            {
-                hrefs.Add(matchedHref);
-            }
+            // Build the <meta /> tag that's used to test for the presence of the stylesheet
+            content.AppendLine(string.Format(CultureInfo.InvariantCulture,
+                FallbackTestMetaTemplate,
+                FallbackTestClass));
 
-            return hrefs;
+            var fallbackHrefs = GlobbingUtil.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
+
+            // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
+            // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
+            // indicating that the primary stylesheet failed to load.
+            content.Append("<script>")
+                   .AppendFormat(CultureInfo.InvariantCulture,
+                        JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
+                        JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
+                        JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
+                        JavaScriptUtility.JavaScriptArrayEncode(fallbackHrefs))
+                   .Append("</script>");
         }
 
-        private IEnumerable<string> ExpandGlobbedHref(string include, string exclude = null)
+        private static void BuildLinkTag(IDictionary<string, string> attributes, StringBuilder content)
         {
-            var cacheKey = $"GlobbedFiles-inc:{include}-exc:{exclude}";
-            
-            return Cache.GetOrSet(cacheKey, cacheSetContext =>
+            content.Append("<link ");
+
+            foreach (var attribute in attributes)
             {
-                if (string.IsNullOrEmpty(include))
-                {
-                    return Enumerable.Empty<string>();
-                }
+                content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
+            }
 
-                var includePatterns = include.Split(',');
-
-                if (includePatterns.Length == 0)
-                {
-                    return Enumerable.Empty<string>();
-                }
-
-                foreach (var pattern in includePatterns)
-                {
-                    var trigger = HostingEnvironment.WebRootFileProvider.Watch(pattern);
-                    cacheSetContext.AddExpirationTrigger(trigger);
-                }
-                
-                var excludePatterns = exclude?.Split(',');
-                var matcher = new Matcher();
-                matcher.AddPatterns(includePatterns, excludePatterns);
-                var matches = matcher.Execute(_webRoot);
-
-                return matches.Files.Select(ResolveMatchedPath);
-            });
-        }
-
-        private string ResolveMatchedPath(string matchedPath)
-        {
-            // Resolve the path to absolute root
-            var relativePath = new PathString("/" + matchedPath);
-            return ViewContext.HttpContext.Request.PathBase.Add(relativePath).ToString();
+            content.Append("/>");
         }
     }
 }
