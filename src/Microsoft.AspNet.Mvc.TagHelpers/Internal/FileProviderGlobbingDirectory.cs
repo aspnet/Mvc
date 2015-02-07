@@ -23,9 +23,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             _fileProvider = fileProvider;
             _fileInfo = fileInfo;
             _parent = parent;
-            if (_parent != null)
+            if (_parent != null && !string.IsNullOrEmpty(_parent.RelativePath) && _fileInfo != null)
             {
                 RelativePath = _parent.RelativePath + Path.DirectorySeparatorChar + _fileInfo.Name;
+            }
+            else if (_fileInfo != null)
+            {
+                RelativePath = _fileInfo.Name;
             }
             else
             {
@@ -39,12 +43,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             get
             {
-                if (string.IsNullOrEmpty(RelativePath))
+                if (_parent == null || string.IsNullOrEmpty(_parent.FullName))
                 {
                     return Name;
                 }
 
-                return RelativePath + Path.DirectorySeparatorChar + Name;
+                return _parent.FullName + Path.DirectorySeparatorChar + Name;
             }
         }
 

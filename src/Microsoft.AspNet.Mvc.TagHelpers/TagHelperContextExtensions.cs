@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.TagHelpers;
 
-namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
+namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     /// <summary>
     /// Utility related extensions for <see cref="TagHelperContext"/>.
@@ -29,16 +29,14 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             ILogger logger = null)
         {
             var attributes = GetPresentMissingAttributes(context, requiredAttributes);
-            var present = attributes.Item1;
-            var missing = attributes.Item2;
 
-            if (missing.Any())
+            if (attributes.Missing.Any())
             {
-                if (present.Any() && logger != null && logger.IsEnabled(LogLevel.Warning))
+                if (attributes.Present.Any() && logger != null && logger.IsEnabled(LogLevel.Warning))
                 {
                     // At least 1 attribute was present indicating the user intended to use the tag helper,
                     // but at least 1 was missing too, so log a warning with the details.
-                    logger.WriteWarning(new MissingAttributeLoggerStructure(context.UniqueId, missing));
+                    logger.WriteWarning(new MissingAttributeLoggerStructure(context.UniqueId, attributes.Missing));
                 }
 
                 return false;
@@ -59,9 +57,9 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
         /// <param name="logger">An <see cref="ILogger"/> to log messages to.</param>
         /// <returns>The <see cref="ModeMatchResult{TMode}"/>.</returns>
         public static ModeMatchResult<TMode> DetermineMode<TMode, TSet>(
-            this TagHelperContext context,
-            IEnumerable<Tuple<TMode, TSet>> modeRequiredAttributes,
-            ILogger logger = null)
+            [NotNull] this TagHelperContext context,
+            [NotNull] IEnumerable<Tuple<TMode, TSet>> modeRequiredAttributes,
+            ILogger logger)
             where TSet : IEnumerable<string>
         {
             List<Tuple<TMode, IEnumerable<string>>> modeCandidates = null;
@@ -69,20 +67,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             foreach (var set in modeRequiredAttributes)
             {
                 var attributes = GetPresentMissingAttributes(context, set.Item2);
-                var present = attributes.Item1;
-                var missing = attributes.Item2;
 
-                if (!missing.Any())
+                if (!attributes.Missing.Any())
                 {
                     return ModeMatchResult.Matched(set.Item1);
                 }
 
-                if (missing.Any() && present.Any())
+                if (attributes.Missing.Any() && attributes.Present.Any())
                 {
                     // The set had some present attributes but others missing so capture details of those missing to
                     // log later on if no match is found
                     modeCandidates = modeCandidates ?? new List<Tuple<TMode, IEnumerable<string>>>();
-                    modeCandidates.Add(Tuple.Create(set.Item1, missing));
+                    modeCandidates.Add(Tuple.Create(set.Item1, attributes.Missing));
                 }
             }
 
@@ -97,30 +93,37 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return ModeMatchResult<TMode>.Unmatched;
         }
 
-        private static Tuple<IEnumerable<string>, IEnumerable<string>> GetPresentMissingAttributes(
-            [NotNull]this TagHelperContext context,
-            [NotNull]IEnumerable<string> requiredAttributes)
+        private static PresentMissingAttributes GetPresentMissingAttributes(
+            TagHelperContext context,
+            IEnumerable<string> requiredAttributes)
         {
             // Check for all attribute values
-            var presentAttrNames = new List<string>();
-            var missingAttrNames = new List<string>();
+            var presentAttributes = new List<string>();
+            var missingAttributes = new List<string>();
 
             foreach (var attr in requiredAttributes)
             {
-                if (!context.AllAttributes.ContainsKey(attr)
-                    || context.AllAttributes[attr] == null
-                    || string.IsNullOrWhiteSpace(context.AllAttributes[attr] as string))
+                if (!context.AllAttributes.ContainsKey(attr) ||
+                    context.AllAttributes[attr] == null ||
+                    string.IsNullOrWhiteSpace(context.AllAttributes[attr] as string))
                 {
                     // Missing attribute!
-                    missingAttrNames.Add(attr);
+                    missingAttributes.Add(attr);
                 }
                 else
                 {
-                    presentAttrNames.Add(attr);
+                    presentAttributes.Add(attr);
                 }
             }
 
-            return Tuple.Create((IEnumerable<string>)presentAttrNames, (IEnumerable<string>)missingAttrNames);
+            return new PresentMissingAttributes { Present = presentAttributes, Missing = missingAttributes };
+        }
+
+        private class PresentMissingAttributes
+        {
+            public IEnumerable<string> Present { get; set; }
+
+            public IEnumerable<string> Missing { get; set; }
         }
     }
 }

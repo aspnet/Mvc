@@ -12,7 +12,9 @@
   */
  function loadFallbackStylesheet(cssTestPropertyName, cssTestPropertyValue, fallbackHref) {
     var doc = document,
+        // Find the last script tag on the page which will be this one, as JS executes as it loads
         scriptElements = doc.getElementsByTagName("SCRIPT"),
+        // Find the meta tag before this script tag, that's the element we're going to test the CSS property on
         meta = scriptElements[scriptElements.length - 1].previousElementSibling,
         i;
 

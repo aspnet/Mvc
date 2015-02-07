@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
-namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
+namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     /// <summary>
     /// Static helper methods for <see cref="ModeMatchResult{TMode}"/>.
@@ -18,7 +19,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
         /// <returns>The match result.</returns>
         public static ModeMatchResult<TMode> Matched<TMode>(TMode mode)
         {
-            return new ModeMatchResult<TMode>(mode, true);
+            return new ModeMatchResult<TMode>(mode, matched: true);
         }
     }
 

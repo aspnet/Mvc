@@ -27,7 +27,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestClassAttributeName = "asp-fallback-test-class";
         private const string FallbackTestPropertyAttributeName = "asp-fallback-test-property";
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
-        private const string FallbackTestMetaTemplate = "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
         private static readonly Tuple<Mode, string[]>[] ModeInfo =
@@ -150,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     HostingEnvironment.WebRootFileProvider,
                     ViewContext.HttpContext.Request.PathBase);
             }
-
+            
             var modeResult = context.DetermineMode(ModeInfo, Logger);
 
             if (!modeResult.Matched)
@@ -162,31 +161,33 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
+            var attributes = new Dictionary<string, string>(output.Attributes);
+            
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
 
-            var content = new StringBuilder();
+            var builder = new StringBuilder();
             
             if (modeResult.Mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
             {
                 // No globbing to do, just build a <link /> tag to match the original one in the source file
-                BuildLinkTag(output.Attributes, content);
+                BuildLinkTag(attributes, builder);
             }
             else
             {
-                BuildGlobbedLinkTags(output.Attributes, content);
+                BuildGlobbedLinkTags(attributes, builder);
             }
 
             if (modeResult.Mode == Mode.Fallback)
             {
-                BuildFallbackBlock(content);
+                BuildFallbackBlock(builder);
             }
 
             // We've taken over rendering so prevent the element rendering the outer tag
             output.TagName = null;
-            output.Content = content.ToString();
+            output.Content = builder.ToString();
         }
 
-        private void BuildGlobbedLinkTags(IDictionary<string, string> attributes, StringBuilder content)
+        private void BuildGlobbedLinkTags(IDictionary<string, string> attributes, StringBuilder builder)
         {
             // Build a <link /> tag for each matched href as well as the original one in the source file
             string staticHref;
@@ -197,25 +198,24 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             foreach (var href in hrefs)
             {
                 attributes["href"] = WebUtility.HtmlEncode(href);
-                BuildLinkTag(attributes, content);
+                BuildLinkTag(attributes, builder);
             }
         }
         
-        private void BuildFallbackBlock(StringBuilder content)
+        private void BuildFallbackBlock(StringBuilder builder)
         {
-            content.AppendLine();
+            builder.AppendLine();
 
             // Build the <meta /> tag that's used to test for the presence of the stylesheet
-            content.AppendLine(string.Format(CultureInfo.InvariantCulture,
-                FallbackTestMetaTemplate,
-                FallbackTestClass));
+            builder.AppendFormat(CultureInfo.InvariantCulture,
+                "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
 
             var fallbackHrefs = GlobbingUtil.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
             // indicating that the primary stylesheet failed to load.
-            content.Append("<script>")
+            builder.Append("<script>")
                    .AppendFormat(CultureInfo.InvariantCulture,
                         JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
                         JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
@@ -224,16 +224,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                    .Append("</script>");
         }
 
-        private static void BuildLinkTag(IDictionary<string, string> attributes, StringBuilder content)
+        private static void BuildLinkTag(IDictionary<string, string> attributes, StringBuilder builder)
         {
-            content.Append("<link ");
+            builder.Append("<link ");
 
             foreach (var attribute in attributes)
             {
-                content.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
+                builder.AppendFormat(CultureInfo.InvariantCulture, "{0}=\"{1}\" ", attribute.Key, attribute.Value);
             }
 
-            content.Append("/>");
+            builder.Append("/>");
         }
     }
 }

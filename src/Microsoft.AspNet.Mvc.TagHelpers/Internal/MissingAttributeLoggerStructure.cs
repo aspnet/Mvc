@@ -1,39 +1,48 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Framework.Logging;
 
-namespace Microsoft.AspNet.Mvc.TagHelpers
+namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
     /// An <see cref="ILoggerStructure"/> for log messages regarding <see cref="ITagHelper"/> instances that opt out of
-    /// processing due to missing attributes for one of several possible modes.
+    /// processing due to missing required attributes.
     /// </summary>
-    public class PartialModeMatchLoggerStructure : ILoggerStructure
+    public class MissingAttributeLoggerStructure : ILoggerStructure
     {
         private readonly string _uniqueId;
-        private readonly IEnumerable<Tuple<string, string[]>> _partialMatches;
+        private readonly IEnumerable<string> _missingAttributes;
         private readonly IEnumerable<KeyValuePair<string, object>> _values;
 
         /// <summary>
-        /// Creates a new <see cref="PartialModeMatchLoggerStructure"/>.
+        /// Creates a new <see cref="MissingAttributeLoggerStructure"/>.
         /// </summary>
         /// <param name="uniqueId">The unique ID of the HTML element this message applies to.</param>
-        /// <param name="partialMatches">The set of modes with partial required attributes.</param>
-        public PartialModeMatchLoggerStructure(
+        /// <param name="missingAttributes">The missing required attributes.</param>
+        /// <param name="extraValues">Extra values to include in the log structure.</param>
+        public MissingAttributeLoggerStructure(
             string uniqueId,
-            IEnumerable<Tuple<string, string[]>> partialMatches)
+            IEnumerable<string> missingAttributes,
+            IDictionary<string, object> extraValues = null)
         {
             _uniqueId = uniqueId;
-            _partialMatches = partialMatches;
-            _values = new Dictionary<string, object>
+            _missingAttributes = missingAttributes;
+            var values = new Dictionary<string, object>
             {
                 { "UniqueId", _uniqueId },
-                { "PartialMatches", partialMatches }
+                { "MissingAttributes", _missingAttributes }
             };
+            if (extraValues != null)
+            {
+                foreach (var kvp in extraValues)
+                {
+                    values[kvp.Key] = kvp.Value;
+                }
+            }
+            _values = values;
         }
 
         /// <summary>
@@ -62,13 +71,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <returns>The message.</returns>
         public string Format()
         {
-            return
-                string.Format($"Tag Helper {{0}} had partial matches while determining mode:{Environment.NewLine}\t{{1}}",
+            return string.Format("Tag Helper unique ID: {0}, Missing attributes: {1}",
                 _uniqueId,
-                string.Join(Environment.NewLine + "\t", _partialMatches.Select(partial =>
-                    string.Format($"Mode '{{0}}' missing attributes:{Environment.NewLine}\t\t{{1}} ",
-                        partial.Item1,
-                        string.Join(Environment.NewLine + "\t\t", partial.Item2)))));
+                string.Join(",", _missingAttributes));
         }
     }
 }

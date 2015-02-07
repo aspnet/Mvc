@@ -10,7 +10,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace Microsoft.AspNet.Mvc.TagHelpers
+namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
     /// Utility methods for dealing with JavaScript.
@@ -70,10 +70,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// Encodes a .NET string array for safe use as a JavaScript array literal, including inline in an HTML file.
         /// </summary>
-        internal static string JavaScriptArrayEncode(IEnumerable<string> values)
+        public static string JavaScriptArrayEncode(IEnumerable<string> values)
         {
-            var result = new StringBuilder();
-            result.Append("[");
+            var builder = new StringBuilder();
+
+            JavaScriptArrayEncode(values, builder);
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Encodes a .NET string array for safe use as a JavaScript array literal, including inline in an HTML file.
+        /// </summary>
+        public static void JavaScriptArrayEncode(IEnumerable<string> values, StringBuilder builder)
+        {
+            builder.Append("[");
 
             var firstAdded = false;
 
@@ -81,38 +92,45 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 if (firstAdded)
                 {
-                    result.Append(",");
+                    builder.Append(",");
                 }
-
-                result.AppendFormat("\"{0}\"", JavaScriptStringEncode(value));
+                builder.Append("\"");
+                JavaScriptStringEncode(value, builder);
+                builder.Append("\"");
                 firstAdded = true;
             }
 
-            result.Append("]");
-
-            return result.ToString();
+            builder.Append("]");
         }
 
         /// <summary>
         /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
         /// </summary>
-        internal static string JavaScriptStringEncode(string value)
+        public static string JavaScriptStringEncode(string value)
         {
-            var result = new StringBuilder();
+            var builder = new StringBuilder();
 
+            JavaScriptStringEncode(value, builder);
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
+        /// </summary>
+        public static void JavaScriptStringEncode(string value, StringBuilder builder)
+        {
             foreach (var character in value)
             {
                 if (CharRequiresJavaScriptEncoding(character))
                 {
-                    EncodeAndAppendChar(result, character);
+                    EncodeAndAppendChar(builder, character);
                 }
                 else
                 {
-                    result.Append(character);
+                    builder.Append(character);
                 }
             }
-
-            return result.ToString();
         }
 
         private static bool CharRequiresJavaScriptEncoding(char character)
