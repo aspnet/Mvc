@@ -3,12 +3,12 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.AspNet.Mvc;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
-    public class DefaultControllerModelConventionTest
+    public class ControllerApplicationModelConventionTest
     {
         [Fact]
         public void DefaultControllerModelConvention_AppliesToAllControllers()
@@ -17,7 +17,8 @@ namespace Microsoft.AspNet.Mvc
             var app = new ApplicationModel();
             app.Controllers.Add(new ControllerModel(typeof(HelloController).GetTypeInfo(), new List<object>()));
             app.Controllers.Add(new ControllerModel(typeof(WorldController).GetTypeInfo(), new List<object>()));
-            var defaultConvention = new DefaultControllerModelConvention(new SimpleControllerConvention());
+            var defaultConvention = new ApplicationModelConventionExtensions.ControllerApplicationModelConvention(
+                new SimpleControllerConvention());
 
             // Act
             defaultConvention.Apply(app);

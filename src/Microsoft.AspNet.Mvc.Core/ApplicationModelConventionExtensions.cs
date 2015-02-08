@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] this List<IApplicationModelConvention> conventions,
             [NotNull] IControllerModelConvention controllerModelConvention)
         {
-            conventions.Add(new DefaultControllerModelConvention(controllerModelConvention));
+            conventions.Add(new ControllerApplicationModelConvention(controllerModelConvention));
         }
 
         /// <summary>
@@ -36,7 +36,60 @@ namespace Microsoft.AspNet.Mvc
             this List<IApplicationModelConvention> conventions,
             IActionModelConvention actionModelConvention)
         {
-            conventions.Add(new DefaultActionModelConvention(actionModelConvention));
+            conventions.Add(new ActionApplicationModelConvention(actionModelConvention));
+        }
+
+        // internal for unit testing purposes.
+        internal class ActionApplicationModelConvention : IApplicationModelConvention
+        {
+            private IActionModelConvention _actionModelConvention;
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="ActionApplicationModelConvention"/>.
+            /// </summary>
+            /// <param name="actionModelConvention">The action convention to be applied on all actions
+            /// in the application.</param>
+            public ActionApplicationModelConvention([NotNull] IActionModelConvention actionModelConvention)
+            {
+                _actionModelConvention = actionModelConvention;
+            }
+
+            /// <inheritdoc />
+            public void Apply([NotNull] ApplicationModel application)
+            {
+                foreach (var controller in application.Controllers)
+                {
+                    foreach (var action in controller.Actions)
+                    {
+                        _actionModelConvention.Apply(action);
+                    }
+                }
+            }
+        }
+
+        // internal for unit testing purposes.
+        internal class ControllerApplicationModelConvention : IApplicationModelConvention
+        {
+            private IControllerModelConvention _controllerModelConvention;
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="ControllerApplicationModelConvention"/>.
+            /// </summary>
+            /// <param name="controllerConvention">The controller convention to be applied on all controllers
+            /// in the application.</param>
+            public ControllerApplicationModelConvention([NotNull] IControllerModelConvention controllerConvention)
+            {
+                _controllerModelConvention = controllerConvention;
+            }
+
+            /// <inheritdoc />
+            public void Apply([NotNull] ApplicationModel application)
+            {
+                foreach (var controller in application.Controllers)
+                {
+                    _controllerModelConvention.Apply(controller);
+                }
+            }
         }
     }
 }

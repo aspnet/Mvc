@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNet.Mvc.ApplicationModels;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
-    public class DefaultActionModelConventionTest
+    public class ActionApplicationModelConventionTest
     {
         [Fact]
         public void DefaultActionModelConvention_AppliesToAllActionsInApp()
@@ -18,7 +16,8 @@ namespace Microsoft.AspNet.Mvc
             var app = new ApplicationModel();
             app.Controllers.Add(new ControllerModel(typeof(HelloController).GetTypeInfo(), new List<object>()));
             app.Controllers.Add(new ControllerModel(typeof(WorldController).GetTypeInfo(), new List<object>()));
-            var defaultConvention = new DefaultActionModelConvention(new SimpleActionConvention());
+            var defaultConvention = new ApplicationModelConventionExtensions.ActionApplicationModelConvention(
+                new SimpleActionConvention());
 
             // Act
             defaultConvention.Apply(app);
