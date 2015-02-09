@@ -20,19 +20,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         private static readonly ConcurrentDictionary<string, string> Cache =
             new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
 
-        private static readonly IDictionary<char, string> EncodingMap = new Dictionary<char, string>
-        {
-            { '<', @"\u003c" },      // opening angle-bracket
-            { '>', @"\u003e" },      // closing angle-bracket
-            { '\'', @"\u0027" },     // single quote
-            { '"', @"\u0022" },      // double quote
-            { '\\', @"\\" },         // back slash
-            { '\r', "\\r" },         // carriage return
-            { '\n', "\\n" },         // new line
-            { '\u0085', @"\u0085" }, // next line
-            { '&', @"\u0026" },      // ampersand
-        };
-
         /// <summary>
         /// Gets an embedded JavaScript file resource and decodes it for use as a .NET format string.
         /// </summary>
