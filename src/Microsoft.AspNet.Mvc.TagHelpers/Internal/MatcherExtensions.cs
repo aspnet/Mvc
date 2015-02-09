@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="matcher">The <see cref="Matcher"/>.</param>
         /// <param name="includePatterns">The set of include globbing patterns.</param>
         /// <param name="excludePatterns">The set of exclude globbing patterns.</param>
-        public static void AddPatterns(
+        public static Matcher AddPatterns(
             [NotNull] this Matcher matcher,
             [NotNull] IEnumerable<string> includePatterns,
             IEnumerable<string> excludePatterns)
@@ -25,6 +25,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 var includePattern = TrimLeadingSlash(pattern);
                 matcher.AddInclude(includePattern);
             }
+
             if (excludePatterns != null)
             {
                 foreach (var pattern in excludePatterns)
@@ -33,6 +34,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     matcher.AddExclude(excludePattern);
                 }
             }
+
+            return matcher;
         }
 
         private static string TrimLeadingSlash(string value)

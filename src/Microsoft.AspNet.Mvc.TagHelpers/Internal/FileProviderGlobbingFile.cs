@@ -11,18 +11,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     {
         private readonly DirectoryInfoBase _parent;
         private readonly IFileInfo _fileInfo;
+        private readonly string _fullName;
 
-        public FileProviderGlobbingFile(DirectoryInfoBase parent, IFileInfo fileInfo)
+        public FileProviderGlobbingFile([NotNull] DirectoryInfoBase parent, [NotNull] IFileInfo fileInfo)
         {
             _parent = parent;
             _fileInfo = fileInfo;
+            _fullName = _parent.FullName + Path.DirectorySeparatorChar + Name;
         }
 
         public override string FullName
         {
             get
             {
-                return _parent.FullName + Path.DirectorySeparatorChar + Name;
+                return _fullName;
             }
         }
 

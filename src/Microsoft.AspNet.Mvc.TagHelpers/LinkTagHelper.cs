@@ -34,8 +34,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 Tuple.Create(Mode.Fallback, new[]
                 {
-                    // Static fallback only
-                    FallbackHrefAttributeName,
+                    // Globbed fallback, include & exclude patterns (static fallback optional)
+                    FallbackHrefIncludeAttributeName,
+                    FallbackHrefExcludeAttributeName,
                     FallbackTestClassAttributeName,
                     FallbackTestPropertyAttributeName,
                     FallbackTestValueAttributeName
@@ -50,9 +51,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }),
                 Tuple.Create(Mode.Fallback, new[]
                 {
-                    // Globbed fallback, include & exclude patterns (static fallback optional)
-                    FallbackHrefIncludeAttributeName,
-                    FallbackHrefExcludeAttributeName,
+                    // Static fallback only
+                    FallbackHrefAttributeName,
                     FallbackTestClassAttributeName,
                     FallbackTestPropertyAttributeName,
                     FallbackTestValueAttributeName
@@ -137,14 +137,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         protected internal IMemoryCache Cache { get; set; }
 
         // Internal for ease of use when testing.
-        protected internal GlobbingUtility GlobbingUtil { get; set; }
+        protected internal GlobbingUrlBuilder GlobbingUtility { get; set; }
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (GlobbingUtil == null)
+            if (GlobbingUtility == null)
             {
-                GlobbingUtil = new GlobbingUtility(
+                GlobbingUtility = new GlobbingUrlBuilder(
                     Cache,
                     HostingEnvironment.WebRootFileProvider,
                     ViewContext.HttpContext.Request.PathBase);
@@ -193,7 +193,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string staticHref;
             attributes.TryGetValue("href", out staticHref);
 
-            var hrefs = GlobbingUtil.BuildUrlList(staticHref, HrefInclude, HrefExclude);
+            var hrefs = GlobbingUtility.BuildUrlList(staticHref, HrefInclude, HrefExclude);
 
             foreach (var href in hrefs)
             {
@@ -210,17 +210,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             builder.AppendFormat(CultureInfo.InvariantCulture,
                 "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
 
-            var fallbackHrefs = GlobbingUtil.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
+            var fallbackHrefs = GlobbingUtility.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
             // indicating that the primary stylesheet failed to load.
             builder.Append("<script>")
                    .AppendFormat(CultureInfo.InvariantCulture,
-                        JavaScriptUtility.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                        JavaScriptUtility.JavaScriptStringEncode(FallbackTestProperty),
-                        JavaScriptUtility.JavaScriptStringEncode(FallbackTestValue),
-                        JavaScriptUtility.JavaScriptArrayEncode(fallbackHrefs))
+                        JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
+                        JavaScriptEncoding.JavaScriptStringEncode(FallbackTestProperty),
+                        JavaScriptEncoding.JavaScriptStringEncode(FallbackTestValue),
+                        JavaScriptEncoding.JavaScriptArrayEncode(fallbackHrefs))
                    .Append("</script>");
         }
 

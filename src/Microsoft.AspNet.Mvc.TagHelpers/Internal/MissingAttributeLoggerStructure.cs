@@ -52,7 +52,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             get
             {
-                return "Tag Helper has missing required attributes.";
+                return "Tag Helper has one or more missing required attributes.";
             }
         }
 

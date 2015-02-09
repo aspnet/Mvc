@@ -14,11 +14,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// <summary>
     /// Utility methods for <see cref="ITagHelper"/>'s that support attributes containing file globbing patterns.
     /// </summary>
-    public class GlobbingUtility
+    public class GlobbingUrlBuilder
     {
+        private static readonly char[] PatternSeparator = new[] { ',' };
+
         private FileProviderGlobbingDirectory _baseGlobbingDirectory;
 
-        public GlobbingUtility(IMemoryCache cache, IFileProvider fileProvider, PathString requestPathBase)
+        public GlobbingUrlBuilder(IMemoryCache cache, IFileProvider fileProvider, PathString requestPathBase)
         {
             Cache = cache;
             FileProvider = fileProvider;
@@ -75,8 +77,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 return Enumerable.Empty<string>();
             }
 
-            var includePatterns = include.Split(',');
-            var excludePatterns = exclude?.Split(',');
+            var includePatterns = include.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
+            var excludePatterns = exclude?.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
 
             if (includePatterns.Length == 0)
             {
@@ -85,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             
             if (Cache != null)
             {
-                var cacheKey = $"{nameof(GlobbingUtility)}-inc:{include}-exc:{exclude}";
+                var cacheKey = $"{nameof(GlobbingUrlBuilder)}-inc:{include}-exc:{exclude}";
                 return Cache.GetOrSet(cacheKey, cacheSetContext =>
                 {
                     foreach (var pattern in includePatterns)
