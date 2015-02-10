@@ -26,11 +26,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public IList<ModeMatchAttributes<TMode>> FullMatches { get; } = new List<ModeMatchAttributes<TMode>>();
 
         /// <summary>
-        /// Modes that are only in <see cref="PartialMatches"/> and not in <see cref="FullMatches"/>.
-        /// </summary>
-        public IEnumerable<ModeMatchAttributes<TMode>> PartialOnlyMatches { get; set; } = new List<ModeMatchAttributes<TMode>>();
-
-        /// <summary>
         /// Attributes that are present in at least one mode in <see cref="PartialMatches"/>, but in no modes in
         /// <see cref="FullMatches"/>.
         /// </summary>
@@ -45,9 +40,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="uniqueId">The value of <see cref="TagHelperContext.UniqueId"/>.</param>
         public void LogDetails<TTagHelper>([NotNull] ILogger logger, [NotNull] TTagHelper tagHelper, string uniqueId)
         {
-            if (logger.IsEnabled(LogLevel.Warning) && PartialOnlyMatches.Any())
+            if (logger.IsEnabled(LogLevel.Warning) && PartiallyMatchedAttributes.Any())
             {
-                logger.WriteWarning(new PartialModeMatchLoggerStructure<TMode>(uniqueId, PartialOnlyMatches));
+                // Build the list of partial matches that contain attributes not appearing in at least one full match
+                var partialOnlyMatches = PartialMatches.Where(
+                    match => match.PresentAttributes.Any(
+                        attribute => PartiallyMatchedAttributes.Contains(
+                            attribute, StringComparer.OrdinalIgnoreCase)));
+
+                logger.WriteWarning(new PartialModeMatchLoggerStructure<TMode>(uniqueId, partialOnlyMatches));
             }
 
             if (logger.IsEnabled(LogLevel.Verbose) && !FullMatches.Any())
@@ -56,85 +57,5 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     tagHelper.GetType().GetTypeInfo().Name, uniqueId);
             }
         }
-    }
-
-    /// <summary>
-    /// Static creation methods for <see cref="ModeAttributes{TMode}"/>.
-    /// </summary>
-    public static class ModeAttributes
-    {
-        /// <summary>
-        /// Creates an <see cref="ModeAttributes{TMode}"/>/
-        /// </summary>
-        public static ModeAttributes<TMode> Create<TMode>(TMode mode, IEnumerable<string> attributes)
-        {
-            return new ModeAttributes<TMode>
-            {
-                Mode = mode,
-                Attributes = attributes
-            };
-        }
-    }
-
-    /// <summary>
-    /// A mapping of a <see cref="ITagHelper"/> mode to attributes.
-    /// </summary>
-    /// <typeparam name="TMode">The type representing the <see cref="ITagHelper"/>'s mode.</typeparam>
-    public class ModeAttributes<TMode>
-    {
-        /// <summary>
-        /// The <see cref="ITagHelper"/>'s mode.
-        /// </summary>
-        public TMode Mode { get; set; }
-
-        public IEnumerable<string> Attributes { get; set; }
-    }
-
-    /// <summary>
-    /// Static creation methods for <see cref="ModeMatchAttributes{TMode}"/>.
-    /// </summary>
-    public static class ModeMatchAttributes
-    {
-        /// <summary>
-        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>/
-        /// </summary>
-        public static ModeMatchAttributes<TMode> Create<TMode>(
-           TMode mode,
-           IEnumerable<string> presentAttributes)
-        {
-            return Create(mode, presentAttributes, missingAttributes: null);
-        }
-
-        /// <summary>
-        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>/
-        /// </summary>
-        public static ModeMatchAttributes<TMode> Create<TMode>(
-            TMode mode,
-            IEnumerable<string> presentAttributes,
-            IEnumerable<string> missingAttributes)
-        {
-            return new ModeMatchAttributes<TMode>
-            {
-                Mode = mode,
-                PresentAttributes = presentAttributes,
-                MissingAttributes = missingAttributes
-            };
-        }
-    }
-
-    /// <summary>
-    /// A mapping of a <see cref="ITagHelper"/> mode to attributes.
-    /// </summary>
-    /// <typeparam name="TMode">The type representing the <see cref="ITagHelper"/>'s mode.</typeparam>
-    public class ModeMatchAttributes<TMode>
-    {
-        /// <summary>
-        /// The <see cref="ITagHelper"/>'s mode.
-        /// </summary>
-        public TMode Mode { get; set; }
-
-        public IEnumerable<string> PresentAttributes { get; set; }
-
-        public IEnumerable<string> MissingAttributes { get; set; }
     }
 }

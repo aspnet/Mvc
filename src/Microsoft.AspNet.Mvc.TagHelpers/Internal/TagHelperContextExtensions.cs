@@ -105,12 +105,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 }
             }
 
-            // Build the list of partial matches that contain attributes not appearing in at least one full match
-            result.PartialOnlyMatches = result.PartialMatches.Where(
-                match => match.PresentAttributes.Any(
-                    attribute => result.PartiallyMatchedAttributes.Contains(
-                        attribute, StringComparer.OrdinalIgnoreCase)));
-
             return result;
         }
 
