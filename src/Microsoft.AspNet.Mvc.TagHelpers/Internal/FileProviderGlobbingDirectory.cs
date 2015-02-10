@@ -81,6 +81,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             if (!string.Equals(searchPattern, "*", StringComparison.OrdinalIgnoreCase))
             {
+                // Only * based searches are ever performed against this API and we have an item to change this API
+                // such that the searchPattern doesn't even get passed in, so this is just a safe-guard until then.
+                // The searchPattern here has no relation to the globbing pattern.
                 throw new ArgumentException("Only full wildcard searches are supported, i.e. \"*\"", "searchPattern");
             }
 
