@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
         public void JavaScriptEncode_EncodesCorrectly(string input, string expectedOutput)
         {
             // Act
-            var result = JavaScriptEncoding.JavaScriptStringEncode(input);
+            var result = JavaScriptEncoder.JavaScriptStringEncode(input);
 
             // Assert
             Assert.Equal(expectedOutput, result);

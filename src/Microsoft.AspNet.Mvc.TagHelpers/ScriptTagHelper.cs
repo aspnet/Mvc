@@ -96,8 +96,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 if (!attribute.Key.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                 {
-                    var encodedKey = JavaScriptEncoding.JavaScriptStringEncode(attribute.Key);
-                    var encodedValue = JavaScriptEncoding.JavaScriptStringEncode(attribute.Value);
+                    var encodedKey = JavaScriptEncoder.JavaScriptStringEncode(attribute.Key);
+                    var encodedValue = JavaScriptEncoder.JavaScriptStringEncode(attribute.Value);
 
                     content.AppendFormat(CultureInfo.InvariantCulture, " {0}=\\\"{1}\\\"", encodedKey, encodedValue);
                 }

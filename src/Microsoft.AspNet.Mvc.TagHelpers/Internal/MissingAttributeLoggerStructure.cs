@@ -27,8 +27,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="extraValues">Extra values to include in the log structure.</param>
         public MissingAttributeLoggerStructure(
             string uniqueId,
-            IEnumerable<string> missingAttributes,
-            IDictionary<string, object> extraValues = null)
+            IEnumerable<string> missingAttributes)
         {
             _uniqueId = uniqueId;
             MissingAttributes = missingAttributes;
@@ -37,13 +36,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 { "UniqueId", _uniqueId },
                 { "MissingAttributes", MissingAttributes }
             };
-            if (extraValues != null)
-            {
-                foreach (var kvp in extraValues)
-                {
-                    values[kvp.Key] = kvp.Value;
-                }
-            }
             _values = values;
         }
 

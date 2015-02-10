@@ -223,9 +223,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             builder.Append("<script>")
                    .AppendFormat(CultureInfo.InvariantCulture,
                         JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                        JavaScriptEncoding.JavaScriptStringEncode(FallbackTestProperty),
-                        JavaScriptEncoding.JavaScriptStringEncode(FallbackTestValue),
-                        JavaScriptEncoding.JavaScriptArrayEncode(fallbackHrefs))
+                        JavaScriptEncoder.JavaScriptStringEncode(FallbackTestProperty),
+                        JavaScriptEncoder.JavaScriptStringEncode(FallbackTestValue),
+                        JavaScriptEncoder.JavaScriptArrayEncode(fallbackHrefs))
                    .Append("</script>");
         }
 

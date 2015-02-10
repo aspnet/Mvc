@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// <summary>
     /// Utility methods for dealing with JavaScript.
     /// </summary>
-    public static class JavaScriptEncoding
+    public static class JavaScriptEncoder
     {
         private static readonly IDictionary<char, string> EncodingMap = new Dictionary<char, string>
         {

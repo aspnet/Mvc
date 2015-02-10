@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// </summary>
     public static class JavaScriptResources
     {
-        private static readonly Assembly ResourcesAssembly = typeof(JavaScriptEncoding).GetTypeInfo().Assembly;
+        private static readonly Assembly ResourcesAssembly = typeof(JavaScriptEncoder).GetTypeInfo().Assembly;
 
         private static readonly ConcurrentDictionary<string, string> Cache =
             new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
