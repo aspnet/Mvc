@@ -369,7 +369,8 @@ namespace System.Web.Http
 
         private INestedProviderManager<ActionDescriptorProviderContext> CreateProvider()
         {
-            var assemblyProvider = new FixedSetAssemblyProvider(new[] { GetType().GetTypeInfo().Assembly });
+            var assemblyProvider = new FixedSetAssemblyProvider();
+            assemblyProvider.CandidateAssemblies.Add(GetType().GetTypeInfo().Assembly);
             var controllerTypeProvider = new NamespaceFilteredControllerTypeProvider(assemblyProvider);
             var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                  NullLoggerFactory.Instance);
@@ -411,10 +412,13 @@ namespace System.Web.Http
 
             }
 
-            public override IEnumerable<TypeInfo> GetControllerTypes()
+            public override IEnumerable<TypeInfo> ControllerTypes
             {
-                return base.GetControllerTypes()
-                           .Where(typeInfo => typeInfo.Namespace == "System.Web.Http.TestControllers");
+                get
+                {
+                    return base.ControllerTypes
+                               .Where(typeInfo => typeInfo.Namespace == "System.Web.Http.TestControllers");
+                }
             }
         }
     }

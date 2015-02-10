@@ -69,16 +69,15 @@ namespace Microsoft.Framework.DependencyInjection
             [NotNull] IEnumerable<Type> controllerTypes,
             IConfiguration configuration)
         {
-            var controllerTypeInfos = new List<TypeInfo>();
+            var controllerTypeProvider = new FixedSetControllerTypeProvider();
             foreach (var type in controllerTypes)
             {
                 services.AddTransient(type);
-                controllerTypeInfos.Add(type.GetTypeInfo());
+                controllerTypeProvider.ControllerTypes.Add(type.GetTypeInfo());
             }
 
             var describer = new ServiceDescriber(configuration);
             services.Replace(describer.Transient<IControllerActivator, ServiceBasedControllerActivator>());
-            var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfos);
             services.Replace(describer.Instance<IControllerTypeProvider>(controllerTypeProvider));
 
             return services;
@@ -97,7 +96,6 @@ namespace Microsoft.Framework.DependencyInjection
         {
             return WithControllersAsServices(services,
                                              controllerAssemblies,
-                                             loggerFactory: null,
                                              configuration: null);
         }
 
@@ -108,20 +106,18 @@ namespace Microsoft.Framework.DependencyInjection
         /// <param name="services">The <see cref="IServiceCollection"/>.</param>
         /// <param name="controllerAssemblies">Assemblies to scan.</param>
         /// <param name="configuration">The application's <see cref="IConfiguration"/>.</param>
-        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
         public static IServiceCollection WithControllersAsServices(
             [NotNull] this IServiceCollection services,
             [NotNull] IEnumerable<Assembly> controllerAssemblies,
-            IConfiguration configuration,
-            ILoggerFactory loggerFactory)
+            IConfiguration configuration)
         {
-            if (loggerFactory == null)
+            var assemblyProvider = new FixedSetAssemblyProvider();
+            foreach (var assembly in controllerAssemblies)
             {
-                loggerFactory = NullLoggerFactory.Instance;
+                assemblyProvider.CandidateAssemblies.Add(assembly);
             }
-
-            var assemblyProvider = new FixedSetAssemblyProvider(controllerAssemblies);
+            var loggerFactory = NullLoggerFactory.Instance;
             var controllerTypeProvider = new DefaultControllerTypeProvider(assemblyProvider, loggerFactory);
             var controllerTypes = controllerTypeProvider.ControllerTypes;
 

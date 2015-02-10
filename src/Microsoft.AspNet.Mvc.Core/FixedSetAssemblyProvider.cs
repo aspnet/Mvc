@@ -12,17 +12,10 @@ namespace Microsoft.AspNet.Mvc
     public class FixedSetAssemblyProvider : IAssemblyProvider
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="StaticAssemblyProvider"/>.
-        /// </summary>
-        /// <param name="assemblies">The candidate assemblies.</param>
-        public FixedSetAssemblyProvider([NotNull] IEnumerable<Assembly> assemblies)
-        {
-            CandidateAssemblies = assemblies;
-        }
-
-        /// <summary>
         /// Gets the list of candidate assemblies.
         /// </summary>
-        public IEnumerable<Assembly> CandidateAssemblies { get; }
+        public IList<Assembly> CandidateAssemblies { get; }
+
+        IEnumerable<Assembly> IAssemblyProvider.CandidateAssemblies => CandidateAssemblies;
     }
 }

@@ -41,8 +41,8 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(LifecycleKind.Transient, services[2].Lifecycle);
 
             Assert.Equal(typeof(IControllerTypeProvider), services[3].ServiceType);
-            var typeProvider = Assert.IsType<StaticControllerTypeProvider>(services[3].ImplementationInstance);
-            Assert.Equal(controllerTypes, typeProvider.GetControllerTypes().OrderBy(c => c.Name));
+            var typeProvider = Assert.IsType<FixedSetControllerTypeProvider>(services[3].ImplementationInstance);
+            Assert.Equal(controllerTypes, typeProvider.ControllerTypes.OrderBy(c => c.Name));
             Assert.Equal(LifecycleKind.Singleton, services[3].Lifecycle);
         }
 
@@ -114,8 +114,8 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(LifecycleKind.Transient, services[2].Lifecycle);
 
             Assert.Equal(typeof(IControllerTypeProvider), services[3].ServiceType);
-            var typeProvider = Assert.IsType<StaticControllerTypeProvider>(services[3].ImplementationInstance);
-            Assert.Equal(controllerTypes, typeProvider.GetControllerTypes().OrderBy(c => c.Name));
+            var typeProvider = Assert.IsType<FixedSetControllerTypeProvider>(services[3].ImplementationInstance);
+            Assert.Equal(controllerTypes, typeProvider.ControllerTypes.OrderBy(c => c.Name));
             Assert.Equal(LifecycleKind.Singleton, services[3].Lifecycle);
         }
 
@@ -129,10 +129,7 @@ namespace Microsoft.AspNet.Mvc
 
         public class CustomTypeProvider : IControllerTypeProvider
         {
-            public IEnumerable<TypeInfo> GetControllerTypes()
-            {
-                throw new NotImplementedException();
-            }
+            public IEnumerable<TypeInfo> ControllerTypes { get; set; }
         }
     }
 }

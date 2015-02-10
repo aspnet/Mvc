@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc
@@ -12,17 +13,27 @@ namespace Microsoft.AspNet.Mvc
     public class FixedSetControllerTypeProvider : IControllerTypeProvider
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="StaticControllerTypeProvider"/>.
+        /// Initializes a new instance of <see cref="FixedSetControllerTypeProvider"/>.
+        /// </summary>
+        public FixedSetControllerTypeProvider()
+            : this(Enumerable.Empty<TypeInfo>())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FixedSetControllerTypeProvider"/>.
         /// </summary>
         /// <param name="controllerTypes">The sequence of controller <see cref="TypeInfo"/>.</param>
         public FixedSetControllerTypeProvider([NotNull] IEnumerable<TypeInfo> controllerTypes)
         {
-            ControllerTypes = controllerTypes;
+            ControllerTypes = new List<TypeInfo>(controllerTypes);
         }
 
         /// <summary>
         /// Gets the list of controller <see cref="TypeInfo"/>s.
         /// </summary>
-        public IEnumerable<TypeInfo> ControllerTypes { get; }
+        public IList<TypeInfo> ControllerTypes { get; }
+
+        IEnumerable<TypeInfo> IControllerTypeProvider.ControllerTypes => ControllerTypes;
     }
 }
