@@ -88,6 +88,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
         }
 
+        public override DirectoryInfoBase GetDirectory(string path)
+        {
+            return new FileProviderGlobbingDirectory(_fileProvider, _fileProvider.GetFileInfo(path), this);
+        }
+
+        public override FileInfoBase GetFile(string path)
+        {
+            return new FileProviderGlobbingFile(this, _fileProvider.GetFileInfo(path));
+        }
+
         private FileSystemInfoBase BuildFileResult(IFileInfo fileInfo)
         {
             if (fileInfo.IsDirectory)
