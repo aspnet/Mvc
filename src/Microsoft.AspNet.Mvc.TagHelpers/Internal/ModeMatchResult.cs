@@ -5,11 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNet.Mvc.TagHelpers.Internal;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
 
-namespace Microsoft.AspNet.Mvc.TagHelpers
+namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
     /// Result of determining the mode an <see cref="ITagHelper"/> will run in.

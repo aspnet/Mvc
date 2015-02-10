@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -31,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly ModeAttributes<Mode>[] ModeDetails = new [] {
+        private static readonly ModeAttributes<Mode>[] ModeDetails = new[] {
             // Globbed Href (include only) no static href
             ModeAttributes.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
             // Globbed Href (include & exclude), no static href
@@ -55,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }),
             // Fallback with globbed href (include & exclude)
             ModeAttributes.Create(
-                Mode.Fallback, new[] {  
+                Mode.Fallback, new[] {
                     FallbackHrefIncludeAttributeName,
                     FallbackHrefExcludeAttributeName,
                     FallbackTestClassAttributeName,
@@ -129,13 +128,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         // Properties are protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
         [Activate]
         protected internal ILogger<LinkTagHelper> Logger { get; set; }
-        
+
         [Activate]
         protected internal IHostingEnvironment HostingEnvironment { get; set; }
 
         [Activate]
         protected internal ViewContext ViewContext { get; set; }
-        
+
         [Activate]
         protected internal IMemoryCache Cache { get; set; }
 
@@ -152,11 +151,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     HostingEnvironment.WebRootFileProvider,
                     ViewContext.HttpContext.Request.PathBase);
             }
-            
+
             var modeResult = context.DetermineMode(ModeDetails);
 
             Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
-                    $"There should only be one mode match, check the {ModeDetails}");
+                $"There should only be one mode match, check the {ModeDetails}");
 
             modeResult.LogDetails(Logger, this, context.UniqueId);
 
@@ -165,14 +164,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // No attributes matched so we have nothing to do
                 return;
             }
-            
-            var mode = modeResult.FullMatches.FirstOrDefault().Mode;
+
+            var mode = modeResult.FullMatches.First().Mode;
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
             var attributes = new Dictionary<string, string>(output.Attributes);
-            
+
             var builder = new StringBuilder();
-            
+
             if (mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
             {
                 // No globbing to do, just build a <link /> tag to match the original one in the source file
@@ -207,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 BuildLinkTag(attributes, builder);
             }
         }
-        
+
         private void BuildFallbackBlock(StringBuilder builder)
         {
             builder.AppendLine();
