@@ -31,12 +31,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly ModeInfo<Mode>[] ModeDetails = new [] {
+        private static readonly ModeAttributes<Mode>[] ModeDetails = new [] {
             // Globbed Href (include only) no static href
             ModeInfo.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
             // Globbed Href (include & exclude), no static href
             ModeInfo.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName, HrefExcludeAttributeName }),
-            // Fallback with no href
+            // Fallback with static href
             ModeInfo.Create(
                 Mode.Fallback, new[]
                 {
@@ -160,14 +160,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             if (!modeResult.FullMatches.Any())
             {
-                if (Logger.IsEnabled(LogLevel.Warning) && modeResult.PartialMatches.Any())
+                // No attributes matched so we have nothing to do
+                if (modeResult.PartialMatches.Any())
                 {
-                    // TODO: Log warnings about partial matches
-
-                }
-                if (Logger.IsEnabled(LogLevel.Verbose))
-                {
-                    Logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
+                    modeResult.LogDetails(Logger, this, context.UniqueId);
                 }
                 return;
             }

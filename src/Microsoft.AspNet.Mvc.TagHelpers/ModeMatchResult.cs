@@ -3,6 +3,10 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -30,9 +34,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         //    Matched = matched;
         //}
 
-        public IList<ModeInfo<TMode>> PartialMatches { get; } = new List<ModeInfo<TMode>>();
+        public IList<ModeAttributes<TMode>> PartialMatches { get; } = new List<ModeAttributes<TMode>>();
 
-        public IList<ModeInfo<TMode>> FullMatches { get; } = new List<ModeInfo<TMode>>();
+        public IList<ModeAttributes<TMode>> FullMatches { get; } = new List<ModeAttributes<TMode>>();
 
         ///// <summary>
         ///// The <see cref="ITagHelper"/>'s mode this match result is for.
@@ -51,13 +55,26 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         //{
         //    get { return _unmatched; }
         //}
+
+        public void LogDetails<TTagHelper>([NotNull] ILogger logger, TTagHelper tagHelper, string uniqueId)
+        {
+            if (logger.IsEnabled(LogLevel.Warning) && PartialMatches.Any())
+            {
+                logger.WriteWarning(new PartialModeMatchLoggerStructure<TMode>(uniqueId, PartialMatches));
+            }
+
+            if (logger.IsEnabled(LogLevel.Verbose))
+            {
+                logger.WriteVerbose("Skipping processing for {0} {1}", tagHelper.GetType().GetTypeInfo().Name, uniqueId);
+            }
+        }
     }
 
     public static class ModeInfo
     {
-        public static ModeInfo<TMode> Create<TMode>(TMode mode, IEnumerable<string> attributes)
+        public static ModeAttributes<TMode> Create<TMode>(TMode mode, IEnumerable<string> attributes)
         {
-            return new ModeInfo<TMode>
+            return new ModeAttributes<TMode>
             {
                 Mode = mode,
                 Attributes = attributes
@@ -65,7 +82,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
     }
 
-    public class ModeInfo<TMode>
+    public class ModeAttributes<TMode>
     {
         public TMode Mode { get; set; }
 

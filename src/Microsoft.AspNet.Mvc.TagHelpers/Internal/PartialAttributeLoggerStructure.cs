@@ -12,10 +12,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// An <see cref="ILoggerStructure"/> for log messages regarding <see cref="ITagHelper"/> instances that opt out of
     /// processing due to missing attributes for one of several possible modes.
     /// </summary>
-    public class PartialModeMatchLoggerStructure : ILoggerStructure
+    public class PartialModeMatchLoggerStructure<TMode> : ILoggerStructure
     {
         private readonly string _uniqueId;
-        private readonly IEnumerable<Tuple<string, string[]>> _partialMatches;
+        private readonly IEnumerable<ModeAttributes<TMode>> _partialMatches;
         private readonly IEnumerable<KeyValuePair<string, object>> _values;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="partialMatches">The set of modes with partial required attributes.</param>
         public PartialModeMatchLoggerStructure(
             string uniqueId,
-            IEnumerable<Tuple<string, string[]>> partialMatches)
+            IEnumerable<ModeAttributes<TMode>> partialMatches)
         {
             _uniqueId = uniqueId;
             _partialMatches = partialMatches;
@@ -67,8 +67,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 _uniqueId,
                 string.Join(Environment.NewLine + "\t", _partialMatches.Select(partial =>
                     string.Format($"Mode '{{0}}' missing attributes:{Environment.NewLine}\t\t{{1}} ",
-                        partial.Item1,
-                        string.Join(Environment.NewLine + "\t\t", partial.Item2)))));
+                        partial.Mode,
+                        string.Join(Environment.NewLine + "\t\t", partial.Attributes)))));
         }
     }
 }
