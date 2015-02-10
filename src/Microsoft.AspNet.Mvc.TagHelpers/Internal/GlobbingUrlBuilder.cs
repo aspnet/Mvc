@@ -20,10 +20,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
         private readonly FileProviderGlobbingDirectory _baseGlobbingDirectory;
 
-        public GlobbingUrlBuilder(IMemoryCache cache, IFileProvider fileProvider, PathString requestPathBase)
+        public GlobbingUrlBuilder([NotNull] IFileProvider fileProvider, IMemoryCache cache, PathString requestPathBase)
         {
-            Cache = cache;
             FileProvider = fileProvider;
+            Cache = cache;
             RequestPathBase = requestPathBase;
             _baseGlobbingDirectory = new FileProviderGlobbingDirectory(fileProvider, fileInfo: null, parent: null);
         }

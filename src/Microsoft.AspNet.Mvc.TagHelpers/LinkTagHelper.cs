@@ -147,8 +147,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (GlobbingUrlBuilder == null)
             {
                 GlobbingUrlBuilder = new GlobbingUrlBuilder(
-                    Cache,
                     HostingEnvironment.WebRootFileProvider,
+                    Cache,
                     ViewContext.HttpContext.Request.PathBase);
             }
 
