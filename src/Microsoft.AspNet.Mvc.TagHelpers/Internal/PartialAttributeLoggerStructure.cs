@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="partialMatches">The set of modes with partial required attributes.</param>
         public PartialModeMatchLoggerStructure(
             string uniqueId,
-            IEnumerable<ModeMatchAttributes<TMode>> partialMatches)
+            [NotNull] IEnumerable<ModeMatchAttributes<TMode>> partialMatches)
         {
             _uniqueId = uniqueId;
             _partialMatches = partialMatches;
@@ -65,10 +65,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             return
                 string.Format($"Tag Helper {{0}} had partial matches while determining mode:{Environment.NewLine}\t{{1}}",
                 _uniqueId,
-                string.Join(Environment.NewLine + "\t", _partialMatches.Select(partial =>
+                string.Join($"{Environment.NewLine}\t", _partialMatches.Select(partial =>
                     string.Format($"Mode '{{0}}' missing attributes:{Environment.NewLine}\t\t{{1}} ",
                         partial.Mode,
-                        string.Join(Environment.NewLine + "\t\t", partial.MissingAttributes)))));
+                        string.Join($"{Environment.NewLine}\t\t", partial.MissingAttributes)))));
         }
     }
 }

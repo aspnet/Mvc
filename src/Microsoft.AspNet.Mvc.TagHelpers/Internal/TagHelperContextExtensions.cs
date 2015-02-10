@@ -24,8 +24,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="logger">An optional <see cref="ILogger"/> to log warning details to.</param>
         /// <returns>A <see cref="bool"/> indicating whether the <see cref="ITagHelper" /> should run.</returns> 
         public static bool AllRequiredAttributesArePresent(
-            [NotNull]this TagHelperContext context,
-            [NotNull]IEnumerable<string> requiredAttributes,
+            [NotNull] this TagHelperContext context,
+            [NotNull] IEnumerable<string> requiredAttributes,
             ILogger logger)
         {
             var attributes = GetPresentMissingAttributes(context, requiredAttributes);

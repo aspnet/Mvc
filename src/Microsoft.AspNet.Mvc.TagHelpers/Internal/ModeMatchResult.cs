@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
@@ -34,11 +35,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <summary>
         /// Logs the details of the <see cref="ModeMatchResult{TMode}"/>.
         /// </summary>
-        /// <typeparam name="TTagHelper"></typeparam>
         /// <param name="logger">The <see cref="ILogger"/>.</param>
         /// <param name="tagHelper">The <see cref="ITagHelper"/>.</param>
         /// <param name="uniqueId">The value of <see cref="TagHelperContext.UniqueId"/>.</param>
         public void LogDetails<TTagHelper>([NotNull] ILogger logger, [NotNull] TTagHelper tagHelper, string uniqueId)
+            where TTagHelper : ITagHelper
         {
             if (logger.IsEnabled(LogLevel.Warning) && PartiallyMatchedAttributes.Any())
             {
@@ -54,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             if (logger.IsEnabled(LogLevel.Verbose) && !FullMatches.Any())
             {
                 logger.WriteVerbose("Skipping processing for {0} {1}",
-                    tagHelper.GetType().GetTypeInfo().Name, uniqueId);
+                    tagHelper.GetType().GetTypeInfo().FullName, uniqueId);
             }
         }
     }
