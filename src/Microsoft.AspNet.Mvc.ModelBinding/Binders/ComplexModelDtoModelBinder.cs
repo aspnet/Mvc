@@ -19,8 +19,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var dto = (ComplexModelDto)bindingContext.Model;
                 foreach (var propertyMetadata in dto.PropertyMetadata)
                 {
-                    var propertyModelName = ModelBindingHelper.CreatePropertyModelName(bindingContext.ModelName,
-                                                                                       propertyMetadata.PropertyName);
+                    var propertyModelName =
+                        ModelBindingHelper.CreatePropertyModelName(
+                            bindingContext.ModelName,
+                            propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName);
 
                     var propertyBindingContext = new ModelBindingContext(bindingContext,
                                                                          propertyModelName,

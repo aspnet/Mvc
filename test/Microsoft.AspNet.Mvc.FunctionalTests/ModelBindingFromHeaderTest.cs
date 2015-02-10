@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<Result>(body);
             Assert.Equal<string>(tags, result.HeaderValues);
             var error = Assert.Single(result.ModelStateErrors);
-            Assert.Equal("Title", error);
+            Assert.Equal("BlogTitle", error);
         }
         // The action that this test hits will echo back the model-bound value
         [Fact]
