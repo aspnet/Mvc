@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public static bool AllRequiredAttributesArePresent(
             [NotNull]this TagHelperContext context,
             [NotNull]IEnumerable<string> requiredAttributes,
-            ILogger logger = null)
+            ILogger logger)
         {
             var attributes = GetPresentMissingAttributes(context, requiredAttributes);
 
@@ -52,16 +52,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// </summary>
         /// <typeparam name="TMode">The type representing the <see cref="ITagHelper" />'s modes.</typeparam>
         /// <param name="context">The <see cref="TagHelperContext"/>.</param>
-        /// <param name="modeRequiredAttributes">The modes and their required attributes.</param>
-        /// <param name="logger">An <see cref="ILogger"/> to log messages to.</param>
+        /// <param name="modeInfos">The modes and their required attributes.</param>
         /// <returns>The <see cref="ModeMatchResult{TMode}"/>.</returns>
         public static ModeMatchResult<TMode> DetermineMode<TMode>(
             [NotNull] this TagHelperContext context,
             [NotNull] IEnumerable<ModeAttributes<TMode>> modeInfos)
         {
             // true == full match, false == partial match
-            var matchedAttributes = new Dictionary<string, bool>();
-            var hasFullMatch = false;
+            var matchedAttributes = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
             var result = new ModeMatchResult<TMode>();
 
             foreach (var modeInfo in modeInfos)
@@ -79,7 +77,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         }
 
                         result.FullMatches.Add(modeInfo);
-                        hasFullMatch = true;
                     }
                     else
                     {
@@ -93,42 +90,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             }
                         }
 
-                        result.PartialMatches.Add(modeInfo);
+                        result.PartialMatches.Add(ModeAttributes.Create(modeInfo.Mode, modeAttributes.Missing));
                     }
                 }
+            }
 
-                if (hasFullMatch)
+            foreach (var attribute in matchedAttributes.Keys)
+            {
+                if (!matchedAttributes[attribute])
                 {
-
+                    result.PartiallyMatchedAttributes.Add(attribute);
                 }
             }
 
             return result;
-
-            //List<ModeInfo<TMode>> modeCandidates = null;
-
-            //if (!attributes.Missing.Any())
-            //{
-            //    return ModeMatchResult.Matched(modeInfo.Mode);
-            //}
-
-            //if (attributes.Missing.Any() && attributes.Present.Any())
-            //{
-            //    // The set had some present attributes but others missing so capture details of those missing to
-            //    // log later on if no match is found
-            //    modeCandidates = modeCandidates ?? new List<ModeInfo<TMode>>();
-            //    modeCandidates.Add(ModeInfo.Create(modeInfo.Mode, attributes.Missing));
-            //}
-
-            // If a partial was match found, log a warning
-            //if (modeCandidates != null && logger != null && logger.IsEnabled(LogLevel.Warning))
-            //{
-            //    logger.WriteWarning(new PartialModeMatchLoggerStructure(context.UniqueId,
-            //        modeCandidates.Select(candidate =>
-            //            Tuple.Create(candidate.Item1.ToString(), candidate.Item2.ToArray()))));
-            //}
-
-            //return ModeMatchResult<TMode>.Unmatched;
         }
 
         private static PresentMissingAttributes GetPresentMissingAttributes(

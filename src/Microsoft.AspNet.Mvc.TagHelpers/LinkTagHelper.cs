@@ -33,11 +33,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private static readonly ModeAttributes<Mode>[] ModeDetails = new [] {
             // Globbed Href (include only) no static href
-            ModeInfo.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
+            ModeAttributes.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
             // Globbed Href (include & exclude), no static href
-            ModeInfo.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName, HrefExcludeAttributeName }),
+            ModeAttributes.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName, HrefExcludeAttributeName }),
             // Fallback with static href
-            ModeInfo.Create(
+            ModeAttributes.Create(
                 Mode.Fallback, new[]
                 {
                     FallbackHrefAttributeName,
@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     FallbackTestValueAttributeName
                 }),
             // Fallback with globbed href (include only)
-            ModeInfo.Create(
+            ModeAttributes.Create(
                 Mode.Fallback, new[] {
                     FallbackHrefIncludeAttributeName,
                     FallbackTestClassAttributeName,
@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     FallbackTestValueAttributeName
                 }),
             // Fallback with globbed href (include & exclude)
-            ModeInfo.Create(
+            ModeAttributes.Create(
                 Mode.Fallback, new[] {  
                     FallbackHrefIncludeAttributeName,
                     FallbackHrefExcludeAttributeName,
@@ -158,13 +158,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
                     $"There should only be one mode match, check the {ModeDetails}");
 
+            modeResult.LogDetails(Logger, this, context.UniqueId);
+
             if (!modeResult.FullMatches.Any())
             {
                 // No attributes matched so we have nothing to do
-                if (modeResult.PartialMatches.Any())
-                {
-                    modeResult.LogDetails(Logger, this, context.UniqueId);
-                }
                 return;
             }
             
