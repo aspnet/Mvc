@@ -116,18 +116,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var presentAttributes = new List<string>();
             var missingAttributes = new List<string>();
 
-            foreach (var attr in requiredAttributes)
+            foreach (var attribute in requiredAttributes)
             {
-                if (!context.AllAttributes.ContainsKey(attr) ||
-                    context.AllAttributes[attr] == null ||
-                    string.IsNullOrWhiteSpace(context.AllAttributes[attr] as string))
+                if (!context.AllAttributes.ContainsKey(attribute) ||
+                    context.AllAttributes[attribute] == null ||
+                    string.IsNullOrWhiteSpace(context.AllAttributes[attribute] as string))
                 {
                     // Missing attribute!
-                    missingAttributes.Add(attr);
+                    missingAttributes.Add(attribute);
                 }
                 else
                 {
-                    presentAttributes.Add(attr);
+                    presentAttributes.Add(attribute);
                 }
             }
 
