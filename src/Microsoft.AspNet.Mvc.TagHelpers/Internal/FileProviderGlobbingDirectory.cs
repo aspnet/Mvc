@@ -14,6 +14,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         private readonly IFileProvider _fileProvider;
         private readonly IFileInfo _fileInfo;
         private readonly FileProviderGlobbingDirectory _parent;
+        private readonly bool _isRoot;
 
         public FileProviderGlobbingDirectory(
             [NotNull] IFileProvider fileProvider,
@@ -24,20 +25,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             _fileInfo = fileInfo;
             _parent = parent;
 
-            if (_parent != null && !string.IsNullOrEmpty(_parent.RelativePath) && _fileInfo != null)
+            if (_fileInfo == null)
+            {
+                // We're the root of the directory tree
+                RelativePath = string.Empty;
+                _isRoot = true;
+            }
+            else if (!string.IsNullOrEmpty(parent?.RelativePath))
             {
                 // We have a parent and they have a relative path so concat that with my name
                 RelativePath = _parent.RelativePath + Path.DirectorySeparatorChar + _fileInfo.Name;
             }
-            else if (_fileInfo != null)
-            {
-                // We don't have a parent so just use my name
-                RelativePath = _fileInfo.Name;
-            }
             else
             {
-                // We're the root of the directory tree
-                RelativePath = string.Empty;
+                // We have a parent which is the root, so just use my name
+                RelativePath = _fileInfo.Name;
             }
         }
 
@@ -47,9 +49,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             get
             {
-                if (string.IsNullOrEmpty(_parent?.FullName))
+                if (_isRoot)
                 {
-                    // We have no parent (we're the root) so just use our name
+                    // We're the root) so just use our name
                     return Name;
                 }
                 
