@@ -62,11 +62,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
             // Add urls that match the globbing patterns specified
             var matchedUrls = ExpandGlobbedUrl(includePattern, excludePattern);
-            foreach (var url in matchedUrls)
-            {
-                urls.Add(url);
-            }
-
+            urls.UnionWith(matchedUrls);
+            
             return urls;
         }
 
