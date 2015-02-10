@@ -140,14 +140,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         protected internal IMemoryCache Cache { get; set; }
 
         // Internal for ease of use when testing.
-        protected internal GlobbingUrlBuilder GlobbingUtility { get; set; }
+        protected internal GlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (GlobbingUtility == null)
+            if (GlobbingUrlBuilder == null)
             {
-                GlobbingUtility = new GlobbingUrlBuilder(
+                GlobbingUrlBuilder = new GlobbingUrlBuilder(
                     Cache,
                     HostingEnvironment.WebRootFileProvider,
                     ViewContext.HttpContext.Request.PathBase);
@@ -199,7 +199,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string staticHref;
             attributes.TryGetValue("href", out staticHref);
 
-            var hrefs = GlobbingUtility.BuildUrlList(staticHref, HrefInclude, HrefExclude);
+            var hrefs = GlobbingUrlBuilder.BuildUrlList(staticHref, HrefInclude, HrefExclude);
 
             foreach (var href in hrefs)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             builder.AppendFormat(CultureInfo.InvariantCulture,
                 "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
 
-            var fallbackHrefs = GlobbingUtility.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
+            var fallbackHrefs = GlobbingUrlBuilder.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
             // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
