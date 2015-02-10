@@ -1259,8 +1259,9 @@ namespace Microsoft.AspNet.Mvc.Routing
             Assert.Equal("Help/Store", path);
         }
 
+        // You can override the preference for an area with Order (but not precedence)
         [Fact]
-        public void AttributeRoute_GenerateLink_ToArea_WithAmbientValues()
+        public void AttributeRoute_GenerateLink_ToArea_WithAmbientValues_PrefersArea()
         {
             // Arrange
             var entry1 = CreateGenerationEntry("Help/Store", new { area = "Help", action = "Edit", controller = "Store" });
@@ -1284,6 +1285,58 @@ namespace Microsoft.AspNet.Mvc.Routing
             Assert.Equal("Help/Store", path);
         }
 
+        // You can override the preference for an area with Order (but not precedence)
+        [Fact]
+        public void AttributeRoute_GenerateLink_ToArea_WithAmbientValues_PrefersArea_PrecedenceReversed()
+        {
+            // Arrange
+            var entry1 = CreateGenerationEntry("Help/Store", new { area = "Help", action = "Edit", controller = "Store" });
+            entry1.Precedence = 2;
+
+            var entry2 = CreateGenerationEntry("Store", new { area = (string)null, action = "Edit", controller = "Store" });
+            entry2.Precedence = 1;
+
+            var next = new StubRouter();
+
+            var route = CreateAttributeRoute(next, entry1, entry2);
+
+            var context = CreateVirtualPathContext(
+                values: new { action = "Edit", controller = "Store" },
+                ambientValues: new { area = "Help" });
+
+            // Act
+            var path = route.GetVirtualPath(context);
+
+            // Assert
+            Assert.Equal("Help/Store", path);
+        }
+
+        // You can override the preference for an area with Order (but not precedence)
+        [Fact]
+        public void AttributeRoute_GenerateLink_ToArea_WithAmbientValues_PrefersArea_OrderOverride()
+        {
+            // Arrange
+            var entry1 = CreateGenerationEntry("Help/Store", new { area = "Help", action = "Edit", controller = "Store" });
+            entry1.Order = 2;
+
+            var entry2 = CreateGenerationEntry("Store", new { area = (string)null, action = "Edit", controller = "Store" });
+            entry2.Order = 1;
+
+            var next = new StubRouter();
+
+            var route = CreateAttributeRoute(next, entry1, entry2);
+
+            var context = CreateVirtualPathContext(
+                values: new { action = "Edit", controller = "Store" },
+                ambientValues: new { area = "Help" });
+
+            // Act
+            var path = route.GetVirtualPath(context);
+
+            // Assert
+            Assert.Equal("Store", path);
+        }
+
         [Fact]
         public void AttributeRoute_GenerateLink_OutOfArea_IgnoresAmbientValue()
         {
@@ -1299,7 +1352,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             var route = CreateAttributeRoute(next, entry1, entry2);
 
             var context = CreateVirtualPathContext(
-                values: new { action = "Edit", controller = "Store" },
+                values: new { action = "Edit", controller = "Store", area = (string)null },
                 ambientValues: new { area = "Blog" });
 
             // Act
