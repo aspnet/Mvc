@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc
         private readonly IDictionary<Type, Func<ActionContext, object>> _valueAccessorLookup;
         private readonly ConcurrentDictionary<Type, PropertyActivator<ActionContext>[]> _activateActions;
         private readonly Func<Type, PropertyActivator<ActionContext>[]> _getPropertiesToActivate;
+        private readonly Func<Type, Func<ActionContext, object>> _getRequiredService = GetRequiredService;
 
         /// <summary>
         /// Initializes a new instance of <see cref="DefaultControllerFactory"/>.
@@ -33,16 +34,7 @@ namespace Microsoft.AspNet.Mvc
             _controllerActivator = controllerActivator;
             _valueAccessorLookup = CreateValueAccessorLookup();
             _activateActions = new ConcurrentDictionary<Type, PropertyActivator<ActionContext>[]>();
-
-            _getPropertiesToActivate = type => Enumerable.Concat(
-                PropertyActivator<ActionContext>.GetPropertiesToActivate(
-                                                        type,
-                                                        typeof(ActivateAttribute),
-                                                        CreateActivateInfo),
-                PropertyActivator<ActionContext>.GetPropertiesToActivate(
-                                                        type,
-                                                        typeof(FromServicesAttribute),
-                                                        CreateFromServicesInfo)).ToArray();
+            _getPropertiesToActivate = GetPropertiesToActivate;
         }
 
         /// <inheritdoc />
@@ -139,6 +131,21 @@ namespace Microsoft.AspNet.Mvc
             return dictionary;
         }
 
+        private PropertyActivator<ActionContext>[] GetPropertiesToActivate(Type type)
+        {
+            var activatorsForActivateProperties = PropertyActivator<ActionContext>.GetPropertiesToActivate(
+                                                        type,
+                                                        typeof(ActivateAttribute),
+                                                        CreateActivateInfo);
+            var activatorsForFromServiceProperties = PropertyActivator<ActionContext>.GetPropertiesToActivate(
+                                                        type,
+                                                        typeof(FromServicesAttribute),
+                                                        CreateFromServicesInfo);
+
+            return Enumerable.Concat(activatorsForActivateProperties, activatorsForFromServiceProperties)
+                             .ToArray();
+        }
+
         private PropertyActivator<ActionContext> CreateActivateInfo(
             PropertyInfo property)
         {
@@ -157,10 +164,13 @@ namespace Microsoft.AspNet.Mvc
         private PropertyActivator<ActionContext> CreateFromServicesInfo(
             PropertyInfo property)
         {
-            Func<ActionContext, object> valueAccessor = actionContext =>
-                    actionContext.HttpContext.RequestServices.GetService(property.PropertyType);
-
+            var valueAccessor = _getRequiredService(property.PropertyType);
             return new PropertyActivator<ActionContext>(property, valueAccessor);
+        }
+
+        private static Func<ActionContext, object> GetRequiredService(Type propertyType)
+        {
+            return actionContext => actionContext.HttpContext.RequestServices.GetRequiredService(propertyType);
         }
     }
 }

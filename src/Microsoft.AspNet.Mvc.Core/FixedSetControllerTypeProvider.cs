@@ -9,23 +9,20 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// A <see cref="IControllerTypeProvider"/> with a fixed set of types that are used as controllers. 
     /// </summary>
-    public class StaticControllerTypeProvider : IControllerTypeProvider
+    public class FixedSetControllerTypeProvider : IControllerTypeProvider
     {
-        private readonly IReadOnlyList<TypeInfo> _controllerTypes;
-
         /// <summary>
         /// Initializes a new instance of <see cref="StaticControllerTypeProvider"/>.
         /// </summary>
-        /// <param name="controllerTypes">The list of controller <see cref="TypeInfo"/>.</param>
-        public StaticControllerTypeProvider([NotNull] IReadOnlyList<TypeInfo> controllerTypes)
+        /// <param name="controllerTypes">The sequence of controller <see cref="TypeInfo"/>.</param>
+        public FixedSetControllerTypeProvider([NotNull] IEnumerable<TypeInfo> controllerTypes)
         {
-            _controllerTypes = controllerTypes;    
+            ControllerTypes = controllerTypes;
         }
 
-        /// <inheritdoc />
-        public IEnumerable<TypeInfo> GetControllerTypes()
-        {
-            return _controllerTypes;
-        }
+        /// <summary>
+        /// Gets the list of controller <see cref="TypeInfo"/>s.
+        /// </summary>
+        public IEnumerable<TypeInfo> ControllerTypes { get; }
     }
 }

@@ -78,7 +78,7 @@ namespace Microsoft.Framework.DependencyInjection
 
             var describer = new ServiceDescriber(configuration);
             services.Replace(describer.Transient<IControllerActivator, ServiceBasedControllerActivator>());
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypeInfos);
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfos);
             services.Replace(describer.Instance<IControllerTypeProvider>(controllerTypeProvider));
 
             return services;
@@ -121,9 +121,9 @@ namespace Microsoft.Framework.DependencyInjection
                 loggerFactory = NullLoggerFactory.Instance;
             }
 
-            var assemblyProvider = new StaticAssemblyProvider(controllerAssemblies);
+            var assemblyProvider = new FixedSetAssemblyProvider(controllerAssemblies);
             var controllerTypeProvider = new DefaultControllerTypeProvider(assemblyProvider, loggerFactory);
-            var controllerTypes = controllerTypeProvider.GetControllerTypes();
+            var controllerTypes = controllerTypeProvider.ControllerTypes;
 
             return WithControllersAsServices(services,
                                              controllerTypes.Select(type => type.AsType()),

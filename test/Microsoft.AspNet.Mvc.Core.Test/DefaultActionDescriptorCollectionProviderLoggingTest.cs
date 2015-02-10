@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         private ControllerActionDescriptorProvider GetProvider(
             ILoggerFactory loggerFactory, params TypeInfo[] controllerTypeInfo)
         {
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypeInfo);
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfo);
             var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                  loggerFactory);
 

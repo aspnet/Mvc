@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void CreateController_UsesTypeActivatorToInstantiateController()
+        public void CreateController_UsesControllerActivatorToInstantiateController()
         {
             // Arrange
             var expected = new MyController();
@@ -169,6 +169,32 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
+        public void CreateController_PopulatesUserServicesFromServiceContainer()
+        {
+            // Arrange
+            var actionDescriptor = new ControllerActionDescriptor
+            {
+                ControllerTypeInfo = typeof(ControllerWithActivateAndFromServices).GetTypeInfo()
+            };
+            var services = GetServices();
+            var testService = services.GetService<TestService>();
+
+            var httpContext = new DefaultHttpContext
+            {
+                RequestServices = services
+            };
+            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
+            var factory = new DefaultControllerFactory(new DefaultControllerActivator());
+
+            // Act
+            var result = factory.CreateController(context);
+
+            // Assert
+            var controller = Assert.IsType<ControllerWithActivateAndFromServices>(result);
+            Assert.Same(testService, controller.TestService);
+        }
+
+        [Fact]
         public void CreateController_IgnoresPropertiesThatAreNotDecoratedWithActivateAttribute()
         {
             // Arrange
@@ -210,7 +236,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Act and Assert
             var exception = Assert.Throws<InvalidOperationException>(() => factory.CreateController(context));
-            Assert.Equal("Property 'Service' on controller '" + typeof(ControllerThatCannotBeActivated) +
+            Assert.Equal("The property 'Service' on controller '" + typeof(ControllerThatCannotBeActivated) +
                         "' cannot be activated.", exception.Message);
         }
 
@@ -247,6 +273,8 @@ namespace Microsoft.AspNet.Mvc.Core
                     .Returns(Mock.Of<IUrlHelper>());
             services.Setup(s => s.GetService(typeof(IModelMetadataProvider)))
                     .Returns(new EmptyModelMetadataProvider());
+            services.Setup(s => s.GetService(typeof(TestService)))
+                    .Returns(new TestService());
             services
                 .Setup(s => s.GetService(typeof(IScopedInstance<ActionBindingContext>)))
                 .Returns(new MockScopedInstance<ActionBindingContext>());
@@ -274,7 +302,7 @@ namespace Microsoft.AspNet.Mvc.Core
             public IUrlHelper Helper { get; set; }
 
             [FromServices]
-            public TestService Service { get; set; }
+            public TestService TestService { get; set; }
 
             public HttpResponse Response { get; set; }
 

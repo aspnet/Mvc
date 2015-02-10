@@ -369,7 +369,7 @@ namespace System.Web.Http
 
         private INestedProviderManager<ActionDescriptorProviderContext> CreateProvider()
         {
-            var assemblyProvider = new StaticAssemblyProvider(new[] { GetType().GetTypeInfo().Assembly });
+            var assemblyProvider = new FixedSetAssemblyProvider(new[] { GetType().GetTypeInfo().Assembly });
             var controllerTypeProvider = new NamespaceFilteredControllerTypeProvider(assemblyProvider);
             var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                  NullLoggerFactory.Instance);

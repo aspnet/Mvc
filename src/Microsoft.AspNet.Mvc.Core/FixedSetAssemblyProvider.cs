@@ -9,18 +9,20 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// A <see cref="IAssemblyProvider"/> with a fixed set of candidate assemblies. 
     /// </summary>
-    public class StaticAssemblyProvider : IAssemblyProvider
+    public class FixedSetAssemblyProvider : IAssemblyProvider
     {
         /// <summary>
         /// Initializes a new instance of <see cref="StaticAssemblyProvider"/>.
         /// </summary>
         /// <param name="assemblies">The candidate assemblies.</param>
-        public StaticAssemblyProvider([NotNull] IEnumerable<Assembly> assemblies)
+        public FixedSetAssemblyProvider([NotNull] IEnumerable<Assembly> assemblies)
         {
             CandidateAssemblies = assemblies;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the list of candidate assemblies.
+        /// </summary>
         public IEnumerable<Assembly> CandidateAssemblies { get; }
     }
 }

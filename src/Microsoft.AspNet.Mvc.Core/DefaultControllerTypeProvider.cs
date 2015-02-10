@@ -33,19 +33,22 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public virtual IEnumerable<TypeInfo> GetControllerTypes()
+        public virtual IEnumerable<TypeInfo> ControllerTypes
         {
-            var assemblies = _assemblyProvider.CandidateAssemblies;
-            if (_logger.IsEnabled(LogLevel.Verbose))
+            get
             {
-                foreach (var assembly in assemblies)
+                var assemblies = _assemblyProvider.CandidateAssemblies;
+                if (_logger.IsEnabled(LogLevel.Verbose))
                 {
-                    _logger.WriteVerbose(new AssemblyValues(assembly));
+                    foreach (var assembly in assemblies)
+                    {
+                        _logger.WriteVerbose(new AssemblyValues(assembly));
+                    }
                 }
-            }
 
-            var types = assemblies.SelectMany(a => a.DefinedTypes);
-            return types.Where(IsController);
+                var types = assemblies.SelectMany(a => a.DefinedTypes);
+                return types.Where(IsController);
+            }
         }
 
         /// <summary>

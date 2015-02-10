@@ -764,7 +764,7 @@ namespace Microsoft.AspNet.Mvc
                 .Select(t => t.GetTypeInfo())
                 .ToList();
 
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypes);
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypes);
             var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                  NullLoggerFactory.Instance);
 

@@ -12,9 +12,8 @@ namespace Microsoft.AspNet.Mvc
     public interface IControllerTypeProvider
     {
         /// <summary>
-        /// Gets a sequence of controller <see cref="Type"/>.
+        /// Gets a <see cref="IEnumerable{T}"/> of controller <see cref="TypeInfo"/>s.
         /// </summary>
-        /// <returns>A sequence of controller types.</returns>
-        IEnumerable<TypeInfo> GetControllerTypes();
+        IEnumerable<TypeInfo> ControllerTypes { get; }
     }
 }

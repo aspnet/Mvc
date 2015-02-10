@@ -1362,7 +1362,7 @@ namespace Microsoft.AspNet.Mvc.Test
             TypeInfo controllerTypeInfo,
             IEnumerable<IFilter> filters = null)
         {
-            var controllerTypeProvider = new StaticControllerTypeProvider(new[] { controllerTypeInfo });
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(new[] { controllerTypeInfo });
             var controllerModelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                            NullLoggerFactory.Instance);
 
@@ -1379,7 +1379,7 @@ namespace Microsoft.AspNet.Mvc.Test
         private ControllerActionDescriptorProvider GetProvider(
             params TypeInfo[] controllerTypeInfo)
         {
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypeInfo);
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfo);
             var controllerModelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                            NullLoggerFactory.Instance);
 
@@ -1397,7 +1397,7 @@ namespace Microsoft.AspNet.Mvc.Test
             TypeInfo type,
             IApplicationModelConvention convention)
         {
-            var controllerTypeProvider = new StaticControllerTypeProvider(new[] { type });
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(new[] { type });
             var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                  NullLoggerFactory.Instance);
 
@@ -1414,7 +1414,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
         private IEnumerable<ActionDescriptor> GetDescriptors(params TypeInfo[] controllerTypeInfos)
         {
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypeInfos);
+            var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfos);
             var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
                                                                  NullLoggerFactory.Instance);
 

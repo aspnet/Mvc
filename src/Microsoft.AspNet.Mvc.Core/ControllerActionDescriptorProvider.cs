@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc
                 applicationModel.Filters.Add(filter);
             }
 
-            foreach (var type in _controllerTypeProvider.GetControllerTypes())
+            foreach (var type in _controllerTypeProvider.ControllerTypes)
             {
                 var controllerModel = _applicationModelBuilder.BuildControllerModel(type);
                 if (controllerModel != null)

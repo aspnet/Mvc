@@ -21,9 +21,10 @@ namespace Microsoft.AspNet.Mvc.Logging
                                                  loggerFactory);
 
             // Act
-            provider.GetControllerTypes();
+            var controllers = provider.ControllerTypes;
 
             // Assert
+            Assert.NotNull(controllers);
             var writeContext = Assert.Single(sink.Writes);
 
             var assemblyValues = Assert.IsType<AssemblyValues>(writeContext.State);
