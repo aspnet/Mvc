@@ -76,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                             matchedAttributes[attribute] = true;
                         }
 
-                        result.FullMatches.Add(modeInfo);
+                        result.FullMatches.Add(ModeMatchAttributes.Create(modeInfo.Mode, modeInfo.Attributes));
                     }
                     else
                     {
@@ -90,11 +90,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                             }
                         }
 
-                        result.PartialMatches.Add(ModeAttributes.Create(modeInfo.Mode, modeAttributes.Missing));
+                        result.PartialMatches.Add(ModeMatchAttributes.Create(
+                            modeInfo.Mode, modeAttributes.Present, modeAttributes.Missing));
                     }
                 }
             }
 
+            // Build the list of partially matched attributes (those with partial matches but no full matches)
             foreach (var attribute in matchedAttributes.Keys)
             {
                 if (!matchedAttributes[attribute])
@@ -102,6 +104,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     result.PartiallyMatchedAttributes.Add(attribute);
                 }
             }
+
+            // Build the list of partial matches that contain attributes not appearing in at least one full match
+            result.PartialOnlyMatches = result.PartialMatches.Where(
+                match => match.PresentAttributes.Any(
+                    attribute => result.PartiallyMatchedAttributes.Contains(
+                        attribute, StringComparer.OrdinalIgnoreCase)));
 
             return result;
         }

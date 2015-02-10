@@ -18,12 +18,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <summary>
         /// Modes that were missing attributes but had at least one attribute present.
         /// </summary>
-        public IList<ModeAttributes<TMode>> PartialMatches { get; } = new List<ModeAttributes<TMode>>();
+        public IList<ModeMatchAttributes<TMode>> PartialMatches { get; } = new List<ModeMatchAttributes<TMode>>();
 
         /// <summary>
         /// Modes that had all attributes present.
         /// </summary>
-        public IList<ModeAttributes<TMode>> FullMatches { get; } = new List<ModeAttributes<TMode>>();
+        public IList<ModeMatchAttributes<TMode>> FullMatches { get; } = new List<ModeMatchAttributes<TMode>>();
+
+        /// <summary>
+        /// Modes that are only in <see cref="PartialMatches"/> and not in <see cref="FullMatches"/>.
+        /// </summary>
+        public IEnumerable<ModeMatchAttributes<TMode>> PartialOnlyMatches { get; set; } = new List<ModeMatchAttributes<TMode>>();
 
         /// <summary>
         /// Attributes that are present in at least one mode in <see cref="PartialMatches"/>, but in no modes in
@@ -40,17 +45,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="uniqueId">The value of <see cref="TagHelperContext.UniqueId"/>.</param>
         public void LogDetails<TTagHelper>([NotNull] ILogger logger, [NotNull] TTagHelper tagHelper, string uniqueId)
         {
-            if (logger.IsEnabled(LogLevel.Warning) && PartiallyMatchedAttributes.Any())
+            if (logger.IsEnabled(LogLevel.Warning) && PartialOnlyMatches.Any())
             {
-                var unmatchedPartials = PartialMatches.Where(partial =>
-                    partial.Attributes.Any(attribute =>
-                        PartiallyMatchedAttributes.Contains(attribute, StringComparer.OrdinalIgnoreCase)));
-                logger.WriteWarning(new PartialModeMatchLoggerStructure<TMode>(uniqueId, PartialMatches));
+                logger.WriteWarning(new PartialModeMatchLoggerStructure<TMode>(uniqueId, PartialOnlyMatches));
             }
 
-            if (!FullMatches.Any() && logger.IsEnabled(LogLevel.Verbose))
+            if (logger.IsEnabled(LogLevel.Verbose) && !FullMatches.Any())
             {
-                logger.WriteVerbose("Skipping processing for {0} {1}", tagHelper.GetType().GetTypeInfo().Name, uniqueId);
+                logger.WriteVerbose("Skipping processing for {0} {1}",
+                    tagHelper.GetType().GetTypeInfo().Name, uniqueId);
             }
         }
     }
@@ -63,10 +66,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <summary>
         /// Creates an <see cref="ModeAttributes{TMode}"/>/
         /// </summary>
-        /// <typeparam name="TMode">The type representing the <see cref="ITagHelper"/>'s mode.</typeparam>
-        /// <param name="mode">The <see cref="ITagHelper"/>'s mode.</param>
-        /// <param name="attributes">The attributes.</param>
-        /// <returns></returns>
         public static ModeAttributes<TMode> Create<TMode>(TMode mode, IEnumerable<string> attributes)
         {
             return new ModeAttributes<TMode>
@@ -88,10 +87,54 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// </summary>
         public TMode Mode { get; set; }
 
-        /// <summary>
-        /// The attributes. The meaning of the attributes is not defined and is intead dependent on the context of this
-        /// type being used, e.g. the mode's required attributes, attributes missing for this mode, etc.
-        /// </summary>
         public IEnumerable<string> Attributes { get; set; }
+    }
+
+    /// <summary>
+    /// Static creation methods for <see cref="ModeMatchAttributes{TMode}"/>.
+    /// </summary>
+    public static class ModeMatchAttributes
+    {
+        /// <summary>
+        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>/
+        /// </summary>
+        public static ModeMatchAttributes<TMode> Create<TMode>(
+           TMode mode,
+           IEnumerable<string> presentAttributes)
+        {
+            return Create(mode, presentAttributes, missingAttributes: null);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>/
+        /// </summary>
+        public static ModeMatchAttributes<TMode> Create<TMode>(
+            TMode mode,
+            IEnumerable<string> presentAttributes,
+            IEnumerable<string> missingAttributes)
+        {
+            return new ModeMatchAttributes<TMode>
+            {
+                Mode = mode,
+                PresentAttributes = presentAttributes,
+                MissingAttributes = missingAttributes
+            };
+        }
+    }
+
+    /// <summary>
+    /// A mapping of a <see cref="ITagHelper"/> mode to attributes.
+    /// </summary>
+    /// <typeparam name="TMode">The type representing the <see cref="ITagHelper"/>'s mode.</typeparam>
+    public class ModeMatchAttributes<TMode>
+    {
+        /// <summary>
+        /// The <see cref="ITagHelper"/>'s mode.
+        /// </summary>
+        public TMode Mode { get; set; }
+
+        public IEnumerable<string> PresentAttributes { get; set; }
+
+        public IEnumerable<string> MissingAttributes { get; set; }
     }
 }
