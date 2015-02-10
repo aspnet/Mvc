@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
         public override FileInfoBase GetFile(string path)
         {
-            return new FileProviderGlobbingFile(this, _fileProvider.GetFileInfo(path));
+            return new FileProviderGlobbingFile(_fileProvider.GetFileInfo(path), this);
         }
 
         private FileSystemInfoBase BuildFileResult(IFileInfo fileInfo)
@@ -107,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 return new FileProviderGlobbingDirectory(_fileProvider, fileInfo, this);
             }
 
-            return new FileProviderGlobbingFile(this, fileInfo);
+            return new FileProviderGlobbingFile(fileInfo, this);
         }
     }
 }

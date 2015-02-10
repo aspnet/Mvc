@@ -9,14 +9,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     public class FileProviderGlobbingFile : FileInfoBase
     {
-        private readonly DirectoryInfoBase _parent;
         private readonly IFileInfo _fileInfo;
+        private readonly DirectoryInfoBase _parent;
         private readonly string _fullName;
 
-        public FileProviderGlobbingFile([NotNull] DirectoryInfoBase parent, [NotNull] IFileInfo fileInfo)
+        public FileProviderGlobbingFile([NotNull] IFileInfo fileInfo, [NotNull] DirectoryInfoBase parent)
         {
-            _parent = parent;
             _fileInfo = fileInfo;
+            _parent = parent;
             _fullName = _parent.FullName + Path.DirectorySeparatorChar + Name;
         }
 
