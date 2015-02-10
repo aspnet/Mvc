@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     {
         private static readonly char[] PatternSeparator = new[] { ',' };
 
-        private FileProviderGlobbingDirectory _baseGlobbingDirectory;
+        private readonly FileProviderGlobbingDirectory _baseGlobbingDirectory;
 
         public GlobbingUrlBuilder(IMemoryCache cache, IFileProvider fileProvider, PathString requestPathBase)
         {
@@ -31,17 +31,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <summary>
         /// The <see cref="IMemoryCache"/> to cache globbing results in.
         /// </summary>
-        public IMemoryCache Cache { get; set; }
+        public IMemoryCache Cache { get; }
 
         /// <summary>
         /// The <see cref="IFileProvider"/> used to watch for changes to file globbing results.
         /// </summary>
-        public IFileProvider FileProvider { get; set; }
+        public IFileProvider FileProvider { get; }
 
         /// <summary>
         /// The base path of the current request (e.g. <see cref="HttpRequest.PathBase"/>).
         /// </summary>
-        public PathString RequestPathBase { get; set; }
+        public PathString RequestPathBase { get; }
 
         /// <summary>
         /// Builds a list of URLs.
