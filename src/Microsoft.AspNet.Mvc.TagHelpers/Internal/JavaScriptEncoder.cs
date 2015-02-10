@@ -32,16 +32,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             var builder = new StringBuilder();
 
-            JavaScriptArrayEncode(values, builder);
-
-            return builder.ToString();
-        }
-
-        /// <summary>
-        /// Encodes a .NET string array for safe use as a JavaScript array literal, including inline in an HTML file.
-        /// </summary>
-        public static void JavaScriptArrayEncode(IEnumerable<string> values, StringBuilder builder)
-        {
             builder.Append("[");
 
             var firstAdded = false;
@@ -59,6 +49,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
 
             builder.Append("]");
+
+            return builder.ToString();
         }
 
         /// <summary>
@@ -73,10 +65,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             return builder.ToString();
         }
 
-        /// <summary>
-        /// Encodes a .NET string for safe use as a JavaScript string literal, including inline in an HTML file.
-        /// </summary>
-        public static void JavaScriptStringEncode(string value, StringBuilder builder)
+        private static void JavaScriptStringEncode(string value, StringBuilder builder)
         {
             foreach (var character in value)
             {
