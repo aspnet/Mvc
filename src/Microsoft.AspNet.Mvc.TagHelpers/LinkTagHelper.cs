@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Text;
 using Microsoft.AspNet.Hosting;
@@ -29,37 +31,38 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string FallbackTestValueAttributeName = "asp-fallback-test-value";
         private const string FallbackJavaScriptResourceName = "compiler/resources/LinkTagHelper_FallbackJavaScript.js";
 
-        private static readonly Tuple<Mode, string[]>[] ModeInfo =
-            new []
-            {
-                Tuple.Create(Mode.Fallback, new[]
+        private static readonly ModeInfo<Mode>[] ModeDetails = new [] {
+            // Globbed Href (include only) no static href
+            ModeInfo.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
+            // Globbed Href (include & exclude), no static href
+            ModeInfo.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName, HrefExcludeAttributeName }),
+            // Fallback with no href
+            ModeInfo.Create(
+                Mode.Fallback, new[]
                 {
-                    // Globbed fallback, include & exclude patterns (static fallback optional)
+                    FallbackHrefAttributeName,
+                    FallbackTestClassAttributeName,
+                    FallbackTestPropertyAttributeName,
+                    FallbackTestValueAttributeName
+                }),
+            // Fallback with globbed href (include only)
+            ModeInfo.Create(
+                Mode.Fallback, new[] {
+                    FallbackHrefIncludeAttributeName,
+                    FallbackTestClassAttributeName,
+                    FallbackTestPropertyAttributeName,
+                    FallbackTestValueAttributeName
+                }),
+            // Fallback with globbed href (include & exclude)
+            ModeInfo.Create(
+                Mode.Fallback, new[] {  
                     FallbackHrefIncludeAttributeName,
                     FallbackHrefExcludeAttributeName,
                     FallbackTestClassAttributeName,
                     FallbackTestPropertyAttributeName,
                     FallbackTestValueAttributeName
                 }),
-                Tuple.Create(Mode.Fallback, new[]
-                {
-                    // Globbed fallback, include pattern only (static fallback optional)
-                    FallbackHrefIncludeAttributeName,
-                    FallbackTestClassAttributeName,
-                    FallbackTestPropertyAttributeName,
-                    FallbackTestValueAttributeName
-                }),
-                Tuple.Create(Mode.Fallback, new[]
-                {
-                    // Static fallback only
-                    FallbackHrefAttributeName,
-                    FallbackTestClassAttributeName,
-                    FallbackTestPropertyAttributeName,
-                    FallbackTestValueAttributeName
-                }),
-                Tuple.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName }),
-                Tuple.Create(Mode.GlobbedHref, new [] { HrefIncludeAttributeName, HrefExcludeAttributeName })
-            };
+        };
 
         private enum Mode
         {
@@ -150,24 +153,33 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     ViewContext.HttpContext.Request.PathBase);
             }
             
-            var modeResult = context.DetermineMode(ModeInfo, Logger);
+            var modeResult = context.DetermineMode(ModeDetails);
 
-            if (!modeResult.Matched)
+            Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
+                    $"There should only be one mode match, check the {ModeDetails}");
+
+            if (!modeResult.FullMatches.Any())
             {
+                if (Logger.IsEnabled(LogLevel.Warning) && modeResult.PartialMatches.Any())
+                {
+                    // TODO: Log warnings about partial matches
+
+                }
                 if (Logger.IsEnabled(LogLevel.Verbose))
                 {
                     Logger.WriteVerbose("Skipping processing for {0} {1}", nameof(LinkTagHelper), context.UniqueId);
                 }
                 return;
             }
+            
+            var mode = modeResult.FullMatches.FirstOrDefault().Mode;
 
+            // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
             var attributes = new Dictionary<string, string>(output.Attributes);
             
-            // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
-
             var builder = new StringBuilder();
             
-            if (modeResult.Mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
+            if (mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude))
             {
                 // No globbing to do, just build a <link /> tag to match the original one in the source file
                 BuildLinkTag(attributes, builder);
@@ -177,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 BuildGlobbedLinkTags(attributes, builder);
             }
 
-            if (modeResult.Mode == Mode.Fallback)
+            if (mode == Mode.Fallback)
             {
                 BuildFallbackBlock(builder);
             }
