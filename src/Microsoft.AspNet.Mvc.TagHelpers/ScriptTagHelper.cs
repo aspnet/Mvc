@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
 
@@ -95,8 +96,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 if (!attribute.Key.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                 {
-                    var encodedKey = JavaScriptUtility.JavaScriptStringEncode(attribute.Key);
-                    var encodedValue = JavaScriptUtility.JavaScriptStringEncode(attribute.Value);
+                    var encodedKey = JavaScriptEncoding.JavaScriptStringEncode(attribute.Key);
+                    var encodedValue = JavaScriptEncoding.JavaScriptStringEncode(attribute.Value);
 
                     content.AppendFormat(CultureInfo.InvariantCulture, " {0}=\\\"{1}\\\"", encodedKey, encodedValue);
                 }

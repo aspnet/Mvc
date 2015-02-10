@@ -14,8 +14,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     public class MissingAttributeLoggerStructure : ILoggerStructure
     {
         private readonly string _uniqueId;
-        private readonly IEnumerable<string> _missingAttributes;
         private readonly IEnumerable<KeyValuePair<string, object>> _values;
+
+        // Internal for unit testing
+        internal IEnumerable<string> MissingAttributes { get; }
 
         /// <summary>
         /// Creates a new <see cref="MissingAttributeLoggerStructure"/>.
@@ -29,11 +31,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             IDictionary<string, object> extraValues = null)
         {
             _uniqueId = uniqueId;
-            _missingAttributes = missingAttributes;
+            MissingAttributes = missingAttributes;
             var values = new Dictionary<string, object>
             {
                 { "UniqueId", _uniqueId },
-                { "MissingAttributes", _missingAttributes }
+                { "MissingAttributes", MissingAttributes }
             };
             if (extraValues != null)
             {
@@ -73,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             return string.Format("Tag Helper unique ID: {0}, Missing attributes: {1}",
                 _uniqueId,
-                string.Join(",", _missingAttributes));
+                string.Join(",", MissingAttributes));
         }
     }
 }
