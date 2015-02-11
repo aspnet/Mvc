@@ -98,18 +98,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.StartsWith("<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content);
         }
 
-        [Fact]
-        public void DoesNotRunWhenARequiredAttributeIsMissing()
+        [Theory]
+        [MemberData(nameof(DoesNotRunWhenARequiredAttributeIsMissing_Data))]
+        public void DoesNotRunWhenARequiredAttributeIsMissing(IDictionary<string, object> attributes)
         {
             // Arrange
-            var context = MakeTagHelperContext(
-                attributes: new Dictionary<string, object>
-                {
-                    // This is commented out on purpose: { "asp-fallback-href", "test.css" },
-                    ["asp-fallback-test-class"] = "hidden",
-                    ["asp-fallback-test-property"] = "visibility",
-                    ["asp-fallback-test-value"] = "hidden",
-                });
+            var context = MakeTagHelperContext(attributes);
             var output = MakeTagHelperOutput("link");
             var logger = new Mock<ILogger<LinkTagHelper>>();
             var hostingEnvironment = new Mock<IHostingEnvironment>();
@@ -131,6 +125,38 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.NotNull(output.TagName);
             Assert.False(output.ContentSet);
+        }
+
+        public static TheoryData DoesNotRunWhenARequiredAttributeIsMissing_Data
+        {
+            get
+            {
+                return new TheoryData<IDictionary<string, object>>
+                {
+                    new Dictionary<string, object>
+                    {
+                        // This is commented out on purpose: ["asp-fallback-href"] = "test.css",
+                        ["asp-fallback-test-class"] = "hidden",
+                        ["asp-fallback-test-property"] = "visibility",
+                        ["asp-fallback-test-value"] = "hidden"
+                    },
+                    new Dictionary<string, object>
+                    {
+                        ["asp-fallback-href"] = "test.css",
+                        ["asp-fallback-test-class"] = "hidden",
+                        // This is commented out on purpose: ["asp-fallback-test-property"] = "visibility",
+                        ["asp-fallback-test-value"] = "hidden"
+                    },
+                    new Dictionary<string, object>
+                    {
+                        // This is commented out on purpose: ["asp-fallback-href-include"], "test.css",
+                        ["asp-fallback-href-exclude"] = "**/*.min.css",
+                        ["asp-fallback-test-class"] = "hidden",
+                        ["asp-fallback-test-property"] = "visibility",
+                        ["asp-fallback-test-value"] = "hidden"
+                    }
+                };
+            }
         }
 
         [Fact]
@@ -179,7 +205,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private static TagHelperOutput MakeTagHelperOutput(string tagName, IDictionary<string, string> attributes = null)
         {
             attributes = attributes ?? new Dictionary<string, string>();
-            
+
             return new TagHelperOutput(tagName, attributes);
         }
     }
