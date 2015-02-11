@@ -303,7 +303,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = MakeViewContext();
             var globbingUrlBuilder = new Mock<IGlobbingUrlBuilder>();
             globbingUrlBuilder.Setup(g => g.BuildUrlList("/css/site.css", "**/*.css", null))
-                .Returns(new [] { "/css/site.css", "/base.css" });
+                .Returns(new[] { "/css/site.css", "/base.css" });
             var helper = new LinkTagHelper
             {
                 GlobbingUrlBuilder = globbingUrlBuilder.Object,
@@ -319,7 +319,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("<link href=\"/css/site.css\" rel=\"stylesheet\" />" +
                          "<link href=\"/base.css\" rel=\"stylesheet\" />", output.Content);
-
         }
 
         private static ViewContext MakeViewContext()
