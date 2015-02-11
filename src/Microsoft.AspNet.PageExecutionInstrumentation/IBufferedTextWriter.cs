@@ -3,14 +3,12 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// Specifies the contracts for a <see cref="TextWriter"/> that buffers its content.
     /// </summary>
-    [AssemblyNeutral]
     public interface IBufferedTextWriter
     {
         /// <summary>
@@ -21,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Copies the buffered content to the <paramref name="writer"/>.
         /// </summary>
-        /// <param name="writer">The writer to copy the contents to./param>
+        /// <param name="writer">The writer to copy the contents to.</param>
         void CopyTo(TextWriter writer);
 
         /// <summary>
