@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// <summary>
     /// Utility methods for <see cref="ITagHelper"/>'s that support attributes containing file globbing patterns.
     /// </summary>
-    public class GlobbingUrlBuilder
+    public class GlobbingUrlBuilder : IGlobbingUrlBuilder
     {
         private static readonly char[] PatternSeparator = new[] { ',' };
 

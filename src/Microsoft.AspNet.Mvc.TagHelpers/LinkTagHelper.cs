@@ -139,7 +139,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         protected internal IMemoryCache Cache { get; set; }
 
         // Internal for ease of use when testing.
-        protected internal GlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
+        protected internal IGlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
 
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
