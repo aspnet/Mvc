@@ -11,7 +11,6 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
@@ -27,17 +26,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var context = MakeTagHelperContext(
                 attributes: new Dictionary<string, object>
                 {
-                    { "asp-fallback-href", "test.css" },
-                    { "asp-fallback-test-class", "hidden" },
-                    { "asp-fallback-test-property", "visibility" },
-                    { "asp-fallback-test-value", "hidden" },
+                    ["asp-fallback-href"] = "test.css",
+                    ["asp-fallback-test-class"] = "hidden",
+                    ["asp-fallback-test-property"] = "visibility",
+                    ["asp-fallback-test-value"] = "hidden"
                 });
             var output = MakeTagHelperOutput("link");
             var logger = new Mock<ILogger<LinkTagHelper>>();
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             var viewContext = MakeViewContext();
-
-            // Act
             var helper = new LinkTagHelper
             {
                 Logger = logger.Object,
@@ -48,6 +45,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 FallbackTestProperty = "visibility",
                 FallbackTestValue = "hidden"
             };
+
+            // Act
             helper.Process(context, output);
 
             // Assert
@@ -63,26 +62,24 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var context = MakeTagHelperContext(
                 attributes: new Dictionary<string, object>
                 {
-                    { "rel", "stylesheet"},
-                    { "data-extra", "something"},
-                    { "href", "test.css"},
-                    { "asp-fallback-href", "test.css" },
-                    { "asp-fallback-test-class", "hidden" },
-                    { "asp-fallback-test-property", "visibility" },
-                    { "asp-fallback-test-value", "hidden" }
+                    ["rel"] = "stylesheet",
+                    ["data-extra"] = "something",
+                    ["href"] = "test.css",
+                    ["asp-fallback-href"] = "test.css",
+                    ["asp-fallback-test-class"] = "hidden",
+                    ["asp-fallback-test-property"] = "visibility",
+                    ["asp-fallback-test-value"] = "hidden"
                 });
             var output = MakeTagHelperOutput("link",
                 attributes: new Dictionary<string, string>
                 {
-                    { "rel", "stylesheet"},
-                    { "data-extra", "something"},
-                    { "href", "test.css"}
+                    ["rel"] = "stylesheet",
+                    ["data-extra"] = "something",
+                    ["href"] = "test.css"
                 });
             var logger = new Mock<ILogger<LinkTagHelper>>();
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             var viewContext = MakeViewContext();
-
-            // Act
             var helper = new LinkTagHelper
             {
                 Logger = logger.Object,
@@ -93,6 +90,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 FallbackTestProperty = "visibility",
                 FallbackTestValue = "hidden"
             };
+
+            // Act
             helper.Process(context, output);
 
             // Assert
@@ -107,16 +106,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new Dictionary<string, object>
                 {
                     // This is commented out on purpose: { "asp-fallback-href", "test.css" },
-                    { "asp-fallback-test-class", "hidden" },
-                    { "asp-fallback-test-property", "visibility" },
-                    { "asp-fallback-test-value", "hidden" },
+                    ["asp-fallback-test-class"] = "hidden",
+                    ["asp-fallback-test-property"] = "visibility",
+                    ["asp-fallback-test-value"] = "hidden",
                 });
             var output = MakeTagHelperOutput("link");
             var logger = new Mock<ILogger<LinkTagHelper>>();
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             var viewContext = MakeViewContext();
-
-            // Act
             var helper = new LinkTagHelper
             {
                 Logger = logger.Object,
@@ -127,6 +124,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 FallbackTestProperty = "visibility",
                 FallbackTestValue = "hidden"
             };
+
+            // Act
             helper.Process(context, output);
 
             // Assert
@@ -143,14 +142,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var logger = new Mock<ILogger<LinkTagHelper>>();
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             var viewContext = MakeViewContext();
-
-            // Act
             var helper = new LinkTagHelper
             {
                 Logger = logger.Object,
                 HostingEnvironment = hostingEnvironment.Object,
                 ViewContext = viewContext
             };
+
+            // Act
             helper.Process(context, output);
 
             // Assert

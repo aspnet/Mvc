@@ -33,8 +33,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             MissingAttributes = missingAttributes;
             var values = new Dictionary<string, object>
             {
-                { "UniqueId", _uniqueId },
-                { "MissingAttributes", MissingAttributes }
+                ["UniqueId"] = _uniqueId,
+                ["MissingAttributes"] = MissingAttributes
             };
             _values = values;
         }

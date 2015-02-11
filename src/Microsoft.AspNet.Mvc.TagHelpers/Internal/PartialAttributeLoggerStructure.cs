@@ -31,8 +31,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             _partialMatches = partialMatches;
             _values = new Dictionary<string, object>
             {
-                { "UniqueId", _uniqueId },
-                { "PartialMatches", partialMatches }
+                ["UniqueId"] = _uniqueId,
+                ["PartialMatches"] = partialMatches
             };
         }
 

@@ -14,15 +14,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     {
         private static readonly IDictionary<char, string> EncodingMap = new Dictionary<char, string>
         {
-            { '<', @"\u003c" },      // opening angle-bracket
-            { '>', @"\u003e" },      // closing angle-bracket
-            { '\'', @"\u0027" },     // single quote
-            { '"', @"\u0022" },      // double quote
-            { '\\', @"\\" },         // back slash
-            { '\r', "\\r" },         // carriage return
-            { '\n', "\\n" },         // new line
-            { '\u0085', @"\u0085" }, // next line
-            { '&', @"\u0026" },      // ampersand
+            ['<'] = @"\u003c",      // opening angle-bracket
+            ['>'] = @"\u003e",      // closing angle-bracket
+            ['\''] = @"\u0027",     // single quote
+            ['"'] = @"\u0022",      // double quote
+            ['\\'] = @"\\",         // back slash
+            ['\r'] = "\\r",         // carriage return
+            ['\n'] = "\\n",         // new line
+            ['\u0085'] = @"\u0085", // next line
+            ['&'] = @"\u0026",      // ampersand
         };
 
         /// <summary>

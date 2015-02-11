@@ -144,14 +144,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (GlobbingUrlBuilder == null)
-            {
-                GlobbingUrlBuilder = new GlobbingUrlBuilder(
-                    HostingEnvironment.WebRootFileProvider,
-                    Cache,
-                    ViewContext.HttpContext.Request.PathBase);
-            }
-
             var modeResult = context.DetermineMode(ModeDetails);
 
             Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
@@ -198,6 +190,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string staticHref;
             attributes.TryGetValue("href", out staticHref);
 
+            EnsureGlobbingUrlBuilder();
             var hrefs = GlobbingUrlBuilder.BuildUrlList(staticHref, HrefInclude, HrefExclude);
 
             foreach (var href in hrefs)
@@ -215,6 +208,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             builder.AppendFormat(CultureInfo.InvariantCulture,
                 "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
 
+            EnsureGlobbingUrlBuilder();
             var fallbackHrefs = GlobbingUrlBuilder.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
 
             // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
@@ -227,6 +221,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         JavaScriptEncoder.JavaScriptStringEncode(FallbackTestValue),
                         JavaScriptEncoder.JavaScriptArrayEncode(fallbackHrefs))
                    .Append("</script>");
+        }
+
+        private void EnsureGlobbingUrlBuilder()
+        {
+            if (GlobbingUrlBuilder == null)
+            {
+                GlobbingUrlBuilder = new GlobbingUrlBuilder(
+                    HostingEnvironment.WebRootFileProvider,
+                    Cache,
+                    ViewContext.HttpContext.Request.PathBase);
+            }
         }
 
         private static void BuildLinkTag(IDictionary<string, string> attributes, StringBuilder builder)
