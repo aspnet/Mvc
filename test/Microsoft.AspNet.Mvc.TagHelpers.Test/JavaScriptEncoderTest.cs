@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.TagHelpers.Test
+namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
-    public class JavaScriptUtilityTest
+    public class JavaScriptEncoderTest
     {
         [Theory]
         [InlineData("Hello World", "Hello World")]

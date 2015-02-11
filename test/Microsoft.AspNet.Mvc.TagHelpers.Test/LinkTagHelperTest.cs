@@ -22,35 +22,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class LinkTagHelperTest
     {
-        [Theory]
-        [MemberData(nameof(RunsWhenRequiredAttributesArePresent_Data))]
-        public void RunsWhenRequiredAttributesArePresent(
-            IDictionary<string, object> attributes,
-            Action<LinkTagHelper> setProperties)
-        {
-            // Arrange
-            var context = MakeTagHelperContext(attributes);
-            var output = MakeTagHelperOutput("link");
-            var logger = new Mock<ILogger<LinkTagHelper>>();
-            var hostingEnvironment = MakeHostingEnvironment();
-            var viewContext = MakeViewContext();
-            var helper = new LinkTagHelper
-            {
-                Logger = logger.Object,
-                HostingEnvironment = hostingEnvironment,
-                ViewContext = viewContext,
-            };
-            setProperties(helper);
-
-            // Act
-            helper.Process(context, output);
-
-            // Assert
-            Assert.Null(output.TagName);
-            Assert.NotNull(output.Content);
-            Assert.True(output.ContentSet);
-        }
-
         public static TheoryData RunsWhenRequiredAttributesArePresent_Data
         {
             get
@@ -115,6 +86,35 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
+        [Theory]
+        [MemberData(nameof(RunsWhenRequiredAttributesArePresent_Data))]
+        public void RunsWhenRequiredAttributesArePresent(
+            IDictionary<string, object> attributes,
+            Action<LinkTagHelper> setProperties)
+        {
+            // Arrange
+            var context = MakeTagHelperContext(attributes);
+            var output = MakeTagHelperOutput("link");
+            var logger = new Mock<ILogger<LinkTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var helper = new LinkTagHelper
+            {
+                Logger = logger.Object,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext,
+            };
+            setProperties(helper);
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Null(output.TagName);
+            Assert.NotNull(output.Content);
+            Assert.True(output.ContentSet);
+        }
+
         [Fact]
         public void PreservesOrderOfSourceAttributesWhenRun()
         {
@@ -156,34 +156,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.StartsWith("<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content);
-        }
-
-        [Theory]
-        [MemberData(nameof(DoesNotRunWhenARequiredAttributeIsMissing_Data))]
-        public void DoesNotRunWhenARequiredAttributeIsMissing(
-            IDictionary<string, object> attributes,
-            Action<LinkTagHelper> setProperties)
-        {
-            // Arrange
-            var context = MakeTagHelperContext(attributes);
-            var output = MakeTagHelperOutput("link");
-            var logger = new Mock<ILogger<LinkTagHelper>>();
-            var hostingEnvironment = MakeHostingEnvironment();
-            var viewContext = MakeViewContext();
-            var helper = new LinkTagHelper
-            {
-                Logger = logger.Object,
-                HostingEnvironment = hostingEnvironment,
-                ViewContext = viewContext
-            };
-            setProperties(helper);
-
-            // Act
-            helper.Process(context, output);
-
-            // Assert
-            Assert.NotNull(output.TagName);
-            Assert.False(output.ContentSet);
         }
 
         public static TheoryData DoesNotRunWhenARequiredAttributeIsMissing_Data
@@ -256,6 +228,34 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     }
                 };
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(DoesNotRunWhenARequiredAttributeIsMissing_Data))]
+        public void DoesNotRunWhenARequiredAttributeIsMissing(
+            IDictionary<string, object> attributes,
+            Action<LinkTagHelper> setProperties)
+        {
+            // Arrange
+            var context = MakeTagHelperContext(attributes);
+            var output = MakeTagHelperOutput("link");
+            var logger = new Mock<ILogger<LinkTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var helper = new LinkTagHelper
+            {
+                Logger = logger.Object,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext
+            };
+            setProperties(helper);
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.NotNull(output.TagName);
+            Assert.False(output.ContentSet);
         }
 
         [Fact]
