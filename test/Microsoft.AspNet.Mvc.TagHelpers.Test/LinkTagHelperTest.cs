@@ -239,7 +239,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     {
                         new Dictionary<string, object>
                         {
-                            // This is commented out on purpose: ["asp-fallback-href-include"], "test.css",
+                            // This is commented out on purpose: ["asp-fallback-href-include"] = "test.css",
                             ["asp-fallback-href-exclude"] = "**/*.min.css",
                             ["asp-fallback-test-class"] = "hidden",
                             ["asp-fallback-test-property"] = "visibility",
