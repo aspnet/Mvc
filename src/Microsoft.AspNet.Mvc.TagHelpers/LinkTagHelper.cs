@@ -65,7 +65,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private enum Mode
         {
+            /// <summary>
+            /// Rendering a fallback block if primary stylesheet fails to load. Will also do globbing if the appropriate
+            /// properties are set.
+            /// </summary>
             Fallback,
+            /// <summary>
+            /// Just performing file globbing search for the href, rendering a separate &lt;link&gt; for each match.
+            /// </summary>
             GlobbedHref
         }
 

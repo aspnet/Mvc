@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// </summary>
     public static class JavaScriptEncoder
     {
-        private static readonly IDictionary<char, string> EncodingMap = new Dictionary<char, string>
+        private static readonly IReadOnlyDictionary<char, string> EncodingMap = new Dictionary<char, string>
         {
             ['<'] = @"\u003c",      // opening angle-bracket
             ['>'] = @"\u003e",      // closing angle-bracket

@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Expiration.Interfaces;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.TagHelpers.Test
+namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     public class GlobbingUrlBuilderTest
     {
