@@ -109,18 +109,24 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <summary>
         /// The class name defined in the stylesheet to use for the fallback test.
+        /// Must be used in conjunction with <see cref="FallbackTestProperty"/> and <see cref="FallbackTestValue"/>,
+        /// and either <see cref="FallbackHref"/> or <see cref="FallbackHrefInclude"/>.
         /// </summary>
         [HtmlAttributeName(FallbackTestClassAttributeName)]
         public string FallbackTestClass { get; set; }
 
         /// <summary>
         /// The CSS property name to use for the fallback test.
+        /// Must be used in conjunction with <see cref="FallbackTestClass"/> and <see cref="FallbackTestValue"/>,
+        /// and either <see cref="FallbackHref"/> or <see cref="FallbackHrefInclude"/>.
         /// </summary>
         [HtmlAttributeName(FallbackTestPropertyAttributeName)]
         public string FallbackTestProperty { get; set; }
 
         /// <summary>
         /// The CSS property value to use for the fallback test.
+        /// Must be used in conjunction with <see cref="FallbackTestClass"/> and <see cref="FallbackTestProperty"/>,
+        /// and either <see cref="FallbackHref"/> or <see cref="FallbackHrefInclude"/>.
         /// </summary>
         [HtmlAttributeName(FallbackTestValueAttributeName)]
         public string FallbackTestValue { get; set; }
