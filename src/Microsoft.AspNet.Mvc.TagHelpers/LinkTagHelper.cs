@@ -147,7 +147,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var modeResult = context.DetermineMode(ModeDetails);
 
             Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
-                $"There should only be one mode match, check the {ModeDetails}");
+                $"There should only be one mode match, check the {nameof(ModeDetails)}");
 
             modeResult.LogDetails(Logger, this, context.UniqueId);
 
