@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
+    // This is an interface to allow for easy substitution while testing LinkTagHelper
     public interface IGlobbingUrlBuilder
     {
         IEnumerable<string> BuildUrlList(string staticUrl, string includePattern, string excludePattern);
