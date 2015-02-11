@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             return urls;
         }
 
-        private IEnumerable<string> ExpandGlobbedUrl(string include, string exclude = null)
+        private IEnumerable<string> ExpandGlobbedUrl(string include, string exclude)
         {
             if (string.IsNullOrEmpty(include))
             {
