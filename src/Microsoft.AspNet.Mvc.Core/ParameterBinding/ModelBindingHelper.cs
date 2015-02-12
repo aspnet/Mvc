@@ -181,6 +181,7 @@ namespace Microsoft.AspNet.Mvc
             // Includes everything by default.
             return TryUpdateModelAsync(
                 model,
+                modelType,
                 prefix,
                 httpContext,
                 modelState,
