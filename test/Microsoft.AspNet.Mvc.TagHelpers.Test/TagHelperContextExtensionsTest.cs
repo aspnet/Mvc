@@ -23,9 +23,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 ["first-attr"] = "value",
                 ["not-in-any-mode"] = "value"
             };
-            var content = string.Empty;
-            var uniqueId = Guid.NewGuid().ToString("N");
-            var context = new TagHelperContext(attributes, uniqueId, () => Task.FromResult(content));
+            var context = MakeTagHelperContext(attributes);
 
             // Act
             var modeMatch = context.DetermineMode(modeInfo);
@@ -55,9 +53,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 ["second-attr"] = "value",
                 ["not-in-any-mode"] = "value"
             };
-            var content = string.Empty;
-            var uniqueId = Guid.NewGuid().ToString("N");
-            var context = new TagHelperContext(attributes, uniqueId, () => Task.FromResult(content));
+            var context = MakeTagHelperContext(attributes);
 
             // Act
             var modeMatch = context.DetermineMode(modeInfo);
@@ -91,9 +87,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 ["third-attr"] = "value",
                 ["not-in-any-mode"] = "value"
             };
-            var content = string.Empty;
-            var uniqueId = Guid.NewGuid().ToString("N");
-            var context = new TagHelperContext(attributes, uniqueId, () => Task.FromResult(content));
+            var context = MakeTagHelperContext(attributes);
 
             // Act
             var modeMatch = context.DetermineMode(modeInfo);
@@ -130,6 +124,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 });
             Assert.Collection(modeMatch.PartiallyMatchedAttributes,
                 attribute => Assert.Equal("third-attr", attribute));
+        }
+
+        private static TagHelperContext MakeTagHelperContext(
+            IDictionary<string, object> attributes = null,
+            string content = null)
+        {
+            attributes = attributes ?? new Dictionary<string, object>();
+
+            return new TagHelperContext(attributes, Guid.NewGuid().ToString("N"), () => Task.FromResult(content));
         }
     }
 }
