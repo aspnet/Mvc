@@ -16,6 +16,7 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultControllerTypeProvider : IControllerTypeProvider
     {
+        private const string ControllerTypeName = nameof(Controller);
         private readonly IAssemblyProvider _assemblyProvider;
         private readonly ILogger _logger;
 
@@ -76,17 +77,45 @@ namespace Microsoft.AspNet.Mvc
             {
                 return false;
             }
-            if (typeInfo.Name.Equals("Controller", StringComparison.OrdinalIgnoreCase))
+            if (typeInfo.Name.Equals(ControllerTypeName, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
-            if (!typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) &&
-                !typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo))
+            if (!typeInfo.Name.EndsWith(ControllerTypeName, StringComparison.OrdinalIgnoreCase) &&
+                !DerivesFromController(typeInfo))
+            {
+                return false;
+            }
+            if (typeInfo.IsDefined(typeof(NonControllerAttribute)))
             {
                 return false;
             }
 
             return true;
+        }
+
+        private static bool DerivesFromController(TypeInfo typeInfo)
+        {
+            // A type is a controller if it derives from a type that is either named "Controller" or has the suffix
+            // "Controller". We'll optimize the most common case of types deriving from the Mvc Controller type and
+            // walk up the object graph if that's not the case.
+            if (typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo))
+            {
+                return true;
+            }
+
+            while (typeInfo != typeof(object).GetTypeInfo())
+            {
+                var baseTypeInfo = typeInfo.BaseType.GetTypeInfo();
+                if (baseTypeInfo.Name.EndsWith(ControllerTypeName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                typeInfo = baseTypeInfo;
+            }
+
+            return false;
         }
     }
 }
