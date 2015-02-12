@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -50,6 +52,9 @@ namespace Microsoft.AspNet.Mvc.Xml
             [DataMember]
             public TestLevelOne TestOne { get; set; }
         }
+
+        private const string requiredErrorMessageFormat = "Property '{0}' on type '{1}' has" +
+                                    " RequiredAttribute but no DataMember(IsRequired = true) attribute.";
 
         [Theory]
         [InlineData("application/xml", true)]
@@ -474,6 +479,467 @@ namespace Microsoft.AspNet.Mvc.Xml
             Assert.Equal(expectedString, dummyModel.SampleString);
         }
 
+        [Fact]
+        public async Task PostingListOfModels_HasRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?><ArrayOfAddress " +
+                        "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\" " +
+                        "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                        "<Address><IsResidential>true</IsResidential><Zipcode>98052</Zipcode></Address></ArrayOfAddress>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(List<Address>));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as List<Address>;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(1, model.Count);
+            Assert.Equal(98052, model[0].Zipcode);
+            Assert.Equal(true, model[0].IsResidential);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                        string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                        string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                });
+
+        }
+
+        [Fact]
+        public async Task PostingModel_HasRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        "<Address xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><IsResidential>" +
+                        "true</IsResidential><Zipcode>98052</Zipcode></Address>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(Address));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as Address;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(98052, model.Zipcode);
+            Assert.Equal(true, model.IsResidential);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                        string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                        string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModelWithProperty_HasRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                "<ModelWithPropertyHavingRequiredAttributeValidationErrors " +
+                "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><AddressProperty>" +
+                "<IsResidential>true</IsResidential><Zipcode>98052</Zipcode></AddressProperty>" +
+                "</ModelWithPropertyHavingRequiredAttributeValidationErrors>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(
+                contentBytes,
+                typeof(ModelWithPropertyHavingRequiredAttributeValidationErrors));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as ModelWithPropertyHavingRequiredAttributeValidationErrors;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.NotNull(model.AddressProperty);
+            Assert.Equal(98052, model.AddressProperty.Zipcode);
+            Assert.Equal(true, model.AddressProperty.IsResidential);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModel_WithCollectionProperty_HasRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                "<ModelWithCollectionPropertyHavingRequiredAttributeValidationErrors" +
+                " xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Addresses><Address>" +
+                "<IsResidential>true</IsResidential><Zipcode>98052</Zipcode></Address></Addresses>" +
+                "</ModelWithCollectionPropertyHavingRequiredAttributeValidationErrors>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(
+                contentBytes,
+                typeof(ModelWithCollectionPropertyHavingRequiredAttributeValidationErrors));
+
+            // Act
+            var model = await formatter.ReadAsync(context)
+                as ModelWithCollectionPropertyHavingRequiredAttributeValidationErrors;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.NotNull(model.Addresses);
+            Assert.Equal(98052, model.Addresses[0].Zipcode);
+            Assert.Equal(true, model.Addresses[0].IsResidential);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                modelStateKey: typeof(Address).FullName,
+                actionContext: context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModelInheritingType_HasRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                "<ModelInheritingTypeHavingRequiredAttributeValidationErrors" +
+                " xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                "<IsResidential>true</IsResidential><Zipcode>98052</Zipcode>" +
+                "</ModelInheritingTypeHavingRequiredAttributeValidationErrors>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(
+                contentBytes,
+                typeof(ModelInheritingTypeHavingRequiredAttributeValidationErrors));
+
+            // Act
+            var model = await formatter.ReadAsync(context)
+                as ModelInheritingTypeHavingRequiredAttributeValidationErrors;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(98052, model.Zipcode);
+            Assert.Equal(true, model.IsResidential);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModelHavingNullableValueTypes_NoRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?><CarInfo " +
+                "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                "<ServicedYears xmlns:a=\"http://schemas.datacontract.org/2004/07/System\">" +
+                "<a:int>2006</a:int><a:int>2007</a:int></ServicedYears><Year>2005</Year></CarInfo>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(CarInfo));
+            var expectedModel = new CarInfo() { Year = 2005, ServicedYears = new List<int?>() };
+            expectedModel.ServicedYears.Add(2006);
+            expectedModel.ServicedYears.Add(2007);
+
+            // Act
+            var model = await formatter.ReadAsync(context) as CarInfo;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(expectedModel.Year, model.Year);
+            Assert.Equal(expectedModel.ServicedYears, model.ServicedYears);
+            Assert.Empty(context.ActionContext.ModelState);
+        }
+
+        [Fact]
+        public async Task PostingModel_WithPropertyHavingNullableValueTypes_NoRequiredAttributeValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                "<ModelWithPropertyHavingTypeWithNullableProperties " +
+                "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\" " +
+                "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><CarInfoProperty>" +
+                "<ServicedYears xmlns:a=\"http://schemas.datacontract.org/2004/07/System\"><a:int>2006</a:int>" +
+                "<a:int>2007</a:int></ServicedYears><Year>2005</Year></CarInfoProperty>" +
+                "</ModelWithPropertyHavingTypeWithNullableProperties>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(
+                contentBytes,
+                typeof(ModelWithPropertyHavingTypeWithNullableProperties));
+            var expectedModel = new ModelWithPropertyHavingTypeWithNullableProperties()
+            {
+                CarInfoProperty = new CarInfo() { Year = 2005, ServicedYears = new List<int?>() }
+            };
+
+            expectedModel.CarInfoProperty.ServicedYears.Add(2006);
+            expectedModel.CarInfoProperty.ServicedYears.Add(2007);
+
+            // Act
+            var model = await formatter.ReadAsync(context) as ModelWithPropertyHavingTypeWithNullableProperties;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.NotNull(model.CarInfoProperty);
+            Assert.Equal(expectedModel.CarInfoProperty.Year, model.CarInfoProperty.Year);
+            Assert.Equal(expectedModel.CarInfoProperty.ServicedYears, model.CarInfoProperty.ServicedYears);
+            Assert.Empty(context.ActionContext.ModelState);
+        }
+
+        [Fact]
+        public async Task PostingModel_WithPropertySelfReferencingItself()
+        {
+            // Arrange
+            var input = "<Employee xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Id>10</Id><Manager><Id>11</Id><Manager" +
+                " i:nil=\"true\"/><Name>Mike</Name></Manager><Name>John</Name></Employee>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(Employee));
+            var expectedModel = new Employee()
+            {
+                Id = 10,
+                Name = "John",
+                Manager = new Employee()
+                {
+                    Id = 11,
+                    Name = "Mike"
+                }
+            };
+
+            // Act
+            var model = await formatter.ReadAsync(context) as Employee;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(expectedModel.Id, model.Id);
+            Assert.Equal(expectedModel.Name, model.Name);
+            Assert.NotNull(model.Manager);
+            Assert.Equal(expectedModel.Manager.Id, model.Manager.Id);
+            Assert.Equal(expectedModel.Manager.Name, model.Manager.Name);
+            Assert.Null(model.Manager.Manager);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Employee).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Employee.Id), typeof(Employee).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModel_WithBothRequiredAndDataMemberRequired_NoValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        "<Laptop xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Id>" +
+                        "10</Id><SupportsVirtualization>true</SupportsVirtualization></Laptop>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(Laptop));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as Laptop;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(10, model.Id);
+            Assert.Equal(true, model.SupportsVirtualization);
+            Assert.Empty(context.ActionContext.ModelState);
+        }
+
+        [Fact]
+        public async Task PostingListofModels_WithBothRequiredAndDataMemberRequired_NoValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        "<ArrayOfLaptop xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Laptop><Id>" +
+                        "10</Id><SupportsVirtualization>true</SupportsVirtualization></Laptop></ArrayOfLaptop>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(List<Laptop>));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as List<Laptop>;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(1, model.Count);
+            Assert.Equal(10, model[0].Id);
+            Assert.Equal(true, model[0].SupportsVirtualization);
+            Assert.Empty(context.ActionContext.ModelState);
+        }
+
+        [Fact]
+        public async Task PostingModel_WithRequiredAndDataMemberNoRequired_HasValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        "<Product xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Id>" +
+                        "10</Id><Name>Phone</Name></Product>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(Product));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as Product;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(10, model.Id);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Product).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Product.Id), typeof(Product).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingListOfModels_WithRequiredAndDataMemberNoRequired_HasValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        "<ArrayOfProduct xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Product><Id>" +
+                        "10</Id><Name>Phone</Name></Product></ArrayOfProduct>";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(List<Product>));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as List<Product>;
+
+            // Assert
+            Assert.NotNull(model);
+            Assert.Equal(1, model.Count);
+            Assert.Equal(10, model[0].Id);
+            Assert.Equal("Phone", model[0].Name);
+
+            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Product).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Product.Id), typeof(Product).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModel_WithDeeperHierarchy_HasValidationErrors()
+        {
+            // Arrange
+            var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        "<Store xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" i:nil=\"true\" />";
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(Store));
+
+            // Act
+            var model = await formatter.ReadAsync(context) as Store;
+
+            // Assert
+            Assert.Null(model);
+
+            Assert.Equal(3, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName)
+                });
+
+            AssertModelStateErrorMessages(
+                typeof(Employee).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Employee.Id), typeof(Employee).FullName)
+                });
+
+            AssertModelStateErrorMessages(
+                typeof(Product).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Product.Id), typeof(Product).FullName)
+                });
+        }
+
+        private void AssertModelStateErrorMessages(
+            string modelStateKey,
+            ActionContext actionContext,
+            IEnumerable<string> expectedErrorMessages)
+        {
+            ModelState modelState;
+            actionContext.ModelState.TryGetValue(modelStateKey, out modelState);
+
+            Assert.NotNull(modelState);
+            Assert.NotEmpty(modelState.Errors);
+
+            var actualErrorMessages = modelState.Errors.Select(error =>
+            {
+                if (string.IsNullOrEmpty(error.ErrorMessage))
+                {
+                    if (error.Exception != null)
+                    {
+                        return error.Exception.Message;
+                    }
+                }
+
+                return error.ErrorMessage;
+            });
+
+            Assert.Equal(expectedErrorMessages.Count(), actualErrorMessages.Count());
+
+            if (expectedErrorMessages != null)
+            {
+                foreach (var expectedErrorMessage in expectedErrorMessages)
+                {
+                    Assert.Contains(expectedErrorMessage, actualErrorMessages);
+                }
+            }
+        }
+
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
         {
             var actionContext = GetActionContext(contentBytes);
@@ -513,5 +979,93 @@ namespace Microsoft.AspNet.Mvc.Xml
                 return base.CreateSerializer(type);
             }
         }
+    }
+
+    public class Address
+    {
+        [Required]
+        public int Zipcode { get; set; }
+
+        [Required]
+        public bool IsResidential { get; set; }
+    }
+
+    public class CarInfo
+    {
+        [Required]
+        public int? Year { get; set; }
+
+        [Required]
+        public List<int?> ServicedYears { get; set; }
+    }
+
+    public class Employee
+    {
+        [Required]
+        public int Id { get; set; }
+
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public Employee Manager { get; set; }
+    }
+
+    [DataContract]
+    public class Laptop
+    {
+        [DataMember(IsRequired = true)]
+        [Required]
+        public int Id { get; set; }
+
+        [DataMember(IsRequired = true)]
+        [Required]
+        public bool SupportsVirtualization { get; set; }
+    }
+
+    // Here the properties have DataMember but do not set the IsRequired = true
+    [DataContract]
+    public class Product
+    {
+        [DataMember(Name = "Id")]
+        [Required]
+        public int Id { get; set; }
+
+        [DataMember(Name = "Name")]
+        [Required]
+        public string Name { get; set; }
+    }
+
+    public class ModelWithPropertyHavingRequiredAttributeValidationErrors
+    {
+        public Address AddressProperty { get; set; }
+    }
+
+    public class ModelWithCollectionPropertyHavingRequiredAttributeValidationErrors
+    {
+        public List<Address> Addresses { get; set; }
+    }
+
+    public class ModelInheritingTypeHavingRequiredAttributeValidationErrors : Address
+    {
+    }
+
+    public class ModelWithPropertyHavingTypeWithNullableProperties
+    {
+        public CarInfo CarInfoProperty { get; set; }
+    }
+
+    public class Store
+    {
+        public StoreDetails StoreDetails { get; set; }
+
+        public List<Product> Products { get; set; }
+    }
+
+    public class StoreDetails
+    {
+        public List<Employee> Employees { get; set; }
+
+        public Address Address { get; set; }
     }
 }

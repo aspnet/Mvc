@@ -27,6 +27,22 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
+        /// Property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
+        /// </summary>
+        internal static string RequiredProperty_MustHaveDataMemberRequired
+        {
+            get { return GetString("RequiredProperty_MustHaveDataMemberRequired"); }
+        }
+
+        /// <summary>
+        /// Property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
+        /// </summary>
+        internal static string FormatRequiredProperty_MustHaveDataMemberRequired(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("RequiredProperty_MustHaveDataMemberRequired"), p0, p1);
+        }
+
+        /// <summary>
         /// The object to be wrapped must be of type '{0}' but was of type '{1}'.
         /// </summary>
         internal static string WrapperProvider_MismatchType
