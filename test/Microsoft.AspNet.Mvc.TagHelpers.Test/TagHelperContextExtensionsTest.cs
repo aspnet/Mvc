@@ -15,7 +15,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public void DetermineMode_FindsFullModeMatchWithSingleAttribute()
         {
             // Arrange
-            var modeInfo = new [] {
+            var modeInfo = new []
+            {
                 ModeAttributes.Create("mode0", new [] { "first-attr" })
             };
             var attributes = new Dictionary<string, object>
@@ -32,9 +33,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Collection(modeMatch.FullMatches, match =>
             {
                 Assert.Equal("mode0", match.Mode);
-                Assert.Collection(match.PresentAttributes,
-                    attribute => Assert.Equal("first-attr", attribute)
-                );
+                Assert.Collection(match.PresentAttributes, attribute => Assert.Equal("first-attr", attribute));
             });
             Assert.Empty(modeMatch.PartialMatches);
             Assert.Empty(modeMatch.PartiallyMatchedAttributes);
@@ -44,7 +43,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public void DetermineMode_FindsFullModeMatchWithMultipleAttributes()
         {
             // Arrange
-            var modeInfo = new[] {
+            var modeInfo = new[]
+            {
                 ModeAttributes.Create("mode0", new [] { "first-attr", "second-attr" })
             };
             var attributes = new Dictionary<string, object>
@@ -75,7 +75,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public void DetermineMode_FindsFullAndPartialModeMatchWithMultipleAttribute()
         {
             // Arrange
-            var modeInfo = new[] {
+            var modeInfo = new[]
+            {
                 ModeAttributes.Create("mode0", new [] { "second-attr" }),
                 ModeAttributes.Create("mode1", new [] { "first-attr", "third-attr" }),
                 ModeAttributes.Create("mode2", new [] { "first-attr", "second-attr", "third-attr" }),
@@ -96,20 +97,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Collection(modeMatch.FullMatches, match =>
             {
                 Assert.Equal("mode0", match.Mode);
-                Assert.Collection(match.PresentAttributes,
-                    attribute => Assert.Equal("second-attr", attribute)
-                );
+                Assert.Collection(match.PresentAttributes, attribute => Assert.Equal("second-attr", attribute));
             });
             Assert.Collection(modeMatch.PartialMatches,
                 match =>
                 {
                     Assert.Equal("mode1", match.Mode);
-                    Assert.Collection(match.PresentAttributes,
-                        attribute => Assert.Equal("third-attr", attribute)
-                    );
-                    Assert.Collection(match.MissingAttributes,
-                        attribute => Assert.Equal("first-attr", attribute)
-                    );
+                    Assert.Collection(match.PresentAttributes, attribute => Assert.Equal("third-attr", attribute));
+                    Assert.Collection(match.MissingAttributes, attribute => Assert.Equal("first-attr", attribute));
                 },
                 match =>
                 {
@@ -118,12 +113,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                         attribute => Assert.Equal("second-attr", attribute),
                         attribute => Assert.Equal("third-attr", attribute)
                     );
-                    Assert.Collection(match.MissingAttributes,
-                        attribute => Assert.Equal("first-attr", attribute)
-                    );
+                    Assert.Collection(match.MissingAttributes, attribute => Assert.Equal("first-attr", attribute));
                 });
-            Assert.Collection(modeMatch.PartiallyMatchedAttributes,
-                attribute => Assert.Equal("third-attr", attribute));
+            Assert.Collection(modeMatch.PartiallyMatchedAttributes, attribute => Assert.Equal("third-attr", attribute));
         }
 
         private static TagHelperContext MakeTagHelperContext(
