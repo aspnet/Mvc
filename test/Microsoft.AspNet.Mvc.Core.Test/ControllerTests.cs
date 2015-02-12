@@ -1139,7 +1139,7 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_UsesPassedArguments()
+        public async Task TryUpdateModelNonGeneric_ModelTypePredicateOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
@@ -1173,6 +1173,95 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             binder.Verify();
+        }
+
+        [Fact]
+        public async Task TryUpdateModelNonGeneric_ModelTypeOverload()
+        {
+            // Arrange
+            var modelName = "mymodel";
+
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var valueProvider = Mock.Of<IValueProvider>();
+            var binder = new Mock<IModelBinder>();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Callback((ModelBindingContext context) =>
+                  {
+                      Assert.Equal(modelName, context.ModelName);
+                      Assert.Same(valueProvider, context.ValueProvider);
+
+                      // Include and exclude should be null, resulting in property
+                      // being included.
+                      Assert.True(context.PropertyFilter(context, "Property1"));
+                      Assert.True(context.PropertyFilter(context, "Property2"));
+                  })
+                  .Returns(Task.FromResult(false))
+                  .Verifiable();
+
+            var controller = GetController(binder.Object, valueProvider);
+            var model = new MyModel();
+
+            // Act
+            var result = await controller.TryUpdateModelAsync(model, model.GetType(), modelName);
+
+            // Assert
+            binder.Verify();
+        }
+
+        [Fact]
+        public async Task TryUpdateModelNonGeneric_BindToBaseDeclaredType_ModelTypeOverload()
+        {
+            // Arrange
+            var modelName = "mymodel";
+
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var valueProvider = Mock.Of<IValueProvider>();
+            var binder = new Mock<IModelBinder>();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Callback((ModelBindingContext context) =>
+                  {
+                      Assert.Equal(modelName, context.ModelName);
+                      Assert.Same(valueProvider, context.ValueProvider);
+
+                      // Include and exclude should be null, resulting in property
+                      // being included.
+                      Assert.True(context.PropertyFilter(context, "Property1"));
+                      Assert.True(context.PropertyFilter(context, "Property2"));
+                  })
+                  .Returns(Task.FromResult(false))
+                  .Verifiable();
+
+            var controller = GetController(binder.Object, valueProvider);
+            MyModel model = new MyDerivedModel();
+
+            // Act
+            var result = await controller.TryUpdateModelAsync(model, model.GetType(), modelName);
+
+            // Assert
+            binder.Verify();
+        }
+
+        [Fact]
+        public async Task TryUpdataModel_ModelTypeDifferentFromModel_ThrowsException()
+        {
+            // Arrange
+            var modelName = "mymodel";
+
+            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var valueProvider = Mock.Of<IValueProvider>();
+            var binder = new Mock<IModelBinder>();
+            
+            var controller = GetController(binder.Object, valueProvider);
+            var model = new MyModel();
+            var modelType = typeof(User);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => controller.TryUpdateModelAsync(model, modelType, modelName));
+            var expectedMessage = string.Format(
+                @"The model type '{0}' does not match the '{1}' type parameter.
+Parameter name: modelType",
+                model.GetType().FullName, modelType.FullName);
+            Assert.Equal(expectedMessage, exception.Message);
         }
 
 #endif
@@ -1398,6 +1487,10 @@ namespace Microsoft.AspNet.Mvc.Test
             public string Property2 { get; set; }
         }
 
+        private class MyDerivedModel : MyModel
+        {
+            public string Property3 { get; set; }
+        }
         private class User
         {
             public User(int id)

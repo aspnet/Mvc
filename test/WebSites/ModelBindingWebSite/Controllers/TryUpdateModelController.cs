@@ -118,6 +118,14 @@ namespace ModelBindingWebSite.Controllers
             return user;
         }
 
+        public async Task<User> GetUserAsync_ModelType_IncludeAllByDefault(int id)
+        {
+            var user = GetUser(id);
+
+            await TryUpdateModelAsync(user, user.GetType(), prefix: string.Empty);
+            return user;
+        }
+
         private User GetUser(int id)
         {
             return new User

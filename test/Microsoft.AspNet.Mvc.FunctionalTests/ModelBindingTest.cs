@@ -1603,6 +1603,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedDictionary, dictionary);
 		}
 
+
 		[Fact]
         public async Task TryUpdateModelIncludesAllProperties_CanBind()
         {
@@ -1625,8 +1626,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Should Update all included properties.
             Assert.Equal("March", user.RegisterationMonth);
         } 
-
-        [Fact]
+		[Fact]
         public async Task FormCollectionModelBinder_CanBind_FormValues()
         {
             // Arrange
@@ -1712,6 +1712,5 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var fileContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedContent, fileContent);
-        }
-    }
+        }    }
 }
