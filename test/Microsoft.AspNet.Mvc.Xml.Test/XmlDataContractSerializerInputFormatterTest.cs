@@ -820,13 +820,22 @@ namespace Microsoft.AspNet.Mvc.Xml
             Assert.NotNull(model);
             Assert.Equal(10, model.Id);
 
-            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            Assert.Equal(2, context.ActionContext.ModelState.Keys.Count);
             AssertModelStateErrorMessages(
                 typeof(Product).FullName,
                 context.ActionContext,
                 expectedErrorMessages: new[]
                 {
                     string.Format(requiredErrorMessageFormat, nameof(Product.Id), typeof(Product).FullName)
+                });
+
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
                 });
         }
 
@@ -851,13 +860,22 @@ namespace Microsoft.AspNet.Mvc.Xml
             Assert.Equal(10, model[0].Id);
             Assert.Equal("Phone", model[0].Name);
 
-            Assert.Equal(1, context.ActionContext.ModelState.Keys.Count);
+            Assert.Equal(2, context.ActionContext.ModelState.Keys.Count);
             AssertModelStateErrorMessages(
                 typeof(Product).FullName,
                 context.ActionContext,
                 expectedErrorMessages: new[]
                 {
                     string.Format(requiredErrorMessageFormat, nameof(Product.Id), typeof(Product).FullName)
+                });
+
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
                 });
         }
 
@@ -1023,10 +1041,10 @@ namespace Microsoft.AspNet.Mvc.Xml
         public bool SupportsVirtualization { get; set; }
     }
 
-    // Here the properties have DataMember but do not set the IsRequired = true
     [DataContract]
     public class Product
     {
+        // Here the property has DataMember but does not set the value 'IsRequired = true'
         [DataMember(Name = "Id")]
         [Required]
         public int Id { get; set; }
@@ -1034,6 +1052,10 @@ namespace Microsoft.AspNet.Mvc.Xml
         [DataMember(Name = "Name")]
         [Required]
         public string Name { get; set; }
+
+        [DataMember(Name = "Manufacturer")]
+        [Required]
+        public Manufacturer Manufacturer { get; set; }
     }
 
     public class ModelWithPropertyHavingRequiredAttributeValidationErrors
@@ -1066,6 +1088,11 @@ namespace Microsoft.AspNet.Mvc.Xml
     {
         public List<Employee> Employees { get; set; }
 
+        public Address Address { get; set; }
+    }
+
+    public class Manufacturer
+    {
         public Address Address { get; set; }
     }
 }
