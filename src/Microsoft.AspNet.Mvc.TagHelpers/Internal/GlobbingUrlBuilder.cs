@@ -14,11 +14,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// <summary>
     /// Utility methods for <see cref="ITagHelper"/>'s that support attributes containing file globbing patterns.
     /// </summary>
-    public class GlobbingUrlBuilder : IGlobbingUrlBuilder
+    public class GlobbingUrlBuilder
     {
         private static readonly char[] PatternSeparator = new[] { ',' };
 
         private readonly FileProviderGlobbingDirectory _baseGlobbingDirectory;
+
+        // Internal for testing
+        internal GlobbingUrlBuilder() { }
 
         public GlobbingUrlBuilder([NotNull] IFileProvider fileProvider, IMemoryCache cache, PathString requestPathBase)
         {

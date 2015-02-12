@@ -301,7 +301,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var logger = new Mock<ILogger<LinkTagHelper>>();
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
-            var globbingUrlBuilder = new Mock<IGlobbingUrlBuilder>();
+            var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
             globbingUrlBuilder.Setup(g => g.BuildUrlList("/css/site.css", "**/*.css", null))
                 .Returns(new[] { "/css/site.css", "/base.css" });
             var helper = new LinkTagHelper

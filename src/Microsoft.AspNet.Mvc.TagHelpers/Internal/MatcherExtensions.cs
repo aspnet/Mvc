@@ -20,10 +20,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             [NotNull] IEnumerable<string> includePatterns,
             IEnumerable<string> excludePatterns)
         {
+            AddPatternsImpl(includePatterns, excludePatterns, matcher.AddInclude, matcher.AddExclude);
+
+            return matcher;
+        }
+
+        // Internal for unit testing
+        internal static void AddPatternsImpl(
+            [NotNull] IEnumerable<string> includePatterns,
+            IEnumerable<string> excludePatterns,
+            [NotNull] Func<string, Matcher> include,
+            [NotNull] Func<string, Matcher> exclude)
+        {
             foreach (var pattern in includePatterns)
             {
                 var includePattern = TrimLeadingSlash(pattern);
-                matcher.AddInclude(includePattern);
+                include(includePattern);
             }
 
             if (excludePatterns != null)
@@ -31,11 +43,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 foreach (var pattern in excludePatterns)
                 {
                     var excludePattern = TrimLeadingSlash(pattern);
-                    matcher.AddExclude(excludePattern);
+                    exclude(excludePattern);
                 }
             }
-
-            return matcher;
         }
 
         private static string TrimLeadingSlash(string value)
