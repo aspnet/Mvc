@@ -24,16 +24,23 @@ namespace Microsoft.AspNet.Mvc.Xml
         public static void Validate([NotNull] Type modelType, [NotNull] ModelStateDictionary modelStateDictionary)
         {
             var visitedTypes = new HashSet<Type>();
-            var rootNodeErrorDictionary = new Dictionary<Type, List<string>>();
 
-            Validate(modelType, visitedTypes, rootNodeErrorDictionary);
+            // Every node maintains a dictionary of Type => Errors. 
+            // It's a dictionary as we want to avoid adding duplicate error messages.
+            // Example:
+            // Type 'A' has a child node of type 'B' somewhere in the left sub-tree
+            // and it has type 'B' again  somewhere down the righ sub-tree. From the perspective of
+            // type 'A', it should not have duplicate error messgaes for type 'B'.
+            var rootNodeValidationErrors = new Dictionary<Type, List<string>>();
 
-            foreach (var errorKeyPair in rootNodeErrorDictionary)
+            Validate(modelType, visitedTypes, rootNodeValidationErrors);
+
+            foreach (var validatoinError in rootNodeValidationErrors)
             {
-                foreach (var validationErrorMessage in errorKeyPair.Value)
+                foreach (var validationErrorMessage in validatoinError.Value)
                 {
                     modelStateDictionary.TryAddModelError(
-                        errorKeyPair.Key.FullName,
+                        validatoinError.Key.FullName,
                         validationErrorMessage);
                 }
             }
@@ -42,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         private static void Validate(
             Type modelType,
             HashSet<Type> visitedTypes,
-            Dictionary<Type, List<string>> currentNodeErrorDictionary)
+            Dictionary<Type, List<string>> currentNodeValidationErrors)
         {
             if (modelType.IsGenericType())
             {
@@ -66,12 +73,12 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             visitedTypes.Add(modelType);
 
-            Dictionary<Type, List<string>> cachedCurrentNodeErrorDictionary;
-            if (cachedValidationErrors.TryGetValue(modelType, out cachedCurrentNodeErrorDictionary))
+            Dictionary<Type, List<string>> cachedCurrentNodeValidationErrors;
+            if (cachedValidationErrors.TryGetValue(modelType, out cachedCurrentNodeValidationErrors))
             {
-                foreach (var error in cachedCurrentNodeErrorDictionary)
+                foreach (var validationError in cachedCurrentNodeValidationErrors)
                 {
-                    currentNodeErrorDictionary.Add(error.Key, error.Value);
+                    currentNodeValidationErrors.Add(validationError.Key, validationError.Value);
                 }
 
                 return;
@@ -87,37 +94,34 @@ namespace Microsoft.AspNet.Mvc.Xml
                         continue;
                     }
 
-                    List<string> errors;
-                    if (!currentNodeErrorDictionary.TryGetValue(validationError.Value.ModelType, out errors))
+                    List<string> errorMessages;
+                    if (!currentNodeValidationErrors.TryGetValue(validationError.Value.ModelType, out errorMessages))
                     {
-                        errors = new List<string>();
-                        currentNodeErrorDictionary.Add(validationError.Value.ModelType, errors);
+                        errorMessages = new List<string>();
+                        currentNodeValidationErrors.Add(validationError.Value.ModelType, errorMessages);
                     }
-                    errors.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
+                    errorMessages.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
                                     validationError.Value.PropertyName,
                                     validationError.Value.ModelType.FullName));
                 }
                 else
                 {
-                    var childNodeErrorDictionary = new Dictionary<Type, List<string>>();
+                    var childNodeValidationErrors = new Dictionary<Type, List<string>>();
 
-                    Validate(propertyInfo.PropertyType, visitedTypes, childNodeErrorDictionary);
+                    Validate(propertyInfo.PropertyType, visitedTypes, childNodeValidationErrors);
 
                     // Avoid adding duplicate errors at current node.
-                    // Example: 'Store' type has a 'Address' property and also has list of 
-                    // 'Employee', which in turn has 'Address' property. From the 'Store' type
-                    // level, we want to avoid duplicate validation errors for 'Address'. 
-                    foreach (var modelTypeKey in childNodeErrorDictionary.Keys)
+                    foreach (var modelTypeKey in childNodeValidationErrors.Keys)
                     {
-                        if (!currentNodeErrorDictionary.ContainsKey(modelTypeKey))
+                        if (!currentNodeValidationErrors.ContainsKey(modelTypeKey))
                         {
-                            currentNodeErrorDictionary.Add(modelTypeKey, childNodeErrorDictionary[modelTypeKey]);
+                            currentNodeValidationErrors.Add(modelTypeKey, childNodeValidationErrors[modelTypeKey]);
                         }
                     }
                 }
             }
 
-            cachedValidationErrors.TryAdd(modelType, currentNodeErrorDictionary);
+            cachedValidationErrors.TryAdd(modelType, currentNodeValidationErrors);
 
             visitedTypes.Remove(modelType);
         }
