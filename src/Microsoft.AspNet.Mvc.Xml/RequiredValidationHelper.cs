@@ -18,35 +18,31 @@ namespace Microsoft.AspNet.Mvc.Xml
     /// </summary>
     public static class RequiredValidationHelper
     {
-        private static ConcurrentDictionary<Type, List<ValidationError>> cachedValidationErrors
-            = new ConcurrentDictionary<Type, List<ValidationError>>();
+        private static ConcurrentDictionary<Type, Dictionary<Type, List<string>>> cachedValidationErrors
+            = new ConcurrentDictionary<Type, Dictionary<Type, List<string>>>();
 
         public static void Validate([NotNull] Type modelType, [NotNull] ModelStateDictionary modelStateDictionary)
         {
-            var errors = cachedValidationErrors.GetOrAdd(modelType, (type) =>
+            var visitedTypes = new HashSet<Type>();
+            var rootNodeErrorDictionary = new Dictionary<Type, List<string>>();
+
+            Validate(modelType, visitedTypes, rootNodeErrorDictionary);
+
+            foreach (var errorKeyPair in rootNodeErrorDictionary)
             {
-                var visitedTypes = new HashSet<Type>();
-                var validationErrors = new List<ValidationError>();
-
-                Validate(modelType, visitedTypes, validationErrors);
-
-                return validationErrors;
-            });
-
-            foreach (var error in errors)
-            {
-                modelStateDictionary.TryAddModelError(
-                    error.ModelType.FullName,
-                    Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
-                                            error.PropertyName,
-                                            error.ModelType.FullName));
+                foreach (var validationErrorMessage in errorKeyPair.Value)
+                {
+                    modelStateDictionary.TryAddModelError(
+                        errorKeyPair.Key.FullName,
+                        validationErrorMessage);
+                }
             }
         }
 
         private static void Validate(
             Type modelType,
             HashSet<Type> visitedTypes,
-            List<ValidationError> validationErrors)
+            Dictionary<Type, List<string>> currentNodeErrorDictionary)
         {
             if (modelType.IsGenericType())
             {
@@ -70,21 +66,60 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             visitedTypes.Add(modelType);
 
+            Dictionary<Type, List<string>> cachedCurrentNodeErrorDictionary;
+            if (cachedValidationErrors.TryGetValue(modelType, out cachedCurrentNodeErrorDictionary))
+            {
+                foreach (var error in cachedCurrentNodeErrorDictionary)
+                {
+                    currentNodeErrorDictionary.Add(error.Key, error.Value);
+                }
+
+                return;
+            }
+
             foreach (var propertyInfo in modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (propertyInfo.PropertyType.IsValueType() && !propertyInfo.PropertyType.IsNullableValueType())
                 {
                     var validationError = GetValidationError(propertyInfo);
-                    if (validationError != null)
+                    if (validationError == null)
                     {
-                        validationErrors.Add(validationError.Value);
+                        continue;
                     }
+
+                    List<string> errors;
+                    if (!currentNodeErrorDictionary.TryGetValue(validationError.Value.ModelType, out errors))
+                    {
+                        errors = new List<string>();
+                        currentNodeErrorDictionary.Add(validationError.Value.ModelType, errors);
+                    }
+                    errors.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
+                                    validationError.Value.PropertyName,
+                                    validationError.Value.ModelType.FullName));
                 }
                 else
                 {
-                    Validate(propertyInfo.PropertyType, visitedTypes, validationErrors);
+                    var childNodeErrorDictionary = new Dictionary<Type, List<string>>();
+
+                    Validate(propertyInfo.PropertyType, visitedTypes, childNodeErrorDictionary);
+
+                    // Avoid adding duplicate errors at current node.
+                    // Example: 'Store' type has a 'Address' property and also has list of 
+                    // 'Employee', which in turn has 'Address' property. From the 'Store' type
+                    // level, we want to avoid duplicate validation errors for 'Address'. 
+                    foreach (var modelTypeKey in childNodeErrorDictionary.Keys)
+                    {
+                        if (!currentNodeErrorDictionary.ContainsKey(modelTypeKey))
+                        {
+                            currentNodeErrorDictionary.Add(modelTypeKey, childNodeErrorDictionary[modelTypeKey]);
+                        }
+                    }
                 }
             }
+
+            cachedValidationErrors.TryAdd(modelType, currentNodeErrorDictionary);
+
+            visitedTypes.Remove(modelType);
         }
 
         private static ValidationError? GetValidationError(PropertyInfo propertyInfo)
@@ -124,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.Xml
                 || modelType.IsNullableValueType();
         }
 
-        private struct ValidationError
+        public struct ValidationError
         {
             public Type ModelType { get; set; }
 
