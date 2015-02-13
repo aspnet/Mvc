@@ -30,7 +30,9 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
                            .Returns(service);
             var optionActivator = new DefaultOptionActivator<IModelBinder>();
 
-            var provider = new DefaultModelBindersProvider(optionsAccessor.Object, optionActivator, serviceProvider.Object);
+            var provider = new DefaultModelBindersProvider(optionsAccessor.Object,
+                optionActivator,
+                serviceProvider.Object);
 
             // Act
             var binders = provider.ModelBinders;
