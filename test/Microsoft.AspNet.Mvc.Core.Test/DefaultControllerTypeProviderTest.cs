@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.DefaultControllerTypeProviderControllers;
 using Xunit;
@@ -10,6 +11,11 @@ namespace Microsoft.AspNet.Mvc
 {
     public class DefaultControllerTypeProviderTest
     {
+        private static readonly ISet<Assembly> CandidateAssemblies = new HashSet<Assembly>
+        {
+            typeof(StoreController).GetTypeInfo().Assembly
+        };
+
         [Fact]
         public void IsController_UserDefinedClass()
         {
@@ -18,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
@@ -32,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -46,7 +52,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -60,7 +66,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -74,7 +80,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -88,7 +94,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
@@ -102,7 +108,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -116,7 +122,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -130,7 +136,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
@@ -144,7 +150,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
@@ -158,7 +164,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
@@ -172,27 +178,13 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(typeInfo);
+            var isController = provider.IsController(typeInfo, CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
         }
 
-        public static TheoryData TypesWithPocoControllerAncestor
-        {
-            get
-            {
-                return new TheoryData<TypeInfo>
-                {
-                   typeof(ChildWithoutSuffix).GetTypeInfo(),
-                   typeof(DescendantLevel1).GetTypeInfo(),
-                   typeof(DescendantLevel2).GetTypeInfo()
-                };
-            }
-        }
-
         [Theory]
-        [InlineData(typeof(ChildWithoutSuffix))]
         [InlineData(typeof(DescendantLevel1))]
         [InlineData(typeof(DescendantLevel2))]
         public void IsController_ReturnsTrue_IfAncestorTypeNameHasControllerSuffix(Type type)
@@ -201,7 +193,7 @@ namespace Microsoft.AspNet.Mvc
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(type.GetTypeInfo());
+            var isController = provider.IsController(type.GetTypeInfo(), CandidateAssemblies);
 
             // Assert
             Assert.True(isController);
@@ -214,14 +206,14 @@ namespace Microsoft.AspNet.Mvc
         [InlineData(typeof(BasePocoNonControllerControllerChild))]
         [InlineData(typeof(NonController))]
         [InlineData(typeof(NonControllerChild))]
-        [InlineData(typeof(PersonModel))]
+        [InlineData(typeof(PersonModel))] // Verifies that POCO type hierarchies that don't derive from controller return false.
         public void IsController_ReturnsFalse_IfTypeOrAncestorHasNonControllerAttribute(Type type)
         {
             // Arrange
             var provider = GetControllerTypeProvider();
 
             // Act
-            var isController = provider.IsController(type.GetTypeInfo());
+            var isController = provider.IsController(type.GetTypeInfo(), CandidateAssemblies);
 
             // Assert
             Assert.False(isController);
@@ -254,7 +246,7 @@ namespace Microsoft.AspNet.Mvc.DefaultControllerTypeProviderControllers
     {
     }
 
-    public class Controller
+    public abstract class Controller
     {
     }
 
@@ -293,11 +285,6 @@ namespace Microsoft.AspNet.Mvc.DefaultControllerTypeProviderControllers
 
     }
 
-    public class ChildWithoutSuffix : CustomBaseController
-    {
-
-    }
-
     public class DescendantLevel1 : CustomBaseController
     {
 
@@ -331,12 +318,6 @@ namespace Microsoft.AspNet.Mvc.DefaultControllerTypeProviderControllers
     }
 
     public class BaseNonControllerControllerChild : BaseNonControllerController
-    {
-
-    }
-
-    [NonController]
-    public class PocoNonController
     {
 
     }

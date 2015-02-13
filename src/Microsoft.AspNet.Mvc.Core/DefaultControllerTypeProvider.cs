@@ -17,6 +17,8 @@ namespace Microsoft.AspNet.Mvc
     public class DefaultControllerTypeProvider : IControllerTypeProvider
     {
         private const string ControllerTypeName = nameof(Controller);
+        private static readonly TypeInfo ControllerTypeInfo = typeof(Controller).GetTypeInfo();
+        private static readonly TypeInfo ObjectTypeInfo = typeof(object).GetTypeInfo();
         private readonly IAssemblyProvider _assemblyProvider;
         private readonly ILogger _logger;
 
@@ -38,17 +40,17 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                var assemblies = _assemblyProvider.CandidateAssemblies;
+                var candidateAssemblies = new HashSet<Assembly>(_assemblyProvider.CandidateAssemblies);
                 if (_logger.IsEnabled(LogLevel.Verbose))
                 {
-                    foreach (var assembly in assemblies)
+                    foreach (var assembly in candidateAssemblies)
                     {
                         _logger.WriteVerbose(new AssemblyValues(assembly));
                     }
                 }
 
-                var types = assemblies.SelectMany(a => a.DefinedTypes);
-                return types.Where(IsController);
+                var types = candidateAssemblies.SelectMany(a => a.DefinedTypes);
+                return types.Where(typeInfo => IsController(typeInfo, candidateAssemblies));
             }
         }
 
@@ -57,7 +59,8 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="typeInfo">The <see cref="TypeInfo"/>.</param>
         /// <returns><c>true</c> if the <paramref name="typeInfo"/> is a controller. Otherwise <c>false</c>.</returns>
-        protected internal virtual bool IsController([NotNull] TypeInfo typeInfo)
+        protected internal virtual bool IsController([NotNull] TypeInfo typeInfo,
+                                                     [NotNull] ISet<Assembly> candidateAssemblies)
         {
             if (!typeInfo.IsClass)
             {
@@ -77,12 +80,8 @@ namespace Microsoft.AspNet.Mvc
             {
                 return false;
             }
-            if (typeInfo.Name.Equals(ControllerTypeName, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
             if (!typeInfo.Name.EndsWith(ControllerTypeName, StringComparison.OrdinalIgnoreCase) &&
-                !DerivesFromController(typeInfo))
+                !DerivesFromController(typeInfo, candidateAssemblies))
             {
                 return false;
             }
@@ -94,20 +93,25 @@ namespace Microsoft.AspNet.Mvc
             return true;
         }
 
-        private static bool DerivesFromController(TypeInfo typeInfo)
+        private bool DerivesFromController(TypeInfo typeInfo, ISet<Assembly> candidateAssemblies)
         {
             // A type is a controller if it derives from a type that is either named "Controller" or has the suffix
             // "Controller". We'll optimize the most common case of types deriving from the Mvc Controller type and
             // walk up the object graph if that's not the case.
-            if (typeof(Controller).GetTypeInfo().IsAssignableFrom(typeInfo))
+            if (ControllerTypeInfo.IsAssignableFrom(typeInfo))
             {
                 return true;
             }
 
-            while (typeInfo != typeof(object).GetTypeInfo())
+            while (typeInfo != ObjectTypeInfo)
             {
                 var baseTypeInfo = typeInfo.BaseType.GetTypeInfo();
-                if (baseTypeInfo.Name.EndsWith(ControllerTypeName, StringComparison.Ordinal))
+                // A base type will be treated as a controller if
+                // a) it ends in the term "Controller" and
+                // b) it's assembly is one of the candidate assemblies we're considering. This ensures that the assembly
+                // the base type is declared in references Mvc.
+                if (baseTypeInfo.Name.EndsWith(ControllerTypeName, StringComparison.Ordinal) &&
+                    candidateAssemblies.Contains(baseTypeInfo.Assembly))
                 {
                     return true;
                 }
