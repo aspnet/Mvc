@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     public class JavaScriptResourcesTest
     {
         [Fact]
-        public void GetEmbeddedJavaScriptImpl_LoadsEmbeddedResourceFromManifestStream()
+        public void GetEmbeddedJavaScript_LoadsEmbeddedResourceFromManifestStream()
         {
             // Arrange
             var resource = "window.alert('An alert');";
@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         [Fact]
-        public void GetEmbeddedJavaScriptImpl_AddsResourceToCacheWhenRead()
+        public void GetEmbeddedJavaScript_AddsResourceToCacheWhenRead()
         {
             // Arrange
             var resource = "window.alert('An alert');";
@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         [Fact]
-        public void GetEmbeddedJavaScriptImpl_LoadsResourceFromCacheAfterInitialCall()
+        public void GetEmbeddedJavaScript_LoadsResourceFromCacheAfterInitialCall()
         {
             // Arrange
             var resource = "window.alert('An alert');";
@@ -73,13 +73,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         [InlineData("window.alert(\"[[[0]]]\")", "window.alert(\"{0}\")")]
         [InlineData("var test = { a: 1 };", "var test = {{ a: 1 }};")]
         [InlineData("var test = { a: 1, b: \"[[[0]]]\" };", "var test = {{ a: 1, b: \"{0}\" }};")]
-        public void PrepareFormatString_PreparesJavaScriptCorrectly(string input, string expectedOutput)
+        public void GetEmbeddedJavaScript_PreparesJavaScriptCorrectly(string resource, string expectedResult)
         {
+            // Arrange
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(resource));
+            var getManifestResourceStream = new Func<string, Stream>(name => stream);
+            var cache = new ConcurrentDictionary<string, string>();
+
             // Act
-            var result = JavaScriptResources.PrepareFormatString(input);
+            var result = JavaScriptResources.GetEmbeddedJavaScript("test.js", getManifestResourceStream, cache);
 
             // Assert
-            Assert.Equal(expectedOutput, result);
+            Assert.Equal(expectedResult, result);
         }
     }
 }

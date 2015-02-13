@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
 
@@ -47,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         /// <summary>
-        /// Determines the mode a <see cref="ITagHelper" /> should run in based on which mode has all its required
+        /// Determines the modes a <see cref="ITagHelper" /> can run in based on which modes have all their required
         /// attributes present, non null, non empty, and non whitepsace.
         /// </summary>
         /// <typeparam name="TMode">The type representing the <see cref="ITagHelper" />'s modes.</typeparam>

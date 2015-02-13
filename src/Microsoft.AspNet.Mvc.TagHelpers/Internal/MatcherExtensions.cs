@@ -20,13 +20,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             [NotNull] IEnumerable<string> includePatterns,
             IEnumerable<string> excludePatterns)
         {
-            AddPatternsImpl(includePatterns, excludePatterns, matcher.AddInclude, matcher.AddExclude);
+            AddPatterns(includePatterns, excludePatterns, matcher.AddInclude, matcher.AddExclude);
 
             return matcher;
         }
 
         // Internal for unit testing
-        internal static void AddPatternsImpl(
+        internal static void AddPatterns(
             [NotNull] IEnumerable<string> includePatterns,
             IEnumerable<string> excludePatterns,
             [NotNull] Func<string, Matcher> include,

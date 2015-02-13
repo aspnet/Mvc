@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
@@ -12,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     public static class ModeMatchAttributes
     {
         /// <summary>
-        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>/
+        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>.
         /// </summary>
         public static ModeMatchAttributes<TMode> Create<TMode>(
            TMode mode,
@@ -22,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         /// <summary>
-        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>/
+        /// Creates an <see cref="ModeMatchAttributes{TMode}"/>.
         /// </summary>
         public static ModeMatchAttributes<TMode> Create<TMode>(
             TMode mode,
@@ -36,21 +35,5 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 MissingAttributes = missingAttributes
             };
         }
-    }
-
-    /// <summary>
-    /// A mapping of a <see cref="ITagHelper"/> mode to its missing and present attributes.
-    /// </summary>
-    /// <typeparam name="TMode">The type representing the <see cref="ITagHelper"/>'s mode.</typeparam>
-    public class ModeMatchAttributes<TMode>
-    {
-        /// <summary>
-        /// The <see cref="ITagHelper"/>'s mode.
-        /// </summary>
-        public TMode Mode { get; set; }
-
-        public IEnumerable<string> PresentAttributes { get; set; }
-
-        public IEnumerable<string> MissingAttributes { get; set; }
     }
 }

@@ -62,13 +62,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <returns>The message.</returns>
         public string Format()
         {
+            var newLine = Environment.NewLine;
             return
-                string.Format($"Tag Helper {{0}} had partial matches while determining mode:{Environment.NewLine}\t{{1}}",
-                _uniqueId,
-                string.Join($"{Environment.NewLine}\t", _partialMatches.Select(partial =>
-                    string.Format($"Mode '{{0}}' missing attributes:{Environment.NewLine}\t\t{{1}} ",
-                        partial.Mode,
-                        string.Join($"{Environment.NewLine}\t\t", partial.MissingAttributes)))));
+                string.Format($"Tag Helper {_uniqueId} had partial matches while determining mode:{newLine}\t{{0}}",
+                    string.Join($"{newLine}\t", _partialMatches.Select(partial =>
+                        string.Format($"Mode '{partial.Mode}' missing attributes:{newLine}\t\t{{0}} ",
+                            string.Join($"{newLine}\t\t", partial.MissingAttributes)))));
         }
     }
 }

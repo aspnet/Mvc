@@ -15,14 +15,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <summary>
         /// Encodes a .NET string array for safe use as a JavaScript array literal, including inline in an HTML file.
         /// </summary>
-        public static string JavaScriptStringArrayEncode(this IJavaScriptStringEncoder encoder, IEnumerable<string> values)
+        public static string JavaScriptStringArrayEncode(
+            this IJavaScriptStringEncoder encoder,
+            IEnumerable<string> values)
         {
             var builder = new StringBuilder();
 
-            builder.Append('[');
-
             var firstAdded = false;
 
+            builder.Append('[');
+            
             foreach (var value in values)
             {
                 if (firstAdded)

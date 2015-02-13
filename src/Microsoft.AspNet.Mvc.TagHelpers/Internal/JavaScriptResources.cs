@@ -6,12 +6,11 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Utility methods for dealing with JavaScript.
+    /// Methods for loading JavaScript from assembly embedded resources.
     /// </summary>
     public static class JavaScriptResources
     {
@@ -45,16 +44,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     {
                         var script = streamReader.ReadToEnd();
 
-                        // Replace unescaped/escaped chars with their equivalent
                         return PrepareFormatString(script);
                     }
                 }
             });
         }
-
-        // Internal so we can test this separately
-        internal static string PrepareFormatString(string input)
+        
+        private static string PrepareFormatString(string input)
         {
+            // Replace unescaped/escaped chars with their equivalent
             return input.Replace("{", "{{")
                         .Replace("}", "}}")
                         .Replace("[[[", "{")
