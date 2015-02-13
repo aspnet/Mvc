@@ -18,6 +18,14 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         private IOptionActivator<TOption> _optionActivator;
         private readonly IServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OptionDescriptorBasedProvider"/> class.
+        /// </summary>
+        /// <param name="optionDescriptors">An enumerable of <see cref="OptionDescriptor{TOption}"/>.</param>
+        /// <param name="optionActivator">As <see cref="IOptionActivator{TOption}"/> instance that creates an instance of type 
+        /// <typeparamref name="TOption"/>.</param>
+        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
+        /// service collection.</param>
         public OptionDescriptorBasedProvider(
             [NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
             [NotNull] IOptionActivator<TOption> optionActivator,

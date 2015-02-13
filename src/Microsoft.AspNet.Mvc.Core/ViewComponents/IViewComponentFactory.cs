@@ -5,8 +5,17 @@ using System;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// Encapsulates information that creates a ViewComponent.
+    /// </summary>
     public interface IViewComponentFactory
     {
-        object CreateInstance(Type componentType);
+        /// <summary>
+        /// Creates an instance of ViewComponent.
+        /// </summary>
+        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
+        /// service collection.</param>
+        /// <param name="componentType">The <see cref="Type"/> of the <see cref="ViewComponent"/> to create.</param>
+        object CreateInstance(IServiceProvider serviceProvider, Type componentType);
     }
 }

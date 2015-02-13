@@ -16,9 +16,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         // Name of the "public TModel Model" property on RazorPage<TModel>
         private const string ModelPropertyName = "Model";
         private readonly ConcurrentDictionary<Type, PageActivationInfo> _activationInfo;
-        private IModelMetadataProvider _metadataProvider;
-        private static readonly ConcurrentDictionary<Type, Func<IServiceProvider, object[], object>> _viewDictionaryCache =
-                     new ConcurrentDictionary<Type, Func<IServiceProvider, object[], object>>();
+        private readonly IModelMetadataProvider _metadataProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorPageActivator"/> class.

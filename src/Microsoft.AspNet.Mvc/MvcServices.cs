@@ -37,7 +37,9 @@ namespace Microsoft.AspNet.Mvc
                 typeof(INestedProviderManagerAsync<>),
                 typeof(NestedProviderManagerAsync<>));
             yield return describe.Transient<MvcMarkerService, MvcMarkerService>();
-			yield return describe.Singleton(typeof(IOptionActivator<>), typeof(DefaultOptionActivator<>));			yield return describe.Scoped(typeof(IScopedInstance<>), typeof(ScopedInstance<>))            // Core action discovery, filters and action execution.
+			yield return describe.Singleton(typeof(IOptionActivator<>), typeof(DefaultOptionActivator<>));
+			yield return describe.Scoped(typeof(IScopedInstance<>), typeof(ScopedInstance<>));
+			// Core action discovery, filters and action execution.
 
             // These are consumed only when creating action descriptors, then they can be de-allocated
             yield return describe.Transient<IControllerTypeProvider, DefaultControllerTypeProvider>();
@@ -151,7 +153,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IHtmlGenerator, DefaultHtmlGenerator>();
 
             yield return describe.Transient<IViewComponentSelector, DefaultViewComponentSelector>();
-            yield return describe.Transient<IViewComponentFactory, DefaultViewComponentFactory>();
+            yield return describe.Singleton<IViewComponentFactory, DefaultViewComponentFactory>();
             yield return describe.Singleton<IViewComponentActivator, DefaultViewComponentActivator>();
             yield return describe.Transient<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>();
             yield return describe.Transient<INestedProvider<ViewComponentInvokerProviderContext>,
