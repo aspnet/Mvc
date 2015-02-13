@@ -923,6 +923,151 @@ namespace Microsoft.AspNet.Mvc.Xml
                 });
         }
 
+        [Fact]
+        public async Task PostingModelOfStructs_WithDeeperHierarchy_HasValidationErrors()
+        {
+            // Arrange
+            var input = "<School i:nil=\"true\" " +
+                "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\" " +
+                "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"/>";
+
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(School));
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.Null(model);
+
+            Assert.Equal(3, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(School).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(School.Id), typeof(School).FullName)
+                });
+            AssertModelStateErrorMessages(
+                typeof(Website).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Website.Id), typeof(Website).FullName)
+                });
+
+            AssertModelStateErrorMessages(
+                typeof(Student).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Student.Id), typeof(Student).FullName)
+                });
+        }
+        
+        [Fact]
+        public async Task PostingModel_WithDictionaryProperty_HasValidationErrorsOnKeyAndValue()
+        {
+            // Arrange
+            var input = "<FavoriteLocations " +
+                "i:nil=\"true\" xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\"" +
+                " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"/>";
+
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(FavoriteLocations));
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.Null(model);
+
+            Assert.Equal(2, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Point).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Point.X), typeof(Point).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Point.Y), typeof(Point).FullName)
+                });
+            AssertModelStateErrorMessages(
+                typeof(Address).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName)
+                });
+        }
+
+        [Fact]
+        public async Task PostingModel_WithDifferentValueTypeProperties_HasValidationErrors()
+        {
+            // Arrange
+            var input = "<ValueTypePropertiesModel i:nil=\"true\" " +
+                "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\" " +
+                "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"/>";
+
+            var formatter = new XmlDataContractSerializerInputFormatter();
+            var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
+            var context = GetInputFormatterContext(contentBytes, typeof(ValueTypePropertiesModel));
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.Null(model);
+
+            Assert.Equal(3, context.ActionContext.ModelState.Keys.Count);
+            AssertModelStateErrorMessages(
+                typeof(Point).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(requiredErrorMessageFormat, nameof(Point.X), typeof(Point).FullName),
+                    string.Format(requiredErrorMessageFormat, nameof(Point.X), typeof(Point).FullName)
+                });
+            AssertModelStateErrorMessages(
+                typeof(GpsCoordinate).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(
+                        requiredErrorMessageFormat, 
+                        nameof(GpsCoordinate.Latitude), 
+                        typeof(GpsCoordinate).FullName),
+                    string.Format(
+                        requiredErrorMessageFormat, 
+                        nameof(GpsCoordinate.Longitude), 
+                        typeof(GpsCoordinate).FullName)
+                });
+            AssertModelStateErrorMessages(
+                typeof(ValueTypePropertiesModel).FullName,
+                context.ActionContext,
+                expectedErrorMessages: new[]
+                {
+                    string.Format(
+                        requiredErrorMessageFormat, 
+                        nameof(ValueTypePropertiesModel.IntProperty), 
+                        typeof(ValueTypePropertiesModel).FullName),
+                    string.Format(
+                        requiredErrorMessageFormat,
+                        nameof(ValueTypePropertiesModel.DateTimeProperty),
+                        typeof(ValueTypePropertiesModel).FullName),
+                    string.Format(
+                        requiredErrorMessageFormat,
+                        nameof(ValueTypePropertiesModel.PointProperty),
+                        typeof(ValueTypePropertiesModel).FullName),
+                    string.Format(
+                        requiredErrorMessageFormat,
+                        nameof(ValueTypePropertiesModel.GpsCoordinateProperty),
+                        typeof(ValueTypePropertiesModel).FullName)
+                });
+        }
+
         private void AssertModelStateErrorMessages(
             string modelStateKey,
             ActionContext actionContext,
@@ -1094,5 +1239,82 @@ namespace Microsoft.AspNet.Mvc.Xml
     public class Manufacturer
     {
         public Address Address { get; set; }
+    }
+
+    public struct School
+    {
+        [Required]
+        public int Id { get; set; }
+
+        public List<Student> Students { get; set; }
+
+        public Website Address { get; set; }
+    }
+    
+    public struct Student
+    {
+        [Required]
+        public int Id { get; set; }
+
+        public Website Address { get; set; }
+    }
+
+    public struct Website
+    {
+        [Required]
+        public int Id { get; set; }
+
+        [Required]
+        public string Name { get; set; }
+    }
+
+    public struct ValueTypePropertiesModel
+    {
+        [Required]
+        public int IntProperty { get; set; }
+
+        [Required]
+        public int? NullableIntProperty { get; set; }
+
+        [Required]
+        public DateTime DateTimeProperty { get; set; }
+
+        [Required]
+        public DateTime? NullableDateTimeProperty { get; set; }
+
+        [Required]
+        public Point PointProperty { get; set; }
+
+        [Required]
+        public Point? NullablePointProperty { get; set; }
+
+        [Required]
+        public GpsCoordinate GpsCoordinateProperty { get; set; }
+
+        [Required]
+        public GpsCoordinate? NullableGpsCoordinateProperty { get; set; }
+    }
+
+    public struct GpsCoordinate
+    {
+        [Required]
+        public Point Latitude { get; set; }
+
+        [Required]
+        public Point Longitude { get; set; }
+    }
+
+    public struct Point
+    {
+        [Required]
+        public int X { get; set; }
+
+        [Required]
+        public int Y { get; set; }
+    }
+
+    public class FavoriteLocations
+    {
+        public Dictionary<Point, Address> Addresses { get; set; }
     }
 }

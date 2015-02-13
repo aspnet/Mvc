@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.Xml
     /// Validates types having value type properties decorated with <see cref="RequiredAttribute"/>
     /// but no <see cref="DataMemberAttribute"/>.
     /// </summary>
-    public static class RequiredValidationHelper
+    public static class DataAnnotationRequiredAttributeValidation
     {
         private static ConcurrentDictionary<Type, Dictionary<Type, List<string>>> cachedValidationErrors
             = new ConcurrentDictionary<Type, Dictionary<Type, List<string>>>();
@@ -28,19 +28,20 @@ namespace Microsoft.AspNet.Mvc.Xml
             // Every node maintains a dictionary of Type => Errors. 
             // It's a dictionary as we want to avoid adding duplicate error messages.
             // Example:
-            // Type 'A' has a child node of type 'B' somewhere in the left sub-tree
-            // and it has type 'B' again  somewhere down the righ sub-tree. From the perspective of
-            // type 'A', it should not have duplicate error messgaes for type 'B'.
+            // Type 'Store' has properties of type 'Address' and list of 'Employee'.
+            // 'Employee' type also has a property of type 'Address'.
+            // In this case the validation errors from the perspective of the type 'Store'
+            // should not have duplicate errors for 'Address'.
             var rootNodeValidationErrors = new Dictionary<Type, List<string>>();
 
             Validate(modelType, visitedTypes, rootNodeValidationErrors);
 
-            foreach (var validatoinError in rootNodeValidationErrors)
+            foreach (var validationError in rootNodeValidationErrors)
             {
-                foreach (var validationErrorMessage in validatoinError.Value)
+                foreach (var validationErrorMessage in validationError.Value)
                 {
                     modelStateDictionary.TryAddModelError(
-                        validatoinError.Key.FullName,
+                        validationError.Key.FullName,
                         validationErrorMessage);
                 }
             }
@@ -49,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         private static void Validate(
             Type modelType,
             HashSet<Type> visitedTypes,
-            Dictionary<Type, List<string>> currentNodeValidationErrors)
+            Dictionary<Type, List<string>> errors)
         {
             if (modelType.IsGenericType())
             {
@@ -66,19 +67,17 @@ namespace Microsoft.AspNet.Mvc.Xml
             }
 
             // Avoid infinite loop in case of self-referencing properties
-            if (visitedTypes.Contains(modelType))
+            if (!visitedTypes.Add(modelType))
             {
                 return;
             }
 
-            visitedTypes.Add(modelType);
-
-            Dictionary<Type, List<string>> cachedCurrentNodeValidationErrors;
-            if (cachedValidationErrors.TryGetValue(modelType, out cachedCurrentNodeValidationErrors))
+            Dictionary<Type, List<string>> cachedErrors;
+            if (cachedValidationErrors.TryGetValue(modelType, out cachedErrors))
             {
-                foreach (var validationError in cachedCurrentNodeValidationErrors)
+                foreach (var validationError in cachedErrors)
                 {
-                    currentNodeValidationErrors.Add(validationError.Key, validationError.Value);
+                    errors.Add(validationError.Key, validationError.Value);
                 }
 
                 return;
@@ -86,42 +85,54 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             foreach (var propertyInfo in modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (propertyInfo.PropertyType.IsValueType() && !propertyInfo.PropertyType.IsNullableValueType())
+                var propertyType = propertyInfo.PropertyType;
+
+                if (propertyType.IsValueType() && !propertyType.IsNullableValueType())
                 {
+                    // Scenarios:
+                    // a. [Required]
+                    //    public int Id { get; set;}
+                    // b. [Required]
+                    //    public Point Coordinate { get; set;}
+                    // c. public int Id { get; set;}
+                    // d. public Point Coordinate { get; set;}
                     var validationError = GetValidationError(propertyInfo);
-                    if (validationError == null)
+                    if (validationError != null)
+                    {
+                        List<string> errorMessages;
+                        if (!errors.TryGetValue(validationError.Value.ModelType, out errorMessages))
+                        {
+                            errorMessages = new List<string>();
+                            errors.Add(validationError.Value.ModelType, errorMessages);
+                        }
+
+                        errorMessages.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
+                                        validationError.Value.PropertyName,
+                                        validationError.Value.ModelType.FullName));
+                    }
+                    
+                    // if the type is not primitve, then it could be a struct in which case
+                    // we need to probe its properties for validation
+                    if (propertyType.GetTypeInfo().IsPrimitive)
                     {
                         continue;
                     }
-
-                    List<string> errorMessages;
-                    if (!currentNodeValidationErrors.TryGetValue(validationError.Value.ModelType, out errorMessages))
-                    {
-                        errorMessages = new List<string>();
-                        currentNodeValidationErrors.Add(validationError.Value.ModelType, errorMessages);
-                    }
-                    errorMessages.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
-                                    validationError.Value.PropertyName,
-                                    validationError.Value.ModelType.FullName));
                 }
-                else
+
+                var childNodeErrors = new Dictionary<Type, List<string>>();
+                Validate(propertyType, visitedTypes, childNodeErrors);
+
+                // Avoid adding duplicate errors at current node.
+                foreach (var modelTypeKey in childNodeErrors.Keys)
                 {
-                    var childNodeValidationErrors = new Dictionary<Type, List<string>>();
-
-                    Validate(propertyInfo.PropertyType, visitedTypes, childNodeValidationErrors);
-
-                    // Avoid adding duplicate errors at current node.
-                    foreach (var modelTypeKey in childNodeValidationErrors.Keys)
+                    if (!errors.ContainsKey(modelTypeKey))
                     {
-                        if (!currentNodeValidationErrors.ContainsKey(modelTypeKey))
-                        {
-                            currentNodeValidationErrors.Add(modelTypeKey, childNodeValidationErrors[modelTypeKey]);
-                        }
+                        errors.Add(modelTypeKey, childNodeErrors[modelTypeKey]);
                     }
                 }
             }
 
-            cachedValidationErrors.TryAdd(modelType, currentNodeValidationErrors);
+            cachedValidationErrors.TryAdd(modelType, errors);
 
             visitedTypes.Remove(modelType);
         }
@@ -134,36 +145,35 @@ namespace Microsoft.AspNet.Mvc.Xml
                 return null;
             }
 
-            var hasDataMemberRequired = false;
-
             var dataMemberRequired = (DataMemberAttribute)propertyInfo.GetCustomAttribute(
                 typeof(DataMemberAttribute),
                 inherit: true);
 
             if (dataMemberRequired != null && dataMemberRequired.IsRequired)
             {
-                hasDataMemberRequired = true;
+                return null;
             }
 
-            if (!hasDataMemberRequired)
+            return new ValidationError()
             {
-                return new ValidationError()
-                {
-                    ModelType = propertyInfo.DeclaringType,
-                    PropertyName = propertyInfo.Name
-                };
-            }
-
-            return null;
+                ModelType = propertyInfo.DeclaringType,
+                PropertyName = propertyInfo.Name
+            };
         }
 
         private static bool ExcludeTypeFromValidation(Type modelType)
         {
-            return modelType.IsValueType()
-                || modelType.IsNullableValueType();
+            return modelType.GetTypeInfo().IsPrimitive ||
+                            modelType.Equals(typeof(decimal)) ||
+                            modelType.Equals(typeof(string)) ||
+                            modelType.Equals(typeof(DateTime)) ||
+                            modelType.Equals(typeof(Guid)) ||
+                            modelType.Equals(typeof(DateTimeOffset)) ||
+                            modelType.Equals(typeof(TimeSpan)) ||
+                            modelType.Equals(typeof(Uri));
         }
 
-        public struct ValidationError
+        private struct ValidationError
         {
             public Type ModelType { get; set; }
 

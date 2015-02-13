@@ -94,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             using (var xmlReader = CreateXmlReader(new NonDisposableStream(request.Body)))
             {
-                RequiredValidationHelper.Validate(context.ModelType, context.ActionContext.ModelState);
+                DataAnnotationRequiredAttributeValidation.Validate(context.ModelType, context.ActionContext.ModelState);
 
                 var type = GetSerializableType(context.ModelType);
 
