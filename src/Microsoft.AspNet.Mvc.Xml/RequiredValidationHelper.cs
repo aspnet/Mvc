@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         private static void Validate(
             Type modelType,
             HashSet<Type> visitedTypes,
-            List<ValidationError> rootModelTypeErrors)
+            List<ValidationError> validationErrors)
         {
             if (modelType.IsGenericType())
             {
@@ -68,82 +68,54 @@ namespace Microsoft.AspNet.Mvc.Xml
                 return;
             }
 
-            var valueTypeProperties = new List<PropertyInfo>();
-            var referenceTypeProperties = new List<PropertyInfo>();
+            visitedTypes.Add(modelType);
+
             foreach (var propertyInfo in modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (propertyInfo.PropertyType.IsValueType())
+                if (propertyInfo.PropertyType.IsValueType() && !propertyInfo.PropertyType.IsNullableValueType())
                 {
-                    if (!propertyInfo.PropertyType.IsNullableValueType())
+                    var validationError = GetValidationError(propertyInfo);
+                    if (validationError != null)
                     {
-                        valueTypeProperties.Add(propertyInfo);
+                        validationErrors.Add(validationError.Value);
                     }
                 }
                 else
                 {
-                    referenceTypeProperties.Add(propertyInfo);
+                    Validate(propertyInfo.PropertyType, visitedTypes, validationErrors);
                 }
-            }
-
-            var currentModelTypeValidationErrors = GetValidationErrors(valueTypeProperties);
-
-            // Avoid duplicate error messages.
-            // Example: For the following setup, when probing the 'Store' type, we do not want to
-            // get duplicate error messages for the 'Address' type. 
-            // -'Address' type has required filed errors. 
-            // -'Employee' type has a property of type 'Address'.
-            // -'Store' type has a property of type 'Address' and also has a property of list of 'Employee'.
-            if (currentModelTypeValidationErrors.Count > 0)
-            {
-                if (!rootModelTypeErrors.Any(error => error.ModelType == modelType))
-                {
-                    rootModelTypeErrors.AddRange(currentModelTypeValidationErrors);
-                }
-            }
-
-            visitedTypes.Add(modelType);
-
-            // reference properties
-            foreach (var propertyInfo in referenceTypeProperties)
-            {
-                Validate(propertyInfo.PropertyType, visitedTypes, rootModelTypeErrors);
             }
         }
 
-        private static List<ValidationError> GetValidationErrors(IEnumerable<PropertyInfo> valueTypeProperties)
+        private static ValidationError? GetValidationError(PropertyInfo propertyInfo)
         {
-            var validationErrors = new List<ValidationError>();
-
-            foreach (var propertyInfo in valueTypeProperties)
+            var required = propertyInfo.GetCustomAttribute(typeof(RequiredAttribute), inherit: true);
+            if (required == null)
             {
-                var required = propertyInfo.GetCustomAttribute(typeof(RequiredAttribute), inherit: true);
-                if (required == null)
-                {
-                    continue;
-                }
-
-                var hasDataMemberRequired = false;
-
-                var dataMemberRequired = (DataMemberAttribute)propertyInfo.GetCustomAttribute(
-                    typeof(DataMemberAttribute),
-                    inherit: true);
-
-                if (dataMemberRequired != null && dataMemberRequired.IsRequired)
-                {
-                    hasDataMemberRequired = true;
-                }
-
-                if (!hasDataMemberRequired)
-                {
-                    validationErrors.Add(new ValidationError()
-                    {
-                        ModelType = propertyInfo.DeclaringType,
-                        PropertyName = propertyInfo.Name
-                    });
-                }
+                return null;
             }
 
-            return validationErrors;
+            var hasDataMemberRequired = false;
+
+            var dataMemberRequired = (DataMemberAttribute)propertyInfo.GetCustomAttribute(
+                typeof(DataMemberAttribute),
+                inherit: true);
+
+            if (dataMemberRequired != null && dataMemberRequired.IsRequired)
+            {
+                hasDataMemberRequired = true;
+            }
+
+            if (!hasDataMemberRequired)
+            {
+                return new ValidationError()
+                {
+                    ModelType = propertyInfo.DeclaringType,
+                    PropertyName = propertyInfo.Name
+                };
+            }
+
+            return null;
         }
 
         private static bool ExcludeTypeFromValidation(Type modelType)
