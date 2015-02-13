@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.WebUtilities.Encoders;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Logging;
 
@@ -230,9 +231,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             builder.Append("<script>")
                    .AppendFormat(CultureInfo.InvariantCulture,
                         JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                        JavaScriptEncoder.JavaScriptStringEncode(FallbackTestProperty),
-                        JavaScriptEncoder.JavaScriptStringEncode(FallbackTestValue),
-                        JavaScriptEncoder.JavaScriptArrayEncode(fallbackHrefs))
+                        JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestProperty),
+                        JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestValue),
+                        JavaScriptStringEncoder.Default.JavaScriptStringArrayEncode(fallbackHrefs))
                    .Append("</script>");
         }
 

@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// </summary>
     public static class JavaScriptResources
     {
-        private static readonly Assembly ResourcesAssembly = typeof(JavaScriptEncoder).GetTypeInfo().Assembly;
+        private static readonly Assembly ResourcesAssembly = typeof(JavaScriptResources).GetTypeInfo().Assembly;
 
         private static readonly ConcurrentDictionary<string, string> Cache =
             new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
@@ -25,10 +25,19 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// </summary>
         public static string GetEmbeddedJavaScript(string resourceName)
         {
-            return Cache.GetOrAdd(resourceName, key =>
+            return GetEmbeddedJavaScript(resourceName, ResourcesAssembly.GetManifestResourceStream, Cache);
+        }
+
+        // Internal for testing
+        internal static string GetEmbeddedJavaScript(
+            string resourceName,
+            Func<string, Stream> getManifestResourceStream,
+            ConcurrentDictionary<string, string> cache)
+        {
+            return cache.GetOrAdd(resourceName, key =>
             {
                 // Load the JavaScript from embedded resource
-                using (var resourceStream = ResourcesAssembly.GetManifestResourceStream(key))
+                using (var resourceStream = getManifestResourceStream(key))
                 {
                     Debug.Assert(resourceStream != null, "Embedded resource missing. Ensure 'prebuild' script has run.");
 

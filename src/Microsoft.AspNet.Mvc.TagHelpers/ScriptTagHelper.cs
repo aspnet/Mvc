@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.WebUtilities.Encoders;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -96,8 +97,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 if (!attribute.Key.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                 {
-                    var encodedKey = JavaScriptEncoder.JavaScriptStringEncode(attribute.Key);
-                    var encodedValue = JavaScriptEncoder.JavaScriptStringEncode(attribute.Value);
+                    var encodedKey = JavaScriptStringEncoder.Default.JavaScriptStringEncode(attribute.Key);
+                    var encodedValue = JavaScriptStringEncoder.Default.JavaScriptStringEncode(attribute.Value);
 
                     content.AppendFormat(CultureInfo.InvariantCulture, " {0}=\\\"{1}\\\"", encodedKey, encodedValue);
                 }
