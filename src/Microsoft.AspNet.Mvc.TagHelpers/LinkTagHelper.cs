@@ -216,25 +216,28 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private void BuildFallbackBlock(StringBuilder builder)
         {
-            builder.AppendLine();
-
-            // Build the <meta /> tag that's used to test for the presence of the stylesheet
-            builder.AppendFormat(CultureInfo.InvariantCulture,
-                "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
-
             EnsureGlobbingUrlBuilder();
             var fallbackHrefs = GlobbingUrlBuilder.BuildUrlList(FallbackHref, FallbackHrefInclude, FallbackHrefExclude);
 
-            // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
-            // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
-            // indicating that the primary stylesheet failed to load.
-            builder.Append("<script>")
-                   .AppendFormat(CultureInfo.InvariantCulture,
-                        JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                        JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestProperty),
-                        JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestValue),
-                        JavaScriptStringEncoder.Default.JavaScriptStringArrayEncode(fallbackHrefs))
-                   .Append("</script>");
+            if (fallbackHrefs.Any())
+            {
+                builder.AppendLine();
+
+                // Build the <meta /> tag that's used to test for the presence of the stylesheet
+                builder.AppendFormat(CultureInfo.InvariantCulture,
+                    "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
+                
+                // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
+                // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
+                // indicating that the primary stylesheet failed to load.
+                builder.Append("<script>")
+                       .AppendFormat(CultureInfo.InvariantCulture,
+                            JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
+                            JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestProperty),
+                            JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestValue),
+                            JavaScriptStringEncoder.Default.JavaScriptStringArrayEncode(fallbackHrefs))
+                       .Append("</script>");
+            }
         }
 
         private void EnsureGlobbingUrlBuilder()
