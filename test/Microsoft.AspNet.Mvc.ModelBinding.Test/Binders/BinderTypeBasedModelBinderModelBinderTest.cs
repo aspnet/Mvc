@@ -37,10 +37,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var innerModelBinder = new FalseModelBinder();
 
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             var mockIModelBinderActivator = new Mock<IModelBinderActivator>();
             mockIModelBinderActivator
-                .Setup(o => o.CreateInstance(services.Object, typeof(FalseModelBinder)))
+                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(FalseModelBinder)))
                 .Returns(innerModelBinder);
             var binder = new BinderTypeBasedModelBinder(mockIModelBinderActivator.Object);
 
@@ -61,10 +60,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var model = new Person();
             var innerModelBinder = new TrueModelBinder(model);
 
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             var mockIModelBinderActivator = new Mock<IModelBinderActivator>();
             mockIModelBinderActivator
-                .Setup(o => o.CreateInstance(services.Object, typeof(TrueModelBinder)))
+                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(TrueModelBinder)))
                 .Returns(innerModelBinder);
 
             var binder = new BinderTypeBasedModelBinder(mockIModelBinderActivator.Object);
@@ -89,10 +87,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var provider = new ModelBinderProvider(innerModelBinder);
 
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             var mockIModelBinderActivator = new Mock<IModelBinderActivator>();
             mockIModelBinderActivator
-                .Setup(o => o.CreateInstance(services.Object, typeof(ModelBinderProvider)))
+                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(ModelBinderProvider)))
                 .Returns(provider);
 
             var binder = new BinderTypeBasedModelBinder(mockIModelBinderActivator.Object);

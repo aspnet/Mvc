@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IServiceProvider _serviceProvider;
         private readonly ICompilerCache _compilerCache;
         private IRazorCompilationService _razorcompilationService;
-        private static readonly Func<Type, ObjectFactory> createFactory =
+        private readonly Func<Type, ObjectFactory> createFactory =
             (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
-        private static readonly ConcurrentDictionary<Type, ObjectFactory> _razorPageCache =
+        private readonly ConcurrentDictionary<Type, ObjectFactory> _razorPageCache =
              new ConcurrentDictionary<Type, ObjectFactory>();
 
         public VirtualPathRazorPageFactory(IServiceProvider serviceProvider,
@@ -62,8 +62,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return null;
             }
 
-            var razorPageFactory = _razorPageCache.GetOrAdd(result.CompiledType, createFactory);
+            var razorPageFactory = _razorPageCache.GetOrAdd(result.CompilationResult.CompiledType, createFactory);
             var page = (IRazorPage)razorPageFactory(_serviceProvider, null);
+            page.Path = relativePath;
+
+            return page;
         }
     }
 }

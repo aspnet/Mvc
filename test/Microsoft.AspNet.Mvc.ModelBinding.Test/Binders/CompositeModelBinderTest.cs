@@ -423,7 +423,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var modelBinderActivator = new Mock<IModelBinderActivator>();
             modelBinderActivator
                 .Setup(t => t.CreateInstance(serviceProvider, It.IsAny<Type>()))
-                .Returns((Type t) => Activator.CreateInstance(t));
+                .Returns((IServiceProvider sp, Type t) => Activator.CreateInstance(t));
             var binders = new IModelBinder[]
             {
                 new TypeMatchModelBinder(),
