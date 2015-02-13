@@ -106,6 +106,7 @@ namespace Microsoft.AspNet.Mvc
             while (typeInfo != ObjectTypeInfo)
             {
                 var baseTypeInfo = typeInfo.BaseType.GetTypeInfo();
+
                 // A base type will be treated as a controller if
                 // a) it ends in the term "Controller" and
                 // b) it's assembly is one of the candidate assemblies we're considering. This ensures that the assembly

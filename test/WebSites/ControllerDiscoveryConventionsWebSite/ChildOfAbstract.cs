@@ -3,7 +3,7 @@
 
 namespace ControllerDiscoveryConventionsWebSite
 {
-    public class AbstractChild : AbstractController
+    public class ChildOfAbstract : AbstractController
     {
 
     }

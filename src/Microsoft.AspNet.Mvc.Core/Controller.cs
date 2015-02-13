@@ -16,7 +16,7 @@ using Microsoft.AspNet.Routing;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Base class for an Mvc controller.
+    /// Base class for an MVC controller.
     /// </summary>
     public abstract class Controller : IActionFilter, IAsyncActionFilter, IDisposable
     {
@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc
         private ActionContext _actionContext;
 
         /// <summary>
-        /// Gets the request-specific <see cref="IServiceProvider"/>, if any.
+        /// Gets the request-specific <see cref="IServiceProvider"/>.
         /// </summary>
         public IServiceProvider Resolver
         {
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets the <see cref="HttpContext"/> for the executing action, if any.
+        /// Gets the <see cref="HttpContext"/> for the executing action.
         /// </summary>
         public HttpContext Context
         {
@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets the <see cref="HttpRequest"/> for the executing action, if any.
+        /// Gets the <see cref="HttpRequest"/> for the executing action.
         /// </summary>
         public HttpRequest Request
         {
@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets the <see cref="HttpResponse"/> for the executing action, if any.
+        /// Gets the <see cref="HttpResponse"/> for the executing action.
         /// </summary>
         public HttpResponse Response
         {
@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets the <see cref="AspNet.Routing.RouteData"/> for the executing action, if any.
+        /// Gets the <see cref="AspNet.Routing.RouteData"/> for the executing action.
         /// </summary>
         public RouteData RouteData
         {
@@ -136,7 +136,7 @@ namespace Microsoft.AspNet.Mvc
         public IUrlHelper Url { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="ClaimsPrincipal"/> for user associated with the executing action, if any.
+        /// Gets or sets the <see cref="ClaimsPrincipal"/> for user associated with the executing action.
         /// </summary>
         public ClaimsPrincipal User
         {
