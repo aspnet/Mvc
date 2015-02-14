@@ -9,8 +9,6 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultViewComponentFactory : IViewComponentFactory
     {
-        private readonly Func<Type, ObjectFactory> CreateFactory =
-            (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
         private readonly ConcurrentDictionary<Type, ObjectFactory> _viewComponentCache =
                new ConcurrentDictionary<Type, ObjectFactory>();
 
@@ -22,7 +20,8 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="componentType">The <see cref="Type"/> of the <see cref="ViewComponent"/> to create.</param>
         public object CreateInstance([NotNull]IServiceProvider serviceProvider, [NotNull] Type componentType)
         {
-            var viewComponentFactory = _viewComponentCache.GetOrAdd(componentType, CreateFactory);
+            var viewComponentFactory = _viewComponentCache.GetOrAdd(componentType,
+                ActivatorUtilitiesHelper.CreateFactory);
             return viewComponentFactory(serviceProvider, null);
         }
     }

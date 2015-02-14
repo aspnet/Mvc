@@ -12,16 +12,13 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultControllerActivator : IControllerActivator
     {
-        private static readonly Func<Type, ObjectFactory> _createControllerFactory =
-            type => ActivatorUtilities.CreateFactory(type, Type.EmptyTypes);
-
         private readonly ConcurrentDictionary<Type, ObjectFactory> _controllerFactories =
             new ConcurrentDictionary<Type, ObjectFactory>();
 
         /// <inheritdoc />
         public object Create([NotNull] ActionContext actionContext, [NotNull] Type controllerType)
         {
-            var factory = _controllerFactories.GetOrAdd(controllerType, _createControllerFactory);
+            var factory = _controllerFactories.GetOrAdd(controllerType, ActivatorUtilitiesHelper.CreateFactory);
             return factory(actionContext.HttpContext.RequestServices, arguments: null);
         }
     }

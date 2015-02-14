@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (_createFactory == null)
                 {
-                    _createFactory = ActivatorUtilities.CreateFactory(ImplementationType, Type.EmptyTypes);
+                    _createFactory = ActivatorUtilitiesHelper.CreateFactory(ImplementationType);
                 }
 
                 return _createFactory;

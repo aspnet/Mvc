@@ -12,8 +12,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class DefaultModelBinderActivator : IModelBinderActivator
     {
-        private readonly Func<Type, ObjectFactory> CreateFactory =
-            (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
         private readonly ConcurrentDictionary<Type, ObjectFactory> _modelBinderActivatorCache =
                new ConcurrentDictionary<Type, ObjectFactory>();
 
@@ -25,7 +23,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="binderType">The <see cref="Type"/> modelbinder to create.</param>
         public object CreateInstance([NotNull] IServiceProvider provider, [NotNull] Type binderType)
         {
-            var modelBinderFactory = _modelBinderActivatorCache.GetOrAdd(binderType, CreateFactory);
+            var modelBinderFactory = _modelBinderActivatorCache.GetOrAdd(binderType,
+                ActivatorUtilitiesHelper.CreateFactory);
             return modelBinderFactory(provider, null);
         }
     }
