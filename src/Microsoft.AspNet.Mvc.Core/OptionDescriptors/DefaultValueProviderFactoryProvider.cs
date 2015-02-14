@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// service collection.</param>
         public DefaultValueProviderFactoryProvider(
             IOptions<MvcOptions> optionsAccessor,
-            IOptionActivator<IValueProviderFactory> optionActivator,
+            ITypeActivatorCache optionActivator,
             IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.ValueProviderFactories, optionActivator, serviceProvider)
         {

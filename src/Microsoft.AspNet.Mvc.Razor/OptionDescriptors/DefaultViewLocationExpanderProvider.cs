@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor.OptionDescriptors
         /// service collection.</param>
         public DefaultViewLocationExpanderProvider(
             IOptions<RazorViewEngineOptions> optionsAccessor,
-            IOptionActivator<IViewLocationExpander> optionActivator,
+            ITypeActivatorCache optionActivator,
             IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.ViewLocationExpanders, optionActivator, serviceProvider)
         {

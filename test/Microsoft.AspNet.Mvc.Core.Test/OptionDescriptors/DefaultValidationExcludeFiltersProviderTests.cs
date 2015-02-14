@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor.SetupGet(o => o.Options)
                            .Returns(options);
-            var optionActivator = new Mock<IOptionActivator<IExcludeTypeValidationFilter>>();
+            var optionActivator = new Mock<ITypeActivatorCache();
             var service = Mock.Of<ITestService>();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor.SetupGet(o => o.Options)
                            .Returns(options);
-            var optionActivator = new Mock<IOptionActivator<IExcludeTypeValidationFilter>>();
+            var optionActivator = new Mock<ITypeActivatorCache();
             var service = Mock.Of<ITestService>();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor.SetupGet(o => o.Options)
                            .Returns(options);
-            var optionActivator = new Mock<IOptionActivator<IExcludeTypeValidationFilter>>();
+            var optionActivator = new Mock<ITypeActivatorCache();
             var service = Mock.Of<ITestService>();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var optionActivator = new Mock<IOptionActivator<IExcludeTypeValidationFilter>>();
+            var optionActivator = new Mock<ITypeActivatorCache();
             var provider = new DefaultValidationExcludeFiltersProvider(optionsAccessor.Object,
                                                                        optionActivator.Object,
                                                                        serviceProvider.Object);

@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc
                 typeof(INestedProviderManagerAsync<>),
                 typeof(NestedProviderManagerAsync<>));
             yield return describe.Transient<MvcMarkerService, MvcMarkerService>();
-			yield return describe.Singleton(typeof(IOptionActivator<>), typeof(DefaultOptionActivator<>));
+			yield return describe.Singleton(typeof(ITypeActivatorCache), typeof(DefaultTypeActivatorCache));
 			yield return describe.Scoped(typeof(IScopedInstance<>), typeof(ScopedInstance<>));
 			// Core action discovery, filters and action execution.
 
@@ -90,8 +90,6 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IValueProviderFactoryProvider, DefaultValueProviderFactoryProvider>();
             yield return describe.Transient<IOutputFormattersProvider, DefaultOutputFormattersProvider>();
             yield return describe.Instance<JsonOutputFormatter>(new JsonOutputFormatter());
-
-            yield return describe.Singleton<IModelBinderActivator, DefaultModelBinderActivator>();
 
             yield return describe.Transient<IModelValidatorProviderProvider, DefaultModelValidatorProviderProvider>();
             yield return describe.Transient<IBodyModelValidator, DefaultBodyModelValidator>();

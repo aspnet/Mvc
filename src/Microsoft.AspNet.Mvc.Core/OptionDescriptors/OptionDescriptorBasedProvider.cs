@@ -15,20 +15,20 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
     public abstract class OptionDescriptorBasedProvider<TOption>
     {
         private readonly IEnumerable<OptionDescriptor<TOption>> _optionDescriptors;
-        private IOptionActivator<TOption> _optionActivator;
+        private ITypeActivatorCache _optionActivator;
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OptionDescriptorBasedProvider"/> class.
         /// </summary>
         /// <param name="optionDescriptors">An enumerable of <see cref="OptionDescriptor{TOption}"/>.</param>
-        /// <param name="optionActivator">As <see cref="IOptionActivator{TOption}"/> instance that creates an
+        /// <param name="optionActivator">As <see cref="ITypeActivatorCache{TOption}"/> instance that creates an
         /// instance of type <typeparamref name="TOption"/>.</param>
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public OptionDescriptorBasedProvider(
             [NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
-            [NotNull] IOptionActivator<TOption> optionActivator,
+            [NotNull] ITypeActivatorCache optionActivator,
             [NotNull] IServiceProvider serviceProvider)
         {
             _optionDescriptors = optionDescriptors;

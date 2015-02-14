@@ -21,9 +21,9 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public DefaultValidationExcludeFiltersProvider(IOptions<MvcOptions> optionsAccessor,
-                                                       IOptionActivator<IExcludeTypeValidationFilter> optionActivator,
+                                                       ITypeActivatorCache typeActivatorCache,
                                                        IServiceProvider serviceProvider)
-            : base(optionsAccessor.Options.ValidationExcludeFilters, optionActivator, serviceProvider)
+            : base(optionsAccessor.Options.ValidationExcludeFilters, typeActivatorCache, serviceProvider)
         {
         }
 

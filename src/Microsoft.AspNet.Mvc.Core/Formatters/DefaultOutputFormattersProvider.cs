@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public DefaultOutputFormattersProvider(IOptions<MvcOptions> optionsAccessor,
-                                               IOptionActivator<IOutputFormatter> optionActivator,
+                                               ITypeActivatorCache optionActivator,
                                                IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.OutputFormatters, optionActivator, serviceProvider)
         {

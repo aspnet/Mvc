@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// service collection.</param>
         public DefaultModelBindersProvider(
                 IOptions<MvcOptions> optionsAccessor,
-                IOptionActivator<IModelBinder> optionActivator,
+                ITypeActivatorCache optionActivator,
                 IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.ModelBinders, optionActivator, serviceProvider)
         {

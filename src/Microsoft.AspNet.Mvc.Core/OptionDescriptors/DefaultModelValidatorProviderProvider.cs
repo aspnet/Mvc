@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// service collection.</param>
         public DefaultModelValidatorProviderProvider(
                 IOptions<MvcOptions> optionsAccessor,
-                IOptionActivator<IModelValidatorProvider> optionActivator,
+                ITypeActivatorCache optionActivator,
                 IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.ModelValidatorProviders, optionActivator, serviceProvider)
         {

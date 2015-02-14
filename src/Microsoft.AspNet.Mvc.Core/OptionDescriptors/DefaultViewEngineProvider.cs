@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// service collection.</param>
         public DefaultViewEngineProvider(
                 IOptions<MvcOptions> optionsAccessor,
-                IOptionActivator<IViewEngine> optionActivator,
+                ITypeActivatorCache optionActivator,
                 IServiceProvider serviceProvider)
             : base(optionsAccessor.Options.ViewEngines, optionActivator, serviceProvider)
         {
