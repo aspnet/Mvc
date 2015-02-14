@@ -1,2 +1,6 @@
-﻿body {
+﻿body::after {
+    display: block;
+    color: #0fa912;
+    margin-top: 2.4em;
+    content: "Stylesheet 'site2.css' loaded successfully!";
 }
