@@ -24,19 +24,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// </summary>
         /// <param name="uniqueId">The unique ID of the HTML element this message applies to.</param>
         /// <param name="missingAttributes">The missing required attributes.</param>
-        /// <param name="extraValues">Extra values to include in the log structure.</param>
-        public MissingAttributeLoggerStructure(
-            string uniqueId,
-            IEnumerable<string> missingAttributes)
+        public MissingAttributeLoggerStructure(string uniqueId, IEnumerable<string> missingAttributes)
         {
             _uniqueId = uniqueId;
             MissingAttributes = missingAttributes;
-            var values = new Dictionary<string, object>
+            _values = new Dictionary<string, object>
             {
                 ["UniqueId"] = _uniqueId,
                 ["MissingAttributes"] = MissingAttributes
             };
-            _values = values;
         }
 
         /// <summary>

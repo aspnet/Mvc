@@ -8,16 +8,14 @@ using Microsoft.AspNet.WebUtilities.Encoders;
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Utility methods for dealing with JavaScript.
+    /// Methods for encoding <see cref="IEnumerable{String}"/> for use as a JavaScript array literal.
     /// </summary>
-    public static class JavaScriptStringEncoderExtensions
+    public static class JavaScriptStringArrayEncoder
     {
         /// <summary>
         /// Encodes a .NET string array for safe use as a JavaScript array literal, including inline in an HTML file.
         /// </summary>
-        public static string JavaScriptStringArrayEncode(
-            this IJavaScriptStringEncoder encoder,
-            IEnumerable<string> values)
+        public static string Encode(IJavaScriptStringEncoder encoder, IEnumerable<string> values)
         {
             var builder = new StringBuilder();
 

@@ -236,7 +236,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
                             JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestProperty),
                             JavaScriptStringEncoder.Default.JavaScriptStringEncode(FallbackTestValue),
-                            JavaScriptStringEncoder.Default.JavaScriptStringArrayEncode(fallbackHrefs))
+                            JavaScriptStringArrayEncoder.Encode(JavaScriptStringEncoder.Default, fallbackHrefs))
                        .Append("</script>");
             }
         }
