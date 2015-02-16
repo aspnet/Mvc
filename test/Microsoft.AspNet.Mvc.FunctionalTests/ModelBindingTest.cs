@@ -359,7 +359,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("WA_Query", user.ShippingAddress.State);
             Assert.Equal(3, user.ShippingAddress.Street);
             Assert.Equal(4, user.ShippingAddress.Zip);
-
         }
 
         [Fact]
@@ -1606,7 +1605,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedDictionary, dictionary);
 		}
 
-
 		[Fact]
         public async Task TryUpdateModelNonGeneric_IncludesAllProperties_CanBind()
         {
@@ -1716,5 +1714,29 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var fileContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedContent, fileContent);
-        }    }
+        }
+
+		[Fact]
+        public async Task TryUpdateModelNonGenericIncludesAllProperties_ByDefault()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetUserAsync_ModelType_IncludeAllByDefault" +
+                "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
+
+            // Assert
+            var user = JsonConvert.DeserializeObject<User>(response);
+
+            // Should not update any not explicitly mentioned properties.
+            Assert.Equal("SomeName", user.UserName);
+            Assert.Equal(123, user.Key);
+
+            // Should Update all included properties.
+            Assert.Equal("March", user.RegisterationMonth);
+        }
+	}
 }
