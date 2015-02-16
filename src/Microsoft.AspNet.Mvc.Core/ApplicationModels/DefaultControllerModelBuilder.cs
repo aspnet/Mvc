@@ -27,7 +27,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         /// Creates a new <see cref="DefaultControllerModelBuilder"/>.
         /// </summary>
         /// <param name="actionModelBuilder">The <see cref="IActionModelBuilder"/> used to create actions.</param>
-        public DefaultControllerModelBuilder(IActionModelBuilder actionModelBuilder, ILoggerFactory loggerFactory, IOptions<AuthorizationOptions> options = null)
+        public DefaultControllerModelBuilder(
+            IActionModelBuilder actionModelBuilder, 
+            ILoggerFactory loggerFactory, 
+            IOptions<AuthorizationOptions> options)
         {
             _actionModelBuilder = actionModelBuilder;
             _logger = loggerFactory.Create<DefaultControllerModelBuilder>();

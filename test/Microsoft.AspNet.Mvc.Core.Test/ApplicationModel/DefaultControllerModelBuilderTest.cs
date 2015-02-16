@@ -19,7 +19,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             // Arrange
             var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
-                                                            NullLoggerFactory.Instance);
+                                                            NullLoggerFactory.Instance,
+                                                            null);
             var typeInfo = typeof(StoreController).GetTypeInfo();
 
             // Act
@@ -51,7 +52,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             // Arrange
             var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
-                                                            NullLoggerFactory.Instance);
+                                                            NullLoggerFactory.Instance,
+                                                            null);
             var typeInfo = typeof(NoFiltersController).GetTypeInfo();
 
             // Act
@@ -67,7 +69,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             // Arrange
             var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
-                                                            NullLoggerFactory.Instance);
+                                                            NullLoggerFactory.Instance,
+                                                            null);
             var typeInfo = typeof(SomeFiltersController).GetTypeInfo();
 
             // Act
@@ -83,7 +86,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             // Arrange
             var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
-                                                            NullLoggerFactory.Instance);
+                                                            NullLoggerFactory.Instance,
+                                                            null);
             var typeInfo = typeof(UnsupportedFiltersController).GetTypeInfo();
 
             // Act

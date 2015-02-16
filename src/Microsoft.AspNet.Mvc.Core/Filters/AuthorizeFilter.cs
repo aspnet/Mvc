@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
     public class AuthorizeFilter : IAsyncAuthorizationFilter
     {
         /// <summary>
-        /// Authorize filter for a specific policy
+        /// Authorize filter for a specific policy.
         /// </summary>
         /// <param name="policy"></param>
         public AuthorizeFilter([NotNull] AuthorizationPolicy policy)
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Authorization policy to be used
+        /// Authorization policy to be used.
         /// </summary>
         public AuthorizationPolicy Policy { get; private set; }
 
