@@ -177,9 +177,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            var propertyModelName = ModelBindingHelper.CreatePropertyModelName(bindingContext.ModelName,
-                                                                               metadata.BinderModelName ??
-                                                                               metadata.PropertyName);
+            var propertyModelName = ModelBindingHelper.CreatePropertyModelName(
+                bindingContext.ModelName,
+                metadata.BinderModelName ?? metadata.PropertyName);
 
             if (await valueProvider.ContainsPrefixAsync(propertyModelName))
             {
@@ -395,7 +395,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // We want to add a validation error using any custom model name that has been provided.
                 var propertyName = propertyMetadata.BinderModelName ?? missingRequiredProperty;
                 var modelStateKey = ModelBindingHelper.CreatePropertyModelName(
-                    bindingContext.ValidationNode.ModelStateKey, propertyName);
+                    bindingContext.ValidationNode.ModelStateKey,
+                    propertyName);
 
                 // Execute validator (if any) to get custom error message.
                 IModelValidator validator;

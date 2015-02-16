@@ -20,13 +20,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new ModelBindingWebSite.Startup().Configure;
 
         [Fact]
-        public async Task FromFormAttribute_CustomModelPrefix_ForParameter()
+        public async Task FromForm_CustomModelPrefix_ForParameter()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // [FromForm(Name = "customPrefix")] is used to apply a prefix
             var url = "http://localhost/FromFormAttribute_Company/CreateCompany";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             var nameValueCollection = new List<KeyValuePair<string, string>>
@@ -55,13 +54,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // [FromForm(Name = "customPrefix")] is used to apply a prefix
-            var url =
-               "http://localhost/FromFormAttribute_Company/CreateCompanyFromEmployees";
+            var url = "http://localhost/FromFormAttribute_Company/CreateCompanyFromEmployees";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("customPrefix[0].EmployeeSSN", "123132131"),
+                new KeyValuePair<string, string>("customPrefix[0].Department", "Contoso"),
             };
             request.Content = new FormUrlEncodedContent(nameValueCollection);
 
@@ -73,19 +70,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var company = JsonConvert.DeserializeObject<Company>(body);
 
             var employee = Assert.Single(company.Employees);
-            Assert.Equal("123132131", employee.SSN);
+            Assert.Equal("Contoso", employee.Department);
         }
 
         [Fact]
-        public async Task FromFormAttribute_CustomModelPrefix_ForProperty()
+        public async Task FromForm_CustomModelPrefix_ForProperty()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // [FromForm(Name = "EmployeeSSN")] is used to apply a prefix
-            var url =
-                "http://localhost/FromFormAttribute_Company/CreateCompany";
+            var url = "http://localhost/FromFormAttribute_Company/CreateCompany";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -105,15 +100,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task FromFormAttribute_CustomModelPrefix_ForCollectionProperty()
+        public async Task FromForm_CustomModelPrefix_ForCollectionProperty()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // [FromForm(Name = "TestEmployees")] is used to apply a prefix
-            var url =
-                "http://localhost/FromFormAttribute_Company/CreateDepartment";
+            var url = "http://localhost/FromFormAttribute_Company/CreateDepartment";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -140,9 +133,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
-            // [FromForm(Name = "TestEmployees")] is used to apply a prefix
-            var url =
-                "http://localhost/FromFormAttribute_Company/ValidateDepartment";
+            var url = "http://localhost/FromFormAttribute_Company/ValidateDepartment";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             // No values.
@@ -158,13 +149,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Null(result.Value);
             var error = Assert.Single(result.ModelStateErrors);
             Assert.Equal("TestEmployees", error);
-        }
-
-        private class Result
-        {
-            public object Value { get; set; }
-
-            public string[] ModelStateErrors { get; set; }
         }
     }
 }

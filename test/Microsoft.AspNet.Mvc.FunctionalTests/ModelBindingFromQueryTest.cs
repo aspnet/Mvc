@@ -14,7 +14,7 @@ using ModelBindingWebSite.Controllers;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class FromQueryAttributeTest
+    public class ModelBindingFromQueryTest
     {
         private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(ModelBindingWebSite));
         private readonly Action<IApplicationBuilder> _app = new ModelBindingWebSite.Startup().Configure;
@@ -131,13 +131,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Null(result.Value);
             var error = Assert.Single(result.ModelStateErrors);
             Assert.Equal("TestEmployees", error);
-        }
-
-        private class Result
-        {
-            public object Value { get; set; }
-
-            public string[] ModelStateErrors { get; set; }
         }
     }
 }

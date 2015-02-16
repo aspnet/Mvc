@@ -12,7 +12,6 @@ namespace ModelBindingWebSite.Controllers
     public class FromRouteAttribute_CompanyController : Controller
     {
         [HttpGet("{customPrefix.EmployeeTaxId?}")]
-        // Uses Name to set a custom prefix.
         public Employee CreateEmployee([FromRoute(Name = "customPrefix")] Employee employee)
         {
             return employee;
@@ -37,13 +36,6 @@ namespace ModelBindingWebSite.Controllers
             [FromRoute(Name = "TestEmployees")]
             [Required]
             public IEnumerable<Employee> Employees { get; set; }
-        }
-
-        private class Result
-        {
-            public object Value { get; set; }
-
-            public string[] ModelStateErrors { get; set; }
         }
     }
 }

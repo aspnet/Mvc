@@ -89,12 +89,5 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var error = Assert.Single(result.ModelStateErrors);
             Assert.Equal("TestEmployees", error);
         }
-
-        private class Result
-        {
-            public object Value { get; set; }
-
-            public string[] ModelStateErrors { get; set; }
-        }
     }
 }

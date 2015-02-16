@@ -11,7 +11,6 @@ namespace ModelBindingWebSite.Controllers
     [Route("FromFormAttribute_Company/[action]")]
     public class FromFormAttribute_CompanyController : Controller
     {
-        // Uses Name to set a custom prefix.
         public Company CreateCompany([FromForm(Name = "customPrefix")] Company company)
         {
             return company;
@@ -41,13 +40,6 @@ namespace ModelBindingWebSite.Controllers
             [FromForm(Name = "TestEmployees")]
             [Required]
             public IEnumerable<Employee> Employees { get; set; }
-        }
-
-        private class Result
-        {
-            public object Value { get; set; }
-
-            public string[] ModelStateErrors { get; set; }
         }
     }
 }

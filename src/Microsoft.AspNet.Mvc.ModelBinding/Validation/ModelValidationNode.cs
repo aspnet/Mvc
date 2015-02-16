@@ -159,9 +159,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 // Only want to add errors to ModelState if something doesn't already exist for the property node,
                 // else we could end up with duplicate or irrelevant error messages.
-                var propertyKeyRoot = ModelBindingHelper.CreatePropertyModelName(ModelStateKey,
-                                                                                 propertyMetadata.BinderModelName
-                                                                                 ?? propertyMetadata.PropertyName);
+                var propertyKeyRoot = ModelBindingHelper.CreatePropertyModelName(
+                    ModelStateKey,
+                    propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName);
 
                 if (modelState.GetFieldValidationState(propertyKeyRoot) == ModelValidationState.Unvalidated)
                 {
