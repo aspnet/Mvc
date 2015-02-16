@@ -588,7 +588,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("GetVouchersMultipleVersions", result.Action);
 
             var actualUrl = Assert.Single(result.ExpectedUrls);
-            Assert.Equal(path, actualUrl);
+            Assert.Equal(path.NormalizeExpectedUrl(), actualUrl);
         }
 
         // See TestResponseGenerator in RoutingWebSite for the code that generates this data.

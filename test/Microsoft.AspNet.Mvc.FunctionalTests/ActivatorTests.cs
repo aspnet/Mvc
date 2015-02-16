@@ -72,7 +72,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestServer.Create(_provider, _app);
             var client = server.CreateClient();
-            var expected = @"<label for=""Hello"">Hello</label> world! /View/ConsumeServicesFromBaseType";
+            var expected = @"<label for=""Hello"">Hello</label> world! " + 
+                "/View/ConsumeServicesFromBaseType".NormalizeExpectedUrl();
 
             // Act
             var body = await client.GetStringAsync("http://localhost/View/ConsumeDefaultProperties");

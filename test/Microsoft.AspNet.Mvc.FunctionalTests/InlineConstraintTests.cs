@@ -653,7 +653,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert            
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedLink, body);
+            Assert.Equal(expectedLink.NormalizeExpectedUrl(), body);
         }
 
         private async Task<IDictionary<string, object>> GetResponseValues(HttpResponseMessage response)

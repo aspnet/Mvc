@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(
-                "Visited: /api/Blog/BasicApi/GenerateUrl",
+                "Visited: " + "/api/Blog/BasicApi/GenerateUrl".NormalizeExpectedUrl(),
                 content);
         }
 

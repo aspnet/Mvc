@@ -43,8 +43,8 @@ ViewWithFullPath-content
                     "ViewWithNestedLayout",
 @"<layout>
 
-<nested-layout>
-/ViewEngine/ViewWithNestedLayout
+<nested-layout>" + @"
+/ViewEngine/ViewWithNestedLayout".NormalizeExpectedUrl() + @"
 
 ViewWithNestedLayout-Content
 </nested-layout>
@@ -194,8 +194,9 @@ ViewWithFullPath-content
                     "ViewWithNestedLayout",
 @"<layout>
 
-<nested-layout>
-/PartialViewEngine/ViewWithNestedLayout
+<nested-layout>" +
+@"
+/PartialViewEngine/ViewWithNestedLayout".NormalizeExpectedUrl() + @"
 
 ViewWithNestedLayout-Content
 </nested-layout>

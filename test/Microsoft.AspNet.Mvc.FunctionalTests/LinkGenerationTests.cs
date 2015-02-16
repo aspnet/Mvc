@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 
-            Assert.Equal("/Home/ActionReturningTask", response.Headers.Location.ToString());
+            Assert.Equal("/Home/ActionReturningTask".NormalizeExpectedUrl(), response.Headers.Location.ToString());
         }
 
         [Fact]
