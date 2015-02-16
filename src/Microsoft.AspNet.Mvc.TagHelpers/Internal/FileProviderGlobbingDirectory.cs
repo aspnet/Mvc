@@ -11,6 +11,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     public class FileProviderGlobbingDirectory : DirectoryInfoBase
     {
+        private const char DirectorySeparatorChar = '/';
         private readonly IFileProvider _fileProvider;
         private readonly IFileInfo _fileInfo;
         private readonly FileProviderGlobbingDirectory _parent;
@@ -34,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             else if (!string.IsNullOrEmpty(parent?.RelativePath))
             {
                 // We have a parent and they have a relative path so concat that with my name
-                RelativePath = _parent.RelativePath + Path.DirectorySeparatorChar + _fileInfo.Name;
+                RelativePath = _parent.RelativePath + DirectorySeparatorChar + _fileInfo.Name;
             }
             else
             {
@@ -51,11 +52,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             {
                 if (_isRoot)
                 {
-                    // We're the root) so just use our name
+                    // We're the root, so just use our name
                     return Name;
                 }
                 
-                return _parent.FullName + Path.DirectorySeparatorChar + Name;
+                return _parent.FullName + DirectorySeparatorChar + Name;
             }
         }
 
@@ -84,8 +85,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 // Only * based searches are ever performed against this API and we have an item to change this API
                 // such that the searchPattern doesn't even get passed in, so this is just a safe-guard until then.
                 // The searchPattern here has no relation to the globbing pattern.
-                throw new ArgumentException("Only full wildcard searches are supported, i.e. \"*\"", "searchPattern");
+                throw new ArgumentException("Only full wildcard searches are supported, i.e. \"*\"", nameof(searchPattern));
             }
+
+            // NOTE: searchOption isn't actually used in the implementation of Matcher (it always passes the same
+            //       value) and will likely be removed from DirectoryInfoBase in the near future.
 
             foreach (var fileInfo in _fileProvider.GetDirectoryContents(RelativePath))
             {
