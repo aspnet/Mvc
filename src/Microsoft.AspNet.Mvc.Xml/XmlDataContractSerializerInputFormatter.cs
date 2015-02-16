@@ -97,11 +97,11 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             using (var xmlReader = CreateXmlReader(new NonDisposableStream(request.Body)))
             {
-                _dataAnnotationRequiredAttributeValidation.Validate(
-                    context.ModelType, 
-                    context.ActionContext.ModelState);
-
                 var type = GetSerializableType(context.ModelType);
+
+                _dataAnnotationRequiredAttributeValidation.Validate(
+                    type, 
+                    context.ActionContext.ModelState);
 
                 var serializer = GetCachedSerializer(type);
 
