@@ -224,6 +224,14 @@ namespace Microsoft.AspNet.Mvc
                [NotNull] IModelValidatorProvider validatorProvider,
                [NotNull] Func<ModelBindingContext, string, bool> predicate)
         {
+            if (!modelType.IsAssignableFrom(model.GetType()))
+            {
+                var message = Resources.FormatModelType_WrongType(
+                    model.GetType().FullName,
+                    modelType.FullName);
+                throw new ArgumentException(message, nameof(modelType));
+            }
+
             var modelMetadata = metadataProvider.GetMetadataForType(
                 modelAccessor: null,
                 modelType: modelType);

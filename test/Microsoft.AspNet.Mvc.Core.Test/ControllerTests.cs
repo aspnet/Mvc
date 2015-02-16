@@ -1139,14 +1139,14 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ModelTypePredicateOverload_UsesPassedArguments()
+        public async Task TryUpdateModelNonGeneric_PredicateWithValueProviderOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
 
-            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
-                string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
+            Func<ModelBindingContext, string, bool> includePredicate =
+               (context, propertyName) => string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
+                                          string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
 
             var binder = new Mock<IModelBinder>();
             var valueProvider = Mock.Of<IValueProvider>();
@@ -1165,18 +1165,19 @@ namespace Microsoft.AspNet.Mvc.Test
                   .Returns(Task.FromResult(true))
                   .Verifiable();
 
-            var controller = GetController(binder.Object, valueProvider);
+            var controller = GetController(binder.Object, provider: null);
+
             var model = new MyModel();
 
             // Act
-            await controller.TryUpdateModelAsync(model, model.GetType(), modelName, includePredicate);
+            await controller.TryUpdateModelAsync(model, model.GetType(), modelName, valueProvider, includePredicate);
 
             // Assert
             binder.Verify();
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ModelTypeOverload()
+        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
@@ -1239,29 +1240,6 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             binder.Verify();
-        }
-
-        [Fact]
-        public async Task TryUpdataModel_ModelTypeDifferentFromModel_ThrowsException()
-        {
-            // Arrange
-            var modelName = "mymodel";
-
-            var metadataProvider = new DataAnnotationsModelMetadataProvider();
-            var valueProvider = Mock.Of<IValueProvider>();
-            var binder = new Mock<IModelBinder>();
-            
-            var controller = GetController(binder.Object, valueProvider);
-            var model = new MyModel();
-            var modelType = typeof(User);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => controller.TryUpdateModelAsync(model, modelType, modelName));
-            var expectedMessage = string.Format(
-                @"The model type '{0}' does not match the '{1}' type parameter.
-Parameter name: modelType",
-                model.GetType().FullName, modelType.FullName);
-            Assert.Equal(expectedMessage, exception.Message);
         }
 
 #endif
@@ -1491,6 +1469,7 @@ Parameter name: modelType",
         {
             public string Property3 { get; set; }
         }
+
         private class User
         {
             public User(int id)

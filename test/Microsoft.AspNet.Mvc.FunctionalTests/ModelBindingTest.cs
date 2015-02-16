@@ -1531,7 +1531,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedContent, body);
         }
+		
 		[Fact]
+		public async Task ModelBinder_FormatsDontMatch_ThrowsUserFriendlyException()
+
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -1605,7 +1608,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
 
 		[Fact]
-        public async Task TryUpdateModelIncludesAllProperties_CanBind()
+        public async Task TryUpdateModelNonGeneric_IncludesAllProperties_CanBind()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -1626,6 +1629,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Should Update all included properties.
             Assert.Equal("March", user.RegisterationMonth);
         } 
+
 		[Fact]
         public async Task FormCollectionModelBinder_CanBind_FormValues()
         {

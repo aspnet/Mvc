@@ -467,12 +467,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_ReturnsFalse_IfBinderReturnsFalse()
+        public async Task TryUpdateModelNonGeneric_PredicateOverload_ReturnsFalse_IfBinderReturnsFalse()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>();
             metadataProvider.Setup(m => m.GetMetadataForType(null, It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+                            .Returns(new ModelMetadata(metadataProvider.Object,
+                            containerType: null,
+                            modelAccessor: null, 
+                            modelType: typeof(MyModel),
+                            propertyName: null))
                             .Verifiable();
 
             var binder = new Mock<IModelBinder>();
@@ -485,14 +489,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var result = await ModelBindingHelper.TryUpdateModelAsync(
                                                     model,
                                                     model.GetType(),
-                                                    null,
-                                                    Mock.Of<HttpContext>(),
-                                                    new ModelStateDictionary(),
-                                                    metadataProvider.Object,
-                                                    GetCompositeBinder(binder.Object),
-                                                    Mock.Of<IValueProvider>(),
-                                                    Mock.Of<IModelValidatorProvider>(),
-                                                    includePredicate);
+                                                    prefix: null,
+                                                    httpContext: Mock.Of<HttpContext>(),
+                                                    modelState: new ModelStateDictionary(),
+                                                    metadataProvider: metadataProvider.Object,
+                                                    modelBinder: GetCompositeBinder(binder.Object),
+                                                    valueProvider: Mock.Of<IValueProvider>(),
+                                                    validatorProvider: Mock.Of<IModelValidatorProvider>(),
+                                                    predicate: includePredicate);
 
             // Assert
             Assert.False(result);
@@ -503,7 +507,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_ReturnsTrue_ModelBindsAndValidatesSuccessfully()
+        public async Task TryUpdateModelNonGeneric_PredicateOverload_ReturnsTrue_ModelBindsAndValidatesSuccessfully()
         {
             // Arrange
             var binders = new IModelBinder[]
@@ -535,7 +539,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                 string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
 
-            var valueProvider = new DictionaryBasedValueProvider<TestValueBinderMetadata>(values);
+            var valueProvider = new TestValueProvider(values); 
 
             // Act
             var result = await ModelBindingHelper.TryUpdateModelAsync(
@@ -558,12 +562,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ReturnsFalse_IfBinderReturnsFalse()
+        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_ReturnsFalse_IfBinderReturnsFalse()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>();
             metadataProvider.Setup(m => m.GetMetadataForType(null, It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+                            .Returns(new ModelMetadata(metadataProvider.Object,
+                            containerType: null,
+                            modelAccessor: null,
+                            modelType: typeof(MyModel),
+                            propertyName: null))
                             .Verifiable();
 
             var binder = new Mock<IModelBinder>();
@@ -575,13 +583,13 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var result = await ModelBindingHelper.TryUpdateModelAsync(
                                                     model,
                                                     model.GetType(),
-                                                    null,
-                                                    Mock.Of<HttpContext>(),
-                                                    new ModelStateDictionary(),
-                                                    metadataProvider.Object,
-                                                    GetCompositeBinder(binder.Object),
-                                                    Mock.Of<IValueProvider>(),
-                                                    Mock.Of<IModelValidatorProvider>());
+                                                    prefix: null,
+                                                    httpContext: Mock.Of<HttpContext>(),
+                                                    modelState: new ModelStateDictionary(),
+                                                    metadataProvider: metadataProvider.Object,
+                                                    modelBinder: GetCompositeBinder(binder.Object),
+                                                    valueProvider: Mock.Of<IValueProvider>(),
+                                                    validatorProvider: Mock.Of<IModelValidatorProvider>());
 
             // Assert
             Assert.False(result);
@@ -590,7 +598,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_ReturnsTrue_IfModelBindsAndValidatesSuccessfully()
+        public async Task TryUpdateModelNonGeneric_ModelTypeOverload_ReturnsTrue_IfModelBindsAndValidatesSuccessfully()
         {
             // Arrange
             var binders = new IModelBinder[]
@@ -608,7 +616,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                 { "", null },
                 { "MyProperty", "MyPropertyValue" }
             };
-            var valueProvider = new DictionaryBasedValueProvider<TestValueBinderMetadata>(values);
+            var valueProvider = new TestValueProvider(values);
 
             // Act
             var result = await ModelBindingHelper.TryUpdateModelAsync(
@@ -625,6 +633,42 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Assert
             Assert.True(result);
             Assert.Equal("MyPropertyValue", model.MyProperty);
+        }
+
+        [Fact]
+        public async Task TryUpdataModel_ModelTypeDifferentFromModel_Throws()
+        {
+            // Arrange
+            var metadataProvider = new Mock<IModelMetadataProvider>();
+            metadataProvider.Setup(m => m.GetMetadataForType(null, It.IsAny<Type>()))
+                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+                            .Verifiable();
+
+            var binder = new Mock<IModelBinder>();
+            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                  .Returns(Task.FromResult(false));
+            var model = new MyModel();
+            Func<ModelBindingContext, string, bool> includePredicate =
+               (context, propertyName) => true;
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => ModelBindingHelper.TryUpdateModelAsync(
+                                                    model,
+                                                    typeof(User),
+                                                    null,
+                                                    Mock.Of<HttpContext>(),
+                                                    new ModelStateDictionary(),
+                                                    metadataProvider.Object,
+                                                    GetCompositeBinder(binder.Object),
+                                                    Mock.Of<IValueProvider>(),
+                                                    Mock.Of<IModelValidatorProvider>(),
+                                                    includePredicate));
+
+            var expectedMessage = string.Format(@"The model's runtime type '{0}' is not assignable to the type '{1}'.
+                Parameter name: modelType",
+                model.GetType().FullName, 
+                typeof(User).FullName);
+            Assert.Equal(expectedMessage, exception.Message);
         }
 
         private static IModelBinder GetCompositeBinder(params IModelBinder[] binders)

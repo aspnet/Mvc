@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -104,8 +105,9 @@ namespace ModelBindingWebSite.Controllers
             await TryUpdateModelAsync(
                 employee,
                 employee.GetType(),
-                string.Empty,
-                (content, propertyName) => true);
+                prefix: string.Empty,
+                valueProvider: new TestValueProvider(),
+                predicate: (content, propertyName) => true);
 
             return (Employee)employee;
         }
@@ -114,7 +116,12 @@ namespace ModelBindingWebSite.Controllers
         {
             var user = GetUser(id);
 
-            await TryUpdateModelAsync(user, user.GetType(), string.Empty, (content, propertyName) => true);
+            await TryUpdateModelAsync(user, 
+                user.GetType(), 
+                prefix: string.Empty, 
+                valueProvider: new TestValueProvider(), 
+                predicate: (content, propertyName) => true);
+
             return user;
         }
 
@@ -146,6 +153,22 @@ namespace ModelBindingWebSite.Controllers
             public Task<ValueProviderResult> GetValueAsync(string key)
             {
                 return Task.FromResult<ValueProviderResult>(null);
+            }
+        }
+
+        private class TestValueProvider : IValueProvider
+        {
+            public Task<bool> ContainsPrefixAsync(string prefix)
+            {
+                var result = string.Equals(prefix, "test", StringComparison.OrdinalIgnoreCase);
+                return Task.FromResult(result);
+            }
+
+            public Task<ValueProviderResult> GetValueAsync(string key)
+            {
+                var value = "custom-value-provider-value";
+                var result = new ValueProviderResult(value, value, CultureInfo.CurrentCulture);
+                return Task.FromResult(result);
             }
         }
     }

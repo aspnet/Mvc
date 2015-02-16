@@ -1107,16 +1107,8 @@ namespace Microsoft.AspNet.Mvc
         [NonAction]
         public virtual async Task<bool> TryUpdateModelAsync([NotNull] object model,
                                                             [NotNull] Type modelType,
-                                                            [NotNull] string prefix)
+                                                            string prefix)
         {
-            if (!modelType.IsAssignableFrom(model.GetType()))
-            {
-                var message = Resources.FormatModelType_WrongType(
-                    model.GetType().FullName,
-                    modelType.FullName);
-                throw new ArgumentException(message, nameof(modelType));
-            }
-
             if (BindingContext == null)
             {
                 var message = Resources.FormatPropertyOfTypeCannotBeNull(
@@ -1138,13 +1130,14 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Updates the specified <paramref name="model"/> instance using values from the controller's current
-        /// <see cref="IValueProvider"/> and a <paramref name="prefix"/>.
+        /// Updates the specified <paramref name="model"/> instance using the <paramref name="valueProvider"/> and a
+        /// <paramref name="prefix"/>.
         /// </summary>
         /// <param name="model">The model instance to update.</param>
         /// <param name="modelType">The type of model instance to update.</param>
-        /// <param name="prefix">The prefix to use when looking up values in the current <see cref="IValueProvider"/>.
+        /// <param name="prefix">The prefix to use when looking up values in the <paramref name="valueProvider"/>
         /// </param>
+        /// <param name="valueProvider">The <see cref="IValueProvider"/> used for looking up values.</param>
         /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful</returns>
         [NonAction]
@@ -1152,16 +1145,9 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] object model,
             [NotNull] Type modelType,
             string prefix,
+            [NotNull] IValueProvider valueProvider,
             [NotNull] Func<ModelBindingContext, string, bool> predicate)
         {
-            if (!modelType.IsAssignableFrom(model.GetType()))
-            {
-                var message = Resources.FormatModelType_WrongType(
-                    model.GetType().FullName,
-                    modelType.FullName);
-                throw new ArgumentException(message, nameof(modelType));
-            }
-
             if (BindingContext == null)
             {
                 var message = Resources.FormatPropertyOfTypeCannotBeNull(
@@ -1178,7 +1164,7 @@ namespace Microsoft.AspNet.Mvc
                 ModelState,
                 MetadataProvider,
                 BindingContext.ModelBinder,
-                BindingContext.ValueProvider,
+                valueProvider,
                 BindingContext.ValidatorProvider,
                 predicate);
         }
