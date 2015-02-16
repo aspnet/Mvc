@@ -92,6 +92,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [HtmlAttributeName(HrefExcludeAttributeName)]
         public string HrefExclude { get; set; }
 
+        /// <summary>
         /// The URL of a CSS stylesheet to fallback to in the case the primary one fails (as specified in the href
         /// attribute).
         /// </summary>

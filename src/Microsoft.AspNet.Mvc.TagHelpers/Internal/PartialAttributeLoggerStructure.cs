@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         private readonly IEnumerable<KeyValuePair<string, object>> _values;
 
         /// <summary>
-        /// Creates a new <see cref="PartialModeMatchLoggerStructure"/>.
+        /// Creates a new <see cref="PartialModeMatchLoggerStructure{TMode}"/>.
         /// </summary>
         /// <param name="uniqueId">The unique ID of the HTML element this message applies to.</param>
         /// <param name="partialMatches">The set of modes with partial required attributes.</param>
