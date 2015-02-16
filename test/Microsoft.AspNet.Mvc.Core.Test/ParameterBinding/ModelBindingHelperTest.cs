@@ -641,7 +641,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>();
             metadataProvider.Setup(m => m.GetMetadataForType(null, It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+                            .Returns(new ModelMetadata(metadataProvider.Object, 
+                            containerType: null,
+                            modelAccessor: null,
+                            modelType: typeof(MyModel),
+                            propertyName: null))
                             .Verifiable();
 
             var binder = new Mock<IModelBinder>();
