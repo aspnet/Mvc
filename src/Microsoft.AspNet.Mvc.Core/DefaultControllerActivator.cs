@@ -12,14 +12,12 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultControllerActivator : IControllerActivator
     {
-        private readonly ConcurrentDictionary<Type, ObjectFactory> _controllerFactories =
-            new ConcurrentDictionary<Type, ObjectFactory>();
-
         /// <inheritdoc />
         public object Create([NotNull] ActionContext actionContext, [NotNull] Type controllerType)
         {
-            var factory = _controllerFactories.GetOrAdd(controllerType, ActivatorUtilitiesHelper.CreateFactory);
-            return factory(actionContext.HttpContext.RequestServices, arguments: null);
+            var serviceProvider = actionContext.HttpContext.RequestServices;
+            var typeActivatorCache = serviceProvider.GetRequiredService<ITypeActivatorCache>();
+            return typeActivatorCache.CreateInstance<object>(serviceProvider, controllerType);
         }
     }
 }

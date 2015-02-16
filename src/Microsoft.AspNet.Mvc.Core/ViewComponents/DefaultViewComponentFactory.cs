@@ -20,9 +20,8 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="componentType">The <see cref="Type"/> of the <see cref="ViewComponent"/> to create.</param>
         public object CreateInstance([NotNull]IServiceProvider serviceProvider, [NotNull] Type componentType)
         {
-            var viewComponentFactory = _viewComponentCache.GetOrAdd(componentType,
-                ActivatorUtilitiesHelper.CreateFactory);
-            return viewComponentFactory(serviceProvider, null);
+            var typeActivatorCache = serviceProvider.GetRequiredService<ITypeActivatorCache>();
+            return typeActivatorCache.CreateInstance<object>(serviceProvider, componentType);
         }
     }
 }

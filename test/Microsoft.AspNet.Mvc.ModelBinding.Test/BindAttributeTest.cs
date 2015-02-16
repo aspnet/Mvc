@@ -74,17 +74,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 HttpContext = new DefaultHttpContext(),
             };
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-            var activator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
-            activator
-                .Setup(a => a.CreateInstance(services.Object, typeof(TestProvider)))
-                .Returns(new TestProvider())
-                .Verifiable();
-
-            services
-                .Setup(s => s.GetService(typeof(IModelBinderActivator)))
-                .Returns(activator.Object);
-
+            var services = new Mock<IServiceProvider>();
+            
             context.OperationBindingContext.HttpContext.RequestServices = services.Object;
 
             // Act
@@ -109,16 +100,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-            var activator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
-            activator
-                .Setup(a => a.CreateInstance(services.Object, typeof(TestProvider)))
-                .Returns(new TestProvider())
-                .Verifiable();
-
-            services
-                .Setup(s => s.GetService(typeof(IModelBinderActivator)))
-                .Returns(activator.Object);
-
+            
             context.OperationBindingContext.HttpContext.RequestServices = services.Object;
 
             // Act
@@ -128,10 +110,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(predicate(context, "UserName"));
             Assert.True(predicate(context, "UserName"));
 
-            activator
-                .Verify(
-                    a => a.CreateInstance(services.Object, typeof(TestProvider)),
-                    Times.Once());
+            //activator
+            //    .Verify(
+            //        a => a.CreateInstance(services.Object, typeof(TestProvider)),
+            //        Times.Once());
         }
 #endif
 

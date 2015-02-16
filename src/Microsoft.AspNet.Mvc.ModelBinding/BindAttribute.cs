@@ -110,9 +110,8 @@ namespace Microsoft.AspNet.Mvc
                 if (!initialized)
                 {
                     var services = context.OperationBindingContext.HttpContext.RequestServices;
-                    var modelBinderActivator = services.GetRequiredService<IModelBinderActivator>();
 
-                    var provider = (IPropertyBindingPredicateProvider)modelBinderActivator.CreateInstance(
+                    var provider = (IPropertyBindingPredicateProvider)ActivatorUtilities.CreateInstance(
                         services,
                         predicateProviderType);
 

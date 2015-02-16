@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.DependencyInjection;
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -13,16 +15,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class BinderTypeBasedModelBinder : IModelBinder
     {
-        private readonly IModelBinderActivator _binderActivator;
+        private readonly Func<Type, ObjectFactory> _createFactory =
+            (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
+        private ConcurrentDictionary<Type, ObjectFactory> _typeActivatorCache =
+               new ConcurrentDictionary<Type, ObjectFactory>();
 
-        /// <summary>
-        /// Creates a new instance of <see cref="BinderTypeBasedModelBinder"/>.
-        /// </summary>
-        /// <param name="binderActivator">The <see cref="IModelBinderActivator"/>.</param>
-        public BinderTypeBasedModelBinder([NotNull] IModelBinderActivator binderActivator)
-        {
-            _binderActivator = binderActivator;
-        }
 
         public async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -34,8 +31,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
-            var instance = _binderActivator.CreateInstance(requestServices, bindingContext.ModelMetadata.BinderType);
-
+            var createFactory = _typeActivatorCache.GetOrAdd(bindingContext.ModelMetadata.BinderType, _createFactory);
+            var instance = createFactory(requestServices, null);
+            
             var modelBinder = instance as IModelBinder;
             if (modelBinder == null)
             {

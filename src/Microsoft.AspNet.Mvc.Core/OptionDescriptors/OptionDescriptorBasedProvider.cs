@@ -15,24 +15,24 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
     public abstract class OptionDescriptorBasedProvider<TOption>
     {
         private readonly IEnumerable<OptionDescriptor<TOption>> _optionDescriptors;
-        private ITypeActivatorCache _optionActivator;
+        private ITypeActivatorCache _typeActivatorCache;
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OptionDescriptorBasedProvider"/> class.
+        /// Initializes a new instance of the <see cref="OptionDescriptorBasedProvider{TOption}"/> class.
         /// </summary>
         /// <param name="optionDescriptors">An enumerable of <see cref="OptionDescriptor{TOption}"/>.</param>
-        /// <param name="optionActivator">As <see cref="ITypeActivatorCache{TOption}"/> instance that creates an
+        /// <param name="typeActivatorCache">As <see cref="ITypeActivatorCache"/> instance that creates an
         /// instance of type <typeparamref name="TOption"/>.</param>
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public OptionDescriptorBasedProvider(
             [NotNull] IEnumerable<OptionDescriptor<TOption>> optionDescriptors,
-            [NotNull] ITypeActivatorCache optionActivator,
+            [NotNull] ITypeActivatorCache typeActivatorCache,
             [NotNull] IServiceProvider serviceProvider)
         {
             _optionDescriptors = optionDescriptors;
-            _optionActivator = optionActivator;
+            _typeActivatorCache = typeActivatorCache;
             _serviceProvider = serviceProvider;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
                     var instance = descriptor.Instance;
                     if (instance == null)
                     {
-                        instance = _optionActivator.CreateInstance(_serviceProvider, descriptor.OptionType);
+                        instance = _typeActivatorCache.CreateInstance<TOption>(_serviceProvider, descriptor.OptionType);
                     }
 
                     result.Add(instance);

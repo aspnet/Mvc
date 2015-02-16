@@ -419,16 +419,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
         private static CompositeModelBinder CreateBinderWithDefaults()
         {
-            var serviceProvider = Mock.Of<IServiceProvider>();
-            var modelBinderActivator = new Mock<IModelBinderActivator>();
-            modelBinderActivator
-                .Setup(t => t.CreateInstance(serviceProvider, It.IsAny<Type>()))
-                .Returns((IServiceProvider sp, Type t) => Activator.CreateInstance(t));
             var binders = new IModelBinder[]
             {
                 new TypeMatchModelBinder(),
                 new ByteArrayModelBinder(),
-                new GenericModelBinder(serviceProvider, modelBinderActivator.Object),
+                new GenericModelBinder(),
                 new ComplexModelDtoModelBinder(),
                 new TypeConverterModelBinder(),
                 new MutableObjectModelBinder()

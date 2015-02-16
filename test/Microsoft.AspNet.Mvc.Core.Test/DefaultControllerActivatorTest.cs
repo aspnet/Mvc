@@ -18,7 +18,15 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var activator = new DefaultControllerActivator();
-            var actionContext = new ActionContext(new DefaultHttpContext(),
+            var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
+            serviceProvider.Setup(s => s.GetService(typeof(ITypeActivatorCache)))
+                           .Returns(new DefaultTypeActivatorCache());
+
+            var httpContext = new DefaultHttpContext
+            {
+                RequestServices = serviceProvider.Object
+            };
+            var actionContext = new ActionContext(httpContext,
                                                   new RouteData(),
                                                   new ActionDescriptor());
             // Act
@@ -38,6 +46,9 @@ namespace Microsoft.AspNet.Mvc
             serviceProvider.Setup(s => s.GetService(typeof(TestService)))
                            .Returns(testService)
                            .Verifiable();
+            serviceProvider.Setup(s => s.GetService(typeof(ITypeActivatorCache)))
+                           .Returns(new DefaultTypeActivatorCache());
+                           
             var httpContext = new DefaultHttpContext
             {
                 RequestServices = serviceProvider.Object

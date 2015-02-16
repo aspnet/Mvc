@@ -5,8 +5,7 @@
     "dependencies": {
         "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
         "xunit.runner.kre": "1.0.0-*",
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Framework.DependencyInjection": "1.0.0-*"
+        "Microsoft.AspNet.Testing": "1.0.0-*"
     },
     "commands": {
         "test": "xunit.runner.kre"

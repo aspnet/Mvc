@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var optionActivator = new DefaultOptionActivator<IValueProviderFactory>();
+            var typeActivatorCache = new DefaultTypeActivatorCache();
             var options = new MvcOptions();
             options.ValueProviderFactories.Add(valueProviderFactory);
             options.ValueProviderFactories.Add(type);
@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             accessor.SetupGet(a => a.Options)
                     .Returns(options);
             var provider = new DefaultValueProviderFactoryProvider(accessor.Object,
-                                                                   optionActivator,
+                                                                   typeActivatorCache,
                                                                    serviceProvider.Object);
 
             // Act

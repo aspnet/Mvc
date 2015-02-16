@@ -1571,16 +1571,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private IServiceProvider CreateServices()
         {
             var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-
-            var modelBinderActivator = new Mock<IModelBinderActivator>(MockBehavior.Strict);
-            modelBinderActivator
-                .Setup(f => f.CreateInstance(services.Object, typeof(ExcludedProvider)))
-                .Returns(new ExcludedProvider());
-
-            services
-                .Setup(s => s.GetService(typeof(IModelBinderActivator)))
-                .Returns(modelBinderActivator.Object);
-
             return services.Object;
         }
 

@@ -12,21 +12,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class GenericModelBinder : IModelBinder
     {
-        private readonly IModelBinderActivator _modelBinderActivator;
-        private readonly IServiceProvider _serviceProvider;
-
-        public GenericModelBinder(IServiceProvider serviceProvider, IModelBinderActivator modelBinderActivator)
-        {
-            _serviceProvider = serviceProvider;
-            _modelBinderActivator = modelBinderActivator;
-        }
-
         public async Task<bool> BindModelAsync(ModelBindingContext bindingContext)
         {
             var binderType = ResolveBinderType(bindingContext.ModelType);
             if (binderType != null)
             {
-                var binder = (IModelBinder)_modelBinderActivator.CreateInstance(_serviceProvider, binderType);
+                var binder = (IModelBinder)Activator.CreateInstance(binderType);
                 await binder.BindModelAsync(bindingContext);
 
                 // Was able to resolve a binder type, hence we should tell the model binding system to return

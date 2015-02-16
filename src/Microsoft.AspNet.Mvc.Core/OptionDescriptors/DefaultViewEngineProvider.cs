@@ -15,15 +15,15 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         /// Initializes a new instance of the <see cref="DefaultViewEngineProvider"/> class.
         /// </summary>
         /// <param name="options">An accessor to the <see cref="MvcOptions"/> configured for this application.</param>
-        /// <param name="optionActivator">As <see cref="IOptionActivator{TOption}"/> instance that creates
+        /// <param name="typeActivatorCache">As <see cref="ITypeActivatorCache"/> instance that creates
         /// an instance of type <see cref="IViewEngine"/>.</param>
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public DefaultViewEngineProvider(
                 IOptions<MvcOptions> optionsAccessor,
-                ITypeActivatorCache optionActivator,
+                ITypeActivatorCache typeActivatorCache,
                 IServiceProvider serviceProvider)
-            : base(optionsAccessor.Options.ViewEngines, optionActivator, serviceProvider)
+            : base(optionsAccessor.Options.ViewEngines, typeActivatorCache, serviceProvider)
         {
         }
 

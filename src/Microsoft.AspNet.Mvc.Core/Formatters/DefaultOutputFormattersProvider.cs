@@ -16,14 +16,14 @@ namespace Microsoft.AspNet.Mvc
         /// Initializes a new instance of the DefaultOutputFormattersProvider class.
         /// </summary>
         /// <param name="options">An accessor to the <see cref="MvcOptions"/> configured for this application.</param>
-        /// <param name="optionActivator">As <see cref="IOptionActivator{TOption}"/> instance that creates an instance of type 
-        /// <see cref="IOutputFormatter"/>.</param>
+        /// <param name="typeActivatorCache">As <see cref="ITypeActivatorCache"/> instance that creates an instance
+        ///  of type <see cref="IOutputFormatter"/>.</param>
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
         public DefaultOutputFormattersProvider(IOptions<MvcOptions> optionsAccessor,
-                                               ITypeActivatorCache optionActivator,
+                                               ITypeActivatorCache typeActivatorCache,
                                                IServiceProvider serviceProvider)
-            : base(optionsAccessor.Options.OutputFormatters, optionActivator, serviceProvider)
+            : base(optionsAccessor.Options.OutputFormatters, typeActivatorCache, serviceProvider)
         {
         }
 

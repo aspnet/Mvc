@@ -278,6 +278,9 @@ namespace Microsoft.AspNet.Mvc.Core
             services
                 .Setup(s => s.GetService(typeof(IScopedInstance<ActionBindingContext>)))
                 .Returns(new MockScopedInstance<ActionBindingContext>());
+            services
+                .Setup(s => s.GetService(typeof(ITypeActivatorCache)))
+                .Returns(new DefaultTypeActivatorCache());
             return services.Object;
         }
 

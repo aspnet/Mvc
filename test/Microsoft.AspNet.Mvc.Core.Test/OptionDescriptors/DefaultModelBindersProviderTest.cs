@@ -28,10 +28,10 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(ITestService)))
                            .Returns(service);
-            var optionActivator = new DefaultOptionActivator<IModelBinder>();
+            var typeActivatorCache = new DefaultTypeActivatorCache();
 
             var provider = new DefaultModelBindersProvider(optionsAccessor.Object,
-                optionActivator,
+                typeActivatorCache,
                 serviceProvider.Object);
 
             // Act

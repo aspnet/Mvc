@@ -6,17 +6,16 @@ using System;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Encapsulates information that creates a <typeparamref name="TOption"/> option on <see cref="MvcOptions"/>.
+    /// Encapsulates information that creates a <typeparamref name="T"/> instance.
     /// </summary>
-    /// <typeparam name="TOption">The type of the option.</typeparam>
     public interface ITypeActivatorCache
     {
         /// <summary>
-        /// Creates an instance of <typeparamref name="TOption"/>.
+        /// Creates an instance of <typeparamref name="T"/>.
         /// </summary>
         /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
         /// service collection.</param>
-        /// <param name="optionType">The <see cref="Type"/> of the <typeparamref name="TOption"/> to create.</param>
+        /// <param name="optionType">The <see cref="Type"/> of the <typeparamref name="T"/> to create.</param>
         T CreateInstance<T>(IServiceProvider serviceProvider, Type optionType);
     }
 }

@@ -11,8 +11,6 @@ namespace Microsoft.AspNet.Mvc
     [DebuggerDisplay("TypeFilter: Type={ImplementationType} Order={Order}")]
     public class TypeFilterAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
-        private ObjectFactory _createFactory;
-
         public TypeFilterAttribute([NotNull] Type type)
         {
             ImplementationType = type;
@@ -24,22 +22,10 @@ namespace Microsoft.AspNet.Mvc
 
         public int Order { get; set; }
 
-        private ObjectFactory CreateFactory
-        {
-            get
-            {
-                if (_createFactory == null)
-                {
-                    _createFactory = ActivatorUtilitiesHelper.CreateFactory(ImplementationType);
-                }
-
-                return _createFactory;
-            }
-        }
-
         public IFilter CreateInstance([NotNull] IServiceProvider serviceProvider)
         {
-            return (IFilter)CreateFactory(serviceProvider, null);
+            var typeActivator = serviceProvider.GetRequiredService<ITypeActivatorCache>();
+            return typeActivator.CreateInstance<IFilter>(serviceProvider, ImplementationType);
         }
     }
 }
