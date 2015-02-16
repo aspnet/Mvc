@@ -8,25 +8,23 @@ using Microsoft.Framework.DependencyInjection;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Encapsulates information that creates a <typeparamref name="T"/> instance.
+    /// Caches <see cref="ObjectFactory"/> instances produced by 
+    /// <see cref="ActivatorUtilities.CreateFactory(Type, Type[])"/>.
     /// </summary>
     public class DefaultTypeActivatorCache : ITypeActivatorCache
     {
         private readonly Func<Type, ObjectFactory> _createFactory =
-            (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
+            (type) => ActivatorUtilities.CreateFactory(type, Type.EmptyTypes);
         private readonly ConcurrentDictionary<Type, ObjectFactory> _typeActivatorCache =
                new ConcurrentDictionary<Type, ObjectFactory>();
 
-        /// <summary>
-        /// Creates an instance of <typeparamref name="T"/>.
-        /// </summary>
-        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
-        /// service collection.</param>
-        /// <param name="implementationType">The <see cref="Type"/> of the <typeparamref name="T"/> to create.</param>
-        public T CreateInstance<T>([NotNull] IServiceProvider serviceProvider, [NotNull] Type implementationType)
+        /// <inheritdoc/>
+        public TInstance CreateInstance<TInstance>(
+            [NotNull] IServiceProvider serviceProvider,
+            [NotNull] Type implementationType)
         {
             var createFactory = _typeActivatorCache.GetOrAdd(implementationType, _createFactory);
-            return (T)createFactory(serviceProvider, arguments: null);
+            return (TInstance)createFactory(serviceProvider, arguments: null);
         }
     }
 }

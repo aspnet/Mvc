@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc
@@ -11,6 +12,8 @@ namespace Microsoft.AspNet.Mvc
     [DebuggerDisplay("TypeFilter: Type={ImplementationType} Order={Order}")]
     public class TypeFilterAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
+        private ObjectFactory _factory;
+
         public TypeFilterAttribute([NotNull] Type type)
         {
             ImplementationType = type;
@@ -24,8 +27,14 @@ namespace Microsoft.AspNet.Mvc
 
         public IFilter CreateInstance([NotNull] IServiceProvider serviceProvider)
         {
-            var typeActivator = serviceProvider.GetRequiredService<ITypeActivatorCache>();
-            return typeActivator.CreateInstance<IFilter>(serviceProvider, ImplementationType);
+            if (_factory == null)
+            {
+                var argumentTypes = Arguments?.Select(a => a.GetType())?.ToArray();
+
+                _factory = ActivatorUtilities.CreateFactory(ImplementationType, argumentTypes ?? Type.EmptyTypes);
+            }
+
+            return (IFilter)_factory(serviceProvider, Arguments);
         }
     }
 }

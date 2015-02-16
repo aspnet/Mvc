@@ -13,13 +13,11 @@ namespace Microsoft.AspNet.Mvc.OptionDescriptors
         : OptionDescriptorBasedProvider<IExcludeTypeValidationFilter>, IValidationExcludeFiltersProvider
     {
         /// <summary>
-        /// Initializes a new instance of the DefaultBodyValidationExcludeFiltersProvider class.
+        /// Initializes a new instance of the <see cref="DefaultValidationExcludeFiltersProvider"/> class.
         /// </summary>
         /// <param name="options">An accessor to the <see cref="MvcOptions"/> configured for this application.</param>
-        /// <param name="typeActivatorCache">As <see cref="ITypeActivatorCache"/> instance that creates an
-        ///  instance of type <see cref="IExcludeTypeValidationFilter"/>.</param>
-        /// <param name="serviceProvider">A <see cref="IServiceProvider"/> instance that retrieves services from the
-        /// service collection.</param>
+        /// <param name="typeActivatorCache">The <see cref="ITypeActivatorCache"/> cache.</param>
+        /// <param name="serviceProvider">The <see cref="IServiceProvider"/>.</param>
         public DefaultValidationExcludeFiltersProvider(IOptions<MvcOptions> optionsAccessor,
                                                        ITypeActivatorCache typeActivatorCache,
                                                        IServiceProvider serviceProvider)

@@ -11,12 +11,21 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultControllerActivator : IControllerActivator
     {
+        private readonly ITypeActivatorCache _typeActivatorCache;
+
+        /// <summary>
+        /// Creates a new <see cref="DefaultControllerActivator"/>.
+        /// </summary>
+        /// <param name="typeActivatorCache">The <see cref="ITypeActivatorCache"/>.</param>
+        public DefaultControllerActivator(ITypeActivatorCache typeActivatorCache)
+        {
+            _typeActivatorCache = typeActivatorCache;
+        }
         /// <inheritdoc />
         public object Create([NotNull] ActionContext actionContext, [NotNull] Type controllerType)
         {
             var serviceProvider = actionContext.HttpContext.RequestServices;
-            var typeActivatorCache = serviceProvider.GetRequiredService<ITypeActivatorCache>();
-            return typeActivatorCache.CreateInstance<object>(serviceProvider, controllerType);
+            return _typeActivatorCache.CreateInstance<object>(serviceProvider, controllerType);
         }
     }
 }
