@@ -109,11 +109,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Assert
             Assert.True(predicate(context, "UserName"));
             Assert.True(predicate(context, "UserName"));
-
-            //activator
-            //    .Verify(
-            //        a => a.CreateInstance(services.Object, typeof(TestProvider)),
-            //        Times.Once());
         }
 #endif
 
