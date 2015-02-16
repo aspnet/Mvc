@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,12 +15,12 @@ namespace Microsoft.AspNet.Mvc.Xml
     /// Validates types having value type properties decorated with <see cref="RequiredAttribute"/>
     /// but no <see cref="DataMemberAttribute"/>.
     /// </summary>
-    public static class DataAnnotationRequiredAttributeValidation
+    public class DataAnnotationRequiredAttributeValidation
     {
-        private static ConcurrentDictionary<Type, Dictionary<Type, List<string>>> cachedValidationErrors
+        private ConcurrentDictionary<Type, Dictionary<Type, List<string>>> cachedValidationErrors
             = new ConcurrentDictionary<Type, Dictionary<Type, List<string>>>();
 
-        public static void Validate([NotNull] Type modelType, [NotNull] ModelStateDictionary modelStateDictionary)
+        public void Validate([NotNull] Type modelType, [NotNull] ModelStateDictionary modelStateDictionary)
         {
             var visitedTypes = new HashSet<Type>();
 
@@ -47,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             }
         }
 
-        private static void Validate(
+        private void Validate(
             Type modelType,
             HashSet<Type> visitedTypes,
             Dictionary<Type, List<string>> errors)
@@ -137,7 +136,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             visitedTypes.Remove(modelType);
         }
 
-        private static ValidationError? GetValidationError(PropertyInfo propertyInfo)
+        private ValidationError? GetValidationError(PropertyInfo propertyInfo)
         {
             var required = propertyInfo.GetCustomAttribute(typeof(RequiredAttribute), inherit: true);
             if (required == null)
@@ -161,7 +160,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             };
         }
 
-        private static bool ExcludeTypeFromValidation(Type modelType)
+        private bool ExcludeTypeFromValidation(Type modelType)
         {
             return modelType.GetTypeInfo().IsPrimitive ||
                             modelType.Equals(typeof(decimal)) ||
