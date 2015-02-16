@@ -665,7 +665,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                     includePredicate));
 
             var expectedMessage = string.Format(@"The model's runtime type '{0}' is not assignable to the type '{1}'.
-                Parameter name: modelType",
+Parameter name: modelType",
                 model.GetType().FullName, 
                 typeof(User).FullName);
             Assert.Equal(expectedMessage, exception.Message);

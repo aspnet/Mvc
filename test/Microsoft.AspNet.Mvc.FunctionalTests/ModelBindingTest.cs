@@ -1530,9 +1530,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedContent, body);
         }
-		
-		[Fact]
-		public async Task ModelBinder_FormatsDontMatch_ThrowsUserFriendlyException()
+
+        [Fact]
+        public async Task ModelBinder_FormatsDontMatch_ThrowsUserFriendlyException()
 
         {
             // Arrange
@@ -1603,9 +1603,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var responseContent = await response.Content.ReadAsStringAsync();
             var dictionary = JsonConvert.DeserializeObject<IDictionary<string, string>>(responseContent);
             Assert.Equal(expectedDictionary, dictionary);
-		}
+        }
 
-		[Fact]
+        [Fact]
         public async Task TryUpdateModelNonGeneric_IncludesAllProperties_CanBind()
         {
             // Arrange
@@ -1626,9 +1626,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Should Update all included properties.
             Assert.Equal("March", user.RegisterationMonth);
-        } 
+        }
 
-		[Fact]
+        [Fact]
         public async Task FormCollectionModelBinder_CanBind_FormValues()
         {
             // Arrange
@@ -1716,7 +1716,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedContent, fileContent);
         }
 
-		[Fact]
+        [Fact]
         public async Task TryUpdateModelNonGenericIncludesAllProperties_ByDefault()
         {
             // Arrange
@@ -1738,5 +1738,5 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Should Update all included properties.
             Assert.Equal("March", user.RegisterationMonth);
         }
-	}
+    }
 }
