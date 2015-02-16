@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     {
         private readonly AuthorizationOptions _authorizationOptions;
 
-        public DefaultActionModelBuilder(IOptions<AuthorizationOptions> options = null)
+        public DefaultActionModelBuilder(IOptions<AuthorizationOptions> options)
         {
             _authorizationOptions = options?.Options ?? new AuthorizationOptions();
         }

@@ -10,25 +10,6 @@ using Microsoft.Framework.DependencyInjection;
 
 namespace FiltersWebSite
 {
-    public static class Operations
-    {
-        public static OperationAuthorizationRequirement Edit = new OperationAuthorizationRequirement { Name = "Edit" };
-        public static OperationAuthorizationRequirement Create = new OperationAuthorizationRequirement { Name = "Create" };
-        public static OperationAuthorizationRequirement Delete = new OperationAuthorizationRequirement { Name = "Delete" };
-    }
-
-    public class ManagerHandler : AuthorizationHandler<OperationAuthorizationRequirement>
-    {
-        public override Task HandleAsync(Microsoft.AspNet.Security.AuthorizationContext context, OperationAuthorizationRequirement requirement)
-        {
-            if (context.User.HasClaim("Manager", "yes"))
-            {
-                context.Succeed(requirement);
-            }
-            return Task.FromResult(0);
-        }
-    }
-
     public class Startup
     {
         public void Configure(IApplicationBuilder app)

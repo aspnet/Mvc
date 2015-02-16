@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.ApplicationModels.DefaultControllerModelBuilderTestControllers;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Security;
 using Xunit;
@@ -18,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_DerivedFromControllerClass_HasFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
                                                             NullLoggerFactory.Instance,
                                                             null);
             var typeInfo = typeof(StoreController).GetTypeInfo();
@@ -35,7 +34,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_AuthorizeAttributeAddsAuthorizeFilter()
         {
             // Arrange
-            var builder = new AccessibleControllerModelBuilder();
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+                                                            NullLoggerFactory.Instance,
+                                                            null);
             var typeInfo = typeof(AccountController).GetTypeInfo();
 
             // Act
@@ -51,7 +52,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_ClassWithoutFilterInterfaces_HasNoControllerFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
                                                             NullLoggerFactory.Instance,
                                                             null);
             var typeInfo = typeof(NoFiltersController).GetTypeInfo();
@@ -68,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_ClassWithFilterInterfaces_HasFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
                                                             NullLoggerFactory.Instance,
                                                             null);
             var typeInfo = typeof(SomeFiltersController).GetTypeInfo();
@@ -85,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_ClassWithFilterInterfaces_UnsupportedType()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
                                                             NullLoggerFactory.Instance,
                                                             null);
             var typeInfo = typeof(UnsupportedFiltersController).GetTypeInfo();

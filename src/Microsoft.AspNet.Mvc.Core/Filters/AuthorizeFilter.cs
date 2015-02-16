@@ -35,7 +35,10 @@ namespace Microsoft.AspNet.Mvc
             if (Policy.ActiveAuthenticationTypes != null && Policy.ActiveAuthenticationTypes.Any())
             {
                 var results = await context.HttpContext.AuthenticateAsync(Policy.ActiveAuthenticationTypes);
-                context.HttpContext.User = new ClaimsPrincipal(results.Where(r => r.Identity != null).Select(r => r.Identity));
+                if (results != null)
+                {
+                    context.HttpContext.User = new ClaimsPrincipal(results.Where(r => r.Identity != null).Select(r => r.Identity));
+                }
             }
 
             // Allow Anonymous skips all authorization
@@ -46,6 +49,7 @@ namespace Microsoft.AspNet.Mvc
 
             var httpContext = context.HttpContext;
             var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
+
             // Note: Default Anonymous User is new ClaimsPrincipal(new ClaimsIdentity())
             if (httpContext.User == null ||
                 !httpContext.User.Identities.Any(i => i.IsAuthenticated) ||

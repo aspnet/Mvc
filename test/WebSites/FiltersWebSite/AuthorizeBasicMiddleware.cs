@@ -12,14 +12,6 @@ using Microsoft.Framework.OptionsModel;
 
 namespace FiltersWebSite
 {
-    public class BasicOptions : AuthenticationOptions
-    {
-        public BasicOptions()
-        {
-            AuthenticationMode = AuthenticationMode.Passive;
-        }
-    }
-
     public class AuthorizeBasicMiddleware : AuthenticationMiddleware<BasicOptions>
     {
         public AuthorizeBasicMiddleware(
@@ -35,30 +27,6 @@ namespace FiltersWebSite
         protected override AuthenticationHandler<BasicOptions> CreateHandler()
         {
             return new BasicAuthenticationHandler();
-        }
-    }
-
-    public class BasicAuthenticationHandler : AuthenticationHandler<BasicOptions>
-    {
-        protected override void ApplyResponseChallenge()
-        {
-        }
-
-        protected override void ApplyResponseGrant()
-        {
-        }
-
-        protected override AuthenticationTicket AuthenticateCore()
-        {
-            var id = new ClaimsIdentity(
-                new Claim[] {
-                    new Claim("Permission", "CanViewPage"),
-                    new Claim("Manager", "yes"),
-                    new Claim(ClaimTypes.Role, "Administrator"),
-                    new Claim(ClaimTypes.NameIdentifier, "John")
-                },
-                Options.AuthenticationType);
-            return new AuthenticationTicket(id, new AuthenticationProperties());
         }
     }
 }
