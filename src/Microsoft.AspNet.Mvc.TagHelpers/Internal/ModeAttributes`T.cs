@@ -17,6 +17,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// </summary>
         public TMode Mode { get; set; }
 
+        /// <summary>
+        /// The names of attributes required for this mode.
+        /// </summary>
         public IEnumerable<string> Attributes { get; set; }
     }
 }

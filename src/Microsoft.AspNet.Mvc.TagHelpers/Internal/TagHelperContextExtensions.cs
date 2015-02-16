@@ -10,7 +10,7 @@ using Microsoft.Framework.Logging;
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Utility related extensions for <see cref="TagHelperContext"/>.
+    /// Utility extensions for <see cref="TagHelperContext"/>.
     /// </summary>
     public static class TagHelperContextExtensions
     {

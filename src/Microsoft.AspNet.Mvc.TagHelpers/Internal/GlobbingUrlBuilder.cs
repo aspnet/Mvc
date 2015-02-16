@@ -24,6 +24,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         // Internal for testing
         internal GlobbingUrlBuilder() { }
 
+        /// <summary>
+        /// Creates a new <see cref="GlobbingUrlBuilder"/>.
+        /// </summary>
+        /// <param name="fileProvider">The file provider.</param>
+        /// <param name="cache">The cache.</param>
+        /// <param name="requestPathBase">The request path base.</param>
         public GlobbingUrlBuilder([NotNull] IFileProvider fileProvider, IMemoryCache cache, PathString requestPathBase)
         {
             FileProvider = fileProvider;
@@ -43,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public IFileProvider FileProvider { get; }
 
         /// <summary>
-        /// The base path of the current request (e.g. <see cref="HttpRequest.PathBase"/>).
+        /// The base path of the current request (i.e. <see cref="HttpRequest.PathBase"/>).
         /// </summary>
         public PathString RequestPathBase { get; }
 

@@ -7,6 +7,9 @@ using Microsoft.Framework.FileSystemGlobbing;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
+    /// <summary>
+    /// Extension methods for <see cref="Matcher"/>.
+    /// </summary>
     public static class MatcherExtensions
     {
         /// <summary>

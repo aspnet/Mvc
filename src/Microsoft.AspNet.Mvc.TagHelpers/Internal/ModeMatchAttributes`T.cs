@@ -17,8 +17,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// </summary>
         public TMode Mode { get; set; }
 
+        /// <summary>
+        /// The names of attributes that were present in this match.
+        /// </summary>
         public IEnumerable<string> PresentAttributes { get; set; }
 
+        /// <summary>
+        /// The names of attributes that were missing in this match.
+        /// </summary>
         public IEnumerable<string> MissingAttributes { get; set; }
     }
 }
