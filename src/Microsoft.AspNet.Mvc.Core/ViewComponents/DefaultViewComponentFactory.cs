@@ -9,9 +9,6 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class DefaultViewComponentFactory : IViewComponentFactory
     {
-        private readonly ConcurrentDictionary<Type, ObjectFactory> _viewComponentCache =
-               new ConcurrentDictionary<Type, ObjectFactory>();
-
         /// <summary>
         /// Creates an instance of ViewComponent.
         /// </summary>

@@ -25,9 +25,7 @@ namespace RequestServicesWebSite
         public IActionConstraint CreateInstance(IServiceProvider services)
         {
             var constraintType = typeof(Constraint);
-            var constraintFactory = _constraintCache.GetOrAdd(constraintType,
-                CreateFactory(constraintType, _requestId));
-            return (Constraint)constraintFactory(services, new[] { _requestId });
+            return (Constraint)ActivatorUtilities.CreateInstance(services, typeof(Constraint),new[] { _requestId });
         }
 
         private class Constraint : IActionConstraint

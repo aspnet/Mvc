@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
             var createFactory = _typeActivatorCache.GetOrAdd(bindingContext.ModelMetadata.BinderType, _createFactory);
-            var instance = createFactory(requestServices, null);
+            var instance = createFactory(requestServices, arguments: null);
             
             var modelBinder = instance as IModelBinder;
             if (modelBinder == null)
