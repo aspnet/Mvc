@@ -79,14 +79,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to load.
-        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// </summary>
         [HtmlAttributeName(HrefIncludeAttributeName)]
         public string HrefInclude { get; set; }
 
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to exclude from loading.
-        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// Must be used in conjunction with <see cref="HrefInclude"/>.
         /// </summary>
         [HtmlAttributeName(HrefExcludeAttributeName)]
@@ -102,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to fallback to in the case the primary
         /// one fails (as specified in the href attribute).
-        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// </summary>
         [HtmlAttributeName(FallbackHrefIncludeAttributeName)]
         public string FallbackHrefInclude { get; set; }
@@ -110,7 +110,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to exclude from the fallback list, in
         /// the case the primary one fails (as specified in the href attribute).
-        /// The glob patterns are assessed relevant to the application's 'webroot' setting.
+        /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// Must be used in conjunction with <see cref="FallbackHrefInclude"/>.
         /// </summary>
         [HtmlAttributeName(FallbackHrefExcludeAttributeName)]
@@ -225,8 +225,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 builder.AppendLine();
 
                 // Build the <meta /> tag that's used to test for the presence of the stylesheet
-                builder.AppendFormat(CultureInfo.InvariantCulture,
-                    "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />", WebUtility.HtmlEncode(FallbackTestClass));
+                builder.AppendFormat(
+                    CultureInfo.InvariantCulture,
+                    "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />",
+                    WebUtility.HtmlEncode(FallbackTestClass));
                 
                 // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
                 // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
