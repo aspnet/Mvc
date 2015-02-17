@@ -194,7 +194,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 BuildFallbackBlock(builder);
             }
 
-            // We've taken over rendering so prevent the element rendering the outer tag
+            // We've taken over tag rendering, so prevent rendering the outer tag
             output.TagName = null;
             output.Content = builder.ToString();
         }
