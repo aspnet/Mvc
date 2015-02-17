@@ -159,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            var modeResult = context.DetermineMode(ModeDetails);
+            var modeResult = AttributeMatcher.DetermineMode(context, ModeDetails);
 
             Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
                 $"There should only be one mode match, check the {nameof(ModeDetails)}");

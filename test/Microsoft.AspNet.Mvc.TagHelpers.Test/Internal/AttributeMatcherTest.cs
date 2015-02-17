@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
-    public class TagHelperContextExtensionsTest
+    public class AttributeMatcherTest
     {
         [Fact]
         public void DetermineMode_FindsFullModeMatchWithSingleAttribute()
@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var context = MakeTagHelperContext(attributes);
 
             // Act
-            var modeMatch = context.DetermineMode(modeInfo);
+            var modeMatch = AttributeMatcher.DetermineMode(context, modeInfo);
 
             // Assert
             Assert.Collection(modeMatch.FullMatches, match =>
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var context = MakeTagHelperContext(attributes);
 
             // Act
-            var modeMatch = context.DetermineMode(modeInfo);
+            var modeMatch = AttributeMatcher.DetermineMode(context, modeInfo);
 
             // Assert
             Assert.Collection(modeMatch.FullMatches, match =>
@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var context = MakeTagHelperContext(attributes);
 
             // Act
-            var modeMatch = context.DetermineMode(modeInfo);
+            var modeMatch = AttributeMatcher.DetermineMode(context, modeInfo);
 
             // Assert
             Assert.Collection(modeMatch.FullMatches, match =>

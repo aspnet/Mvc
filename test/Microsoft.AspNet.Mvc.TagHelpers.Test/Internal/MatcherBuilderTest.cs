@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
-    public class MatcherExtensionsTest
+    public class MatcherBuilderTest
     {
         [Fact]
         public void AddPatterns_CorrectlyAddsInclude()
@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             string[] excludePatterns = null;
 
             // Act
-            MatcherExtensions.AddPatterns(
+            MatcherBuilder.AddPatterns(
                 includePatterns,
                 excludePatterns,
                 pattern =>
@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var excludePatterns = new[] { "**/*.min.css" };
 
             // Act
-            MatcherExtensions.AddPatterns(
+            MatcherBuilder.AddPatterns(
                 includePatterns,
                 excludePatterns,
                 pattern =>
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var excludePatterns = new[] { $"{leadingSlash}**/*.min.css" };
 
             // Act
-            MatcherExtensions.AddPatterns(
+            MatcherBuilder.AddPatterns(
                 includePatterns,
                 excludePatterns,
                 pattern =>
@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var excludePatterns = new[] { $"{leadingSlashes}**/*.min.css" };
 
             // Act
-            MatcherExtensions.AddPatterns(
+            MatcherBuilder.AddPatterns(
                 includePatterns,
                 excludePatterns,
                 pattern =>

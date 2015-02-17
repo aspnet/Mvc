@@ -8,21 +8,21 @@ using Microsoft.Framework.FileSystemGlobbing;
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Extension methods for <see cref="Matcher"/>.
+    /// Methods for creating instances of <see cref="Matcher"/>.
     /// </summary>
-    public static class MatcherExtensions
+    public static class MatcherBuilder
     {
         /// <summary>
         /// Adds include and exclude patterns.
         /// </summary>
-        /// <param name="matcher">The <see cref="Matcher"/>.</param>
         /// <param name="includePatterns">The set of include globbing patterns.</param>
         /// <param name="excludePatterns">The set of exclude globbing patterns.</param>
-        public static Matcher AddPatterns(
-            [NotNull] this Matcher matcher,
+        public static Matcher CreateWithPatterns(
             [NotNull] IEnumerable<string> includePatterns,
             IEnumerable<string> excludePatterns)
         {
+            var matcher = new Matcher();
+
             AddPatterns(includePatterns, excludePatterns, matcher.AddInclude, matcher.AddExclude);
 
             return matcher;

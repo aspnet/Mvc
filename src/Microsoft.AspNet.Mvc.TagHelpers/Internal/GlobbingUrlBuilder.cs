@@ -112,8 +112,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
         private IEnumerable<string> FindFiles(IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
-            var matcher = new Matcher();
-            matcher.AddPatterns(includePatterns, excludePatterns);
+            var matcher = MatcherBuilder.CreateWithPatterns(includePatterns, excludePatterns);
             var matches = matcher.Execute(_baseGlobbingDirectory);
 
             return matches.Files.Select(ResolveMatchedPath);

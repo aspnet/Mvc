@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            if (!context.AllRequiredAttributesArePresent(RequiredAttributes, Logger))
+            if (!AttributeMatcher.AllRequiredAttributesArePresent(context, RequiredAttributes, Logger))
             {
                 if (Logger.IsEnabled(LogLevel.Verbose))
                 {

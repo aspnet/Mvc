@@ -10,9 +10,9 @@ using Microsoft.Framework.Logging;
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Utility extensions for <see cref="TagHelperContext"/>.
+    /// Methods for determining how an <see cref="ITagHelper"/> should run based on the attributes that were specified.
     /// </summary>
-    public static class TagHelperContextExtensions
+    public static class AttributeMatcher
     {
         /// <summary>
         /// Determines whether a <see cref="ITagHelper" />'s required attributes are present, non null, non empty, and
@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="logger">An optional <see cref="ILogger"/> to log warning details to.</param>
         /// <returns>A <see cref="bool"/> indicating whether the <see cref="ITagHelper" /> should run.</returns> 
         public static bool AllRequiredAttributesArePresent(
-            [NotNull] this TagHelperContext context,
+            [NotNull] TagHelperContext context,
             [NotNull] IEnumerable<string> requiredAttributes,
             ILogger logger)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="modeInfos">The modes and their required attributes.</param>
         /// <returns>The <see cref="ModeMatchResult{TMode}"/>.</returns>
         public static ModeMatchResult<TMode> DetermineMode<TMode>(
-            [NotNull] this TagHelperContext context,
+            [NotNull] TagHelperContext context,
             [NotNull] IEnumerable<ModeAttributes<TMode>> modeInfos)
         {
             // true == full match, false == partial match
