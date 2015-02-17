@@ -8,6 +8,8 @@ using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Expiration.Interfaces;
+using Microsoft.Framework.FileSystemGlobbing;
+using Microsoft.Framework.FileSystemGlobbing.Abstractions;
 using Moq;
 using Xunit;
 
@@ -132,6 +134,59 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Mock.Get(cache).VerifyAll();
         }
 
+        [Theory]
+        [InlineData("/")]
+        [InlineData("\\")]
+        public void TrimsLeadingSlashFromPatterns(string leadingSlash)
+        {
+            // Arrange
+            var fileProvider = MakeFileProvider(MakeDirectoryContents("site.css", "blank.css"));
+            IMemoryCache cache = null;
+            var requestPathBase = PathString.Empty;
+            var includePatterns = new List<string>();
+            var excludePatterns = new List<string>();
+            var matcher = MakeMatcher(includePatterns, excludePatterns);
+            var globbingUrlBuilder = new GlobbingUrlBuilder(fileProvider, cache, requestPathBase);
+            globbingUrlBuilder.MatcherBuilder = () => matcher;
+
+            // Act
+            var urlList = globbingUrlBuilder.BuildUrlList(
+                staticUrl: null,
+                includePattern: $"{leadingSlash}**/*.css",
+                excludePattern: $"{leadingSlash}**/*.min.css");
+
+            // Assert
+            Assert.Collection(includePatterns, pattern => Assert.Equal("**/*.css", pattern));
+            Assert.Collection(excludePatterns, pattern => Assert.Equal("**/*.min.css", pattern));
+        }
+
+        [Theory]
+        [InlineData("/")]
+        [InlineData("\\")]
+        public void TrimsOnlySingleLeadingSlashFromPatterns(string leadingSlash)
+        {
+            // Arrange
+            var leadingSlashes = $"{leadingSlash}{leadingSlash}";
+            var fileProvider = MakeFileProvider(MakeDirectoryContents("site.css", "blank.css"));
+            IMemoryCache cache = null;
+            var requestPathBase = PathString.Empty;
+            var includePatterns = new List<string>();
+            var excludePatterns = new List<string>();
+            var matcher = MakeMatcher(includePatterns, excludePatterns);
+            var globbingUrlBuilder = new GlobbingUrlBuilder(fileProvider, cache, requestPathBase);
+            globbingUrlBuilder.MatcherBuilder = () => matcher;
+
+            // Act
+            var urlList = globbingUrlBuilder.BuildUrlList(
+                staticUrl: null,
+                includePattern: $"{leadingSlashes}**/*.css",
+                excludePattern: $"{leadingSlashes}**/*.min.css");
+
+            // Assert
+            Assert.Collection(includePatterns, pattern => Assert.Equal($"{leadingSlash}**/*.css", pattern));
+            Assert.Collection(excludePatterns, pattern => Assert.Equal($"{leadingSlash}**/*.min.css", pattern));
+        }
+
         private static IFileInfo MakeFileInfo(string name)
         {
             var fileInfo = new Mock<IFileInfo>();
@@ -167,6 +222,26 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             cache.Setup(c => c.TryGetValue(It.IsAny<string>(), It.IsAny<IEntryLink>(), out result))
                 .Returns(result != null);
             return cache.Object;
+        }
+
+        private static Matcher MakeMatcher(List<string> includePatterns, List<string> excludePatterns)
+        {
+            var matcher = new Mock<Matcher>();
+            matcher.Setup(m => m.AddInclude(It.IsAny<string>()))
+                .Returns<string>(pattern =>
+                {
+                    includePatterns.Add(pattern);
+                    return matcher.Object;
+                });
+            matcher.Setup(m => m.AddExclude(It.IsAny<string>()))
+                .Returns<string>(pattern =>
+                {
+                    excludePatterns.Add(pattern);
+                    return matcher.Object;
+                });
+            var patternMatchingResult = new PatternMatchingResult(Enumerable.Empty<string>());
+            matcher.Setup(m => m.Execute(It.IsAny<DirectoryInfoBase>())).Returns(patternMatchingResult);
+            return matcher.Object;
         }
     }
 }

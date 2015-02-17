@@ -19,7 +19,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// non whitepsace.
         /// </summary>
         /// <param name="context">The <see cref="TagHelperContext"/>.</param>
-        /// <param name="requiredAttributes">The attributes the <see cref="ITagHelper" /> requires in order to run.</param>
+        /// <param name="requiredAttributes">
+        ///     The attributes the <see cref="ITagHelper" /> requires in order to run.
+        /// </param>
         /// <param name="logger">An optional <see cref="ILogger"/> to log warning details to.</param>
         /// <returns>A <see cref="bool"/> indicating whether the <see cref="ITagHelper" /> should run.</returns> 
         public static bool AllRequiredAttributesArePresent(

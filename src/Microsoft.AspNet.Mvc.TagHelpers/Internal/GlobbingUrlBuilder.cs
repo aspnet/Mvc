@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
         // Internal for testing
         internal GlobbingUrlBuilder() { }
-
+        
         /// <summary>
         /// Creates a new <see cref="GlobbingUrlBuilder"/>.
         /// </summary>
@@ -52,6 +52,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// The base path of the current request (i.e. <see cref="HttpRequest.PathBase"/>).
         /// </summary>
         public PathString RequestPathBase { get; }
+
+        // Internal for testing.
+        internal Func<Matcher> MatcherBuilder { get; set; }
 
         /// <summary>
         /// Builds a list of URLs.
@@ -112,7 +115,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
         private IEnumerable<string> FindFiles(IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
-            var matcher = MatcherBuilder.CreateWithPatterns(includePatterns, excludePatterns);
+            var matcher = MatcherBuilder != null ? MatcherBuilder() : new Matcher();
+
+            matcher.AddIncludePatterns(includePatterns.Select(pattern => TrimLeadingSlash(pattern)));
+
+            if (excludePatterns != null)
+            {
+                matcher.AddExcludePatterns(excludePatterns.Select(pattern => TrimLeadingSlash(pattern)));
+            }
+
             var matches = matcher.Execute(_baseGlobbingDirectory);
 
             return matches.Files.Select(ResolveMatchedPath);
@@ -123,6 +134,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             // Resolve the path to site root
             var relativePath = new PathString("/" + matchedPath);
             return RequestPathBase.Add(relativePath).ToString();
+        }
+
+        private static string TrimLeadingSlash(string value)
+        {
+            var result = value;
+
+            if (result.StartsWith("/", StringComparison.Ordinal) ||
+                result.StartsWith("\\", StringComparison.Ordinal))
+            {
+                // Trim the leading slash as the matcher runs from the provided root only anyway
+                result = result.Substring(1);
+            }
+
+            return result;
         }
     }
 }
