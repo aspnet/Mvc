@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // [FromRoute(Name = "TestEmployees")] is used to apply a prefix
             var url =
-                "http://localhost/FromRouteAttribute_Company/ValidateDepartment";
+                "http://localhost/FromRouteAttribute_Company/ValidateDepartment/contoso";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             // No values.

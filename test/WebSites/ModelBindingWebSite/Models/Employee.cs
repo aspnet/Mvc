@@ -20,5 +20,8 @@ namespace ModelBindingWebSite
 
         [FromForm(Name = "EmployeeSSN")]
         public string SSN { get; set; }
+
+        [ModelBinder(Name = "Alias")]
+        public string EmailAlias { get; set; }
     }
 }

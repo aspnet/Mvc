@@ -44,6 +44,27 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("somename", employee.Name);
         }
 
+        [Fact]
+        public async Task ModelBinderAttribute_CustomModelPrefix_OnProperty()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            var url =
+                "http://localhost/ModelBinderAttribute_Company/CreateCompany?employees[0].Alias=somealias";
+
+            // Act
+            var response = await client.GetAsync(url);
+
+            // Assert
+            var body = await response.Content.ReadAsStringAsync();
+            var company = JsonConvert.DeserializeObject<Company>(body);
+
+            var employee = Assert.Single(company.Employees);
+            Assert.Equal("somealias", employee.EmailAlias);
+        }
+
         [Theory]
         [InlineData("GetBinderType_UseModelBinderOnType")]
         [InlineData("GetBinderType_UseModelBinderProviderOnType")]
