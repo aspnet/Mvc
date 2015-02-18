@@ -202,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         private bool AssociatedGlobalFilesChanged(CompilerCacheEntry entry,
-                                                 Func<RelativeFileInfo, CompilationResult> compile)
+                                                  Func<RelativeFileInfo, CompilationResult> compile)
         {
             var globalFileEntry = GetCompositeGlobalFileEntry(entry.RelativePath, compile);
             return entry.AssociatedGlobalFileEntry != globalFileEntry;

@@ -13,8 +13,7 @@ using Microsoft.AspNet.Razor.Parser;
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
     /// <summary>
-    /// A utility type for supporting inheritance of tag helpers and chunks into a page from applicable _GlobalImport
-    /// pages.
+    /// A utility type for supporting inheritance of directives into a page from applicable <c>_GlobalImport</c> pages.
     /// </summary>
     public class ChunkInheritanceUtility
     {
@@ -25,9 +24,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <summary>
         /// Initializes a new instance of <see cref="ChunkInheritanceUtility"/>.
         /// </summary>
-        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse _GlobalImport pages.</param>
-        /// <param name="codeTreeCache"><see cref="ICodeTreeCache"/> that caches _GlobalImport <see cref="CodeTree"/>
-        /// instances.</param>
+        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse <c>_GlobalImport</c> pages.</param>
+        /// <param name="codeTreeCache"><see cref="ICodeTreeCache"/> that caches <see cref="CodeTree"/> instances.
+        /// </param>
         /// <param name="defaultInheritedChunks">Sequence of <see cref="Chunk"/>s inherited by default.</param>
         public ChunkInheritanceUtility([NotNull] MvcRazorHost razorHost,
                                        [NotNull] ICodeTreeCache codeTreeCache,
@@ -39,25 +38,28 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         /// <summary>
-        /// Gets an ordered <see cref="IReadOnlyList{T}"/> of parsed <see cref="CodeTree"/> for each _GlobalImport that
-        /// is applicable to the page located at <paramref name="pagePath"/>. The list is ordered so that the
-        /// <see cref="CodeTree"/> for the _GlobalImport closest to the <paramref name="pagePath"/> in the fileProvider
-        /// appears first.
+        /// Gets an ordered <see cref="IReadOnlyList{T}"/> of parsed <see cref="CodeTree"/> for each
+        /// <c>_GlobalImport</c> that is applicable to the page located at <paramref name="pagePath"/>. The list is
+        /// ordered so that the <see cref="CodeTree"/> for the <c>_GlobalImport</c> closest to the
+        /// <paramref name="pagePath"/> in the file system appears first.
         /// </summary>
         /// <param name="pagePath">The path of the page to locate inherited chunks for.</param>
-        /// <returns>A <see cref="IReadOnlyList{CodeTree}"/> of parsed _GlobalImport <see cref="CodeTree"/>s.</returns>
+        /// <returns>A <see cref="IReadOnlyList{CodeTree}"/> of parsed <c>_GlobalImport</c>
+        /// <see cref="CodeTree"/>s.</returns>
         public IReadOnlyList<CodeTree> GetInheritedCodeTrees([NotNull] string pagePath)
         {
             var inheritedCodeTrees = new List<CodeTree>();
             var templateEngine = new RazorTemplateEngine(_razorHost);
-            foreach (var directiveSourcePath in ViewHierarchyUtility.GetGlobalImportLocations(pagePath))
+            foreach (var globalImportPath in ViewHierarchyUtility.GetGlobalImportLocations(pagePath))
             {
-                // directiveSourcePath contains the app-relative path of the ViewStart.
+                // globalImportPath contains the app-relative path of the _GlobalImport.
                 // Since the parsing of a _GlobalImport would cause parent _GlobalImports to be parsed
                 // we need to ensure the paths are app-relative to allow the GetGlobalFileLocations
                 // for the current _GlobalImport to succeed.
-                var codeTree = _codeTreeCache.GetOrAdd(directiveSourcePath,
-                                            fileInfo => ParseViewFile(templateEngine, fileInfo, directiveSourcePath));
+                var codeTree = _codeTreeCache.GetOrAdd(globalImportPath,
+                                                       fileInfo => ParseViewFile(templateEngine,
+                                                                                 fileInfo,
+                                                                                 globalImportPath));
 
                 if (codeTree != null)
                 {
@@ -70,10 +72,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 
         /// <summary>
         /// Merges <see cref="Chunk"/> inherited by default and <see cref="CodeTree"/> instances produced by parsing
-        /// _GlobalImport files into the specified <paramref name="codeTree"/>.
+        /// <c>_GlobalImport</c> files into the specified <paramref name="codeTree"/>.
         /// </summary>
         /// <param name="codeTree">The <see cref="CodeTree"/> to merge in to.</param>
-        /// <param name="inheritedCodeTrees"><see cref="IReadOnlyList{CodeTree}"/> inherited from _GlobalImport
+        /// <param name="inheritedCodeTrees"><see cref="IReadOnlyList{CodeTree}"/> inherited from <c>_GlobalImport</c>
         /// files.</param>
         /// <param name="defaultModel">The list of chunks to merge.</param>
         public void MergeInheritedCodeTrees([NotNull] CodeTree codeTree,

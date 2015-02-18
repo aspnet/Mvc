@@ -9,23 +9,12 @@ using System.Linq;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Contains methods to locate <c>_ViewStart.cshtml</c> and <c>_Global.cshtml</c>
+    /// Contains methods to locate <c>_ViewStart.cshtml</c> and <c>_GlobalImport.cshtml</c>
     /// </summary>
     public static class ViewHierarchyUtility
     {
         private const string ViewStartFileName = "_ViewStart.cshtml";
         private const string GlobalImportFileName = "_GlobalImport.cshtml";
-
-        /// <summary>
-        /// Determines if the given path represents a view start file.
-        /// </summary>
-        /// <param name="path">The path to inspect.</param>
-        /// <returns>True if the path is a view start file, false otherwise.</returns>
-        public static bool IsViewStart([NotNull] string path)
-        {
-            var fileName = Path.GetFileName(path);
-            return string.Equals(ViewStartFileName, fileName, StringComparison.OrdinalIgnoreCase);
-        }
 
         /// <summary>
         /// Gets the view start locations that are applicable to the specified path.
@@ -45,11 +34,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Gets the locations for _GlobalImports that are applicable to the specified path.
+        /// Gets the locations for <c>_GlobalImport</c>s that are applicable to the specified path.
         /// </summary>
         /// <param name="applicationRelativePath">The application relative path of the file to locate
-        /// <c>_Global</c>s for.</param>
-        /// <returns>A sequence of paths that represent potential _Global locations.</returns>
+        /// <c>_GlobalImport</c>s for.</param>
+        /// <returns>A sequence of paths that represent potential <c>_GlobalImport</c> locations.</returns>
         /// <remarks>
         /// This method returns paths starting from the directory of <paramref name="applicationRelativePath"/> and
         /// moves upwards until it hits the application root.
