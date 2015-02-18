@@ -66,10 +66,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var otherPropertyDisplayName = OtherPropertyDisplayName;
                 if (otherPropertyDisplayName == null && metadata.ContainerType != null)
                 {
-                    var otherProperty = context.MetadataProvider
-                                               .GetMetadataForProperty(() => metadata.Model,
-                                                                       metadata.ContainerType,
-                                                                       OtherProperty);
+                    var containerMetadata = context.MetadataProvider.GetMetadataForType(metadata.ContainerType);
+                    var otherProperty = containerMetadata.Properties[OtherProperty];
                     if (otherProperty != null)
                     {
                         return otherProperty.GetDisplayName();

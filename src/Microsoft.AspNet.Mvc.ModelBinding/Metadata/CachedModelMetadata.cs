@@ -38,6 +38,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private string _binderModelName;
         private IPropertyBindingPredicateProvider _propertyBindingPredicateProvider;
         private Type _binderType;
+        private string _simpleDisplayProperty;
 
         private bool _convertEmptyStringToNullComputed;
         private bool _dataTypeNameComputed;
@@ -61,12 +62,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private bool _isBinderModelNameComputed;
         private bool _isBinderTypeComputed;
         private bool _propertyBindingPredicateProviderComputed;
+        private bool _simpleDisplayPropertyComputed;
 
         // Constructor for creating real instances of the metadata class based on a prototype
-        protected CachedModelMetadata(CachedModelMetadata<TPrototypeCache> prototype, Func<object> modelAccessor)
+        protected CachedModelMetadata(CachedModelMetadata<TPrototypeCache> prototype)
             : base(prototype.Provider,
                    prototype.ContainerType,
-                   modelAccessor,
                    prototype.ModelType,
                    prototype.PropertyName)
         {
@@ -82,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                       Type modelType,
                                       string propertyName,
                                       TPrototypeCache prototypeCache)
-            : base(provider, containerType, modelAccessor: null, modelType: modelType, propertyName: propertyName)
+            : base(provider, containerType, modelType: modelType, propertyName: propertyName)
         {
             PrototypeCache = prototypeCache;
         }
@@ -500,17 +501,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        public sealed override string SimpleDisplayText
+        public sealed override string SimpleDisplayProperty
         {
             get
             {
-                // Value already cached in ModelMetadata. That class also already exposes ComputeSimpleDisplayText()
-                // for overrides. Sealed here for consistency with other properties.
-                return base.SimpleDisplayText;
+                if (!_simpleDisplayPropertyComputed)
+                {
+                    _simpleDisplayProperty = ComputeSimpleDisplayProperty();
+                    _simpleDisplayPropertyComputed = true;
+                }
+                return _simpleDisplayProperty;
             }
             set
             {
-                base.SimpleDisplayText = value;
+                _simpleDisplayProperty = value;
+                _simpleDisplayPropertyComputed = true;
             }
         }
 
@@ -699,6 +704,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         protected virtual bool ComputeShowForEdit()
         {
             return base.ShowForEdit;
+        }
+
+        protected virtual string ComputeSimpleDisplayProperty()
+        {
+            return base.SimpleDisplayProperty;
         }
 
         /// <summary>

@@ -25,24 +25,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private bool _showForDisplay = true;
         private bool _showForEdit = true;
 
-        private object _model;
-        private Func<object> _modelAccessor;
         private int _order = DefaultOrder;
         private bool _isRequired;
         private ModelPropertyCollection _properties;
-        private Type _realModelType;
-        private string _simpleDisplayText;
+        private string _simpleDisplayProperty;
 
         public ModelMetadata([NotNull] IModelMetadataProvider provider,
                              Type containerType,
-                             Func<object> modelAccessor,
                              [NotNull] Type modelType,
                              string propertyName)
         {
             Provider = provider;
 
             _containerType = containerType;
-            _modelAccessor = modelAccessor;
             _modelType = modelType;
             _propertyName = propertyName;
             _isRequired = !modelType.AllowsNullValue();
@@ -69,12 +64,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets or sets a binder metadata for this model.
         /// </summary>
         public virtual IBinderMetadata BinderMetadata { get; set; }
-
-        /// <summary>
-        /// A reference to the model's container <see cref="object"/>.
-        /// Will be non-<c>null</c> if the model represents a property.
-        /// </summary>
-        public object Container { get; set; }
 
         public Type ContainerType
         {
@@ -195,26 +184,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             set { _order = value; }
         }
 
-        public object Model
-        {
-            get
-            {
-                if (_modelAccessor != null)
-                {
-                    _model = _modelAccessor();
-                    _modelAccessor = null;
-                }
-                return _model;
-            }
-            set
-            {
-                _model = value;
-                _modelAccessor = null;
-                _properties = null;
-                _realModelType = null;
-            }
-        }
-
         public Type ModelType
         {
             get { return _modelType; }
@@ -231,7 +200,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 if (_properties == null)
                 {
-                    var properties = Provider.GetMetadataForProperties(Model, RealModelType);
+                    var properties = Provider.GetMetadataForProperties(ModelType);
                     _properties = new ModelPropertyCollection(properties.OrderBy(m => m.Order));
                 }
 
@@ -250,45 +219,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             get { return _propertyName; }
         }
 
-        protected IModelMetadataProvider Provider { get; set; }
+        protected IModelMetadataProvider Provider { get; }
 
-        /// <returns>
-        /// Gets runtime <see cref="Type"/> of <see cref="Model"/> if <see cref="Model"/> is non-<c>null</c> and
-        /// <see cref="ModelType"/> is not <see cref="Nullable{T}"/>; <see cref="ModelType"/> otherwise.
-        /// </returns>
-        public Type RealModelType
+        /// <summary>
+        /// Gets or sets a value which is the name of the property used to display the model.
+        /// </summary>
+        public virtual string SimpleDisplayProperty
         {
-            get
-            {
-                if (_realModelType == null)
-                {
-                    _realModelType = ModelType;
-
-                    // Don't call GetType() if the model is Nullable<T>, because it will
-                    // turn Nullable<T> into T for non-null values
-                    if (Model != null && !ModelType.IsNullableValueType())
-                    {
-                        _realModelType = Model.GetType();
-                    }
-                }
-
-                return _realModelType;
-            }
-        }
-
-        public virtual string SimpleDisplayText
-        {
-            get
-            {
-                if (_simpleDisplayText == null)
-                {
-                    _simpleDisplayText = ComputeSimpleDisplayText();
-                }
-
-                return _simpleDisplayText;
-            }
-
-            set { _simpleDisplayText = value; }
+            get { return _simpleDisplayProperty; }
+            set { _simpleDisplayProperty = value; }
         }
 
         /// <summary>
@@ -338,38 +277,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return DisplayName ?? PropertyName ?? ModelType.Name;
         }
 
-        protected virtual string ComputeSimpleDisplayText()
-        {
-            if (Model == null)
-            {
-                return NullDisplayText;
-            }
-
-            var stringResult = Convert.ToString(Model, CultureInfo.CurrentCulture);
-            if (stringResult == null)
-            {
-                return string.Empty;
-            }
-
-            if (!stringResult.Equals(Model.GetType().FullName, StringComparison.Ordinal))
-            {
-                return stringResult;
-            }
-
-            var firstProperty = Properties.FirstOrDefault();
-            if (firstProperty == null)
-            {
-                return string.Empty;
-            }
-
-            if (firstProperty.Model == null)
-            {
-                return firstProperty.NullDisplayText;
-            }
-
-            return Convert.ToString(firstProperty.Model, CultureInfo.CurrentCulture);
-        }
-
+        
         private static EfficientTypePropertyKey<Type, string> CreateCacheKey(Type containerType,
                                                                              Type modelType,
                                                                              string propertyName)

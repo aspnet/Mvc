@@ -191,8 +191,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static string FormatOutput(IHtmlHelper helper, object model)
         {
-            var metadata = helper.MetadataProvider.GetMetadataForType(() => model, model.GetType());
-            return FormatOutput(metadata);
+            var modelExplorer = helper.MetadataProvider.GetModelExplorerForType(model.GetType(), model);
+            return FormatOutput(modelExplorer);
         }
 
         private static ICompositeViewEngine CreateViewEngine()
@@ -203,7 +203,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 .Callback(async (ViewContext v) =>
                 {
                     view.ToString();
-                    await v.Writer.WriteAsync(FormatOutput(v.ViewData.ModelMetadata));
+                    await v.Writer.WriteAsync(FormatOutput(v.ViewData.ModelExplorer));
                 })
                 .Returns(Task.FromResult(0));
 
@@ -228,14 +228,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                    optionsAccessor.Object);
         }
 
-        private static string FormatOutput(ModelMetadata metadata)
+        private static string FormatOutput(ModelExplorer modelExplorer)
         {
             return string.Format(CultureInfo.InvariantCulture,
                                 "Model = {0}, ModelType = {1}, PropertyName = {2}, SimpleDisplayText = {3}",
-                                metadata.Model ?? "(null)",
-                                metadata.ModelType == null ? "(null)" : metadata.ModelType.FullName,
-                                metadata.PropertyName ?? "(null)",
-                                metadata.SimpleDisplayText ?? "(null)");
+                                modelExplorer.Model ?? "(null)",
+                                modelExplorer.Metadata.ModelType == null ? "(null)" : modelExplorer.Metadata.ModelType.FullName,
+                                modelExplorer.Metadata.PropertyName ?? "(null)",
+                                modelExplorer.GetSimpleDisplayText() ?? "(null)");
         }
 
         private static IUrlHelper CreateUrlHelper()

@@ -12,8 +12,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
     public static class ExpressionMetadataProvider
     {
-        public static ModelMetadata FromLambdaExpression<TModel, TResult>(
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+        public static ModelExplorer FromLambdaExpression<TModel, TValue>(
+            [NotNull] Expression<Func<TModel, TValue>> expression,
             [NotNull] ViewDataDictionary<TModel> viewData,
             IModelMetadataProvider metadataProvider)
         {
@@ -68,16 +68,16 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 }
             };
 
-            return GetMetadataFromProvider(
+            return GetModelExplorerFromProvider(
                 modelAccessor,
-                typeof(TResult),
+                typeof(TValue),
                 propertyName,
                 container,
                 containerType,
                 metadataProvider);
         }
 
-        public static ModelMetadata FromStringExpression(string expression,
+        public static ModelExplorer FromStringExpression(string expression,
                                                          [NotNull] ViewDataDictionary viewData,
                                                          IModelMetadataProvider metadataProvider)
         {
@@ -118,14 +118,14 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             else
             {
                 //  Try getting a property from ModelMetadata if we couldn't find an answer in ViewData
-                var propertyMetadata = viewData.ModelMetadata.Properties[expression];
-                if (propertyMetadata != null)
+                var propertyExplorer = viewData.ModelExplorer.GetProperty(expression);
+                if (propertyExplorer != null)
                 {
-                    return propertyMetadata;
+                    return propertyExplorer;
                 }
             }
 
-            return GetMetadataFromProvider(modelAccessor,
+            return GetModelExplorerFromProvider(modelAccessor,
                                            modelType ?? typeof(string),
                                            propertyName,
                                            container,
@@ -133,48 +133,42 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                                            metadataProvider);
         }
 
-        private static ModelMetadata FromModel([NotNull] ViewDataDictionary viewData,
-                                               IModelMetadataProvider metadataProvider)
+        private static ModelExplorer FromModel(
+            [NotNull] ViewDataDictionary viewData,
+            IModelMetadataProvider metadataProvider)
         {
             if (viewData.ModelMetadata.ModelType == typeof(object))
             {
                 // Use common simple type rather than object so e.g. Editor() at least generates a TextBox.
-                return GetMetadataFromProvider(
-                    modelAccessor: null,
-                    modelType: typeof(string),
-                    propertyName: null,
-                    container: null,
-                    containerType: null,
-                    metadataProvider: metadataProvider);
+                return metadataProvider.GetModelExplorerForType(typeof(string), null);
             }
             else
             {
-                return viewData.ModelMetadata;
+                return viewData.ModelExplorer;
             }
         }
 
         // An IModelMetadataProvider is not required unless this method is called. Therefore other methods in this
         // class lack [NotNull] attributes for their corresponding parameter.
-        private static ModelMetadata GetMetadataFromProvider(Func<object> modelAccessor,
-                                                             Type modelType,
-                                                             string propertyName,
-                                                             object container,
-                                                             Type containerType,
-                                                             [NotNull] IModelMetadataProvider metadataProvider)
+        private static ModelExplorer GetModelExplorerFromProvider(
+            Func<object> modelAccessor,
+            Type modelType,
+            string propertyName,
+            object container,
+            Type containerType,
+            [NotNull] IModelMetadataProvider metadataProvider)
         {
             if (containerType != null && !string.IsNullOrEmpty(propertyName))
             {
-                var metadata =
-                    metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
-                if (metadata != null)
-                {
-                    metadata.Container = container;
-                }
-
-                return metadata;
+                // DOUGHELP
+                var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, container);
+                return new ModelExplorer(
+                    containerExplorer.Metadata.Properties[propertyName],
+                    modelAccessor,
+                    containerExplorer);
             }
 
-            return metadataProvider.GetMetadataForType(modelAccessor, modelType);
+            return metadataProvider.GetModelExplorerForType(modelType, modelAccessor);
         }
     }
 }

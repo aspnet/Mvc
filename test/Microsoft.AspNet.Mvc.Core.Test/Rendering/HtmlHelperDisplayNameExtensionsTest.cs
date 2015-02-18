@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Moq;
@@ -76,24 +77,23 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Equal("Id", displayNameForEnumerableResult);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("Custom property name from metadata")]
-        public void DisplayNameHelpers_ReturnMetadataPropertyName_IfOverridden(string propertyName)
+        [Fact]
+        public void DisplayNameHelpers_ReturnMetadataPropertyName_AsFallback()
         {
             // Arrange
-            var metadata = new ModelMetadata(
-                new DataAnnotationsModelMetadataProvider(),
-                containerType: null,
-                modelAccessor: null,
-                modelType: typeof(string), // Ensure FromStringExpression() doesn't ignore the ModelMetadata.
-                propertyName: propertyName);
+            var provider = new EmptyModelMetadataProvider();
+
+            var modelExplorer = provider.GetModelExplorerForType(
+                typeof(DefaultTemplatesUtilities.ObjectTemplateModel),
+                model: null)
+                .GetProperty("Property1");
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
-            helper.ViewData.ModelMetadata = metadata;
+            helper.ViewData.ModelExplorer = modelExplorer;
+
             var enumerableHelper =
                 DefaultTemplatesUtilities.GetHtmlHelper<IEnumerable<DefaultTemplatesUtilities.ObjectTemplateModel>>(model: null);
-            enumerableHelper.ViewData.ModelMetadata = metadata;
+            enumerableHelper.ViewData.ModelExplorer = modelExplorer;
 
             // Act
             var displayNameResult = helper.DisplayName(expression: string.Empty);
@@ -102,42 +102,36 @@ namespace Microsoft.AspNet.Mvc.Core
             var displayNameForModelResult = helper.DisplayNameForModel();
 
             // Assert
-            Assert.Equal(propertyName, displayNameResult);
-            Assert.Equal(propertyName, displayNameForResult);
-            Assert.Equal(propertyName, displayNameForEnumerableResult);
-            Assert.Equal(propertyName, displayNameForModelResult);
+            Assert.Equal("Property1", displayNameResult);
+            Assert.Equal("Property1", displayNameForResult);
+            Assert.Equal("Property1", displayNameForEnumerableResult);
+            Assert.Equal("Property1", displayNameForModelResult);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("Custom property name from metadata")]
-        public void DisplayNameHelpers_ReturnMetadataPropertyNameForProperty_IfOverridden(string propertyName)
+        [Fact]
+        public void DisplayNameHelpers_ReturnMetadataPropertyNameForProperty_AsFallback()
         {
             // Arrange
-            var metadataHelper = new MetadataHelper();
-            var metadata = new ModelMetadata(
-                metadataHelper.MetadataProvider.Object,
-                containerType: null,
-                modelAccessor: null,
-                modelType: typeof(object),
-                propertyName: propertyName);
-            metadataHelper.MetadataProvider
-                .Setup(provider => provider.GetMetadataForProperty(It.IsAny<Func<object>>(), It.IsAny<Type>(), "Property1"))
-                .Returns(metadata);
+            var provider = new EmptyModelMetadataProvider();
 
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(metadataHelper.MetadataProvider.Object);
+            var modelExplorer = provider.GetModelExplorerForType(
+                typeof(DefaultTemplatesUtilities.ObjectTemplateModel),
+                model: null);
+
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper();
+            helper.ViewData.ModelExplorer = modelExplorer;
+
             var enumerableHelper =
-                DefaultTemplatesUtilities.GetHtmlHelper<IEnumerable<DefaultTemplatesUtilities.ObjectTemplateModel>>(
-                    model: null,
-                    provider: metadataHelper.MetadataProvider.Object);
+                DefaultTemplatesUtilities.GetHtmlHelper<IEnumerable<DefaultTemplatesUtilities.ObjectTemplateModel>>(model: null);
+            helper.ViewData.ModelExplorer = modelExplorer;
 
             // Act
             var displayNameForResult = helper.DisplayNameFor(m => m.Property1);
             var displayNameForEnumerableResult = enumerableHelper.DisplayNameFor(m => m.Property1);
 
             // Assert
-            Assert.Equal(propertyName, displayNameForResult);
-            Assert.Equal(propertyName, displayNameForEnumerableResult);
+            Assert.Equal("Property1", displayNameForResult);
+            Assert.Equal("Property1", displayNameForEnumerableResult);
         }
 
         [Theory]
@@ -165,21 +159,14 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Equal(displayName, displayNameForModelResult);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("Custom display name from metadata")]
-        public void DisplayNameHelpers_ReturnDisplayNameForProperty_IfNonNull(string displayName)
+        [Fact]
+        public void DisplayNameHelpers_ReturnDisplayNameForProperty_IfNonNull()
         {
             // Arrange
-            var metadataHelper = new MetadataHelper();  // All properties will use the same metadata.
-            metadataHelper.Metadata
-                .Setup(metadata => metadata.DisplayName)
-                .Returns(displayName);
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(metadataHelper.MetadataProvider.Object);
-            var enumerableHelper =
-                DefaultTemplatesUtilities.GetHtmlHelper<IEnumerable<DefaultTemplatesUtilities.ObjectTemplateModel>>(
-                    model: null,
-                    provider: metadataHelper.MetadataProvider.Object);
+            var displayName = "CoolDisplayName";
+
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper<DisplayNameOnProperty>(model: null);
+            var enumerableHelper = DefaultTemplatesUtilities.GetHtmlHelper<DisplayNameOnProperty>(model: null);
 
             // Act
             var displayNameResult = helper.DisplayName("Property1");
@@ -202,8 +189,7 @@ namespace Microsoft.AspNet.Mvc.Core
             string expectedResult)
         {
             // Arrange
-            var metadataHelper = new MetadataHelper();
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(metadataHelper.MetadataProvider.Object);
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper();
 
             // Act
             var result = helper.DisplayName(expression);
@@ -211,29 +197,6 @@ namespace Microsoft.AspNet.Mvc.Core
             // Assert
             // DisplayName() falls back to expression name when DisplayName and PropertyName are null.
             Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
-        public void DisplayNameFor_ConsultsMetadataProviderForMetadataAboutProperty()
-        {
-            // Arrange
-            var modelType = typeof(DefaultTemplatesUtilities.ObjectTemplateModel);
-            var metadataHelper = new MetadataHelper();
-            metadataHelper.MetadataProvider
-                .Setup(p => p.GetMetadataForProperty(It.IsAny<Func<object>>(), modelType, "Property1"))
-                .Returns(metadataHelper.Metadata.Object)
-                .Verifiable();
-
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(metadataHelper.MetadataProvider.Object);
-
-            // Act
-            var result = helper.DisplayNameFor(m => m.Property1);
-
-            // Assert
-            metadataHelper.MetadataProvider.Verify();
-
-            // DisplayNameFor() falls back to expression name when DisplayName and PropertyName are null.
-            Assert.Equal("Property1", result);
         }
 
         [Fact]
@@ -304,24 +267,10 @@ namespace Microsoft.AspNet.Mvc.Core
             public InnerClass Inner { get; set; }
         }
 
-        private sealed class MetadataHelper
+        private class DisplayNameOnProperty
         {
-            public Mock<ModelMetadata> Metadata { get; set; }
-            public Mock<IModelMetadataProvider> MetadataProvider { get; set; }
-
-            public MetadataHelper()
-            {
-                MetadataProvider = new Mock<IModelMetadataProvider>();
-                Metadata = new Mock<ModelMetadata>(MetadataProvider.Object, null, null, typeof(object), null);
-                Metadata.SetupGet(m => m.Properties).CallBase();
-
-                MetadataProvider.Setup(p => p.GetMetadataForProperties(It.IsAny<object>(), It.IsAny<Type>()))
-                    .Returns(new ModelMetadata[0]);
-                MetadataProvider.Setup(p => p.GetMetadataForProperty(It.IsAny<Func<object>>(), It.IsAny<Type>(), It.IsAny<string>()))
-                    .Returns(Metadata.Object);
-                MetadataProvider.Setup(p => p.GetMetadataForType(It.IsAny<Func<object>>(), It.IsAny<Type>()))
-                    .Returns(Metadata.Object);
-            }
+            [Display(Name = "CoolDisplayName")]
+            public string Property1 { get; set; }
         }
     }
 }

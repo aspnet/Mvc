@@ -55,6 +55,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public OperationBindingContext OperationBindingContext { get; set; }
 
+        public object Model { get; set; }
+
         /// <summary>
         /// Gets or sets the metadata for the model associated with this context.
         /// </summary>

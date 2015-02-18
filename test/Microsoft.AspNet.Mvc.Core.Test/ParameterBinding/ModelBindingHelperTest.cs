@@ -24,8 +24,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>();
-            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Func<object>>(), It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Type>()))
+                            .Returns(new ModelMetadata(metadataProvider.Object, null, typeof(MyModel), null))
                             .Verifiable();
 
             var binder = new Mock<IModelBinder>();
@@ -136,8 +136,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>();
-            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Func<object>>(), It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Type>()))
+                            .Returns(new ModelMetadata(metadataProvider.Object, null, typeof(MyModel), null))
                             .Verifiable();
 
             var binder = new Mock<IModelBinder>();
@@ -227,8 +227,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>();
-            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Func<object>>(), It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(metadataProvider.Object, null, null, typeof(MyModel), null))
+            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Type>()))
+                            .Returns(new ModelMetadata(metadataProvider.Object, null, typeof(MyModel), null))
                             .Verifiable();
 
             var binder = new Mock<IModelBinder>();

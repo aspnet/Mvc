@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateCheckBox(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression,
             bool? isChecked,
             object htmlAttributes);
@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </summary>
         TagBuilder GenerateHiddenForCheckbox(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression);
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateHidden(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression,
             object value,
             bool useViewData,
@@ -115,21 +115,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateLabel(
             [NotNull] ViewContext viewContext,
-            [NotNull] ModelMetadata metadata,
+            [NotNull] ModelExplorer modelExplorer,
             string expression,
             string labelText,
             object htmlAttributes);
 
         TagBuilder GeneratePassword(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression,
             object value,
             object htmlAttributes);
 
         TagBuilder GenerateRadioButton(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression,
             object value,
             bool? isChecked,
@@ -146,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateSelect(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string optionLabel,
             string expression,
             IEnumerable<SelectListItem> selectList,
@@ -155,7 +155,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateSelect(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string optionLabel,
             string expression,
             IEnumerable<SelectListItem> selectList,
@@ -165,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateTextArea(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression,
             int rows,
             int columns,
@@ -173,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateTextBox(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression,
             object value,
             string format,
@@ -199,7 +199,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </remarks>
         IEnumerable<ModelClientValidationRule> GetClientValidationRules(
             [NotNull] ViewContext viewContext,
-            ModelMetadata metadata,
+            ModelExplorer modelExplorer,
             string expression);
     }
 }

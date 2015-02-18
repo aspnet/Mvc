@@ -19,10 +19,7 @@ namespace Microsoft.AspNet.Mvc
     public class RemoteAttributeTest
     {
         private static readonly IModelMetadataProvider _metadataProvider = new EmptyModelMetadataProvider();
-        private static readonly ModelMetadata _metadata = _metadataProvider.GetMetadataForProperty(
-            modelAccessor: null,
-            containerType: typeof(string),
-            propertyName: "Length");
+        private static readonly ModelMetadata _metadata = _metadataProvider.GetMetadataForType(typeof(string)).Properties["Length"];
 
         public static TheoryData<string> SomeNames
         {

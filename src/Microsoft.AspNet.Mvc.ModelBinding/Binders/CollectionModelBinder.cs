@@ -44,14 +44,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var boundCollection = new List<TElement>();
 
+            var elementMetadata =  bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(typeof(TElement));
+
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
             {
-                var innerModelMetadata =
-                    bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement));
                 var innerBindingContext = new ModelBindingContext(bindingContext,
                                                                   bindingContext.ModelName,
-                                                                  innerModelMetadata)
+                                                                  elementMetadata)
                 {
                     ValueProvider = new CompositeValueProvider
                     {
@@ -97,13 +97,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                        .Select(i => i.ToString(CultureInfo.InvariantCulture));
             }
 
+            var elementMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(typeof(TElement));
+
             var boundCollection = new List<TElement>();
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelBindingHelper.CreateIndexModelName(bindingContext.ModelName, indexName);
-                var childModelMetadata =
-                    bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(null, typeof(TElement));
-                var childBindingContext = new ModelBindingContext(bindingContext, fullChildName, childModelMetadata);
+                var childBindingContext = new ModelBindingContext(bindingContext, fullChildName, elementMetadata);
 
                 var didBind = false;
                 object boundValue = null;

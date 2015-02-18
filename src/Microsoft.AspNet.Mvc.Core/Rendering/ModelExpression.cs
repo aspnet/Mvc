@@ -22,10 +22,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="metadata">
         /// Metadata about the <see cref="System.Linq.Expressions.Expression"/> of interest.
         /// </param>
-        public ModelExpression([NotNull] string name, [NotNull] ModelMetadata metadata)
+        public ModelExpression([NotNull] string name, [NotNull] ModelExplorer modelExplorer)
         {
             Name = name;
-            Metadata = metadata;
+            ModelExplorer = modelExplorer;
         }
 
         /// <summary>
@@ -40,6 +40,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Getting <see cref="ModelMetadata.Model"/> will evaluate a compiled version of the original
         /// <see cref="System.Linq.Expressions.Expression"/>.
         /// </remarks>
-        public ModelMetadata Metadata { get; private set; }
+        public ModelMetadata Metadata { get { return ModelExplorer.Metadata; } }
+
+        public object Model { get { return ModelExplorer.Model; } }
+
+        public ModelExplorer ModelExplorer { get; }
     }
 }

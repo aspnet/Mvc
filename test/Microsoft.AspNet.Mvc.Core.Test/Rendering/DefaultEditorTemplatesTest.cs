@@ -102,13 +102,12 @@ namespace Microsoft.AspNet.Mvc.Core
         public void ObjectTemplateDisplaysNullDisplayTextWithNullModelAndTemplateDepthGreaterThanOne()
         {
             // Arrange
-            var html = DefaultTemplatesUtilities.GetHtmlHelper();
-            var metadata =
-                new EmptyModelMetadataProvider()
-                    .GetMetadataForType(null, typeof(DefaultTemplatesUtilities.ObjectTemplateModel));
-            metadata.NullDisplayText = "Null Display Text";
-            metadata.SimpleDisplayText = "Simple Display Text";
-            html.ViewData.ModelMetadata = metadata;
+            var model = (DefaultTemplatesUtilities.ObjectTemplateModel)null;
+            var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
+
+            html.ViewData.ModelMetadata.NullDisplayText = "Null Display Text";
+            html.ViewData.ModelMetadata.SimpleDisplayProperty = "Property1";
+
             html.ViewData.TemplateInfo.AddVisited("foo");
             html.ViewData.TemplateInfo.AddVisited("bar");
 
@@ -116,7 +115,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultEditorTemplates.ObjectTemplate(html);
 
             // Assert
-            Assert.Equal(metadata.NullDisplayText, result);
+            Assert.Equal(html.ViewData.ModelMetadata.NullDisplayText, result);
         }
 
         [Theory]
@@ -127,15 +126,17 @@ namespace Microsoft.AspNet.Mvc.Core
             string expectedResult)
         {
             // Arrange
-            var model = new DefaultTemplatesUtilities.ObjectTemplateModel();
+            var model = new DefaultTemplatesUtilities.ObjectTemplateModel()
+            {
+                Property1 = simpleDisplayText,
+            };
+
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
-            var metadata =
-                new EmptyModelMetadataProvider()
-                    .GetMetadataForType(() => model, typeof(DefaultTemplatesUtilities.ObjectTemplateModel));
-            metadata.HtmlEncode = htmlEncode;
-            metadata.NullDisplayText = "Null Display Text";
-            metadata.SimpleDisplayText = simpleDisplayText;
-            html.ViewData.ModelMetadata = metadata;
+
+            html.ViewData.ModelMetadata.HtmlEncode = htmlEncode;
+            html.ViewData.ModelMetadata.NullDisplayText = "Null Display Text";
+            html.ViewData.ModelMetadata.SimpleDisplayProperty = "Property1";
+
             html.ViewData.TemplateInfo.AddVisited("foo");
             html.ViewData.TemplateInfo.AddVisited("bar");
 
@@ -917,7 +918,7 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
-            public IEnumerable<ModelClientValidationRule> GetClientValidationRules(ModelMetadata metadata, string name)
+            public IEnumerable<ModelClientValidationRule> GetClientValidationRules(ModelExplorer modelExplorer, string name)
             {
                 return Enumerable.Empty<ModelClientValidationRule>();
             }
