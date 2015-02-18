@@ -739,13 +739,14 @@ namespace Microsoft.AspNet.Mvc
             serviceContainer.AddService(typeof(INestedProviderManager<ActionDescriptorProviderContext>),
                                         descriptorProvider);
 
+            context.HttpContext.RequestServices = serviceContainer;
             var actionCollectionDescriptorProvider = new DefaultActionDescriptorsCollectionProvider(serviceContainer, new NullLoggerFactory());
             var decisionTreeProvider = new ActionSelectorDecisionTreeProvider(actionCollectionDescriptorProvider);
 
             var actionConstraintProvider = new NestedProviderManager<ActionConstraintProviderContext>(
                 new INestedProvider<ActionConstraintProviderContext>[]
             {
-                new DefaultActionConstraintProvider(serviceContainer),
+                new DefaultActionConstraintProvider(),
             });
 
             var defaultActionSelector = new DefaultActionSelector(
@@ -831,7 +832,7 @@ namespace Microsoft.AspNet.Mvc
             var actionConstraintProvider = new NestedProviderManager<ActionConstraintProviderContext>(
                 new INestedProvider<ActionConstraintProviderContext>[]
             {
-                new DefaultActionConstraintProvider(new ServiceContainer()),
+                new DefaultActionConstraintProvider(),
                 new BooleanConstraintProvider(),
             });
 
@@ -860,7 +861,7 @@ namespace Microsoft.AspNet.Mvc
             var routeData = new RouteData();
             routeData.Routers.Add(new Mock<IRouter>(MockBehavior.Strict).Object);
 
-            var httpContext = new Mock<HttpContext>(MockBehavior.Strict);
+            var httpContext = new Mock<HttpContext>(MockBehavior.Loose);
 
             var request = new Mock<HttpRequest>(MockBehavior.Strict);
             httpContext.SetupGet(c => c.Request).Returns(request.Object);
