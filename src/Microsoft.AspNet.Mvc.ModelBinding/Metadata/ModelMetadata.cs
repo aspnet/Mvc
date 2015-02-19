@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 using Microsoft.Framework.Internal;
@@ -77,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets or sets the name of the <see cref="Model"/>'s datatype.  Overrides <see cref="ModelType"/> in some
+        /// Gets or sets the name of the Model's datatype. Overrides <see cref="ModelType"/> in some
         /// display scenarios.
         /// </summary>
         /// <value><c>null</c> unless set manually or through additional metadata e.g. attributes.</value>
@@ -87,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         /// <summary>
         /// Gets or sets the composite format <see cref="string"/> (see
-        /// http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to display the <see cref="Model"/>.
+        /// http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to display the Model.
         /// </summary>
         public virtual string DisplayFormatString { get; set; }
 
@@ -95,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         /// <summary>
         /// Gets or sets the composite format <see cref="string"/> (see
-        /// http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to edit the <see cref="Model"/>.
+        /// http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to edit the Model.
         /// </summary>
         /// <remarks>
         /// <see cref="IModelMetadataProvider"/> instances that set this property to a non-<c>null</c>, non-empty,

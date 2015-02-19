@@ -238,7 +238,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string labelText,
             object htmlAttributes)
         {
-            var resolvedLabelText = labelText ?? modelExplorer.Metadata.DisplayName ?? modelExplorer.Metadata.PropertyName;
+            var resolvedLabelText = labelText ?? 
+                modelExplorer.Metadata.DisplayName ?? 
+                modelExplorer.Metadata.PropertyName;
             if (resolvedLabelText == null)
             {
                 resolvedLabelText =
@@ -251,8 +253,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var tagBuilder = new TagBuilder("label");
-            var idString =
-                TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement);
+            var idString = TagBuilder.CreateSanitizedId(
+                GetFullHtmlFieldName(viewContext, expression), 
+                IdAttributeDotReplacement);
             tagBuilder.Attributes.Add("for", idString);
             tagBuilder.SetInnerText(resolvedLabelText);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes), replaceExisting: true);
@@ -732,8 +735,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var validatorProvider = _bindingContextAccessor.Value.ValidatorProvider;
             modelExplorer = modelExplorer ??
                 ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
-            var validationContext =
-                new ClientModelValidationContext(modelExplorer.Metadata, _metadataProvider, viewContext.HttpContext.RequestServices);
+            var validationContext = new ClientModelValidationContext(
+                modelExplorer.Metadata,
+                _metadataProvider,
+                viewContext.HttpContext.RequestServices);
 
             return validatorProvider
                 .GetValidators(modelExplorer.Metadata)

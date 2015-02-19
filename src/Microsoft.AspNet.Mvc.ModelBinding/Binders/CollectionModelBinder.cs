@@ -44,7 +44,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var boundCollection = new List<TElement>();
 
-            var elementMetadata =  bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(typeof(TElement));
+            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
+            var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
@@ -97,7 +98,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                        .Select(i => i.ToString(CultureInfo.InvariantCulture));
             }
 
-            var elementMetadata = bindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(typeof(TElement));
+            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
+            var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
             var boundCollection = new List<TElement>();
             foreach (var indexName in indexNames)

@@ -172,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
 
             // Property name is either nameof(Model.Text) or nameof(NestedModel.Text).
-            var modelExplorer = metadataProvider.GetModelExplorerForType(containerType, modelAccessor).GetProperty("Text");
+            var modelExplorer = metadataProvider.GetModelExplorerForType(containerType, model).GetProperty("Text");
 
             var modelExpression = new ModelExpression(propertyPath, modelExplorer);
             var tagHelper = new LabelTagHelper

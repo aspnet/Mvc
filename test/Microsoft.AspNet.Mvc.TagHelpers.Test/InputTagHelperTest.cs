@@ -624,7 +624,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 htmlGenerator,
                 container: new Model(),
                 containerType: typeof(Model),
-                modelAccessor: () => model,
+                model: model,
                 propertyName: propertyName,
                 expressionName: propertyName);
         }
@@ -660,13 +660,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             IHtmlGenerator htmlGenerator,
             object container,
             Type containerType,
-            Func<object> modelAccessor,
+            object model,
             string propertyName,
             string expressionName)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            var modelExplorer = metadataProvider.GetModelExplorerForType(containerType, modelAccessor).GetProperty(propertyName);
-            var modelExpression = new ModelExpression(expressionName, modelExplorer);
+
+            var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, container);
+            var propertyMetadata = containerExplorer.Metadata.Properties[propertyName];
+            var propertyExplorer = new ModelExplorer(propertyMetadata, model, containerExplorer);
+
+            var modelExpression = new ModelExpression(expressionName, propertyExplorer);
             var viewContext = TestableHtmlGenerator.GetViewContext(container, htmlGenerator, metadataProvider);
             var inputTagHelper = new InputTagHelper
             {
