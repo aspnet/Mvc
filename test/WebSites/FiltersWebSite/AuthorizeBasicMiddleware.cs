@@ -18,9 +18,9 @@ namespace FiltersWebSite
             RequestDelegate next, 
             IServiceProvider services, 
             IOptions<BasicOptions> options,
-            string authType) : 
+            string authScheme) : 
                 base(next, services, options, 
-                    new ConfigureOptions<BasicOptions>(o => o.AuthenticationType = authType) { Name = authType })
+                    new ConfigureOptions<BasicOptions>(o => o.AuthenticationScheme = authScheme) { Name = authScheme })
         {
         }
 

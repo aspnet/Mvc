@@ -25,17 +25,17 @@ namespace FiltersWebSite
                     options.AddPolicy("Impossible", policy => { });
                     options.AddPolicy("Api", policy =>
                     {
-                        policy.ActiveAuthenticationTypes.Add("Api");
+                        policy.ActiveAuthenticationSchemes.Add("Api");
                         policy.RequiresClaim(ClaimTypes.NameIdentifier);
                     });
                     options.AddPolicy("Api-Manager", policy =>
                     {
-                        policy.ActiveAuthenticationTypes.Add("Api");
+                        policy.ActiveAuthenticationSchemes.Add("Api");
                         policy.Requirements.Add(Operations.Edit);
                     });
                     options.AddPolicy("Interactive", policy =>
                     {
-                        policy.ActiveAuthenticationTypes.Add("Interactive");
+                        policy.ActiveAuthenticationSchemes.Add("Interactive");
                         policy.RequiresClaim(ClaimTypes.NameIdentifier)
                               .RequiresClaim("Permission", "CanViewPage");
                     });
@@ -43,8 +43,8 @@ namespace FiltersWebSite
                 services.AddSingleton<RandomNumberFilter>();
                 services.AddSingleton<RandomNumberService>();
                 services.AddTransient<IAuthorizationHandler, ManagerHandler>();
-                services.Configure<BasicOptions>(o => o.AuthenticationType = "Api", "Api");
-                services.Configure<BasicOptions>(o => o.AuthenticationType = "Interactive", "Interactive");
+                services.Configure<BasicOptions>(o => o.AuthenticationScheme = "Api", "Api");
+                services.Configure<BasicOptions>(o => o.AuthenticationScheme = "Interactive", "Interactive");
 
                 services.Configure<MvcOptions>(options =>
                 {
