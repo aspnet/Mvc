@@ -82,8 +82,9 @@ namespace Microsoft.AspNet.Mvc.Xml
                 return;
             }
 
-            foreach (var propertyInfo in modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var propertyHelper in PropertyHelper.GetProperties(modelType))
             {
+                var propertyInfo = propertyHelper.Property;
                 var propertyType = propertyInfo.PropertyType;
 
                 if (propertyType.IsValueType() && !propertyType.IsNullableValueType())
