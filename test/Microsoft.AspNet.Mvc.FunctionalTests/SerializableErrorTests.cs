@@ -20,9 +20,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new XmlFormattersWebSite.Startup().Configure;
 
         [Theory]
-#if !ASPNETCORE50
         [InlineData("application/xml-xmlser")]
-#endif
         [InlineData("application/xml-dcs")]
         public async Task ModelStateErrors_AreSerialized(string acceptHeader)
         {
@@ -31,6 +29,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
             var expectedXml = "<Error><key1>key1-error</key1><key2>The input was not valid.</key2></Error>";
+
+
+            System.Diagnostics.Debugger.Launch();
 
             // Act
             var response = await client.GetAsync("http://localhost/SerializableError/ModelStateErrors");
@@ -45,9 +46,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Theory]
-#if !ASPNETCORE50
         [InlineData("application/xml-xmlser")]
-#endif
         [InlineData("application/xml-dcs")]
         public async Task PostedSerializableError_IsBound(string acceptHeader)
         {
