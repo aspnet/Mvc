@@ -3,14 +3,19 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.Framework.Runtime;
 
 namespace TagHelperSample.Web
 {
     public class TagHelperPrecompilation : RazorPreCompileModule
     {
-        public TagHelperPrecompilation(IServiceProvider provider)
+        public TagHelperPrecompilation(IServiceProvider provider,
+                                       IApplicationEnvironment applicationEnvironment)
             : base(provider)
         {
+            GenerateSymbols = string.Equals(applicationEnvironment.Configuration,
+                                            "debug",
+                                            StringComparison.OrdinalIgnoreCase);
         }
     }
 }

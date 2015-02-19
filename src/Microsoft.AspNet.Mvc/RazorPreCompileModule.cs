@@ -31,6 +31,11 @@ namespace Microsoft.AspNet.Mvc
             _memoryCache = new MemoryCache(new MemoryCacheOptions { ListenForMemoryPressure = false });
         }
 
+        /// <summary>
+        /// Gets or sets a value that determines if symbols (.pdb) file for the precompiled views.
+        /// </summary>
+        public bool GenerateSymbols { get; protected set; }
+
         protected virtual string FileExtension { get; } = ".cshtml";
 
         public virtual void BeforeCompile(IBeforeCompileContext context)
@@ -45,7 +50,10 @@ namespace Microsoft.AspNet.Mvc
             sc.AddMvc();
 
             var serviceProvider = BuildFallbackServiceProvider(sc, _appServices);
-            var viewCompiler = new RazorPreCompiler(serviceProvider, context, _memoryCache, compilationSettings);
+            var viewCompiler = new RazorPreCompiler(serviceProvider, context, _memoryCache, compilationSettings)
+            {
+                GenerateSymbols = GenerateSymbols
+            };
             viewCompiler.CompileViews();
         }
 

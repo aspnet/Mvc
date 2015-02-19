@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -39,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         protected override IEnumerable<TypeInfo> GetExportedTypes([NotNull] AssemblyName assemblyName)
         {
-            var compilingAssemblyName = _compileContext.CSharpCompilation.AssemblyName;
+            var compilingAssemblyName = _compileContext.Compilation.AssemblyName;
             if (string.Equals(assemblyName.Name, compilingAssemblyName, StringComparison.Ordinal))
             {
                 return LazyInitializer.EnsureInitialized(ref _exportedTypeInfos,
@@ -55,11 +56,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             using (var stream = new MemoryStream())
             {
-                var assemblyName = string.Join(".", _compileContext.CSharpCompilation.AssemblyName,
+                var assemblyName = string.Join(".", _compileContext.Compilation.AssemblyName,
                                                     nameof(PrecompilationTagHelperTypeResolver),
                                                     Path.GetRandomFileName());
 
-                var emitResult = _compileContext.CSharpCompilation
+                var emitResult = _compileContext.Compilation
                                                 .WithAssemblyName(assemblyName)
                                                 .Emit(stream);
                 if (!emitResult.Success)

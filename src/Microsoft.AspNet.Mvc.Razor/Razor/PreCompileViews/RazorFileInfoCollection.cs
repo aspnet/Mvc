@@ -29,6 +29,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         public IReadOnlyList<RazorFileInfo> FileInfos { get; protected set; }
 
+        /// <summary>
+        /// Loads the assembly containing precompiled views. 
+        /// </summary>
+        /// <param name="loadContext">The <see cref="IAssemblyLoadContext"/>.</param>
+        /// <returns>The <see cref="Assembly"/> containing precompiled views.</returns>
         public virtual Assembly LoadAssembly(IAssemblyLoadContext loadContext)
         {
             var viewCollectionAssembly = GetType().GetTypeInfo().Assembly;
@@ -37,7 +42,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 if (assemblyStream == null)
                 {
-                    throw new InvalidOperationException("The resource '{0}' specified by '{1}' could not be found.");
+                    var message = Resources.FormatRazorFileInfoCollection_ResourceCouldNotBeFound(AssemblyResourceName,
+                                                                                                  GetType().FullName);
+                    throw new InvalidOperationException(message);
                 }
 
                 Stream symbolsStream = null;

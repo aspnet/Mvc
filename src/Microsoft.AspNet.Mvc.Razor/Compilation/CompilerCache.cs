@@ -25,8 +25,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes a new instance of <see cref="CompilerCache"/> populated with precompiled views
         /// discovered using <paramref name="provider"/>.
         /// </summary>
-        /// <param name="viewsProvider"><see cref="IPrecompiledViewsProvider"/> that provides precompiled
-        /// views.</param>
+        /// <param name="assemblyProvider">The <see cref="IAssemblyProvider"/> that provides assemblies
+        /// for precompiled view discovery.</param>
+        /// <param name="loaderContextAccessor">The <see cref="IAssemblyLoadContextAccessor"/>.</param>
         /// <param name="optionsAccessor">An accessor to the <see cref="RazorViewEngineOptions"/>.</param>
         public CompilerCache(IAssemblyProvider assemblyProvider,
                              IAssemblyLoadContextAccessor loadContextAccessor,
@@ -35,7 +36,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                   loadContextAccessor.GetLoadContext(RazorFileInfoCollectionType.Assembly),
                   optionsAccessor.Options.FileProvider)
         {
-
         }
 
         internal CompilerCache(IEnumerable<RazorFileInfoCollection> razorFileInfoCollections,

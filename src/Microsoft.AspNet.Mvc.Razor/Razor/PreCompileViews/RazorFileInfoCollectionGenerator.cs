@@ -4,6 +4,7 @@
 using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -65,7 +66,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return
 $@"using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc.Razor;
+using System.Reflection;
+using {typeof(RazorFileInfoCollection).Namespace};
 
 namespace __ASP_ASSEMBLY
 {{{{
@@ -75,6 +77,8 @@ namespace __ASP_ASSEMBLY
         {{{{
             {nameof(RazorFileInfoCollection.AssemblyResourceName)} = ""{{0}}"";
             {nameof(RazorFileInfoCollection.SymbolsResourceName)} = ""{{1}}"";
+            var fileInfos = new List<{nameof(RazorFileInfo)}>();
+            {nameof(RazorFileInfoCollection.FileInfos)} = fileInfos;
             {nameof(RazorFileInfo)} info;
 ";
             }
@@ -85,18 +89,18 @@ namespace __ASP_ASSEMBLY
             get
             {
                 return
-    $@"        }}
-    }}
+    $@"        
+        }}
+        private static Assembly _loadedAssembly;
 
-    private static Assembly _loadedAssembly;
-
-    public override Assembly LoadAssembly(IAssemblyLoadContext loadContext)
-    {{
-         if (_loadedAssembly == null)
-         {{
-            _loadedAssembly = base.LoadAssembly(loadContext);
-         }}
-         return _loadedAssembly;   
+        public override Assembly LoadAssembly({typeof(IAssemblyLoadContext).FullName} loadContext)
+        {{
+             if (_loadedAssembly == null)
+             {{
+                _loadedAssembly = base.LoadAssembly(loadContext);
+             }}
+             return _loadedAssembly;   
+        }}
     }}
 }}
 ";
@@ -120,7 +124,7 @@ namespace __ASP_ASSEMBLY
                 {nameof(RazorFileInfo.Hash)} = ""{{4}}"",
                 {nameof(RazorFileInfo.HashAlgorithmVersion)} = {{5}},
             }}}};
-            {nameof(RazorFileInfoCollection.FileInfos)}.Add(info);
+            fileInfos.Add(info);
 ";
                 }
 

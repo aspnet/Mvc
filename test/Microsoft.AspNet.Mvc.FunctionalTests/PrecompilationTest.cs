@@ -62,9 +62,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
                 // Assert - 2
                 var response2 = new ParsedResponse(responseContent);
-                Assert.DoesNotContain(assemblyNamePrefix, response2.Layout);
                 Assert.StartsWith(assemblyNamePrefix, response2.ViewStart);
                 Assert.StartsWith(assemblyNamePrefix, response2.Index);
+                Assert.DoesNotContain(assemblyNamePrefix, response2.Layout);
 
                 // Act - 3
                 // Touch the _ViewStart file and verify it is is dynamically compiled.
@@ -74,8 +74,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Assert - 3
                 var response3 = new ParsedResponse(responseContent);
                 Assert.NotEqual(assemblyNamePrefix, response3.ViewStart);
-                Assert.NotEqual(assemblyNamePrefix, response3.Index);
-                Assert.NotEqual(response2.Layout, response3.Layout);
+                Assert.Equal(response2.Index, response3.Index);
+                Assert.Equal(response2.Layout, response3.Layout);
 
                 // Act - 4
                 // Touch the _GlobalImport file and verify it causes all files to recompile.

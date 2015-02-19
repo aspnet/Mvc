@@ -617,7 +617,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Match_ReturnsTrue_IfTypeDerivesFromRazorFileInfoCollection()
         {
             // Arrange
-            var type = typeof(SubTypeRazorFileInfoCollection);
+            var type = typeof(ViewCollection);
 
             // Act
             var result = CompilerCache.Match(type);
@@ -625,25 +625,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Assert
             Assert.True(result);
         }
-
-        private static PrecompiledViewInfo GetDefaultViewInfo()
-        {
-            var content = new PreCompile().Content;
-            var length = Encoding.UTF8.GetByteCount(content);
-
-            var fileInfo = new RazorFileInfo
-            {
-                FullTypeName = typeof(PreCompile).FullName,
-                Hash = Crc32.Calculate(GetMemoryStream(content)).ToString(CultureInfo.InvariantCulture),
-                HashAlgorithmVersion = 1,
-                LastModified = DateTime.FromFileTimeUtc(10000),
-                Length = length,
-                RelativePath = ViewPath,
-            };
-
-            return new PrecompiledViewInfo(fileInfo, typeof(PreCompile));
-        }
-
 
         private abstract class AbstractRazorFileInfoCollection : RazorFileInfoCollection
         {
@@ -663,11 +644,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         private class NonSubTypeRazorFileInfoCollection : Controller
-        {
-
-        }
-
-        private class SubTypeRazorFileInfoCollection : RazorFileInfoCollection
         {
 
         }

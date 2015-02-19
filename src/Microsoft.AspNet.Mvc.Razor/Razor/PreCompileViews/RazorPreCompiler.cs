@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -53,6 +54,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             PreCompilationCache = precompilationCache;
             TagHelperTypeResolver = new PrecompilationTagHelperTypeResolver(CompileContext, LoadContext);
         }
+
+        /// <summary>
+        /// Gets or sets a value that determines if symbols (.pdb) file for the precompiled views.
+        /// </summary>
+        public bool GenerateSymbols { get; set; }
 
         protected IBeforeCompileContext CompileContext { get; }
 
@@ -136,14 +142,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             [NotNull] IEnumerable<SyntaxTree> syntaxTrees,
             [NotNull] IEnumerable<RazorFileInfo> razorFileInfos)
         {
-            var resourcePrefix = string.Join(".", CompileContext.CSharpCompilation.AssemblyName,
+            var resourcePrefix = string.Join(".", CompileContext.Compilation.AssemblyName,
                                                   nameof(RazorPreCompiler),
                                                   Path.GetRandomFileName());
             var assemblyResourceName = resourcePrefix + ".dll";
 
 
-            var applicationReference = CompileContext.CSharpCompilation.ToMetadataReference();
-            var references = CompileContext.CSharpCompilation.References
+            var applicationReference = CompileContext.Compilation.ToMetadataReference();
+            var references = CompileContext.Compilation.References
                                                              .Concat(new[] { applicationReference });
 
             var preCompilationOptions = CompilationSettings.CompilationOptions
@@ -154,10 +160,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                                                        syntaxTrees: syntaxTrees,
                                                        references: references);
 
-            var supportsPdbGeneration = SymbolsUtility.SupportsSymbolsGeneration();
+            var generateSymbols = GenerateSymbols && SymbolsUtility.SupportsSymbolsGeneration();
             // These streams are returned to the runtime and consequently cannot be disposed.
             var assemblyStream = new MemoryStream();
-            var pdbStream = supportsPdbGeneration ? new MemoryStream() : null;
+            var pdbStream = generateSymbols ? new MemoryStream() : null;
             var emitResult = compilation.Emit(assemblyStream, pdbStream);
             if (!emitResult.Success)
             {
