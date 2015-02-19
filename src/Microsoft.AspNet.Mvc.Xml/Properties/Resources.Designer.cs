@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// Value type property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
+        /// DataContractSerializer does not recognize 'System.ComponentModel.DataAnnotations.RequiredAttribute', so instead use 'System.Runtime.Serialization.DataMemberAttribute' with 'IsRequired' set to 'True' for value type property '{0}' on type '{1}'.
         /// </summary>
         internal static string RequiredProperty_MustHaveDataMemberRequired
         {
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// Value type property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
+        /// DataContractSerializer does not recognize 'System.ComponentModel.DataAnnotations.RequiredAttribute', so instead use 'System.Runtime.Serialization.DataMemberAttribute' with 'IsRequired' set to 'True' for value type property '{0}' on type '{1}'.
         /// </summary>
         internal static string FormatRequiredProperty_MustHaveDataMemberRequired(object p0, object p1)
         {

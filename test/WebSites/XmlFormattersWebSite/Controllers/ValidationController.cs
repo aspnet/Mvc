@@ -21,6 +21,9 @@ namespace XmlFormattersWebSite
             });
         }
 
+        // Cannot use 'SerializableError' here as 'RequiredAttribute' validation errors are added as exceptions
+        // into the model state dictionary and 'SerializableError' sanitizes exceptions with generic error message.
+        // Since the tests need to verify the messages, we are doing the following.
         private List<string> GetModelStateErrorMessages(ModelStateDictionary modelStateDictionary)
         {
             var allErrorMessages = new List<string>();
@@ -43,7 +46,6 @@ namespace XmlFormattersWebSite
                         else
                         {
                             errorMessage = modelError.ErrorMessage;
-
                         }
 
                         if (errorMessage != null)

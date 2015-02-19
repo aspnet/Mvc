@@ -11,13 +11,13 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Xml
 {
-
-
-
-
     /// <summary>
     /// Validates types having value type properties decorated with <see cref="RequiredAttribute"/>
     /// but no <see cref="DataMemberAttribute"/>.
+    /// <see cref="JsonInputFormatter"/> supports <see cref="RequiredAttribute"/> where as the xml formatters
+    /// do not. Since a user's aplication can have both Json and Xml formatters, a request could be validated
+    /// when posted as Json but not Xml. So to prevent end users from having a false sense of security when posting
+    /// as Xml, we add errors to model-state to at least let the users know that there is a problem with their models.
     /// </summary>
     public class DataAnnotationRequiredAttributeValidation
     {
@@ -62,9 +62,13 @@ namespace Microsoft.AspNet.Mvc.Xml
             {
                 foreach (var validationErrorMessage in validationError.Value)
                 {
+                    // Add error message to model state as exception to avoid
+                    // disclosing details to end user as SerializableError sanitizes the
+                    // model state errors having exceptions with a generic message when sending
+                    // it to the client.
                     modelStateDictionary.TryAddModelError(
                         validationError.Key.FullName,
-                        validationErrorMessage);
+                        new InvalidOperationException(validationErrorMessage));
                 }
             }
         }
@@ -74,6 +78,10 @@ namespace Microsoft.AspNet.Mvc.Xml
             HashSet<Type> visitedTypes,
             Dictionary<Type, List<string>> errors)
         {
+            // Need not handle Key-Value pair specially here (for example, when the model type is Dictionary<,>
+            // which implements IEnumerable<KeyValuePair<TKey, TValue>>) as the model type here would be 
+            // KeyValuePair<TKey, TValue> where TKey and TValue are public properties which would also 
+            // be probed for Required attribute validation.
             if (modelType.IsGenericType())
             {
                 var enumerableOfT = modelType.ExtractGenericInterface(typeof(IEnumerable<>));
@@ -110,15 +118,10 @@ namespace Microsoft.AspNet.Mvc.Xml
                 var propertyInfo = propertyHelper.Property;
                 var propertyType = propertyInfo.PropertyType;
 
+                // Since DefaultObjectValidator can handle Required attribute validation for reference types,
+                // we only consider value types here.
                 if (propertyType.IsValueType() && !propertyType.IsNullableValueType())
                 {
-                    // Scenarios:
-                    // a. [Required]
-                    //    public int Id { get; set;}
-                    // b. [Required]
-                    //    public Point Coordinate { get; set;}
-                    // c. public int Id { get; set;}
-                    // d. public Point Coordinate { get; set;}
                     var validationError = GetValidationError(propertyInfo);
                     if (validationError != null)
                     {
