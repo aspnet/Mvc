@@ -121,7 +121,7 @@
     <value>The type must be an interface and must be or derive from '{0}'.</value>
   </data>
   <data name="RequiredProperty_MustHaveDataMemberRequired" xml:space="preserve">
-    <value>Property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.</value>
+    <value>Value type property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.</value>
   </data>
   <data name="WrapperProvider_MismatchType" xml:space="preserve">
     <value>The object to be wrapped must be of type '{0}' but was of type '{1}'.</value>

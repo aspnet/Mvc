@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// Property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
+        /// Value type property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
         /// </summary>
         internal static string RequiredProperty_MustHaveDataMemberRequired
         {
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// Property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
+        /// Value type property '{0}' on type '{1}' has RequiredAttribute but no DataMember(IsRequired = true) attribute.
         /// </summary>
         internal static string FormatRequiredProperty_MustHaveDataMemberRequired(object p0, object p1)
         {

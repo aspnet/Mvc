@@ -11,13 +11,17 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.Xml
 {
+
+
+
+
     /// <summary>
     /// Validates types having value type properties decorated with <see cref="RequiredAttribute"/>
     /// but no <see cref="DataMemberAttribute"/>.
     /// </summary>
     public class DataAnnotationRequiredAttributeValidation
     {
-        private ConcurrentDictionary<Type, Dictionary<Type, List<string>>> cachedValidationErrors
+        private ConcurrentDictionary<Type, Dictionary<Type, List<string>>> _cachedValidationErrors
             = new ConcurrentDictionary<Type, Dictionary<Type, List<string>>>();
 
         public void Validate([NotNull] Type modelType, [NotNull] ModelStateDictionary modelStateDictionary)
@@ -27,10 +31,29 @@ namespace Microsoft.AspNet.Mvc.Xml
             // Every node maintains a dictionary of Type => Errors. 
             // It's a dictionary as we want to avoid adding duplicate error messages.
             // Example:
-            // Type 'Store' has properties of type 'Address' and list of 'Employee'.
-            // 'Employee' type also has a property of type 'Address'.
-            // In this case the validation errors from the perspective of the type 'Store'
-            // should not have duplicate errors for 'Address'.
+            // In the following case, from the perspective of type 'Store', we should not see duplicate
+            // errors related to type 'Address'
+            // public class Store
+            // {
+            //    [Required]
+            //    public int Id { get; set; }
+            //    public Address Address { get; set; }
+            // }
+            // public class Employee
+            // {
+            //    [Required]
+            //    public int Id { get; set; }
+            //    public Address Address { get; set; }
+            // }
+            // public class Address
+            // {
+            //    [Required]
+            //    public string Line1 { get; set; }
+            //    [Required]
+            //    public int Zipcode { get; set; }
+            //    [Required]
+            //    public string State { get; set; }
+            // }
             var rootNodeValidationErrors = new Dictionary<Type, List<string>>();
 
             Validate(modelType, visitedTypes, rootNodeValidationErrors);
@@ -72,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             }
 
             Dictionary<Type, List<string>> cachedErrors;
-            if (cachedValidationErrors.TryGetValue(modelType, out cachedErrors))
+            if (_cachedValidationErrors.TryGetValue(modelType, out cachedErrors))
             {
                 foreach (var validationError in cachedErrors)
                 {
@@ -132,7 +155,7 @@ namespace Microsoft.AspNet.Mvc.Xml
                 }
             }
 
-            cachedValidationErrors.TryAdd(modelType, errors);
+            _cachedValidationErrors.TryAdd(modelType, errors);
 
             visitedTypes.Remove(modelType);
         }

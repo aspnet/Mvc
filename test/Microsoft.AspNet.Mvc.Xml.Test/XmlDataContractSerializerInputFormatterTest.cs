@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             public TestLevelOne TestOne { get; set; }
         }
 
-        private const string requiredErrorMessageFormat = "Property '{0}' on type '{1}' has" +
+        private const string requiredErrorMessageFormat = "Value type property '{0}' on type '{1}' has" +
                                     " RequiredAttribute but no DataMember(IsRequired = true) attribute.";
 
         [Theory]
