@@ -188,9 +188,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             var provider = new DataAnnotationsModelValidatorProvider();
             var model = new ObservableModel();
-            var metadata = _metadataProvider.GetMetadataForProperty(typeof(ObservableModel), "TheProperty");
 
-            var modelExplorer = new ModelExplorer(metadata, model);
+            var modelExplorer = _metadataProvider
+                .GetModelExplorerForType(typeof(ObservableModel), model)
+                .GetExplorerForProperty("TheProperty");
+
             var context = new ModelValidationContext(
                 rootPrefix: null, 
                 validatorProvider: null, 
@@ -198,7 +200,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 modelExplorer: modelExplorer);
 
             // Act
-            var validators = provider.GetValidators(metadata).ToArray();
+            var validators = provider.GetValidators(modelExplorer.Metadata).ToArray();
             var results = validators.SelectMany(o => o.Validate(context)).ToArray();
 
             // Assert

@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             if (modelExplorer.Metadata.SimpleDisplayProperty != null)
             {
-                var propertyExplorer = modelExplorer.GetProperty(modelExplorer.Metadata.SimpleDisplayProperty);
+                var propertyExplorer = modelExplorer.GetExplorerForProperty(modelExplorer.Metadata.SimpleDisplayProperty);
                 if (propertyExplorer?.Model != null)
                 {
                     return propertyExplorer.Model.ToString();
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return string.Empty;
             }
 
-            var firstPropertyExplorer = modelExplorer.GetProperty(firstProperty.PropertyName);
+            var firstPropertyExplorer = modelExplorer.GetExplorerForProperty(firstProperty.PropertyName);
             if (firstPropertyExplorer.Model == null)
             {
                 return firstProperty.NullDisplayText;

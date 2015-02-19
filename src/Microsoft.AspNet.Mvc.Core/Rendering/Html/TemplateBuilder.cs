@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             _readOnly = readOnly;
             _additionalViewData = additionalViewData;
 
-            _model = _modelExplorer.Model;
+            _model = modelExplorer.Model;
             _metadata = modelExplorer.Metadata;
         }
 
@@ -69,10 +69,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return string.Empty;
             }
 
-            // DOUGHELP
-            var viewData = new ViewDataDictionary(_viewData, model: null)
+            // We need to copy the ModelExplorer to copy the model metadata. Otherwise we might
+            // lose track of the model type/property.
+            var viewData = new ViewDataDictionary(_viewData)
             {
-                ModelExplorer = new ModelExplorer(_modelExplorer.Metadata, _model, _modelExplorer.Container),
+                ModelExplorer = _modelExplorer,
             };
 
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;

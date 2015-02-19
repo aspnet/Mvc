@@ -538,7 +538,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var modelExplorer = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
             if (value != null)
             {
-                modelExplorer = new ModelExplorer(modelExplorer.Metadata, value, modelExplorer.Container);
+                modelExplorer = modelExplorer.GetExplorerForExpression(typeof(string), value);
             }
 
             return GenerateTextArea(modelExplorer, expression, rows, columns, htmlAttributes);

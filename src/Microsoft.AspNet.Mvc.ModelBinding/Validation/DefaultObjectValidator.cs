@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             foreach (var property in modelExplorer.Metadata.Properties)
             {
-                var propertyExplorer = modelExplorer.GetProperty(property.PropertyName);
+                var propertyExplorer = modelExplorer.GetExplorerForProperty(property.PropertyName);
 
                 var propertyBindingName = propertyExplorer.Metadata.BinderModelName ?? propertyExplorer.Metadata.PropertyName;
                 var childKey = ModelBindingHelper.CreatePropertyModelName(currentModelKey, propertyBindingName);
@@ -195,7 +195,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // If it's null, then a shallow validation will be performed.
                 if (element != null || anyValidatorsDefined)
                 {
-                    var elementExplorer = new ModelExplorer(elementMetadata, element);
+                    var elementExplorer = new ModelExplorer(_modelMetadataProvider, elementMetadata, element);
                     var elementKey = ModelBindingHelper.CreateIndexModelName(currentKey, index);
                     if (!ValidateNonVisitedNodeAndChildren(elementKey, elementExplorer, validationContext, validators))
                     {

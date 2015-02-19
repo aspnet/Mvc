@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Core;
@@ -56,11 +57,11 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             }
 
             var container = viewData.Model;
-            Func<object> modelAccessor = () =>
+            Func<object, object> modelAccessor = (c) =>
             {
                 try
                 {
-                    return CachedExpressionCompiler.Process(expression)(container);
+                    return CachedExpressionCompiler.Process(expression)((TModel)c);
                 }
                 catch (NullReferenceException)
                 {
@@ -68,18 +69,31 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 }
             };
 
-            return GetModelExplorerFromProvider(
-                modelAccessor,
-                typeof(TValue),
-                propertyName,
-                container,
-                containerType,
-                metadataProvider);
+            ModelMetadata metadata;
+            if (propertyName == null)
+            {
+                // Ex: 
+                //    m => 5 (arbitrary expression)
+                //    m => foo (arbitrary expression)
+                //    m => m.Widgets[0] (expression ending with non-property-access)
+                metadata = metadataProvider.GetMetadataForType(typeof(TValue));
+            }
+            else
+            {
+                // Ex: 
+                //    m => m.Color (simple property access)
+                //    m => m.Color.Red (nested property access)
+                //    m => m.Widgets[0].Size (expression ending with property-access)
+                metadata = metadataProvider.GetMetadataForType(containerType).Properties[propertyName];
+            }
+
+            return viewData.ModelExplorer.GetExplorerForExpression(metadata, modelAccessor);
         }
 
-        public static ModelExplorer FromStringExpression(string expression,
-                                                         [NotNull] ViewDataDictionary viewData,
-                                                         IModelMetadataProvider metadataProvider)
+        public static ModelExplorer FromStringExpression(
+            string expression,
+            [NotNull] ViewDataDictionary viewData,
+            IModelMetadataProvider metadataProvider)
         {
             if (string.IsNullOrEmpty(expression))
             {
@@ -88,49 +102,49 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             }
 
             var viewDataInfo = ViewDataEvaluator.Eval(viewData, expression);
-            Type containerType = null;
-            Type modelType = null;
-            Func<object> modelAccessor = null;
-            string propertyName = null;
-            object container = null;
 
-            if (viewDataInfo != null)
-            {
-                if (viewDataInfo.Container != null)
-                {
-                    containerType = viewDataInfo.Container.GetType();
-                    container = viewDataInfo.Container;
-                }
-
-                modelAccessor = () => viewDataInfo.Value;
-
-                if (viewDataInfo.PropertyInfo != null)
-                {
-                    propertyName = viewDataInfo.PropertyInfo.Name;
-                    modelType = viewDataInfo.PropertyInfo.PropertyType;
-                }
-                else if (viewDataInfo.Value != null)
-                {
-                    // We only need to delay accessing properties (for LINQ to SQL)
-                    modelType = viewDataInfo.Value.GetType();
-                }
-            }
-            else
+            if (viewDataInfo == null)
             {
                 //  Try getting a property from ModelMetadata if we couldn't find an answer in ViewData
-                var propertyExplorer = viewData.ModelExplorer.GetProperty(expression);
+                var propertyExplorer = viewData.ModelExplorer.GetExplorerForProperty(expression);
                 if (propertyExplorer != null)
                 {
                     return propertyExplorer;
                 }
             }
 
-            return GetModelExplorerFromProvider(modelAccessor,
-                                           modelType ?? typeof(string),
-                                           propertyName,
-                                           container,
-                                           containerType,
-                                           metadataProvider);
+            if (viewDataInfo != null)
+            {
+                Func<object, object> modelAccessor = (ignore) => viewDataInfo.Value;
+
+                ModelExplorer containerExplorer = viewData.ModelExplorer;
+                if (viewDataInfo.Container != null)
+                {
+                    containerExplorer = metadataProvider.GetModelExplorerForType(
+                        viewDataInfo.Container.GetType(), 
+                        viewDataInfo.Container);
+                }
+
+                if (viewDataInfo.PropertyInfo != null)
+                {
+                    // We've identified a property access, which provides us with accurate metadata.
+                    var containerType = viewDataInfo.Container?.GetType() ?? viewDataInfo.PropertyInfo.DeclaringType;
+                    var containerMetadata = metadataProvider.GetMetadataForType(viewDataInfo.Container.GetType());
+                    var propertyMetadata = containerMetadata.Properties[viewDataInfo.PropertyInfo.Name];
+
+                    return containerExplorer.GetExplorerForExpression(propertyMetadata, modelAccessor);
+                }
+                else if (viewDataInfo.Value != null)
+                {
+                    // We have a value, even though we may not know where it came from.
+                    var valueMetadata = metadataProvider.GetMetadataForType(viewDataInfo.Value.GetType());
+                    return containerExplorer.GetExplorerForExpression(valueMetadata, modelAccessor);
+                }
+            }
+
+            // Treat the expression as string if we don't find anything better.
+            var stringMetadata = metadataProvider.GetMetadataForType(typeof(string));
+            return viewData.ModelExplorer.GetExplorerForExpression(stringMetadata, modelAccessor: null);
         }
 
         private static ModelExplorer FromModel(
@@ -140,35 +154,13 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             if (viewData.ModelMetadata.ModelType == typeof(object))
             {
                 // Use common simple type rather than object so e.g. Editor() at least generates a TextBox.
+                var model = viewData.Model == null ? null : Convert.ToString(viewData.Model, CultureInfo.CurrentCulture);
                 return metadataProvider.GetModelExplorerForType(typeof(string), null);
             }
             else
             {
                 return viewData.ModelExplorer;
             }
-        }
-
-        // An IModelMetadataProvider is not required unless this method is called. Therefore other methods in this
-        // class lack [NotNull] attributes for their corresponding parameter.
-        private static ModelExplorer GetModelExplorerFromProvider(
-            Func<object> modelAccessor,
-            Type modelType,
-            string propertyName,
-            object container,
-            Type containerType,
-            [NotNull] IModelMetadataProvider metadataProvider)
-        {
-            if (containerType != null && !string.IsNullOrEmpty(propertyName))
-            {
-                // DOUGHELP
-                var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, container);
-                return new ModelExplorer(
-                    containerExplorer.Metadata.Properties[propertyName],
-                    modelAccessor,
-                    containerExplorer);
-            }
-
-            return metadataProvider.GetModelExplorerForType(modelType, modelAccessor);
         }
     }
 }

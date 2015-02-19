@@ -374,10 +374,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // We want to provide the 'null' value, not the value of model.Property,
                 // so avoiding modelExplorer.GetProperty here which would call the actual getter on the
                 // model. This avoids issues with value types, or properties with pre-initialized values.
-                var propertyExplorer = new ModelExplorer(
-                    modelExplorer.Metadata.Properties[missingRequiredProperty], 
-                    model: null,
-                    container: modelExplorer);
+                var propertyExplorer = modelExplorer.GetExplorerForProperty(missingRequiredProperty, model: null);
 
                 var propertyName = propertyExplorer.Metadata.BinderModelName ?? missingRequiredProperty;
                 var modelStateKey = ModelBindingHelper.CreatePropertyModelName(
@@ -457,7 +454,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     if (requiredValidator != null)
                     {
-                        var propertyExplorer = new ModelExplorer(propertyMetadata, null, modelExplorer);
+                        var propertyExplorer = modelExplorer.GetExplorerForExpression(propertyMetadata, model: null);
                         var validationContext = new ModelValidationContext(bindingContext, propertyExplorer);
                         foreach (var validationResult in requiredValidator.Validate(validationContext))
                         {

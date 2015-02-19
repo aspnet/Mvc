@@ -267,11 +267,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private static ModelExpression CreateModelExpression(string name)
         {
+            var modelMetadataProvider = new Mock<IModelMetadataProvider>().Object;
             return new ModelExpression(
                 name,
                 new ModelExplorer(
+                    modelMetadataProvider,
                     new ModelMetadata(
-                        new Mock<IModelMetadataProvider>().Object,
+                        modelMetadataProvider,
                         containerType: null,
                         modelType: typeof(object),
                         propertyName: string.Empty),

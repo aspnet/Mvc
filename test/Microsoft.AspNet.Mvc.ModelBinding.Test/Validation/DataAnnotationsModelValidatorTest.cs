@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 yield return new object[]
                 {
-                    _metadataProvider.GetModelExplorerForType(typeof(string), "Hello").GetProperty("Length"),
+                    _metadataProvider.GetModelExplorerForType(typeof(string), "Hello").GetExplorerForProperty("Length"),
                     "Length"
                 };
 
@@ -85,7 +85,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void ValidateWithIsValidTrue()
         {
             // Arrange
-            var modelExplorer = _metadataProvider.GetModelExplorerForType(typeof(string), 15).GetProperty("Length");
+            var modelExplorer = _metadataProvider
+                .GetModelExplorerForType(typeof(string), "Hello")
+                .GetExplorerForProperty("Length");
 
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Setup(a => a.IsValid(modelExplorer.Model)).Returns(true);
@@ -104,7 +106,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void ValidateWithIsValidFalse()
         {
             // Arrange
-            var modelExplorer = _metadataProvider.GetModelExplorerForType(typeof(string), "Hello").GetProperty("Length");
+            var modelExplorer = _metadataProvider
+                .GetModelExplorerForType(typeof(string), "Hello")
+                .GetExplorerForProperty("Length");
 
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Setup(a => a.IsValid(modelExplorer.Model)).Returns(false);
@@ -125,7 +129,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void ValidatateWithValidationResultSuccess()
         {
             // Arrange
-            var modelExplorer = _metadataProvider.GetModelExplorerForType(typeof(string), "Hello").GetProperty("Length");
+            var modelExplorer = _metadataProvider
+                .GetModelExplorerForType(typeof(string), "Hello")
+                .GetExplorerForProperty("Length");
+
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
@@ -146,7 +153,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Arrange
             const string errorMessage = "Some error message";
 
-            var modelExplorer = _metadataProvider.GetModelExplorerForType(typeof(string), "Hello").GetProperty("Length");
+            var modelExplorer = _metadataProvider
+                .GetModelExplorerForType(typeof(string), "Hello")
+                .GetExplorerForProperty("Length");
 
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Protected()

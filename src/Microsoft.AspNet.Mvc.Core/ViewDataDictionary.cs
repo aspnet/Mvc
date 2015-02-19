@@ -349,7 +349,8 @@ namespace Microsoft.AspNet.Mvc
             }
             else
             {
-                ModelExplorer = new ModelExplorer(ModelMetadata, value, ModelExplorer.Container);
+                // The metadata matches, but it's a new value.
+                ModelExplorer = new ModelExplorer(_metadataProvider, ModelExplorer.Container, ModelMetadata, value);
             }
         }
 

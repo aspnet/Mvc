@@ -668,7 +668,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, container);
             var propertyMetadata = containerExplorer.Metadata.Properties[propertyName];
-            var propertyExplorer = new ModelExplorer(propertyMetadata, model, containerExplorer);
+            var propertyExplorer = containerExplorer.GetExplorerForProperty(propertyName, model);
 
             var modelExpression = new ModelExpression(expressionName, propertyExplorer);
             var viewContext = TestableHtmlGenerator.GetViewContext(container, htmlGenerator, metadataProvider);

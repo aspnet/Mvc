@@ -12,56 +12,50 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class ModelExplorer
     {
+        private readonly IModelMetadataProvider _metadataProvider;
+
         private object _model;
-        private Func<object> _modelAccessor;
+        private Func<object, object> _modelAccessor;
         private Type _modelType;
 
         /// <summary>
         /// Creates a new <see cref="ModelExplorer"/>.
         /// </summary>
+        /// <param name="metadataProvider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="metadata">The <see cref="ModelMetadata"/>.</param>
         /// <param name="model">The model object. May be <c>null</c>.</param>
-        public ModelExplorer([NotNull] ModelMetadata metadata, object model)
+        public ModelExplorer(
+            [NotNull] IModelMetadataProvider metadataProvider, 
+            [NotNull] ModelMetadata metadata, 
+            object model)
         {
+            _metadataProvider = metadataProvider;
             Metadata = metadata;
-            Model = model;
+            _model = model;
         }
 
-        /// <summary>
-        /// Creates a new <see cref="ModelExplorer"/>.
-        /// </summary>
-        /// <param name="metadata">The <see cref="ModelMetadata"/>.</param>
-        /// <param name="modelAccessor">An accessor for the model object. May be <c>null</c>.</param>
-        public ModelExplorer([NotNull] ModelMetadata metadata, Func<object> modelAccessor)
+        public ModelExplorer(
+            IModelMetadataProvider metadataProvider,
+            [NotNull] ModelExplorer container,
+            [NotNull] ModelMetadata metadata,
+            Func<object, object> modelAccessor)
         {
+            _metadataProvider = metadataProvider;
+            Container = container;
             Metadata = metadata;
             _modelAccessor = modelAccessor;
         }
 
-        /// <summary>
-        /// Creates a new <see cref="ModelExplorer"/>.
-        /// </summary>
-        /// <param name="metadata">The <see cref="ModelMetadata"/>.</param>
-        /// <param name="model">An accessor for the model object. May be <c>null</c>.</param>
-        /// <param name="container">A container <see cref="ModelExplorer"/>. May be <c>null</c>.</param>
-        public ModelExplorer([NotNull] ModelMetadata metadata, object model, ModelExplorer container)
+        public ModelExplorer(
+            IModelMetadataProvider metadataProvider,
+            [NotNull] ModelExplorer container,
+            [NotNull] ModelMetadata metadata,
+            object model)
         {
-            Metadata = metadata;
-            Model = model;
+            _metadataProvider = metadataProvider;
             Container = container;
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ModelExplorer"/>.
-        /// </summary>
-        /// <param name="metadata">The <see cref="ModelMetadata"/>.</param>
-        /// <param name="modelAccessor">An accessor for the model object. May be <c>null</c>.</param>
-        /// <param name="container">A container <see cref="ModelExplorer"/>. May be <c>null</c>.</param>
-        public ModelExplorer([NotNull] ModelMetadata metadata, Func<object> modelAccessor, ModelExplorer container)
-        {
             Metadata = metadata;
-            _modelAccessor = modelAccessor;
-            Container = container;
+            _model = model;
         }
 
         /// <summary>
@@ -69,8 +63,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <remarks>
         /// The <see cref="Container"/> will most commonly be set as a result of calling
-        /// <see cref="GetProperty(string)"/>. In this case, the returned <see cref="ModelExplorer"/> will
-        /// have it's <see cref="Container"/> set to the instance upon which <see cref="GetProperty(string)"/>
+        /// <see cref="GetExplorerForProperty(string)"/>. In this case, the returned <see cref="ModelExplorer"/> will
+        /// have it's <see cref="Container"/> set to the instance upon which <see cref="GetExplorerForProperty(string)"/>
         /// was called.
         /// 
         /// This however is not a requirement. The <see cref="Container"/> is informational, and may not
@@ -101,50 +95,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 if (_model == null && _modelAccessor != null)
                 {
-                    _model = _modelAccessor();
+                    Debug.Assert(Container != null);
+                    _model = _modelAccessor(Container.Model);
 
                     // Null-out the accessor so we don't invoke it repeatedly if it returns null.
                     _modelAccessor = null;
                 }
 
                 return _model;
-            }
-
-            private set
-            {
-                Debug.Assert(_modelAccessor == null);
-                _model = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets a <see cref="ModelExplorer"/> for the property, or <c>null</c> if the property cannot be
-        /// found.
-        /// </summary>
-        /// <param name="name">The property name.</param>
-        /// <returns>A <see cref="ModelExplorer"/>, or <c>null</c>.</returns>
-        public ModelExplorer GetProperty(string name)
-        {
-            var propertyMetadata = Metadata.Properties[name];
-            if (propertyMetadata == null)
-            {
-                return null;
-            }
-
-            if (Model == null)
-            {
-                return new ModelExplorer(propertyMetadata, model: null, container: this);
-            }
-            else
-            {
-                var propertyHelper = PropertyHelper.GetProperties(Model.GetType()).Where(p => p.Name == name).FirstOrDefault();
-                if (propertyHelper == null)
-                {
-                    return new ModelExplorer(propertyMetadata, model: null, container: this);
-                }
-
-                var accessor = PropertyHelper.MakeFastPropertyGetter(propertyHelper.Property);
-                return new ModelExplorer(propertyMetadata, model: accessor(Model), container: this);
             }
         }
 
@@ -180,6 +138,117 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 return _modelType;
             }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ModelExplorer"/> for the property, or <c>null</c> if the property cannot be
+        /// found.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <returns>A <see cref="ModelExplorer"/>, or <c>null</c>.</returns>
+        public ModelExplorer GetExplorerForProperty([NotNull] string name)
+        {
+            // We want to make sure we're looking at the runtime properties of the model, and for
+            // that we need the model metadata of the runtime type.
+            var metadata = Metadata;
+            if (Metadata.ModelType != ModelType)
+            {
+                metadata = _metadataProvider.GetMetadataForType(ModelType);
+            }
+
+            var propertyMetadata = metadata.Properties[name];
+            if (propertyMetadata == null)
+            {
+                return null;
+            }
+
+            var propertyHelper = PropertyHelper.GetProperties(ModelType)
+                .Where(p => p.Name == name)
+                .FirstOrDefault();
+            if (propertyHelper == null)
+            {
+                return new ModelExplorer(_metadataProvider, Container, propertyMetadata, modelAccessor: null);
+            }
+
+            var modelAccessor = new Func<object, object>((c) =>
+            {
+                return c == null ? null : propertyHelper.GetValue(c);
+            });
+            return new ModelExplorer(_metadataProvider, this, propertyMetadata, modelAccessor);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ModelExplorer"/> for the property, or <c>null</c> if the property cannot be
+        /// found.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <param name="modelAccessor">An accessor for the model value.</param>
+        /// <returns>A <see cref="ModelExplorer"/>, or <c>null</c>.</returns>
+        public ModelExplorer GetExplorerForProperty([NotNull] string name, Func<object, object> modelAccessor)
+        {
+            // We want to make sure we're looking at the runtime properties of the model, and for
+            // that we need the model metadata of the runtime type.
+            var metadata = Metadata;
+            if (Metadata.ModelType != ModelType)
+            {
+                metadata = _metadataProvider.GetMetadataForType(ModelType);
+            }
+
+            var propertyMetadata = metadata.Properties[name];
+            if (propertyMetadata == null)
+            {
+                return null;
+            }
+
+            return new ModelExplorer(_metadataProvider, this, propertyMetadata, modelAccessor);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ModelExplorer"/> for the property, or <c>null</c> if the property cannot be
+        /// found.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <param name="modelAccessor">An accessor for the model value.</param>
+        /// <returns>A <see cref="ModelExplorer"/>, or <c>null</c>.</returns>
+        public ModelExplorer GetExplorerForProperty([NotNull] string name, object model)
+        {
+            // We want to make sure we're looking at the runtime properties of the model, and for
+            // that we need the model metadata of the runtime type.
+            var metadata = Metadata;
+            if (Metadata.ModelType != ModelType)
+            {
+                metadata = _metadataProvider.GetMetadataForType(ModelType);
+            }
+
+            var propertyMetadata = metadata.Properties[name];
+            if (propertyMetadata == null)
+            {
+                return null;
+            }
+
+            return new ModelExplorer(_metadataProvider, this, propertyMetadata, model);
+        }
+
+        public ModelExplorer GetExplorerForExpression([NotNull] Type modelType, object model)
+        {
+            var metadata = _metadataProvider.GetMetadataForType(modelType);
+            return GetExplorerForExpression(metadata, model);
+        }
+
+        public ModelExplorer GetExplorerForExpression([NotNull] ModelMetadata metadata, object model)
+        {
+            return new ModelExplorer(_metadataProvider, this, metadata, model);
+        }
+
+        public ModelExplorer GetExplorerForExpression([NotNull] Type modelType, Func<object, object> modelAccessor)
+        {
+            var metadata = _metadataProvider.GetMetadataForType(modelType);
+            return GetExplorerForExpression(metadata, modelAccessor);
+        }
+
+        public ModelExplorer GetExplorerForExpression([NotNull] ModelMetadata metadata, Func<object, object> modelAccessor)
+        {
+            return new ModelExplorer(_metadataProvider, this, metadata, modelAccessor);
         }
     }
 }

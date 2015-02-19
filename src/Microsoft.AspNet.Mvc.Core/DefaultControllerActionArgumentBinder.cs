@@ -101,12 +101,14 @@ namespace Microsoft.AspNet.Mvc
                 var modelBindingResult = await bindingContext.ModelBinder.BindModelAsync(modelBindingContext);
                 if (modelBindingResult != null && modelBindingResult.IsModelSet)
                 {
+                    var modelExplorer = new ModelExplorer(_modelMetadataProvider, parameter, modelBindingResult.Model);
+
                     arguments[parameter.PropertyName] = modelBindingResult.Model;
                     var validationContext = new ModelValidationContext(
                         modelBindingResult.Key,
                         bindingContext.ValidatorProvider,
                         actionContext.ModelState,
-                        new ModelExplorer(parameter, modelBindingResult.Model));
+                        modelExplorer);
                     _validator.Validate(validationContext);
                 }
             }

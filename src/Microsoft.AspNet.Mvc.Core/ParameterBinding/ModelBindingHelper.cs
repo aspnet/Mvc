@@ -275,7 +275,7 @@ namespace Microsoft.AspNet.Mvc
             var modelBindingResult = await modelBinder.BindModelAsync(modelBindingContext);
             if (modelBindingResult != null)
             {
-                var modelExplorer = new ModelExplorer(modelMetadata, modelBindingResult.Model);
+                var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, modelBindingResult.Model);
                 var modelValidationContext = new ModelValidationContext(modelBindingContext, modelExplorer);
                 modelValidationContext.RootPrefix = prefix;
                 objectModelValidator.Validate(modelValidationContext);

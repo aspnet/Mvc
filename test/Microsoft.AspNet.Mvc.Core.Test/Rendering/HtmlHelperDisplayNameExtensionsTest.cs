@@ -86,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var modelExplorer = provider.GetModelExplorerForType(
                 typeof(DefaultTemplatesUtilities.ObjectTemplateModel),
                 model: null)
-                .GetProperty("Property1");
+                .GetExplorerForProperty("Property1");
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
             helper.ViewData.ModelExplorer = modelExplorer;

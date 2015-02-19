@@ -67,14 +67,15 @@ namespace Microsoft.AspNet.Mvc.Core
         public void LabelHelpers_ReturnEmptyForModel_IfMetadataPropertyNameEmpty()
         {
             // Arrange
+            var provider = new DataAnnotationsModelMetadataProvider();
             var metadata = new ModelMetadata(
-                new DataAnnotationsModelMetadataProvider(),
+                provider,
                 containerType: null,
                 modelType: typeof(object),
                 propertyName: string.Empty);
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
-            helper.ViewData.ModelExplorer = new ModelExplorer(metadata, model: null);
+            helper.ViewData.ModelExplorer = new ModelExplorer(provider, metadata, model: null);
 
             // Act
             var labelResult = helper.Label(expression: string.Empty);
@@ -95,14 +96,15 @@ namespace Microsoft.AspNet.Mvc.Core
         public void LabelHelpers_DisplayMetadataPropertyName_IfOverridden(string propertyName)
         {
             // Arrange
+            var provider = new DataAnnotationsModelMetadataProvider();
             var metadata = new ModelMetadata(
-                new DataAnnotationsModelMetadataProvider(),
+                provider,
                 containerType: null,
                 modelType: typeof(string), // Ensure FromStringExpression() doesn't ignore the ModelMetadata.
                 propertyName: propertyName);
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
-            helper.ViewData.ModelExplorer = new ModelExplorer(metadata, model: null);
+            helper.ViewData.ModelExplorer = new ModelExplorer(provider, metadata, model: null);
 
             // Act
             var labelResult = helper.Label(expression: string.Empty);
@@ -125,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             var modelExplorer = provider
                 .GetModelExplorerForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel), model: null)
-                .GetProperty("Property1");
+                .GetExplorerForProperty(propertyName);
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
             helper.ViewData.ModelExplorer = modelExplorer;
@@ -185,7 +187,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             var modelExplorer = provider
                 .GetModelExplorerForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel), model: null)
-                .GetProperty("Property1");
+                .GetExplorerForProperty("Property1");
 
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
             helper.ViewData.ModelExplorer = modelExplorer;

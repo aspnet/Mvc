@@ -24,24 +24,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             object model)
         {
             var modelMetadata = provider.GetMetadataForType(modelType);
-            return new ModelExplorer(modelMetadata, model);
-        }
-
-        /// <summary>
-        /// Gets a <see cref="ModelExplorer"/> for the provided <paramref name="modelType"/> and
-        /// <paramref name="model"/>.
-        /// </summary>
-        /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
-        /// <param name="modelType">The declared <see cref="Type"/> of the model object.</param>
-        /// <param name="modelAccessor">An accessor function for the object.</param>
-        /// <returns></returns>
-        public static ModelExplorer GetModelExplorerForType(
-            [NotNull] this IModelMetadataProvider provider,
-            [NotNull] Type modelType,
-            Func<object> modelAccessor)
-        {
-            var modelMetadata = provider.GetMetadataForType(modelType);
-            return new ModelExplorer(modelMetadata, modelAccessor);
+            return new ModelExplorer(provider, modelMetadata, model);
         }
     }
 }

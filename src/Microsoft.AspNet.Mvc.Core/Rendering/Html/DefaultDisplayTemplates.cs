@@ -227,7 +227,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             foreach (var propertyMetadata in modelExplorer.Metadata.Properties)
             {
-                var propertyExplorer = modelExplorer.GetProperty(propertyMetadata.PropertyName);
+                var propertyExplorer = modelExplorer.GetExplorerForProperty(propertyMetadata.PropertyName);
                 if (!ShouldShow(propertyExplorer, templateInfo))
                 {
                     continue;
