@@ -33,6 +33,12 @@ namespace ValidationWebSite.Controllers
             // passed model.
             ModelState.ClearValidationState("theImpossibleString");
 
+            //Verifying that CompanyName property value came as "X" and ModelState does not contain an entry for it
+            if (!string.Equals(product.CompanyName,"X") || ModelState.ContainsKey("CompanyName"))
+            {
+                return null;
+            }
+
             TryValidateModel(product);
 
             return CreateValidationDictionary();

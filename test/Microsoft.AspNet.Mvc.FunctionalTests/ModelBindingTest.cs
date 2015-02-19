@@ -1153,9 +1153,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(new[] {
                     "The field Year must be between 1980 and 2034.",
                     "Year is invalid"
-                    }, modelStateErrors["model.Year"]);
+                    }, modelStateErrors["Year"]);
 
-            var vinError = Assert.Single(modelStateErrors["model.Vin"]);
+            var vinError = Assert.Single(modelStateErrors["Vin"]);
             Assert.Equal("The Vin field is required.", vinError);
         }
 
@@ -1188,7 +1188,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var modelStateErrors = JsonConvert.DeserializeObject<IDictionary<string, IEnumerable<string>>>(body);
 
             var item = Assert.Single(modelStateErrors);
-            Assert.Equal("model.InspectedDates", item.Key);
+            Assert.Equal("InspectedDates", item.Key);
             var error = Assert.Single(item.Value);
             Assert.Equal("Inspection date cannot be later than year of manufacture.", error);
         }

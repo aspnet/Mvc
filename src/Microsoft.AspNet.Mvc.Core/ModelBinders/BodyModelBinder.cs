@@ -60,6 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return new ModelBindingResult(null, bindingContext.ModelName, isModelSet: false);
             }
 
+<<<<<<< HEAD
             object model = null;
             try
             {
@@ -73,6 +74,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return new ModelBindingResult(model, bindingContext.ModelName, isModelSet: true);
+=======
+            var model = await formatter.ReadAsync(formatterContext);
+            return new ModelBindingResult(model, string.Empty, isModelSet: true);
+>>>>>>> Fixed the issue and the tests
         }
 
         private object GetDefaultValueForType(Type modelType)
