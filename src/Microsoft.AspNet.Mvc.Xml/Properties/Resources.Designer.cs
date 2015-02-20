@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// DataContractSerializer does not recognize 'System.ComponentModel.DataAnnotations.RequiredAttribute', so instead use 'System.Runtime.Serialization.DataMemberAttribute' with 'IsRequired' set to 'True' for value type property '{0}' on type '{1}'.
+        /// DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' set to 'True' for value type property '{2}' on type '{3}'.
         /// </summary>
         internal static string RequiredProperty_MustHaveDataMemberRequired
         {
@@ -35,11 +35,11 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         /// <summary>
-        /// DataContractSerializer does not recognize 'System.ComponentModel.DataAnnotations.RequiredAttribute', so instead use 'System.Runtime.Serialization.DataMemberAttribute' with 'IsRequired' set to 'True' for value type property '{0}' on type '{1}'.
+        /// DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' set to 'True' for value type property '{2}' on type '{3}'.
         /// </summary>
-        internal static string FormatRequiredProperty_MustHaveDataMemberRequired(object p0, object p1)
+        internal static string FormatRequiredProperty_MustHaveDataMemberRequired(object p0, object p1, object p2, object p3)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("RequiredProperty_MustHaveDataMemberRequired"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("RequiredProperty_MustHaveDataMemberRequired"), p0, p1, p2, p3);
         }
 
         /// <summary>

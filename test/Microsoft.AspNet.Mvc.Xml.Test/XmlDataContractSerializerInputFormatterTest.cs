@@ -53,10 +53,11 @@ namespace Microsoft.AspNet.Mvc.Xml
             public TestLevelOne TestOne { get; set; }
         }
 
-        private const string requiredErrorMessageFormat = "DataContractSerializer does not recognize " +
-            "'System.ComponentModel.DataAnnotations.RequiredAttribute', so instead use 'System.Runtime." +
-            "Serialization.DataMemberAttribute' with 'IsRequired' set to 'True' for value type " +
-            "property '{0}' on type '{1}'.";
+        private readonly string requiredErrorMessageFormat = string.Format(
+            "DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' set to 'True'" +
+            " for value type property '{{0}}' on type '{{1}}'.",
+            typeof(RequiredAttribute).FullName,
+            typeof(DataMemberAttribute).FullName);
 
         [Theory]
         [InlineData("application/xml", true)]
@@ -488,7 +489,8 @@ namespace Microsoft.AspNet.Mvc.Xml
             var input = "<?xml version=\"1.0\" encoding=\"utf-8\"?><ArrayOfAddress " +
                         "xmlns=\"http://schemas.datacontract.org/2004/07/Microsoft.AspNet.Mvc.Xml\" " +
                         "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-                        "<Address><IsResidential>true</IsResidential><Zipcode>98052</Zipcode></Address></ArrayOfAddress>";
+                        "<Address><IsResidential>true</IsResidential><Zipcode>98052" +
+                        "</Zipcode></Address></ArrayOfAddress>";
             var formatter = new XmlDataContractSerializerInputFormatter();
             var contentBytes = Encodings.UTF8EncodingWithoutBOM.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(List<Address>));
@@ -509,9 +511,11 @@ namespace Microsoft.AspNet.Mvc.Xml
                 expectedErrorMessages: new[]
                 {
                         string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
-                        string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                        string.Format(
+                            requiredErrorMessageFormat, 
+                            nameof(Address.IsResidential), 
+                            typeof(Address).FullName)
                 });
-
         }
 
         [Fact]
@@ -541,7 +545,10 @@ namespace Microsoft.AspNet.Mvc.Xml
                 expectedErrorMessages: new[]
                 {
                         string.Format(requiredErrorMessageFormat, nameof(Address.Zipcode), typeof(Address).FullName),
-                        string.Format(requiredErrorMessageFormat, nameof(Address.IsResidential), typeof(Address).FullName)
+                        string.Format(
+                            requiredErrorMessageFormat, 
+                            nameof(Address.IsResidential), 
+                            typeof(Address).FullName)
                 });
         }
 

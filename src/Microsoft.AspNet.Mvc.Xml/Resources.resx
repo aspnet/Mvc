@@ -121,7 +121,7 @@
     <value>The type must be an interface and must be or derive from '{0}'.</value>
   </data>
   <data name="RequiredProperty_MustHaveDataMemberRequired" xml:space="preserve">
-    <value>DataContractSerializer does not recognize 'System.ComponentModel.DataAnnotations.RequiredAttribute', so instead use 'System.Runtime.Serialization.DataMemberAttribute' with 'IsRequired' set to 'True' for value type property '{0}' on type '{1}'.</value>
+    <value>DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' set to 'True' for value type property '{2}' on type '{3}'.</value>
   </data>
   <data name="WrapperProvider_MismatchType" xml:space="preserve">
     <value>The object to be wrapped must be of type '{0}' but was of type '{1}'.</value>

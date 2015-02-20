@@ -14,11 +14,13 @@ namespace Microsoft.AspNet.Mvc.Xml
     /// <summary>
     /// Validates types having value type properties decorated with <see cref="RequiredAttribute"/>
     /// but no <see cref="DataMemberAttribute"/>.
+    /// </summary>
+    /// <remarks>
     /// <see cref="JsonInputFormatter"/> supports <see cref="RequiredAttribute"/> where as the xml formatters
     /// do not. Since a user's aplication can have both Json and Xml formatters, a request could be validated
     /// when posted as Json but not Xml. So to prevent end users from having a false sense of security when posting
     /// as Xml, we add errors to model-state to at least let the users know that there is a problem with their models.
-    /// </summary>
+    /// </remarks>
     public class DataAnnotationRequiredAttributeValidation
     {
         private ConcurrentDictionary<Type, Dictionary<Type, List<string>>> _cachedValidationErrors
@@ -78,10 +80,10 @@ namespace Microsoft.AspNet.Mvc.Xml
             HashSet<Type> visitedTypes,
             Dictionary<Type, List<string>> errors)
         {
-            // Need not handle Key-Value pair specially here (for example, when the model type is Dictionary<,>
-            // which implements IEnumerable<KeyValuePair<TKey, TValue>>) as the model type here would be 
-            // KeyValuePair<TKey, TValue> where TKey and TValue are public properties which would also 
-            // be probed for Required attribute validation.
+            // We don't need to code special handling for KeyValuePair (for example, when the model type 
+            // is Dictionary<,> which implements IEnumerable<KeyValuePair<TKey, TValue>>) as the model 
+            // type here would be KeyValuePair<TKey, TValue> where Key and Value are public properties
+            // which would also be probed for Required attribute validation.
             if (modelType.IsGenericType())
             {
                 var enumerableOfT = modelType.ExtractGenericInterface(typeof(IEnumerable<>));
@@ -126,15 +128,17 @@ namespace Microsoft.AspNet.Mvc.Xml
                     if (validationError != null)
                     {
                         List<string> errorMessages;
-                        if (!errors.TryGetValue(validationError.Value.ModelType, out errorMessages))
+                        if (!errors.TryGetValue(validationError.ModelType, out errorMessages))
                         {
                             errorMessages = new List<string>();
-                            errors.Add(validationError.Value.ModelType, errorMessages);
+                            errors.Add(validationError.ModelType, errorMessages);
                         }
 
                         errorMessages.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
-                                        validationError.Value.PropertyName,
-                                        validationError.Value.ModelType.FullName));
+                            typeof(RequiredAttribute).FullName,
+                            typeof(DataMemberAttribute).FullName,
+                            validationError.PropertyName, 
+                            validationError.ModelType.FullName));
                     }
                     
                     // if the type is not primitve, then it could be a struct in which case
@@ -163,7 +167,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             visitedTypes.Remove(modelType);
         }
 
-        private ValidationError? GetValidationError(PropertyInfo propertyInfo)
+        private ValidationError GetValidationError(PropertyInfo propertyInfo)
         {
             var required = propertyInfo.GetCustomAttribute(typeof(RequiredAttribute), inherit: true);
             if (required == null)
@@ -199,7 +203,7 @@ namespace Microsoft.AspNet.Mvc.Xml
                             modelType.Equals(typeof(Uri));
         }
 
-        private struct ValidationError
+        private class ValidationError
         {
             public Type ModelType { get; set; }
 

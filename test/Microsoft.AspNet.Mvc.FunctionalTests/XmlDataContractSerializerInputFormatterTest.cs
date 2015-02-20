@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -20,6 +21,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(XmlFormattersWebSite));
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
+        private readonly string errorMessageFormat = string.Format(
+            "{{1}}:DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' " +
+            "set to 'True' for value type property '{{0}}' on type '{{1}}'.",
+            typeof(RequiredAttribute).FullName,
+            typeof(DataMemberAttribute).FullName);
 
         // Verifies that even though all the required data is posted to an action, the model
         // state has errors related to value types's Required attribute validation.
@@ -32,19 +38,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml-dcs"));
             var input = "<Store xmlns=\"http://schemas.datacontract.org/2004/07/XmlFormattersWebSite\" " +
                         "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Address><State>WA</State><Zipcode>" +
-                        "98052</Zipcode></Address><Customers><Customer><Address><State>WI</State><Zipcode>70383" +
-                        "</Zipcode></Address><Id>1000</Id></Customer></Customers><Id>10</Id></Store>";
+                        "98052</Zipcode></Address><Id>10</Id></Store>";
             var content = new StringContent(input, Encoding.UTF8, "application/xml-dcs");
             var propertiesCollection = new List<KeyValuePair<string, string>>();
             propertiesCollection.Add(new KeyValuePair<string, string>(nameof(Store.Id), typeof(Store).FullName));
             propertiesCollection.Add(new KeyValuePair<string, string>(nameof(Address.Zipcode), typeof(Address).FullName));
-            propertiesCollection.Add(new KeyValuePair<string, string>(nameof(Customer.Id), typeof(Customer).FullName));
             var expectedErrorMessages = propertiesCollection.Select(kvp =>
             {
-                return string.Format(
-                    "{1}:Value type property '{0}' on type '{1}' has RequiredAttribute but " +
-                    "no DataMember(IsRequired = true) attribute.", 
-                    kvp.Key, kvp.Value);
+                return string.Format(errorMessageFormat, kvp.Key, kvp.Value);
             });
 
             // Act
@@ -60,11 +61,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.NotNull(modelBindingInfo.Store.Address);
             Assert.Equal(98052, modelBindingInfo.Store.Address.Zipcode);
             Assert.Equal("WA", modelBindingInfo.Store.Address.State);
-            Assert.NotNull(modelBindingInfo.Store.Customers);
-            Assert.Equal(1, modelBindingInfo.Store.Customers.Count);
-            Assert.Equal(1000, modelBindingInfo.Store.Customers[0].Id);
-            Assert.Equal("WI", modelBindingInfo.Store.Customers[0].Address.State);
-            Assert.Equal(70383, modelBindingInfo.Store.Customers[0].Address.Zipcode);
             Assert.NotNull(modelBindingInfo.ModelStateErrorMessages);
             Assert.Equal(expectedErrorMessages.Count(), modelBindingInfo.ModelStateErrorMessages.Count);
             foreach (var expectedErrorMessage in expectedErrorMessages)
@@ -85,23 +81,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml-dcs"));
             var input = "<Store xmlns=\"http://schemas.datacontract.org/2004/07/XmlFormattersWebSite\"" +
-                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><Address><State i:nil=\"true\"/>" +
-                        "<Zipcode>98052</Zipcode></Address><Customers><Customer><Address i:nil=\"true\"/><Id>1000" +
-                        "</Id></Customer></Customers><Id>10</Id></Store>";
+                        " xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                        "<Address i:nil=\"true\"/><Id>10</Id></Store>";
             var content = new StringContent(input, Encoding.UTF8, "application/xml-dcs");
             var propertiesCollection = new List<KeyValuePair<string, string>>();
             propertiesCollection.Add(new KeyValuePair<string, string>(nameof(Store.Id), typeof(Store).FullName));
             propertiesCollection.Add(new KeyValuePair<string, string>(nameof(Address.Zipcode), typeof(Address).FullName));
-            propertiesCollection.Add(new KeyValuePair<string, string>(nameof(Customer.Id), typeof(Customer).FullName));
             var expectedErrorMessages = propertiesCollection.Select(kvp =>
             {
-                return string.Format(
-                    "{1}:Value type property '{0}' on type '{1}' has RequiredAttribute but " +
-                    "no DataMember(IsRequired = true) attribute.",
-                    kvp.Key, kvp.Value);
+                return string.Format(errorMessageFormat, kvp.Key, kvp.Value);
             }).ToList();
-            expectedErrorMessages.Add("store.Address.State:The State field is required.");
-            expectedErrorMessages.Add("store.Customers[0].Address:The Address field is required.");
+            expectedErrorMessages.Add("store.Address:The Address field is required.");
 
             // Act
             var response = await client.PostAsync("http://localhost/Validation/CreateStore", content);
@@ -113,13 +103,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.NotNull(modelBindingInfo);
             Assert.NotNull(modelBindingInfo.Store);
             Assert.Equal(10, modelBindingInfo.Store.Id);
-            Assert.NotNull(modelBindingInfo.Store.Address);
-            Assert.Equal(98052, modelBindingInfo.Store.Address.Zipcode);
-            Assert.Null(modelBindingInfo.Store.Address.State);
-            Assert.NotNull(modelBindingInfo.Store.Customers);
-            Assert.Equal(1, modelBindingInfo.Store.Customers.Count);
-            Assert.Equal(1000, modelBindingInfo.Store.Customers[0].Id);
-            Assert.Null(modelBindingInfo.Store.Customers[0].Address);
             Assert.NotNull(modelBindingInfo.ModelStateErrorMessages);
             Assert.Equal(expectedErrorMessages.Count(), modelBindingInfo.ModelStateErrorMessages.Count);
             foreach (var expectedErrorMessage in expectedErrorMessages)

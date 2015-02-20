@@ -11,8 +11,7 @@ namespace XmlFormattersWebSite
         [Required]
         public int Id { get; set; }
 
-        public List<Customer> Customers { get; set; }
-
+        [Required]
         public Address Address { get; set; }
     }
 }
