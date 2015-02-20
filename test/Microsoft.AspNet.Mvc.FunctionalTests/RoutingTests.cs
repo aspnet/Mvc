@@ -1372,6 +1372,30 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [Theory]
+        [InlineData("LowercaseUrls_Blog/Generatelink", "/api/employee/getemployee/marykae?LastName=McDonald")]
+        [InlineData("LowercaseUrls_Blog/ShowPosts", "/lowercaseurls_blog/showposts")]
+        [InlineData("LowercaseUrls_Blog/edit/BlogPost", "/lowercaseurls_blog/edit/blogpost")]
+        [InlineData("Api/Employee/List", "/api/employee/list")]
+        [InlineData("Api/Employee/GetEmployee/JohnDoe", "/api/employee/getemployee/johndoe")]
+        public async Task GenerateLowerCaseUrlsTests(string path, string expectedUrl)
+        {
+            // Arrange
+            var services = TestHelper.CreateServices("LowercaseUrlsWebSite");
+            Action<IApplicationBuilder> app = new LowercaseUrlsWebSite.Startup().Configure;
+            var server = TestServer.Create(services, app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/" + path);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedUrl, body);
+        }
+
         private static LinkBuilder LinkFrom(string url)
         {
             return new LinkBuilder(url);
