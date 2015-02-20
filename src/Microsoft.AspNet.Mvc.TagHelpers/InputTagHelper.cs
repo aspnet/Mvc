@@ -206,7 +206,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     // special-case, output is a self-closing element and can merge the TagBuilder in directly.
                     output.MergeAttributes(tagBuilder);
                     output.Content += tagBuilder.InnerHtml;
-                    output.SelfClosing = true;
                 }
             }
         }
@@ -240,7 +239,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // Do not generate current element's attributes or tags. Instead put both <input type="checkbox"/> and
                 // <input type="hidden"/> into the output's Content.
                 output.Attributes.Clear();
-                output.SelfClosing = false; // Otherwise Content will be ignored.
                 output.TagName = null;
 
                 output.Content += tagBuilder.ToString(TagRenderMode.SelfClosing);

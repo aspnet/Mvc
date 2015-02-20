@@ -281,11 +281,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -366,11 +366,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -450,11 +450,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -548,11 +548,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
