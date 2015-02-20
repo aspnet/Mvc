@@ -249,9 +249,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var serviceProvider = htmlHelper.ViewContext.HttpContext.RequestServices;
             var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
 
-            foreach (var propertyMetadata in modelExplorer.Metadata.Properties)
+            foreach (var propertyExplorer in modelExplorer.Properties)
             {
-                var propertyExplorer = modelExplorer.GetExplorerForProperty(propertyMetadata.PropertyName);
+                var propertyMetadata = propertyExplorer.Metadata;
                 if (!ShouldShow(propertyExplorer, templateInfo))
                 {
                     continue;

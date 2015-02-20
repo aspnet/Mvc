@@ -34,7 +34,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <summary>
         /// Metadata about the <see cref="System.Linq.Expressions.Expression"/> of interest.
         /// </summary>
-        public ModelMetadata Metadata { get { return ModelExplorer.Metadata; } }
+        public ModelMetadata Metadata
+        {
+            get
+            {
+                return ModelExplorer.Metadata;
+            }
+        }
 
         /// <summary>
         /// Gets the model object for the <see cref="System.Linq.Expressions.Expression"/> of interest.
@@ -43,7 +49,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Getting <see cref="Model"/> will evaluate a compiled version of the original
         /// <see cref="System.Linq.Expressions.Expression"/>.
         /// </remarks>
-        public object Model { get { return ModelExplorer.Model; } }
+        public object Model
+        {
+            get
+            {
+                return ModelExplorer.Model;
+            }
+        }
 
         /// <summary>
         /// Gets the model explorer for the <see cref="System.Linq.Expressions.Expression"/> of interest.

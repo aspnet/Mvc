@@ -253,9 +253,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var tagBuilder = new TagBuilder("label");
-            var idString = TagBuilder.CreateSanitizedId(
-                GetFullHtmlFieldName(viewContext, expression), 
-                IdAttributeDotReplacement);
+            var idString = 
+                TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement);
             tagBuilder.Attributes.Add("for", idString);
             tagBuilder.SetInnerText(resolvedLabelText);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes), replaceExisting: true);

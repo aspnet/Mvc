@@ -33,12 +33,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private int _order;
         private bool _showForDisplay;
         private bool _showForEdit;
+        private string _simpleDisplayProperty;
         private string _templateHint;
         private IBinderMetadata _binderMetadata;
         private string _binderModelName;
         private IPropertyBindingPredicateProvider _propertyBindingPredicateProvider;
         private Type _binderType;
-        private string _simpleDisplayProperty;
 
         private bool _convertEmptyStringToNullComputed;
         private bool _dataTypeNameComputed;
@@ -57,12 +57,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private bool _orderComputed;
         private bool _showForDisplayComputed;
         private bool _showForEditComputed;
+        private bool _simpleDisplayPropertyComputed;
         private bool _templateHintComputed;
         private bool _isBinderMetadataComputed;
         private bool _isBinderModelNameComputed;
         private bool _isBinderTypeComputed;
         private bool _propertyBindingPredicateProviderComputed;
-        private bool _simpleDisplayPropertyComputed;
 
         // Constructor for creating real instances of the metadata class based on a prototype
         protected CachedModelMetadata(CachedModelMetadata<TPrototypeCache> prototype)

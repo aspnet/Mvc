@@ -26,5 +26,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelMetadata = provider.GetMetadataForType(modelType);
             return new ModelExplorer(provider, modelMetadata, model);
         }
+
+        /// <summary>
+        /// Gets a <see cref="ModelMetadata"/> for property identified by the provided
+        /// <paramref name="containerType"/> and <paramref name="propertyName"/>.
+        /// </summary>
+        /// <param name="provider">The <see cref="ModelMetadata"/>.</param>
+        /// <param name="containerType">The <see cref="Type"/> for which the property is defined.</param>
+        /// <param name="propertyName">The property name.</param>
+        /// <returns>A <see cref="ModelMetadata"/> for the property.</returns>
+        public static ModelMetadata GetMetadataForProperty(
+            [NotNull] this IModelMetadataProvider provider,
+            [NotNull] Type containerType,
+            [NotNull] string propertyName)
+        {
+            var containerMetadata = provider.GetMetadataForType(containerType);
+            return containerMetadata.Properties[propertyName];
+        }
     }
 }

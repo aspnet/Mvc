@@ -71,10 +71,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // We need to copy the ModelExplorer to copy the model metadata. Otherwise we might
             // lose track of the model type/property.
-            var viewData = new ViewDataDictionary(_viewData)
-            {
-                ModelExplorer = _modelExplorer,
-            };
+            var viewData = new ViewDataDictionary(_viewData);
+
+            // We're setting these properties in order to preserve the model metadata of the original
+            // _viewData even though _model may be null.
+            viewData.ModelExplorer = _modelExplorer;
+            viewData.Model = _model;
 
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;
             viewData.TemplateInfo.HtmlFieldPrefix = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName);

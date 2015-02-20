@@ -187,10 +187,13 @@ namespace Microsoft.AspNet.Mvc
             var modelType = GetModelType(model);
             if (modelType == source.ModelMetadata.ModelType && model == source.ModelExplorer.Model)
             {
+                // Preserve any customizations made to source.ModelExplorer.ModelMetadata if the Type
+                // that will be calculated in SetModel() and source.Model match new instance's values.
                 ModelExplorer = source.ModelExplorer;
             }
             else if (model == null)
             {
+                // Ensure ModelMetadata is never null though SetModel() isn't called below.
                 ModelExplorer = _metadataProvider.GetModelExplorerForType(_declaredModelType, model: null);
             }
 
@@ -239,7 +242,13 @@ namespace Microsoft.AspNet.Mvc
         /// Value is never <c>null</c> but may describe the <see cref="object"/> class in some cases. This may for
         /// example occur in controllers if <see cref="Model"/> is <c>null</c>.
         /// </remarks>
-        public ModelMetadata ModelMetadata { get { return ModelExplorer.Metadata; } }
+        public ModelMetadata ModelMetadata
+        {
+            get
+            {
+                return ModelExplorer.Metadata;
+            }
+        }
 
         public ModelExplorer ModelExplorer { get; set; }
 

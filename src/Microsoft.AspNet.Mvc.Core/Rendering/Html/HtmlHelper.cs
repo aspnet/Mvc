@@ -538,7 +538,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var modelExplorer = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
             if (value != null)
             {
-                modelExplorer = modelExplorer.GetExplorerForExpression(typeof(string), value);
+                // As a special case we allow treating a string value as a model of arbitrary type.
+                // So pass through the string representation, even though the modelmetadata might
+                // be for some other type.
+                modelExplorer = new ModelExplorer(
+                    MetadataProvider,
+                    modelExplorer.Container,
+                    modelExplorer.Metadata,
+                    value);
             }
 
             return GenerateTextArea(modelExplorer, expression, rows, columns, htmlAttributes);

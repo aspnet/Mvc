@@ -102,8 +102,7 @@ namespace Microsoft.AspNet.Mvc.Core
         public void ObjectTemplateDisplaysNullDisplayTextWithNullModelAndTemplateDepthGreaterThanOne()
         {
             // Arrange
-            var model = (DefaultTemplatesUtilities.ObjectTemplateModel)null;
-            var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
+            var html = DefaultTemplatesUtilities.GetHtmlHelper();
 
             html.ViewData.ModelMetadata.NullDisplayText = "Null Display Text";
             html.ViewData.ModelMetadata.SimpleDisplayProperty = "Property1";
@@ -918,7 +917,9 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
-            public IEnumerable<ModelClientValidationRule> GetClientValidationRules(ModelExplorer modelExplorer, string name)
+            public IEnumerable<ModelClientValidationRule> GetClientValidationRules(
+                ModelExplorer modelExplorer, 
+                string name)
             {
                 return Enumerable.Empty<ModelClientValidationRule>();
             }

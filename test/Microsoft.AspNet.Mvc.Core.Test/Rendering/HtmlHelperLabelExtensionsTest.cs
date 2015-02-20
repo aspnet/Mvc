@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Xunit;
@@ -90,35 +89,8 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Empty(labelForModelResult.ToString());
         }
 
-        [Theory]
-        [InlineData("MyProperty")]
-        [InlineData("Custom property name from metadata")]
-        public void LabelHelpers_DisplayMetadataPropertyName_IfOverridden(string propertyName)
-        {
-            // Arrange
-            var provider = new DataAnnotationsModelMetadataProvider();
-            var metadata = new ModelMetadata(
-                provider,
-                containerType: null,
-                modelType: typeof(string), // Ensure FromStringExpression() doesn't ignore the ModelMetadata.
-                propertyName: propertyName);
-
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper();
-            helper.ViewData.ModelExplorer = new ModelExplorer(provider, metadata, model: null);
-
-            // Act
-            var labelResult = helper.Label(expression: string.Empty);
-            var labelForResult = helper.LabelFor(m => m);
-            var labelForModelResult = helper.LabelForModel();
-
-            // Assert
-            Assert.Equal("<label for=\"\">" + propertyName + "</label>", labelResult.ToString());
-            Assert.Equal("<label for=\"\">" + propertyName + "</label>", labelForResult.ToString());
-            Assert.Equal("<label for=\"\">" + propertyName + "</label>", labelForModelResult.ToString());
-        }
-
         [Fact]
-        public void LabelHelpers_DisplayMetadataPropertyNameForProperty_IfOverridden()
+        public void LabelHelpers_DisplayMetadataPropertyNameForProperty()
         {
             // Arrange
             var propertyName = "Property1";
@@ -133,10 +105,29 @@ namespace Microsoft.AspNet.Mvc.Core
             helper.ViewData.ModelExplorer = modelExplorer;
 
             // Act
-            var labelForResult = helper.LabelFor(m => m.Property1);
+            var labelResult = helper.Label(expression: string.Empty);
+            var labelForResult = helper.LabelFor(m => m);
+            var labelForModelResult = helper.LabelForModel();
 
             // Assert
-            Assert.Equal("<label for=\"Property1\">" + propertyName + "</label>", labelForResult.ToString());
+            Assert.Equal("<label for=\"\">" + propertyName + "</label>", labelResult.ToString());
+            Assert.Equal("<label for=\"\">" + propertyName + "</label>", labelForResult.ToString());
+            Assert.Equal("<label for=\"\">" + propertyName + "</label>", labelForModelResult.ToString());
+        }
+
+        // If the metadata is for a type (not property), then Label(expression) will evaluate the expression
+        [Fact]
+        public void LabelHelpers_Label_Evaluates_Expression()
+        {
+            // Arrange
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper();
+            helper.ViewData["value"] = "testvalue";
+
+            // Act
+            var labelResult = helper.Label(expression: "value");
+
+            // Assert
+            Assert.Equal("<label for=\"value\">value</label>", labelResult.ToString());
         }
 
         [Fact]
@@ -206,13 +197,18 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Empty(labelForModelResult.ToString());
         }
 
-        [Fact]
-        public void LabelHelpers_DisplayDisplayNameForProperty_IfNonNull()
+        [Theory]
+        [InlineData("DisplayName")]
+        [InlineData("Custom display name from metadata")]
+        public void LabelHelpers_DisplayDisplayNameForProperty_IfNonNull(string displayName)
         {
             // Arrange
-            var displayName = "CoolDisplayName";
+            var provider = new TestModelMetadataProvider();
+            provider
+                .ForProperty<DefaultTemplatesUtilities.ObjectTemplateModel>("Property1")
+                .Then(mm => mm.DisplayName = displayName);
 
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper<DisplayNameOnProperty>(model: null);
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(provider: provider);
 
             // Act
             var labelResult = helper.Label("Property1");
@@ -280,12 +276,6 @@ namespace Microsoft.AspNet.Mvc.Core
         private sealed class OuterClass
         {
             public InnerClass Inner { get; set; }
-        }
-
-        private class DisplayNameOnProperty
-        {
-            [Display(Name = "CoolDisplayName")]
-            public string Property1 { get; set; }
         }
     }
 }

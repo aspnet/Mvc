@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
@@ -45,6 +46,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GetHtmlHelper<ObjectTemplateModel>(model: null);
         }
 
+        public static HtmlHelper<IEnumerable<ObjectTemplateModel>> GetHtmlHelperForEnumerable()
+        {
+            return GetHtmlHelper<IEnumerable<ObjectTemplateModel>>(model: null);
+        }
+
         public static HtmlHelper<ObjectTemplateModel> GetHtmlHelper(IUrlHelper urlHelper)
         {
             return GetHtmlHelper<ObjectTemplateModel>(
@@ -82,9 +88,25 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return GetHtmlHelper(model, CreateViewEngine());
         }
 
+        public static HtmlHelper<IEnumerable<TModel>> GetHtmlHelperForEnumerable<TModel>(TModel model)
+        {
+            return GetHtmlHelper<IEnumerable<TModel>>(new TModel[] { model }, CreateViewEngine());
+        }
+
+        public static HtmlHelper<TModel> GetHtmlHelper<TModel>(IModelMetadataProvider provider)
+        {
+            return GetHtmlHelper<TModel>(model: default(TModel), provider: provider);
+        }
+
         public static HtmlHelper<ObjectTemplateModel> GetHtmlHelper(IModelMetadataProvider provider)
         {
             return GetHtmlHelper<ObjectTemplateModel>(model: null, provider: provider);
+        }
+
+        public static HtmlHelper<IEnumerable<ObjectTemplateModel>> GetHtmlHelperForEnumerable(
+            IModelMetadataProvider provider)
+        {
+            return GetHtmlHelper<IEnumerable<ObjectTemplateModel>>(model: null, provider: provider);
         }
 
         public static HtmlHelper<TModel> GetHtmlHelper<TModel>(TModel model, IModelMetadataProvider provider)
@@ -230,11 +252,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private static string FormatOutput(ModelExplorer modelExplorer)
         {
+            var metadata = modelExplorer.Metadata;
             return string.Format(CultureInfo.InvariantCulture,
                                 "Model = {0}, ModelType = {1}, PropertyName = {2}, SimpleDisplayText = {3}",
                                 modelExplorer.Model ?? "(null)",
-                                modelExplorer.Metadata.ModelType == null ? "(null)" : modelExplorer.Metadata.ModelType.FullName,
-                                modelExplorer.Metadata.PropertyName ?? "(null)",
+                                metadata.ModelType == null ? "(null)" : metadata.ModelType.FullName,
+                                metadata.PropertyName ?? "(null)",
                                 modelExplorer.GetSimpleDisplayText() ?? "(null)");
         }
 

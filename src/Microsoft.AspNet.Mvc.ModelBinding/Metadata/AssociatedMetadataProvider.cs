@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 throw new ArgumentException(message, nameof(parameterName));
             }
 
-            return GetMetadataForParameterCore(parameterName: parameterName, parameter: parameter);
+            return GetMetadataForParameterCore(parameterName, parameter);
         }
 
         // Override for creating the prototype metadata (without the model accessor).
