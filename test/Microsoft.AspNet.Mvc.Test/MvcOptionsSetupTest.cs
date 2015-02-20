@@ -147,11 +147,16 @@ namespace Microsoft.AspNet.Mvc
             setup.Configure(mvcOptions);
 
             // Assert
-            Assert.Equal(8, mvcOptions.ValidationExcludeFilters.Count);
+            Assert.Equal(9, mvcOptions.ValidationExcludeFilters.Count);
             var i = 0;
 
             // Verify if the delegates registered by default exclude the given types.
             Assert.Equal(typeof(SimpleTypesExcludeFilter), mvcOptions.ValidationExcludeFilters[i++].OptionType);
+            Assert.Equal(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i].OptionType);
+            var uriFilter
+                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++].Instance);
+            Assert.Equal(uriFilter.ExcludedType, typeof(Uri));
+
             Assert.Equal(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i].OptionType);
             var xObjectFilter 
                 = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++].Instance);

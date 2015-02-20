@@ -11,7 +11,7 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal class TypeHelper
+    internal static class TypeHelper
     {
         private static readonly Type TaskGenericType = typeof(Task<>);
 
