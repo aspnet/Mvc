@@ -23,6 +23,8 @@ namespace Microsoft.AspNet.Mvc.Xml
     /// </remarks>
     public class DataAnnotationRequiredAttributeValidation
     {
+        // Since formatters are 'typically' registered as single instance, concurrent dictionary is used
+        // here to avoid duplicate errors being added for a type.
         private ConcurrentDictionary<Type, Dictionary<Type, List<string>>> _cachedValidationErrors
             = new ConcurrentDictionary<Type, Dictionary<Type, List<string>>>();
 

@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 Assert.Contains(
                 modelBindingInfo.ModelStateErrorMessages,
-                (actualErrorMessage) => actualErrorMessage.StartsWith(expectedErrorMessage));
+                (actualErrorMessage) => actualErrorMessage.Equals(expectedErrorMessage));
             }
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 Assert.Contains(
                 modelBindingInfo.ModelStateErrorMessages,
-                (actualErrorMessage) => actualErrorMessage.StartsWith(expectedErrorMessage));
+                (actualErrorMessage) => actualErrorMessage.Equals(expectedErrorMessage));
             }
         }
     }
