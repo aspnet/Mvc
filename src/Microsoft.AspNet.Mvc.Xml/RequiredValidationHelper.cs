@@ -195,14 +195,8 @@ namespace Microsoft.AspNet.Mvc.Xml
 
         private bool ExcludeTypeFromValidation(Type modelType)
         {
-            return modelType.GetTypeInfo().IsPrimitive ||
-                            modelType.Equals(typeof(decimal)) ||
-                            modelType.Equals(typeof(string)) ||
-                            modelType.Equals(typeof(DateTime)) ||
-                            modelType.Equals(typeof(Guid)) ||
-                            modelType.Equals(typeof(DateTimeOffset)) ||
-                            modelType.Equals(typeof(TimeSpan)) ||
-                            modelType.Equals(typeof(Uri));
+            return TypeHelper.IsSimpleType(modelType) ||
+                modelType.Equals(typeof(Uri));
         }
 
         private class ValidationError

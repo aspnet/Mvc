@@ -65,6 +65,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Add types to be excluded from Validation
             options.ValidationExcludeFilters.Add(new SimpleTypesExcludeFilter());
+            options.ValidationExcludeFilters.Add(typeof(Uri));
             options.ValidationExcludeFilters.Add(typeof(XObject));
             options.ValidationExcludeFilters.Add(typeof(Type));
             options.ValidationExcludeFilters.Add(typeof(JToken));

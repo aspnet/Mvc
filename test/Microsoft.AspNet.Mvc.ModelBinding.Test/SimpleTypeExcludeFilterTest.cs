@@ -52,7 +52,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     typeof(ICollection<string>),
                     typeof(int?[]),
                     typeof(SortedSet<int?>),
-                    typeof(HashSet<Uri>),
                     typeof(HashSet<string>),
 
                     // Value types
