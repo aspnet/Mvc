@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22602.0
+VisualStudioVersion = 14.0.22609.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{DAAE4C74-D06F-4874-A166-33305D2643CE}"
 EndProject
@@ -147,6 +147,10 @@ EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "BestEffortLinkGenerationWebSite", "test\WebSites\BestEffortLinkGenerationWebSite\BestEffortLinkGenerationWebSite.kproj", "{B11C99C9-E577-4CA2-AC53-4F20EA71AD34}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "LowercaseUrlsWebSite", "test\WebSites\LowercaseUrlsWebSite\LowercaseUrlsWebSite.kproj", "{BCDB13A6-7D6E-485E-8424-A156432B71AC}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.JasonPatch", "src\Microsoft.AspNet.JasonPatch\Microsoft.AspNet.JasonPatch.kproj", "{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.JsonPatch.Test", "test\Microsoft.AspNet.JsonPatch.Test\Microsoft.AspNet.JsonPatch.Test.kproj", "{81C20848-E063-4E12-AC40-0B55A532C16C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -866,6 +870,30 @@ Global
 		{BCDB13A6-7D6E-485E-8424-A156432B71AC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BCDB13A6-7D6E-485E-8424-A156432B71AC}.Release|x86.ActiveCfg = Release|Any CPU
 		{BCDB13A6-7D6E-485E-8424-A156432B71AC}.Release|x86.Build.0 = Release|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Debug|x86.Build.0 = Debug|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Release|x86.ActiveCfg = Release|Any CPU
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}.Release|x86.Build.0 = Release|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Debug|x86.Build.0 = Debug|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Release|x86.ActiveCfg = Release|Any CPU
+		{81C20848-E063-4E12-AC40-0B55A532C16C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -938,5 +966,7 @@ Global
 		{A19022EF-9BA3-4349-94E4-F48E13E1C8AE} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 		{B11C99C9-E577-4CA2-AC53-4F20EA71AD34} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
 		{BCDB13A6-7D6E-485E-8424-A156432B71AC} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
+		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
+		{81C20848-E063-4E12-AC40-0B55A532C16C} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 	EndGlobalSection
 EndGlobal
