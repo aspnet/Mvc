@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         private const string ExpectedOutput = @"<html>
 <body>
-<a href=""/Home/About"">About Us</a>
+<a href=""/home/about"">About Us</a>
 </body>
 </html>";
 

@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_UsesFileProviderOnViewEngineOptionsToLocateViews()
         {
             // Arrange
-            var expectedMessage = "Hello test-user, this is /RazorViewEngineOptions_Home";
+            var expectedMessage = "Hello test-user, this is " + "/RazorViewEngineOptions_Home".NormalizeExpectedUrl();
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
@@ -34,7 +34,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_UsesFileProviderOnViewEngineOptionsToLocateAreaViews()
         {
             // Arrange
-            var expectedMessage = "Hello admin-user, this is /Restricted/RazorViewEngineOptions_Admin/Login";
+            var expectedMessage = "Hello admin-user, this is " + 
+                ("/Restricted/RazorViewEngineOptions_Admin/Login").NormalizeExpectedUrl();
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
             var target = "http://localhost/Restricted/RazorViewEngineOptions_Admin/Login?AdminUser=admin-user";

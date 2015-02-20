@@ -131,6 +131,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             return sc.BuildServiceProvider();
         }
 
+        public static string NormalizeExpectedUrl(this string url)
+        {
+            if (string.IsNullOrEmpty(url)) return url;
+                var indexOfSeparator = url.IndexOfAny(new char[] { '?', '#' });
+
+            // No query string, lowercase the url
+            if (indexOfSeparator == -1)
+            {
+                return url.ToLowerInvariant();
+            }
+            else
+            {
+                var lowercaseUrl = url.Substring(0, indexOfSeparator).ToLowerInvariant();
+                var queryString = url.Substring(indexOfSeparator);
+
+                // queryString will contain the delimiter ? or # as the first character, so it's safe to append.
+                return lowercaseUrl + queryString;
+            }
+        }
+
         private class ServiceManifest : IServiceManifest
         {
             public ServiceManifest(IEnumerable<Type> services, IServiceManifest fallback = null)

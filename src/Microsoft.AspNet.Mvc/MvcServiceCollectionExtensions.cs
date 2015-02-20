@@ -133,9 +133,12 @@ namespace Microsoft.Framework.DependencyInjection
             services.AddRouting(configuration);
             services.AddAuthorization(configuration);
             services.Configure<RouteOptions>(routeOptions =>
-                                                    routeOptions.ConstraintMap
-                                                         .Add("exists",
-                                                              typeof(KnownRouteValueConstraint)));
+            {
+                routeOptions.ConstraintMap
+                     .Add("exists",
+                          typeof(KnownRouteValueConstraint));
+                routeOptions.LowercaseUrls = true;
+            });
         }
     }
 }

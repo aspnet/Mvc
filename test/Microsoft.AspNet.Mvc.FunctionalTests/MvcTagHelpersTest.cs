@@ -26,23 +26,28 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // Test ability to generate nearly identical HTML with MVC tag and HTML helpers.
         // Only attribute order should differ.
         [InlineData("Order", "/MvcTagHelper_Order/Submit")]
-        [InlineData("OrderUsingHtmlHelpers", "/MvcTagHelper_Order/Submit")]
-        [InlineData("Product", null)]
-        [InlineData("Customer", "/Customer/MvcTagHelper_Customer")]
-        // Testing InputTagHelpers invoked in the partial views
-        [InlineData("ProductList", null)]
-        // Testing MvcTagHelpers invoked in the editor templates with the HTML helpers
-        [InlineData("EmployeeList", null)]
-        // Testing SelectTagHelper with Html.BeginForm
-        [InlineData("CreateWarehouse", null)]
-        // Testing the HTML helpers with FormTagHelper
-        [InlineData("EditWarehouse", null)]
         // Testing the EnvironmentTagHelper
         [InlineData("Environment", null)]
         // Testing the LinkTagHelper
         [InlineData("Link", null)]
         // Testing the ScriptTagHelper
         [InlineData("Script", null)]
+
+
+        // Test ability to generate nearly identical HTML with MVC tag and HTML helpers.
+        // Only attribute order should differ.
+        [InlineData("Order", "/MvcTagHelper_Order/Submit")]
+        [InlineData("Product", null)]
+        // Testing SelectTagHelper with Html.BeginForm
+        [InlineData("CreateWarehouse", null)]
+        // Testing the HTML helpers with FormTagHelper
+        [InlineData("EditWarehouse", null)]
+        [InlineData("Customer", "/Customer/MvcTagHelper_Customer")]
+        [InlineData("OrderUsingHtmlHelpers", "/MvcTagHelper_Order/Submit")]
+        // Testing InputTagHelpers invoked in the partial views
+        [InlineData("ProductList", null)]
+        // Testing MvcTagHelpers invoked in the editor templates with the HTML helpers
+        [InlineData("EmployeeList", null)]
         public async Task MvcTagHelpers_GeneratesExpectedResults(string action, string antiForgeryPath)
         {
             // Arrange

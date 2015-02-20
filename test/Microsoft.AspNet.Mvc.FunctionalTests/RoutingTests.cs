@@ -185,9 +185,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Equal(new string[]
             {
-                    "/api/v2/Maps",
-                    "/api/v1/Maps",
-                    "/api/v2/Maps"
+                    "/api/v2/Maps".NormalizeExpectedUrl(),
+                    "/api/v1/Maps".NormalizeExpectedUrl(),
+                    "/api/v2/Maps".NormalizeExpectedUrl()
             },
             result.ExpectedUrls);
         }
@@ -196,7 +196,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_MultipleRouteAttributes_WorksWithOverrideRoutes()
         {
             // Arrange
-            var url = "http://localhost/api/v2/Maps";
+            var url = "http://localhost/api/v2/Maps".NormalizeExpectedUrl();
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
 
@@ -214,8 +214,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Equal(new string[]
             {
-                    "/api/v2/Maps",
-                    "/api/v2/Maps"
+                    "/api/v2/Maps".NormalizeExpectedUrl(),
+                    "/api/v2/Maps".NormalizeExpectedUrl()
             },
             result.ExpectedUrls);
         }
@@ -262,8 +262,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Equal(new string[]
             {
-                    "/api/v2/Maps/PartialUpdate/5",
-                    "/api/v2/Maps/PartialUpdate/5"
+                    "/api/v2/Maps/PartialUpdate/5".NormalizeExpectedUrl(),
+                    "/api/v2/Maps/PartialUpdate/5".NormalizeExpectedUrl()
             },
             result.ExpectedUrls);
         }
@@ -292,8 +292,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Equal(new string[]
             {
-                    "/Bank/Get/5",
-                    "/Bank/Get/5"
+                    "/Bank/Get/5".NormalizeExpectedUrl(),
+                    "/Bank/Get/5".NormalizeExpectedUrl()
             },
             result.ExpectedUrls);
         }
@@ -562,7 +562,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
-            Assert.Equal(new string[] { expectedUrl, expectedUrl }, result.ExpectedUrls);
+            Assert.Equal(
+                new string[] { expectedUrl.NormalizeExpectedUrl(), expectedUrl.NormalizeExpectedUrl() }, 
+                result.ExpectedUrls);
             Assert.Equal("Banks", result.Controller);
             Assert.Equal("UpdateBank", result.Action);
         }
@@ -702,7 +704,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal("/Club/5", response);
+            Assert.Equal("/Club/5".NormalizeExpectedUrl(), response);
         }
 
         [Fact]
@@ -717,7 +719,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal("/Teams/AllOrganizations", response);
+            Assert.Equal("/Teams/AllOrganizations".NormalizeExpectedUrl(), response);
         }
 
         [Fact]
@@ -740,7 +742,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Employee", result.Controller);
             Assert.Equal("List", result.Action);
 
-            Assert.Equal("/api/Employee", result.Link);
+            Assert.Equal("/api/Employee".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -763,7 +765,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Employee", result.Controller);
             Assert.Equal("List", result.Action);
 
-            Assert.Equal("/api/Employee/5", result.Link);
+            Assert.Equal("/api/Employee/5".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -787,7 +789,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Employee", result.Controller);
             Assert.Equal("List", result.Action);
 
-            Assert.Equal("/Blog/ShowPosts", result.Link);
+            Assert.Equal("/Blog/ShowPosts".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -835,7 +837,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Company", result.Controller);
             Assert.Equal(actionName, result.Action);
 
-            Assert.Equal("/api/Company/5", result.ExpectedUrls.Single());
+            Assert.Equal("/api/Company/5".NormalizeExpectedUrl(), result.ExpectedUrls.Single());
             Assert.Equal("Company", result.RouteName);
         }
 
@@ -858,7 +860,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Company", result.Controller);
             Assert.Equal("Delete", result.Action);
 
-            Assert.Equal("/api/Company/5", result.ExpectedUrls.Single());
+            Assert.Equal("/api/Company/5".NormalizeExpectedUrl(), result.ExpectedUrls.Single());
             Assert.Equal("RemoveCompany", result.RouteName);
         }
 
@@ -884,7 +886,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Company", result.Controller);
             Assert.Equal("GetEmployees", result.Action);
 
-            Assert.Equal("/api/Company/5/Employees", result.ExpectedUrls.Single());
+            Assert.Equal("/api/Company/5/Employees".NormalizeExpectedUrl(), result.ExpectedUrls.Single());
             Assert.Equal(null, result.RouteName);
         }
 
@@ -907,7 +909,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Company", result.Controller);
             Assert.Equal("GetDepartments", result.Action);
 
-            Assert.Equal("/api/Company/5/Departments", result.ExpectedUrls.Single());
+            Assert.Equal("/api/Company/5/Departments".NormalizeExpectedUrl(), result.ExpectedUrls.Single());
             Assert.Equal("Departments", result.RouteName);
         }
 
@@ -953,7 +955,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Home", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Travel/Flight/BuyTickets", result.Link);
+            Assert.Equal("/Travel/Flight/BuyTickets".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -976,7 +978,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Flight", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Travel/Flight/BuyTickets", result.Link);
+            Assert.Equal("/Travel/Flight/BuyTickets".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1022,7 +1024,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Flight", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Home/Contact", result.Link);
+            Assert.Equal("/Home/Contact".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1046,7 +1048,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Employee", result.Controller);
             Assert.Equal("List", result.Action);
 
-            Assert.Equal("/ContosoCorp/Trains/CheckSchedule", result.Link);
+            Assert.Equal("/ContosoCorp/Trains/CheckSchedule".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1069,7 +1071,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Rail", result.Controller);
             Assert.Equal("Schedule", result.Action);
 
-            Assert.Equal("/ContosoCorp/Trains", result.Link);
+            Assert.Equal("/ContosoCorp/Trains".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1117,7 +1119,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Rail", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Home/Contact", result.Link);
+            Assert.Equal("/Home/Contact".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1142,7 +1144,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Rail", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Travel/Flight", result.Link);
+            Assert.Equal("/Travel/Flight".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1167,7 +1169,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Flight", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/ContosoCorp/Trains", result.Link);
+            Assert.Equal("/ContosoCorp/Trains".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1192,7 +1194,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Flight", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Admin/Users/All", result.Link);
+            Assert.Equal("/Admin/Users/All".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1217,7 +1219,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Rail", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/Admin/Users/All", result.Link);
+            Assert.Equal("/Admin/Users/All".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1281,7 +1283,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
             // Assert
-            Assert.Equal("/api/Products/US/GetProducts", result.Link);
+            Assert.Equal("/api/Products/US/GetProducts".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
@@ -1301,7 +1303,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
             // Assert
-            Assert.Equal("/api/Products/CA/GetProducts", result.Link);
+            Assert.Equal("/api/Products/CA/GetProducts".NormalizeExpectedUrl(), result.Link);
         }
 
         [Fact]
