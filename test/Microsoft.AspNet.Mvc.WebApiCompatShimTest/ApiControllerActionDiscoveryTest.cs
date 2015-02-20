@@ -370,8 +370,9 @@ namespace System.Web.Http
             var assemblyProvider = new FixedSetAssemblyProvider();
             assemblyProvider.CandidateAssemblies.Add(GetType().GetTypeInfo().Assembly);
             var controllerTypeProvider = new NamespaceFilteredControllerTypeProvider(assemblyProvider);
-            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                                  new LoggerFactory(),
+                                                                 null,
                                                                  null);
 
             var filterProvider = new Mock<IGlobalFilterProvider>();

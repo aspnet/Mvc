@@ -15,6 +15,37 @@ namespace Microsoft.AspNet.Mvc.Filters
     public class DefaultFilterProviderTest
     {
         [Fact]
+        public void DefaultFilterProvider_Orders_CorsFilters_First()
+        {
+            // Arrange
+            var filter1 = Mock.Of<IFilter>();
+            var filter2 = Mock.Of<IFilter>();
+            var corsFilter1 = Mock.Of<ICorsAuthorizationFilter>();
+            var corsFilter2 = Mock.Of<ICorsAuthorizationFilter>();
+            var context = CreateFilterContext(new List<FilterItem>()
+            {
+                new FilterItem(new FilterDescriptor(filter1, FilterScope.Global)),
+                new FilterItem(new FilterDescriptor(corsFilter1, FilterScope.Global)),
+                new FilterItem(new FilterDescriptor(filter2, FilterScope.Action)),
+                new FilterItem(new FilterDescriptor(corsFilter2, FilterScope.Action)),
+            });
+
+            var provider = CreateProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+            provider.OnProvidersExecuted(context);
+            var results = context.Results;
+
+            // Assert
+            Assert.Equal(4, results.Count);
+            Assert.Same(corsFilter1, results[0].Filter);
+            Assert.Same(corsFilter2, results[1].Filter);
+            Assert.Same(filter1, results[2].Filter);
+            Assert.Same(filter2, results[3].Filter);
+        }
+
+        [Fact]
         public void DefaultFilterProvider_UsesFilter_WhenItsNotIFilterFactory()
         {
             // Arrange

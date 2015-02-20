@@ -127,8 +127,9 @@ namespace Microsoft.AspNet.Mvc.Logging
             ILoggerFactory loggerFactory, params TypeInfo[] controllerTypeInfo)
         {
             var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfo);
-            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                                  loggerFactory,
+                                                                 null,
                                                                  null);
 
             var provider = new ControllerActionDescriptorProvider(

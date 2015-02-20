@@ -6,8 +6,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.Internal;
+using Microsoft.Framework.OptionsModel;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -18,8 +21,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_DerivedFromControllerClass_HasFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                             NullLoggerFactory.Instance,
+                                                            null,
                                                             null);
             var typeInfo = typeof(StoreController).GetTypeInfo();
 
@@ -35,8 +39,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_AuthorizeAttributeAddsAuthorizeFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                             NullLoggerFactory.Instance,
+                                                            null,
                                                             null);
             var typeInfo = typeof(AccountController).GetTypeInfo();
 
@@ -47,14 +52,59 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             Assert.True(model.Filters.Any(f => f is AuthorizeFilter));
         }
 
+        [Fact]
+        public void BuildControllerModel_EnableCorsAttributeAddsCorsAuthorizationFilter()
+        {
+            // Arrange
+            var corsOptions = new CorsOptions();
+            corsOptions.AddPolicy("policy", new CorsPolicy());
+            var mockOptions = new Mock<IOptions<CorsOptions>>();
+            mockOptions.SetupGet(o => o.Options)
+                       .Returns(corsOptions);
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
+                                                            NullLoggerFactory.Instance,
+                                                            options: null,
+                                                            corsOptions: mockOptions.Object);
+            var typeInfo = typeof(CorsController).GetTypeInfo();
+
+            // Act
+            var model = builder.BuildControllerModel(typeInfo);
+
+            // Assert
+            Assert.True(model.Filters.Any(f => f is CorsAuthorizationFilter));
+        }
+
+        [Fact]
+        public void BuildControllerModel_DisableCorsAttributeAddsDisableCorsAuthorizationFilter()
+        {
+            // Arrange
+            var corsOptions = new CorsOptions();
+            corsOptions.AddPolicy("policy", new CorsPolicy());
+            var mockOptions = new Mock<IOptions<CorsOptions>>();
+            mockOptions.SetupGet(o => o.Options)
+                       .Returns(corsOptions);
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
+                                                            NullLoggerFactory.Instance,
+                                                            options: null,
+                                                            corsOptions: mockOptions.Object);
+            var typeInfo = typeof(DisableCorsController).GetTypeInfo();
+
+            // Act
+            var model = builder.BuildControllerModel(typeInfo);
+
+            // Assert
+            Assert.True(model.Filters.Any(f => f is DisableCorsAuthorizationFilter));
+        }
+
         // This class has a filter attribute, but doesn't implement any filter interfaces,
         // so ControllerFilter is not present.
         [Fact]
         public void BuildControllerModel_ClassWithoutFilterInterfaces_HasNoControllerFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                             NullLoggerFactory.Instance,
+                                                            null,
                                                             null);
             var typeInfo = typeof(NoFiltersController).GetTypeInfo();
 
@@ -70,8 +120,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_ClassWithFilterInterfaces_HasFilter()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                             NullLoggerFactory.Instance,
+                                                            null,
                                                             null);
             var typeInfo = typeof(SomeFiltersController).GetTypeInfo();
 
@@ -87,8 +138,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildControllerModel_ClassWithFilterInterfaces_UnsupportedType()
         {
             // Arrange
-            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                             NullLoggerFactory.Instance,
+                                                            null,
                                                             null);
             var typeInfo = typeof(UnsupportedFiltersController).GetTypeInfo();
 
@@ -110,6 +162,16 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         [Authorize]
         public class AccountController
+        {
+        }
+
+        [EnableCors("policy")]
+        public class CorsController
+        {
+        }
+
+        [DisableCors]
+        public class DisableCorsController
         {
         }
 

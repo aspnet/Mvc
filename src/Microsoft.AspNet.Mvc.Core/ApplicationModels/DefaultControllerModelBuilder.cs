@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Cors;
+using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Routing;
@@ -23,6 +25,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         private readonly IActionModelBuilder _actionModelBuilder;
         private readonly ILogger _logger;
         private readonly AuthorizationOptions _authorizationOptions;
+        private readonly CorsOptions _corsOptions;
 
         /// <summary>
         /// Creates a new <see cref="DefaultControllerModelBuilder"/>.
@@ -31,11 +34,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public DefaultControllerModelBuilder(
             IActionModelBuilder actionModelBuilder, 
             ILoggerFactory loggerFactory, 
-            IOptions<AuthorizationOptions> options)
+            IOptions<AuthorizationOptions> options, 
+            IOptions<CorsOptions> corsOptions)
         {
             _actionModelBuilder = actionModelBuilder;
             _logger = loggerFactory.CreateLogger<DefaultControllerModelBuilder>();
             _authorizationOptions = options?.Options ?? new AuthorizationOptions();
+            _corsOptions = corsOptions?.Options ?? new CorsOptions();
         }
 
         /// <inheritdoc />
@@ -79,6 +84,22 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             AddRange(controllerModel.ActionConstraints, attributes.OfType<IActionConstraintMetadata>());
             AddRange(controllerModel.Filters, attributes.OfType<IFilter>());
             AddRange(controllerModel.RouteConstraints, attributes.OfType<IRouteConstraintProvider>());
+
+            var enableCors = attributes.OfType<IEnableCorsMetadata>().SingleOrDefault();
+            if (enableCors != null)
+            {
+                var corsPolicy = _corsOptions.GetPolicy(enableCors.PolicyName);
+                if (corsPolicy != null)
+                {
+                    controllerModel.Filters.Add(new CorsAuthorizationFilter(corsPolicy));
+                }
+            }
+
+            var disableCors = attributes.OfType<IDisableCorsMetadata>().SingleOrDefault();
+            if (disableCors != null)
+            {
+                controllerModel.Filters.Add(new DisableCorsAuthorizationFilter());
+            }
 
             var policy = AuthorizationPolicy.Combine(_authorizationOptions, attributes.OfType<AuthorizeAttribute>());
             if (policy != null)

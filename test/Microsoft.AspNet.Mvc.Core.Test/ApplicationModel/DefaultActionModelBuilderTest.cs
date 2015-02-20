@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Cors.Core;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
 using Moq;
@@ -282,6 +283,48 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
             // Assert
             Assert.False(isValid);
+        }
+
+        [Fact]
+        public void BuildActionModel_EnableCorsAttributeAddsCorsAuthorizationFilter()
+        {
+            // Arrange
+            var corsOptions = new CorsOptions();
+            corsOptions.AddPolicy("policy", new CorsPolicy());
+            var mockOptions = new Mock<IOptions<CorsOptions>>();
+            mockOptions.SetupGet(o => o.Options)
+                       .Returns(corsOptions);
+            var builder = new DefaultActionModelBuilder(null, corsOptions: mockOptions.Object);
+            var typeInfo = typeof(EnableCorsController).GetTypeInfo();
+            var method = typeInfo.GetMethod("Action");
+
+            // Act
+            var actions = builder.BuildActionModels(typeInfo, method);
+
+            // Assert
+            var action = Assert.Single(actions);
+            Assert.True(action.Filters.Any(f => f is CorsAuthorizationFilter));
+        }
+
+        [Fact]
+        public void BuildActionModel_DisableCorsAttributeAddsDisableCorsAuthorizationFilter()
+        {
+            // Arrange
+            var corsOptions = new CorsOptions();
+            corsOptions.AddPolicy("policy", new CorsPolicy());
+            var mockOptions = new Mock<IOptions<CorsOptions>>();
+            mockOptions.SetupGet(o => o.Options)
+                       .Returns(corsOptions);
+            var builder = new DefaultActionModelBuilder(null, corsOptions: mockOptions.Object);
+            var typeInfo = typeof(DisableCorsController).GetTypeInfo();
+            var method = typeInfo.GetMethod("Action");
+
+            // Act
+            var actions = builder.BuildActionModels(typeInfo, method);
+
+            // Assert
+            var action = Assert.Single(actions);
+            Assert.True(action.Filters.Any(f => f is DisableCorsAuthorizationFilter));
         }
 
         [Fact]
@@ -678,7 +721,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authOptions ?? new AuthorizationOptions());
-            return new DefaultActionModelBuilder(options.Object);
+            return new DefaultActionModelBuilder(options.Object, null);
         }
 
         private static AccessibleActionModelBuilder CreateTestAccessibleActionModelBuilder()
@@ -690,7 +733,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         private class AccessibleActionModelBuilder : DefaultActionModelBuilder
         {
-            public AccessibleActionModelBuilder(IOptions<AuthorizationOptions> options) : base(options) { }
+            public AccessibleActionModelBuilder(IOptions<AuthorizationOptions> options) : base(options, null) { }
 
             public new bool IsAction([NotNull] TypeInfo typeInfo, [NotNull]MethodInfo methodInfo)
             {
@@ -925,6 +968,22 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             [HttpGet]
             [HttpPost("Products")]
             public void Invalid() { }
+        }
+
+        private class EnableCorsController
+        {
+            [EnableCors("policy")]
+            public void Action()
+            {
+            }
+        }
+
+        private class DisableCorsController
+        {
+            [DisableCors]
+            public void Action()
+            {
+            }
         }
 
         // Here the constraints on the methods are acting as an IActionHttpMethodProvider and

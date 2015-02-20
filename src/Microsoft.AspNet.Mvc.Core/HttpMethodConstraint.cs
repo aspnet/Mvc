@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.AspNet.Cors.Core;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
@@ -54,8 +55,19 @@ namespace Microsoft.AspNet.Mvc
             }
 
             var request = context.RouteContext.HttpContext.Request;
+            var method = request.Method;
+            if (request.IsCorsRequest())
+            {
+                // Update the http method if it is preflight request.
+                if (request.IsPreflight())
+                {
+                    var accessControlRequestMethod = 
+                        request.Headers.Get(CorsConstants.AccessControlRequestMethod);
+                    method = accessControlRequestMethod;
+                }
+            }
 
-            return (HttpMethods.Any(m => m.Equals(request.Method, StringComparison.Ordinal)));
+            return (HttpMethods.Any(m => m.Equals(method, StringComparison.Ordinal)));
         }
     }
 }

@@ -1364,8 +1364,9 @@ namespace Microsoft.AspNet.Mvc.Test
             IEnumerable<IFilter> filters = null)
         {
             var controllerTypeProvider = new FixedSetControllerTypeProvider(new[] { controllerTypeInfo });
-            var controllerModelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var controllerModelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                                            NullLoggerFactory.Instance,
+                                                                           null,
                                                                            null);
 
             var provider = new ControllerActionDescriptorProvider(
@@ -1382,8 +1383,9 @@ namespace Microsoft.AspNet.Mvc.Test
             params TypeInfo[] controllerTypeInfo)
         {
             var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfo);
-            var controllerModelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var controllerModelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                                            NullLoggerFactory.Instance,
+                                                                           null,
                                                                            null);
 
             var provider = new ControllerActionDescriptorProvider(
@@ -1401,8 +1403,9 @@ namespace Microsoft.AspNet.Mvc.Test
             IApplicationModelConvention convention)
         {
             var controllerTypeProvider = new FixedSetControllerTypeProvider(new[] { type });
-            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                                  NullLoggerFactory.Instance,
+                                                                 null,
                                                                  null);
 
             var options = new MockMvcOptionsAccessor();
@@ -1419,8 +1422,9 @@ namespace Microsoft.AspNet.Mvc.Test
         private IEnumerable<ActionDescriptor> GetDescriptors(params TypeInfo[] controllerTypeInfos)
         {
             var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypeInfos);
-            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
                                                                  NullLoggerFactory.Instance,
+                                                                 null,
                                                                  null);
 
             var provider = new ControllerActionDescriptorProvider(
