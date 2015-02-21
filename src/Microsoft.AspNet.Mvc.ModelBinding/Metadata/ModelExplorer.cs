@@ -11,6 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// <summary>
     /// Associates a model object with it's corresponding <see cref="ModelMetadata"/>.
     /// </summary>
+    [DebuggerDisplay("DeclaredType={Metadata.ModelType.Name} PropertyName={Metadata.PropertyName}")]
     public class ModelExplorer
     {
         private readonly IModelMetadataProvider _metadataProvider;

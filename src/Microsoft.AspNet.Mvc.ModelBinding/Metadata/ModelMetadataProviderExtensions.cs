@@ -41,7 +41,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             [NotNull] string propertyName)
         {
             var containerMetadata = provider.GetMetadataForType(containerType);
-            return containerMetadata.Properties[propertyName];
+
+            var propertyMetadata = containerMetadata.Properties[propertyName];
+            if (propertyMetadata == null)
+            {
+                var message = Resources.FormatCommon_PropertyNotFound(containerType, propertyName);
+                throw new ArgumentException(message, nameof(propertyName));
+            }
+
+            return propertyMetadata;
         }
     }
 }
