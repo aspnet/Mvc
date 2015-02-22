@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
+
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -117,6 +120,25 @@ namespace Microsoft.AspNet.Mvc
 
             var openType = closedType.GetGenericTypeDefinition();
             return (matchingOpenType == openType) ? closedTypeInfo.GenericTypeArguments : null;
+        }
+
+        /// <summary>
+        /// Get an enumeration of services of type <typeparamref name="T"/> from the IServiceProvider.
+        /// </summary>
+        /// <typeparam name="T">The type of service object to get.</typeparam>
+        /// <param name="provider">The <see cref="IServiceProvider"/> to retrieve the services from.</param>
+        /// <returns>An enumeration of services of type <typeparamref name="T"/>.</returns>
+        /// <exception cref="System.InvalidOperationException">There is no service of type <typeparamref name="T"/>.</exception>
+        public static IEnumerable<T> GetRequiredServices<T>([NotNull] this IServiceProvider provider)
+        {
+            var providers = provider.GetRequiredService<IEnumerable<T>>();
+
+            if (!providers.Any())
+            {
+                throw new InvalidOperationException();
+            }
+
+            return providers;
         }
     }
 }
