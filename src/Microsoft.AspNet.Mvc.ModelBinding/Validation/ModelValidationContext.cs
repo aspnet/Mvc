@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -9,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         public ModelValidationContext([NotNull] ModelBindingContext bindingContext,
                                       [NotNull] ModelMetadata metadata)
-            : this(bindingContext.OperationBindingContext.MetadataProvider,
+            : this(bindingContext.ModelName,
                    bindingContext.OperationBindingContext.ValidatorProvider,
                    bindingContext.ModelState,
                    metadata,
@@ -17,33 +18,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
         }
 
-        public ModelValidationContext([NotNull] IModelMetadataProvider metadataProvider,
+        public ModelValidationContext(string rootPrefix,
                                       [NotNull] IModelValidatorProvider validatorProvider,
                                       [NotNull] ModelStateDictionary modelState,
                                       [NotNull] ModelMetadata metadata,
                                       ModelMetadata containerMetadata)
-            : this(metadataProvider,
-                  validatorProvider,
-                  modelState,
-                  metadata,
-                  containerMetadata,
-                  excludeFromValidationFilters: null)
-        {
-        }
-
-        public ModelValidationContext([NotNull] IModelMetadataProvider metadataProvider,
-                                      [NotNull] IModelValidatorProvider validatorProvider,
-                                      [NotNull] ModelStateDictionary modelState,
-                                      [NotNull] ModelMetadata metadata,
-                                      ModelMetadata containerMetadata,
-                                      IReadOnlyList<IExcludeTypeValidationFilter> excludeFromValidationFilters)
         {
             ModelMetadata = metadata;
             ModelState = modelState;
-            MetadataProvider = metadataProvider;
+            RootPrefix = rootPrefix;
             ValidatorProvider = validatorProvider;
             ContainerMetadata = containerMetadata;
-            ExcludeFromValidationFilters = excludeFromValidationFilters;
         }
 
         public ModelValidationContext([NotNull] ModelValidationContext parentContext,
@@ -52,9 +37,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ModelMetadata = metadata;
             ContainerMetadata = parentContext.ModelMetadata;
             ModelState = parentContext.ModelState;
-            MetadataProvider = parentContext.MetadataProvider;
+            RootPrefix = parentContext.RootPrefix;
             ValidatorProvider = parentContext.ValidatorProvider;
-            ExcludeFromValidationFilters = parentContext.ExcludeFromValidationFilters;
         }
 
         public ModelMetadata ModelMetadata { get; }
@@ -63,10 +47,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public ModelStateDictionary ModelState { get; }
 
-        public IModelMetadataProvider MetadataProvider { get; }
+        public string RootPrefix { get; set; }
 
         public IModelValidatorProvider ValidatorProvider { get; }
-
-        public IReadOnlyList<IExcludeTypeValidationFilter> ExcludeFromValidationFilters { get; }
     }
 }

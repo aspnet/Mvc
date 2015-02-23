@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -21,11 +22,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        protected override Task BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
+        protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
         {
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
-            bindingContext.Model = requestServices.GetRequiredService(bindingContext.ModelType);
-            return Task.FromResult(true);
+            var model = requestServices.GetRequiredService(bindingContext.ModelType);
+            return Task.FromResult(new ModelBindingResult(model, bindingContext.ModelName, true));
         }
     }
 }

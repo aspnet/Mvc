@@ -57,6 +57,33 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
+        public void CreateTagHelper_ProvidesTagHelperWithViewData()
+        {
+            // Arrange
+            var instance = CreateTestRazorPage();
+
+            // Act
+            var tagHelper = instance.CreateTagHelper<ViewDataTagHelper>();
+
+            // Assert
+            Assert.NotNull(tagHelper.ViewData);
+        }
+
+        [Fact]
+        public void CreateTagHelper_ProvidesTagHelperWithInternalProperties()
+        {
+            // Arrange
+            var instance = CreateTestRazorPage();
+
+            // Act
+            var tagHelper = instance.CreateTagHelper<TagHelperWithInternalProperty>();
+
+            // Assert
+            Assert.NotNull(tagHelper.ViewData);
+            Assert.NotNull(tagHelper.ViewContext);
+        }
+
+        [Fact]
         public void CreateTagHelper_ProvidesTagHelperTypeWithViewContextAndActivates()
         {
             // Arrange
@@ -72,14 +99,11 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private static TestRazorPage CreateTestRazorPage()
         {
-            var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator);
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var serviceProvider = new Mock<IServiceProvider>();
             var myService = new MyService();
             serviceProvider.Setup(mock => mock.GetService(typeof(MyService)))
                            .Returns(myService);
-            serviceProvider.Setup(mock => mock.GetService(typeof(ITypeActivator)))
-                           .Returns(typeActivator);
             serviceProvider.Setup(mock => mock.GetService(typeof(ITagHelperActivator)))
                            .Returns(new DefaultTagHelperActivator());
             var httpContext = new Mock<HttpContext>();
@@ -123,10 +147,25 @@ namespace Microsoft.AspNet.Mvc.Razor
             public ViewContext ViewContext { get; set; }
         }
 
+        private class ViewDataTagHelper : TagHelper
+        {
+            [Activate]
+            public ViewDataDictionary ViewData { get; set; }
+        }
+
         private class ViewContextServiceTagHelper : ViewContextTagHelper
         {
             [Activate]
             public MyService ActivatedService { get; set; }
+        }
+
+        private class TagHelperWithInternalProperty : TagHelper
+        {
+            [Activate]
+            protected internal ViewDataDictionary ViewData { get; set; }
+
+            [Activate]
+            protected internal ViewContext ViewContext { get; set; }
         }
 
         private class MyService

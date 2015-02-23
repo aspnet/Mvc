@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc.Xml
@@ -19,6 +21,7 @@ namespace Microsoft.AspNet.Mvc.Xml
     public class XmlDataContractSerializerOutputFormatter : OutputFormatter
     {
         private DataContractSerializerSettings _serializerSettings;
+        private ConcurrentDictionary<Type, object> _serializerCache = new ConcurrentDictionary<Type, object>();
 
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
@@ -115,8 +118,12 @@ namespace Microsoft.AspNet.Mvc.Xml
         protected override bool CanWriteType(Type declaredType, Type runtimeType)
         {
             var type = ResolveType(declaredType, runtimeType);
+            if (type == null)
+            {
+                return false;
+            }
 
-            return CreateSerializer(GetSerializableType(type)) != null;
+            return GetCachedSerializer(GetSerializableType(type)) != null;
         }
 
         /// <summary>
@@ -183,11 +190,30 @@ namespace Microsoft.AspNet.Mvc.Xml
                     obj = wrapperProvider.Wrap(obj);
                 }
 
-                var dataContractSerializer = CreateSerializer(wrappingType);
+                var dataContractSerializer = GetCachedSerializer(wrappingType);
                 dataContractSerializer.WriteObject(xmlWriter, obj);
             }
 
             return Task.FromResult(true);
+        }
+
+        /// <summary>
+        /// Gets the cached serializer or creates and caches the serializer for the given type.
+        /// </summary>
+        /// <returns>The <see cref="DataContractSerializer"/> instance.</returns>
+        protected virtual DataContractSerializer GetCachedSerializer(Type type)
+        {
+            object serializer;
+            if (!_serializerCache.TryGetValue(type, out serializer))
+            {
+                serializer = CreateSerializer(type);
+                if (serializer != null)
+                {
+                    _serializerCache.TryAdd(type, serializer);
+                }
+            }
+
+            return (DataContractSerializer)serializer;
         }
     }
 }

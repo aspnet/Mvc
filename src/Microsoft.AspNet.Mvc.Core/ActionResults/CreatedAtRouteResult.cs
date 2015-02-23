@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -60,10 +61,9 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         protected override void OnFormatting([NotNull] ActionContext context)
         {
-            var request = context.HttpContext.Request;
             var urlHelper = UrlHelper ?? context.HttpContext.RequestServices.GetRequiredService<IUrlHelper>();
 
-            var url = urlHelper.RouteUrl(RouteName, RouteValues, request.Scheme, request.Host.ToUriComponent());
+            var url = urlHelper.Link(RouteName, RouteValues);
 
             if (string.IsNullOrEmpty(url))
             {

@@ -1979,12 +1979,20 @@ namespace Microsoft.AspNet.Mvc
             var filterProvider = new Mock<INestedProviderManager<FilterProviderContext>>(MockBehavior.Strict);
             filterProvider
                 .Setup(fp => fp.Invoke(It.IsAny<FilterProviderContext>()))
-                .Callback<FilterProviderContext>(
-                    context => context.Results.AddRange(filters.Select(f => new FilterItem(null, f))));
+                .Callback<FilterProviderContext>(context =>
+                    {
+                        foreach (var filter in filters.Select(f => new FilterItem(null, f)))
+                        {
+                            context.Results.Add(filter);
+                        }
+                    });
+
             var inputFormattersProvider = new Mock<IInputFormattersProvider>();
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
-
+            var excludeFilterProvider = new Mock<IValidationExcludeFiltersProvider>();
+            excludeFilterProvider.SetupGet(o => o.ExcludeFilters)
+                                 .Returns(new List<IExcludeTypeValidationFilter>());
             var invoker = new TestControllerActionInvoker(
                 actionContext,
                 filterProvider.Object,
@@ -2023,7 +2031,7 @@ namespace Microsoft.AspNet.Mvc
 
             var binder = new Mock<IModelBinder>();
             binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                  .Returns(Task.FromResult(result: false));
+                  .Returns(Task.FromResult<ModelBindingResult>(result: null));
             var context = new Mock<HttpContext>();
             context.SetupGet(c => c.Items)
                    .Returns(new Dictionary<object, object>());
@@ -2036,18 +2044,21 @@ namespace Microsoft.AspNet.Mvc
             var inputFormattersProvider = new Mock<IInputFormattersProvider>();
             inputFormattersProvider.SetupGet(o => o.InputFormatters)
                                             .Returns(new List<IInputFormatter>());
-
+            var metadataProvider = new EmptyModelMetadataProvider();
             var invoker = new ControllerActionInvoker(
                 actionContext,
                 Mock.Of<INestedProviderManager<FilterProviderContext>>(),
                 controllerFactory.Object,
                 actionDescriptor,
                 inputFormattersProvider.Object,
-                new DefaultControllerActionArgumentBinder(new EmptyModelMetadataProvider(), new MockMvcOptionsAccessor()),
-                new MockModelBinderProvider() { ModelBinders = new List<IModelBinder>() { binder.Object } },
-                new MockModelValidatorProviderProvider(),
-                new MockValueProviderFactoryProvider(),
-                new MockScopedInstance<ActionBindingContext>());
+                new DefaultControllerActionArgumentBinder(
+                    metadataProvider,
+                    new DefaultObjectValidator(Mock.Of<IValidationExcludeFiltersProvider>(), metadataProvider),
+                    new MockMvcOptionsAccessor()),
+                    new MockModelBinderProvider() { ModelBinders = new List<IModelBinder>() { binder.Object } },
+                    new MockModelValidatorProviderProvider(),
+                    new MockValueProviderFactoryProvider(),
+                    new MockScopedInstance<ActionBindingContext>());
 
             // Act
             await invoker.InvokeAsync();

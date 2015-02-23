@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.WebUtilities;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -14,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
 
         public virtual void OnAuthorization([NotNull]AuthorizationContext filterContext)
         {
-            if (!filterContext.HttpContext.Request.IsSecure)
+            if (!filterContext.HttpContext.Request.IsHttps)
             {
                 HandleNonHttpsRequest(filterContext);
             }

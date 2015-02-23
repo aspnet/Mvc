@@ -33,6 +33,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "method", "post" },
                     { "asp-anti-forgery", true }
                 },
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something Else"));
             var output = new TagHelperOutput(
@@ -92,6 +93,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = CreateViewContext();
             var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(
@@ -123,6 +125,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("form", output.TagName);
+            Assert.False(output.SelfClosing);
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreContent);
             Assert.Empty(output.Content);
@@ -136,6 +139,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var testViewContext = CreateViewContext();
             var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var expectedAttribute = new KeyValuePair<string, string>("asp-ROUTEE-NotRoute", "something");
@@ -185,6 +189,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await formTagHelper.ProcessAsync(context, output);
 
             Assert.Equal("form", output.TagName);
+            Assert.False(output.SelfClosing);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(expectedAttribute, attribute);
             Assert.Empty(output.PreContent);
@@ -200,6 +205,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = CreateViewContext();
             var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(
@@ -225,6 +231,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
 
             Assert.Equal("form", output.TagName);
+            Assert.False(output.SelfClosing);
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreContent);
             Assert.Empty(output.Content);
@@ -253,6 +260,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 {
                     { "METhod", "POST" }
                 },
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
 
@@ -299,6 +307,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                              });
             var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
 
@@ -308,6 +317,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("form", output.TagName);
+            Assert.False(output.SelfClosing);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(new KeyValuePair<string, string>("aCTiON", "my-action"), attribute);
             Assert.Empty(output.PreContent);

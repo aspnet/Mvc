@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="controllerModelConvention">The <see cref="IControllerModelConvention"/> which needs to be
         /// added.</param>
         public static void Add(
-            [NotNull] this List<IApplicationModelConvention> conventions,
+            [NotNull] this IList<IApplicationModelConvention> conventions,
             [NotNull] IControllerModelConvention controllerModelConvention)
         {
             conventions.Add(new ControllerApplicationModelConvention(controllerModelConvention));
@@ -33,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="actionModelConvention">The <see cref="IActionModelConvention"/> which needs to be
         /// added.</param>
         public static void Add(
-            this List<IApplicationModelConvention> conventions,
+            this IList<IApplicationModelConvention> conventions,
             IActionModelConvention actionModelConvention)
         {
             conventions.Add(new ActionApplicationModelConvention(actionModelConvention));

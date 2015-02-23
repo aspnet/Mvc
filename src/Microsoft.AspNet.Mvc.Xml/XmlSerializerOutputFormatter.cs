@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc.Xml
@@ -18,6 +20,8 @@ namespace Microsoft.AspNet.Mvc.Xml
     /// </summary>
     public class XmlSerializerOutputFormatter : OutputFormatter
     {
+        private ConcurrentDictionary<Type, object> _serializerCache = new ConcurrentDictionary<Type, object>();
+
         /// <summary>
         /// Initializes a new instance of <see cref="XmlSerializerOutputFormatter"/>
         /// with default XmlWriterSettings.
@@ -93,8 +97,12 @@ namespace Microsoft.AspNet.Mvc.Xml
         protected override bool CanWriteType(Type declaredType, Type runtimeType)
         {
             var type = ResolveType(declaredType, runtimeType);
+            if (type == null)
+            {
+                return false;
+            }
 
-            return CreateSerializer(GetSerializableType(type)) != null;
+            return GetCachedSerializer(GetSerializableType(type)) != null;
         }
 
         /// <summary>
@@ -159,11 +167,30 @@ namespace Microsoft.AspNet.Mvc.Xml
                     obj = wrapperProvider.Wrap(obj);
                 }
 
-                var xmlSerializer = CreateSerializer(wrappingType);
+                var xmlSerializer = GetCachedSerializer(wrappingType);
                 xmlSerializer.Serialize(xmlWriter, obj);
             }
 
             return Task.FromResult(true);
+        }
+
+        /// <summary>
+        /// Gets the cached serializer or creates and caches the serializer for the given type.
+        /// </summary>
+        /// <returns>The <see cref="XmlSerializer"/> instance.</returns>
+        protected virtual XmlSerializer GetCachedSerializer(Type type)
+        {
+            object serializer;
+            if (!_serializerCache.TryGetValue(type, out serializer))
+            {
+                serializer = CreateSerializer(type);
+                if (serializer != null)
+                {
+                    _serializerCache.TryAdd(type, serializer);
+                }
+            }
+
+            return (XmlSerializer)serializer;
         }
     }
 }

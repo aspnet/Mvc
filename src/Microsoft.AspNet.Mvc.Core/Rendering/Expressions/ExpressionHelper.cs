@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Rendering.Expressions
 {
@@ -16,10 +17,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
         public static string GetExpressionText(string expression)
         {
             // If it's exactly "model", then give them an empty string, to replicate the lambda behavior.
-            return
-                string.Equals(expression, "model", StringComparison.OrdinalIgnoreCase)
-                    ? string.Empty
-                    : expression;
+            return string.Equals(expression, "model", StringComparison.OrdinalIgnoreCase) ? string.Empty : expression;
         }
 
         public static string GetExpressionText([NotNull] LambdaExpression expression)
@@ -91,7 +89,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             return string.Empty;
         }
 
-        private static string GetIndexerInvocation([NotNull] Expression expression,
+        private static string GetIndexerInvocation(
+            [NotNull] Expression expression,
             [NotNull] ParameterExpression[] parameters)
         {
             var converted = Expression.Convert(expression, typeof(object));

@@ -6,9 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
-using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.DependencyInjection.Fallback;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
@@ -20,13 +21,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var bindingContext = GetBindingContext(typeof(Person));
 
-            var binder = new BinderTypeBasedModelBinder(Mock.Of<ITypeActivator>());
+            var binder = new BinderTypeBasedModelBinder();
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.False(binderResult);
+            Assert.Null(binderResult);
         }
 
         [Fact]
@@ -36,20 +37,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var bindingContext = GetBindingContext(typeof(Person));
             bindingContext.ModelMetadata.BinderType = typeof(FalseModelBinder);
 
-            var innerModelBinder = new FalseModelBinder();
-
-            var mockITypeActivator = new Mock<ITypeActivator>();
-            mockITypeActivator
-                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(FalseModelBinder)))
-                .Returns(innerModelBinder);
-
-            var binder = new BinderTypeBasedModelBinder(mockITypeActivator.Object);
+            var binder = new BinderTypeBasedModelBinder();
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.True(binderResult);
+            Assert.NotNull(binderResult);
         }
 
         [Fact]
@@ -60,21 +54,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             bindingContext.ModelMetadata.BinderType = typeof(TrueModelBinder);
 
             var model = new Person();
-            var innerModelBinder = new TrueModelBinder(model);
+            var innerModelBinder = new TrueModelBinder();
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(typeof(IModelBinder))
+                .BuildServiceProvider();
 
-            var mockITypeActivator = new Mock<ITypeActivator>();
-            mockITypeActivator
-                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(TrueModelBinder)))
-                .Returns(innerModelBinder);
+            bindingContext.OperationBindingContext.HttpContext.RequestServices = serviceProvider;
 
-            var binder = new BinderTypeBasedModelBinder(mockITypeActivator.Object);
+            var binder = new BinderTypeBasedModelBinder();
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.True(binderResult);
-            Assert.Same(model, bindingContext.Model);
+            var p = (Person)binderResult.Model;
+            Assert.Equal(model.Age, p.Age);
+            Assert.Equal(model.Name, p.Name);
         }
 
         [Fact]
@@ -85,23 +80,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             bindingContext.ModelMetadata.BinderType = typeof(ModelBinderProvider);
 
             var model = new Person();
-            var innerModelBinder = new TrueModelBinder(model);
+            var provider = new ModelBinderProvider();
 
-            var provider = new ModelBinderProvider(innerModelBinder);
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(typeof(IModelBinderProvider))
+                .AddSingleton(typeof(IModelBinder))
+                .BuildServiceProvider();
 
-            var mockITypeActivator = new Mock<ITypeActivator>();
-            mockITypeActivator
-                .Setup(o => o.CreateInstance(It.IsAny<IServiceProvider>(), typeof(ModelBinderProvider)))
-                .Returns(provider);
-
-            var binder = new BinderTypeBasedModelBinder(mockITypeActivator.Object);
+            bindingContext.OperationBindingContext.HttpContext.RequestServices = serviceProvider;
+            var binder = new BinderTypeBasedModelBinder();
 
             // Act
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.True(binderResult);
-            Assert.Same(model, bindingContext.Model);
+            var p = (Person)binderResult.Model;
+            Assert.Equal(model.Age, p.Age);
+            Assert.Equal(model.Name, p.Name);
         }
 
         [Fact]
@@ -109,10 +104,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(Person));
-            bindingContext.ModelMetadata.BinderType = typeof(string);
-            var binder = new BinderTypeBasedModelBinder(Mock.Of<ITypeActivator>());
+            bindingContext.ModelMetadata.BinderType = typeof(Person);
+            var binder = new BinderTypeBasedModelBinder();
 
-            var expected = "The type 'System.String' must implement either " +
+            var expected = "The type '" + typeof(Person).FullName + "' must implement either " +
                 "'Microsoft.AspNet.Mvc.ModelBinding.IModelBinder' or " +
                 "'Microsoft.AspNet.Mvc.ModelBinding.IModelBinderProvider' to be used as a model binder.";
 
@@ -155,9 +150,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
         private class FalseModelBinder : IModelBinder
         {
-            public Task<bool> BindModelAsync(ModelBindingContext bindingContext)
+            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
             {
-                return Task.FromResult(false);
+                return Task.FromResult<ModelBindingResult>(null);
             }
         }
 
@@ -165,15 +160,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             private readonly object _model;
 
-            public TrueModelBinder(object model)
+            public TrueModelBinder()
             {
-                _model = model;
+                _model = new Person();
             }
 
-            public Task<bool> BindModelAsync(ModelBindingContext bindingContext)
+            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
             {
-                bindingContext.Model = _model;
-                return Task.FromResult(true);
+                return Task.FromResult(new ModelBindingResult(_model, bindingContext.ModelName, true));
             }
         }
 
@@ -181,9 +175,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             private readonly IModelBinder _inner;
 
-            public ModelBinderProvider(IModelBinder inner)
+            public ModelBinderProvider()
             {
-                _inner = inner;
+                var innerModelBinder = new TrueModelBinder();
+                _inner = innerModelBinder;
             }
 
             public IReadOnlyList<IModelBinder> ModelBinders

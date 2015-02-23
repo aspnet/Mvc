@@ -7,7 +7,9 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.Framework.Cache.Memory;
+using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.Framework.Runtime;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -16,6 +18,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class CompilerCache : ICompilerCache
     {
+        private static readonly TypeInfo RazorFileInfoCollectionType = typeof(RazorFileInfoCollection).GetTypeInfo();
         private readonly IFileProvider _fileProvider;
         private readonly IMemoryCache _cache;
 
@@ -23,27 +26,30 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes a new instance of <see cref="CompilerCache"/> populated with precompiled views
         /// discovered using <paramref name="provider"/>.
         /// </summary>
-        /// <param name="provider">
-        /// An <see cref="IAssemblyProvider"/> representing the assemblies
-        /// used to search for pre-compiled views.
-        /// </param>
+        /// <param name="assemblyProvider">The <see cref="IAssemblyProvider"/> that provides assemblies
+        /// for precompiled view discovery.</param>
+        /// <param name="loaderContextAccessor">The <see cref="IAssemblyLoadContextAccessor"/>.</param>
         /// <param name="optionsAccessor">An accessor to the <see cref="RazorViewEngineOptions"/>.</param>
-        public CompilerCache(IAssemblyProvider provider,
+        public CompilerCache(IAssemblyProvider assemblyProvider,
+                             IAssemblyLoadContextAccessor loadContextAccessor,
                              IOptions<RazorViewEngineOptions> optionsAccessor)
-            : this(GetFileInfos(provider.CandidateAssemblies), optionsAccessor.Options.FileProvider)
+            : this(GetFileInfos(assemblyProvider.CandidateAssemblies),
+                  loadContextAccessor.GetLoadContext(RazorFileInfoCollectionType.Assembly),
+                  optionsAccessor.Options.FileProvider)
         {
         }
 
-        // Internal for unit testing
-        internal CompilerCache(IEnumerable<RazorFileInfoCollection> razorFileInfoCollection,
+        internal CompilerCache(IEnumerable<RazorFileInfoCollection> razorFileInfoCollections,
+                               IAssemblyLoadContext loadContext,
                                IFileProvider fileProvider)
         {
             _fileProvider = fileProvider;
             _cache = new MemoryCache(new MemoryCacheOptions { ListenForMemoryPressure = false });
+
             var cacheEntries = new List<CompilerCacheEntry>();
-            foreach (var viewCollection in razorFileInfoCollection)
+            foreach (var viewCollection in razorFileInfoCollections)
             {
-                var containingAssembly = viewCollection.GetType().GetTypeInfo().Assembly;
+                var containingAssembly = viewCollection.LoadAssembly(loadContext);
                 foreach (var fileInfo in viewCollection.FileInfos)
                 {
                     var viewType = containingAssembly.GetType(fileInfo.FullTypeName);
@@ -57,17 +63,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
             }
 
-            // Set up ViewStarts
+            // Set up _GlobalImports
             foreach (var entry in cacheEntries)
             {
-                var viewStartLocations = ViewStartUtility.GetViewStartLocations(entry.RelativePath);
-                foreach (var location in viewStartLocations)
+                var globalFileLocations = ViewHierarchyUtility.GetGlobalImportLocations(entry.RelativePath);
+                foreach (var location in globalFileLocations)
                 {
-                    var viewStartEntry = _cache.Get<CompilerCacheEntry>(location);
-                    if (viewStartEntry != null)
+                    var globalFileEntry = _cache.Get<CompilerCacheEntry>(location);
+                    if (globalFileEntry != null)
                     {
-                        // Add the the composite _ViewStart entry as a dependency.
-                        entry.AssociatedViewStartEntry = viewStartEntry;
+                        // Add the the composite _GlobalImport entry as a dependency.
+                        entry.AssociatedGlobalFileEntry = globalFileEntry;
                         break;
                     }
                 }
@@ -106,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             else if (cacheEntry.IsPreCompiled && !cacheEntry.IsValidatedPreCompiled)
             {
                 // For precompiled views, the first time the entry is read, we need to ensure that no changes were made
-                // either to the file associated with this entry, or any _ViewStart associated with it between the time
+                // either to the file associated with this entry, or any _GlobalImport associated with it between the time
                 // the View was precompiled and the time EnsureInitialized was called. For later iterations, we can
                 // rely on expiration triggers ensuring the validity of the entry.
 
@@ -123,9 +129,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                     return OnCacheMiss(relativeFileInfo, normalizedPath, compile);
                 }
 
-                if (AssociatedViewStartsChanged(cacheEntry, compile))
+                if (AssociatedGlobalFilesChanged(cacheEntry, compile))
                 {
-                    // Recompile if the view starts have changed since the entry was created.
+                    // Recompile if _GlobalImports have changed since the entry was created.
                     return OnCacheMiss(relativeFileInfo, normalizedPath, compile);
                 }
 
@@ -192,8 +198,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var entry = (CompilerCacheEntry)cacheSetContext.State;
             cacheSetContext.AddExpirationTrigger(_fileProvider.Watch(entry.RelativePath));
 
-            var viewStartLocations = ViewStartUtility.GetViewStartLocations(cacheSetContext.Key);
-            foreach (var location in viewStartLocations)
+            var globalImportPaths = ViewHierarchyUtility.GetGlobalImportLocations(cacheSetContext.Key);
+            foreach (var location in globalImportPaths)
             {
                 cacheSetContext.AddExpirationTrigger(_fileProvider.Watch(location));
             }
@@ -201,31 +207,31 @@ namespace Microsoft.AspNet.Mvc.Razor
             return entry;
         }
 
-        private bool AssociatedViewStartsChanged(CompilerCacheEntry entry,
-                                                 Func<RelativeFileInfo, CompilationResult> compile)
+        private bool AssociatedGlobalFilesChanged(CompilerCacheEntry entry,
+                                                  Func<RelativeFileInfo, CompilationResult> compile)
         {
-            var viewStartEntry = GetCompositeViewStartEntry(entry.RelativePath, compile);
-            return entry.AssociatedViewStartEntry != viewStartEntry;
+            var globalFileEntry = GetCompositeGlobalFileEntry(entry.RelativePath, compile);
+            return entry.AssociatedGlobalFileEntry != globalFileEntry;
         }
 
-        // Returns the entry for the nearest _ViewStart that the file inherits directives from. Since _ViewStart
-        // entries are affected by other _ViewStart entries that are in the path hierarchy, the returned value
-        // represents the composite result of performing a cache check on individual _ViewStart entries.
-        private CompilerCacheEntry GetCompositeViewStartEntry(string relativePath,
+        // Returns the entry for the nearest _GlobalImport that the file inherits directives from. Since _GlobalImport
+        // entries are affected by other _GlobalImport entries that are in the path hierarchy, the returned value
+        // represents the composite result of performing a cache check on individual _GlobalImport entries.
+        private CompilerCacheEntry GetCompositeGlobalFileEntry(string relativePath,
                                                               Func<RelativeFileInfo, CompilationResult> compile)
         {
-            var viewStartLocations = ViewStartUtility.GetViewStartLocations(relativePath);
-            foreach (var viewStartLocation in viewStartLocations)
+            var globalImportLocations = ViewHierarchyUtility.GetGlobalImportLocations(relativePath);
+            foreach (var globalImport in globalImportLocations)
             {
-                var getOrAddResult = GetOrAddCore(viewStartLocation, compile);
+                var getOrAddResult = GetOrAddCore(globalImport, compile);
                 if (getOrAddResult != null)
                 {
-                    // This is the nearest _ViewStart that exists on disk.
+                    // This is the nearest _GlobalImport that exists on disk.
                     return getOrAddResult.CompilerCacheEntry;
                 }
             }
 
-            // No _ViewStarts discovered.
+            // No _GlobalImports discovered.
             return null;
         }
 
@@ -240,15 +246,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             return path;
         }
 
-        internal static IEnumerable<RazorFileInfoCollection>
-                    GetFileInfos(IEnumerable<Assembly> assemblies)
+        internal static IEnumerable<RazorFileInfoCollection> GetFileInfos(IEnumerable<Assembly> assemblies)
         {
             return assemblies.SelectMany(a => a.ExportedTypes)
                     .Where(Match)
                     .Select(c => (RazorFileInfoCollection)Activator.CreateInstance(c));
         }
 
-        private static bool Match(Type t)
+        internal static bool Match(Type t)
         {
             var inAssemblyType = typeof(RazorFileInfoCollection);
             if (inAssemblyType.IsAssignableFrom(t))
@@ -262,7 +267,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             return false;
         }
-
 
         private class GetOrAddResult
         {

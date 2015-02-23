@@ -23,20 +23,22 @@ namespace Microsoft.AspNet.Mvc
 {
     public class MvcServices
     {
-        public static IEnumerable<IServiceDescriptor> GetDefaultServices(IConfiguration configuration = null)
+        public static IEnumerable<IServiceDescriptor> GetDefaultServices()
+        {
+            return GetDefaultServices(null);
+        }
+
+        public static IEnumerable<IServiceDescriptor> GetDefaultServices(IConfiguration configuration)
         {
             var describe = new ServiceDescriber(configuration);
 
             // Options and core services.
-
             yield return describe.Transient<IConfigureOptions<MvcOptions>, MvcOptionsSetup>();
             yield return describe.Transient<IConfigureOptions<RazorViewEngineOptions>, RazorViewEngineOptionsSetup>();
             yield return describe.Transient<IAssemblyProvider, DefaultAssemblyProvider>();
-            yield return describe.Transient(typeof(INestedProviderManager<>), typeof(NestedProviderManager<>));
-            yield return describe.Transient(
-                typeof(INestedProviderManagerAsync<>),
-                typeof(NestedProviderManagerAsync<>));
+
             yield return describe.Transient<MvcMarkerService, MvcMarkerService>();
+            yield return describe.Singleton(typeof(ITypeActivatorCache), typeof(DefaultTypeActivatorCache));
             yield return describe.Scoped(typeof(IScopedInstance<>), typeof(ScopedInstance<>));
 
             // Core action discovery, filters and action execution.
@@ -49,38 +51,45 @@ namespace Microsoft.AspNet.Mvc
             // This has a cache, so it needs to be a singleton
             yield return describe.Singleton<IControllerFactory, DefaultControllerFactory>();
 
-            // This has a cache, so it needs to be a singleton
-            yield return describe.Singleton<IControllerActivator, DefaultControllerActivator>();
+            yield return describe.Transient<IControllerActivator, DefaultControllerActivator>();
 
             // This accesses per-reqest services
             yield return describe.Transient<IActionInvokerFactory, ActionInvokerFactory>();
 
             // This provider needs access to the per-request services, but might be used many times for a given
             // request.
-            yield return describe.Scoped<INestedProvider<ActionConstraintProviderContext>,
+            yield return describe.Transient<INestedProviderManager<ActionConstraintProviderContext>,
+                NestedProviderManager<ActionConstraintProviderContext>>();
+            yield return describe.Transient<INestedProvider<ActionConstraintProviderContext>,
                 DefaultActionConstraintProvider>();
 
             yield return describe.Singleton<IActionSelectorDecisionTreeProvider, ActionSelectorDecisionTreeProvider>();
-            yield return describe.Scoped<IActionSelector, DefaultActionSelector>();
+            yield return describe.Singleton<IActionSelector, DefaultActionSelector>();
             yield return describe.Transient<IControllerActionArgumentBinder, DefaultControllerActionArgumentBinder>();
+            yield return describe.Transient<IObjectModelValidator, DefaultObjectValidator>();
 
+            yield return describe.Transient<INestedProviderManager<ActionDescriptorProviderContext>,
+                                NestedProviderManager<ActionDescriptorProviderContext>>();
             yield return describe.Transient<INestedProvider<ActionDescriptorProviderContext>,
                                 ControllerActionDescriptorProvider>();
+
+            yield return describe.Transient<INestedProviderManager<ActionInvokerProviderContext>,
+                                NestedProviderManager<ActionInvokerProviderContext>>();
             yield return describe.Transient<INestedProvider<ActionInvokerProviderContext>,
                                             ControllerActionInvokerProvider>();
+
             yield return describe.Singleton<IActionDescriptorsCollectionProvider,
                 DefaultActionDescriptorsCollectionProvider>();
 
             // The IGlobalFilterProvider is used to build the action descriptors (likely once) and so should
             // remain transient to avoid keeping it in memory.
             yield return describe.Transient<IGlobalFilterProvider, DefaultGlobalFilterProvider>();
-
+            yield return describe.Transient<INestedProviderManager<FilterProviderContext>,
+                NestedProviderManager<FilterProviderContext>>();
             yield return describe.Transient<INestedProvider<FilterProviderContext>, DefaultFilterProvider>();
 
             yield return describe.Transient<FormatFilter, FormatFilter>();
-
             // Dataflow - ModelBinding, Validation and Formatting
-
             // The DataAnnotationsModelMetadataProvider does significant caching of reflection/attributes
             // and thus needs to be singleton. 
             yield return describe.Singleton<IModelMetadataProvider, DataAnnotationsModelMetadataProvider>();
@@ -91,10 +100,9 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<IModelBinderProvider, DefaultModelBindersProvider>();
             yield return describe.Transient<IValueProviderFactoryProvider, DefaultValueProviderFactoryProvider>();
             yield return describe.Transient<IOutputFormattersProvider, DefaultOutputFormattersProvider>();
-            yield return describe.Instance<JsonOutputFormatter>(new JsonOutputFormatter());
+            yield return describe.Instance(new JsonOutputFormatter());
 
             yield return describe.Transient<IModelValidatorProviderProvider, DefaultModelValidatorProviderProvider>();
-            yield return describe.Transient<IBodyModelValidator, DefaultBodyModelValidator>();
             yield return describe.Transient<IValidationExcludeFiltersProvider,
                 DefaultValidationExcludeFiltersProvider>();
 
@@ -116,7 +124,7 @@ namespace Microsoft.AspNet.Mvc
 
             // The host is designed to be discarded after consumption and is very inexpensive to initialize.
             yield return describe.Transient<IMvcRazorHost, MvcRazorHost>();
-
+            
             // Caches compilation artifacts across the lifetime of the application.
             yield return describe.Singleton<ICompilerCache, CompilerCache>();
 
@@ -133,11 +141,11 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Scoped<IViewStartProvider, ViewStartProvider>();
             yield return describe.Transient<IRazorViewFactory, RazorViewFactory>();
             yield return describe.Singleton<IRazorPageActivator, RazorPageActivator>();
+
             // Virtual path view factory needs to stay scoped so views can get get scoped services.
             yield return describe.Scoped<IRazorPageFactory, VirtualPathRazorPageFactory>();
 
             // View and rendering helpers
-
             yield return describe.Transient<IHtmlHelper, HtmlHelper>();
             yield return describe.Transient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>));
             yield return describe.Scoped<IUrlHelper, UrlHelper>();
@@ -152,22 +160,26 @@ namespace Microsoft.AspNet.Mvc
             // IActionBindingContextProvider. Therefore it too is scoped.
             yield return describe.Transient<IHtmlGenerator, DefaultHtmlGenerator>();
 
-            yield return describe.Transient<IViewComponentSelector, DefaultViewComponentSelector>();
+            // These do caching so they should stay singleton
+            yield return describe.Singleton<IViewComponentSelector, DefaultViewComponentSelector>();
             yield return describe.Singleton<IViewComponentActivator, DefaultViewComponentActivator>();
+
             yield return describe.Transient<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>();
+            yield return describe.Transient<INestedProviderManager<ViewComponentInvokerProviderContext>,
+                NestedProviderManager<ViewComponentInvokerProviderContext>>();
             yield return describe.Transient<INestedProvider<ViewComponentInvokerProviderContext>,
                 DefaultViewComponentInvokerProvider>();
             yield return describe.Transient<IViewComponentHelper, DefaultViewComponentHelper>();
 
             // Security and Authorization
-
             yield return describe.Singleton<IClaimUidExtractor, DefaultClaimUidExtractor>();
             yield return describe.Singleton<AntiForgery, AntiForgery>();
             yield return describe.Singleton<IAntiForgeryAdditionalDataProvider,
                 DefaultAntiForgeryAdditionalDataProvider>();
 
             // Api Description
-
+            yield return describe.Transient<INestedProviderManager<ApiDescriptionProviderContext>,
+                NestedProviderManager<ApiDescriptionProviderContext>>();
             yield return describe.Singleton<IApiDescriptionGroupCollectionProvider,
                 ApiDescriptionGroupCollectionProvider>();
             yield return describe.Transient<INestedProvider<ApiDescriptionProviderContext>,

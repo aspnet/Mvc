@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Framework.Internal;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -45,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.False(result);
+            Assert.Null(result);
             Assert.False(binder.WasBindModelCoreCalled);
         }
 
@@ -69,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.False(result);
+            Assert.Null(result);
             Assert.False(binder.WasBindModelCoreCalled);
         }
 
@@ -93,7 +94,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.True(result);
+            Assert.NotNull(result);
+            Assert.True(result.IsModelSet);
             Assert.True(binder.WasBindModelCoreCalled);
         }
 
@@ -106,10 +108,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
             }
 
-            protected override Task BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
+            protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
             {
                 WasBindModelCoreCalled = true;
-                return Task.FromResult(true);
+                return Task.FromResult(new ModelBindingResult(null, bindingContext.ModelName, true));
             }
         }
     }

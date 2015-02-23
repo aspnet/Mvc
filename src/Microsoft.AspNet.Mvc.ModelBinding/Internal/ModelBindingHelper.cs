@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
 {
@@ -80,17 +81,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
                 throw new ArgumentException(message, "bindingContext");
             }
 
-            if (!allowNullModel && bindingContext.Model == null)
+            if (!allowNullModel && bindingContext.ModelMetadata.Model == null)
             {
                 var message = Resources.FormatModelBinderUtil_ModelCannotBeNull(requiredType);
                 throw new ArgumentException(message, "bindingContext");
             }
 
-            if (bindingContext.Model != null &&
+            if (bindingContext.ModelMetadata.Model != null &&
                 !bindingContext.ModelType.GetTypeInfo().IsAssignableFrom(requiredType.GetTypeInfo()))
             {
                 var message = Resources.FormatModelBinderUtil_ModelInstanceIsWrong(
-                    bindingContext.Model.GetType(),
+                    bindingContext.ModelMetadata.Model.GetType(),
                     requiredType);
                 throw new ArgumentException(message, "bindingContext");
             }

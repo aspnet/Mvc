@@ -9,12 +9,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.Framework.Internal;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -23,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class RoslynCompilationService : ICompilationService
     {
-        private readonly Lazy<bool> _supportsPdbGeneration = new Lazy<bool>(SupportsPdbGeneration);
+        private readonly Lazy<bool> _supportsPdbGeneration = new Lazy<bool>(SymbolsUtility.SupportsSymbolsGeneration);
         private readonly ConcurrentDictionary<string, AssemblyMetadata> _metadataFileCache =
             new ConcurrentDictionary<string, AssemblyMetadata>(StringComparer.OrdinalIgnoreCase);
 
@@ -228,32 +230,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             return diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
         }
 
-        private static bool SupportsPdbGeneration()
-        {
-            try
-            {
-                if (PlatformHelper.IsMono)
-                {
-                    return false;
-                }
 
-                // Check for the pdb writer component that roslyn uses to generate pdbs
-                const string SymWriterGuid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
-
-                var type = Marshal.GetTypeFromCLSID(new Guid(SymWriterGuid));
-
-                if (type != null)
-                {
-                    // This line will throw if pdb generation is not supported.
-                    Activator.CreateInstance(type);
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-
-            return false;
-        }
     }
 }

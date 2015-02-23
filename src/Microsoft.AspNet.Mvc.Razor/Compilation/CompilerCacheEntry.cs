@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -78,10 +79,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         public bool IsPreCompiled { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="CompilerCacheEntry"/> for the nearest ViewStart that the compiled type
+        /// Gets or sets the <see cref="CompilerCacheEntry"/> for the nearest _GlobalImport that the compiled type
         /// depends on.
         /// </summary>
-        public CompilerCacheEntry AssociatedViewStartEntry { get; set; }
+        public CompilerCacheEntry AssociatedGlobalFileEntry { get; set; }
 
         /// <summary>
         /// Gets or sets a flag that determines if the validity of this cache entry was performed at runtime.

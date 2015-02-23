@@ -94,9 +94,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPostContent = "original post-content";
             var expectedTagName = "not-input";
 
-            var context = new TagHelperContext(allAttributes: new Dictionary<string, object>(),
-                                               uniqueId: "test",
-                                               getChildContentAsync: () => Task.FromResult("Something"));
+            var context = new TagHelperContext(
+                allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var originalAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
@@ -134,7 +136,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -148,9 +150,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedContent = originalContent + "<input class=\"form-control\" /><hidden />";
             var expectedPostContent = "original post-content";
 
-            var context = new TagHelperContext(allAttributes: new Dictionary<string, object>(),
-                                               uniqueId: "test",
-                                               getChildContentAsync: () => Task.FromResult("Something"));
+            var context = new TagHelperContext(
+                allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var originalAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
@@ -199,7 +203,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.False(output.SelfClosing);
+            Assert.True(output.SelfClosing);
             Assert.Null(output.TagName);       // Cleared
         }
 
@@ -237,9 +241,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPostContent = "original post-content";
             var expectedTagName = "not-input";
 
-            var context = new TagHelperContext(allAttributes: contextAttributes,
-                                               uniqueId: "test",
-                                               getChildContentAsync: () => Task.FromResult("Something"));
+            var context = new TagHelperContext(
+                allAttributes: contextAttributes,
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var originalAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
@@ -281,11 +287,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -323,9 +329,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPostContent = "original post-content";
             var expectedTagName = "not-input";
 
-            var context = new TagHelperContext(allAttributes: contextAttributes,
-                                               uniqueId: "test",
-                                               getChildContentAsync: () => Task.FromResult("Something"));
+            var context = new TagHelperContext(
+                allAttributes: contextAttributes,
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var originalAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
@@ -366,11 +374,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -406,9 +414,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPostContent = "original post-content";
             var expectedTagName = "not-input";
 
-            var context = new TagHelperContext(allAttributes: contextAttributes,
-                                               uniqueId: "test",
-                                               getChildContentAsync: () => Task.FromResult("Something"));
+            var context = new TagHelperContext(
+                allAttributes: contextAttributes,
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var originalAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
@@ -450,11 +460,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -504,9 +514,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPostContent = "original post-content";
             var expectedTagName = "not-input";
 
-            var context = new TagHelperContext(allAttributes: contextAttributes,
-                                               uniqueId: "test",
-                                               getChildContentAsync: () => Task.FromResult("Something"));
+            var context = new TagHelperContext(
+                allAttributes: contextAttributes,
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: () => Task.FromResult("Something"));
             var originalAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
@@ -548,11 +560,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
+            Assert.False(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -573,6 +585,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(expectedTagName, expectedAttributes)
@@ -628,6 +641,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(expectedTagName, originalAttributes);

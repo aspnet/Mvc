@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -34,7 +35,7 @@ namespace Microsoft.AspNet.Mvc
 
         private void CheckSSLConfig(HttpContext httpContext)
         {
-            if (_config.RequireSSL && !httpContext.Request.IsSecure)
+            if (_config.RequireSSL && !httpContext.Request.IsHttps)
             {
                 throw new InvalidOperationException(Resources.AntiForgeryWorker_RequireSSL);
             }

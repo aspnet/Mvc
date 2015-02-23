@@ -8,6 +8,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -125,6 +126,18 @@ namespace Microsoft.AspNet.Mvc
         public virtual string Content([NotNull] string contentPath)
         {
             return GenerateClientUrl(_httpContext.Request.PathBase, contentPath);
+        }
+
+        /// <inheritdoc />
+        public virtual string Link(string routeName, object values)
+        {
+            return RouteUrl(new UrlRouteContext()
+            {
+                RouteName = routeName,
+                Values = values,
+                Protocol = _httpContext.Request.Scheme,
+                Host = _httpContext.Request.Host.ToUriComponent()
+            });
         }
 
         private static string GenerateClientUrl([NotNull] PathString applicationPath,

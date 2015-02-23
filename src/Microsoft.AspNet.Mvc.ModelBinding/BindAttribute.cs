@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -16,6 +17,8 @@ namespace Microsoft.AspNet.Mvc
     {
         private static readonly Func<ModelBindingContext, string, bool> _defaultFilter =
             (context, propertyName) => true;
+
+        private ObjectFactory _factory;
 
         private Func<ModelBindingContext, string, bool> _predicateFromInclude;
 
@@ -79,7 +82,8 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (PredicateProviderType != null)
                 {
-                    return CreatePredicateFromProviderType(PredicateProviderType);
+                    var factory = GetFactory();
+                    return CreatePredicateFromProviderType(factory);
                 }
                 else if (Include != null && Include.Length > 0)
                 {
@@ -98,8 +102,17 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        private ObjectFactory GetFactory()
+        {
+            if (_factory == null)
+            {
+                _factory = ActivatorUtilities.CreateFactory(PredicateProviderType, Type.EmptyTypes);
+            }
+            return _factory;
+        }
+
         private static Func<ModelBindingContext, string, bool> CreatePredicateFromProviderType(
-            Type predicateProviderType)
+            ObjectFactory factory)
         {
             // Holding state to avoid execessive creation of the provider.
             var initialized = false;
@@ -110,11 +123,8 @@ namespace Microsoft.AspNet.Mvc
                 if (!initialized)
                 {
                     var services = context.OperationBindingContext.HttpContext.RequestServices;
-                    var activator = services.GetService<ITypeActivator>();
 
-                    var provider = (IPropertyBindingPredicateProvider)activator.CreateInstance(
-                        services, 
-                        predicateProviderType);
+                    var provider = (IPropertyBindingPredicateProvider)factory(services, arguments: null);
 
                     initialized = true;
                     predicate = provider.PropertyFilter ?? _defaultFilter;

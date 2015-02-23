@@ -3,22 +3,23 @@
 
 using System;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class DefaultViewComponentInvokerProvider : IViewComponentInvokerProvider
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly ITypeActivator _typeActivator;
+        private readonly ITypeActivatorCache _typeActivatorCache;
         private readonly IViewComponentActivator _viewComponentActivator;
 
         public DefaultViewComponentInvokerProvider(
             IServiceProvider serviceProvider,
-            ITypeActivator typeActivator,
+            ITypeActivatorCache typeActivatorCache,
             IViewComponentActivator viewComponentActivator)
         {
             _serviceProvider = serviceProvider;
-            _typeActivator = typeActivator;
+            _typeActivatorCache = typeActivatorCache;
             _viewComponentActivator = viewComponentActivator;
         }
 
@@ -31,7 +32,7 @@ namespace Microsoft.AspNet.Mvc
         {
             context.Result = new DefaultViewComponentInvoker(
                     _serviceProvider,
-                    _typeActivator,
+                    _typeActivatorCache,
                     _viewComponentActivator,
                     context.ComponentType,
                     context.Arguments);

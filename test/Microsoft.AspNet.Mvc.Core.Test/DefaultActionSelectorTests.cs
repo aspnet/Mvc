@@ -15,6 +15,7 @@ using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.NestedProviders;
+using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
 using Moq;
 using Xunit;
@@ -745,7 +746,7 @@ namespace Microsoft.AspNet.Mvc
             var actionConstraintProvider = new NestedProviderManager<ActionConstraintProviderContext>(
                 new INestedProvider<ActionConstraintProviderContext>[]
             {
-                new DefaultActionConstraintProvider(serviceContainer),
+                new DefaultActionConstraintProvider(),
             });
 
             var defaultActionSelector = new DefaultActionSelector(
@@ -765,8 +766,9 @@ namespace Microsoft.AspNet.Mvc
                 .ToList();
 
             var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypes);
-            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(),
-                                                                 NullLoggerFactory.Instance);
+            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+                                                                 NullLoggerFactory.Instance,
+                                                                 null);
 
             return new ControllerActionDescriptorProvider(
                                         controllerTypeProvider,
@@ -830,7 +832,7 @@ namespace Microsoft.AspNet.Mvc
             var actionConstraintProvider = new NestedProviderManager<ActionConstraintProviderContext>(
                 new INestedProvider<ActionConstraintProviderContext>[]
             {
-                new DefaultActionConstraintProvider(new ServiceContainer()),
+                new DefaultActionConstraintProvider(),
                 new BooleanConstraintProvider(),
             });
 
@@ -859,13 +861,16 @@ namespace Microsoft.AspNet.Mvc
             var routeData = new RouteData();
             routeData.Routers.Add(new Mock<IRouter>(MockBehavior.Strict).Object);
 
+            var serviceContainer = new ServiceContainer();
+
             var httpContext = new Mock<HttpContext>(MockBehavior.Strict);
 
             var request = new Mock<HttpRequest>(MockBehavior.Strict);
-            httpContext.SetupGet(c => c.Request).Returns(request.Object);
-
             request.SetupGet(r => r.Method).Returns(httpMethod);
             request.SetupGet(r => r.Path).Returns(new PathString());
+
+            httpContext.SetupGet(c => c.Request).Returns(request.Object);
+            httpContext.SetupGet(c => c.RequestServices).Returns(serviceContainer);
 
             return new RouteContext(httpContext.Object)
             {

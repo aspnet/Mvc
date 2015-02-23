@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
@@ -26,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
         {
             ValidateContentType(contentType);
             format = RemovePeriodIfPresent(format);
-            _map[format] = contentType;
+            _map[format] = MediaTypeHeaderValue.Parse(contentType.ToString());
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace Microsoft.AspNet.Mvc
 
             MediaTypeHeaderValue value = null;
             _map.TryGetValue(format, out value);
-            
+
             return value;
         }
 
@@ -77,10 +78,10 @@ namespace Microsoft.AspNet.Mvc
                     throw new ArgumentException(string.Format(Resources.Format_NotValid, format));
                 }
 
-                format = format.Substring(1);                
-            }            
+                format = format.Substring(1);
+            }
 
             return format;
-        }        
+        }
     }
 }
