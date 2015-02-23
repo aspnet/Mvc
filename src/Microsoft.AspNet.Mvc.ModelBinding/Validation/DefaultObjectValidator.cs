@@ -84,7 +84,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // The validators are not null in the case of validating an array. Since the validators are
                 // the same for all the elements of the array, we do not do GetValidators for each element,
                 // instead we just pass them over. See ValidateElements function.
-                validators = validationContext.ModelValidationContext.ValidatorProvider.GetValidators(modelExplorer.Metadata);
+                var validatorProvider = validationContext.ModelValidationContext.ValidatorProvider;
+                validators = validatorProvider.GetValidators(modelExplorer.Metadata);
             }
 
             // We don't need to recursively traverse the graph for null values
@@ -164,10 +165,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             foreach (var property in modelExplorer.Metadata.Properties)
             {
                 var propertyExplorer = modelExplorer.GetExplorerForProperty(property.PropertyName);
+                var propertyMetadata = propertyExplorer.Metadata;
 
-                var propertyBindingName = propertyExplorer.Metadata.BinderModelName ?? propertyExplorer.Metadata.PropertyName;
+                var propertyBindingName = propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName;
                 var childKey = ModelBindingHelper.CreatePropertyModelName(currentModelKey, propertyBindingName);
-                if (!ValidateNonVisitedNodeAndChildren(childKey, propertyExplorer, validationContext, validators: null))
+                if (!ValidateNonVisitedNodeAndChildren(
+                    childKey, 
+                    propertyExplorer, 
+                    validationContext, 
+                    validators: null))
                 {
                     isValid = false;
                 }

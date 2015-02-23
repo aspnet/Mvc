@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void Properties_UsesRuntimeType_Properties()
+        public void Properties_UsesRuntimeType()
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -61,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void Properties_UsesDeclaredType_WhenModelIsNull_Properties()
+        public void Properties_UsesDeclaredType_WhenModelIsNull()
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -100,6 +100,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             Assert.Equal(17, propertyValue);
+        }
+
+        [Fact]
+        public void GetPropertyExplorer_DeferredModelAccess_ContainerModelIsNull()
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var modelExplorer = provider.GetModelExplorerForType(typeof(BaseClass), model: null);
+
+            var propertyExplorer = modelExplorer.GetExplorerForProperty("Base1");
+
+            // Act
+            var propertyValue = propertyExplorer.Model;
+
+            // Assert
+            Assert.Null(propertyValue);
         }
 
         [Fact]

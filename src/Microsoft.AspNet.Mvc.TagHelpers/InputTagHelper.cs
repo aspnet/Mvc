@@ -137,6 +137,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // Note null or empty For.Name is allowed because TemplateInfo.HtmlFieldPrefix may be sufficient.
                 // IHtmlGenerator will enforce name requirements.
                 var metadata = For.Metadata;
+                var modelExplorer = For.ModelExplorer;
                 if (metadata == null)
                 {
                     throw new InvalidOperationException(Resources.FormatTagHelpers_NoProvidedMetadata(
@@ -151,7 +152,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 if (string.IsNullOrEmpty(InputTypeName))
                 {
                     // Note GetInputType never returns null.
-                    inputType = GetInputType(For.ModelExplorer, out inputTypeHint);
+                    inputType = GetInputTypemodelExplorer, out inputTypeHint);
                 }
                 else
                 {
@@ -169,13 +170,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 switch (inputType)
                 {
                     case "checkbox":
-                        GenerateCheckBox(For.ModelExplorer, output);
+                        GenerateCheckBox(modelExplorer, output);
                         return;
 
                     case "hidden":
                         tagBuilder = Generator.GenerateHidden(
                             ViewContext,
-                            For.ModelExplorer,
+                            modelExplorer,
                             For.Name,
                             value: For.Model,
                             useViewData: false,
@@ -185,18 +186,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     case "password":
                         tagBuilder = Generator.GeneratePassword(
                             ViewContext,
-                            For.ModelExplorer,
+                            modelExplorer,
                             For.Name,
                             value: null,
                             htmlAttributes: null);
                         break;
 
                     case "radio":
-                        tagBuilder = GenerateRadio(For.ModelExplorer);
+                        tagBuilder = GenerateRadio(modelExplorer);
                         break;
 
                     default:
-                        tagBuilder = GenerateTextBox(For.ModelExplorer, inputTypeHint, inputType);
+                        tagBuilder = GenerateTextBox(modelExplorer, inputTypeHint, inputType);
                         break;
                 }
 

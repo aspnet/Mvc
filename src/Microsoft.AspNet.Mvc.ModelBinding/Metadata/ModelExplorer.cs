@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -107,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets the model object.
         /// </summary>
         /// <remarks>
-        /// Retrieving the <see cref="Model"/> object will execute model accessor function if this
+        /// Retrieving the <see cref="Model"/> object will execute the model accessor function if this
         /// <see cref="ModelExplorer"/> was provided with one.
         /// </remarks>
         public object Model
@@ -128,7 +129,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <remarks>
-        /// Retrieving the <see cref="Model"/> type will for execution of the model accessor function if this
+        /// Retrieving the <see cref="ModelType"/> will execute the model accessor function if this
         /// <see cref="ModelExplorer"/> was provided with one.
         /// </remarks>
         public Type ModelType
@@ -183,13 +184,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         PropertyHelper.GetProperties(ModelType),
                         m => m.PropertyName,
                         ph => ph.Property.Name,
-                        (m, ph) => new { Metadata = m, PropertyHelper = ph });
+                        (m, ph) => CreateExplorerForProperty(m, ph));
 
-
-                    foreach (var property in properties)
-                    {
-                        _properties.Add(CreateExplorerForProperty(property.Metadata, property.PropertyHelper));
-                    }
+                    _properties.AddRange(properties);
                 }
 
                 return _properties;
@@ -211,14 +208,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets a <see cref="ModelExplorer"/> for the property, or <c>null</c> if the property cannot be
-        /// found.
+        /// Gets a <see cref="ModelExplorer"/> for the property with given <paramref name="name"/>, or <c>null</c> if 
+        /// the property cannot be found.
         /// </summary>
         /// <param name="name">The property name.</param>
         /// <param name="modelAccessor">An accessor for the model value.</param>
         /// <returns>A <see cref="ModelExplorer"/>, or <c>null</c>.</returns>
         /// <remarks>
-        /// As this creates a model explorer with a custom model accessor function, the result is not cached.
+        /// As this creates a model explorer with a specific model accessor function, the result is not cached.
         /// </remarks>
         public ModelExplorer GetExplorerForProperty([NotNull] string name, Func<object, object> modelAccessor)
         {
@@ -234,14 +231,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets a <see cref="ModelExplorer"/> for the property, or <c>null</c> if the property cannot be
-        /// found.
+        /// Gets a <see cref="ModelExplorer"/> for the with given <paramref name="name"/>, or <c>null</c> if
+        /// the property cannot be found.
         /// </summary>
         /// <param name="name">The property name.</param>
         /// <param name="model">The model value.</param>
         /// <returns>A <see cref="ModelExplorer"/>, or <c>null</c>.</returns>
         /// <remarks>
-        /// As this creates a model explorer with a custom model value, the result is not cached.
+        /// As this creates a model explorer with a specific model value, the result is not cached.
         /// </remarks>
         public ModelExplorer GetExplorerForProperty([NotNull] string name, object model)
         {
@@ -269,7 +266,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// in the current <see cref="ModelExplorer"/> instance.
         /// </para>
         /// <para>
-        /// The returns <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
+        /// The returned <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
         /// </para>
         /// </remarks>
         public ModelExplorer GetExplorerForExpression([NotNull] Type modelType, object model)
@@ -292,7 +289,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// in the current <see cref="ModelExplorer"/> instance.
         /// </para>
         /// <para>
-        /// The returns <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
+        /// The returned <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
         /// </para>
         /// </remarks>
         public ModelExplorer GetExplorerForExpression([NotNull] ModelMetadata metadata, object model)
@@ -314,7 +311,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// in the current <see cref="ModelExplorer"/> instance.
         /// </para>
         /// <para>
-        /// The returns <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
+        /// The returned <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
         /// </para>
         /// </remarks>
         public ModelExplorer GetExplorerForExpression([NotNull] Type modelType, Func<object, object> modelAccessor)
@@ -337,7 +334,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// in the current <see cref="ModelExplorer"/> instance.
         /// </para>
         /// <para>
-        /// The returns <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
+        /// The returned <see cref="ModelExplorer"/> will have the current instance set as its <see cref="Container"/>.
         /// </para>
         /// </remarks>
         public ModelExplorer GetExplorerForExpression([NotNull] ModelMetadata metadata, Func<object, object> modelAccessor)

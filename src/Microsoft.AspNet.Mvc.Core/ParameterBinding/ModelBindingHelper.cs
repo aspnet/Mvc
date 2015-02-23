@@ -252,6 +252,8 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentException(message, nameof(modelType));
             }
 
+            var modelMetadata = metadataProvider.GetMetadataForType(modelType);
+
             var operationBindingContext = new OperationBindingContext
             {
                 ModelBinder = modelBinder,

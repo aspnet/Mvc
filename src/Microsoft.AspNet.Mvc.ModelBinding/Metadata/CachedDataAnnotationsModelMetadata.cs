@@ -298,6 +298,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return result ?? base.ComputeOrder();
         }
 
+        /// <inheritdoc />
         protected override string ComputeSimpleDisplayProperty()
         {
             if (!string.IsNullOrEmpty(PrototypeCache.DisplayColumn?.DisplayColumn))

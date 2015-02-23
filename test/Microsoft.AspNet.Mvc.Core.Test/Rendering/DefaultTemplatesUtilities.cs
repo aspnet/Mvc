@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static HtmlHelper<IEnumerable<TModel>> GetHtmlHelperForEnumerable<TModel>(TModel model)
         {
-            return GetHtmlHelper<IEnumerable<TModel>>(new TModel[] { model }, CreateViewEngine());
+            return GetHtmlHelper<IEnumerable<TModel>>(new TModel[] { model });
         }
 
         public static HtmlHelper<TModel> GetHtmlHelper<TModel>(IModelMetadataProvider provider)

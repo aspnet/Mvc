@@ -1,6 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
 using System.Globalization;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -15,11 +19,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="modelExplorer">The <see cref="ModelExplorer"/>.</param>
         /// <returns>A simple display string for the model.</returns>
-        public static string GetSimpleDisplayText(this ModelExplorer modelExplorer)
+        public static string GetSimpleDisplayText([NotNull] this ModelExplorer modelExplorer)
         {
             if (modelExplorer.Metadata.SimpleDisplayProperty != null)
             {
-                var propertyExplorer = modelExplorer.GetExplorerForProperty(modelExplorer.Metadata.SimpleDisplayProperty);
+                var propertyExplorer = modelExplorer.GetExplorerForProperty(
+                    modelExplorer.Metadata.SimpleDisplayProperty);
                 if (propertyExplorer?.Model != null)
                 {
                     return propertyExplorer.Model.ToString();

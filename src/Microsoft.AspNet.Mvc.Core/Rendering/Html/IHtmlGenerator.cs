@@ -32,6 +32,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         TagBuilder GenerateAntiForgery([NotNull] ViewContext viewContext);
 
+        /// <summary>
+        /// Generate a &lt;input type="checkbox".../&gt; element. 
+        /// </summary>
+        /// <param name="viewContext">The <see cref="ViewContext"/> instance for the current scope.</param>
+        /// <param name="modelExplorer">The <see cref="ModelExplorer"/> for the model.</param>
+        /// <param name="expression">The model expression.</param>
+        /// <param name="isChecked">The initial state of the checkbox element.</param>
+        /// <param name="htmlAttributes">
+        /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
+        /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
+        /// </param>
+        /// <returns>
+        /// A <see cref="TagBuilder"/> instance for the &lt;input type="checkbox".../&gt; element.
+        /// </returns>
         TagBuilder GenerateCheckBox(
             [NotNull] ViewContext viewContext,
             ModelExplorer modelExplorer,

@@ -9,36 +9,35 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class ModelExplorerExtensionsTest
     {
-        public static IEnumerable<object[]> SimpleDisplayTextData
+        public static TheoryData<object, Type, string> SimpleDisplayTextData
         {
             get
             {
-                yield return new object[]
+                return new TheoryData<object, Type, string>
                 {
-                    new ComplexClass()
                     {
-                        Prop1 = new Class1 { Prop1 = "Hello" }
+                        new ComplexClass()
+                        {
+                            Prop1 = new Class1 { Prop1 = "Hello" }
+                        },
+                        typeof(ComplexClass),
+                        "Class1"
                     },
-                    typeof(ComplexClass),
-                    "Class1"
-                };
-                yield return new object[]
-                {
-                    new Class1(),
-                    typeof(Class1),
-                    "Class1"
-                };
-                yield return new object[]
-                {
-                    new ClassWithNoProperties(),
-                    typeof(ClassWithNoProperties),
-                    string.Empty
-                };
-                yield return new object[]
-                {
-                    null,
-                    typeof(object),
-                    null
+                    {
+                        new Class1(),
+                        typeof(Class1),
+                        "Class1"
+                    },
+                    {
+                        new ClassWithNoProperties(),
+                        typeof(ClassWithNoProperties),
+                        string.Empty
+                    },
+                    {
+                        null,
+                        typeof(object),
+                        null
+                    },
                 };
             }
         }

@@ -238,8 +238,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             string labelText,
             object htmlAttributes)
         {
-            var resolvedLabelText = labelText ?? 
-                modelExplorer.Metadata.DisplayName ?? 
+            var resolvedLabelText = labelText ??
+                modelExplorer.Metadata.DisplayName ??
                 modelExplorer.Metadata.PropertyName;
             if (resolvedLabelText == null)
             {
@@ -253,7 +253,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var tagBuilder = new TagBuilder("label");
-            var idString = 
+            var idString =
                 TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement);
             tagBuilder.Attributes.Add("for", idString);
             tagBuilder.SetInnerText(resolvedLabelText);

@@ -706,6 +706,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return base.ShowForEdit;
         }
 
+        /// <summary>
+        /// Calculate the <see cref="SimpleDisplayProperty"/> value.
+        /// </summary>
+        /// <returns>Calculated <see cref="SimpleDisplayProperty"/> value.</returns>
         protected virtual string ComputeSimpleDisplayProperty()
         {
             return base.SimpleDisplayProperty;

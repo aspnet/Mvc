@@ -27,7 +27,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private int _order = DefaultOrder;
         private bool _isRequired;
         private ModelPropertyCollection _properties;
-        private string _simpleDisplayProperty;
 
         public ModelMetadata([NotNull] IModelMetadataProvider provider,
                              Type containerType,
@@ -223,11 +222,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <summary>
         /// Gets or sets a value which is the name of the property used to display the model.
         /// </summary>
-        public virtual string SimpleDisplayProperty
-        {
-            get { return _simpleDisplayProperty; }
-            set { _simpleDisplayProperty = value; }
-        }
+        public virtual string SimpleDisplayProperty { get; set; }
 
         /// <summary>
         /// Gets or sets a value that indicates whether the property should be displayed in read-only views.

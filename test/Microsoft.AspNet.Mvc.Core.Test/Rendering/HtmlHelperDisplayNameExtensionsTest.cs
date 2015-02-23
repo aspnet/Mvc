@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var displayNameResult = helper.DisplayName(expression: "value");
 
             // Assert
-            Assert.Equal("value", displayNameResult.ToString());
+            Assert.Equal("value", displayNameResult);
         }
 
         [Fact]

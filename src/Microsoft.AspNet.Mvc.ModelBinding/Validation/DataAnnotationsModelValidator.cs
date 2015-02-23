@@ -26,15 +26,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public IEnumerable<ModelValidationResult> Validate(ModelValidationContext validationContext)
         {
             var modelExplorer = validationContext.ModelExplorer;
-            var metadata = validationContext.ModelExplorer.Metadata;
+            var metadata = modelExplorer.Metadata;
 
             var memberName = metadata.PropertyName ?? metadata.ModelType.Name;
-            var containerExplorer = validationContext.ModelExplorer?.Container;
+            var containerExplorer = modelExplorer.Container;
 
             var container = containerExplorer?.Model;
             var context = new ValidationContext(container ?? modelExplorer.Model)
             {
-                DisplayName = modelExplorer.Metadata.GetDisplayName(),
+                DisplayName = metadata.GetDisplayName(),
                 MemberName = memberName
             };
 

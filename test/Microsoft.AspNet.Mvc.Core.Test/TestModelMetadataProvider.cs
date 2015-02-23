@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class TestModelMetadataProvider : EmptyModelMetadataProvider
     {
-        private EmptyModelMetadataProvider _emptyProvider = new EmptyModelMetadataProvider();
         private List<MetadataBuilder> _builders = new List<MetadataBuilder>();
 
         protected override ModelMetadata CreateMetadataFromPrototype([NotNull] ModelMetadata prototype)
@@ -67,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             IMetadataBuilder Then(Action<ModelMetadata> action);
         }
 
-        public class MetadataBuilder : IMetadataBuilder
+        private class MetadataBuilder : IMetadataBuilder
         {
             private List<Action<ModelMetadata>> _actions = new List<Action<ModelMetadata>>();
 

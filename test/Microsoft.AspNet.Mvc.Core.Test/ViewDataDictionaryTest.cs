@@ -353,7 +353,34 @@ namespace Microsoft.AspNet.Mvc.Core
 
             // Assert
             Assert.NotNull(viewData.ModelMetadata);
+            Assert.NotNull(viewData.ModelExplorer);
             Assert.Equal(5, viewData.Model);
+            Assert.Equal(5, viewData.ModelExplorer.Model);
+            Assert.Same(originalMetadata, viewData.ModelMetadata);
+            Assert.NotSame(originalExplorer, viewData.ModelExplorer);
+        }
+
+        [Fact]
+        public void ModelSetter_SameType_BoxedValueTypeUpdatesModelExplorer()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var viewData = new ViewDataDictionary(metadataProvider)
+            {
+                Model = 3,
+            };
+
+            var originalMetadata = viewData.ModelMetadata;
+            var originalExplorer = viewData.ModelExplorer;
+
+            // Act
+            viewData.Model = 3; // This is the same value, but it's in a different box.
+
+            // Assert
+            Assert.NotNull(viewData.ModelMetadata);
+            Assert.NotNull(viewData.ModelExplorer);
+            Assert.Equal(3, viewData.Model);
+            Assert.Equal(3, viewData.ModelExplorer.Model);
             Assert.Same(originalMetadata, viewData.ModelMetadata);
             Assert.NotSame(originalExplorer, viewData.ModelExplorer);
         }

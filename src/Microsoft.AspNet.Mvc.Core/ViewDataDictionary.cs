@@ -250,6 +250,9 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        /// <summary>
+        /// Gets or sets the <see cref="ModelExplorer"/> for the <see cref="Model"/>.
+        /// </summary>
         public ModelExplorer ModelExplorer { get; set; }
 
         public TemplateInfo TemplateInfo { get; }

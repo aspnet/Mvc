@@ -539,8 +539,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             if (value != null)
             {
                 // As a special case we allow treating a string value as a model of arbitrary type.
-                // So pass through the string representation, even though the modelmetadata might
+                // So pass through the string representation, even though the ModelMetadata might
                 // be for some other type.
+                //
+                // We do this because thought we're displaying something as a string, we want to have
+                // the right set of validation attributes.
                 modelExplorer = new ModelExplorer(
                     MetadataProvider,
                     modelExplorer.Container,
