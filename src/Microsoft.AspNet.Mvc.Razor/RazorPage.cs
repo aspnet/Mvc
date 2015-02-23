@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
@@ -163,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </remarks>
         public void StartWritingScope()
         {
-            StartWritingScope(new StringWriter());
+            StartWritingScope(new StringCollectionTextWriter(Encoding.UTF8));
         }
 
         /// <summary>
@@ -214,7 +216,40 @@ namespace Microsoft.AspNet.Mvc.Razor
                 _originalWriter = null;
             }
 
-            return writer;
+            var tagHelperContentWrapperTextWriter = new TagHelperContentWrapperTextWriter(Encoding.UTF8);
+            var razorWriter = writer as RazorTextWriter;
+            if (razorWriter != null)
+            {
+                razorWriter.CopyTo(tagHelperContentWrapperTextWriter);
+            }
+            else
+            {
+                tagHelperContentWrapperTextWriter.Write(writer.ToString());
+            }
+
+            return tagHelperContentWrapperTextWriter;
+        }
+
+        /// <summary>
+        /// Writes a type that implements <see cref="ITextWriterCopyable"/> to the respective <see cref="Output"/>.
+        /// </summary>
+        /// <param name="copyableTextWriter">Contains the data to be written.</param>
+        public void Write(ITextWriterCopyable copyableTextWriter)
+        {
+            WriteTo(Output, copyableTextWriter);
+        }
+
+        /// <summary>
+        /// Writes a type that implements <see cref="ITextWriterCopyable"/> to the specified <see cref="TextWriter"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> to which the output must be written to.</param>
+        /// <param name="copyableTextWriter">Contains the data which needs to be written to the output.</param>
+        public void WriteTo(TextWriter writer, ITextWriterCopyable copyableTextWriter)
+        {
+            if (copyableTextWriter != null)
+            {
+                copyableTextWriter.CopyToWriter(writer);
+            }
         }
 
         /// <summary>

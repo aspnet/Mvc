@@ -51,14 +51,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     {
                         var childContent = await context.GetChildContentAsync();
 
-                        if (string.IsNullOrWhiteSpace(childContent))
+                        if (childContent.IsWhiteSpace)
                         {
                             // Provide default label text since there was nothing useful in the Razor source.
-                            output.Content = tagBuilder.InnerHtml;
+                            output.Content.Append(tagBuilder.InnerHtml);
                         }
                         else
                         {
-                            output.Content = childContent;
+                            childContent.CopyTo(output.Content);
                         }
                     }
                 }

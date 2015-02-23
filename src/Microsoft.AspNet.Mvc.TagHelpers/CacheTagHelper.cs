@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Cache.Memory;
 
@@ -112,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             var key = GenerateKey(context);
-            string result;
+            TagHelperContent result;
             if (!MemoryCache.TryGetValue(key, out result))
             {
                 // Create an EntryLink and flow it so that it is accessible via the ambient EntryLinkHelpers.ContentLink
@@ -132,8 +133,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Clear the contents of the "cache" element since we don't want to render it.
             output.SuppressOutput();
-
-            output.Content = result;
+            result.CopyTo(output.Content);
         }
 
         // Internal for unit testing

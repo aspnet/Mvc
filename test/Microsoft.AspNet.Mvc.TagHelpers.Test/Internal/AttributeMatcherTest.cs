@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Xunit;
 
@@ -128,7 +129,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () => Task.FromResult(content));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append(content);
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
         }
     }
 }

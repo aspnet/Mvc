@@ -12,6 +12,7 @@ using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.Logging;
@@ -158,7 +159,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             helper.Process(context, output);
 
             // Assert
-            Assert.StartsWith("<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content);
+            Assert.StartsWith(
+                "<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content.ToString());
         }
 
         public static TheoryData DoesNotRunWhenARequiredAttributeIsMissing_Data
@@ -322,7 +324,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("<link href=\"/css/site.css\" rel=\"stylesheet\" />" +
-                         "<link href=\"/base.css\" rel=\"stylesheet\" />", output.Content);
+                         "<link href=\"/base.css\" rel=\"stylesheet\" />", output.Content.ToString());
         }
 
         [Fact]
@@ -385,7 +387,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () => Task.FromResult(content));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append(content);
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
         }
 
         private static TagHelperOutput MakeTagHelperOutput(string tagName, IDictionary<string, string> attributes = null)

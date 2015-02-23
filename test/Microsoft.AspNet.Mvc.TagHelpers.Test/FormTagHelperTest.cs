@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.WebEncoders;
@@ -36,7 +37,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something Else"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something Else");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new Dictionary<string, string>
@@ -44,10 +49,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "id", "myform" },
                     { "asp-route-foo", "bar" },
                 },
-                htmlEncoder: new HtmlEncoder())
-            {
-                PostContent = "Something"
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.PostContent.Append("Something");
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper
                 .Setup(mock => mock.Action(It.IsAny<UrlActionContext>())).Returns("home/index");
@@ -79,9 +82,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("post", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("action"));
             Assert.Equal("home/index", attribute.Value);
-            Assert.Empty(output.PreContent);
-            Assert.Empty(output.Content);
-            Assert.Equal(expectedPostContent, output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Equal(expectedPostContent, output.PostContent.ToString());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -97,7 +100,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 "form",
                 attributes: new Dictionary<string, string>(),
@@ -130,9 +137,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("form", output.TagName);
             Assert.False(output.SelfClosing);
             Assert.Empty(output.Attributes);
-            Assert.Empty(output.PreContent);
-            Assert.Empty(output.Content);
-            Assert.Equal(expectedPostContent, output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Equal(expectedPostContent, output.PostContent.ToString());
         }
 
         [Fact]
@@ -144,7 +151,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var expectedAttribute = new KeyValuePair<string, string>("asp-ROUTEE-NotRoute", "something");
             var output = new TagHelperOutput(
                 "form",
@@ -196,9 +207,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.False(output.SelfClosing);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(expectedAttribute, attribute);
-            Assert.Empty(output.PreContent);
-            Assert.Empty(output.Content);
-            Assert.Empty(output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Empty(output.PostContent.ToString());
             generator.Verify();
         }
 
@@ -211,7 +222,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 "form",
                 attributes: new Dictionary<string, string>(),
@@ -238,9 +253,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("form", output.TagName);
             Assert.False(output.SelfClosing);
             Assert.Empty(output.Attributes);
-            Assert.Empty(output.PreContent);
-            Assert.Empty(output.Content);
-            Assert.Empty(output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Empty(output.PostContent.ToString());
         }
 
         [Theory]
@@ -268,7 +283,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
 
             // Act
             await formTagHelper.ProcessAsync(context, output);
@@ -280,9 +299,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(htmlAction, attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("METhod"));
             Assert.Equal("POST", attribute.Value);
-            Assert.Empty(output.PreContent);
-            Assert.Empty(output.Content);
-            Assert.Empty(output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Empty(output.PostContent.ToString());
         }
 
         [Theory]
@@ -316,7 +335,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
 
 
             // Act
@@ -327,9 +350,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.False(output.SelfClosing);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(new KeyValuePair<string, string>("aCTiON", "my-action"), attribute);
-            Assert.Empty(output.PreContent);
-            Assert.Empty(output.Content);
-            Assert.Equal(expectedPostContent, output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Equal(expectedPostContent, output.PostContent.ToString());
         }
 
         [Theory]

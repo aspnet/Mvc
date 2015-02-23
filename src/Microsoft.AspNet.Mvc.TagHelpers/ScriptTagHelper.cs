@@ -175,7 +175,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // We've taken over tag rendering, so prevent rendering the outer tag
             output.TagName = null;
-            output.Content = builder.ToString();
+            output.Content.Append(builder.ToString());
         }
 
         private void BuildGlobbedScriptTags(

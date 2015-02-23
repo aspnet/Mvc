@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Xunit;
@@ -117,16 +118,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var htmlAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
             };
             var output = new TagHelperOutput(expectedTagName, htmlAttributes, new HtmlEncoder())
             {
-                Content = "original content",
                 SelfClosing = true,
             };
+            output.Content.Append("original content");
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -145,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.True(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content);
+            Assert.Equal(expectedContent, output.Content.ToString());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -174,14 +179,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(expectedTagName, expectedAttributes, new HtmlEncoder())
             {
-                PreContent = expectedPreContent,
-                Content = expectedContent,
-                PostContent = expectedPostContent,
                 SelfClosing = true,
             };
+            output.PreContent.Append(expectedPreContent);
+            output.Content.Append(expectedContent);
+            output.PostContent.Append(expectedPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -200,7 +209,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content);
+            Assert.Equal(expectedContent, output.Content.ToString());
             Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }

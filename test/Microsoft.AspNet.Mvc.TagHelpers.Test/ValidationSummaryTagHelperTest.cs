@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
@@ -47,19 +48,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new Dictionary<string, string>
                 {
                     { "class", "form-control" }
                 },
-                htmlEncoder: new HtmlEncoder())
-            {
-                PreContent = expectedPreContent,
-                Content = expectedContent,
-                PostContent = "Custom Content",
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.PreContent.Append(expectedPreContent);
+            output.Content.Append(expectedContent);
+            output.PostContent.Append("Custom Content");
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
             Model model = null;
@@ -76,10 +79,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("form-control validation-summary-valid", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("data-valmsg-summary"));
             Assert.Equal("true", attribute.Value);
-            Assert.Equal(expectedPreContent, output.PreContent);
-            Assert.Equal(expectedContent, output.Content);
+            Assert.Equal(expectedPreContent, output.PreContent.ToString());
+            Assert.Equal(expectedContent, output.Content.ToString());
             Assert.Equal("Custom Content<ul><li style=\"display:none\"></li>" + Environment.NewLine + "</ul>",
-                         output.PostContent);
+                         output.PostContent.ToString());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -101,12 +104,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var output = new TagHelperOutput(
                 "div",
                 attributes: new Dictionary<string, string>(),
-                htmlEncoder: new HtmlEncoder())
-            {
-                PreContent = expectedPreContent,
-                Content = expectedContent,
-                PostContent = expectedPostContent,
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.PreContent.Append(expectedPreContent);
+            output.Content.Append(expectedContent);
+            output.PostContent.Append(expectedPostContent);
+
             var expectedViewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
             generator
@@ -127,9 +129,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("div", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.Equal(expectedPostContent, output.PostContent);
+            Assert.Equal(expectedPreContent, output.PreContent.ToString());
+            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal(expectedPostContent, output.PostContent.ToString());
         }
 
         [Fact]
@@ -145,12 +147,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var output = new TagHelperOutput(
                 "div",
                 attributes: new Dictionary<string, string>(),
-                htmlEncoder: new HtmlEncoder())
-            {
-                PreContent = expectedPreContent,
-                Content = expectedContent,
-                PostContent = "Content of validation summary"
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.PreContent.Append(expectedPreContent);
+            output.Content.Append(expectedContent);
+            output.PostContent.Append("Content of validation summary");
+
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
                 InnerHtml = "New HTML"
@@ -185,9 +186,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("world", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("anything"));
             Assert.Equal("something", attribute.Value);
-            Assert.Equal(expectedPreContent, output.PreContent);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.Equal("Content of validation summaryNew HTML", output.PostContent);
+            Assert.Equal(expectedPreContent, output.PreContent.ToString());
+            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal("Content of validation summaryNew HTML", output.PostContent.ToString());
         }
 
         [Fact]
@@ -204,12 +205,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var output = new TagHelperOutput(
                 "div",
                 attributes: new Dictionary<string, string>(),
-                htmlEncoder: new HtmlEncoder())
-            {
-                PreContent = expectedPreContent,
-                Content = expectedContent,
-                PostContent = expectedPostContent,
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.PreContent.Append(expectedPreContent);
+            output.Content.Append(expectedContent);
+            output.PostContent.Append(expectedPostContent);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var viewContext = CreateViewContext();
@@ -222,9 +221,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("div", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.Equal(expectedPostContent, output.PostContent);
+            Assert.Equal(expectedPreContent, output.PreContent.ToString());
+            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal(expectedPostContent, output.PostContent.ToString());
         }
 
         [Theory]
@@ -242,12 +241,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var output = new TagHelperOutput(
                 "div",
                 attributes: new Dictionary<string, string>(),
-                htmlEncoder: new HtmlEncoder())
-            {
-                PreContent = expectedPreContent,
-                Content = expectedContent,
-                PostContent = "Content of validation message",
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.PreContent.Append(expectedPreContent);
+            output.Content.Append(expectedContent);
+            output.PostContent.Append("Content of validation message");
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
                 InnerHtml = "New HTML"
@@ -273,9 +270,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("div", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.Equal("Content of validation messageNew HTML", output.PostContent);
+            Assert.Equal(expectedPreContent, output.PreContent.ToString());
+            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal("Content of validation messageNew HTML", output.PostContent.ToString());
             generator.Verify();
         }
 

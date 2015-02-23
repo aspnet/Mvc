@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Moq;
@@ -98,9 +99,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 
             // Assert
             Assert.Null(output.TagName);
-            Assert.Null(output.PreContent);
-            Assert.Null(output.Content);
-            Assert.Null(output.PostContent);
+            Assert.Empty(output.PreContent.ToString());
+            Assert.Empty(output.Content.ToString());
+            Assert.Empty(output.PostContent.ToString());
             Assert.True(output.ContentSet);
         }
 
@@ -139,7 +140,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () => Task.FromResult(content));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append(content);
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
         }
 
         private TagHelperOutput MakeTagHelperOutput(string tagName, IDictionary<string, string> attributes = null)

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Moq;
@@ -35,7 +36,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something Else"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something Else");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new Dictionary<string, string>
@@ -43,10 +48,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "id", "myanchor" },
                     { "asp-route-foo", "bar" },
                 },
-                htmlEncoder: new HtmlEncoder())
-            {
-                Content = "Something"
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.Content.Append("Something");
 
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper
@@ -75,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("myanchor", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("href"));
             Assert.Equal("home/index", attribute.Value);
-            Assert.Equal("Something", output.Content);
+            Assert.Equal("Something", output.Content.ToString());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -87,14 +90,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 "a",
                 attributes: new Dictionary<string, string>(),
-                htmlEncoder: new HtmlEncoder())
-            {
-                Content = string.Empty
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.Content.Append(string.Empty);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
@@ -116,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Empty(output.Content);
+            Assert.Empty(output.Content.ToString());
         }
 
         [Fact]
@@ -127,14 +132,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult("Something"));
+                getChildContentAsync: () => {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.Append("Something");
+                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                });
             var output = new TagHelperOutput(
                 "a",
                 attributes: new Dictionary<string, string>(),
-                htmlEncoder: new HtmlEncoder())
-            {
-                Content = string.Empty
-            };
+                htmlEncoder: new HtmlEncoder());
+            output.Content.Append(string.Empty);
 
             var generator = new Mock<IHtmlGenerator>();
             generator
@@ -157,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Empty(output.Content);
+            Assert.Empty(output.Content.ToString());
         }
 
         [Theory]
