@@ -179,7 +179,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             htmlGenerator
                 .Setup(mock => mock.GenerateCheckBox(
                     tagHelper.ViewContext,
-                    tagHelper.For.Metadata,
+                    tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     null,                   // isChecked
                     It.IsAny<object>()))    // htmlAttributes
@@ -188,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             htmlGenerator
                 .Setup(mock => mock.GenerateHiddenForCheckbox(
                     tagHelper.ViewContext,
-                    tagHelper.For.Metadata,
+                    tagHelper.For.ModelExplorer,
                     tagHelper.For.Name))
                 .Returns(new TagBuilder("hidden"))
                 .Verifiable();
@@ -273,7 +273,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             htmlGenerator
                 .Setup(mock => mock.GenerateHidden(
                     tagHelper.ViewContext,
-                    tagHelper.For.Metadata,
+                    tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     model,      // value
                     false,      // useViewData
@@ -361,7 +361,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             htmlGenerator
                 .Setup(mock => mock.GeneratePassword(
                     tagHelper.ViewContext,
-                    tagHelper.For.Metadata,
+                    tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     null,       // value
                     null))      // htmlAttributes
@@ -446,7 +446,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             htmlGenerator
                 .Setup(mock => mock.GenerateRadioButton(
                     tagHelper.ViewContext,
-                    tagHelper.For.Metadata,
+                    tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     value,
                     null,       // isChecked
@@ -546,7 +546,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             htmlGenerator
                 .Setup(mock => mock.GenerateTextBox(
                     tagHelper.ViewContext,
-                    tagHelper.For.Metadata,
+                    tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     model,      // value
                     null,       // format
@@ -624,7 +624,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 htmlGenerator,
                 container: new Model(),
                 containerType: typeof(Model),
-                modelAccessor: () => model,
+                model: model,
                 propertyName: propertyName,
                 expressionName: propertyName);
         }
@@ -660,13 +660,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             IHtmlGenerator htmlGenerator,
             object container,
             Type containerType,
-            Func<object> modelAccessor,
+            object model,
             string propertyName,
             string expressionName)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
-            var modelExpression = new ModelExpression(expressionName, metadata);
+
+            var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, container);
+            var propertyMetadata = containerExplorer.Metadata.Properties[propertyName];
+            var propertyExplorer = containerExplorer.GetExplorerForProperty(propertyName, model);
+
+            var modelExpression = new ModelExpression(expressionName, propertyExplorer);
             var viewContext = TestableHtmlGenerator.GetViewContext(container, htmlGenerator, metadataProvider);
             var inputTagHelper = new InputTagHelper
             {

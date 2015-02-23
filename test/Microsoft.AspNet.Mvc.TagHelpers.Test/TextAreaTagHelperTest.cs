@@ -98,10 +98,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedTagName = "not-textarea";
 
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var modelExplorer = metadataProvider
+                .GetModelExplorerForType(containerType, modelAccessor)
+                .GetExplorerForProperty("Text");
 
             // Property name is either nameof(Model.Text) or nameof(NestedModel.Text).
-            var metadata = metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName: "Text");
-            var modelExpression = new ModelExpression(nameAndId.Name, metadata);
+            var modelExpression = new ModelExpression(nameAndId.Name, modelExplorer);
             var tagHelper = new TextAreaTagHelper
             {
                 For = modelExpression,
@@ -157,11 +159,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedTagName = "textarea";
 
             var metadataProvider = new DataAnnotationsModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForProperty(
-                modelAccessor: () => null,
-                containerType: typeof(Model),
-                propertyName: nameof(Model.Text));
-            var modelExpression = new ModelExpression(nameof(Model.Text), metadata);
+            var modelExplorer = metadataProvider
+                .GetModelExplorerForType(typeof(Model), model: null)
+                .GetExplorerForProperty(nameof(Model.Text));
+
+            var modelExpression = new ModelExpression(nameof(Model.Text), modelExplorer);
             var tagHelper = new TextAreaTagHelper();
 
             var tagHelperContext = new TagHelperContext(
