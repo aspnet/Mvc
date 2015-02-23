@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNet.Http.Security;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
@@ -36,18 +36,18 @@ namespace Microsoft.AspNet.Mvc
 
         public ChallengeResult(IList<string> authenticationTypes, AuthenticationProperties properties)
         {
-            AuthenticationTypes = authenticationTypes;
+            AuthenticationSchemes = authenticationTypes;
             Properties = properties;
         }
 
-        public IList<string> AuthenticationTypes { get; set; }
+        public IList<string> AuthenticationSchemes { get; set; }
 
         public AuthenticationProperties Properties { get; set; }
 
         public override void ExecuteResult([NotNull] ActionContext context)
         {
             var response = context.HttpContext.Response;
-            response.Challenge(Properties, AuthenticationTypes);
+            response.Challenge(Properties, AuthenticationSchemes);
         }
     }
 }

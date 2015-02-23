@@ -5,7 +5,7 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Http.Security;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Infrastructure;
 using Microsoft.Framework.OptionsModel;

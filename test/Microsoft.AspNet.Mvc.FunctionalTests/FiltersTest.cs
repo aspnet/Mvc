@@ -154,7 +154,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "http://localhost/AuthorizeUser/Impossible");
 
             // Assert
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [Fact]
