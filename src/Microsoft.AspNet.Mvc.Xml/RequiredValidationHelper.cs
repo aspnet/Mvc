@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Xml
 {
@@ -137,8 +138,11 @@ namespace Microsoft.AspNet.Mvc.Xml
                         }
 
                         errorMessages.Add(Resources.FormatRequiredProperty_MustHaveDataMemberRequired(
+                            typeof(DataContractSerializer).FullName,
                             typeof(RequiredAttribute).FullName,
                             typeof(DataMemberAttribute).FullName,
+                            nameof(DataMemberAttribute.IsRequired),
+                            bool.TrueString,
                             validationError.PropertyName, 
                             validationError.ModelType.FullName));
                     }
@@ -195,8 +199,7 @@ namespace Microsoft.AspNet.Mvc.Xml
 
         private bool ExcludeTypeFromValidation(Type modelType)
         {
-            return TypeHelper.IsSimpleType(modelType) ||
-                modelType.Equals(typeof(Uri));
+            return TypeHelper.IsSimpleType(modelType);
         }
 
         private class ValidationError

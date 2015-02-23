@@ -54,10 +54,13 @@ namespace Microsoft.AspNet.Mvc.Xml
         }
 
         private readonly string requiredErrorMessageFormat = string.Format(
-            "DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' set to 'True'" +
-            " for value type property '{{0}}' on type '{{1}}'.",
+            "{0} does not recognize '{1}', so instead use '{2}' with '{3}' set to '{4}' for value type property " +
+            "'{{0}}' on type '{{1}}'.",
+            typeof(DataContractSerializer).FullName,
             typeof(RequiredAttribute).FullName,
-            typeof(DataMemberAttribute).FullName);
+            typeof(DataMemberAttribute).FullName,
+            nameof(DataMemberAttribute.IsRequired),
+            bool.TrueString);
 
         [Theory]
         [InlineData("application/xml", true)]

@@ -71,7 +71,8 @@ namespace Microsoft.AspNet.Mvc
                 type.Equals(typeof(DateTime)) ||
                 type.Equals(typeof(Guid)) ||
                 type.Equals(typeof(DateTimeOffset)) ||
-                type.Equals(typeof(TimeSpan));
+                type.Equals(typeof(TimeSpan)) ||
+                type.Equals(typeof(Uri));
         }
 
         public static bool HasStringConverter(Type type)

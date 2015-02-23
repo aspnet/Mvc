@@ -22,10 +22,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(XmlFormattersWebSite));
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
         private readonly string errorMessageFormat = string.Format(
-            "{{1}}:DataContractSerializer does not recognize '{0}', so instead use '{1}' with 'IsRequired' " +
-            "set to 'True' for value type property '{{0}}' on type '{{1}}'.",
+            "{{1}}:{0} does not recognize '{1}', so instead use '{2}' with '{3}' set to '{4}' for value " +
+            "type property '{{0}}' on type '{{1}}'.",
+            typeof(DataContractSerializer).FullName,
             typeof(RequiredAttribute).FullName,
-            typeof(DataMemberAttribute).FullName);
+            typeof(DataMemberAttribute).FullName,
+            nameof(DataMemberAttribute.IsRequired),
+            bool.TrueString);
 
         // Verifies that even though all the required data is posted to an action, the model
         // state has errors related to value types's Required attribute validation.
