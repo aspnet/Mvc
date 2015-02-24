@@ -1279,8 +1279,10 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-			ModelStateDictionaryUtility.ClearModelStateDictionary(ModelState, model.GetType());
-			var modelExplorer = MetadataProvider.GetModelExplorerForType(model.GetType(), model);
+            ModelStateDictionaryUtility.ClearModelStateDictionary(ModelState, model.GetType());
+
+            var modelExplorer = MetadataProvider.GetModelExplorerForType(model.GetType(), model);
+
             var modelName = prefix ?? string.Empty;
 
             // Clear ModelStateDictionary entries for the model so that it will be re-validated.
