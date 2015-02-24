@@ -16,7 +16,6 @@ namespace FiltersWebSite
     {
         public BasicOptions()
         {
-            AuthenticationMode = AuthenticationMode.Passive;
         }
     }
 }

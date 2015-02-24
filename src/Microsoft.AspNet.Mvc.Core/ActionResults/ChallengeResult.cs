@@ -14,13 +14,13 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public ChallengeResult(string authenticationType)
-            : this(new[] { authenticationType })
+        public ChallengeResult(string authenticationScheme)
+            : this(new[] { authenticationScheme })
         {
         }
 
-        public ChallengeResult(IList<string> authenticationTypes)
-            : this(authenticationTypes, properties: null)
+        public ChallengeResult(IList<string> authenticationSchemes)
+            : this(authenticationSchemes, properties: null)
         {
         }
 
@@ -29,14 +29,14 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public ChallengeResult(string authenticationType, AuthenticationProperties properties)
-            : this(new[] { authenticationType }, properties)
+        public ChallengeResult(string authenticationScheme, AuthenticationProperties properties)
+            : this(new[] { authenticationScheme }, properties)
         {
         }
 
-        public ChallengeResult(IList<string> authenticationTypes, AuthenticationProperties properties)
+        public ChallengeResult(IList<string> authenticationSchemes, AuthenticationProperties properties)
         {
-            AuthenticationSchemes = authenticationTypes;
+            AuthenticationSchemes = authenticationSchemes;
             Properties = properties;
         }
 
