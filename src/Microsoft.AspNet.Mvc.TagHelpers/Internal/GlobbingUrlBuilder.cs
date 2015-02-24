@@ -20,6 +20,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     {
         private static readonly char[] PatternSeparator = new[] { ',' };
 
+        private static readonly PathComparer DefaultPathComparer = new PathComparer();
+
         private readonly FileProviderGlobbingDirectory _baseGlobbingDirectory;
 
         // Internal for testing
@@ -128,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var matches = matcher.Execute(_baseGlobbingDirectory);
 
             return matches.Files.Select(ResolveMatchedPath)
-                .OrderBy(path => path, new PathComparer());
+                .OrderBy(path => path, DefaultPathComparer);
         }
 
         private string ResolveMatchedPath(string matchedPath)
