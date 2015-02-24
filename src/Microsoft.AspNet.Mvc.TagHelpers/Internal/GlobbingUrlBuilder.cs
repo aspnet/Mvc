@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
         // Internal for testing
         internal GlobbingUrlBuilder() { }
-        
+
         /// <summary>
         /// Creates a new <see cref="GlobbingUrlBuilder"/>.
         /// </summary>
@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             {
                 return Enumerable.Empty<string>();
             }
-            
+
             if (Cache != null)
             {
                 var cacheKey = $"{nameof(GlobbingUrlBuilder)}-inc:{include}-exc:{exclude}";
@@ -127,7 +127,56 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
             var matches = matcher.Execute(_baseGlobbingDirectory);
 
-            return matches.Files.Select(ResolveMatchedPath);
+            return matches.Files.Select(ResolveMatchedPath)
+                .OrderBy(path => path, new PathComparer());
+        }
+
+        private class PathComparer : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                // < 0 = x < y
+                // > 0 = x > y
+
+                var xSegments = x.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                var ySegments = y.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (xSegments.Length != ySegments.Length)
+                {
+                    // Different path depths so shallower path wins
+                    return xSegments.Length.CompareTo(ySegments.Length);
+                }
+
+                // Depth is the same and so do standard alphabetical comparison on each segment
+                for (int i = 0; i < xSegments.Length; i++)
+                {
+                    var xSegment = xSegments[i];
+                    var ySegment = ySegments[i];
+                    var xToY = string.Compare(xSegment, ySegment);
+                    if (xToY != 0)
+                    {
+                        return xToY;
+                    }
+                }
+
+                return 0;
+            }
+
+            private static int GetPathDepth(string path)
+            {
+                var count = 0;
+
+                for (int i = 0; i < path.Length; i++)
+                {
+                    var c = path[i];
+                    if (c == '/' || c == '\\')
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
         }
 
         private string ResolveMatchedPath(string matchedPath)
@@ -149,6 +198,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
 
             return result;
+        }
+
+        private int GetPathDepth(string path)
+        {
+            var count = 0;
+
+            for (int i = 0; i < path.Length; i++)
+            {
+                var c = path[i];
+                if (c == '/' || c == '\\')
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }

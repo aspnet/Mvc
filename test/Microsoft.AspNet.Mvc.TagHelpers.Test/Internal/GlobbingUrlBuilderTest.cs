@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
@@ -51,6 +52,98 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 url => Assert.Equal("/blank.css", url));
         }
 
+        public static TheoryData OrdersGlobbedMatchResultsCorrectly_Data
+        {
+            get
+            {
+                return new TheoryData<string, FileNode, string[]>
+                {
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            new FileNode("B", new [] {
+                                new FileNode("a.css"),
+                                new FileNode("b.css"),
+                                new FileNode("ba.css"),
+                                new FileNode("b", new [] {
+                                    new FileNode("a.css")
+                                })
+                            }),
+                            new FileNode("A", new [] {
+                                new FileNode("c.css"),
+                                new FileNode("d.css")
+                            }),
+                            new FileNode("a.css")
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/a.css",
+                            "/A/c.css", "/A/d.css",
+                            "/B/a.css", "/B/b.css", "/B/ba.css",
+                            "/B/b/a.css"
+                        }
+                    },
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            
+                            new FileNode("A", new [] {
+                                new FileNode("c.css"),
+                                new FileNode("d.css")
+                            }),
+                            new FileNode("__A", new [] {
+                                new FileNode("1.css"),
+                                new FileNode("2.css")
+                            })
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/__A/1.css", "/__A/2.css",
+                            "/A/c.css", "/A/d.css",
+                        }
+                    },
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            new FileNode("A", new [] {
+                                new FileNode("1.css")
+                            }),
+                            new FileNode("__A", new [] {
+                                new FileNode("1.css")
+                            })
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/__A/1.css",
+                            "/A/1.css"
+                        }
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData("OrdersGlobbedMatchResultsCorrectly_Data")]
+        public void OrdersGlobbedMatchResultsCorrectly(string staticUrl, FileNode dirStructure, string[] expectedPaths)
+        {
+            // Arrange
+            var fileProvider = MakeFileProvider(dirStructure);
+            IMemoryCache cache = null;
+            var requestPathBase = PathString.Empty;
+            var globbingUrlBuilder = new GlobbingUrlBuilder(fileProvider, cache, requestPathBase);
+
+            // Act
+            var urlList = globbingUrlBuilder.BuildUrlList(staticUrl, "**/*.css", excludePattern: null);
+
+            // Assert
+            var collectionAssertions = expectedPaths.Select<string, Action<string>>(expected =>
+                actual => Assert.Equal(expected, actual));
+            Assert.Collection(urlList, collectionAssertions.ToArray());
+        }
+
         [Theory]
         [InlineData("/sub")]
         [InlineData("/sub/again")]
@@ -70,8 +163,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
             // Assert
             Assert.Collection(urlList,
-                url => Assert.Equal($"{pathBase}/site.css", url),
-                url => Assert.Equal($"{pathBase}/blank.css", url));
+                url => Assert.Equal($"{pathBase}/blank.css", url),
+                url => Assert.Equal($"{pathBase}/site.css", url));
         }
 
         [Fact]
@@ -79,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         {
             // Arrange
             var fileProvider = MakeFileProvider();
-            var cache = MakeCache(new List<string> { "/site.css", "/blank.css" });
+            var cache = MakeCache(new List<string> { "/blank.css", "/site.css" });
             var requestPathBase = PathString.Empty;
             var globbingUrlBuilder = new GlobbingUrlBuilder(fileProvider, cache, requestPathBase);
 
@@ -91,8 +184,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
             // Assert
             Assert.Collection(urlList,
-                url => Assert.Equal("/site.css", url),
-                url => Assert.Equal("/blank.css", url));
+                url => Assert.Equal("/blank.css", url),
+                url => Assert.Equal("/site.css", url));
         }
 
         [Fact]
@@ -128,8 +221,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
             // Assert
             Assert.Collection(urlList,
-                url => Assert.Equal("/site.css", url),
-                url => Assert.Equal("/blank.css", url));
+                url => Assert.Equal("/blank.css", url),
+                url => Assert.Equal("/site.css", url));
             cacheSetContext.VerifyAll();
             Mock.Get(cache).VerifyAll();
         }
@@ -187,11 +280,69 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Collection(excludePatterns, pattern => Assert.Equal($"{leadingSlash}**/*.min.css", pattern));
         }
 
-        private static IFileInfo MakeFileInfo(string name)
+        public class FileNode
+        {
+            public FileNode(string name)
+            {
+                Name = name;
+            }
+
+            public FileNode(string name, IList<FileNode> children)
+            {
+                Name = name;
+                Children = children;
+            }
+
+            public string Name { get; }
+
+            public IList<FileNode> Children { get; }
+
+            public bool IsDirectory => Children != null && Children.Any();
+        }
+
+        private static IFileInfo MakeFileInfo(string name, bool isDirectory = false)
         {
             var fileInfo = new Mock<IFileInfo>();
             fileInfo.Setup(f => f.Name).Returns(name);
+            fileInfo.Setup(f => f.IsDirectory).Returns(isDirectory);
             return fileInfo.Object;
+        }
+
+        private static IFileProvider MakeFileProvider(FileNode rootNode)
+        {
+            if (rootNode.Children == null || !rootNode.Children.Any())
+            {
+                throw new ArgumentException(nameof(rootNode));
+            }
+            
+            var fileProvider = new Mock<IFileProvider>(MockBehavior.Strict);
+            fileProvider.Setup(fp => fp.GetDirectoryContents(string.Empty))
+                .Returns(MakeDirectoryContents(rootNode, fileProvider));
+            
+            return fileProvider.Object;
+        }
+
+        private static IDirectoryContents MakeDirectoryContents(FileNode fileNode, Mock<IFileProvider> fileProviderMock)
+        {
+            var children = new List<IFileInfo>();
+
+            foreach (var node in fileNode.Children)
+            {
+                children.Add(MakeFileInfo(node.Name, node.IsDirectory));
+                if (node.IsDirectory)
+                {
+                    var subPath = fileNode.Name != null
+                        ? (fileNode.Name + "/" + node.Name)
+                        : node.Name;
+                    fileProviderMock.Setup(fp => fp.GetDirectoryContents(subPath))
+                        .Returns(MakeDirectoryContents(node, fileProviderMock));
+                }
+            }
+            
+            var directoryContents = new Mock<IDirectoryContents>();
+            directoryContents.Setup(dc => dc.GetEnumerator()).Returns(children.GetEnumerator());
+
+            return directoryContents.Object;
         }
 
         private static IDirectoryContents MakeDirectoryContents(params string[] fileNames)
@@ -215,7 +366,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 .Returns(directoryContents);
             return fileProvider.Object;
         }
-        
+
         private static IMemoryCache MakeCache(object result = null)
         {
             var cache = new Mock<IMemoryCache>();
