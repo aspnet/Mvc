@@ -92,15 +92,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                                 new FileNode("c.css"),
                                 new FileNode("d.css")
                             }),
-                            new FileNode("__A", new [] {
+                            new FileNode("_A", new [] {
                                 new FileNode("1.css"),
                                 new FileNode("2.css")
+                            }),
+                            new FileNode("__A", new [] {
+                                new FileNode("1.css"),
+                                new FileNode("_1.css")
                             })
                         }),
                         /* expectedPaths */ new []
                         {
                             "/site.css",
-                            "/__A/1.css", "/__A/2.css",
+                            "/__A/_1.css", "/__A/1.css",
+                            "/_A/1.css", "/_A/2.css",
                             "/A/c.css", "/A/d.css",
                         }
                     },
@@ -108,17 +113,55 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                         /* staticUrl */ "/site.css",
                         /* dirStructure */ new FileNode(null, new [] {
                             new FileNode("A", new [] {
-                                new FileNode("1.css")
-                            }),
-                            new FileNode("__A", new [] {
-                                new FileNode("1.css")
+                                new FileNode("a.b.css"),
+                                new FileNode("a-b.css"),
+                                new FileNode("a_b.css"),
+                                new FileNode("a.css"),
+                                new FileNode("a.c.css")
                             })
                         }),
                         /* expectedPaths */ new []
                         {
                             "/site.css",
-                            "/__A/1.css",
-                            "/A/1.css"
+                            "/A/a.css", "/A/a.b.css", "/A/a.c.css", "/A/a_b.css", "/A/a-b.css"
+                        }
+                    },
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            new FileNode("B", new [] {
+                                new FileNode("a.bss"),
+                                new FileNode("a.css")
+                            }),
+                            new FileNode("A", new [] {
+                                new FileNode("a.css"),
+                                new FileNode("a.bss")
+                            })
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/A/a.bss", "/A/a.css",
+                            "/B/a.bss", "/B/a.css"
+                        }
+                    },
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            new FileNode("B", new [] {
+                                new FileNode("site2.css"),
+                                new FileNode("site11.css")
+                            }),
+                            new FileNode("A", new [] {
+                                new FileNode("site2.css"),
+                                new FileNode("site11.css")
+                            })
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/A/site11.css", "/A/site2.css",
+                            "/B/site11.css", "/B/site2.css"
                         }
                     }
                 };
@@ -136,7 +179,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var globbingUrlBuilder = new GlobbingUrlBuilder(fileProvider, cache, requestPathBase);
 
             // Act
-            var urlList = globbingUrlBuilder.BuildUrlList(staticUrl, "**/*.css", excludePattern: null);
+            var urlList = globbingUrlBuilder.BuildUrlList(staticUrl, "**/*.*", excludePattern: null);
 
             // Assert
             var collectionAssertions = expectedPaths.Select<string, Action<string>>(expected =>

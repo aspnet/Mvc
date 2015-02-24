@@ -131,6 +131,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 .OrderBy(path => path, new PathComparer());
         }
 
+        private string ResolveMatchedPath(string matchedPath)
+        {
+            // Resolve the path to site root
+            var relativePath = new PathString("/" + matchedPath);
+            return RequestPathBase.Add(relativePath).ToString();
+        }
+
         private class PathComparer : IComparer<string>
         {
             public int Compare(string x, string y)
@@ -138,8 +145,27 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 // < 0 = x < y
                 // > 0 = x > y
 
-                var xSegments = x.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                var ySegments = y.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                if (x.Equals(y))
+                {
+                    return 0;
+                }
+
+                var xExtIndex = x.LastIndexOf('.');
+                var yExtIndex = y.LastIndexOf('.');
+
+                var xNoExt = x.Substring(0, xExtIndex);
+                var yNoExt = y.Substring(0, yExtIndex);
+
+                if (xNoExt.Equals(yNoExt))
+                {
+                    // Only extension differs so just compare the extension
+                    var xExt = x.Substring(xExtIndex);
+                    var yExt = y.Substring(yExtIndex);
+                    return xExt.CompareTo(yExt);
+                }
+
+                var xSegments = xNoExt.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                var ySegments = yNoExt.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (xSegments.Length != ySegments.Length)
                 {
@@ -147,43 +173,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     return xSegments.Length.CompareTo(ySegments.Length);
                 }
 
-                // Depth is the same and so do standard alphabetical comparison on each segment
+                // Depth is the same so compare each segment
                 for (int i = 0; i < xSegments.Length; i++)
                 {
                     var xSegment = xSegments[i];
                     var ySegment = ySegments[i];
-                    var xToY = string.Compare(xSegment, ySegment);
+
+                    var xToY = xSegment.CompareTo(ySegment);
                     if (xToY != 0)
                     {
                         return xToY;
                     }
                 }
 
+                // Should't get here, but if we do, hey, they're the same :)
                 return 0;
             }
-
-            private static int GetPathDepth(string path)
-            {
-                var count = 0;
-
-                for (int i = 0; i < path.Length; i++)
-                {
-                    var c = path[i];
-                    if (c == '/' || c == '\\')
-                    {
-                        count++;
-                    }
-                }
-
-                return count;
-            }
-        }
-
-        private string ResolveMatchedPath(string matchedPath)
-        {
-            // Resolve the path to site root
-            var relativePath = new PathString("/" + matchedPath);
-            return RequestPathBase.Add(relativePath).ToString();
         }
 
         private static string TrimLeadingSlash(string value)
@@ -198,22 +203,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
 
             return result;
-        }
-
-        private int GetPathDepth(string path)
-        {
-            var count = 0;
-
-            for (int i = 0; i < path.Length; i++)
-            {
-                var c = path[i];
-                if (c == '/' || c == '\\')
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
     }
 }
