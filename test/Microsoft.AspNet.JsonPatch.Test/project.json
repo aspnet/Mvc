@@ -1,16 +1,18 @@
 {
-  "compilationOptions": {
-    "warningsAsErrors": "true"
-  },
-  "dependencies": {
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Moq": "4.2.1312.1622",
-    "xunit.runner.kre": "1.0.0-*"
-  },
-  "commands": {
-    "test": "xunit.runner.kre"
-  },
-  "frameworks": {
-    "aspnet50": { }
-  }
+    "compilationOptions": {
+        "warningsAsErrors":  true
+    },
+    "dependencies": {
+        "Microsoft.AspNet.Testing": "1.0.0-*",
+        "Moq": "4.2.1312.1622",
+        "xunit.runner.kre": "1.0.0-*",
+        "Microsoft.AspNet.JsonPatch": "1.0.0-*",
+        "xunit.runner.visualstudio": "2.0.0.0-rc3-build1046"
+    },
+    "commands": {
+        "test": "xunit.runner.kre"
+    },
+    "frameworks": {
+        "aspnet50": { }
+    }
 }
