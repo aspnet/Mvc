@@ -152,6 +152,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     return 0;
                 }
 
+                if (string.IsNullOrEmpty(x) || string.IsNullOrEmpty(y))
+                {
+                    return string.Compare(x, y, StringComparison.Ordinal);
+                }
+
                 var xExtIndex = x.LastIndexOf('.');
                 var yExtIndex = y.LastIndexOf('.');
 
