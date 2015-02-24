@@ -4,10 +4,10 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Infrastructure;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http.Authentication;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Infrastructure;
 using Microsoft.Framework.OptionsModel;
 
 namespace FiltersWebSite

@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Security;
+using Microsoft.AspNet.Authorization;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 

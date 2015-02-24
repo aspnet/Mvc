@@ -5,9 +5,9 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.Security;
 using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Fallback;
@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresAuthenticatedUser().Build());
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddAuthorization(),
                 anonymous: true);
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_EmptyClaimsWithAllowAnonymousAttributeShouldNotRejectAnonymousUser()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresAuthenticatedUser().Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_EmptyClaimsShouldAuthorizeAuthenticatedUser()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresAuthenticatedUser().Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();

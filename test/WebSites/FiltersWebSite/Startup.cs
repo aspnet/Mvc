@@ -3,9 +3,9 @@
 
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Security;
 using Microsoft.Framework.DependencyInjection;
 
 namespace FiltersWebSite
