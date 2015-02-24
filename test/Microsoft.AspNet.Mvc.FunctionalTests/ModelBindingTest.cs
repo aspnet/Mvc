@@ -1786,14 +1786,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                         new[]
                         {
                             ":Required property 'Id' not found in JSON",
-                            "rectangle.Lines:The Lines field is required."
+                            "Lines:The Lines field is required."
                         }
                     },
                     {
                         "{\"Id\":10}",
                         new[]
                         {
-                            "rectangle.Lines:The Lines field is required."
+                            "Lines:The Lines field is required."
                         }
                     },
                     {
