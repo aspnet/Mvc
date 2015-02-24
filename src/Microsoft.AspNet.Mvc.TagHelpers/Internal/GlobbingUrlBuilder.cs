@@ -153,14 +153,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 var xExtIndex = x.LastIndexOf('.');
                 var yExtIndex = y.LastIndexOf('.');
 
-                var xNoExt = x.Substring(0, xExtIndex);
-                var yNoExt = y.Substring(0, yExtIndex);
+                // Ensure extension index is in the last segment, i.e. in the file name
+                var xSlashIndex = x.LastIndexOf('/');
+                var ySlashIndex = y.LastIndexOf('/');
+                xExtIndex = xExtIndex > xSlashIndex ? xExtIndex : -1;
+                yExtIndex = yExtIndex > ySlashIndex ? yExtIndex : -1;
+
+                // Get paths without their extensions, if they have one
+                var xNoExt = xExtIndex >= 0 ? x.Substring(0, xExtIndex) : x;
+                var yNoExt = yExtIndex >= 0 ? y.Substring(0, yExtIndex) : y;
 
                 if (xNoExt.Equals(yNoExt))
                 {
                     // Only extension differs so just compare the extension
-                    var xExt = x.Substring(xExtIndex);
-                    var yExt = y.Substring(yExtIndex);
+                    var xExt = xExtIndex >= 0 ? x.Substring(xExtIndex) : string.Empty;
+                    var yExt = yExtIndex >= 0 ? y.Substring(yExtIndex) : string.Empty;
+
                     return xExt.CompareTo(yExt);
                 }
 

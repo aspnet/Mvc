@@ -163,6 +163,44 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                             "/A/site11.css", "/A/site2.css",
                             "/B/site11.css", "/B/site2.css"
                         }
+                    },
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            new FileNode("B", new [] {
+                                new FileNode("site"),
+                                new FileNode("site.css")
+                            }),
+                            new FileNode("A", new [] {
+                                new FileNode("site.css"),
+                                new FileNode("site")
+                            })
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/A/site", "/A/site.css",
+                            "/B/site", "/B/site.css"
+                        }
+                    },
+                    {
+                        /* staticUrl */ "/site.css",
+                        /* dirStructure */ new FileNode(null, new [] {
+                            new FileNode("B.B", new [] {
+                                new FileNode("site"),
+                                new FileNode("site.css")
+                            }),
+                            new FileNode("A.A", new [] {
+                                new FileNode("site.css"),
+                                new FileNode("site")
+                            })
+                        }),
+                        /* expectedPaths */ new []
+                        {
+                            "/site.css",
+                            "/A.A/site", "/A.A/site.css",
+                            "/B.B/site", "/B.B/site.css"
+                        }
                     }
                 };
             }
