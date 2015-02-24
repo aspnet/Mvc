@@ -34,16 +34,6 @@ namespace ValidationWebSite.Controllers
             // passed model.
             ModelState.ClearValidationState("theImpossibleString");
 
-            //Verifying that CompanyName property value came as "X" and ModelState does not contain an entry for it
-            if (!string.Equals(product.CompanyName,"X") || ModelState["CompanyName"].Errors.Count != 0)
-            {
-                return null;
-            }
-
-            //Change CompanyName to throw validation error on TryValidateModel call.
-            product.CompanyName = string.Empty;
-            ModelState["CompanyName"].ValidationState = ModelValidationState.Unvalidated;
-
             TryValidateModel(product);
 
             return CreateValidationDictionary();
