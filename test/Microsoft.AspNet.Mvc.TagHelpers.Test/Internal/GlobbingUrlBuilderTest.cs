@@ -104,9 +104,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                         /* expectedPaths */ new []
                         {
                             "/site.css",
-                            "/__A/_1.css", "/__A/1.css",
-                            "/_A/1.css", "/_A/2.css",
                             "/A/c.css", "/A/d.css",
+                            "/_A/1.css", "/_A/2.css",
+                            "/__A/1.css", "/__A/_1.css"
                         }
                     },
                     {
@@ -123,7 +123,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                         /* expectedPaths */ new []
                         {
                             "/site.css",
-                            "/A/a.css", "/A/a.b.css", "/A/a.c.css", "/A/a_b.css", "/A/a-b.css"
+                            "/A/a.css", "/A/a-b.css", "/A/a.b.css", "/A/a.c.css", "/A/a_b.css"
                         }
                     },
                     {
@@ -207,7 +207,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         [Theory]
-        [MemberData("OrdersGlobbedMatchResultsCorrectly_Data")]
+        [MemberData(nameof(OrdersGlobbedMatchResultsCorrectly_Data))]
         public void OrdersGlobbedMatchResultsCorrectly(string staticUrl, FileNode dirStructure, string[] expectedPaths)
         {
             // Arrange

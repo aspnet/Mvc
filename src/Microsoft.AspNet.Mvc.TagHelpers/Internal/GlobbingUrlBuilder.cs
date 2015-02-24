@@ -147,7 +147,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 // < 0 = x < y
                 // > 0 = x > y
 
-                if (x.Equals(y))
+                if (string.Equals(x, y, StringComparison.Ordinal))
                 {
                     return 0;
                 }
@@ -165,13 +165,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 var xNoExt = xExtIndex >= 0 ? x.Substring(0, xExtIndex) : x;
                 var yNoExt = yExtIndex >= 0 ? y.Substring(0, yExtIndex) : y;
 
-                if (xNoExt.Equals(yNoExt))
+                if (string.Equals(xNoExt, yNoExt, StringComparison.Ordinal))
                 {
                     // Only extension differs so just compare the extension
                     var xExt = xExtIndex >= 0 ? x.Substring(xExtIndex) : string.Empty;
                     var yExt = yExtIndex >= 0 ? y.Substring(yExtIndex) : string.Empty;
-
-                    return xExt.CompareTo(yExt);
+                    
+                    return string.Compare(xExt, yExt, StringComparison.Ordinal);
                 }
 
                 var xSegments = xNoExt.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     var xSegment = xSegments[i];
                     var ySegment = ySegments[i];
 
-                    var xToY = xSegment.CompareTo(ySegment);
+                    var xToY = string.Compare(xSegment, ySegment, StringComparison.Ordinal);
                     if (xToY != 0)
                     {
                         return xToY;
