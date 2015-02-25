@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Text;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
@@ -210,7 +209,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             foreach (var href in hrefs)
             {
-                attributes["href"] = WebUtility.HtmlEncode(href);
+                attributes["href"] = HtmlEncoder.Default.HtmlEncode(href);
                 BuildLinkTag(attributes, builder);
             }
         }
@@ -228,7 +227,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 builder.AppendFormat(
                     CultureInfo.InvariantCulture,
                     "<meta name=\"x-stylesheet-fallback-test\" class=\"{0}\" />",
-                    WebUtility.HtmlEncode(FallbackTestClass));
+                    HtmlEncoder.Default.HtmlEncode(FallbackTestClass));
                 
                 // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
                 // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,

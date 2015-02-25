@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -20,39 +22,112 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class ScriptTagHelperTest
     {
+        public static TheoryData RunsWhenRequiredAttributesArePresent_Data
+        {
+            get
+            {
+                return new TheoryData<IDictionary<string, object>, Action<ScriptTagHelper>>
+                {
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-src-include"] = "*.js"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.SrcInclude = "*.js";
+                        }
+                    },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-src-include"] = "*.js",
+                            ["asp-src-exclude"] = "*.min.js"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.SrcInclude = "*.js";
+                            tagHelper.SrcExclude = "*.min.js";
+                        }
+                    },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-fallback-src"] = "test.js",
+                            ["asp-fallback-test"] = "isavailable()"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrc = "test.js";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-fallback-src-include"] = "*.js",
+                            ["asp-fallback-test"] = "isavailable()"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrcInclude = "*.css";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-fallback-src"] = "test.js",
+                            ["asp-fallback-src-include"] = "*.js",
+                            ["asp-fallback-test"] = "isavailable()"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrc = "test.js";
+                            tagHelper.FallbackSrcInclude = "*.css";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-fallback-src-include"] = "*.js",
+                            ["asp-fallback-src-exclude"] = "*.min.js",
+                            ["asp-fallback-test"] = "isavailable()"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrcInclude = "*.css";
+                            tagHelper.FallbackSrcExclude = "*.min.css";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    }
+                };
+            }
+        }
+
         [Theory]
-        [InlineData("~/blank.js")]
-        [InlineData(null)]
-        public async Task RunsWhenRequiredAttributesArePresent(string srcValue)
+        [MemberData(nameof(RunsWhenRequiredAttributesArePresent_Data))]
+        public async Task RunsWhenRequiredAttributesArePresent(
+            IDictionary<string, object> attributes,
+            Action<ScriptTagHelper> setProperties)
         {
             // Arrange
-            var attributes = new Dictionary<string, object>
-            {
-                ["asp-fallback-src"] = "http://www.example.com/blank.js",
-                ["asp-fallback-test"] = "isavailable()",
-            };
-
-            if (srcValue != null)
-            {
-                attributes.Add("src", srcValue);
-            }
-
-            var tagHelperContext = MakeTagHelperContext(attributes);
-            var viewContext = MakeViewContext();
-
+            var context = MakeTagHelperContext(attributes);
             var output = MakeTagHelperOutput("script");
             var logger = CreateLogger();
-
-            var helper = new ScriptTagHelper()
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var helper = new ScriptTagHelper
             {
                 Logger = logger,
+                HostingEnvironment = hostingEnvironment,
                 ViewContext = viewContext,
-                FallbackSrc = "http://www.example.com/blank.js",
-                FallbackTestExpression = "isavailable()",
             };
+            setProperties(helper);
 
             // Act
-            await helper.ProcessAsync(tagHelperContext, output);
+            await helper.ProcessAsync(context, output);
 
             // Assert
             Assert.Null(output.TagName);
@@ -173,15 +248,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(2, logger.Logged.Count);
 
             Assert.Equal(LogLevel.Warning, logger.Logged[0].LogLevel);
-            Assert.IsType<MissingAttributeLoggerStructure>(logger.Logged[0].State);
+            Assert.IsAssignableFrom<PartialModeMatchLoggerStructure>(logger.Logged[0].State);
 
-            var loggerData0 = (MissingAttributeLoggerStructure)logger.Logged[0].State;
-            Assert.Single(loggerData0.MissingAttributes);
-            Assert.Equal(attributeMissing, loggerData0.MissingAttributes.Single());
+            var loggerData0 = (PartialModeMatchLoggerStructure)logger.Logged[0].State;
 
             Assert.Equal(LogLevel.Verbose, logger.Logged[1].LogLevel);
             Assert.IsAssignableFrom<ILoggerStructure>(logger.Logged[1].State);
-            Assert.StartsWith("Skipping processing for ScriptTagHelper",
+            Assert.StartsWith("Skipping processing for Microsoft.AspNet.Mvc.TagHelpers.ScriptTagHelper",
                 ((ILoggerStructure)logger.Logged[1].State).Format());
         }
 
@@ -211,7 +284,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             Assert.Equal(LogLevel.Verbose, logger.Logged[0].LogLevel);
             Assert.IsAssignableFrom<ILoggerStructure>(logger.Logged[0].State);
-            Assert.StartsWith("Skipping processing for ScriptTagHelper",
+            Assert.StartsWith("Skipping processing for Microsoft.AspNet.Mvc.TagHelpers.ScriptTagHelper",
                 ((ILoggerStructure)logger.Logged[0].State).Format());
         }
 
@@ -231,7 +304,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var viewContext = MakeViewContext();
 
-            var output = MakeTagHelperOutput("link",
+            var output = MakeTagHelperOutput("src",
                 attributes: new Dictionary<string, string>
                 {
                     ["data-extra"] = "something",
@@ -240,11 +313,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
 
             var logger = CreateLogger();
+            var hostingEnvironment = MakeHostingEnvironment();
 
             var helper = new ScriptTagHelper
             {
                 Logger = logger,
                 ViewContext = viewContext,
+                HostingEnvironment = hostingEnvironment,
                 FallbackSrc = "~/blank.js",
                 FallbackTestExpression = "http://www.example.com/blank.js",
             };
@@ -290,6 +365,24 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private TagHelperLogger<ScriptTagHelper> CreateLogger()
         {
             return new TagHelperLogger<ScriptTagHelper>();
+        }
+
+        private static IHostingEnvironment MakeHostingEnvironment(IFileProvider webRootFileProvider = null)
+        {
+            var emptyDirectoryContents = new Mock<IDirectoryContents>();
+            emptyDirectoryContents.Setup(dc => dc.GetEnumerator())
+                .Returns(Enumerable.Empty<IFileInfo>().GetEnumerator());
+            if (webRootFileProvider == null)
+            {
+                var mockFileProvider = new Mock<IFileProvider>();
+                mockFileProvider.Setup(fp => fp.GetDirectoryContents(It.IsAny<string>()))
+                    .Returns(emptyDirectoryContents.Object);
+                webRootFileProvider = mockFileProvider.Object;
+            }
+            var hostingEnvironment = new Mock<IHostingEnvironment>();
+            hostingEnvironment.Setup(h => h.WebRootFileProvider).Returns(webRootFileProvider);
+
+            return hostingEnvironment.Object;
         }
     }
 }
