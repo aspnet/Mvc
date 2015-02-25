@@ -1,0 +1,30 @@
+{
+	"version": "1.0.0-*",
+	"dependencies": {
+	},
+
+	"frameworks": {
+		"aspnet50": {
+			"dependencies": {
+				"Newtonsoft.Json": "6.0.6.0",
+				"System.Globalization": "4.0.10-beta-22623",
+				"System.Reflection": "4.0.10-beta-22623"
+			}
+		},
+		"aspnetcore50": {
+			"dependencies": {
+
+
+				"Microsoft.CSharp": "4.0.0-beta-22623",
+				"Newtonsoft.Json": "6.0.6.0",
+				"System.Collections":  "4.0.10-beta-22623",
+				"System.Runtime.Extensions": "4.0.10-beta-22623",
+				"System.Globalization": "4.0.10-beta-22623",
+				"System.Reflection": "4.0.10-beta-22623",
+				"System.Linq": "4.0.0-beta-22623",
+				"System.Reflection.TypeExtensions": "4.0.0-beta-22623"
+
+			}
+		}
+	}
+}
