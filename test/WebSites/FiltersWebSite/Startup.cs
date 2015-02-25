@@ -26,7 +26,7 @@ namespace FiltersWebSite
                     options.AddPolicy("Api", policy =>
                     {
                         policy.ActiveAuthenticationSchemes.Add("Api");
-                        policy.RequiresClaim(ClaimTypes.NameIdentifier);
+                        policy.RequireClaim(ClaimTypes.NameIdentifier);
                     });
                     options.AddPolicy("Api-Manager", policy =>
                     {
@@ -36,8 +36,8 @@ namespace FiltersWebSite
                     options.AddPolicy("Interactive", policy =>
                     {
                         policy.ActiveAuthenticationSchemes.Add("Interactive");
-                        policy.RequiresClaim(ClaimTypes.NameIdentifier)
-                              .RequiresClaim("Permission", "CanViewPage");
+                        policy.RequireClaim(ClaimTypes.NameIdentifier)
+                              .RequireClaim("Permission", "CanViewPage");
                     });
                 });
                 services.AddSingleton<RandomNumberFilter>();

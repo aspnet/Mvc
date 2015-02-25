@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_ValidClaimShouldNotFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewPage").Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireClaim("Permission", "CanViewPage").Build());
             var authorizationContext = GetAuthorizationContext(services => services.AddAuthorization());
 
             // Act
@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var authorizationOptions = new AuthorizationOptions();
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddAuthorization(),
                 anonymous: true);
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_EmptyClaimsWithAllowAnonymousAttributeShouldNotRejectAnonymousUser()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_EmptyClaimsShouldAuthorizeAuthenticatedUser()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_SingleValidClaimShouldSucceed()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresClaim("Permission", "CanViewComment", "CanViewPage").Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireClaim("Permission", "CanViewComment", "CanViewPage").Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_RequireAdminRoleShouldFailWithNoHandlers()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresRole("Administrator").Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Administrator").Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddOptions();
@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_RequireAdminAndUserRoleWithNoPolicyShouldSucceed()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresRole("Administrator").Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Administrator").Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -153,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_RequireUnknownRoleShouldFail()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequiresRole("Wut").Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Wut").Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
                 services.AddAuthorization();
@@ -172,8 +172,8 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequiresRole("Administrator")
-                .RequiresClaim("Permission", "CanViewComment")
+                .RequireRole("Administrator")
+                .RequireClaim("Permission", "CanViewComment")
                 .Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
@@ -193,7 +193,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequiresClaim("Permission", "CanViewComment")
+                .RequireClaim("Permission", "CanViewComment")
                 .Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
@@ -223,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 });
 
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequiresClaim("Permission", "CanViewComment")
+                .RequireClaim("Permission", "CanViewComment")
                 .Build());
             var authorizationContext = GetAuthorizationContext(services =>
                 services.AddInstance(authorizationService.Object)
@@ -243,7 +243,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequiresClaim("Permission", "CanViewComment")
+                .RequireClaim("Permission", "CanViewComment")
                 .Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {
@@ -263,8 +263,8 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder("Basic", "Bearer")
-                .RequiresClaim("Permission", "CanViewComment")
-                .RequiresClaim("Permission", "CupBearer")
+                .RequireClaim("Permission", "CanViewComment")
+                .RequireClaim("Permission", "CupBearer")
                 .Build());
             var authorizationContext = GetAuthorizationContext(services =>
             {

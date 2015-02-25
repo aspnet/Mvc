@@ -329,8 +329,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             // Arrange
             var options = new AuthorizationOptions();
-            options.AddPolicy("Base", policy => policy.RequiresClaim("Basic").RequiresClaim("Basic2"));
-            options.AddPolicy("Derived", policy => policy.RequiresClaim("Derived"));
+            options.AddPolicy("Base", policy => policy.RequireClaim("Basic").RequireClaim("Basic2"));
+            options.AddPolicy("Derived", policy => policy.RequireClaim("Derived"));
             var builder = CreateTestDefaultActionModelBuilder(options);
             var typeInfo = typeof(DerivedController).GetTypeInfo();
             var actionName = nameof(DerivedController.Authorize);
