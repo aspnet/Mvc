@@ -196,6 +196,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
@@ -225,11 +226,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
+            Assert.True(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.False(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.NotNull(viewContext.FormContext?.FormData);
@@ -276,6 +277,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
@@ -313,11 +315,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
+            Assert.True(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent);
             Assert.Equal(expectedContent, output.Content);
             Assert.Equal(expectedPostContent, output.PostContent);
-            Assert.False(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.NotNull(viewContext.FormContext?.FormData);
@@ -358,6 +360,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(expectedTagName, originalAttributes);
@@ -423,6 +426,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(tagName, originalAttributes);
@@ -478,6 +482,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
+                items: new Dictionary<object, object>(),
                 uniqueId: "test",
                 getChildContentAsync: () => Task.FromResult("Something"));
             var output = new TagHelperOutput(expectedTagName, originalAttributes);
