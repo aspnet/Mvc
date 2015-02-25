@@ -448,4 +448,7 @@
   <data name="ModelType_WrongType" xml:space="preserve">
     <value>The model's runtime type '{0}' is not assignable to the type '{1}'.</value>
   </data>
+  <data name="AsyncTimeoutAttribute_InvalidTimeout" xml:space="preserve">
+    <value>The value '{0}' for argument '{1}' is invalid. The timeout value must be non-negative.</value>
+  </data>
 </root>
