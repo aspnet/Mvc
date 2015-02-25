@@ -398,7 +398,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("WA_Query", user.ShippingAddress.State);
             Assert.Equal(3, user.ShippingAddress.Street);
             Assert.Equal(4, user.ShippingAddress.Zip);
-
         }
 
         [Fact]
@@ -1355,7 +1354,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             };
             var url = "http://localhost/dealers/43/update-vehicle?dealer.name=TestCarDealer&dealer.location=NE";
-
+            
             // Act
             var response = await client.PostAsJsonAsync(url, postedContent);
 
@@ -1573,6 +1572,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         [Fact]
         public async Task ModelBinder_FormatsDontMatch_ThrowsUserFriendlyException()
+
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -1642,6 +1642,29 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var responseContent = await response.Content.ReadAsStringAsync();
             var dictionary = JsonConvert.DeserializeObject<IDictionary<string, string>>(responseContent);
             Assert.Equal(expectedDictionary, dictionary);
+        }
+
+        [Fact]
+        public async Task TryUpdateModelNonGeneric_IncludesAllProperties_CanBind()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetUserAsync_ModelType_IncludeAll" +
+                "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
+
+            // Assert
+            var user = JsonConvert.DeserializeObject<User>(response);
+
+            // Should not update any not explicitly mentioned properties.
+            Assert.Equal("SomeName", user.UserName);
+            Assert.Equal(123, user.Key);
+
+            // Should Update all included properties.
+            Assert.Equal("March", user.RegisterationMonth);
         }
 
         [Fact]
@@ -1730,6 +1753,98 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var fileContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedContent, fileContent);
+        }
+
+        [Fact]
+        public async Task TryUpdateModelNonGenericIncludesAllProperties_ByDefault()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+                "GetUserAsync_ModelType_IncludeAllByDefault" +
+                "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
+
+            // Assert
+            var user = JsonConvert.DeserializeObject<User>(response);
+
+            // Should not update any not explicitly mentioned properties.
+            Assert.Equal("SomeName", user.UserName);
+            Assert.Equal(123, user.Key);
+
+            // Should Update all included properties.
+            Assert.Equal("March", user.RegisterationMonth);
+        }
+
+        public static TheoryData<string, string[]> ModelStateHasErrorsForValueAndReferenceTypesData
+        {
+            get
+            {
+                return new TheoryData<string, string[]>()
+                {
+                    {
+                        "{}",
+                        new[]
+                        {
+                            ":Required property 'Id' not found in JSON",
+                            "rectangle.Lines:The Lines field is required."
+                        }
+                    },
+                    {
+                        "{\"Id\":10}",
+                        new[]
+                        {
+                            "rectangle.Lines:The Lines field is required."
+                        }
+                    },
+                    {
+                        "{\"Id\":10,\"Lines\":[{}]}",
+                        new []
+                        {
+                            "Lines[0]:Required property 'Start' not found in JSON",
+                            "Lines[0]:Required property 'End' not found in JSON"
+                        }
+                    },
+                    {
+                        "{\"Id\":10,\"Lines\":[{\"Start\":{\"X\":10,\"Y\":10},\"End\":{\"X\":10}}]}",
+                        new []
+                        {
+                            "Lines[0].End:Required property 'Y' not found in JSON"
+                        }
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ModelStateHasErrorsForValueAndReferenceTypesData))]
+        public async Task ModelState_HasErrors_ForValueAndReferenceTypes(
+            string input, 
+            IEnumerable<string> expectedModelStateErrorMessages)
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+            var content = new StringContent(input, Encoding.UTF8, "text/json");
+
+            // Act
+            var response = await client.PostAsync(
+                "http://localhost/Validation/CreateRectangle", 
+                content);
+
+            // Assert
+            var data = await response.Content.ReadAsStringAsync();
+            var actualModelStateErrorMessages = JsonConvert.DeserializeObject<IEnumerable<string>>(data);
+            Assert.NotNull(actualModelStateErrorMessages);
+            Assert.Equal(expectedModelStateErrorMessages.Count(), actualModelStateErrorMessages.Count());
+            foreach (var expectedErrorMessage in expectedModelStateErrorMessages)
+            {
+                Assert.Contains(
+                    actualModelStateErrorMessages,
+                    (actualErrorMessage) => actualErrorMessage.StartsWith(expectedErrorMessage));
+            }
         }
     }
 }

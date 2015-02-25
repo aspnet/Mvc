@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.ActionConstraints;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
@@ -49,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public override string Format()
         {
-            return LogFormatter.FormatStructure(this);
+            return LogFormatter.FormatLogValues(this);
         }
     }
 }

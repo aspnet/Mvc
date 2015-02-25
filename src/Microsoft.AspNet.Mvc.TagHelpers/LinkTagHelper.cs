@@ -10,9 +10,9 @@ using System.Text;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.WebUtilities.Encoders;
 using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
                 $"There should only be one mode match, check the {nameof(ModeDetails)}");
 
-            modeResult.LogDetails(Logger, this, context.UniqueId);
+            modeResult.LogDetails(Logger, this, context.UniqueId, ViewContext.View.Path);
 
             if (!modeResult.FullMatches.Any())
             {

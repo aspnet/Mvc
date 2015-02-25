@@ -8,8 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.WebUtilities.Encoders;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -50,14 +50,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [Activate]
         protected internal ILogger<ScriptTagHelper> Logger { get; set; }
 
+        [Activate]
+        protected internal ViewContext ViewContext { get; set; }
+
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            if (!AttributeMatcher.AllRequiredAttributesArePresent(context, RequiredAttributes, Logger))
+            if (!AttributeMatcher.AllRequiredAttributesArePresent(context, ViewContext, RequiredAttributes, Logger))
             {
                 if (Logger.IsEnabled(LogLevel.Verbose))
                 {
-                    Logger.WriteVerbose("Skipping processing for {0} {1}", nameof(ScriptTagHelper), context.UniqueId);
+                    Logger.WriteVerbose(
+                        "Skipping processing for {0} with ID {1} on view '{2}'",
+                        nameof(ScriptTagHelper),
+                        context.UniqueId,
+                        ViewContext.View.Path);
                 }
 
                 return;
