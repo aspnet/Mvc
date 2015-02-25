@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.Internal;
@@ -9,8 +10,8 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Represents an attribute that is used to set the timeout value, in milliseconds, 
-    /// which when elapsed will cause the current request to be aborted.
+    /// Used to create a <see cref="CancellationToken"/> which gets invoked when the 
+    /// supplied timeout value, in milliseconds, elapses.
     /// </summary>
     [AttributeUsage(
         AttributeTargets.Class | AttributeTargets.Method,
@@ -21,49 +22,37 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Initializes a new instance of <see cref="AsyncTimeoutAttribute"/>.
         /// </summary>
-        /// <param name="duration">The duration in milliseconds.</param>
-        public AsyncTimeoutAttribute(int duration)
+        /// <param name="durationInMilliseconds">The duration in milliseconds.</param>
+        public AsyncTimeoutAttribute(int durationInMilliseconds)
         {
-            if (duration < -1)
+            if (durationInMilliseconds <= 0)
             {
-                throw new ArgumentException(
-                    Resources.FormatAsyncTimeoutAttribute_InvalidTimeout(duration, nameof(duration))); 
+                throw new ArgumentOutOfRangeException(
+                    nameof(durationInMilliseconds), 
+                    durationInMilliseconds, 
+                    Resources.AsyncTimeoutAttribute_InvalidTimeout);
             }
 
-            Duration = duration;
+            DurationInMilliseconds = durationInMilliseconds;
         }
 
         /// <summary>
         /// The timeout duration in milliseconds.
         /// </summary>
-        public int Duration { get; }
+        public int DurationInMilliseconds { get; }
 
         public async Task OnResourceExecutionAsync(
             [NotNull] ResourceExecutingContext context,
             [NotNull] ResourceExecutionDelegate next)
         {
-            var httpContext = context.HttpContext;
+            // Set the feature which provides the cancellation token to later stages
+            // in the pipeline. This cancellation token gets invoked when the timeout value
+            // elapses. One can register to this cancellation token to get notified when the
+            // timeout occurs to take any action.
+            context.HttpContext.SetFeature<ITimeoutCancellationTokenFeature>(
+                new TimeoutCancellationTokenFeature(DurationInMilliseconds));
 
-            // Get a task that will complete after a time delay.
-            var timeDelayTask = Task.Delay(Duration, cancellationToken: httpContext.RequestAborted);
-
-            // Task representing later stages of the pipeline.
-            var pipelineTask = next();
-
-            // Get the first task which completed.
-            var completedTask = await Task.WhenAny(pipelineTask, timeDelayTask);
-
-            if (completedTask == pipelineTask)
-            {
-                // Task completed within timeout, but it could be in faulted or canceled state.
-                // Allow the following line to throw exception and be handled somewhere else.
-                await completedTask;
-            }
-            else
-            {
-                // Pipeline task did not complete within timeout, so abort the request.
-                httpContext.Abort();
-            }
+            await next();
         }
     }
 }

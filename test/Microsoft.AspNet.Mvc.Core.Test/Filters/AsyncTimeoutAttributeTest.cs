@@ -4,6 +4,7 @@
 #if ASPNET50
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
@@ -13,47 +14,22 @@ namespace Microsoft.AspNet.Mvc.Test
     public class AsyncTimeoutAttributeTest
     {
         [Fact]
-        public async Task RequestIsAborted_AfterTimeoutDurationElapses()
+        public async Task SetsTimeoutCancellationTokenFeature_OnExecution()
         {
             // Arrange
-            var httpContext = new Mock<HttpContext>();
+            var httpContext = new DefaultHttpContext();
             var asyncTimeoutAttribute = new AsyncTimeoutAttribute(1 * 1000); // 1 second
-            var resourceExecutingContext = GetResourceExecutingContext(httpContext.Object);
-            
-            // Act
-            await asyncTimeoutAttribute.OnResourceExecutionAsync(
-                resourceExecutingContext, 
-                async () =>
-                {
-                    // Imagine here the rest of pipeline(ex: model-binding->action filters-action) being executed
-                    await Task.Delay(10 * 1000); // 10 seconds
-                    return null;
-                });
+            var resourceExecutingContext = GetResourceExecutingContext(httpContext);
 
-            // Assert
-            httpContext.Verify(hc => hc.Abort(), Times.Once);
-        }
-
-        [Fact]
-        public async Task RequestIsNotAborted_BeforeTimeoutDurationElapses()
-        {
-            // Arrange
-            var httpContext = new Mock<HttpContext>();
-            var asyncTimeoutAttribute = new AsyncTimeoutAttribute(10 * 1000); // 10 seconds
-            var resourceExecutingContext = GetResourceExecutingContext(httpContext.Object);
-            
             // Act
             await asyncTimeoutAttribute.OnResourceExecutionAsync(
                 resourceExecutingContext,
-                async () =>
-                {
-                    // Imagine here the rest of pipeline(ex: model-binding->action filters-action) being executed
-                    await Task.Delay(1 * 1000); // 1 second
-                    return null;
-                });
+                () => Task.FromResult<ResourceExecutedContext>(null));
 
             // Assert
-            httpContext.Verify(hc => hc.Abort(), Times.Never);
+            var timeoutFeature = resourceExecutingContext.HttpContext.GetFeature<ITimeoutCancellationTokenFeature>();
+            Assert.NotNull(timeoutFeature);
+            Assert.NotNull(timeoutFeature.TimeoutCancellationToken);
         }
 
         private ResourceExecutingContext GetResourceExecutingContext(HttpContext httpContext)

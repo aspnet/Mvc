@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
             options.ModelBinders.Add(new HeaderModelBinder());
             options.ModelBinders.Add(new TypeConverterModelBinder());
             options.ModelBinders.Add(new TypeMatchModelBinder());
-            options.ModelBinders.Add(new CancellationTokenModelBinder());
+            options.ModelBinders.Add(new TimeoutCancellationTokenModelBinder());
             options.ModelBinders.Add(new ByteArrayModelBinder());
             options.ModelBinders.Add(new FormFileModelBinder());
             options.ModelBinders.Add(new FormCollectionModelBinder());

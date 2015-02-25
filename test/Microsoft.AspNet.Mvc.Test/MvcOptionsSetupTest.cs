@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(typeof(HeaderModelBinder), mvcOptions.ModelBinders[i++].OptionType);
             Assert.Equal(typeof(TypeConverterModelBinder), mvcOptions.ModelBinders[i++].OptionType);
             Assert.Equal(typeof(TypeMatchModelBinder), mvcOptions.ModelBinders[i++].OptionType);
-            Assert.Equal(typeof(CancellationTokenModelBinder), mvcOptions.ModelBinders[i++].OptionType);
+            Assert.Equal(typeof(TimeoutCancellationTokenModelBinder), mvcOptions.ModelBinders[i++].OptionType);
             Assert.Equal(typeof(ByteArrayModelBinder), mvcOptions.ModelBinders[i++].OptionType);
             Assert.Equal(typeof(FormFileModelBinder), mvcOptions.ModelBinders[i++].OptionType);
             Assert.Equal(typeof(FormCollectionModelBinder), mvcOptions.ModelBinders[i++].OptionType);

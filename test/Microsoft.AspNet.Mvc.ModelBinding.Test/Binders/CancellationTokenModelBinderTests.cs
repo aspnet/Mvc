@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(CancellationToken));
-            var binder = new CancellationTokenModelBinder();
+            var binder = new TimeoutCancellationTokenModelBinder();
 
             // Act
             var bound = await binder.BindModelAsync(bindingContext);
@@ -34,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(t);
-            var binder = new CancellationTokenModelBinder();
+            var binder = new TimeoutCancellationTokenModelBinder();
 
             // Act
             var bound = await binder.BindModelAsync(bindingContext);
@@ -53,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ValueProvider = new SimpleHttpValueProvider(),
                 OperationBindingContext = new OperationBindingContext
                 {
-                    ModelBinder = new CancellationTokenModelBinder(),
+                    ModelBinder = new TimeoutCancellationTokenModelBinder(),
                     MetadataProvider = metadataProvider,
                     HttpContext = new DefaultHttpContext(),
                 }

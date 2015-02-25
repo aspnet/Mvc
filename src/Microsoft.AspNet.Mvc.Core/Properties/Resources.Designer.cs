@@ -1723,7 +1723,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The value '{0}' for argument '{1}' is invalid. The timeout value must be non-negative.
+        /// The timeout value must be greater than 0.
         /// </summary>
         internal static string AsyncTimeoutAttribute_InvalidTimeout
         {
@@ -1731,11 +1731,11 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The value '{0}' for argument '{1}' is invalid. The timeout value must be non-negative.
+        /// The timeout value must be greater than 0.
         /// </summary>
-        internal static string FormatAsyncTimeoutAttribute_InvalidTimeout(object p0, object p1)
+        internal static string FormatAsyncTimeoutAttribute_InvalidTimeout()
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AsyncTimeoutAttribute_InvalidTimeout"), p0, p1);
+            return GetString("AsyncTimeoutAttribute_InvalidTimeout");
         }
 
         private static string GetString(string name, params string[] formatterNames)
