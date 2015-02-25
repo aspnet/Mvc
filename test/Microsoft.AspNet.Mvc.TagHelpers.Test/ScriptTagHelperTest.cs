@@ -136,57 +136,113 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Empty(logger.Logged);
         }
 
-        public static TheoryData MissingAttributeDataSet
+        public static TheoryData DoesNotRunWhenARequiredAttributeIsMissing_Data
         {
             get
             {
-                return new TheoryData<Dictionary<string, object>, ScriptTagHelper, string>
+                return new TheoryData<IDictionary<string, object>, Action<ScriptTagHelper>>
                 {
                     {
-                        new Dictionary<string, object> // the attributes provided
+                        new Dictionary<string, object>
                         {
-                            ["asp-fallback-src"] =  "http://www.example.com/blank.js",
+                            // This is commented out on purpose: ["asp-src-include"] = "*.js",
+                            ["asp-src-exclude"] = "*.min.js"
                         },
-                        new ScriptTagHelper() // the tag helper
+                        tagHelper =>
                         {
-                            FallbackTestExpression = "isavailable()",
-                        },
-                        "asp-fallback-test" // missing attribute
+                            // This is commented out on purpose: tagHelper.SrcInclude = "*.js";
+                            tagHelper.SrcExclude = "*.min.js";
+                        }
                     },
-
                     {
-                        new Dictionary<string, object> // the attributes provided
+                        new Dictionary<string, object>
                         {
+                            // This is commented out on purpose: ["asp-fallback-src"] = "test.js",
                             ["asp-fallback-test"] = "isavailable()",
                         },
-                        new ScriptTagHelper() // the tag helper
+                        tagHelper =>
                         {
-                            FallbackTestExpression = "http://www.example.com/blank.js",
-                        },
-                        "asp-fallback-src" // missing attribute
+                            // This is commented out on purpose: tagHelper.FallbackSrc = "test.js";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                        }
                     },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["asp-fallback-src"] = "test.js",
+                            // This is commented out on purpose: ["asp-fallback-test"] = "isavailable()"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrc = "test.js";
+                            // This is commented out on purpose: tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    },
+                    {
+                        new Dictionary<string, object>
+                        {
+                            // This is commented out on purpose: ["asp-fallback-src-include"] = "test.js",
+                            ["asp-fallback-src-exclude"] = "**/*.min.js",
+                            ["asp-fallback-test"] = "isavailable()",
+                        },
+                        tagHelper =>
+                        {
+                            // This is commented out on purpose: tagHelper.FallbackSrcInclude = "test.js";
+                            tagHelper.FallbackSrcExclude = "**/*.min.js";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    }
                 };
             }
         }
 
         [Theory]
-        [MemberData(nameof(MissingAttributeDataSet))]
-        public async Task DoesNotRunWhenARequiredAttributeIsMissing(
-            Dictionary<string, object> attributes,
-            ScriptTagHelper helper,
-            string attributeMissing)
+        [MemberData(nameof(DoesNotRunWhenARequiredAttributeIsMissing_Data))]
+        public void DoesNotRunWhenARequiredAttributeIsMissing(
+            IDictionary<string, object> attributes,
+            Action<ScriptTagHelper> setProperties)
         {
             // Arrange
-            Assert.Single(attributes);
-
             var tagHelperContext = MakeTagHelperContext(attributes);
+            var output = MakeTagHelperOutput("script");
+            var logger = new Mock<ILogger<ScriptTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
+            var helper = new ScriptTagHelper
+            {
+                Logger = logger.Object,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext
+            };
+            setProperties(helper);
 
+            // Act
+            helper.Process(tagHelperContext, output);
+
+            // Assert
+            Assert.NotNull(output.TagName);
+            Assert.False(output.ContentSet);
+        }
+
+        [Theory]
+        [MemberData(nameof(DoesNotRunWhenARequiredAttributeIsMissing_Data))]
+        public async Task LogsWhenARequiredAttributeIsMissing(
+            IDictionary<string, object> attributes,
+            Action<ScriptTagHelper> setProperties)
+        {
+            // Arrange
+            var tagHelperContext = MakeTagHelperContext(attributes);
             var output = MakeTagHelperOutput("script");
             var logger = CreateLogger();
-
-            helper.Logger = logger;
-            helper.ViewContext = viewContext;
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var helper = new ScriptTagHelper
+            {
+                Logger = logger,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext
+            };
+            setProperties(helper);
 
             // Act
             await helper.ProcessAsync(tagHelperContext, output);
@@ -194,6 +250,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("script", output.TagName);
             Assert.False(output.ContentSet);
+
+            Assert.Equal(2, logger.Logged.Count);
+
+            Assert.Equal(LogLevel.Warning, logger.Logged[0].LogLevel);
+            Assert.IsAssignableFrom<PartialModeMatchLoggerStructure>(logger.Logged[0].State);
+
+            var loggerData0 = (PartialModeMatchLoggerStructure)logger.Logged[0].State;
+
+            Assert.Equal(LogLevel.Verbose, logger.Logged[1].LogLevel);
+            Assert.IsAssignableFrom<ILoggerStructure>(logger.Logged[1].State);
+            Assert.StartsWith("Skipping processing for Microsoft.AspNet.Mvc.TagHelpers.ScriptTagHelper",
+                ((ILoggerStructure)logger.Logged[1].State).Format());
         }
 
         [Fact]
@@ -217,45 +285,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("script", output.TagName);
             Assert.False(output.ContentSet);
-        }
-
-        [Theory]
-        [MemberData(nameof(MissingAttributeDataSet))]
-        public async Task LogsWhenARequiredAttributeIsMissing(
-            Dictionary<string, object> attributes,
-            ScriptTagHelper helper,
-            string attributeMissing)
-        {
-            // Arrange
-            Assert.Single(attributes);
-
-            var tagHelperContext = MakeTagHelperContext(attributes);
-            var viewContext = MakeViewContext();
-
-            var output = MakeTagHelperOutput("script");
-            var logger = CreateLogger();
-
-            helper.Logger = logger;
-            helper.ViewContext = viewContext;
-
-            // Act
-            await helper.ProcessAsync(tagHelperContext, output);
-
-            // Assert
-            Assert.Equal("script", output.TagName);
-            Assert.False(output.ContentSet);
-
-            Assert.Equal(2, logger.Logged.Count);
-
-            Assert.Equal(LogLevel.Warning, logger.Logged[0].LogLevel);
-            Assert.IsAssignableFrom<PartialModeMatchLoggerStructure>(logger.Logged[0].State);
-
-            var loggerData0 = (PartialModeMatchLoggerStructure)logger.Logged[0].State;
-
-            Assert.Equal(LogLevel.Verbose, logger.Logged[1].LogLevel);
-            Assert.IsAssignableFrom<ILoggerStructure>(logger.Logged[1].State);
-            Assert.StartsWith("Skipping processing for Microsoft.AspNet.Mvc.TagHelpers.ScriptTagHelper",
-                ((ILoggerStructure)logger.Logged[1].State).Format());
         }
 
         [Fact]

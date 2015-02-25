@@ -10,33 +10,6 @@ using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
-    public abstract class PartialModeMatchLoggerStructure : ILoggerStructure
-    {
-        /// <summary>
-        /// The log message.
-        /// </summary>
-        public string Message
-        {
-            get
-            {
-                return "Tag Helper has missing required attributes.";
-            }
-        }
-
-        protected internal IEnumerable<KeyValuePair<string, object>> Values { get; set; }
-
-        public abstract string Format();
-        
-        /// <summary>
-        /// Gets the values associated with this structured log message.
-        /// </summary>
-        /// <returns>The values.</returns>
-        public IEnumerable<KeyValuePair<string, object>> GetValues()
-        {
-            return Values;
-        }
-    }
-
     /// <summary>
     /// An <see cref="ILoggerStructure"/> for log messages regarding <see cref="ITagHelper"/> instances that opt out of
     /// processing due to missing attributes for one of several possible modes.
