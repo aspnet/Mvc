@@ -361,6 +361,42 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Empty(logger.Logged);
         }
 
+        [Fact]
+        public async Task RendersScriptTagsForGlobbedSrcResults()
+        {
+            // Arrange
+            var context = MakeTagHelperContext(
+                attributes: new Dictionary<string, object>
+                {
+                    ["src"] = "/js/site.js",
+                    ["asp-src-include"] = "**/*.js"
+                });
+            var output = MakeTagHelperOutput("script", attributes: new Dictionary<string, string>
+            {
+                ["src"] = "/js/site.js"
+            });
+            var logger = new Mock<ILogger<ScriptTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
+            globbingUrlBuilder.Setup(g => g.BuildUrlList("/js/site.js", "**/*.js", null))
+                .Returns(new[] { "/js/site.js", "/common.js" });
+            var helper = new ScriptTagHelper
+            {
+                GlobbingUrlBuilder = globbingUrlBuilder.Object,
+                Logger = logger.Object,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext,
+                SrcInclude = "**/*.js"
+            };
+
+            // Act
+            await helper.ProcessAsync(context, output);
+
+            // Assert
+            Assert.Equal("<script src=\"/js/site.js\"></script><script src=\"/common.js\"></script>", output.Content);
+        }
+
         private TagHelperContext MakeTagHelperContext(
             IDictionary<string, object> attributes = null,
             string content = null)
