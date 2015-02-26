@@ -67,12 +67,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             /// <summary>
             /// Just performing file globbing search for the src, rendering a separate &lt;script&gt; for each match.
             /// </summary>
-            GlobbedSrc = 1,
+            GlobbedSrc = 0,
             /// <summary>
             /// Rendering a fallback block if primary javascript fails to load. Will also do globbing for both the
             /// primary and fallback srcs if the appropriate properties are set.
             /// </summary>
-            Fallback = 2
+            Fallback = 1
         }
 
         /// <summary>
@@ -91,15 +91,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string SrcExclude { get; set; }
 
         /// <summary>
-        /// The URL of a Script tag to fallback to in the case the primary one fails (as specified in the src
-        /// attribute).
+        /// The URL of a Script tag to fallback to in the case the primary one fails.
         /// </summary>
         [HtmlAttributeName(FallbackSrcAttributeName)]
         public string FallbackSrc { get; set; }
 
         /// <summary>
         /// A comma separated list of globbed file patterns of JavaScript scripts to fallback to in the case the
-        /// primary one fails (as specified in the src attribute).
+        /// primary one fails.
         /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// </summary>
         [HtmlAttributeName(FallbackSrcIncludeAttributeName)]
@@ -107,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <summary>
         /// A comma separated list of globbed file patterns of JavaScript scripts to exclude from the fallback list, in
-        /// the case the primary one fails (as specified in the src attribute).
+        /// the case the primary one fails.
         /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// Must be used in conjunction with <see cref="FallbackSrcInclude"/>.
         /// </summary>
@@ -150,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
 
             // Get the highest matched mode
-            var mode = modeResult.FullMatches.Select(match => match.Mode).Distinct().Max();
+            var mode = modeResult.FullMatches.Select(match => match.Mode).Max();
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
             var attributes = new Dictionary<string, string>(output.Attributes);
@@ -188,12 +187,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             attributes.TryGetValue("src", out staticSrc);
 
             EnsureGlobbingUrlBuilder();
-            var srcs = GlobbingUrlBuilder.BuildUrlList(staticSrc, SrcInclude, SrcExclude);
+            var urls = GlobbingUrlBuilder.BuildUrlList(staticSrc, SrcInclude, SrcExclude);
 
-            foreach (var src in srcs)
+            foreach (var url in urls)
             {
-                attributes["src"] = WebUtility.HtmlEncode(src);
-                var content = string.Equals(src, staticSrc, StringComparison.OrdinalIgnoreCase)
+                attributes["src"] = WebUtility.HtmlEncode(url);
+                var content = string.Equals(url, staticSrc, StringComparison.OrdinalIgnoreCase)
                     ? originalContent
                     : string.Empty;
                 BuildScriptTag(content, attributes, builder);

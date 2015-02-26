@@ -69,12 +69,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             /// <summary>
             /// Just performing file globbing search for the href, rendering a separate &lt;link&gt; for each match.
             /// </summary>
-            GlobbedHref = 1,
+            GlobbedHref = 0,
             /// <summary>
             /// Rendering a fallback block if primary stylesheet fails to load. Will also do globbing for both the
             /// primary and fallback hrefs if the appropriate properties are set.
             /// </summary>
-            Fallback = 2,
+            Fallback = 1,
         }
 
         /// <summary>
@@ -93,15 +93,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string HrefExclude { get; set; }
 
         /// <summary>
-        /// The URL of a CSS stylesheet to fallback to in the case the primary one fails (as specified in the href
-        /// attribute).
+        /// The URL of a CSS stylesheet to fallback to in the case the primary one fails.
         /// </summary>
         [HtmlAttributeName(FallbackHrefAttributeName)]
         public string FallbackHref { get; set; }
 
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to fallback to in the case the primary
-        /// one fails (as specified in the href attribute).
+        /// one fails.
         /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// </summary>
         [HtmlAttributeName(FallbackHrefIncludeAttributeName)]
@@ -109,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <summary>
         /// A comma separated list of globbed file patterns of CSS stylesheets to exclude from the fallback list, in
-        /// the case the primary one fails (as specified in the href attribute).
+        /// the case the primary one fails.
         /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// Must be used in conjunction with <see cref="FallbackHrefInclude"/>.
         /// </summary>
@@ -170,7 +169,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
 
             // Get the highest matched mode
-            var mode = modeResult.FullMatches.Select(match => match.Mode).Distinct().Max();
+            var mode = modeResult.FullMatches.Select(match => match.Mode).Max();
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
             var attributes = new Dictionary<string, string>(output.Attributes);
@@ -204,11 +203,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             attributes.TryGetValue("href", out staticHref);
 
             EnsureGlobbingUrlBuilder();
-            var hrefs = GlobbingUrlBuilder.BuildUrlList(staticHref, HrefInclude, HrefExclude);
+            var urls = GlobbingUrlBuilder.BuildUrlList(staticHref, HrefInclude, HrefExclude);
 
-            foreach (var href in hrefs)
+            foreach (var url in urls)
             {
-                attributes["href"] = WebUtility.HtmlEncode(href);
+                attributes["href"] = WebUtility.HtmlEncode(url);
                 BuildLinkTag(attributes, builder);
             }
         }
