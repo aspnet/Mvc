@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Hosting;
@@ -157,16 +158,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var attributes = new Dictionary<string, string>(output.Attributes);
             
             var builder = new StringBuilder();
+            var originalContent = await context.GetChildContentAsync();
 
             if (mode == Mode.Fallback && string.IsNullOrEmpty(SrcInclude))
             {
                 // No globbing to do, just build a <script /> tag to match the original one in the source file
-                var originalContent = await context.GetChildContentAsync();
                 BuildScriptTag(attributes, originalContent, builder);
             }
             else
             {
-                BuildGlobbedScriptTags(attributes, builder);
+                BuildGlobbedScriptTags(originalContent, attributes, builder);
             }
 
             if (mode == Mode.Fallback)
@@ -179,7 +180,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             output.Content = builder.ToString();
         }
 
-        private void BuildGlobbedScriptTags(IDictionary<string, string> attributes, StringBuilder builder)
+        private void BuildGlobbedScriptTags(
+            string originalContent,
+            IDictionary<string, string> attributes,
+            StringBuilder builder)
         {
             // Build a <script> tag for each matched src as well as the original one in the source file
             string staticSrc;
@@ -190,8 +194,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             foreach (var src in srcs)
             {
-                attributes["src"] = HtmlEncoder.Default.HtmlEncode(src);
-                BuildScriptTag(attributes, string.Empty, builder);
+                attributes["src"] = WebUtility.HtmlEncode(src);
+                var content = string.Equals(src, staticSrc) ? originalContent : string.Empty;
+                BuildScriptTag(attributes, content, builder);
             }
         }
 
@@ -209,9 +214,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                    .Append(FallbackTestExpression)
                    .Append("||");
 
+                builder.Append("document.write(\"");
+
                 foreach (var src in fallbackSrcs)
                 {
-                    builder.Append("document.write(\"<script");
+                    builder.Append("<script");
 
                     if (!attributes.ContainsKey("src"))
                     {
@@ -233,10 +240,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         }
                     }
 
-                    builder.Append("><\\/script>\"));");
+                    builder.Append("><\\/script>");
                 }
                 
-                builder.Append("</script>");
+                builder.Append("\"));</script>");
             }
         }
 
@@ -272,7 +279,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             content.Append(" ")
                    .Append(srcKey)
                    .Append("=\\\"")
-                   .Append(HtmlEncoder.Default.HtmlEncode(srcValue))
+                   .Append(WebUtility.HtmlEncode(srcValue))
                    .Append("\\\"");
         }
     }
