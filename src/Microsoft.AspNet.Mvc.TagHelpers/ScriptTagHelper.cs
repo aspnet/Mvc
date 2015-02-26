@@ -98,8 +98,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string FallbackSrc { get; set; }
 
         /// <summary>
-        /// A comma separated list of globbed file patterns of JavaScript scripts to fallback to in the case the primary
-        /// one fails (as specified in the src attribute).
+        /// A comma separated list of globbed file patterns of JavaScript scripts to fallback to in the case the
+        /// primary one fails (as specified in the src attribute).
         /// The glob patterns are assessed relative to the application's 'webroot' setting.
         /// </summary>
         [HtmlAttributeName(FallbackSrcIncludeAttributeName)]
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (mode == Mode.Fallback && string.IsNullOrEmpty(SrcInclude))
             {
                 // No globbing to do, just build a <script /> tag to match the original one in the source file
-                BuildScriptTag(attributes, originalContent, builder);
+                BuildScriptTag(originalContent, attributes, builder);
             }
             else
             {
@@ -196,7 +196,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 attributes["src"] = WebUtility.HtmlEncode(src);
                 var content = string.Equals(src, staticSrc) ? originalContent : string.Empty;
-                BuildScriptTag(attributes, content, builder);
+                BuildScriptTag(content, attributes, builder);
             }
         }
 
@@ -232,7 +232,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             var encodedKey = JavaScriptStringEncoder.Default.JavaScriptStringEncode(attribute.Key);
                             var encodedValue = JavaScriptStringEncoder.Default.JavaScriptStringEncode(attribute.Value);
 
-                            builder.AppendFormat(CultureInfo.InvariantCulture, " {0}=\\\"{1}\\\"", encodedKey, encodedValue);
+                            builder.AppendFormat(
+                                CultureInfo.InvariantCulture,
+                                " {0}=\\\"{1}\\\"",
+                                encodedKey,
+                                encodedValue);
                         }
                         else
                         {
@@ -258,7 +262,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        private static void BuildScriptTag(IDictionary<string, string> attributes, string content, StringBuilder builder)
+        private static void BuildScriptTag(
+            string content,
+            IDictionary<string, string> attributes,
+            StringBuilder builder)
         {
             builder.Append("<script");
 
