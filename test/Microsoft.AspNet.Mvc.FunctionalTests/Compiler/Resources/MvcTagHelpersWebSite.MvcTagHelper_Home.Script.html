@@ -19,7 +19,39 @@
     <script src="/blank.js">
         // Fallback to globbed src
     </script>
+<script>(false||document.write("<script src=\"/site.js\"><\/script>"));</script>
+
+    <script src="/blank.js">
+        // Fallback to globbed src with exclude
+    </script>
 <script>(false||document.write("<script src=\"/site.js\"><\/script><script src=\"/sub/site2.js\"><\/script>"));</script>
+
+    <script src="/blank.js">
+        // Fallback to globbed and static src
+    </script>
+<script>(false||document.write("<script src=\"/site.js\"><\/script><script src=\"/sub/site2.js\"><\/script>"));</script>
+
+    <script src="/blank.js">
+        // Fallback to globbed and static src should de-dupe
+    </script>
+<script>(false||document.write("<script src=\"/site.js\"><\/script>"));</script>
+
+    <script src="/blank.js">
+        // Fallback to globbed src with missing include
+    </script>
+
+    <script src="/blank.js">
+        // Fallback to static and globbed src with missing include
+    </script>
+<script>(false||document.write("<script src=\"/site.js\"><\/script>"));</script>
+
+    <script src="/blank.js">
+        // Fallback to globbed src outside of webroot
+    </script>
+
+    <script src="/blank.js">
+        // Fallback to globbed src outside of webroot
+    </script>
 
     <script data-foo="foo-data3">
         // Valid TagHelper (although no src is provided) script with comment in body, and extra properties.

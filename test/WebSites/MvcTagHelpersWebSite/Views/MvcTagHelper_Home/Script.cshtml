@@ -19,8 +19,48 @@
         // TagHelper script with comment in body, and extra properties.
     </script>
 
-    <script src="~/blank.js" asp-fallback-src-include="**/*.js" asp-fallback-src-exclude="**/site3.js" asp-fallback-test="false">
+    <script src="~/blank.js" asp-fallback-src-include="**/site.js" asp-fallback-test="false">
         // Fallback to globbed src
+    </script>
+
+    <script src="~/blank.js"
+            asp-fallback-src-include="**/*.js"
+            asp-fallback-src-exclude="**/site3.js"
+            asp-fallback-test="false">
+        // Fallback to globbed src with exclude
+    </script>
+
+    <script src="~/blank.js"
+            asp-fallback-src="~/site.js"
+            asp-fallback-src-include="**/site2.js"
+            asp-fallback-test="false">
+        // Fallback to globbed and static src
+    </script>
+
+    <script src="~/blank.js"
+            asp-fallback-src="~/site.js"
+            asp-fallback-src-include="**/site.js"
+            asp-fallback-test="false">
+        // Fallback to globbed and static src should de-dupe
+    </script>
+
+    <script src="~/blank.js" asp-fallback-src-exclude="**/site3.js" asp-fallback-test="false">
+        // Fallback to globbed src with missing include
+    </script>
+
+    <script src="~/blank.js"
+            asp-fallback-src="~/site.js"
+            asp-fallback-src-exclude="**/site3.js"
+            asp-fallback-test="false">
+        // Fallback to static and globbed src with missing include
+    </script>
+
+    <script src="~/blank.js" asp-fallback-src-include="**/appRoot.js" asp-fallback-test="false">
+        // Fallback to globbed src outside of webroot
+    </script>
+
+    <script src="~/blank.js" asp-fallback-src-include="../**/appRoot.js" asp-fallback-test="false">
+        // Fallback to globbed src outside of webroot
     </script>
 
     <script asp-fallback-src="~/site.js" asp-fallback-test="false" data-foo="foo-data3">
