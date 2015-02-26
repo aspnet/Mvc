@@ -13,6 +13,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// </summary>
     public abstract class PartialModeMatchLoggerStructure : ILoggerStructure
     {
+        private readonly IEnumerable<KeyValuePair<string, object>> _values;
+
+        protected PartialModeMatchLoggerStructure(IEnumerable<KeyValuePair<string, object>> values)
+        {
+            _values = values;
+        }
+
         /// <summary>
         /// The log message.
         /// </summary>
@@ -25,11 +32,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         /// <summary>
-        /// The values associated with the structured log message.
-        /// </summary>
-        protected IEnumerable<KeyValuePair<string, object>> Values { get; set; }
-
-        /// <summary>
         /// Returns a human-readable string of the structured data.
         /// </summary>
         public abstract string Format();
@@ -40,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <returns>The values.</returns>
         public IEnumerable<KeyValuePair<string, object>> GetValues()
         {
-            return Values;
+            return _values;
         }
     }
 }

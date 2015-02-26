@@ -30,16 +30,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             string uniqueId,
             string viewPath,
             [NotNull] IEnumerable<ModeMatchAttributes<TMode>> partialMatches)
+            : base(values: new Dictionary<string, object>
+            {
+                ["UniqueId"] = uniqueId,
+                ["ViewPath"] = viewPath,
+                ["PartialMatches"] = partialMatches
+            })
         {
             _uniqueId = uniqueId;
             _viewPath = viewPath;
             _partialMatches = partialMatches;
-            Values = new Dictionary<string, object>
-            {
-                ["UniqueId"] = _uniqueId,
-                ["ViewPath"] = _viewPath,
-                ["PartialMatches"] = partialMatches
-            };
         }
         
         /// <summary>
