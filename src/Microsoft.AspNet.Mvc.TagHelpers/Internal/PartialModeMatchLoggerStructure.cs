@@ -23,8 +23,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
         }
 
-        // Internal for ease of use when testing.
-        protected internal IEnumerable<KeyValuePair<string, object>> Values { get; set; }
+        /// <summary>
+        /// The values associated with the structured log message.
+        /// </summary>
+        protected IEnumerable<KeyValuePair<string, object>> Values { get; set; }
 
         /// <summary>
         /// Returns a human-readable string of the structured data.

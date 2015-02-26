@@ -195,7 +195,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             foreach (var src in srcs)
             {
                 attributes["src"] = WebUtility.HtmlEncode(src);
-                var content = string.Equals(src, staticSrc) ? originalContent : string.Empty;
+                var content = string.Equals(src, staticSrc, StringComparison.OrdinalIgnoreCase)
+                    ? originalContent
+                    : string.Empty;
                 BuildScriptTag(content, attributes, builder);
             }
         }
@@ -209,12 +211,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (fallbackSrcs.Any())
             {
                 // Build the <script> tag that checks the test method and if it fails, renders the extra script.
-                builder.AppendLine();
-                builder.Append("<script>(")
-                   .Append(FallbackTestExpression)
-                   .Append("||");
-
-                builder.Append("document.write(\"");
+                builder.AppendLine()
+                       .Append("<script>(")
+                       .Append(FallbackTestExpression)
+                       .Append("||document.write(\"");
 
                 foreach (var src in fallbackSrcs)
                 {
@@ -274,9 +274,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 builder.AppendFormat(CultureInfo.InvariantCulture, " {0}=\"{1}\"", attribute.Key, attribute.Value);
             }
 
-            builder.Append(">");
-            builder.Append(content);
-            builder.Append("</script>");
+            builder.Append(">")
+                   .Append(content)
+                   .Append("</script>");
         }
 
         private void AppendSrc(StringBuilder content, string srcKey, string srcValue)
