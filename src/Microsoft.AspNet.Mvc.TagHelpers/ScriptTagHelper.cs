@@ -204,6 +204,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (fallbackSrcs.Any())
             {
                 // Build the <script> tag that checks the test method and if it fails, renders the extra script.
+                builder.AppendLine();
                 builder.Append("<script>(")
                    .Append(FallbackTestExpression)
                    .Append("||");
