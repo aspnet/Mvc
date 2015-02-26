@@ -67,14 +67,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private enum Mode
         {
             /// <summary>
-            /// Rendering a fallback block if primary stylesheet fails to load. Will also do globbing if the appropriate
-            /// properties are set.
-            /// </summary>
-            Fallback,
-            /// <summary>
             /// Just performing file globbing search for the href, rendering a separate &lt;link&gt; for each match.
             /// </summary>
-            GlobbedHref
+            GlobbedHref = 1,
+            /// <summary>
+            /// Rendering a fallback block if primary stylesheet fails to load. Will also do globbing for both the
+            /// primary and fallback hrefs if the appropriate properties are set.
+            /// </summary>
+            Fallback = 2,
         }
 
         /// <summary>
@@ -161,9 +161,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             var modeResult = AttributeMatcher.DetermineMode(context, ModeDetails);
 
-            Debug.Assert(modeResult.FullMatches.Select(match => match.Mode).Distinct().Count() <= 1,
-                $"There should only be one mode match, check the {nameof(ModeDetails)}");
-
             modeResult.LogDetails(Logger, this, context.UniqueId, ViewContext.View.Path);
 
             if (!modeResult.FullMatches.Any())
@@ -172,7 +169,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            var mode = modeResult.FullMatches.First().Mode;
+            // Get the highest matched mode
+            var mode = modeResult.FullMatches.Select(match => match.Mode).Distinct().Max();
 
             // NOTE: Values in TagHelperOutput.Attributes are already HtmlEncoded
             var attributes = new Dictionary<string, string>(output.Attributes);
