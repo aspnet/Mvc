@@ -402,20 +402,20 @@ namespace Microsoft.AspNet.JsonPatch
 
 		public List<Operation> GetOperations()
 		{
-			List<Operation> allOps = new List<Operation>();
+			var allOps = new List<Operation>();
 
 			if (Operations != null)
 			{
 				foreach (var op in Operations)
 				{
-					Operation test = new Operation();
+					var untypedOp = new Operation();
 
-					test.op = op.op;
-					test.value = op.value;
-					test.path = op.path;
-					test.from = op.from;
+					untypedOp.op = op.op;
+					untypedOp.value = op.value;
+					untypedOp.path = op.path;
+					untypedOp.from = op.from;
 
-					allOps.Add(test);
+					allOps.Add(untypedOp);
 				}
 			}
 

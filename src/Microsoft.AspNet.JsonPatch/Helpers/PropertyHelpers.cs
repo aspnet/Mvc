@@ -16,14 +16,14 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 			// set on a different target object: the nested object.
 
 
-			string[] splitPath = pathToProperty.Split('/');
+			var splitPath = pathToProperty.Split('/');
 
 			// skip the first one if it's empty
-			int startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
+			var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
 
 			for (int i = startIndex; i < splitPath.Length - 1; i++)
 			{
-				PropertyInfo propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
+				var propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
 					, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 				targetObject = propertyInfoToGet.GetValue(targetObject, null);
 			}
@@ -52,14 +52,14 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 			// it is possible the path refers to a nested property.  In that case, we need to 
 			// get from a different target object: the nested object.
 
-			string[] splitPath = pathToProperty.Split('/');
+			var splitPath = pathToProperty.Split('/');
 
 			// skip the first one if it's empty
-			int startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
+			var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
 
 			for (int i = startIndex; i < splitPath.Length - 1; i++)
 			{
-				PropertyInfo propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
+				var propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
 					, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 				targetObject = propertyInfoToGet.GetValue(targetObject, null);
 			}
@@ -74,14 +74,14 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 			try
 			{
 
-				string[] splitPath = propertyPath.Split('/');
+				var splitPath = propertyPath.Split('/');
 
 				// skip the first one if it's empty
-				int startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
+				var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
 
 				for (int i = startIndex; i < splitPath.Length - 1; i++)
 				{
-					PropertyInfo propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
+					var propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
 						, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 					targetObject = propertyInfoToGet.GetValue(targetObject, null);
 				}
@@ -89,13 +89,13 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 				// for dynamic objects
 				if (targetObject is IDynamicMetaObjectProvider)
 				{
-					IDynamicMetaObjectProvider target = targetObject as IDynamicMetaObjectProvider;
+					var target = targetObject as IDynamicMetaObjectProvider;
 					var propList = target.GetMetaObject(Expression.Constant(target)).GetDynamicMemberNames();
 					return propList.Contains(splitPath.Last());
 				}
 				else
 				{
-					PropertyInfo propertyToCheck = targetObject.GetType().GetProperty(splitPath.Last(),
+					var propertyToCheck = targetObject.GetType().GetProperty(splitPath.Last(),
 						BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
 					return propertyToCheck != null;
@@ -115,19 +115,19 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 			try
 			{
 
-				string[] splitPath = propertyPath.Split('/');
+				var splitPath = propertyPath.Split('/');
 
 				// skip the first one if it's empty
-				int startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
+				var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
 
 				for (int i = startIndex; i < splitPath.Length - 1; i++)
 				{
-					PropertyInfo propertyToGet = GetPropertyInfo(targetObject, splitPath[i]
+					var propertyToGet = GetPropertyInfo(targetObject, splitPath[i]
 						, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 					targetObject = propertyToGet.GetValue(targetObject, null);
 				}
 
-				PropertyInfo propertyToFind = targetObject.GetType().GetProperty(splitPath.Last(),
+				var propertyToFind = targetObject.GetType().GetProperty(splitPath.Last(),
 					BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
 				return propertyToFind;
@@ -180,8 +180,8 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 
 		internal static int GetNumericEnd(string path)
 		{
-			string possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
-			int castedIndex = -1;
+			var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
+			var castedIndex = -1;
 
 			if (int.TryParse(possibleIndex, out castedIndex))
 			{

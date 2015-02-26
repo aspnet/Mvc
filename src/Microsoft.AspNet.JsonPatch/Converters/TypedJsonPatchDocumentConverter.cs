@@ -27,10 +27,10 @@ namespace Microsoft.AspNet.JsonPatch.Converters
 					return null;
 
 
-				Type genericType = objectType.GetGenericArguments()[0]; 
+				var genericType = objectType.GetGenericArguments()[0]; 
 
 				// load jObject
-				JArray jObject = JArray.Load(reader);
+				var jObject = JArray.Load(reader);
 
 				// Create target object for Json => list of operations, typed to genericType
 

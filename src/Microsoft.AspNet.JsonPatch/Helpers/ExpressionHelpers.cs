@@ -12,57 +12,93 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 			return "/" + GetPath(expr.Body, true);
 		}
 
-
-		// from Ramone helpers.
+		
 		private static string GetPath(Expression expr, bool firstTime)
 		{
-			if (expr.NodeType == ExpressionType.MemberAccess)
+			switch (expr.NodeType)
 			{
-				MemberExpression m = expr as MemberExpression;
-				string left = GetPath(m.Expression, false);
-				if (left != null)
-					return left + "/" + m.Member.Name;
-				else
-					return m.Member.Name;
+				case ExpressionType.ArrayIndex:
+					var binaryExpression = (BinaryExpression)expr;
+					
+					if (ContinueWithSubPath(binaryExpression.Left.NodeType, false))
+					{
+						var leftFromBinaryExpression = GetPath(binaryExpression.Left, false);
+						return leftFromBinaryExpression + "/" + binaryExpression.Right.ToString();
+					}
+					else
+					{
+						return binaryExpression.Right.ToString();
+					}
+
+				
+				case ExpressionType.Call:
+					var methodCallExpression = (MethodCallExpression)expr;
+				
+					if (ContinueWithSubPath(methodCallExpression.Object.NodeType, false))
+					{
+						var leftFromMemberCallExpression = GetPath(methodCallExpression.Object, false);
+						return leftFromMemberCallExpression + "/" +
+							GetIndexerInvocation(methodCallExpression.Arguments[0]);
+					}
+					else
+					{
+						return GetIndexerInvocation(methodCallExpression.Arguments[0]);
+					}				 
+
+				case ExpressionType.Convert:
+
+					return GetPath(((UnaryExpression)expr).Operand, false);
+
+				case ExpressionType.MemberAccess:
+
+					var memberExpression = expr as MemberExpression;
+				
+					if (ContinueWithSubPath(memberExpression.Expression.NodeType, false))
+					{
+						var left = GetPath(memberExpression.Expression, false);
+						return left + "/" + memberExpression.Member.Name;
+					}
+					else
+					{
+						return memberExpression.Member.Name;
+					}
+					
+				case ExpressionType.Parameter:
+					// Fits "x => x" (the whole document which is "" as JSON pointer)
+					return  firstTime ? "" : null;
+
+				default:
+					return "";
 			}
-			else if (expr.NodeType == ExpressionType.Call)
+		}
+
+
+		private static bool ContinueWithSubPath(ExpressionType expressionType, bool firstTime)
+		{
+			if (firstTime)
 			{
-				MethodCallExpression m = (MethodCallExpression)expr;
-				string left = GetPath(m.Object, false);
-				if (left != null)
-					return left + "/" + GetIndexerInvocation(m.Arguments[0]);
-				else
-					return GetIndexerInvocation(m.Arguments[0]);
-			}
-			else if (expr.NodeType == ExpressionType.ArrayIndex)
-			{
-				BinaryExpression b = (BinaryExpression)expr;
-				string left = GetPath(b.Left, false);
-				if (left != null)
-					return left + "/" + b.Right.ToString();
-				else
-					return b.Right.ToString();
-			}
-			else if (expr.NodeType == ExpressionType.Parameter)
-			{
-				// Fits "x => x" (the whole document which is "" as JSON pointer)
-				return firstTime ? "" : null;
-			}
-			else if (expr.NodeType == ExpressionType.Convert)
-			{
-				// Ignore conversions
-				return GetPath(((UnaryExpression)expr).Operand, false);
+				return (expressionType == ExpressionType.ArrayIndex
+					   || expressionType == ExpressionType.Call
+					   || expressionType == ExpressionType.Convert
+					   || expressionType == ExpressionType.MemberAccess
+					   || expressionType == ExpressionType.Parameter);
 			}
 			else
-				return null;
+			{
+				return (expressionType == ExpressionType.ArrayIndex
+					|| expressionType == ExpressionType.Call
+					|| expressionType == ExpressionType.Convert
+					|| expressionType == ExpressionType.MemberAccess);
+            }
+
 		}
 
 
 		private static string GetIndexerInvocation(Expression expression)
 		{
-			Expression converted = Expression.Convert(expression, typeof(object));
-			ParameterExpression fakeParameter = Expression.Parameter(typeof(object), null);
-			Expression<Func<object, object>> lambda = Expression.Lambda<Func<object, object>>(converted, fakeParameter);
+			var converted = Expression.Convert(expression, typeof(object));
+			var fakeParameter = Expression.Parameter(typeof(object), null);
+			var lambda = Expression.Lambda<Func<object, object>>(converted, fakeParameter);
 			Func<object, object> func;
 
 			func = lambda.Compile();

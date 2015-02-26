@@ -92,9 +92,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			// that value represents the position; if the path ends in "-", we're appending
 			// to the list.
 
-			bool appendList = false;
-			int positionAsInteger = -1;
-			string actualPathToProperty = path;
+			var appendList = false;
+			var positionAsInteger = -1;
+			var actualPathToProperty = path;
 
 			if (path.EndsWith("/-"))
 			{
@@ -123,7 +123,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			// it exists.  If it' an array, add to that array.  If it's not, we replace.
 
 			// get the property path
-			PropertyInfo pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathToProperty);
+			var pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathToProperty);
 
 			// is the path an array (but not a string (= char[]))?  In this case,
 			// the path must end with "/position" or "/-", which we already determined before.
@@ -225,8 +225,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
 			// get value at from location
 			object valueAtFromLocation = null;
-			int positionAsInteger = -1;
-			string actualFromProperty = operation.from;
+			var positionAsInteger = -1;
+			var actualFromProperty = operation.from;
 
 
 			positionAsInteger = PropertyHelpers.GetNumericEnd(operation.from);
@@ -247,7 +247,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			}
 
 			// get the property path
-			PropertyInfo fromProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualFromProperty);
+			var fromProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualFromProperty);
 
 			// is the path an array (but not a string (= char[]))?  In this case,
 			// the path must end with "/position" or "/-", which we already determined before.
@@ -334,9 +334,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 		private void Remove(string path, T objectToApplyTo, Operation<T> operationToReport)
 		{
 
-			bool removeFromList = false;
-			int positionAsInteger = -1;
-			string actualPathToProperty = path;
+			var removeFromList = false;
+			var positionAsInteger = -1;
+			var actualPathToProperty = path;
 
 			if (path.EndsWith("/-"))
 			{
@@ -367,7 +367,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			// it to null or its default value; in case of an array, remove at provided index
 			// or at the end.
 
-			PropertyInfo pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathToProperty);
+			var pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathToProperty);
 
 
 			if (removeFromList || positionAsInteger > -1)
@@ -481,8 +481,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			// get value at path location
 
 			object valueAtPathLocation = null;
-			int positionInPathAsInteger = -1;
-			string actualPathProperty = operation.path;
+			var positionInPathAsInteger = -1;
+			var actualPathProperty = operation.path;
 
 
 			positionInPathAsInteger = PropertyHelpers.GetNumericEnd(operation.path);
@@ -503,7 +503,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			}
 
 			// get the property path
-			PropertyInfo pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathProperty);
+			var pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathProperty);
 			Type typeOfFinalPropertyAtPathLocation;
 
 			// is the path an array (but not a string (= char[]))?  In this case,
@@ -621,8 +621,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
 			// get value at from location
 			object valueAtFromLocation = null;
-			int positionAsInteger = -1;
-			string actualFromProperty = operation.from;
+			var positionAsInteger = -1;
+			var actualFromProperty = operation.from;
 
 
 			positionAsInteger = PropertyHelpers.GetNumericEnd(operation.from);
