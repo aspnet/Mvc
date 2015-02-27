@@ -140,11 +140,8 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var provider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
             var metadata = new Mock<ModelMetadata>(
-                MockBehavior.Strict, 
-                provider.Object,
-                null, 
-                typeof(object), 
-                null);
+                MockBehavior.Loose, 
+                ModelMetadataIdentity.ForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel)));
             provider
                 .Setup(m => m.GetMetadataForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel)))
                 .Returns(metadata.Object);
@@ -163,7 +160,7 @@ namespace Microsoft.AspNet.Mvc.Core
             // Only the ViewDataDictionary should do anything with metadata.
             provider.Verify(
                 m => m.GetMetadataForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel)),
-                Times.Exactly(2));
+                Times.Exactly(1));
         }
 
         [Fact]
@@ -172,15 +169,12 @@ namespace Microsoft.AspNet.Mvc.Core
             // Arrange
             var provider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
             var metadata = new Mock<ModelMetadata>(
-                MockBehavior.Strict, 
-                provider.Object,
-                null, 
-                typeof(object), 
-                null);
-
+                MockBehavior.Loose,
+                ModelMetadataIdentity.ForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel)));
             provider
                 .Setup(m => m.GetMetadataForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel)))
                 .Returns(metadata.Object);
+
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(provider.Object);
 
             // Act (do not throw)
@@ -193,7 +187,7 @@ namespace Microsoft.AspNet.Mvc.Core
             // Only the ViewDataDictionary should do anything with metadata.
             provider.Verify(
                 m => m.GetMetadataForType(typeof(DefaultTemplatesUtilities.ObjectTemplateModel)),
-                Times.Exactly(2));
+                Times.Exactly(1));
         }
 
         [Theory]

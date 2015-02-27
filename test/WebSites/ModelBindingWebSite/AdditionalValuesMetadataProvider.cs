@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -10,32 +9,25 @@ using ModelBindingWebSite.Models;
 
 namespace ModelBindingWebSite
 {
-    public class AdditionalValuesMetadataProvider : DataAnnotationsModelMetadataProvider
+    public class AdditionalValuesMetadataProvider : IModelMetadataDisplayDetailsProvider
     {
         public static readonly string GroupNameKey = "__GroupName";
         private static Guid _guid = new Guid("7d6d0de2-8d59-49ac-99cc-881423b75a76");
 
-        protected override CachedDataAnnotationsModelMetadata CreateMetadataPrototype(
-            IEnumerable<object> attributes,
-            Type containerType,
-            Type modelType,
-            string propertyName)
+        public void GetDisplayDetails(ModelMetadataDisplayDetailsContext context)
         {
-            var metadata = base.CreateMetadataPrototype(attributes, containerType, modelType, propertyName);
-            if (modelType == typeof(LargeModelWithValidation))
+            if (context.Key.ModelType == typeof(LargeModelWithValidation))
             {
-                metadata.AdditionalValues.Add("key1", _guid);
-                metadata.AdditionalValues.Add("key2", "value2");
+                context.DisplayDetails.AdditionalValues.Add("key1", _guid);
+                context.DisplayDetails.AdditionalValues.Add("key2", "value2");
             }
 
-            var displayAttribute = attributes.OfType<DisplayAttribute>().FirstOrDefault();
+            var displayAttribute = context.Attributes.OfType<DisplayAttribute>().FirstOrDefault();
             var groupName = displayAttribute?.GroupName;
             if (!string.IsNullOrEmpty(groupName))
             {
-                metadata.AdditionalValues[GroupNameKey] = groupName;
+                context.DisplayDetails.AdditionalValues[GroupNameKey] = groupName;
             }
-
-            return metadata;
         }
     }
 }

@@ -30,6 +30,7 @@ namespace Microsoft.AspNet.Mvc
             Filters = new List<IFilter>();
             FormatterMappings = new FormatterMappings();
             ValidationExcludeFilters = new List<ExcludeValidationDescriptor>();
+            ModelMetadataProviders = new List<IModelMetadataDetailsProvider>();
             ModelValidatorProviders = new List<ModelValidatorProviderDescriptor>();
             CacheProfiles = new Dictionary<string, CacheProfile>(StringComparer.OrdinalIgnoreCase);
         }
@@ -146,5 +147,18 @@ namespace Microsoft.AspNet.Mvc
         /// <see cref="ResponseCacheFilter"/>.
         /// </summary>
         public IDictionary<string, CacheProfile> CacheProfiles { get; }
+
+        /// <summary>
+        /// Gets a list of <see cref="IModelMetadataDetailsProvider"/> instances that will be used to 
+        /// create <see cref="ModelMetadata"/> instances.
+        /// </summary>
+        /// <remarks>
+        /// A provider should implement one or more of the following interfaces, depending on what
+        /// kind of details are provided:
+        /// - <see cref="IModelMetadataBindingDetailsProvider"/>
+        /// - <see cref="IModelMetadataDisplayDetailsProvider"/>
+        /// - <see cref="IModelMetadataValidationDetailsProvider"/>
+        /// </remarks>
+        public IList<IModelMetadataDetailsProvider> ModelMetadataProviders { get; }
     }
 }
