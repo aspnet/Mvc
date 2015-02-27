@@ -1723,7 +1723,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The timeout value must be greater than 0.
+        /// The timeout value must be non-negative.
         /// </summary>
         internal static string AsyncTimeoutAttribute_InvalidTimeout
         {
@@ -1731,7 +1731,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The timeout value must be greater than 0.
+        /// The timeout value must be non-negative.
         /// </summary>
         internal static string FormatAsyncTimeoutAttribute_InvalidTimeout()
         {
