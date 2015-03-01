@@ -1707,11 +1707,35 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The model type '{0}' does not match the '{1}' type parameter.
+        /// The model's runtime type '{0}' is not assignable to the type '{1}'.
+        /// </summary>
+        internal static string ModelType_WrongType
+        {
+            get { return GetString("ModelType_WrongType"); }
+        }
+
+        /// <summary>
+        /// The model's runtime type '{0}' is not assignable to the type '{1}'.
         /// </summary>
         internal static string FormatModelType_WrongType(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ModelType_WrongType"), p0, p1);
+        }
+
+        /// <summary>
+        /// The timeout value must be non-negative.
+        /// </summary>
+        internal static string AsyncTimeoutAttribute_InvalidTimeout
+        {
+            get { return GetString("AsyncTimeoutAttribute_InvalidTimeout"); }
+        }
+
+        /// <summary>
+        /// The timeout value must be non-negative.
+        /// </summary>
+        internal static string FormatAsyncTimeoutAttribute_InvalidTimeout()
+        {
+            return GetString("AsyncTimeoutAttribute_InvalidTimeout");
         }
 
         private static string GetString(string name, params string[] formatterNames)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// A delegate which asyncronously returns a <see cref="ResourceExecutedContext"/>.
+    /// A delegate which asynchronously returns a <see cref="ResourceExecutedContext"/>.
     /// </summary>
     /// <returns>A <see cref="ResourceExecutedContext"/>.</returns>
     public delegate Task<ResourceExecutedContext> ResourceExecutionDelegate();
