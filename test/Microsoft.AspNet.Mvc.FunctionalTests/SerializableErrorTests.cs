@@ -30,9 +30,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
             var expectedXml = "<Error><key1>key1-error</key1><key2>The input was not valid.</key2></Error>";
 
-
-            System.Diagnostics.Debugger.Launch();
-
             // Act
             var response = await client.GetAsync("http://localhost/SerializableError/ModelStateErrors");
 
