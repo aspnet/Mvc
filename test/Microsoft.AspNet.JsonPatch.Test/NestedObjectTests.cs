@@ -31,6 +31,32 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 
 		[Fact]
+		public void ReplacePropertyInNestedObjectWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				IntegerValue = 1
+
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<string>(o => o.NestedDTO.StringProperty, "B");
+
+
+			// serialize & deserialize 
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal("B", doc.NestedDTO.StringProperty);
+
+		}
+
+
+		[Fact]
 		public void ReplaceNestedObject()
 		{
 			var doc = new SimpleDTOWithNestedDTO()
@@ -47,8 +73,33 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 			patchDoc.ApplyTo(doc);
 
+			Assert.Equal("B", doc.NestedDTO.StringProperty);
 
-			Assert.Equal(newNested, doc.NestedDTO);
+		}
+
+
+		[Fact]
+		public void ReplaceNestedObjectWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				IntegerValue = 1
+
+			};
+
+			var newNested = new NestedDTO() { StringProperty = "B" };
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<NestedDTO>(o => o.NestedDTO, newNested);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+
+			deserialized.ApplyTo(doc);
+
 			Assert.Equal("B", doc.NestedDTO.StringProperty);
 
 		}
@@ -70,6 +121,31 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Add<string>(o => o.SimpleDTO.StringProperty, "B");
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal("B", doc.SimpleDTO.StringProperty);
+
+		}
+
+		[Fact]
+		public void AddResultsInReplaceWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					StringProperty = "A"
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Add<string>(o => o.SimpleDTO.StringProperty, "B");
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal("B", doc.SimpleDTO.StringProperty);
 
@@ -99,6 +175,33 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 
 		[Fact]
+		public void AddToListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Add<int>(o => o.SimpleDTO.IntegerList, 4, 0);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 4, 1, 2, 3 }, doc.SimpleDTO.IntegerList);
+		}
+
+
+
+		[Fact]
 		public void AddToListInvalidPositionTooLarge()
 		{
 			var doc = new SimpleDTOWithNestedDTO()
@@ -116,7 +219,31 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
 
+		}
 
+
+		[Fact]
+		public void AddToListInvalidPositionTooLargeWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			}
+			;
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Add<int>(o => o.SimpleDTO.IntegerList, 4, 3);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+
+			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { deserialized.ApplyTo(doc); });
 
 		}
 
@@ -143,6 +270,32 @@ namespace Microsoft.AspNet.JsonPatch.Test
 		}
 
 		[Fact]
+		public void AddToListInvalidPositionTooSmallWithSerialization()
+		{
+
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Add<int>(o => o.SimpleDTO.IntegerList, 4, -1);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+
+			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { deserialized.ApplyTo(doc); });
+
+		}
+
+		[Fact]
 		public void AddToListAppend()
 		{
 			var doc = new SimpleDTOWithNestedDTO()
@@ -159,6 +312,33 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Add<int>(o => o.SimpleDTO.IntegerList, 4);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 1, 2, 3, 4 }, doc.SimpleDTO.IntegerList);
+
+		}
+
+		[Fact]
+		public void AddToListAppendWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Add<int>(o => o.SimpleDTO.IntegerList, 4);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal(new List<int>() { 1, 2, 3, 4 }, doc.SimpleDTO.IntegerList);
 
@@ -189,6 +369,33 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 
 		[Fact]
+		public void RemoveWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					StringProperty = "A"
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Remove<string>(o => o.SimpleDTO.StringProperty);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(null, doc.SimpleDTO.StringProperty);
+
+		}
+
+
+
+		[Fact]
 		public void RemoveFromList()
 		{
 			var doc = new SimpleDTOWithNestedDTO()
@@ -205,6 +412,30 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Remove<int>(o => o.SimpleDTO.IntegerList, 2);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 1, 2 }, doc.SimpleDTO.IntegerList);
+		}
+
+		[Fact]
+		public void RemoveFromListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Remove<int>(o => o.SimpleDTO.IntegerList, 2);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal(new List<int>() { 1, 2 }, doc.SimpleDTO.IntegerList);
 		}
@@ -229,6 +460,29 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 		}
 
+		[Fact]
+		public void RemoveFromListInvalidPositionTooLargeWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Remove<int>(o => o.SimpleDTO.IntegerList, 3);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { deserialized.ApplyTo(doc); });
+
+		}
+
+
 
 		[Fact]
 		public void RemoveFromListInvalidPositionTooSmall()
@@ -249,6 +503,31 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 
 			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
+
+		}
+
+		[Fact]
+		public void RemoveFromListInvalidPositionTooSmallWithSerialization()
+		{
+
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			}
+			  ;
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Remove<int>(o => o.SimpleDTO.IntegerList, -1);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+
+			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { deserialized.ApplyTo(doc); });
 
 		}
 
@@ -274,6 +553,30 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 		}
 
+		[Fact]
+		public void RemoveFromEndOfListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Remove<int>(o => o.SimpleDTO.IntegerList);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 1, 2 }, doc.SimpleDTO.IntegerList);
+
+		}
+
 
 		[Fact]
 		public void Replace()
@@ -290,7 +593,6 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			// create patch
 			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
 			patchDoc.Replace<string>(o => o.SimpleDTO.StringProperty, "B");
-			//  patchDoc.Replace<decimal>(o => o.DecimalValue, 12);
 			patchDoc.Replace(o => o.SimpleDTO.DecimalValue, 12);
 
 			patchDoc.ApplyTo(doc);
@@ -301,6 +603,37 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 
 		}
+
+
+		[Fact]
+		public void ReplaceWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					StringProperty = "A",
+					DecimalValue = 10
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<string>(o => o.SimpleDTO.StringProperty, "B");
+			patchDoc.Replace(o => o.SimpleDTO.DecimalValue, 12);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal("B", doc.SimpleDTO.StringProperty);
+			Assert.Equal(12, doc.SimpleDTO.DecimalValue);
+
+
+
+		}
+
 
 
 
@@ -367,6 +700,30 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 		}
 
+		[Fact]
+		public void ReplaceInListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<int>(o => o.SimpleDTO.IntegerList, 5, 0);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+
+			Assert.Equal(new List<int>() { 5, 2, 3 }, doc.SimpleDTO.IntegerList);
+
+		}
+
 
 
 		[Fact]
@@ -385,6 +742,32 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Replace<List<int>>(o => o.SimpleDTO.IntegerList, new List<int>() { 4, 5, 6 });
 
 			patchDoc.ApplyTo(doc);
+
+
+			Assert.Equal(new List<int>() { 4, 5, 6 }, doc.SimpleDTO.IntegerList);
+
+		}
+
+
+		[Fact]
+		public void ReplaceFullListWithSerialiation()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<List<int>>(o => o.SimpleDTO.IntegerList, new List<int>() { 4, 5, 6 });
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
 
 
 			Assert.Equal(new List<int>() { 4, 5, 6 }, doc.SimpleDTO.IntegerList);
@@ -415,6 +798,31 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 		}
 
+		[Fact]
+		public void ReplaceFullListFromEnumerableWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<IEnumerable<int>>(o => o.SimpleDTO.IntegerList, new List<int>() { 4, 5, 6 });
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
+
+
+			Assert.Equal(new List<int>() { 4, 5, 6 }, doc.SimpleDTO.IntegerList);
+
+		}
+
 
 
 		[Fact]
@@ -432,9 +840,38 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
 			patchDoc.Replace<IEnumerable<int>>(o => o.SimpleDTO.IntegerList, new Collection<int>() { 4, 5, 6 });
 
-			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
+			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 4, 5, 6 }, doc.SimpleDTO.IntegerList);
+
 
 		}
+
+		[Fact]
+		public void ReplaceFullListWithCollectionWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<IEnumerable<int>>(o => o.SimpleDTO.IntegerList, new Collection<int>() { 4, 5, 6 });
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 4, 5, 6 }, doc.SimpleDTO.IntegerList);
+
+
+
+		}
+
 
 
 
@@ -460,6 +897,32 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 		}
 
+
+		[Fact]
+		public void ReplaceAtEndOfListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<int>(o => o.SimpleDTO.IntegerList, 5);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+
+			Assert.Equal(new List<int>() { 1, 2, 5 }, doc.SimpleDTO.IntegerList);
+
+		}
+
+
 		[Fact]
 		public void ReplaceInListInvalidInvalidPositionTooLarge()
 		{
@@ -476,6 +939,27 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Replace<int>(o => o.SimpleDTO.IntegerList, 5, 3);
 
 			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
+		}
+
+		[Fact]
+		public void ReplaceInListInvalidInvalidPositionTooLargeWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<int>(o => o.SimpleDTO.IntegerList, 5, 3);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { deserialized.ApplyTo(doc); });
 		}
 
 
@@ -497,6 +981,30 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Replace<int>(o => o.SimpleDTO.IntegerList, 5, -1);
 
 			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
+
+		}
+
+		[Fact]
+		public void ReplaceInListInvalidPositionTooSmallWithSerialization()
+		{
+
+
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Replace<int>(o => o.SimpleDTO.IntegerList, 5, -1);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { deserialized.ApplyTo(doc); });
 
 		}
 
@@ -526,6 +1034,31 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 		}
 
+		[Fact]
+		public void CopyWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					StringProperty = "A",
+					AnotherStringProperty = "B"
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Copy<string>(o => o.SimpleDTO.StringProperty, o => o.SimpleDTO.AnotherStringProperty);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal("A", doc.SimpleDTO.AnotherStringProperty);
+
+		}
+
 
 
 		[Fact]
@@ -548,6 +1081,28 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			Assert.Equal(new List<int>() { 1, 1, 2, 3 }, doc.SimpleDTO.IntegerList);
 		}
 
+		[Fact]
+		public void CopyInListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerList, 1);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 1, 1, 2, 3 }, doc.SimpleDTO.IntegerList);
+		}
+
 
 		[Fact]
 		public void CopyFromListToEndOfList()
@@ -565,6 +1120,30 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerList);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 1, 2, 3, 1 }, doc.SimpleDTO.IntegerList);
+		}
+
+
+		[Fact]
+		public void CopyFromListToEndOfListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerList);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal(new List<int>() { 1, 2, 3, 1 }, doc.SimpleDTO.IntegerList);
 		}
@@ -592,6 +1171,28 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			Assert.Equal(1, doc.SimpleDTO.IntegerValue);
 		}
 
+		[Fact]
+		public void CopyFromListToNonListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerValue);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(1, doc.SimpleDTO.IntegerValue);
+		}
+
 
 		[Fact]
 		public void CopyFromNonListToList()
@@ -610,6 +1211,29 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerValue, o => o.SimpleDTO.IntegerList, 0);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 5, 1, 2, 3 }, doc.SimpleDTO.IntegerList);
+		}
+
+
+		[Fact]
+		public void CopyFromNonListToListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerValue = 5,
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerValue, o => o.SimpleDTO.IntegerList, 0);
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal(new List<int>() { 5, 1, 2, 3 }, doc.SimpleDTO.IntegerList);
 		}
@@ -641,6 +1265,33 @@ namespace Microsoft.AspNet.JsonPatch.Test
 		}
 
 
+
+		[Fact]
+		public void CopyToEndOfListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerValue = 5,
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Copy<int>(o => o.SimpleDTO.IntegerValue, o => o.SimpleDTO.IntegerList);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+
+			Assert.Equal(new List<int>() { 1, 2, 3, 5 }, doc.SimpleDTO.IntegerList);
+
+		}
+
+
 		[Fact]
 		public void Move()
 		{
@@ -658,6 +1309,31 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Move<string>(o => o.SimpleDTO.StringProperty, o => o.SimpleDTO.AnotherStringProperty);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal("A", doc.SimpleDTO.AnotherStringProperty);
+			Assert.Equal(null, doc.SimpleDTO.StringProperty);
+		}
+
+
+		[Fact]
+		public void MoveWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					StringProperty = "A",
+					AnotherStringProperty = "B"
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<string>(o => o.SimpleDTO.StringProperty, o => o.SimpleDTO.AnotherStringProperty);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal("A", doc.SimpleDTO.AnotherStringProperty);
 			Assert.Equal(null, doc.SimpleDTO.StringProperty);
@@ -687,6 +1363,30 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			Assert.Equal(new List<int>() { 2, 1, 3 }, doc.SimpleDTO.IntegerList);
 		}
 
+
+		[Fact]
+		public void MoveInListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerList, 1);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 2, 1, 3 }, doc.SimpleDTO.IntegerList);
+		}
+
+
 		[Fact]
 		public void MoveFromListToEndOfList()
 		{
@@ -708,6 +1408,27 @@ namespace Microsoft.AspNet.JsonPatch.Test
 		}
 
 
+		[Fact]
+		public void MoveFromListToEndOfListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerList);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 2, 3, 1 }, doc.SimpleDTO.IntegerList);
+		}
 
 
 
@@ -732,6 +1453,32 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			Assert.Equal(1, doc.SimpleDTO.IntegerValue);
 		}
 
+
+
+		[Fact]
+		public void MoveFomListToNonListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<int>(o => o.SimpleDTO.IntegerList, 0, o => o.SimpleDTO.IntegerValue);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 2, 3 }, doc.SimpleDTO.IntegerList);
+			Assert.Equal(1, doc.SimpleDTO.IntegerValue);
+		}
+
+
 		[Fact]
 		public void MoveFomListToNonListBetweenHierarchy()
 		{
@@ -748,6 +1495,29 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Move<int>(o => o.SimpleDTO.IntegerList, 0, o => o.IntegerValue);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 2, 3 }, doc.SimpleDTO.IntegerList);
+			Assert.Equal(1, doc.IntegerValue);
+		}
+
+		[Fact]
+		public void MoveFomListToNonListBetweenHierarchyWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<int>(o => o.SimpleDTO.IntegerList, 0, o => o.IntegerValue);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal(new List<int>() { 2, 3 }, doc.SimpleDTO.IntegerList);
 			Assert.Equal(1, doc.IntegerValue);
@@ -777,6 +1547,29 @@ namespace Microsoft.AspNet.JsonPatch.Test
 		}
 
 
+		[Fact]
+		public void MoveFromNonListToListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerValue = 5,
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<int>(o => o.SimpleDTO.IntegerValue, o => o.SimpleDTO.IntegerList, 0);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(0, doc.IntegerValue);
+			Assert.Equal(new List<int>() { 5, 1, 2, 3 }, doc.SimpleDTO.IntegerList);
+		}
 
 
 
@@ -799,6 +1592,34 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			patchDoc.Move<int>(o => o.SimpleDTO.IntegerValue, o => o.SimpleDTO.IntegerList);
 
 			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(0, doc.IntegerValue);
+
+			Assert.Equal(new List<int>() { 1, 2, 3, 5 }, doc.SimpleDTO.IntegerList);
+
+		}
+
+
+
+		[Fact]
+		public void MoveToEndOfListWithSerialization()
+		{
+			var doc = new SimpleDTOWithNestedDTO()
+			{
+				SimpleDTO = new SimpleDTO()
+				{
+					IntegerValue = 5,
+					IntegerList = new List<int>() { 1, 2, 3 }
+				}
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTOWithNestedDTO> patchDoc = new JsonPatchDocument<SimpleDTOWithNestedDTO>();
+			patchDoc.Move<int>(o => o.SimpleDTO.IntegerValue, o => o.SimpleDTO.IntegerList);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTOWithNestedDTO>>(serialized);
+			deserialized.ApplyTo(doc);
 
 			Assert.Equal(0, doc.IntegerValue);
 

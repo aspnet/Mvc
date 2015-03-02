@@ -14,5 +14,7 @@ namespace Microsoft.AspNet.JsonPatch.Test
 		public double DoubleValue { get; set; }
 
 		public float FloatValue { get; set; }
+
+		public Guid GuidValue { get; set; }
 	}
 }

@@ -10,6 +10,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 	public class SimpleObjectAdapter<T> : IObjectAdapter<T> where T : class
 	{
 
+
 		/// <summary>
 		/// The "add" operation performs one of the following functions,
 		/// depending upon what the target location references:
@@ -112,8 +113,13 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 				}
 			}
 
+
+			var pathProperty = PropertyHelpers
+				.FindProperty(objectToApplyTo, actualPathToProperty);
+
+
 			// does property at path exist?
-			if (!(PropertyHelpers.CheckIfPropertyExists(objectToApplyTo, actualPathToProperty)))
+			if (pathProperty == null)
 			{
 				throw new JsonPatchException<T>(operationToReport,
 					string.Format("Patch failed: property at location path: {0} does not exist", path),
@@ -122,12 +128,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
 			// it exists.  If it' an array, add to that array.  If it's not, we replace.
 
-			// get the property path
-			var pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathToProperty);
-
 			// is the path an array (but not a string (= char[]))?  In this case,
 			// the path must end with "/position" or "/-", which we already determined before.
-
 
 			if (appendList || positionAsInteger > -1)
 			{
@@ -141,8 +143,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 					// now, get the generic type of the enumerable
 					var genericTypeOfArray = PropertyHelpers.GetEnumerableType(pathProperty.PropertyType);
 
-					// check if the value can be cast to that type
-					if (!(PropertyHelpers.CheckIfValueCanBeCast(genericTypeOfArray, value)))
+					var conversionResult = PropertyHelpers.ConvertToActualType(genericTypeOfArray, value);
+
+					if (!conversionResult.CanBeConverted)
 					{
 						throw new JsonPatchException<T>(operationToReport,
 						  string.Format("Patch failed: provided value is invalid for array property type at location path: {0}",
@@ -150,19 +153,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 						  objectToApplyTo);
 					}
 
-
 					// get value (it can be cast, we just checked that)
 					var array = PropertyHelpers.GetValue(pathProperty, objectToApplyTo, actualPathToProperty) as IList;
 
 					if (appendList)
 					{
-						array.Add(value);
+						array.Add(conversionResult.ConvertedInstance);
 					}
 					else
 					{
 						if (positionAsInteger < array.Count)
 						{
-							array.Insert(positionAsInteger, value);
+							array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
 						}
 						else
 						{
@@ -172,6 +174,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 					   objectToApplyTo);
 						}
 					}
+
 
 				}
 				else
@@ -184,16 +187,22 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			}
 			else
 			{
-				if (!(PropertyHelpers.CheckIfValueCanBeCast(pathProperty.PropertyType, value)))
+				var conversionResultTuple = PropertyHelpers.ConvertToActualType(pathProperty.PropertyType, value);
+
+				// conversion successful
+				if (conversionResultTuple.CanBeConverted)
+				{
+					PropertyHelpers.SetValue(pathProperty, objectToApplyTo, actualPathToProperty,
+						conversionResultTuple.ConvertedInstance);
+				}
+				else
 				{
 					throw new JsonPatchException<T>(operationToReport,
-					  string.Format("Patch failed: provided value is invalid for property type at location path: {0}",
-					  path),
-					  objectToApplyTo);
+					string.Format("Patch failed: provided value is invalid for property type at location path: {0}",
+					path),
+					objectToApplyTo);
 				}
 
-				// set the new value.  Include the path, as it might be a property on a nested property
-				PropertyHelpers.SetValue(pathProperty, objectToApplyTo, actualPathToProperty, value);
 			}
 		}
 
@@ -237,17 +246,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 					operation.from.IndexOf('/' + positionAsInteger.ToString()));
 			}
 
+			var fromProperty = PropertyHelpers
+				.FindProperty(objectToApplyTo, actualFromProperty);
+
 
 			// does property at from exist?
-			if (!(PropertyHelpers.CheckIfPropertyExists(objectToApplyTo, actualFromProperty)))
+			if (fromProperty == null)
 			{
 				throw new JsonPatchException<T>(operation,
 					string.Format("Patch failed: property at location from: {0} does not exist", operation.from),
 					objectToApplyTo);
 			}
 
-			// get the property path
-			var fromProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualFromProperty);
 
 			// is the path an array (but not a string (= char[]))?  In this case,
 			// the path must end with "/position" or "/-", which we already determined before.
@@ -354,9 +364,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 				}
 			}
 
+			var pathProperty = PropertyHelpers
+				.FindProperty(objectToApplyTo, actualPathToProperty);
 
 			// does the target location exist?
-			if (!(PropertyHelpers.CheckIfPropertyExists(objectToApplyTo, actualPathToProperty)))
+			if (pathProperty == null)
 			{
 				throw new JsonPatchException<T>(operationToReport,
 					string.Format("Patch failed: property at location path: {0} does not exist", path),
@@ -366,8 +378,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			// get the property, and remove it - in this case, for DTO's, that means setting
 			// it to null or its default value; in case of an array, remove at provided index
 			// or at the end.
-
-			var pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathToProperty);
 
 
 			if (removeFromList || positionAsInteger > -1)
@@ -493,9 +503,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 					operation.path.IndexOf('/' + positionInPathAsInteger.ToString()));
 			}
 
+			var pathProperty = PropertyHelpers
+				.FindProperty(objectToApplyTo, actualPathProperty);
 
 			// does property at path exist?
-			if (!(PropertyHelpers.CheckIfPropertyExists(objectToApplyTo, actualPathProperty)))
+			if (pathProperty == null)
 			{
 				throw new JsonPatchException<T>(operation,
 					string.Format("Patch failed: property at location path: {0} does not exist", operation.path),
@@ -503,7 +515,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			}
 
 			// get the property path
-			var pathProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualPathProperty);
+
 			Type typeOfFinalPropertyAtPathLocation;
 
 			// is the path an array (but not a string (= char[]))?  In this case,
@@ -551,16 +563,22 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
 
 
-			if (!(PropertyHelpers.CheckIfValueCanBeCast(typeOfFinalPropertyAtPathLocation, operation.value)))
+			var conversionResultTuple = PropertyHelpers.ConvertToActualType(typeOfFinalPropertyAtPathLocation, operation.value);
+
+			// conversion successful
+			if (conversionResultTuple.CanBeConverted)
+			{
+				// COMPARE - TODO
+			}
+			else
 			{
 				throw new JsonPatchException<T>(operation,
-				  string.Format("Patch failed: provided value is invalid for property type at location path: {0}",
-				  operation.path),
-				  objectToApplyTo);
+				string.Format("Patch failed: provided value is invalid for property type at location path: {0}",
+				operation.path),
+				objectToApplyTo);
 			}
 
 
-			// COMPARE - TODO
 
 		}
 
@@ -634,16 +652,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			}
 
 
+			PropertyInfo fromProperty = PropertyHelpers
+				.FindProperty(objectToApplyTo, actualFromProperty);
+
 			// does property at from exist?
-			if (!(PropertyHelpers.CheckIfPropertyExists(objectToApplyTo, actualFromProperty)))
+			if (fromProperty == null)
 			{
 				throw new JsonPatchException<T>(operation,
 					string.Format("Patch failed: property at location from: {0} does not exist", operation.from),
 					objectToApplyTo);
 			}
 
-			// get the property path
-			PropertyInfo fromProperty = PropertyHelpers.FindProperty(objectToApplyTo, actualFromProperty);
+			// get the property path          
 
 			// is the path an array (but not a string (= char[]))?  In this case,
 			// the path must end with "/position" or "/-", which we already determined before.
@@ -696,6 +716,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
 
 		}
+
 
 	}
 }

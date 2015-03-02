@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -10,42 +11,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 	internal static class PropertyHelpers
 	{
 
-		public static bool SetValue(PropertyInfo propertyToSet, object targetObject, string pathToProperty, object value)
-		{
-			// it is possible the path refers to a nested property.  In that case, we need to 
-			// set on a different target object: the nested object.
 
-
-			var splitPath = pathToProperty.Split('/');
-
-			// skip the first one if it's empty
-			var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
-
-			for (int i = startIndex; i < splitPath.Length - 1; i++)
-			{
-				var propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
-					, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-				targetObject = propertyInfoToGet.GetValue(targetObject, null);
-			}
-			
-
-			if (value == null)
-			{
-				// then, set it.
-				propertyToSet.SetValue(targetObject, value, null);
-			}
-			else
-			{
-				var type = propertyToSet.PropertyType;
-				// first, cast the value to the expected property type. 
-				var valueToSet = Convert.ChangeType(value, type);
-				// then, set it.
-				propertyToSet.SetValue(targetObject, valueToSet, null);
-			}
-
-
-			return true;
-		}
 
 		public static object GetValue(PropertyInfo propertyToGet, object targetObject, string pathToProperty)
 		{
@@ -69,7 +35,34 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 		}
 
 
-		public static bool CheckIfPropertyExists(object targetObject, string propertyPath)
+
+
+		public static bool SetValue(PropertyInfo propertyToSet, object targetObject, string pathToProperty, object value)
+		{
+			// it is possible the path refers to a nested property.  In that case, we need to 
+			// set on a different target object: the nested object.
+
+
+			var splitPath = pathToProperty.Split('/');
+
+			// skip the first one if it's empty
+			var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
+
+			for (int i = startIndex; i < splitPath.Length - 1; i++)
+			{
+				var propertyInfoToGet = GetPropertyInfo(targetObject, splitPath[i]
+					, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+				targetObject = propertyInfoToGet.GetValue(targetObject, null);
+			}
+
+
+			propertyToSet.SetValue(targetObject, value, null);
+
+			return true;
+		}
+
+
+		public static PropertyInfo FindProperty(object targetObject, string propertyPath)
 		{
 			try
 			{
@@ -86,71 +79,35 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 					targetObject = propertyInfoToGet.GetValue(targetObject, null);
 				}
 
-				// for dynamic objects
-				if (targetObject is IDynamicMetaObjectProvider)
-				{
-					var target = targetObject as IDynamicMetaObjectProvider;
-					var propList = target.GetMetaObject(Expression.Constant(target)).GetDynamicMemberNames();
-					return propList.Contains(splitPath.Last());
-				}
-				else
-				{
-					var propertyToCheck = targetObject.GetType().GetProperty(splitPath.Last(),
-						BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-
-					return propertyToCheck != null;
-				}
-
-			}
-			catch (Exception)
-			{
-				return false;
-			}
-		}
-
-
-
-		public static PropertyInfo FindProperty(object targetObject, string propertyPath)
-		{
-			try
-			{
-
-				var splitPath = propertyPath.Split('/');
-
-				// skip the first one if it's empty
-				var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
-
-				for (int i = startIndex; i < splitPath.Length - 1; i++)
-				{
-					var propertyToGet = GetPropertyInfo(targetObject, splitPath[i]
-						, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-					targetObject = propertyToGet.GetValue(targetObject, null);
-				}
 
 				var propertyToFind = targetObject.GetType().GetProperty(splitPath.Last(),
-					BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+						BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
 				return propertyToFind;
+
+
 			}
 			catch (Exception)
 			{
+				// will result in JsonPatchException in calling class, as expected
 				return null;
 			}
 		}
 
 
-		internal static bool CheckIfValueCanBeCast(Type propertyType, object value)
+		internal static ConversionResult ConvertToActualType(Type propertyType, object value)
 		{
 			try
 			{
-				Convert.ChangeType(value, propertyType);
-				return true;
+				var o = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(value), propertyType);
+				return new ConversionResult(true, o);
 			}
 			catch (Exception)
 			{
-				return false;
+				return new ConversionResult(false, null);
 			}
 		}
+
 
 
 		internal static Type GetEnumerableType(Type type)

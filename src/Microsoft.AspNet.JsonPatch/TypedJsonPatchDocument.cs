@@ -366,21 +366,7 @@ namespace Microsoft.AspNet.JsonPatch
 		}
 
 
-
-
-		///// <summary>
-		///// Tests that a value at the target location is equal to a specified value.  
-		///// </summary>
-		///// <param name="path"></param>
-		///// <param name="value"></param>
-		///// <returns></returns>
-		//public JsonPatchDocument<T> Test<TProp>(Expression<Func<T, TProp>> path, TProp value)
-		//{
-		//    Operations.Add(new Operation<T>("test", ExpressionHelpers.GetPath<T, TProp>(path).ToLower()
-		//      , null, value));
-		//    return this;
-		//}
-
+		 
 
 		public void ApplyTo(T objectToApplyTo)
 		{
