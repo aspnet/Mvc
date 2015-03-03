@@ -254,6 +254,8 @@ namespace Microsoft.AspNet.Mvc
 
             var modelMetadata = metadataProvider.GetMetadataForType(modelType);
 
+            modelState.ClearModelStateDictionaryForModel(modelMetadata, prefix, metadataProvider);
+
             var operationBindingContext = new OperationBindingContext
             {
                 ModelBinder = modelBinder,

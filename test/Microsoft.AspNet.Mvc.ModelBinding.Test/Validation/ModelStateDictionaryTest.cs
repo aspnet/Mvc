@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
 using Microsoft.Framework.Internal;
 using Xunit;
 
@@ -733,11 +736,127 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Empty(error.ErrorMessage);
         }
 
+        [Fact]
+        public void ModelStateDictionary_ClearEntriesForModel_UseMetadataProviderOverload()
+        {
+            var dictionary = new ModelStateDictionary();
+
+            dictionary["Property1"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["Property2"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property2", "Property2 invalid.");
+            dictionary["Property"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property", "Property invalid.");
+
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(DummyModel));
+
+            dictionary.ClearModelStateDictionaryForModel(
+                metadata,
+                modelKey: string.Empty,
+                modelMetadataProvider: provider);
+
+            Assert.Equal(0, dictionary["Property1"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
+            Assert.Equal(0, dictionary["Property2"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property2"].ValidationState);
+            Assert.Equal(1, dictionary["Property"].Errors.Count);
+            Assert.Equal(ModelValidationState.Invalid, dictionary["Property"].ValidationState);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ClearEntriesForModel()
+        {
+            var dictionary = new ModelStateDictionary();
+
+            dictionary["Property1"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["Property2"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property2", "Property2 invalid.");
+            dictionary["Property"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property", "Property invalid.");
+
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(DummyModel));
+
+            dictionary.ClearModelStateDictionaryForModel(metadata, modelKey: string.Empty);
+
+            Assert.Equal(0, dictionary["Property1"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
+            Assert.Equal(0, dictionary["Property2"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property2"].ValidationState);
+            Assert.Equal(1, dictionary["Property"].Errors.Count);
+            Assert.Equal(ModelValidationState.Invalid, dictionary["Property"].ValidationState);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ClearEntryBasedOnKey()
+        {
+            var dictionary = new ModelStateDictionary();
+
+            dictionary["Property1"] = new ModelState { ValidationState = ModelValidationState.Valid };
+
+            dictionary["Property2"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property2", "Property2 invalid.");
+
+            dictionary["Property3"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property3", "Property invalid.");
+
+            dictionary.ClearModelStateDictionaryEntries("Property1");
+            dictionary.ClearModelStateDictionaryEntries("Property2");
+
+            Assert.Equal(0, dictionary["Property1"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
+            Assert.Equal(0, dictionary["Property2"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property2"].ValidationState);
+            Assert.Equal(1, dictionary["Property3"].Errors.Count);
+            Assert.Equal(ModelValidationState.Invalid, dictionary["Property3"].ValidationState);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ClearEntriesForCollectionsAsModel()
+        {
+            var dictionary = new ModelStateDictionary();
+
+            dictionary["[0].Property1"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary["[0].Property2"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["[1].Property1"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["[1].Property2"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("[1].Property2", "Property2 invalid.");
+            dictionary["Property"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Property", "Property invalid.");
+
+            var modelList = new List<DummyModel>() { new DummyModel(), new DummyModel() };
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(modelList.GetType());
+
+            dictionary.ClearModelStateDictionaryForModel(
+                metadata,
+                modelKey: string.Empty,
+                modelMetadataProvider: provider);
+
+            Assert.Equal(0, dictionary["[0].Property1"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[0].Property1"].ValidationState);
+            Assert.Equal(0, dictionary["[0].Property2"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[0].Property2"].ValidationState);
+            Assert.Equal(0, dictionary["[1].Property1"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[1].Property1"].ValidationState);
+            Assert.Equal(0, dictionary["[1].Property2"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[1].Property2"].ValidationState);
+            Assert.Equal(1, dictionary["Property"].Errors.Count);
+            Assert.Equal(ModelValidationState.Invalid, dictionary["Property"].ValidationState);
+        }
+
         private static ValueProviderResult GetValueProviderResult(object rawValue = null, string attemptedValue = null)
         {
             return new ValueProviderResult(rawValue ?? "some value",
                                            attemptedValue ?? "some value",
                                            CultureInfo.InvariantCulture);
         }
+
+        public class DummyModel
+        {
+            public string Property1 { get; set; }
+            public string Property2 { get; set; }
+        }
     }
 }
+

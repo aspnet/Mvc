@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -137,6 +139,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
             {
                 return null;
             }
+        }
+
+        internal static Type GetElementType(Type type)
+        {
+            Debug.Assert(typeof(IEnumerable).IsAssignableFrom(type));
+            if (type.IsArray)
+            {
+                return type.GetElementType();
+            }
+
+            foreach (var implementedInterface in type.GetInterfaces())
+            {
+                if (implementedInterface.IsGenericType() &&
+                    implementedInterface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return implementedInterface.GetGenericArguments()[0];
+                }
+            }
+
+            return typeof(object);
         }
     }
 }

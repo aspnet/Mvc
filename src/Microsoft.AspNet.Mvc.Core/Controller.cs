@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Security.Claims;
@@ -902,7 +903,7 @@ namespace Microsoft.AspNet.Mvc
         public virtual Task<bool> TryUpdateModelAsync<TModel>([NotNull] TModel model)
             where TModel : class
         {
-            return TryUpdateModelAsync(model, prefix: null);
+            return TryUpdateModelAsync(model, prefix: string.Empty);
         }
 
         /// <summary>
@@ -1232,6 +1233,8 @@ namespace Microsoft.AspNet.Mvc
             var modelExplorer = MetadataProvider.GetModelExplorerForType(model.GetType(), model);
 
             var modelName = prefix ?? string.Empty;
+
+            ModelState.ClearModelStateDictionaryForModel(modelExplorer.Metadata, modelName, MetadataProvider);
             var validationContext = new ModelValidationContext(
                 modelName,
                 BindingContext.ValidatorProvider,

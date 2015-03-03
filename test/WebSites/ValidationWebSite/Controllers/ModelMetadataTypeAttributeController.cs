@@ -38,6 +38,15 @@ namespace ValidationWebSite.Controllers
             return CreateValidationDictionary();
         }
 
+        [HttpPost]
+        public object TryValidateModelWithCollectionsModel([FromBody] List<ProductViewModel> products)
+        {
+            var valid = ModelState.IsValid;
+            TryValidateModel(products);
+
+            return CreateValidationDictionary();
+        }
+
         [HttpGet]
         public object TryValidateModelSoftwareViewModelWithPrefix()
         {
