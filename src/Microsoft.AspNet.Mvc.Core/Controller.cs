@@ -1233,6 +1233,7 @@ namespace Microsoft.AspNet.Mvc
 
             var modelName = prefix ?? string.Empty;
 
+            // Clear ModelStateDictionary entries for the model so that it will be re-validated.
             ModelBindingHelper.ClearModelStateDictionaryForModel(
                 model.GetType(),
                 ModelState,

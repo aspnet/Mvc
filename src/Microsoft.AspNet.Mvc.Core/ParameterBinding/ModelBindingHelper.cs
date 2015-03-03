@@ -257,6 +257,7 @@ namespace Microsoft.AspNet.Mvc
 
             var modelMetadata = metadataProvider.GetMetadataForType(modelType);
 
+            // Clear ModelStateDictionary entries for the model so that it will be re-validated.
             ClearModelStateDictionaryForModel(modelType, modelState, metadataProvider, prefix);
 
             var operationBindingContext = new OperationBindingContext
