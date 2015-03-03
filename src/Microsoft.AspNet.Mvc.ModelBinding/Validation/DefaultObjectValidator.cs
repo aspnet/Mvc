@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
@@ -280,6 +281,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return filters.Any(filter => filter.IsTypeExcluded(type));
+        }
+
+        private static Type GetElementType(Type type)
+        {
+            Debug.Assert(typeof(IEnumerable).IsAssignableFrom(type));
+            if (type.IsArray)
+            {
+                return type.GetElementType();
+            }
+
+            foreach (var implementedInterface in type.GetInterfaces())
+            {
+                if (implementedInterface.IsGenericType() &&
+                    implementedInterface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return implementedInterface.GetGenericArguments()[0];
+                }
+            }
+
+            return typeof(object);
         }
 
         private class ValidationContext
