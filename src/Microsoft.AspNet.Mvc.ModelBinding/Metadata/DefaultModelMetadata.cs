@@ -12,8 +12,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     public class DefaultModelMetadata : ModelMetadata
     {
         private readonly IModelMetadataProvider _provider;
-        private readonly ICompositeModelMetadataDetailsProvider _detailsProvider;
-        private readonly ModelMetadataDetailsCache _cache;
+        private readonly ICompositeMetadataDetailsProvider _detailsProvider;
+        private readonly DefaultMetadataDetailsCache _cache;
 
         private ReadOnlyDictionary<object, object> _additionalValues;
         private bool? _isReadOnly;
@@ -22,8 +22,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
         public DefaultModelMetadata(
             [NotNull] IModelMetadataProvider provider,
-            [NotNull] ICompositeModelMetadataDetailsProvider detailsProvider,
-            [NotNull] ModelMetadataDetailsCache cache)
+            [NotNull] ICompositeMetadataDetailsProvider detailsProvider,
+            [NotNull] DefaultMetadataDetailsCache cache)
             : base(cache.Key)
         {
             _provider = provider;
@@ -39,48 +39,48 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
-        public ModelMetadataBindingDetails BindingDetails
+        public BindingMetadata BindingMetadata
         {
             get
             {
-                if (_cache.BindingDetails == null)
+                if (_cache.BindingMetadata == null)
                 {
-                    var context = new ModelMetadataBindingDetailsContext(Identity, _cache.Attributes);
-                    _detailsProvider.GetBindingDetails(context);
-                    _cache.BindingDetails = context.BindingDetails;
+                    var context = new BindingMetadataProviderContext(Identity, _cache.Attributes);
+                    _detailsProvider.GetBindingMetadata(context);
+                    _cache.BindingMetadata = context.BindingMetadata;
                 }
 
-                return _cache.BindingDetails;
+                return _cache.BindingMetadata;
             }
         }
 
-        public ModelMetadataDisplayDetails DisplayDetails
+        public DisplayMetadata DisplayMetadata
         {
             get
             {
-                if (_cache.DisplayDetails == null)
+                if (_cache.DisplayMetadata == null)
                 {
-                    var context = new ModelMetadataDisplayDetailsContext(Identity, _cache.Attributes);
-                    _detailsProvider.GetDisplayDetails(context);
-                    _cache.DisplayDetails = context.DisplayDetails;
+                    var context = new DisplayMetadataProviderContext(Identity, _cache.Attributes);
+                    _detailsProvider.GetDisplayMetadata(context);
+                    _cache.DisplayMetadata = context.DisplayMetadata;
                 }
 
-                return _cache.DisplayDetails;
+                return _cache.DisplayMetadata;
             }
         }
 
-        public ModelMetadataValidationDetails ValidationDetails
+        public ValidationMetadata ValidationMetadata
         {
             get
             {
-                if (_cache.ValidationDetails == null)
+                if (_cache.ValidationMetadata == null)
                 {
-                    var context = new ModelMetadataValidationDetailsContext(Identity, _cache.Attributes);
-                    _detailsProvider.GetValidationDetails(context);
-                    _cache.ValidationDetails = context.ValidationDetails;
+                    var context = new ValidationMetadataProviderContext(Identity, _cache.Attributes);
+                    _detailsProvider.GetValidationMetadata(context);
+                    _cache.ValidationMetadata = context.ValidationMetadata;
                 }
 
-                return _cache.ValidationDetails;
+                return _cache.ValidationMetadata;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 if (_additionalValues == null)
                 {
-                    _additionalValues = new ReadOnlyDictionary<object, object>(DisplayDetails.AdditionalValues);
+                    _additionalValues = new ReadOnlyDictionary<object, object>(DisplayMetadata.AdditionalValues);
                 }
 
                 return _additionalValues;
@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return BindingDetails.BindingSource;
+                return BindingMetadata.BindingSource;
             }
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return BindingDetails.BinderModelName;
+                return BindingMetadata.BinderModelName;
             }
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return BindingDetails.BinderType;
+                return BindingMetadata.BinderType;
             }
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.ConvertEmptyStringToNull;
+                return DisplayMetadata.ConvertEmptyStringToNull;
             }
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.DataTypeName;
+                return DisplayMetadata.DataTypeName;
             }
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.Description;
+                return DisplayMetadata.Description;
             }
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.DisplayFormatString;
+                return DisplayMetadata.DisplayFormatString;
             }
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.DisplayName;
+                return DisplayMetadata.DisplayName;
             }
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.EditFormatString;
+                return DisplayMetadata.EditFormatString;
             }
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.HasNonDefaultEditFormat;
+                return DisplayMetadata.HasNonDefaultEditFormat;
             }
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.HideSurroundingHtml;
+                return DisplayMetadata.HideSurroundingHtml;
             }
         }
 
@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.HtmlEncode;
+                return DisplayMetadata.HtmlEncode;
             }
         }
 
@@ -199,9 +199,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 if (!_isReadOnly.HasValue)
                 {
-                    if (BindingDetails.IsReadOnly.HasValue)
+                    if (BindingMetadata.IsReadOnly.HasValue)
                     {
-                        _isReadOnly = BindingDetails.IsReadOnly;
+                        _isReadOnly = BindingMetadata.IsReadOnly;
                     }
                     else
                     {
@@ -219,9 +219,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 if (!_isRequired.HasValue)
                 {
-                    if (BindingDetails.IsRequired.HasValue)
+                    if (BindingMetadata.IsRequired.HasValue)
                     {
-                        _isRequired = BindingDetails.IsRequired;
+                        _isRequired = BindingMetadata.IsRequired;
                     }
                     else
                     {
@@ -237,7 +237,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.NullDisplayText;
+                return DisplayMetadata.NullDisplayText;
             }
         }
 
@@ -245,7 +245,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.Order;
+                return DisplayMetadata.Order;
             }
         }
 
@@ -268,7 +268,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return BindingDetails.PropertyBindingPredicateProvider;
+                return BindingMetadata.PropertyBindingPredicateProvider;
             }
         }
 
@@ -276,7 +276,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.ShowForDisplay;
+                return DisplayMetadata.ShowForDisplay;
             }
         }
 
@@ -284,7 +284,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.ShowForEdit;
+                return DisplayMetadata.ShowForEdit;
             }
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.SimpleDisplayProperty;
+                return DisplayMetadata.SimpleDisplayProperty;
             }
         }
 
@@ -300,7 +300,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return DisplayDetails.TemplateHint;
+                return DisplayMetadata.TemplateHint;
             }
         }
     }

@@ -3,27 +3,48 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
+    /// <summary>
+    /// A metadata representation of a model type, property or parameter.
+    /// </summary>
     public abstract class ModelMetadata
     {
+        /// <summary>
+        /// The default value of <see cref="ModelMetadata.Order"/>.
+        /// </summary>
         public static readonly int DefaultOrder = 10000;
 
+        /// <summary>
+        /// Creates a new <see cref="ModelMetadata"/>.
+        /// </summary>
+        /// <param name="identity">The <see cref="ModelMetadataIdentity"/>.</param>
         protected ModelMetadata([NotNull] ModelMetadataIdentity identity)
         {
             Identity = identity;
         }
 
-        #region Owned Properties
-
+        /// <summary>
+        /// Gets the container type of this metadata if it represents a property, otherwise <c>null</c>.
+        /// </summary>
         public Type ContainerType { get { return Identity.ContainerType; } }
 
+        /// <summary>
+        /// Gets a value indicating the kind of metadata element represented by the current instance.
+        /// </summary>
         public ModelMetadataKind MetadataKind { get { return Identity.MetadataKind; } }
 
+        /// <summary>
+        /// Gets the model type represented by the current instance.
+        /// </summary>
         public Type ModelType { get { return Identity.ModelType; } }
 
+        /// <summary>
+        /// Gets the property name represented by the current instance.
+        /// </summary>
         public string PropertyName
         {
             get
@@ -32,11 +53,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
+        /// <summary>
+        /// Gets the key for the current instance.
+        /// </summary>
         protected ModelMetadataIdentity Identity { get; }
-
-        #endregion
-
-        #region Abstract Properties
 
         /// <summary>
         /// Gets a collection of additional information about the model.
@@ -63,8 +83,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <summary>
         /// Gets a binder metadata for this model.
         /// </summary>
-        public abstract ModelBinding.BindingSource BindingSource { get; }
+        public abstract BindingSource BindingSource { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether or not to convert an empty string value to <c>null</c> when
+        /// representing a model as text.
+        /// </summary>
         public abstract bool ConvertEmptyStringToNull { get; }
 
         /// <summary>
@@ -74,6 +98,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <value><c>null</c> unless set manually or through additional metadata e.g. attributes.</value>
         public abstract string DataTypeName { get; }
 
+        /// <summary>
+        /// Gets the description of the model.
+        /// </summary>
         public abstract string Description { get; }
 
         /// <summary>
@@ -82,6 +109,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public abstract string DisplayFormatString { get; }
 
+        /// <summary>
+        /// Gets the display name of the model.
+        /// </summary>
         public abstract string DisplayName { get; }
 
         /// <summary>
@@ -119,8 +149,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </remarks>
         public abstract bool HideSurroundingHtml { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether or not the model value is read-only. This is only applicable when
+        /// the current instance represents a property.
+        /// </summary>
         public abstract bool IsReadOnly { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether or not the model value is required. This is only applicable when
+        /// the current instance represents a property.
+        /// </summary>
         public abstract bool IsRequired { get; }
 
         /// <summary>
@@ -134,13 +172,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <value>The order value of the current metadata.</value>
         public abstract int Order { get; }
 
+        /// <summary>
+        /// Gets the text to display when the model is <c>null</c>.
+        /// </summary>
         public abstract string NullDisplayText { get; }
 
         /// <summary>
         /// Gets the <see cref="IPropertyBindingPredicateProvider"/>, which can determine which properties
         /// should be model bound.
         /// </summary>
-        public abstract ModelBinding.IPropertyBindingPredicateProvider PropertyBindingPredicateProvider { get; }
+        public abstract IPropertyBindingPredicateProvider PropertyBindingPredicateProvider { get; }
 
         /// <summary>
         /// Gets a value that indicates whether the property should be displayed in read-only views.
@@ -157,29 +198,51 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public abstract string SimpleDisplayProperty { get; }
 
+        /// <summary>
+        /// Gets a string used by the templating system to discover display-templates and editor-templates.
+        /// </summary>
         public abstract string TemplateHint { get; }
 
-        #endregion
-
-        #region Computed Properties
-
-        public virtual bool IsComplexType
+        /// <summary>
+        /// Gets a value indicating whether <see cref="ModelType"/> is a simple type.
+        /// </summary>
+        /// <remarks>
+        /// A simple type is defined as a <see cref="Type"/> which has a
+        /// <see cref="System.ComponentModel.TypeConverter"/> that can convert from <see cref="string"/>.
+        /// </remarks>
+        public bool IsComplexType
         {
             get { return !TypeHelper.HasStringConverter(ModelType); }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether or not <see cref="ModelType"/> is a <see cref="Nullable{T}"/>.
+        /// </summary>
         public bool IsNullableValueType
         {
             get { return ModelType.IsNullableValueType(); }
         }
 
-        public virtual bool IsCollectionType
+        /// <summary>
+        /// Gets a value indicating whether or not <see cref="ModelType"/> is a collection type.
+        /// </summary>
+        /// <remarks>
+        /// A collection type is defined as a <see cref="Type"/> which is assignable to
+        /// <see cref="System.Collections.IEnumerable"/>.
+        /// </remarks>
+        public bool IsCollectionType
         {
             get { return TypeHelper.IsCollectionType(ModelType); }
         }
 
-        #endregion
-
+        /// <summary>
+        /// Gets a display name for the model.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="GetDisplayName()"/> will return the first of the following expressions which has a
+        /// non-<c>null</c> value: <code>DisplayName</code>, <code>PropertyName</code>, <code>ModelType.Name</code>.
+        /// </remarks>
+        /// <returns>The display name.</returns>
         public string GetDisplayName()
         {
             return DisplayName ?? PropertyName ?? ModelType.Name;

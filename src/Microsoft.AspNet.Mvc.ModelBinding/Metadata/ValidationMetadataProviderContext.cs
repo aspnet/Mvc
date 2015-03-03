@@ -4,23 +4,23 @@
 using System.Collections.Generic;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class ModelMetadataDisplayDetailsContext
+    public class ValidationMetadataProviderContext
     {
-        public ModelMetadataDisplayDetailsContext(
+        public ValidationMetadataProviderContext(
             [NotNull] ModelMetadataIdentity key, 
             [NotNull] IReadOnlyList<object> attributes)
         {
             Key = key;
             Attributes = attributes;
-            DisplayDetails = new ModelMetadataDisplayDetails();
+            ValidationMetadata = new ValidationMetadata();
         }
 
         public IReadOnlyList<object> Attributes { get; }
 
         public ModelMetadataIdentity Key { get; }
 
-        public ModelMetadataDisplayDetails DisplayDetails { get; }
+        public ValidationMetadata ValidationMetadata { get; }
     }
 }

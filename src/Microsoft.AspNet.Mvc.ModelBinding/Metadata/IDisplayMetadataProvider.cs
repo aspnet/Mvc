@@ -3,10 +3,10 @@
 
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public interface IModelMetadataBindingDetailsProvider : IModelMetadataDetailsProvider
+    public interface IDisplayMetadataProvider : IMetadataDetailsProvider
     {
-        void GetBindingDetails([NotNull] ModelMetadataBindingDetailsContext context);
+        void GetDisplayMetadata([NotNull] DisplayMetadataProviderContext context);
     }
 }

@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class ModelMetadataDetailsCache
+    public class DefaultMetadataDetailsCache
     {
-        public ModelMetadataDetailsCache(ModelMetadataIdentity key, IReadOnlyList<object> attributes)
+        public DefaultMetadataDetailsCache(ModelMetadataIdentity key, IReadOnlyList<object> attributes)
         {
             Key = key;
             Attributes = attributes;
@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public IReadOnlyList<object> Attributes { get; }
 
-        public ModelMetadataBindingDetails BindingDetails { get; set; }
+        public BindingMetadata BindingMetadata { get; set; }
 
-        public ModelMetadataDisplayDetails DisplayDetails { get; set; }
+        public DisplayMetadata DisplayMetadata { get; set; }
 
         public ModelMetadataIdentity Key { get; }
 
@@ -26,6 +26,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public Action<object, object> PropertySetter { get; set; }
 
-        public ModelMetadataValidationDetails ValidationDetails { get; set; }
+        public ValidationMetadata ValidationMetadata { get; set; }
     }
 }

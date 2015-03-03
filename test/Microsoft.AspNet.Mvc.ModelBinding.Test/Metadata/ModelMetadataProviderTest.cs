@@ -833,19 +833,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             private readonly object[] _attributes;
 
             public AttributeInjectModelMetadataProvider(object[] attributes)
-                : base(new DefaultCompositeModelMetadataDetailsProvider(new IModelMetadataDetailsProvider[]
+                : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
                     {
-                        new DefaultModelMetadataBindingDetailsProvider(),
-                        new DataAnnotationsModelMetadataDetailsProvider(),
+                        new DefaultBindingMetadataProvider(),
+                        new DataAnnotationsMetadataDetailsProvider(),
                     }))
             {
                 _attributes = attributes;
             }
 
-            protected override ModelMetadataDetailsCache CreateTypeCacheEntry(ModelMetadataIdentity key)
+            protected override DefaultMetadataDetailsCache CreateTypeCacheEntry(ModelMetadataIdentity key)
             {
                 var entry = base.CreateTypeCacheEntry(key);
-                return new ModelMetadataDetailsCache(key, _attributes.Concat(entry.Attributes).ToArray());
+                return new DefaultMetadataDetailsCache(key, _attributes.Concat(entry.Attributes).ToArray());
             }
         }
     }

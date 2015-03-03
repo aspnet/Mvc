@@ -7,14 +7,14 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class DataAnnotationsModelMetadataDetailsProviderTest
+    public class DataAnnotationsMetadataDetailsProviderTest
     {
         // Includes attributes with a 'simple' effect on display details. 
-        public static TheoryData<object, Func<ModelMetadataDisplayDetails, object>, object> DisplayDetailsData
+        public static TheoryData<object, Func<DisplayMetadata, object>, object> DisplayDetailsData
         {
             get
             {
-                return new TheoryData<object, Func<ModelMetadataDisplayDetails, object>, object>
+                return new TheoryData<object, Func<DisplayMetadata, object>, object>
                 {
                     { new DataTypeAttribute(DataType.Duration), d => d.DataTypeName, DataType.Duration.ToString() },
 
@@ -48,20 +48,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         [MemberData(nameof(DisplayDetailsData))]
         public void GetDisplayDetails_SimpleAttributes(
             object attribute, 
-            Func<ModelMetadataDisplayDetails, object> accessor, 
+            Func<DisplayMetadata, object> accessor, 
             object expected)
         {
             // Arrange
-            var provider = new DataAnnotationsModelMetadataDetailsProvider();
+            var provider = new DataAnnotationsMetadataDetailsProvider();
 
             var key = ModelMetadataIdentity.ForType(typeof(string));
-            var context = new ModelMetadataDisplayDetailsContext(key, new object[] { attribute });
+            var context = new DisplayMetadataProviderContext(key, new object[] { attribute });
 
             // Act
-            provider.GetDisplayDetails(context);
+            provider.GetDisplayMetadata(context);
 
             // Assert
-            var value = accessor(context.DisplayDetails);
+            var value = accessor(context.DisplayMetadata);
             Assert.Equal(expected, value);
         }
 
@@ -69,27 +69,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetDisplayDetails_FindsDisplayFormat_FromDataType()
         {
             // Arrange
-            var provider = new DataAnnotationsModelMetadataDetailsProvider();
+            var provider = new DataAnnotationsMetadataDetailsProvider();
 
             var dataType = new DataTypeAttribute(DataType.Currency);
             var displayFormat = dataType.DisplayFormat; // Non-null for DataType.Currency.
 
             var attributes = new[] { dataType, };
             var key = ModelMetadataIdentity.ForType(typeof(string));
-            var context = new ModelMetadataDisplayDetailsContext(key, attributes);
+            var context = new DisplayMetadataProviderContext(key, attributes);
 
             // Act
-            provider.GetDisplayDetails(context);
+            provider.GetDisplayMetadata(context);
 
             // Assert
-            Assert.Same(displayFormat.DataFormatString, context.DisplayDetails.DisplayFormatString);
+            Assert.Same(displayFormat.DataFormatString, context.DisplayMetadata.DisplayFormatString);
         }
 
         [Fact]
         public void GetDisplayDetails_FindsDisplayFormat_OverridingDataType()
         {
             // Arrange
-            var provider = new DataAnnotationsModelMetadataDetailsProvider();
+            var provider = new DataAnnotationsMetadataDetailsProvider();
 
             var dataType = new DataTypeAttribute(DataType.Time); // Has a non-null DisplayFormat.
             var displayFormat = new DisplayFormatAttribute() // But these values override the values from DataType
@@ -99,51 +99,51 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             var attributes = new Attribute[] { dataType, displayFormat, };
             var key = ModelMetadataIdentity.ForType(typeof(string));
-            var context = new ModelMetadataDisplayDetailsContext(key, attributes);
+            var context = new DisplayMetadataProviderContext(key, attributes);
 
             // Act
-            provider.GetDisplayDetails(context);
+            provider.GetDisplayMetadata(context);
 
             // Assert
-            Assert.Same(displayFormat.DataFormatString, context.DisplayDetails.DisplayFormatString);
+            Assert.Same(displayFormat.DataFormatString, context.DisplayMetadata.DisplayFormatString);
         }
 
         [Fact]
         public void GetDisplayDetails_EditableAttribute_SetsReadOnly()
         {
             // Arrange
-            var provider = new DataAnnotationsModelMetadataDetailsProvider();
+            var provider = new DataAnnotationsMetadataDetailsProvider();
 
             var editable = new EditableAttribute(allowEdit: false);
 
             var attributes = new Attribute[] { editable };
             var key = ModelMetadataIdentity.ForType(typeof(string));
-            var context = new ModelMetadataBindingDetailsContext(key, attributes);
+            var context = new BindingMetadataProviderContext(key, attributes);
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Equal(true, context.BindingDetails.IsReadOnly);
+            Assert.Equal(true, context.BindingMetadata.IsReadOnly);
         }
 
         [Fact]
         public void GetDisplayDetails_RequiredAttribute_SetsRequired()
         {
             // Arrange
-            var provider = new DataAnnotationsModelMetadataDetailsProvider();
+            var provider = new DataAnnotationsMetadataDetailsProvider();
 
             var required = new RequiredAttribute();
 
             var attributes = new Attribute[] { required };
             var key = ModelMetadataIdentity.ForType(typeof(string));
-            var context = new ModelMetadataBindingDetailsContext(key, attributes);
+            var context = new BindingMetadataProviderContext(key, attributes);
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Equal(true, context.BindingDetails.IsRequired);
+            Assert.Equal(true, context.BindingMetadata.IsRequired);
         }
     }
 }

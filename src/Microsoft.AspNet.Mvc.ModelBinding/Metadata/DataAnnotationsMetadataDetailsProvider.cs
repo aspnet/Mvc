@@ -8,27 +8,27 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class DataAnnotationsModelMetadataDetailsProvider : 
-        IModelMetadataBindingDetailsProvider,
-        IModelMetadataDisplayDetailsProvider
+    public class DataAnnotationsMetadataDetailsProvider : 
+        IBindingMetadataProvider,
+        IDisplayMetadataProvider
     {
-        public void GetBindingDetails([NotNull] ModelMetadataBindingDetailsContext context)
+        public void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
-            context.BindingDetails.IsRequired = context.Attributes.OfType<RequiredAttribute>().Any();
+            context.BindingMetadata.IsRequired = context.Attributes.OfType<RequiredAttribute>().Any();
 
             var editableAttribute = context.Attributes.OfType<EditableAttribute>().FirstOrDefault();
             if (editableAttribute != null)
             {
-                context.BindingDetails.IsReadOnly = !editableAttribute.AllowEdit;
+                context.BindingMetadata.IsReadOnly = !editableAttribute.AllowEdit;
             }
         }
 
-        public void GetDisplayDetails([NotNull] ModelMetadataDisplayDetailsContext context)
+        public void GetDisplayMetadata([NotNull] DisplayMetadataProviderContext context)
         {
-            SetDisplayDetails(context.Attributes, context.DisplayDetails);
+            SetDisplayDetails(context.Attributes, context.DisplayMetadata);
         }
 
-        private static void SetDisplayDetails(IReadOnlyList<object> attributes, ModelMetadataDisplayDetails details)
+        private static void SetDisplayDetails(IReadOnlyList<object> attributes, DisplayMetadata details)
         {
             var dataTypeAttribute = attributes.OfType<DataTypeAttribute>().FirstOrDefault();
             var displayAttribute = attributes.OfType<DisplayAttribute>().FirstOrDefault();

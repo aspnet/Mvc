@@ -5,10 +5,18 @@ using System;
 using System.Reflection;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A key type which identifies a <see cref="ModelMetadata"/>.
+    /// </summary>
     public struct ModelMetadataIdentity
     {
+        /// <summary>
+        /// Creates a <see cref="ModelMetadataIdentity"/> for the provided model <see cref="Type"/>.
+        /// </summary>
+        /// <param name="modelType">The model <see cref="Type"/>.</param>
+        /// <returns>A <see cref="ModelMetadataIdentity"/>.</returns>
         public static ModelMetadataIdentity ForType([NotNull] Type modelType)
         {
             return new ModelMetadataIdentity()
@@ -18,6 +26,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
         }
 
+        /// <summary>
+        /// Creates a <see cref="ModelMetadataIdentity"/> for the provided <see cref="ParameterInfo"/>.
+        /// </summary>
+        /// <param name="parameterInfo"></param>
+        /// <returns></returns>
         public static ModelMetadataIdentity ForParameter([NotNull] ParameterInfo parameterInfo)
         {
             return new ModelMetadataIdentity()

@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class ModelMetadataDisplayDetails
+    public class DisplayMetadata
     {
         public IDictionary<object, object> AdditionalValues { get; } = new Dictionary<object, object>();
 

@@ -3,10 +3,10 @@
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public enum ModelMetadataKind
+    public interface ICompositeMetadataDetailsProvider : 
+        IBindingMetadataProvider, 
+        IDisplayMetadataProvider, 
+        IValiationMetadataProvider
     {
-        Type,
-        Property,
-        Parameter,
     }
 }

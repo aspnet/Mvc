@@ -5,9 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding

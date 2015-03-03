@@ -3,10 +3,7 @@
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public interface ICompositeModelMetadataDetailsProvider : 
-        IModelMetadataBindingDetailsProvider, 
-        IModelMetadataDisplayDetailsProvider, 
-        IModelMetadataValidationDetailsProvider
+    public interface IMetadataDetailsProvider
     {
     }
 }

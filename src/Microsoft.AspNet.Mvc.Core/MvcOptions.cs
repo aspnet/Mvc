@@ -7,7 +7,7 @@ using Microsoft.AspNet.Mvc.ApplicationModels;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.OptionDescriptors;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.Net.Http.Headers;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc
             Filters = new List<IFilter>();
             FormatterMappings = new FormatterMappings();
             ValidationExcludeFilters = new List<ExcludeValidationDescriptor>();
-            ModelMetadataProviders = new List<IModelMetadataDetailsProvider>();
+            ModelMetadataProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<ModelValidatorProviderDescriptor>();
             CacheProfiles = new Dictionary<string, CacheProfile>(StringComparer.OrdinalIgnoreCase);
         }
@@ -149,16 +149,16 @@ namespace Microsoft.AspNet.Mvc
         public IDictionary<string, CacheProfile> CacheProfiles { get; }
 
         /// <summary>
-        /// Gets a list of <see cref="IModelMetadataDetailsProvider"/> instances that will be used to 
+        /// Gets a list of <see cref="IMetadataDetailsProvider"/> instances that will be used to 
         /// create <see cref="ModelMetadata"/> instances.
         /// </summary>
         /// <remarks>
         /// A provider should implement one or more of the following interfaces, depending on what
         /// kind of details are provided:
         /// - <see cref="IModelMetadataBindingDetailsProvider"/>
-        /// - <see cref="IModelMetadataDisplayDetailsProvider"/>
-        /// - <see cref="IModelMetadataValidationDetailsProvider"/>
+        /// - <see cref="IDisplayMetadataProvider"/>
+        /// - <see cref="IValiationMetadataProvider"/>
         /// </remarks>
-        public IList<IModelMetadataDetailsProvider> ModelMetadataProviders { get; }
+        public IList<IMetadataDetailsProvider> ModelMetadataProviders { get; }
     }
 }

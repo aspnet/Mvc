@@ -17,17 +17,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 new ModelBinderAttribute() { BinderType = typeof(ArrayModelBinder<string>) },
             };
 
-            var context = new ModelMetadataBindingDetailsContext(
+            var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForType(typeof(string)), 
                 attributes);
 
-            var provider = new DefaultModelMetadataBindingDetailsProvider();
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Equal(typeof(HeaderModelBinder), context.BindingDetails.BinderType);
+            Assert.Equal(typeof(HeaderModelBinder), context.BindingMetadata.BinderType);
         }
 
         [Fact]
@@ -41,17 +41,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 new ModelBinderAttribute() { BinderType = typeof(ArrayModelBinder<string>) },
             };
 
-            var context = new ModelMetadataBindingDetailsContext(
+            var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForType(typeof(string)),
                 attributes);
 
-            var provider = new DefaultModelMetadataBindingDetailsProvider();
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Equal(typeof(HeaderModelBinder), context.BindingDetails.BinderType);
+            Assert.Equal(typeof(HeaderModelBinder), context.BindingMetadata.BinderType);
         }
 
         [Fact]
@@ -64,17 +64,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 new ModelBinderAttribute() { Name = "Order" },
             };
 
-            var context = new ModelMetadataBindingDetailsContext(
+            var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForType(typeof(string)),
                 attributes);
 
-            var provider = new DefaultModelMetadataBindingDetailsProvider();
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Equal("Product", context.BindingDetails.BinderModelName);
+            Assert.Equal("Product", context.BindingMetadata.BinderModelName);
         }
 
         [Fact]
@@ -88,17 +88,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 new ModelBinderAttribute() { Name = "Order" },
             };
 
-            var context = new ModelMetadataBindingDetailsContext(
+            var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForType(typeof(string)),
                 attributes);
 
-            var provider = new DefaultModelMetadataBindingDetailsProvider();
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Null(context.BindingDetails.BinderModelName);
+            Assert.Null(context.BindingMetadata.BinderModelName);
         }
 
         [Fact]
@@ -112,17 +112,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 new ModelBinderAttribute() { BindingSource = BindingSource.Query },
             };
 
-            var context = new ModelMetadataBindingDetailsContext(
+            var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForType(typeof(string)),
                 attributes);
 
-            var provider = new DefaultModelMetadataBindingDetailsProvider();
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
-            provider.GetBindingDetails(context);
+            provider.GetBindingMetadata(context);
 
             // Assert
-            Assert.Equal(BindingSource.Body, context.BindingDetails.BindingSource);
+            Assert.Equal(BindingSource.Body, context.BindingMetadata.BindingSource);
         }
     }
 }

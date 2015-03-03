@@ -7,7 +7,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class EmptyModelMetadataProvider : DefaultModelMetadataProvider
     {
         public EmptyModelMetadataProvider()
-            : base(new DefaultCompositeModelMetadataDetailsProvider(new IModelMetadataDetailsProvider[0]))
+            : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[0]))
         {
         }
     }

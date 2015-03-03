@@ -15,13 +15,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // Creates a provider with all the defaults - includes data annotations
         public static IModelMetadataProvider CreateDefaultProvider()
         {
-            var detailsProviders = new IModelMetadataDetailsProvider[]
+            var detailsProviders = new IMetadataDetailsProvider[]
             {
-                new DefaultModelMetadataBindingDetailsProvider(),
-                new DataAnnotationsModelMetadataDetailsProvider(),
+                new DefaultBindingMetadataProvider(),
+                new DataAnnotationsMetadataDetailsProvider(),
             };
 
-            var compositeDetailsProvider = new DefaultCompositeModelMetadataDetailsProvider(detailsProviders);
+            var compositeDetailsProvider = new DefaultCompositeMetadataDetailsProvider(detailsProviders);
             return new DefaultModelMetadataProvider(compositeDetailsProvider);
         }
 
@@ -34,10 +34,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         private TestModelMetadataProvider(TestModelMetadataDetailsProvider detailsProvider)
-            : base(new DefaultCompositeModelMetadataDetailsProvider(new IModelMetadataDetailsProvider[]
+            : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
                 {
-                    new DefaultModelMetadataBindingDetailsProvider(),
-                    new DataAnnotationsModelMetadataDetailsProvider(),
+                    new DefaultBindingMetadataProvider(),
+                    new DataAnnotationsMetadataDetailsProvider(),
                     detailsProvider
                 }))
         {
@@ -76,13 +76,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         private class TestModelMetadataDetailsProvider :
-            IModelMetadataBindingDetailsProvider,
-            IModelMetadataDisplayDetailsProvider,
-            IModelMetadataValidationDetailsProvider
+            IBindingMetadataProvider,
+            IDisplayMetadataProvider,
+            IValiationMetadataProvider
         {
             public List<MetadataBuilder> Builders { get; } = new List<MetadataBuilder>();
 
-            public void GetBindingDetails(ModelMetadataBindingDetailsContext context)
+            public void GetBindingMetadata(BindingMetadataProviderContext context)
             {
                 foreach (var builder in Builders)
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            public void GetDisplayDetails(ModelMetadataDisplayDetailsContext context)
+            public void GetDisplayMetadata(DisplayMetadataProviderContext context)
             {
                 foreach (var builder in Builders)
                 {
@@ -98,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            public void GetValidationDetails(ModelMetadataValidationDetailsContext context)
+            public void GetValidationMetadata(ValidationMetadataProviderContext context)
             {
                 foreach (var builder in Builders)
                 {
@@ -109,18 +109,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public interface IMetadataBuilder
         {
-            IMetadataBuilder BindingDetails(Action<ModelMetadataBindingDetails> action);
+            IMetadataBuilder BindingDetails(Action<BindingMetadata> action);
 
-            IMetadataBuilder DisplayDetails(Action<ModelMetadataDisplayDetails> action);
+            IMetadataBuilder DisplayDetails(Action<DisplayMetadata> action);
 
-            IMetadataBuilder ValidationDetails(Action<ModelMetadataValidationDetails> action);
+            IMetadataBuilder ValidationDetails(Action<ValidationMetadata> action);
         }
 
         private class MetadataBuilder : IMetadataBuilder
         {
-            private List<Action<ModelMetadataBindingDetails>> _bindingActions = new List<Action<ModelMetadataBindingDetails>>();
-            private List<Action<ModelMetadataDisplayDetails>> _displayActions = new List<Action<ModelMetadataDisplayDetails>>();
-            private List<Action<ModelMetadataValidationDetails>> _valiationActions = new List<Action<ModelMetadataValidationDetails>>();
+            private List<Action<BindingMetadata>> _bindingActions = new List<Action<BindingMetadata>>();
+            private List<Action<DisplayMetadata>> _displayActions = new List<Action<DisplayMetadata>>();
+            private List<Action<ValidationMetadata>> _valiationActions = new List<Action<ValidationMetadata>>();
 
             private readonly ModelMetadataIdentity _key;
 
@@ -129,52 +129,52 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 _key = key;
             }
 
-            public void Apply(ModelMetadataBindingDetailsContext context)
+            public void Apply(BindingMetadataProviderContext context)
             {
                 if (_key.Equals(context.Key))
                 {
                     foreach (var action in _bindingActions)
                     {
-                        action(context.BindingDetails);
+                        action(context.BindingMetadata);
                     }
                 }
             }
 
-            public void Apply(ModelMetadataDisplayDetailsContext context)
+            public void Apply(DisplayMetadataProviderContext context)
             {
                 if (_key.Equals(context.Key))
                 {
                     foreach (var action in _displayActions)
                     {
-                        action(context.DisplayDetails);
+                        action(context.DisplayMetadata);
                     }
                 }
             }
 
-            public void Apply(ModelMetadataValidationDetailsContext context)
+            public void Apply(ValidationMetadataProviderContext context)
             {
                 if (_key.Equals(context.Key))
                 {
                     foreach (var action in _valiationActions)
                     {
-                        action(context.ValidationDetails);
+                        action(context.ValidationMetadata);
                     }
                 }
             }
 
-            public IMetadataBuilder BindingDetails(Action<ModelMetadataBindingDetails> action)
+            public IMetadataBuilder BindingDetails(Action<BindingMetadata> action)
             {
                 _bindingActions.Add(action);
                 return this;
             }
 
-            public IMetadataBuilder DisplayDetails(Action<ModelMetadataDisplayDetails> action)
+            public IMetadataBuilder DisplayDetails(Action<DisplayMetadata> action)
             {
                 _displayActions.Add(action);
                 return this;
             }
 
-            public IMetadataBuilder ValidationDetails(Action<ModelMetadataValidationDetails> action)
+            public IMetadataBuilder ValidationDetails(Action<ValidationMetadata> action)
             {
                 _valiationActions.Add(action);
                 return this;

@@ -87,10 +87,10 @@ namespace Microsoft.AspNet.Mvc
             //
             // The DefaultModelMetadataProvider does significant caching and should be a singleton.
             yield return describe.Singleton<ModelBinding.IModelMetadataProvider, DefaultModelMetadataProvider>();
-            yield return describe.Transient<ModelBinding.Metadata.ICompositeModelMetadataDetailsProvider>(services =>
+            yield return describe.Transient<ModelBinding.Metadata.ICompositeMetadataDetailsProvider>(services =>
             {
                 var options = services.GetRequiredService<IOptions<MvcOptions>>().Options;
-                return new DefaultCompositeModelMetadataDetailsProvider(options.ModelMetadataProviders);
+                return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataProviders);
             });
 
             yield return describe.Transient<IInputFormatterSelector, DefaultInputFormatterSelector>();

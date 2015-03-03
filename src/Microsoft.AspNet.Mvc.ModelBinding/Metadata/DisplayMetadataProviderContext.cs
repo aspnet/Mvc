@@ -4,23 +4,23 @@
 using System.Collections.Generic;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class ModelMetadataBindingDetailsContext
+    public class DisplayMetadataProviderContext
     {
-        public ModelMetadataBindingDetailsContext(
+        public DisplayMetadataProviderContext(
             [NotNull] ModelMetadataIdentity key, 
             [NotNull] IReadOnlyList<object> attributes)
         {
             Key = key;
             Attributes = attributes;
-            BindingDetails = new ModelMetadataBindingDetails();
+            DisplayMetadata = new DisplayMetadata();
         }
 
         public IReadOnlyList<object> Attributes { get; }
 
         public ModelMetadataIdentity Key { get; }
 
-        public ModelMetadataBindingDetails BindingDetails { get; }
+        public DisplayMetadata DisplayMetadata { get; }
     }
 }

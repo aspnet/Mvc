@@ -11,16 +11,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
     public class DefaultModelMetadataProvider : IModelMetadataProvider
     {
-        private readonly ConcurrentDictionary<ModelMetadataIdentity, ModelMetadataDetailsCache> _typesCache = new ConcurrentDictionary<ModelMetadataIdentity, ModelMetadataDetailsCache>();
-        private readonly ConcurrentDictionary<ModelMetadataIdentity, ModelMetadataDetailsCache> _parametersCache = new ConcurrentDictionary<ModelMetadataIdentity, ModelMetadataDetailsCache>();
-        private readonly ConcurrentDictionary<ModelMetadataIdentity, ModelMetadataDetailsCache[]> _propertiesCache = new ConcurrentDictionary<ModelMetadataIdentity, ModelMetadataDetailsCache[]>();
+        private readonly ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache> _typesCache = new ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache>();
+        private readonly ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache> _parametersCache = new ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache>();
+        private readonly ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache[]> _propertiesCache = new ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache[]>();
 
-        public DefaultModelMetadataProvider(ICompositeModelMetadataDetailsProvider detailsProvider)
+        public DefaultModelMetadataProvider(ICompositeMetadataDetailsProvider detailsProvider)
         {
             DetailsProvider = detailsProvider;
         }
 
-        protected ICompositeModelMetadataDetailsProvider DetailsProvider { get; }
+        protected ICompositeMetadataDetailsProvider DetailsProvider { get; }
 
         public virtual ModelMetadata GetMetadataForParameter(
             [NotNull] ParameterInfo parameterInfo,
@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             var key = ModelMetadataIdentity.ForParameter(parameterInfo);
 
-            ModelMetadataDetailsCache entry;
+            DefaultMetadataDetailsCache entry;
             if (!_parametersCache.TryGetValue(key, out entry))
             {
                 entry = CreateParameterCacheEntry(key, attributes);
@@ -61,16 +61,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             return CreateModelMetadata(entry);
         }
 
-        protected virtual ModelMetadata CreateModelMetadata(ModelMetadataDetailsCache entry)
+        protected virtual ModelMetadata CreateModelMetadata(DefaultMetadataDetailsCache entry)
         {
             return new DefaultModelMetadata(this, DetailsProvider, entry);
         }
 
-        protected virtual ModelMetadataDetailsCache[] CreatePropertyCacheEntries([NotNull] ModelMetadataIdentity key)
+        protected virtual DefaultMetadataDetailsCache[] CreatePropertyCacheEntries([NotNull] ModelMetadataIdentity key)
         {
             var properties = PropertyHelper.GetProperties(key.ModelType);
 
-            var propertyEntries = new ModelMetadataDetailsCache[properties.Length];
+            var propertyEntries = new DefaultMetadataDetailsCache[properties.Length];
             for (var i = 0; i < properties.Length; i++)
             {
                 var property = properties[i];
@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                     key.ModelType, 
                     property.Property));
 
-                propertyEntries[i] = new ModelMetadataDetailsCache(propertyKey, attributes);
+                propertyEntries[i] = new DefaultMetadataDetailsCache(propertyKey, attributes);
                 if (property.Property.CanRead && property.Property.GetMethod?.IsPrivate == true)
                 {
                     propertyEntries[i].PropertyAccessor = PropertyHelper.MakeFastPropertyGetter(property.Property);
@@ -98,13 +98,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             return propertyEntries;
         }
 
-        protected virtual ModelMetadataDetailsCache CreateTypeCacheEntry([NotNull] ModelMetadataIdentity key)
+        protected virtual DefaultMetadataDetailsCache CreateTypeCacheEntry([NotNull] ModelMetadataIdentity key)
         {
             var attributes = new List<object>(ModelAttributes.GetAttributesForType(key.ModelType));
-            return new ModelMetadataDetailsCache(key, attributes);
+            return new DefaultMetadataDetailsCache(key, attributes);
         }
 
-        protected virtual ModelMetadataDetailsCache CreateParameterCacheEntry(
+        protected virtual DefaultMetadataDetailsCache CreateParameterCacheEntry(
             [NotNull] ModelMetadataIdentity key,
             [NotNull] IEnumerable<object> attributes)
         {
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             allAttributes.AddRange(ModelAttributes.GetAttributesForParameter(key.ParameterInfo));
 
-            return new ModelMetadataDetailsCache(key, allAttributes);
+            return new DefaultMetadataDetailsCache(key, allAttributes);
         }
     }
 }

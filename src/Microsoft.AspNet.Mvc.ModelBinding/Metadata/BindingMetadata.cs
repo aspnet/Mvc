@@ -3,9 +3,9 @@
 
 using System;
 
-namespace Microsoft.AspNet.Mvc.ModelBinding
+namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class ModelMetadataBindingDetails
+    public class BindingMetadata
     {
         public BindingSource BindingSource { get; set; }
 

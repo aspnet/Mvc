@@ -8,14 +8,14 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class DefaultModelMetadataBindingDetailsProvider : IModelMetadataBindingDetailsProvider
+    public class DefaultBindingMetadataProvider : IBindingMetadataProvider
     {
-        public void GetBindingDetails([NotNull] ModelMetadataBindingDetailsContext context)
+        public void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
-            SetBindingDetails(context.Attributes, context.BindingDetails);
+            SetBindingDetails(context.Attributes, context.BindingMetadata);
         }
 
-        private static void SetBindingDetails(IReadOnlyList<object> attributes, ModelMetadataBindingDetails details)
+        private static void SetBindingDetails(IReadOnlyList<object> attributes, BindingMetadata details)
         {
             // For Model Name  - we only use the first attribute we find. An attribute on the parameter
             // is considered an override of an attribute on the type. This is for compatibility with [Bind]

@@ -40,9 +40,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             // Assert
             Assert.Same(metadata1.Attributes, metadata2.Attributes);
-            Assert.Same(metadata1.BindingDetails, metadata2.BindingDetails);
-            Assert.Same(metadata1.DisplayDetails, metadata2.DisplayDetails);
-            Assert.Same(metadata1.ValidationDetails, metadata2.ValidationDetails);
+            Assert.Same(metadata1.BindingMetadata, metadata2.BindingMetadata);
+            Assert.Same(metadata1.DisplayMetadata, metadata2.DisplayMetadata);
+            Assert.Same(metadata1.ValidationMetadata, metadata2.ValidationMetadata);
         }
 
         [Fact]
@@ -88,9 +88,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             for (var i = 0; i < metadata1.Length; i++)
             {
                 Assert.Same(metadata1[i].Attributes, metadata2[i].Attributes);
-                Assert.Same(metadata1[i].BindingDetails, metadata2[i].BindingDetails);
-                Assert.Same(metadata1[i].DisplayDetails, metadata2[i].DisplayDetails);
-                Assert.Same(metadata1[i].ValidationDetails, metadata2[i].ValidationDetails);
+                Assert.Same(metadata1[i].BindingMetadata, metadata2[i].BindingMetadata);
+                Assert.Same(metadata1[i].DisplayMetadata, metadata2[i].DisplayMetadata);
+                Assert.Same(metadata1[i].ValidationMetadata, metadata2[i].ValidationMetadata);
             }
         }
 
@@ -166,9 +166,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             // Assert
             Assert.Same(metadata1.Attributes, metadata2.Attributes);
-            Assert.Same(metadata1.BindingDetails, metadata2.BindingDetails);
-            Assert.Same(metadata1.DisplayDetails, metadata2.DisplayDetails);
-            Assert.Same(metadata1.ValidationDetails, metadata2.ValidationDetails);
+            Assert.Same(metadata1.BindingMetadata, metadata2.BindingMetadata);
+            Assert.Same(metadata1.DisplayMetadata, metadata2.DisplayMetadata);
+            Assert.Same(metadata1.ValidationMetadata, metadata2.ValidationMetadata);
         }
 
         [Model("OnType")]
