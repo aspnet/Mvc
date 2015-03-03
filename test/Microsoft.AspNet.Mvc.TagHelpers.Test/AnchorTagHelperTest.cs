@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Moq;
@@ -36,10 +35,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something Else");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 expectedTagName,
@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("myanchor", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("href"));
             Assert.Equal("home/index", attribute.Value);
-            Assert.Equal("Something", output.Content.ToString());
+            Assert.Equal("Something", output.Content.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -90,10 +90,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 "a",
@@ -121,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Empty(output.Content.ToString());
+            Assert.True(output.Content.IsEmpty);
         }
 
         [Fact]
@@ -132,10 +133,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 "a",
@@ -164,7 +166,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Empty(output.Content.ToString());
+            Assert.True(output.Content.IsEmpty);
         }
 
         [Theory]

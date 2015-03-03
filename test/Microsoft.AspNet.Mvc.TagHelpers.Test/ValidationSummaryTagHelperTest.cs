@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
@@ -48,10 +47,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 expectedTagName,
@@ -79,10 +79,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("form-control validation-summary-valid", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("data-valmsg-summary"));
             Assert.Equal("true", attribute.Value);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal("Custom Content<ul><li style=\"display:none\"></li>" + Environment.NewLine + "</ul>",
-                         output.PostContent.ToString());
+                         output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -129,9 +129,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("div", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
         }
 
         [Fact]
@@ -186,9 +186,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("world", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("anything"));
             Assert.Equal("something", attribute.Value);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal("Content of validation summaryNew HTML", output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal("Content of validation summaryNew HTML", output.PostContent.GetContent());
         }
 
         [Fact]
@@ -221,9 +221,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("div", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
         }
 
         [Theory]
@@ -270,9 +270,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("div", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal("Content of validation messageNew HTML", output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal("Content of validation messageNew HTML", output.PostContent.GetContent());
             generator.Verify();
         }
 

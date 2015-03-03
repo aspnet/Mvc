@@ -8,7 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Cache.Memory;
 
@@ -133,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Clear the contents of the "cache" element since we don't want to render it.
             output.SuppressOutput();
-            result.CopyTo(output.Content);
+            output.Content.SetContent(result);
         }
 
         // Internal for unit testing

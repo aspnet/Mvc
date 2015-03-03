@@ -86,8 +86,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     // Select this <option/> element if value attribute or content matches a selected value. Callers
                     // encode values as-needed while executing child content. But TagHelperOutput itself
                     // encodes attribute values later, when GenerateStartTag() is called.
-                    var text = (await context.GetChildContentAsync()).GetContent();
-                    var selected = (Value != null) ? selectedValues.Contains(Value) : encodedValues.Contains(text);
+                    var childContent = await context.GetChildContentAsync();
+                    var selected = 
+                        (Value != null) ?
+                        selectedValues.Contains(Value) :
+                        encodedValues.Contains(childContent.GetContent());
                     if (selected)
                     {
                         output.Attributes.Add("selected", "selected");

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.WebEncoders;
@@ -42,10 +41,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 expectedTagName,
@@ -77,9 +77,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("Name", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("data-valmsg-replace"));
             Assert.Equal("true", attribute.Value);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -98,10 +98,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 "span",
@@ -127,9 +128,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("span", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
         }
 
         [Theory]
@@ -154,10 +155,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(childContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
@@ -189,7 +191,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("bar", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("data-hello"));
             Assert.Equal("world", attribute.Value);
-            Assert.Equal(expectedOutputContent, output.Content.ToString());
+            Assert.Equal(expectedOutputContent, output.Content.GetContent());
         }
 
         [Theory]
@@ -212,10 +214,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(childContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
@@ -247,7 +250,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("bar", attribute.Value);
             attribute = Assert.Single(output.Attributes, kvp => kvp.Key.Equals("data-hello"));
             Assert.Equal("world", attribute.Value);
-            Assert.Equal(expectedOutputContent, output.Content.ToString());
+            Assert.Equal(expectedOutputContent, output.Content.GetContent());
         }
 
         [Fact]
@@ -277,9 +280,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("span", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
         }
 
         private static ModelExpression CreateModelExpression(string name)

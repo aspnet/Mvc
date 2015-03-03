@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Xunit;
@@ -142,10 +141,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(originalContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes, new HtmlEncoder())
             {
@@ -207,10 +207,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(originalContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(originalTagName, originalAttributes, new HtmlEncoder())
             {
@@ -267,10 +268,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(originalContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(originalTagName, originalAttributes, new HtmlEncoder())
             {

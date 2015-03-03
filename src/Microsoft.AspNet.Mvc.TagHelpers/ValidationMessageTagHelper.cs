@@ -49,18 +49,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     // We check for whitespace to detect scenarios such as:
                     // <span validation-for="Name">
                     // </span>
-                    if (!output.ContentSet)
+                    if (!output.IsContentModified)
                     {
                         var childContent = await context.GetChildContentAsync();
 
                         if (childContent.IsWhiteSpace)
                         {
                             // Provide default label text since there was nothing useful in the Razor source.
-                            output.Content.Append(tagBuilder.InnerHtml);
+                            output.Content.SetContent(tagBuilder.InnerHtml);
                         }
                         else
                         {
-                            childContent.CopyTo(output.Content);
+                            output.Content.SetContent(childContent);
                         }
                     }
                 }

@@ -12,7 +12,6 @@ using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.Logging;
@@ -115,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Null(output.TagName);
             Assert.NotNull(output.Content);
-            Assert.True(output.ContentSet);
+            Assert.True(output.IsContentModified);
         }
 
         [Fact]
@@ -160,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.StartsWith(
-                "<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content.ToString());
+                "<link rel=\"stylesheet\" data-extra=\"something\" href=\"test.css\"", output.Content.GetContent());
         }
 
         public static TheoryData DoesNotRunWhenARequiredAttributeIsMissing_Data
@@ -260,7 +259,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.NotNull(output.TagName);
-            Assert.False(output.ContentSet);
+            Assert.False(output.IsContentModified);
         }
 
         [Fact]
@@ -284,7 +283,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.NotNull(output.TagName);
-            Assert.False(output.ContentSet);
+            Assert.False(output.IsContentModified);
         }
 
         [Fact]
@@ -324,7 +323,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("<link href=\"/css/site.css\" rel=\"stylesheet\" />" +
-                         "<link href=\"/base.css\" rel=\"stylesheet\" />", output.Content.ToString());
+                         "<link href=\"/base.css\" rel=\"stylesheet\" />", output.Content.GetContent());
         }
 
         [Fact]
@@ -364,7 +363,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("<link href=\"HtmlEncode[[/css/site.css]]\" rel=\"stylesheet\" />" +
-                         "<link href=\"HtmlEncode[[/base.css]]\" rel=\"stylesheet\" />", output.Content);
+                         "<link href=\"HtmlEncode[[/base.css]]\" rel=\"stylesheet\" />", output.Content.GetContent());
         }
 
         private static ViewContext MakeViewContext()
@@ -387,10 +386,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(content);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
         }
 

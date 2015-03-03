@@ -46,8 +46,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 if (tagBuilder != null)
                 {
                     // Overwrite current Content to ensure expression result round-trips correctly.
-                    output.Content.Clear();
-                    output.Content.Append(tagBuilder.InnerHtml);
+                    output.Content.SetContent(tagBuilder.InnerHtml);
 
                     output.MergeAttributes(tagBuilder);
                 }

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.Cache.Memory;
@@ -260,10 +259,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper1.ProcessAsync(tagHelperContext1, tagHelperOutput1);
 
             // Assert - 1
-            Assert.Empty(tagHelperOutput1.PreContent.ToString());
-            Assert.Empty(tagHelperOutput1.PostContent.ToString());
-            Assert.True(tagHelperOutput1.ContentSet);
-            Assert.Equal(childContent, tagHelperOutput1.Content.ToString());
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.True(tagHelperOutput1.IsContentModified);
+            Assert.Equal(childContent, tagHelperOutput1.Content.GetContent());
 
             // Arrange - 2
             var tagHelperContext2 = GetTagHelperContext(id, "different-content");
@@ -281,10 +280,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
             // Assert - 2
-            Assert.Empty(tagHelperOutput2.PreContent.ToString());
-            Assert.Empty(tagHelperOutput2.PostContent.ToString());
-            Assert.True(tagHelperOutput2.ContentSet);
-            Assert.Equal(childContent, tagHelperOutput2.Content.ToString());
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.True(tagHelperOutput2.IsContentModified);
+            Assert.Equal(childContent, tagHelperOutput2.Content.GetContent());
         }
 
         [Fact]
@@ -312,17 +311,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper1.ProcessAsync(tagHelperContext1, tagHelperOutput1);
 
             // Assert - 1
-            Assert.Empty(tagHelperOutput1.PreContent.ToString());
-            Assert.Empty(tagHelperOutput1.PostContent.ToString());
-            Assert.True(tagHelperOutput1.ContentSet);
-            Assert.Equal(childContent1, tagHelperOutput1.Content.ToString());
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.True(tagHelperOutput1.IsContentModified);
+            Assert.Equal(childContent1, tagHelperOutput1.Content.GetContent());
 
             // Arrange - 2
             var childContent2 = "different-content";
             var tagHelperContext2 = GetTagHelperContext(id, childContent2);
-            var tagHelperOutput2 = new TagHelperOutput("cache",
-                                                       new Dictionary<string, string> { { "attr", "value" } },
-                                                       new HtmlEncoder())
+            var tagHelperOutput2 = new TagHelperOutput(
+                "cache",
+                new Dictionary<string, string> { { "attr", "value" } },
+                new HtmlEncoder());
             tagHelperOutput2.PreContent.Append("<cache>");
             tagHelperOutput2.PostContent.Append("</cache>");
             var cacheTagHelper2 = new CacheTagHelper
@@ -337,10 +337,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
             // Assert - 2
-            Assert.Empty(tagHelperOutput2.PreContent.ToString());
-            Assert.Empty(tagHelperOutput2.PostContent.ToString());
-            Assert.True(tagHelperOutput2.ContentSet);
-            Assert.Equal(childContent2, tagHelperOutput2.Content.ToString());
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.True(tagHelperOutput2.IsContentModified);
+            Assert.Equal(childContent2, tagHelperOutput2.Content.GetContent());
         }
 
         [Fact]
@@ -547,10 +547,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper1.ProcessAsync(tagHelperContext1, tagHelperOutput1);
 
             // Assert - 1
-            Assert.Empty(tagHelperOutput1.PreContent.ToString());
-            Assert.Empty(tagHelperOutput1.PostContent.ToString());
-            Assert.True(tagHelperOutput1.ContentSet);
-            Assert.Equal(childContent1, tagHelperOutput1.Content.ToString());
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.True(tagHelperOutput1.IsContentModified);
+            Assert.Equal(childContent1, tagHelperOutput1.Content.GetContent());
 
             // Arrange - 2
             var childContent2 = "different-content";
@@ -572,10 +572,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
             // Assert - 2
-            Assert.Empty(tagHelperOutput2.PreContent.ToString());
-            Assert.Empty(tagHelperOutput2.PostContent.ToString());
-            Assert.True(tagHelperOutput2.ContentSet);
-            Assert.Equal(childContent2, tagHelperOutput2.Content.ToString());
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.True(tagHelperOutput2.IsContentModified);
+            Assert.Equal(childContent2, tagHelperOutput2.Content.GetContent());
         }
 
         [Fact]
@@ -606,10 +606,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper1.ProcessAsync(tagHelperContext1, tagHelperOutput1);
 
             // Assert - 1
-            Assert.Empty(tagHelperOutput1.PreContent.ToString());
-            Assert.Empty(tagHelperOutput1.PostContent.ToString());
-            Assert.True(tagHelperOutput1.ContentSet);
-            Assert.Equal(childContent1, tagHelperOutput1.Content.ToString());
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.True(tagHelperOutput1.IsContentModified);
+            Assert.Equal(childContent1, tagHelperOutput1.Content.GetContent());
 
             // Arrange - 2
             currentTime = currentTime.AddMinutes(5).AddSeconds(2);
@@ -631,10 +631,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
             // Assert - 2
-            Assert.Empty(tagHelperOutput2.PreContent.ToString());
-            Assert.Empty(tagHelperOutput2.PostContent.ToString());
-            Assert.True(tagHelperOutput2.ContentSet);
-            Assert.Equal(childContent2, tagHelperOutput2.Content.ToString());
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.True(tagHelperOutput2.IsContentModified);
+            Assert.Equal(childContent2, tagHelperOutput2.Content.GetContent());
         }
 
         [Fact]
@@ -665,10 +665,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper1.ProcessAsync(tagHelperContext1, tagHelperOutput1);
 
             // Assert - 1
-            Assert.Empty(tagHelperOutput1.PreContent.ToString());
-            Assert.Empty(tagHelperOutput1.PostContent.ToString());
-            Assert.True(tagHelperOutput1.ContentSet);
-            Assert.Equal(childContent1, tagHelperOutput1.Content.ToString());
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.True(tagHelperOutput1.IsContentModified);
+            Assert.Equal(childContent1, tagHelperOutput1.Content.GetContent());
 
             // Arrange - 2
             currentTime = currentTime.AddSeconds(35);
@@ -690,10 +690,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
 
             // Assert - 2
-            Assert.Empty(tagHelperOutput2.PreContent.ToString());
-            Assert.Empty(tagHelperOutput2.PostContent.ToString());
-            Assert.True(tagHelperOutput2.ContentSet);
-            Assert.Equal(childContent2, tagHelperOutput2.Content.ToString());
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.True(tagHelperOutput2.IsContentModified);
+            Assert.Equal(childContent2, tagHelperOutput2.Content.GetContent());
         }
 
         [Fact]
@@ -717,7 +717,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     {
                         new CancellationTokenTrigger(tokenSource.Token)
                     });
-                    return Task.FromResult((TagHelperContent)expectedContent);
+                    return Task.FromResult<TagHelperContent>(expectedContent);
                 });
             var tagHelperOutput = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
@@ -766,10 +766,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: id,
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(childContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
         }
 

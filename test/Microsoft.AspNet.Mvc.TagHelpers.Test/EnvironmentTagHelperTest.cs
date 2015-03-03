@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Moq;
@@ -99,10 +98,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 
             // Assert
             Assert.Null(output.TagName);
-            Assert.Empty(output.PreContent.ToString());
-            Assert.Empty(output.Content.ToString());
-            Assert.Empty(output.PostContent.ToString());
-            Assert.True(output.ContentSet);
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.True(output.Content.IsEmpty);
+            Assert.Empty(output.PostContent.GetContent());
+            Assert.True(output.IsContentModified);
         }
 
         private void ShouldShowContent(string namesAttribute, string environmentName)
@@ -127,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 
             // Assert
             Assert.Null(output.TagName);
-            Assert.False(output.ContentSet);
+            Assert.False(output.IsContentModified);
         }
 
         private TagHelperContext MakeTagHelperContext(
@@ -140,10 +139,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(content);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
         }
 

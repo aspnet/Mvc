@@ -19,7 +19,7 @@ namespace Asp
     {
         #line hidden
         #pragma warning disable 0414
-        private System.IO.TextWriter __tagHelperStringValueBuffer = null;
+        private TagHelperContent __tagHelperStringValueBuffer = null;
         #pragma warning restore 0414
         private Microsoft.AspNet.Razor.Runtime.TagHelpers.TagHelperExecutionContext __tagHelperExecutionContext = null;
         private Microsoft.AspNet.Razor.Runtime.TagHelpers.TagHelperRunner __tagHelperRunner = null;
@@ -48,7 +48,7 @@ namespace Asp
             EndContext();
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", true, "test", async() => {
             }
-            , StartWritingScope, EndWritingScope);
+            , StartTagHelperWritingScope, EndTagHelperWritingScope);
             __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper = CreateTagHelper<Microsoft.AspNet.Mvc.Razor.InputTestTagHelper>();
             __tagHelperExecutionContext.Add(__Microsoft_AspNet_Mvc_Razor_InputTestTagHelper);
 #line 5 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
@@ -60,7 +60,7 @@ __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__mo
             __tagHelperExecutionContext.Output = __tagHelperRunner.RunAsync(__tagHelperExecutionContext).Result;
             WriteLiteral(__tagHelperExecutionContext.Output.GenerateStartTag());
             Write(__tagHelperExecutionContext.Output.GeneratePreContent());
-            if (__tagHelperExecutionContext.Output.ContentSet)
+            if (__tagHelperExecutionContext.Output.IsContentModified)
             {
                 Write(__tagHelperExecutionContext.Output.GenerateContent());
             }
@@ -80,7 +80,7 @@ __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__mo
             EndContext();
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", true, "test", async() => {
             }
-            , StartWritingScope, EndWritingScope);
+            , StartTagHelperWritingScope, EndTagHelperWritingScope);
             __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper = CreateTagHelper<Microsoft.AspNet.Mvc.Razor.InputTestTagHelper>();
             __tagHelperExecutionContext.Add(__Microsoft_AspNet_Mvc_Razor_InputTestTagHelper);
 #line 6 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
@@ -92,7 +92,7 @@ __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__mo
             __tagHelperExecutionContext.Output = __tagHelperRunner.RunAsync(__tagHelperExecutionContext).Result;
             WriteLiteral(__tagHelperExecutionContext.Output.GenerateStartTag());
             Write(__tagHelperExecutionContext.Output.GeneratePreContent());
-            if (__tagHelperExecutionContext.Output.ContentSet)
+            if (__tagHelperExecutionContext.Output.IsContentModified)
             {
                 Write(__tagHelperExecutionContext.Output.GenerateContent());
             }

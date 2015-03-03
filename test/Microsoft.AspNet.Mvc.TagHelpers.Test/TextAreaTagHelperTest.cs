@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Xunit;
@@ -118,10 +117,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var htmlAttributes = new Dictionary<string, string>
             {
@@ -150,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.True(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -179,10 +179,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, expectedAttributes, new HtmlEncoder())
             {
@@ -209,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content.ToString());
+            Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.True(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }

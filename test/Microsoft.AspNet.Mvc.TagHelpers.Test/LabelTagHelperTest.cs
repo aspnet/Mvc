@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 using Xunit;
@@ -191,20 +190,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append(tagHelperOutputContent.OriginalChildContent);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var htmlAttributes = new Dictionary<string, string>
             {
                 { "class", "form-control" },
             };
-            var output = new TagHelperOutput(expectedTagName, htmlAttributes);
+            var output = new TagHelperOutput(expectedTagName, htmlAttributes, new HtmlEncoder());
             output.PreContent.Append(expectedPreContent);
             output.PostContent.Append(expectedPostContent);
 
-            // LabelTagHelper checks ContentSet so we don't want to forcibly set it if 
+            // LabelTagHelper checks IsContentModified so we don't want to forcibly set it if 
             // tagHelperOutputContent.OriginalContent is going to be null or empty.
             if (!string.IsNullOrEmpty(tagHelperOutputContent.OriginalContent))
             {
@@ -221,9 +221,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(tagHelperOutputContent.ExpectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(tagHelperOutputContent.ExpectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.False(output.SelfClosing);
             Assert.Equal(expectedTagName, output.TagName);
         }
@@ -253,10 +253,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new Dictionary<string, object>(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => {
+                getChildContentAsync: () =>
+                {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.Append("Something");
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, expectedAttributes, new HtmlEncoder());
             output.PreContent.Append(expectedPreContent);
@@ -274,9 +275,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.ToString());
-            Assert.Equal(expectedContent, output.Content.ToString());
-            Assert.Equal(expectedPostContent, output.PostContent.ToString());
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 

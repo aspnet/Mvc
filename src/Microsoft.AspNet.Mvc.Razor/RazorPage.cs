@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
-using Microsoft.AspNet.Razor.Runtime;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
@@ -161,11 +160,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <remarks>
         /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
-        /// be buffered until <see cref="EndWritingScope"/> is called.
+        /// be buffered until <see cref="EndTagHelperWritingScope"/> is called.
         /// </remarks>
-        public void StartWritingScope()
+        public void StartTagHelperWritingScope()
         {
-            StartWritingScope(new StringCollectionTextWriter(Encoding.UTF8));
+            StartTagHelperWritingScope(new StringCollectionTextWriter(Output.Encoding));
         }
 
         /// <summary>
@@ -173,9 +172,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <remarks>
         /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
-        /// be buffered until <see cref="EndWritingScope"/> is called.
+        /// be buffered until <see cref="EndTagHelperWritingScope"/> is called.
         /// </remarks>
-        public void StartWritingScope(TextWriter writer)
+        public void StartTagHelperWritingScope(TextWriter writer)
         {
             // If there isn't a base writer take the ViewContext.Writer
             if (_originalWriter == null)
@@ -191,11 +190,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Ends the current writing scope that was started by calling <see cref="StartWritingScope"/>.
+        /// Ends the current writing scope that was started by calling <see cref="StartTagHelperWritingScope"/>.
         /// </summary>
         /// <returns>The <see cref="TextWriter"/> that contains the content written to the <see cref="Output"/> or
         /// <see cref="ViewContext.Writer"/> during the writing scope.</returns>
-        public TextWriter EndWritingScope()
+        public TagHelperContent EndTagHelperWritingScope()
         {
             if (_writerScopes.Count == 0)
             {
@@ -227,11 +226,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                 tagHelperContentWrapperTextWriter.Write(writer.ToString());
             }
 
-            return tagHelperContentWrapperTextWriter;
+            return tagHelperContentWrapperTextWriter.Content;
         }
 
         /// <summary>
-        /// Writes a type that implements <see cref="ITextWriterCopyable"/> to the respective <see cref="Output"/>.
+        /// Writes an <see cref="ITextWriterCopyable"/> to the <see cref="Output"/>.
         /// </summary>
         /// <param name="copyableTextWriter">Contains the data to be written.</param>
         public void Write(ITextWriterCopyable copyableTextWriter)
@@ -240,15 +239,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Writes a type that implements <see cref="ITextWriterCopyable"/> to the specified <see cref="TextWriter"/>.
+        /// Writes an <see cref="ITextWriterCopyable"/> to the <paramref name="writer"/>.
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/> to which the output must be written to.</param>
-        /// <param name="copyableTextWriter">Contains the data which needs to be written to the output.</param>
+        /// <param name="copyableTextWriter">Contains the data to be written to the output.</param>
         public void WriteTo(TextWriter writer, ITextWriterCopyable copyableTextWriter)
         {
             if (copyableTextWriter != null)
             {
-                copyableTextWriter.CopyToWriter(writer);
+                copyableTextWriter.CopyTo(writer);
             }
         }
 
