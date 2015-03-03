@@ -183,7 +183,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private bool ValidateElements(string currentKey, IEnumerable model, ValidationContext validationContext)
         {
-            var elementType = ModelBindingHelper.GetElementType(model.GetType());
+            var elementType = GetElementType(model.GetType());
             var elementMetadata = _modelMetadataProvider.GetMetadataForType(elementType);
 
             var validators = validationContext.ModelValidationContext.ValidatorProvider.GetValidators(elementMetadata);
