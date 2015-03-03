@@ -12,6 +12,43 @@ namespace Microsoft.AspNet.Mvc
     public class ControllerActionDescriptorBuilderTest
     {
         [Fact]
+        public void Build_WithControllerPropertiesSet_AddsPropertiesWithBinderMetadataSet()
+        {
+            // Arrange
+            var applicationModel = new ApplicationModel();
+            var controller = new ControllerModel(typeof(TestController).GetTypeInfo(),
+                                                 new List<object>() { });
+            controller.ControllerProperties.Add(
+                new PropertyModel(
+                    controller.ControllerType.GetProperty("BoundProperty"),
+                    new List<object>() { })
+                {
+                    BinderMetadata = new FromQueryAttribute(),
+                    PropertyName = "BoundProperty"
+                });
+
+            controller.ControllerProperties.Add(
+               new PropertyModel(controller.ControllerType.GetProperty("UnboundProperty"), new List<object>() { }));
+
+            controller.Application = applicationModel;
+            applicationModel.Controllers.Add(controller);
+
+            var methodInfo = typeof(TestController).GetMethod("SomeAction");
+            var actionModel = new ActionModel(methodInfo, new List<object>() { });
+            actionModel.Controller = controller;
+            controller.Actions.Add(actionModel);
+
+            // Act
+            var descriptors = ControllerActionDescriptorBuilder.Build(applicationModel);
+
+            // Assert
+            var property = Assert.Single(descriptors.Single().CommonParameters);
+            Assert.Equal("BoundProperty", property.Name);
+            Assert.Equal(typeof(string), property.ParameterType);
+            Assert.NotNull(property.BinderMetadata);
+        }
+
+        [Fact]
         public void Build_WithPropertiesSet_FromApplicationModel()
         {
             // Arrange
@@ -88,6 +125,11 @@ namespace Microsoft.AspNet.Mvc
 
         private class TestController
         {
+            [FromQuery]
+            public string BoundProperty { get; set; }
+
+            public string UnboundProperty { get; set; }
+
             public void SomeAction() { }
         }
     }

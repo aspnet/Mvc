@@ -20,6 +20,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="bindingContext">The <see cref="ActionBindingContext"/>.</param>
         Task<IDictionary<string, object>> GetActionArgumentsAsync(
             [NotNull] ActionContext context, 
-            [NotNull] ActionBindingContext bindingContext);
+            [NotNull] ActionBindingContext bindingContext,
+            [NotNull] object controller);
     }
 }

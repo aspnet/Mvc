@@ -30,6 +30,11 @@ namespace Microsoft.AspNet.Mvc
 
         public IList<ParameterDescriptor> Parameters { get; set; }
 
+        /// <summary>
+        /// The set of parameters which are common across actions.
+        /// </summary>
+        public IList<ParameterDescriptor> CommonParameters { get; set; }
+
         public IList<FilterDescriptor> FilterDescriptors { get; set; }
 
         /// <summary>

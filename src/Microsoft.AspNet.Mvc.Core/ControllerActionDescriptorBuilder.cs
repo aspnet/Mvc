@@ -42,6 +42,7 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var controller in application.Controllers)
             {
+                var controllerPropertyDescriptors = controller.ControllerProperties.Select(CreateParameterDescriptor);
                 foreach (var action in controller.Actions)
                 {
                     // Controllers with multiple [Route] attributes (or user defined implementation of
@@ -59,6 +60,11 @@ namespace Microsoft.AspNet.Mvc
                         AddApiExplorerInfo(actionDescriptor, application, controller, action);
                         AddRouteConstraints(removalConstraints, actionDescriptor, controller, action);
                         AddProperties(actionDescriptor, action, controller, application);
+
+                        // Only add properties which are explictly marked to bind.
+                        actionDescriptor.CommonParameters = controllerPropertyDescriptors
+                            .Where(p => p.BinderMetadata != null)
+                            .ToList();
 
                         if (IsAttributeRoutedAction(actionDescriptor))
                         {
@@ -279,6 +285,18 @@ namespace Microsoft.AspNet.Mvc
                 Name = parameter.ParameterName,
                 ParameterType = parameter.ParameterInfo.ParameterType,
                 BindingInfo = parameter.BindingInfo
+            };
+
+            return parameterDescriptor;
+        }
+
+        private static ParameterDescriptor CreateParameterDescriptor(PropertyModel property)
+        {
+            var parameterDescriptor = new ParameterDescriptor()
+            {
+                BinderMetadata = property.BinderMetadata,
+                Name = property.PropertyName,
+                ParameterType = property.PropertyInfo.PropertyType,
             };
 
             return parameterDescriptor;
