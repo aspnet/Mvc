@@ -1208,7 +1208,7 @@ namespace Microsoft.AspNet.Mvc
         [NonAction]
         public virtual bool TryValidateModel([NotNull] object model)
         {
-            return TryValidateModel(model, prefix: string.Empty);
+            return TryValidateModel(model, prefix: null);
         }
 
         /// <summary>
@@ -1233,7 +1233,11 @@ namespace Microsoft.AspNet.Mvc
 
             var modelName = prefix ?? string.Empty;
 
-            ModelState.ClearModelStateDictionaryForModel(modelExplorer.Metadata, modelName, MetadataProvider);
+            ModelBindingHelper.ClearModelStateDictionaryForModel(
+                model.GetType(),
+                ModelState,
+                MetadataProvider,
+                modelName);
 
             var validationContext = new ModelValidationContext(
                 modelName,

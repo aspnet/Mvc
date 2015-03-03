@@ -5,7 +5,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 using Microsoft.Framework.Internal;
 
@@ -371,69 +370,30 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Clears <see cref="ModelStateDictionary"/> entries for model in specified <see cref="ModelMetadata"/>.
-        /// </summary>
-        /// <param name="modelMetadata">The <see cref="ModelMetadata"/>.</param>
-        /// <param name="modelKey">The entry to clear. </param>
-        /// <param name="modelMetadataProvider">The <see cref="IModelMetadataProvider"/>.</param>
-        public void ClearModelStateDictionaryForModel(
-            [NotNull] ModelMetadata modelMetadata,
-            [NotNull] string modelKey,
-            IModelMetadataProvider modelMetadataProvider)
-        {
-            if (modelMetadata.IsCollectionType)
-            {
-                var elementType = ModelBindingHelper.GetElementType(modelMetadata.ModelType);
-                var elementMetadata = modelMetadataProvider.GetMetadataForType(elementType);
-
-                ClearModelStateDictionaryForModel(elementMetadata, modelKey);
-            }
-            else
-            {
-                ClearModelStateDictionaryForModel(modelMetadata, modelKey);
-            }
-        }
-
-        /// <summary>
-        /// Clears <see cref="ModelStateDictionary"/> entries for model in specified <see cref="ModelMetadata"/>.
-        /// </summary>
-        /// <param name="modelMetadata">The <see cref="ModelMetadata"/>.</param>
-        /// <param name="modelKey">The entry to clear.</param>
-        public void ClearModelStateDictionaryForModel(
-            [NotNull] ModelMetadata modelMetadata,
-            [NotNull] string modelKey)
-        {
-            foreach (var property in modelMetadata.Properties)
-            {
-                var propertyBindingName = property.BinderModelName ?? property.PropertyName;
-                var childKey = ModelBindingHelper.CreatePropertyModelName(modelKey, propertyBindingName);
-
-                ClearModelStateDictionaryEntries(childKey);
-            }
-        }
-
-        /// <summary>
         /// Clears <see cref="ModelStateDictionary"/> entries that match the key that is passed as parameter.
         /// </summary>
         /// <param name="key">The key of <see cref="ModelStateDictionary"/> to clear.</param>
-        public void ClearModelStateDictionaryEntries([NotNull] string key)
+        public void ClearModelStateDictionaryEntries(string key)
         {
-            var pattern = "^(" + key + "|(" + key + @"\[\d*\]\..)|(" + key + @"\..)|(\[\d*\]\." +
-                key + @")|(\[\d*\]\." + key + @"\[\d*\]\..)|(\[\d*\]\." + key + @"\..))$";
-            var regularExpression = new Regex(pattern);
-            foreach (var dictionaryKey in _innerDictionary.Keys)
+            IEnumerable<KeyValuePair<string, ModelState>> entries;
+
+            // If key is null or empty, clear all entries in the dictionary
+            // else just clear the ones that have key as prefix
+            if (string.IsNullOrEmpty(key))
             {
-                var match = regularExpression.Match(dictionaryKey);
-                    if (match.Success)
-                    {
-                        ModelState modelState;
-                        TryGetValue(dictionaryKey, out modelState);
-                        if (modelState != null)
-                        {
-                            modelState.Errors.Clear();
-                            modelState.ValidationState = ModelValidationState.Unvalidated;
-                        }
-                    }
+                entries = _innerDictionary.AsEnumerable();
+            }
+            else
+            {
+                entries = DictionaryHelper.FindKeysWithPrefix(this, key);
+            }
+            if (entries.Any())
+            {
+                foreach (var entry in entries)
+                {
+                    entry.Value.Errors.Clear();
+                    entry.Value.ValidationState = ModelValidationState.Unvalidated;
+                }
             }
         }
 

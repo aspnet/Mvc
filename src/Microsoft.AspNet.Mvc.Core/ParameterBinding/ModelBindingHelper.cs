@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -254,7 +257,7 @@ namespace Microsoft.AspNet.Mvc
 
             var modelMetadata = metadataProvider.GetMetadataForType(modelType);
 
-            modelState.ClearModelStateDictionaryForModel(modelMetadata, prefix, metadataProvider);
+            ClearModelStateDictionaryForModel(modelType, modelState, metadataProvider, prefix);
 
             var operationBindingContext = new OperationBindingContext
             {
@@ -382,6 +385,55 @@ namespace Microsoft.AspNet.Mvc
             {
                 return prefix + "." + propertyName;
             }
+        }
+
+        internal static void ClearModelStateDictionaryForModel(
+            [NotNull] Type modelType,
+            [NotNull] ModelStateDictionary modelstate,
+            [NotNull] IModelMetadataProvider metadataProvider,
+            string modelKey)
+        {
+            if (string.IsNullOrEmpty(modelKey))
+            {
+                var modelMetadata = metadataProvider.GetMetadataForType(modelType);
+                if (modelMetadata.IsCollectionType)
+                {
+                    var elementType = GetElementType(modelMetadata.ModelType);
+                    modelMetadata = metadataProvider.GetMetadataForType(elementType);
+                }
+
+                foreach (var property in modelMetadata.Properties)
+                {
+                    var propertyBindingName = property.BinderModelName ?? property.PropertyName;
+                    var childKey = ModelBindingHelper.CreatePropertyModelName(modelKey, propertyBindingName);
+
+                    modelstate.ClearModelStateDictionaryEntries(childKey);
+                }
+            }
+            else
+            {
+                modelstate.ClearModelStateDictionaryEntries(modelKey);
+            }
+        }
+
+        private static Type GetElementType(Type type)
+        {
+            Debug.Assert(typeof(IEnumerable).IsAssignableFrom(type));
+            if (type.IsArray)
+            {
+                return type.GetElementType();
+            }
+
+            foreach (var implementedInterface in type.GetInterfaces())
+            {
+                if (implementedInterface.IsGenericType() &&
+                    implementedInterface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return implementedInterface.GetGenericArguments()[0];
+                }
+            }
+
+            return typeof(object);
         }
     }
 }
