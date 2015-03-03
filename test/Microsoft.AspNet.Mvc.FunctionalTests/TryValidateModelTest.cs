@@ -38,6 +38,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var body = await response.Content.ReadAsStringAsync();
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
+            //TO-DO: Uncomment after issue 1694 is fixed
             //Assert.Equal(4, json.Count);
             Assert.Equal("CompanyName cannot be null or empty.", json["CompanyName"]);
             Assert.Equal("The field Price must be between 20 and 100.", json["Price"]);
