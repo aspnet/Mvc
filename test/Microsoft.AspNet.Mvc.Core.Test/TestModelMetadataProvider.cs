@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var property = containerType.GetRuntimeProperty(propertyName);
             Assert.NotNull(property);
 
-            var key = ModelMetadataIdentity.ForProperty(property.PropertyType, propertyName, containerType);
+            var key = ModelMetadataIdentity.ForProperty(property.PropertyType, property.Name, containerType);
 
             var builder = new MetadataBuilder(key);
             _detailsProvider.Builders.Add(builder);

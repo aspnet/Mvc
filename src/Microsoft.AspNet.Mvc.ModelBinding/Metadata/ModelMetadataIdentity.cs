@@ -22,26 +22,33 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             return new ModelMetadataIdentity()
             {
                 ModelType = modelType,
-                MetadataKind = ModelMetadataKind.Type,
             };
         }
 
         /// <summary>
         /// Creates a <see cref="ModelMetadataIdentity"/> for the provided <see cref="ParameterInfo"/>.
         /// </summary>
-        /// <param name="parameterInfo"></param>
-        /// <returns></returns>
+        /// <param name="parameterInfo">The model parameter.</param>
+        /// <returns>A <see cref="ModelMetadataIdentity"/>.</returns>
         public static ModelMetadataIdentity ForParameter([NotNull] ParameterInfo parameterInfo)
         {
             return new ModelMetadataIdentity()
             {
                 ParameterInfo = parameterInfo,
-                ModelType = parameterInfo.ParameterType,
+
                 Name = parameterInfo.Name,
-                MetadataKind = ModelMetadataKind.Parameter,
+                ModelType = parameterInfo.ParameterType,
             };
         }
 
+
+        /// <summary>
+        /// Creates a <see cref="ModelMetadataIdentity"/> for the provided property.
+        /// </summary>
+        /// <param name="modelType">The model type.</param>
+        /// <param name="name">The name of the property.</param>
+        /// <param name="containerType">The container type of the model property.</param>
+        /// <returns>A <see cref="ModelMetadataIdentity"/>.</returns>
         public static ModelMetadataIdentity ForProperty(
             [NotNull] Type modelType,
             [NotNull] string name,
@@ -57,18 +64,52 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 ModelType = modelType,
                 Name = name,
                 ContainerType = containerType,
-                MetadataKind = ModelMetadataKind.Property,
             };
         }
 
+        /// <summary>
+        /// Gets the <see cref="Type"/> defining the model property respresented by the current
+        /// instance, or <c>null</c> if the current instance does not represent a property.
+        /// </summary>
         public Type ContainerType { get; private set; }
 
-        public ModelMetadataKind MetadataKind { get; private set; }
-
+        /// <summary>
+        /// Gets the <see cref="ParameterInfo"/> represented by the current instance, or <c>null</c>
+        /// if the current instance does not represent a parameter.
+        /// </summary>
         public ParameterInfo ParameterInfo { get; private set; }
 
+        /// <summary>
+        /// Gets the <see cref="Type"/> represented by the current instance.
+        /// </summary>
         public Type ModelType { get; private set; }
 
+        /// <summary>
+        /// Gets a value indicating the kind of metadata represented by the current instance.
+        /// </summary>
+        public ModelMetadataKind MetadataKind
+        {
+            get
+            {
+                if (ParameterInfo != null)
+                {
+                    return ModelMetadataKind.Parameter;
+                }
+                else if (ContainerType != null && Name != null)
+                {
+                    return ModelMetadataKind.Property;
+                }
+                else
+                {
+                    return ModelMetadataKind.Type;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of the current instance if it represents a parameter or property, or <c>null</c> if
+        /// the current instance represents a type.
+        /// </summary>
         public string Name { get; private set; }
     }
 }
