@@ -1,0 +1,18 @@
+﻿@using Microsoft.Framework.DependencyInjection
+@addTagHelper "*, Microsoft.AspNet.Mvc.TagHelpers"
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Form</title>
+</head>
+<body>
+
+    <h2>Form Tag Helper Test</h2>
+    
+    <form asp-controller="MvcTagHelper_Order" asp-action="Submit"></form>
+    <form asp-controller="MvcTagHelper_Order" asp-action="Submit" asp-anti-forgery="true"></form>
+    <form asp-controller="MvcTagHelper_Order" asp-action="Submit" asp-anti-forgery="false"></form>
+</body>
+</html>
