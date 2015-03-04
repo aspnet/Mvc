@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -347,9 +348,6 @@ Products: Laptops (3)";
         {
             // Arrange
             var newServices = new ServiceCollection();
-            newServices.AddTransient<IHtmlGenerator, Generator>();
-            //newServices.AddTransient<IHtmlGenerator, DefaultHtmlGenerator>();
-            //newServices.AddScoped<IUrlHelper, UrlHelper>();
             newServices.ConfigureTagHelpers().ConfigureForm(options => options.AntiForgery = optionsAntiForgery);
             var serviceProvider = TestHelper.CreateServices("MvcTagHelpersWebSite", newServices);
             var server = TestServer.Create(serviceProvider, _app);
@@ -368,42 +366,14 @@ Products: Laptops (3)";
             // The host is not important as everything runs in memory and tests are isolated from each other.
             var response = await client.GetAsync("http://localhost/MvcTagHelper_Home/Form");
             var responseContent = await response.Content.ReadAsStringAsync();
-
+            
+            var forgeryTokens = AntiForgeryTestHelper.RetrieveAntiForgeryTokens(responseContent);
+            expectedContent = string.Format(expectedContent, forgeryTokens.ToArray());
+            
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
             Assert.Equal(expectedContent.Trim(), responseContent.Trim());
-        }
-
-        public class TestUrlHelper : UrlHelper
-        {
-            public TestUrlHelper(IScopedInstance<ActionContext> contextAccessor, IActionSelector actionSelector)
-                : base(contextAccessor, actionSelector)
-            {
-
-            }
-        }
-
-        public class Generator : DefaultHtmlGenerator
-        {
-            public Generator(
-                AntiForgery antiForgery,
-                IScopedInstance<ActionBindingContext> bindingContextAccessor,
-                IModelMetadataProvider metadataProvider,
-                IUrlHelper urlHelper)
-                : base(antiForgery, bindingContextAccessor, metadataProvider, urlHelper)
-            {
-
-            }
-
-            public override TagBuilder GenerateAntiForgery(ViewContext viewContext)
-            {
-                var builder = new TagBuilder("input");
-                builder.Attributes.Add("type", "hidden");
-                builder.Attributes.Add("name", "__AntiForgeryToken");
-                builder.Attributes.Add("value", "test");
-                return builder;
-            }
         }
     }
 }
