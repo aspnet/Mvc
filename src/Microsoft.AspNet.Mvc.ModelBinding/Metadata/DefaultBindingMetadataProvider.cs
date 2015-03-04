@@ -16,11 +16,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// <inheritdoc />
         public void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
-            SetBindingDetails(context.Attributes, context.BindingMetadata);
-        }
-
-        private static void SetBindingDetails(IReadOnlyList<object> attributes, BindingMetadata details)
-        {
             // For Model Name  - we only use the first attribute we find. An attribute on the parameter
             // is considered an override of an attribute on the type. This is for compatibility with [Bind]
             // from MVC 5.
@@ -28,37 +23,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // BinderType and BindingSource fall back to the first attribute to provide a value.
 
             // BinderModelName
-            var binderModelNameAttribute = attributes.OfType<IModelNameProvider>().FirstOrDefault();
+            var binderModelNameAttribute = context.Attributes.OfType<IModelNameProvider>().FirstOrDefault();
             if (binderModelNameAttribute?.Name != null)
             {
-                details.BinderModelName = binderModelNameAttribute.Name;
+                context.BindingMetadata.BinderModelName = binderModelNameAttribute.Name;
             }
 
             // BinderType
-            foreach (var binderTypeAttribute in attributes.OfType<IBinderTypeProviderMetadata>())
+            foreach (var binderTypeAttribute in context.Attributes.OfType<IBinderTypeProviderMetadata>())
             {
                 if (binderTypeAttribute.BinderType != null)
                 {
-                    details.BinderType = binderTypeAttribute.BinderType;
+                    context.BindingMetadata.BinderType = binderTypeAttribute.BinderType;
                     break;
                 }
             }
 
             // BindingSource
-            foreach (var bindingSourceAttribute in attributes.OfType<IBindingSourceMetadata>())
+            foreach (var bindingSourceAttribute in context.Attributes.OfType<IBindingSourceMetadata>())
             {
                 if (bindingSourceAttribute.BindingSource != null)
                 {
-                    details.BindingSource = bindingSourceAttribute.BindingSource;
+                    context.BindingMetadata.BindingSource = bindingSourceAttribute.BindingSource;
                     break;
                 }
             }
 
             // PropertyBindingPredicateProvider
-            var predicateProviders = attributes.OfType<IPropertyBindingPredicateProvider>().ToArray();
+            var predicateProviders = context.Attributes.OfType<IPropertyBindingPredicateProvider>().ToArray();
             if (predicateProviders.Length > 0)
             {
-                details.PropertyBindingPredicateProvider = new CompositePredicateProvider(predicateProviders);
+                context.BindingMetadata.PropertyBindingPredicateProvider = new CompositePredicateProvider(
+                    predicateProviders);
             }
         }
 

@@ -30,16 +30,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the model is read-only. Will be ignored
-        /// if the model metadata being created is not a property. If <c>null</c> the value will be
-        /// computed based on the accessibility of the property accessor and model <see cref="Type"/>.
-        /// See <see cref="ModelMetadata.IsReadOnly"/>.
+        /// if the model metadata being created is not a property. If <c>null</c> then
+        /// <see cref="ModelMetadata.IsReadOnly"/> will be  computed based on the accessibility
+        /// of the property accessor and model <see cref="Type"/>. See <see cref="ModelMetadata.IsReadOnly"/>.
         /// </summary>
         public bool? IsReadOnly { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the model is a required value. Will be ignored
-        /// if the model metadata being created is not a property. If <c>null</c> the value will be
-        /// computed based on the model <see cref="Type"/>.
+        /// if the model metadata being created is not a property. If <c>null</c> then
+        /// <see cref="ModelMetadata.IsRequired"/> will be computed based on the model <see cref="Type"/>.
         /// See <see cref="ModelMetadata.IsRequired"/>.
         /// </summary>
         public bool? IsRequired { get; set; }

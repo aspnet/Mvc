@@ -155,9 +155,11 @@ namespace Microsoft.AspNet.Mvc
         /// <remarks>
         /// A provider should implement one or more of the following interfaces, depending on what
         /// kind of details are provided:
-        /// - <see cref="IModelMetadataBindingDetailsProvider"/>
-        /// - <see cref="IDisplayMetadataProvider"/>
-        /// - <see cref="IValiationMetadataProvider"/>
+        /// <ul>
+        /// <li><see cref="IModelMetadataBindingDetailsProvider"/></li>
+        /// <li><see cref="IDisplayMetadataProvider"/></li>
+        /// <li><see cref="IValiationMetadataProvider"/></li>
+        /// </ul>
         /// </remarks>
         public IList<IMetadataDetailsProvider> ModelMetadataProviders { get; }
     }

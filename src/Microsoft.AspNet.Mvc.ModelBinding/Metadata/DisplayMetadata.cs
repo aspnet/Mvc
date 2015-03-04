@@ -64,13 +64,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public bool HideSurroundingHtml { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating if the value should be HTML encoded.
+        /// Gets or sets a value indicating if the model value should be HTML encoded.
         /// See <see cref="ModelMetadata.HtmlEncode"/>
         /// </summary>
         public bool HtmlEncode { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the text to display when the value is null.
+        /// Gets or sets the text to display when the model value is null.
         /// See <see cref="ModelMetadata.NullDisplayText"/>
         /// </summary>
         public string NullDisplayText { get; set; }

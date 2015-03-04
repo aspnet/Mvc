@@ -31,11 +31,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// <inheritdoc />
         public void GetDisplayMetadata([NotNull] DisplayMetadataProviderContext context)
         {
-            SetDisplayDetails(context.Attributes, context.DisplayMetadata);
-        }
-
-        private static void SetDisplayDetails(IReadOnlyList<object> attributes, DisplayMetadata details)
-        {
+            var attributes = context.Attributes;
             var dataTypeAttribute = attributes.OfType<DataTypeAttribute>().FirstOrDefault();
             var displayAttribute = attributes.OfType<DisplayAttribute>().FirstOrDefault();
             var displayColumnAttribute = attributes.OfType<DisplayColumnAttribute>().FirstOrDefault();
@@ -54,43 +50,45 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 displayFormatAttribute = dataTypeAttribute.DisplayFormat;
             }
 
+            var displayMetadata = context.DisplayMetadata;
+
             // ConvertEmptyStringToNull
             if (displayFormatAttribute != null)
             {
-                details.ConvertEmptyStringToNull = displayFormatAttribute.ConvertEmptyStringToNull;
+                displayMetadata.ConvertEmptyStringToNull = displayFormatAttribute.ConvertEmptyStringToNull;
             }
 
             // DataTypeName
             if (dataTypeAttribute != null)
             {
-                details.DataTypeName = dataTypeAttribute.GetDataTypeName();
+                displayMetadata.DataTypeName = dataTypeAttribute.GetDataTypeName();
             }
             else if (displayFormatAttribute != null && !displayFormatAttribute.HtmlEncode)
             {
-                details.DataTypeName = DataType.Html.ToString();
+                displayMetadata.DataTypeName = DataType.Html.ToString();
             }
 
             // Description
             if (displayAttribute != null)
             {
-                details.Description = displayAttribute.Description;
+                displayMetadata.Description = displayAttribute.GetDescription();
             }
 
             // DisplayFormat
             if (displayFormatAttribute != null)
             {
-                details.DisplayFormatString = displayFormatAttribute.DataFormatString;
+                displayMetadata.DisplayFormatString = displayFormatAttribute.DataFormatString;
             }
 
             // DisplayName
             if (displayAttribute != null)
             {
-                details.DisplayName = displayAttribute.Name;
+                displayMetadata.DisplayName = displayAttribute.GetName();
             }
 
             if (displayFormatAttribute != null && displayFormatAttribute.ApplyFormatInEditMode)
             {
-                details.EditFormatString = displayFormatAttribute.DataFormatString;
+                displayMetadata.EditFormatString = displayFormatAttribute.DataFormatString;
             }
 
             // HasNonDefaultEditFormat
@@ -101,72 +99,72 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 if (dataTypeAttribute == null)
                 {
                     // Attributes include no [DataType]; [DisplayFormat] was applied directly.
-                    details.HasNonDefaultEditFormat = true;
+                    displayMetadata.HasNonDefaultEditFormat = true;
                 }
                 else if (dataTypeAttribute.DisplayFormat != displayFormatAttribute)
                 {
                     // Attributes include separate [DataType] and [DisplayFormat]; [DisplayFormat] provided override.
-                    details.HasNonDefaultEditFormat = true;
+                    displayMetadata.HasNonDefaultEditFormat = true;
                 }
                 else if (dataTypeAttribute.GetType() != typeof(DataTypeAttribute))
                 {
                     // Attributes include [DisplayFormat] copied from [DataType] and [DataType] was of a subclass.
                     // Assume the [DataType] constructor used the protected DisplayFormat setter to override its
                     // default.  That is derived [DataType] provided override.
-                    details.HasNonDefaultEditFormat = true;
+                    displayMetadata.HasNonDefaultEditFormat = true;
                 }
             }
 
             // HideSurroundingHtml
             if (hiddenInputAttribute != null)
             {
-                details.HideSurroundingHtml = !hiddenInputAttribute.DisplayValue;
+                displayMetadata.HideSurroundingHtml = !hiddenInputAttribute.DisplayValue;
             }
 
             // HtmlEncode
             if (displayFormatAttribute != null)
             {
-                details.HtmlEncode = displayFormatAttribute.HtmlEncode;
+                displayMetadata.HtmlEncode = displayFormatAttribute.HtmlEncode;
             }
 
             // NullDisplayText
             if (displayFormatAttribute != null)
             {
-                details.NullDisplayText = displayFormatAttribute.NullDisplayText;
+                displayMetadata.NullDisplayText = displayFormatAttribute.NullDisplayText;
             }
 
             // Order
             if (displayAttribute?.GetOrder() != null)
             {
-                details.Order = displayAttribute.GetOrder().Value;
+                displayMetadata.Order = displayAttribute.GetOrder().Value;
             }
 
             // ShowForDisplay 
             if (scaffoldColumnAttribute != null)
             {
-                details.ShowForDisplay = scaffoldColumnAttribute.Scaffold;
+                displayMetadata.ShowForDisplay = scaffoldColumnAttribute.Scaffold;
             }
 
             // ShowForEdit
             if (scaffoldColumnAttribute != null)
             {
-                details.ShowForEdit = scaffoldColumnAttribute.Scaffold;
+                displayMetadata.ShowForEdit = scaffoldColumnAttribute.Scaffold;
             }
 
             // SimpleDisplayProperty
             if (displayColumnAttribute != null)
             {
-                details.SimpleDisplayProperty = displayColumnAttribute.DisplayColumn;
+                displayMetadata.SimpleDisplayProperty = displayColumnAttribute.DisplayColumn;
             }
 
             // TemplateHinte
             if (uiHintAttribute != null)
             {
-                details.TemplateHint = uiHintAttribute.UIHint;
+                displayMetadata.TemplateHint = uiHintAttribute.UIHint;
             }
             else if (hiddenInputAttribute != null)
             {
-                details.TemplateHint = "HiddenInput";
+                displayMetadata.TemplateHint = "HiddenInput";
             }
         }
     }

@@ -555,6 +555,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         [Fact]
+        public void DisplayAttribute_Description()
+        {
+            // Arrange
+            var display = new DisplayAttribute() { Description = "description" };
+            var provider = CreateProvider(new[] { display });
+
+            var metadata = provider.GetMetadataForType(typeof(string));
+
+            // Act
+            var result = metadata.Description;
+
+            // Assert
+            Assert.Equal("description", result);
+        }
+
+        [Fact]
         public void DataTypeName_Null_IfHtmlEncodeTrue()
         {
             // Arrange

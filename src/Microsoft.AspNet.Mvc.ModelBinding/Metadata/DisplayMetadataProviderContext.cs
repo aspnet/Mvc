@@ -7,7 +7,7 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
     /// <summary>
-    /// A context for <see cref="IDisplayMetadataProvider"/>.
+    /// A context for and <see cref="IDisplayMetadataProvider"/>.
     /// </summary>
     public class DisplayMetadataProviderContext
     {
