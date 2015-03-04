@@ -5,8 +5,15 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// Provides <see cref="DisplayMetadata"/> for a <see cref="DefaultModelMetadata"/>.
+    /// </summary>
     public interface IDisplayMetadataProvider : IMetadataDetailsProvider
     {
+        /// <summary>
+        /// Gets the values for properties of <see cref="DisplayMetadata"/>. 
+        /// </summary>
+        /// <param name="context">The <see cref="DisplayMetadataProviderContext"/>.</param>
         void GetDisplayMetadata([NotNull] DisplayMetadataProviderContext context);
     }
 }

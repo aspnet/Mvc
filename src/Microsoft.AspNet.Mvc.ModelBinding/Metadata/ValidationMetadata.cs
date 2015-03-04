@@ -3,6 +3,9 @@
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// Validation metadata details for a <see cref="ModelMetadata"/>.
+    /// </summary>
     public class ValidationMetadata
     {
     }

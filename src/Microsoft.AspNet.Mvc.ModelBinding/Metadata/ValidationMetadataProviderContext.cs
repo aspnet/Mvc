@@ -6,8 +6,16 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A context for <see cref="IValiationMetadataProvider"/>.
+    /// </summary>
     public class ValidationMetadataProviderContext
     {
+        /// <summary>
+        /// Creates a new <see cref="ValidationMetadataProviderContext"/>.
+        /// </summary>
+        /// <param name="key">The <see cref="ModelMetadataIdentity"/> for the <see cref="ModelMetadata"/>.</param>
+        /// <param name="attributes">The attributes for the <see cref="ModelMetadata"/>.</param>
         public ValidationMetadataProviderContext(
             [NotNull] ModelMetadataIdentity key, 
             [NotNull] IReadOnlyList<object> attributes)
@@ -17,10 +25,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             ValidationMetadata = new ValidationMetadata();
         }
 
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
         public IReadOnlyList<object> Attributes { get; }
 
+        /// <summary>
+        /// Gets the <see cref="ModelMetadataIdentity"/>.
+        /// </summary>
         public ModelMetadataIdentity Key { get; }
 
+        /// <summary>
+        /// Gets the <see cref="Metadata.ValidationMetadata"/>.
+        /// </summary>
         public ValidationMetadata ValidationMetadata { get; }
     }
 }

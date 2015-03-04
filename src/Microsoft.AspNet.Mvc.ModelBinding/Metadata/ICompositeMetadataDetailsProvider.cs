@@ -3,6 +3,9 @@
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A composite <see cref="IMetadataDetailsProvider"/>.
+    /// </summary>
     public interface ICompositeMetadataDetailsProvider : 
         IBindingMetadataProvider, 
         IDisplayMetadataProvider, 

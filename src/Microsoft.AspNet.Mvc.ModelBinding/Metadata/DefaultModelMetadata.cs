@@ -9,6 +9,9 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A default <see cref="ModelMetadata"/> implementation.
+    /// </summary>
     public class DefaultModelMetadata : ModelMetadata
     {
         private readonly IModelMetadataProvider _provider;
@@ -20,6 +23,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private bool? _isRequired;
         private ModelPropertyCollection _properties;
 
+        /// <summary>
+        /// Creates a new <see cref="DefaultModelMetadata"/>.
+        /// </summary>
+        /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
+        /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
+        /// <param name="cache">The <see cref="DefaultMetadataDetailsCache"/>.</param>
         public DefaultModelMetadata(
             [NotNull] IModelMetadataProvider provider,
             [NotNull] ICompositeMetadataDetailsProvider detailsProvider,
@@ -31,6 +40,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             _cache = cache;
         }
 
+        /// <summary>
+        /// Gets the set of attributes for the current instance.
+        /// </summary>
         public IReadOnlyList<object> Attributes
         {
             get
@@ -39,6 +51,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="Metadata.BindingMetadata"/> for the current instance.
+        /// </summary>
+        /// <remarks>
+        /// Accessing this property will populate the <see cref="Metadata.BindingMetadata"/> if necessary.
+        /// </remarks>
         public BindingMetadata BindingMetadata
         {
             get
@@ -54,6 +72,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="Metadata.DisplayMetadata"/> for the current instance.
+        /// </summary>
+        /// <remarks>
+        /// Accessing this property will populate the <see cref="Metadata.DisplayMetadata"/> if necessary.
+        /// </remarks>
         public DisplayMetadata DisplayMetadata
         {
             get
@@ -69,6 +93,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="Metadata.ValidationMetadata"/> for the current instance.
+        /// </summary>
+        /// <remarks>
+        /// Accessing this property will populate the <see cref="Metadata.ValidationMetadata"/> if necessary.
+        /// </remarks>
         public ValidationMetadata ValidationMetadata
         {
             get
@@ -84,6 +114,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override IReadOnlyDictionary<object, object> AdditionalValues
         {
             get
@@ -97,6 +128,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override BindingSource BindingSource
         {
             get
@@ -105,6 +137,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string BinderModelName
         {
             get
@@ -113,6 +146,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override Type BinderType
         {
             get
@@ -121,6 +155,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool ConvertEmptyStringToNull
         {
             get
@@ -129,6 +164,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string DataTypeName
         {
             get
@@ -137,6 +173,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string Description
         {
             get
@@ -145,6 +182,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string DisplayFormatString
         {
             get
@@ -153,6 +191,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string DisplayName
         {
             get
@@ -161,6 +200,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string EditFormatString
         {
             get
@@ -169,6 +209,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool HasNonDefaultEditFormat
         {
             get
@@ -177,6 +218,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool HideSurroundingHtml
         {
             get
@@ -185,6 +227,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool HtmlEncode
         {
             get
@@ -193,6 +236,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool IsReadOnly
         {
             get
@@ -213,6 +257,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool IsRequired
         {
             get
@@ -233,6 +278,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string NullDisplayText
         {
             get
@@ -241,6 +287,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override int Order
         {
             get
@@ -249,6 +296,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override ModelPropertyCollection Properties
         {
             get
@@ -264,6 +312,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override IPropertyBindingPredicateProvider PropertyBindingPredicateProvider
         {
             get
@@ -272,6 +321,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool ShowForDisplay
         {
             get
@@ -280,6 +330,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override bool ShowForEdit
         {
             get
@@ -288,6 +339,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string SimpleDisplayProperty
         {
             get
@@ -296,6 +348,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public override string TemplateHint
         {
             get

@@ -8,10 +8,15 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// An implementation of <see cref="IBindingMetadataProvider"/> and <see cref="IDisplayMetadataProvider"/> for
+    /// the System.ComponentModel.DataAnnotations attribute classes.
+    /// </summary>
     public class DataAnnotationsMetadataDetailsProvider : 
         IBindingMetadataProvider,
         IDisplayMetadataProvider
     {
+        /// <inheritdoc />
         public void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
             context.BindingMetadata.IsRequired = context.Attributes.OfType<RequiredAttribute>().Any();
@@ -23,6 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public void GetDisplayMetadata([NotNull] DisplayMetadataProviderContext context)
         {
             SetDisplayDetails(context.Attributes, context.DisplayMetadata);

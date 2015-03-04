@@ -8,8 +8,12 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A default implementation of <see cref="IBindingMetadataProvider"/>.
+    /// </summary>
     public class DefaultBindingMetadataProvider : IBindingMetadataProvider
     {
+        /// <inheritdoc />
         public void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
             SetBindingDetails(context.Attributes, context.BindingMetadata);

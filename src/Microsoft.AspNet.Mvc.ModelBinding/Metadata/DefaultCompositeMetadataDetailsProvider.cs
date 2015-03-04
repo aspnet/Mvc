@@ -7,15 +7,23 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A default implementation of <see cref="ICompositeMetadataDetailsProvider"/>.
+    /// </summary>
     public class DefaultCompositeMetadataDetailsProvider : ICompositeMetadataDetailsProvider
     {
         private readonly IEnumerable<IMetadataDetailsProvider> _providers;
 
+        /// <summary>
+        /// Creates a new <see cref="DefaultCompositeMetadataDetailsProvider"/>.
+        /// </summary>
+        /// <param name="providers">The set of <see cref="IMetadataDetailsProvider"/> instances.</param>
         public DefaultCompositeMetadataDetailsProvider(IEnumerable<IMetadataDetailsProvider> providers)
         {
             _providers = providers;
         }
 
+        /// <inheritdoc />
         public virtual void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
             foreach (var provider in _providers.OfType<IBindingMetadataProvider>())
@@ -24,6 +32,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public virtual void GetDisplayMetadata([NotNull] DisplayMetadataProviderContext context)
         {
             foreach (var provider in _providers.OfType<IDisplayMetadataProvider>())
@@ -32,6 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public virtual void GetValidationMetadata([NotNull] ValidationMetadataProviderContext context)
         {
             foreach (var provider in _providers.OfType<IValiationMetadataProvider>())

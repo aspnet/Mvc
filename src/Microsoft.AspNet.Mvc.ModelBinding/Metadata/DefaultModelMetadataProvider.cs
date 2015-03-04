@@ -9,19 +9,30 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
+    /// <summary>
+    /// A default implementation of <see cref="IModelMetadataProvider"/> based on reflection.
+    /// </summary>
     public class DefaultModelMetadataProvider : IModelMetadataProvider
     {
-        private readonly ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache> _typesCache = new ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache>();
-        private readonly ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache> _parametersCache = new ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache>();
-        private readonly ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache[]> _propertiesCache = new ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache[]>();
+        private readonly TypeCache _typeCache = new TypeCache();
+        private readonly ParameterCache _parameterCache = new ParameterCache();
+        private readonly PropertiesCache _propertiesCache = new PropertiesCache();
 
+        /// <summary>
+        /// Creates a new <see cref="DefaultModelMetadataProvider"/>.
+        /// </summary>
+        /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
         public DefaultModelMetadataProvider(ICompositeMetadataDetailsProvider detailsProvider)
         {
             DetailsProvider = detailsProvider;
         }
 
+        /// <summary>
+        /// Gets the <see cref="ICompositeMetadataDetailsProvider"/>.
+        /// </summary>
         protected ICompositeMetadataDetailsProvider DetailsProvider { get; }
 
+        /// <inheritdoc />
         public virtual ModelMetadata GetMetadataForParameter(
             [NotNull] ParameterInfo parameterInfo,
             [NotNull] IEnumerable<object> attributes)
@@ -29,15 +40,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             var key = ModelMetadataIdentity.ForParameter(parameterInfo);
 
             DefaultMetadataDetailsCache entry;
-            if (!_parametersCache.TryGetValue(key, out entry))
+            if (!_parameterCache.TryGetValue(key, out entry))
             {
                 entry = CreateParameterCacheEntry(key, attributes);
-                entry = _parametersCache.GetOrAdd(key, entry);
+                entry = _parameterCache.GetOrAdd(key, entry);
             }
 
             return CreateModelMetadata(entry);
         }
 
+        /// <inheritdoc />
         public virtual IEnumerable<ModelMetadata> GetMetadataForProperties([NotNull]Type modelType)
         {
             var key = ModelMetadataIdentity.ForType(modelType);
@@ -53,19 +65,43 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             return properties;
         }
 
+        /// <inheritdoc />
         public virtual ModelMetadata GetMetadataForType([NotNull] Type modelType)
         {
             var key = ModelMetadataIdentity.ForType(modelType);
 
-            var entry = _typesCache.GetOrAdd(key, CreateTypeCacheEntry);
+            var entry = _typeCache.GetOrAdd(key, CreateTypeCacheEntry);
             return CreateModelMetadata(entry);
         }
 
+        /// <summary>
+        /// Creates a new <see cref="ModelMetadata"/> from a <see cref="DefaultMetadataDetailsCache"/>.
+        /// </summary>
+        /// <param name="entry">The <see cref="DefaultMetadataDetailsCache"/> entry with cached data.</param>
+        /// <returns>A new <see cref="ModelMetadata"/> instance.</returns>
+        /// <remarks>
+        /// <see cref="DefaultModelMetadataProvider"/> will always create instances of
+        /// <see cref="DefaultModelMetadata"/> .Override this method to create a <see cref="ModelMetadata"/>
+        /// of a different concrete type.
+        /// </remarks>
         protected virtual ModelMetadata CreateModelMetadata(DefaultMetadataDetailsCache entry)
         {
             return new DefaultModelMetadata(this, DetailsProvider, entry);
         }
 
+        /// <summary>
+        /// Creates the <see cref="DefaultMetadataDetailsCache"/> entries for the properties of a model
+        /// <see cref="Type"/>.
+        /// </summary>
+        /// <param name="key">
+        /// The <see cref="ModelMetadataIdentity"/> identifying the model <see cref="Type"/>.
+        /// </param>
+        /// <returns>A cache object for each property of the model <see cref="Type"/>.</returns>
+        /// <remarks>
+        /// The results of this method will be cached and used to satisfy calls to
+        /// <see cref="GetMetadataForProperties(Type)"/>. Override this method to provide a different
+        /// set of property data.
+        /// </remarks>
         protected virtual DefaultMetadataDetailsCache[] CreatePropertyCacheEntries([NotNull] ModelMetadataIdentity key)
         {
             var properties = PropertyHelper.GetProperties(key.ModelType);
@@ -98,12 +134,39 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             return propertyEntries;
         }
 
+        /// <summary>
+        /// Creates the <see cref="DefaultMetadataDetailsCache"/> entry for a model <see cref="Type"/>.
+        /// </summary>
+        /// <param name="key">
+        /// The <see cref="ModelMetadataIdentity"/> identifying the model <see cref="Type"/>.
+        /// </param>
+        /// <returns>A cache object for the model <see cref="Type"/>.</returns>
+        /// <remarks>
+        /// The results of this method will be cached and used to satisfy calls to
+        /// <see cref="GetMetadataForType(Type)"/>. Override this method to provide a different
+        /// set of attributes.
+        /// </remarks>
         protected virtual DefaultMetadataDetailsCache CreateTypeCacheEntry([NotNull] ModelMetadataIdentity key)
         {
             var attributes = new List<object>(ModelAttributes.GetAttributesForType(key.ModelType));
             return new DefaultMetadataDetailsCache(key, attributes);
         }
 
+        /// <summary>
+        /// Creates the <see cref="DefaultMetadataDetailsCache"/> entry for a parameter.
+        /// </summary>
+        /// <param name="key">
+        /// The <see cref="ModelMetadataIdentity"/> identifying the model parameter.
+        /// </param>
+        /// <param name="attributes">
+        /// The set of model attributes applied to the parameter.
+        /// </param>
+        /// <returns>A cache object for the model parameter.</returns>
+        /// <remarks>
+        /// The results of this method will be cached and used to satisfy calls to
+        /// <see cref="GetMetadataForParameter(ParameterInfo, IEnumerable{object}))"/>.
+        /// Override this method to provide a different set of attributes.
+        /// </remarks>
         protected virtual DefaultMetadataDetailsCache CreateParameterCacheEntry(
             [NotNull] ModelMetadataIdentity key,
             [NotNull] IEnumerable<object> attributes)
@@ -118,6 +181,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             allAttributes.AddRange(ModelAttributes.GetAttributesForParameter(key.ParameterInfo));
 
             return new DefaultMetadataDetailsCache(key, allAttributes);
+        }
+
+        private class TypeCache : ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache>
+        {
+        }
+
+        private class PropertiesCache : ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache[]>
+        {
+        }
+
+        private class ParameterCache : ConcurrentDictionary<ModelMetadataIdentity, DefaultMetadataDetailsCache>
+        {
         }
     }
 }
