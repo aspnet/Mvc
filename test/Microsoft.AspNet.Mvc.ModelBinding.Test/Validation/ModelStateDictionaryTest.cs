@@ -747,8 +747,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary["Property3"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("Property3", "Property invalid.");
 
-            dictionary.ClearModelStateDictionaryEntries("Property1");
-            dictionary.ClearModelStateDictionaryEntries("Property2");
+            dictionary.ClearValidationState("Property1");
+            dictionary.ClearValidationState("Property2");
 
             Assert.Equal(0, dictionary["Property1"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
@@ -771,7 +771,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary["Property3"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("Property3", "Property invalid.");
 
-            dictionary.ClearModelStateDictionaryEntries("");
+            dictionary.ClearValidationState("");
 
             Assert.Equal(0, dictionary["Property1"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);

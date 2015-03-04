@@ -13,8 +13,7 @@
     "Microsoft.Framework.NotNullAttribute.Internal": { "version": "1.0.0-*", "type": "build" },
     "Microsoft.Framework.PropertyHelper.Internal": { "version": "1.0.0-*", "type": "build" },
     "Microsoft.Net.Http.Headers": "1.0.0-*",
-    "Newtonsoft.Json": "6.0.6",
-    "Microsoft.AspNet.FileProviders": "1.0.0-*"
+    "Newtonsoft.Json": "6.0.6"
   },
   "frameworks": {
     "dnx451": {

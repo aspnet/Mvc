@@ -258,7 +258,7 @@ namespace Microsoft.AspNet.Mvc
             var modelMetadata = metadataProvider.GetMetadataForType(modelType);
 
             // Clear ModelStateDictionary entries for the model so that it will be re-validated.
-            ClearModelStateDictionaryForModel(modelType, modelState, metadataProvider, prefix);
+            ClearValidationStateForModel(modelType, modelState, metadataProvider, prefix);
 
             var operationBindingContext = new OperationBindingContext
             {
@@ -388,12 +388,22 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        internal static void ClearModelStateDictionaryForModel(
+        public static string CreatePropertyModelName(string prefix, ModelMetadata modelMetadata)
+        {
+            var propertyBindingName = modelMetadata.BinderModelName ?? modelMetadata.PropertyName;
+            return CreatePropertyModelName(prefix, propertyBindingName);
+        }
+
+        internal static void ClearValidationStateForModel(
             [NotNull] Type modelType,
             [NotNull] ModelStateDictionary modelstate,
             [NotNull] IModelMetadataProvider metadataProvider,
             string modelKey)
         {
+            // If modelkey is empty, we need to iterate through properties (obtained from ModelMetadata) and
+            // clear validation state for all entries in ModelStateDictionary that start with each property name.
+            // If modelkey is non-empty, clear validation state for all entries in ModelStateDictionary 
+            // that start with modelKey
             if (string.IsNullOrEmpty(modelKey))
             {
                 var modelMetadata = metadataProvider.GetMetadataForType(modelType);
@@ -405,15 +415,13 @@ namespace Microsoft.AspNet.Mvc
 
                 foreach (var property in modelMetadata.Properties)
                 {
-                    var propertyBindingName = property.BinderModelName ?? property.PropertyName;
-                    var childKey = ModelBindingHelper.CreatePropertyModelName(modelKey, propertyBindingName);
-
-                    modelstate.ClearModelStateDictionaryEntries(childKey);
+                    var childKey = CreatePropertyModelName(modelKey, property);
+                    modelstate.ClearValidationState(childKey);
                 }
             }
             else
             {
-                modelstate.ClearModelStateDictionaryEntries(modelKey);
+                modelstate.ClearValidationState(modelKey);
             }
         }
 
