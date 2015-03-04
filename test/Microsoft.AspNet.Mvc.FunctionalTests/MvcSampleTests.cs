@@ -102,23 +102,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task FormUrlEncoded_IndexIsReachable()
-        {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
-            {
-                // Arrange
-                var server = TestServer.Create(_services, _app);
-                var client = server.CreateClient();
-
-                // Act
-                var response = await client.GetAsync("http://localhost/FormUrlEncoded");
-
-                // Assert
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            }
-        }
-
-        [Fact]
         public async Task Home_NotFoundAction_Returns404()
         {
             using (TestHelper.ReplaceCallContextServiceLocationService(_services))
