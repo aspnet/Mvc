@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// Creates a new <see cref="TagHelperOptionsCollection"/>;
         /// </summary>
-        /// <param name="serviceCollection"></param>
+        /// <param name="serviceCollection">The <see cref="IServiceCollection"/> instance to add the options to.</param>
         public TagHelperOptionsCollection([NotNull] IServiceCollection serviceCollection)
         {
             Services = serviceCollection;
@@ -24,6 +24,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <summary>
         /// The <see cref="IServiceCollection"/>.
         /// </summary>
-        public IServiceCollection Services { get; private set; }
+        public IServiceCollection Services { get; }
     }
 }

@@ -16,8 +16,8 @@ namespace Microsoft.Framework.DependencyInjection
         /// <summary>
         /// Configures options for the <see cref="FormTagHelper"/> from an <see cref="IConfiguration"/>.
         /// </summary>
-        /// <param name="collection">The <see cref="ITagHelperOptionsCollection"/>.</param>
-        /// <param name="configuration">An <see cref="IConfiguration"/> to set the options from.</param>
+        /// <param name="collection">The <see cref="ITagHelperOptionsCollection"/> instance this method extends.</param>
+        /// <param name="configuration">An <see cref="IConfiguration"/> to get the options from.</param>
         /// <returns>The <see cref="ITagHelperOptionsCollection"/>.</returns>
         public static ITagHelperOptionsCollection ConfigureForm(
             [NotNull] this ITagHelperOptionsCollection collection,
@@ -31,7 +31,7 @@ namespace Microsoft.Framework.DependencyInjection
         /// <summary>
         /// Configures options for the <see cref="FormTagHelper"/> using a delegate.
         /// </summary>
-        /// <param name="collection">The <see cref="ITagHelperOptionsCollection"/>.</param>
+        /// <param name="collection">The <see cref="ITagHelperOptionsCollection"/> instance this method extends.</param>
         /// <param name="setupAction">The options setup delegate.</param>
         /// <returns>The <see cref="ITagHelperOptionsCollection"/>.</returns>
         public static ITagHelperOptionsCollection ConfigureForm(
