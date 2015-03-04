@@ -735,7 +735,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ModelStateDictionary_ClearEntriesPrefixedWithKey_NonEmptyKey()
+        public void ModelStateDictionary_ClearEntriesThatMatchWithKey_NonEmptyKey()
         {
             var dictionary = new ModelStateDictionary();
 
@@ -756,6 +756,39 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property2"].ValidationState);
             Assert.Equal(1, dictionary["Property3"].Errors.Count);
             Assert.Equal(ModelValidationState.Invalid, dictionary["Property3"].ValidationState);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ClearEntriesPrefixedWithKey_NonEmptyKey()
+        {
+            var dictionary = new ModelStateDictionary();
+
+            dictionary["Product"] = new ModelState { ValidationState = ModelValidationState.Valid };
+
+            dictionary["Product.Detail1"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Product.Detail1", "Product Detail1 invalid.");
+
+            dictionary["Product.Detail2[0]"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Product.Detail2[0]", "Product Detail2[0] invalid.");
+
+            dictionary["Product.Detail2[1]"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("Product.Detail2[1]", "Product Detail2[1] invalid.");
+
+            dictionary["ProductName"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("ProductName", "ProductName invalid.");
+
+            dictionary.ClearValidationState("Product");
+
+            Assert.Equal(0, dictionary["Product"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
+            Assert.Equal(0, dictionary["Product.Detail1"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail1"].ValidationState);
+            Assert.Equal(0, dictionary["Product.Detail2[0]"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail2[0]"].ValidationState);
+            Assert.Equal(0, dictionary["Product.Detail2[1]"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail2[1]"].ValidationState);
+            Assert.Equal(1, dictionary["ProductName"].Errors.Count);
+            Assert.Equal(ModelValidationState.Invalid, dictionary["ProductName"].ValidationState);
         }
 
         [Fact]

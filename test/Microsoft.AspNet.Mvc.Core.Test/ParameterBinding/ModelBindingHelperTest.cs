@@ -667,6 +667,107 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal(expectedMessage, exception.Message);
         }
 
+        [Fact]
+        public void ClearValidationStateForModel_EmtpyModelKey()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            ModelStateDictionary dictionary = new ModelStateDictionary();
+            dictionary["MyProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("MyProperty", "MyProperty invalid.");
+            dictionary["IncludedProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("IncludedProperty", "Included Property invalid.");
+            dictionary.AddModelError("IncludedProperty", "Included Property required.");
+            dictionary["ExcludedProperty"] = new ModelState { ValidationState = ModelValidationState.Valid };
+
+            // Act
+            ModelBindingHelper.ClearValidationStateForModel(
+                typeof(MyModel),
+                dictionary,
+                metadataProvider,
+                "");
+
+            // Assert
+            Assert.Equal(0, dictionary["MyProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["MyProperty"].ValidationState);
+            Assert.Equal(0, dictionary["IncludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["IncludedProperty"].ValidationState);
+            Assert.Equal(0, dictionary["ExcludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["ExcludedProperty"].ValidationState);
+        }
+
+        [Fact]
+        public void ClearValidationStateForCollectionsModel_EmtpyModelKey()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            ModelStateDictionary dictionary = new ModelStateDictionary();
+            dictionary["[0].MyProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("[0].MyProperty", "MyProperty invalid.");
+            dictionary["[0].IncludedProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("[0].IncludedProperty", "Included Property invalid.");
+            dictionary.AddModelError("[0].IncludedProperty", "Included Property required.");
+            dictionary["[0].ExcludedProperty"] = new ModelState { ValidationState = ModelValidationState.Valid };
+
+            dictionary["[1].MyProperty"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["[1].IncludedProperty"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["[1].ExcludedProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("[1].ExcludedProperty", "Excluded Property invalid.");
+
+            // Act
+            ModelBindingHelper.ClearValidationStateForModel(
+                typeof(List<MyModel>),
+                dictionary,
+                metadataProvider,
+                "");
+
+            // Assert
+            Assert.Equal(0, dictionary["[0].MyProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[0].MyProperty"].ValidationState);
+            Assert.Equal(0, dictionary["[0].IncludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[0].IncludedProperty"].ValidationState);
+            Assert.Equal(0, dictionary["[0].ExcludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[0].ExcludedProperty"].ValidationState);
+            Assert.Equal(0, dictionary["[1].MyProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[1].MyProperty"].ValidationState);
+            Assert.Equal(0, dictionary["[1].IncludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[1].IncludedProperty"].ValidationState);
+            Assert.Equal(0, dictionary["[1].ExcludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["[1].ExcludedProperty"].ValidationState);
+        }
+
+        [Fact]
+        public void ClearValidationStateForModel_NonEmtpyModelKey()
+        {
+            // Arrange
+            var metadataProvider = new Mock<IModelMetadataProvider>();
+            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Type>()))
+                            .Returns(new ModelMetadata(metadataProvider.Object, null, typeof(MyModel), null))
+                            .Verifiable();
+            ModelStateDictionary dictionary = new ModelStateDictionary();
+            dictionary["model.MyProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("model.MyProperty", "MyProperty invalid.");
+            dictionary["model.IncludedProperty"] = new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("model.IncludedProperty", "Included Property invalid.");
+            dictionary.AddModelError("model.IncludedProperty", "Included Property required.");
+            dictionary["model.ExcludedProperty"] = new ModelState { ValidationState = ModelValidationState.Valid };
+
+            // Act
+            ModelBindingHelper.ClearValidationStateForModel(
+                typeof(MyModel),
+                dictionary,
+                metadataProvider.Object,
+                "model");
+
+            // Assert
+            Assert.Equal(0, dictionary["model.MyProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["model.MyProperty"].ValidationState);
+            Assert.Equal(0, dictionary["model.IncludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["model.IncludedProperty"].ValidationState);
+            Assert.Equal(0, dictionary["model.ExcludedProperty"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["model.ExcludedProperty"].ValidationState);
+        }
+
         private static IModelBinder GetCompositeBinder(params IModelBinder[] binders)
         {
             return new CompositeModelBinder(binders);

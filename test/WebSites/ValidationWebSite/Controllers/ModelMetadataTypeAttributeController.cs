@@ -41,7 +41,6 @@ namespace ValidationWebSite.Controllers
         [HttpPost]
         public object TryValidateModelWithCollectionsModel([FromBody] List<ProductViewModel> products)
         {
-            var valid = ModelState.IsValid;
             TryValidateModel(products);
 
             return CreateValidationDictionary();

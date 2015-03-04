@@ -388,13 +388,7 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        public static string CreatePropertyModelName(string prefix, ModelMetadata modelMetadata)
-        {
-            var propertyBindingName = modelMetadata.BinderModelName ?? modelMetadata.PropertyName;
-            return CreatePropertyModelName(prefix, propertyBindingName);
-        }
-
-        internal static void ClearValidationStateForModel(
+        public static void ClearValidationStateForModel(
             [NotNull] Type modelType,
             [NotNull] ModelStateDictionary modelstate,
             [NotNull] IModelMetadataProvider metadataProvider,
@@ -415,7 +409,7 @@ namespace Microsoft.AspNet.Mvc
 
                 foreach (var property in modelMetadata.Properties)
                 {
-                    var childKey = CreatePropertyModelName(modelKey, property);
+                    var childKey = property.BinderModelName ?? property.PropertyName;
                     modelstate.ClearValidationState(childKey);
                 }
             }
