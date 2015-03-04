@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
@@ -60,9 +60,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "class", "form-control" }
                 },
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append("Custom Content");
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent("Custom Content");
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
             Model model = null;
@@ -105,9 +105,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "div",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var expectedViewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
@@ -148,9 +148,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "div",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append("Content of validation summary");
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent("Content of validation summary");
 
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
@@ -206,9 +206,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "div",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var viewContext = CreateViewContext();
@@ -242,9 +242,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "div",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append("Content of validation message");
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent("Content of validation message");
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
                 InnerHtml = "New HTML"

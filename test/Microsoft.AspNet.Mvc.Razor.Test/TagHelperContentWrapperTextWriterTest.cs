@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void CreatesANewTagHelperContentAndWrapsIt()
         {
             // Arrange & Act
-            var wrapper = new TagHelperContentWrapperTextWriter(Encoding.UTF8);
+            var wrapper = new RazorPage.TagHelperContentWrapperTextWriter(Encoding.UTF8);
 
             // Assert
             Assert.Equal(new DefaultTagHelperContent(), wrapper.Content);
@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void WriteToTheTextWriterAppendsTagHelperContent()
         {
             // Arrange
-            var wrapper = new TagHelperContentWrapperTextWriter(Encoding.UTF8);
+            var wrapper = new RazorPage.TagHelperContentWrapperTextWriter(Encoding.UTF8);
             var expected = "Hello World!";
 
             // Act

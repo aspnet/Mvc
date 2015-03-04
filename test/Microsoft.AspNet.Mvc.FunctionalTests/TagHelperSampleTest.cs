@@ -50,7 +50,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 for (var index = 0; index < Paths.Count; index++)
                 {
                     // Act
-                    var response = await client.GetAsync("http://localhost" + Paths[index]);
+                    var path = Paths[index];
+                    var response = await client.GetAsync("http://localhost" + path);
 
                     // Assert
                     Assert.NotNull(response);

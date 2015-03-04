@@ -20,7 +20,7 @@ namespace ActivatorWebSite.TagHelpers
         {
             var content = await context.GetChildContentAsync();
 
-            output.Content.Append(HtmlHelper.Hidden(Name, content).ToString());
+            output.Content.SetContent(HtmlHelper.Hidden(Name, content).ToString());
         }
     }
 }

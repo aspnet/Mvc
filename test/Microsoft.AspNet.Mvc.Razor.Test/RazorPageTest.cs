@@ -691,7 +691,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task Write_ITextWriterCopyable_WritesContent()
         {
             // Arrange
-            // This writer implements BufferEntryCollection underneath and so can copy the buffer.
+            // This writer uses BufferEntryCollection underneath and so can copy the buffer.
             var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(writer);
             var expectedContent = "Hello World!";

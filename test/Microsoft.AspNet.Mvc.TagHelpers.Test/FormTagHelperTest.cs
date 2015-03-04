@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something Else");
+                    tagHelperContent.SetContent("Something Else");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "asp-route-foo", "bar" },
                 },
                 htmlEncoder: new HtmlEncoder());
-            output.PostContent.Append("Something");
+            output.PostContent.SetContent("Something");
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper
                 .Setup(mock => mock.Action(It.IsAny<UrlActionContext>())).Returns("home/index");
@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
@@ -155,7 +155,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var expectedAttribute = new KeyValuePair<string, string>("asp-ROUTEE-NotRoute", "something");
@@ -227,7 +227,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
@@ -289,7 +289,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
 
@@ -342,7 +342,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
 

@@ -452,7 +452,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(content);
+                    tagHelperContent.SetContent(content);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
         }

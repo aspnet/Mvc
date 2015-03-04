@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
@@ -54,9 +54,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "id", "myvalidationmessage" }
                 },
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
             var viewContext = TestableHtmlGenerator.GetViewContext(model: null,
                                                                    htmlGenerator: htmlGenerator,
@@ -101,16 +101,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 "span",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var expectedViewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
@@ -149,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "span",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.Content.Append(outputContent);
+            output.Content.SetContent(outputContent);
 
             var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
@@ -158,7 +158,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(childContent);
+                    tagHelperContent.SetContent(childContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
@@ -217,7 +217,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(childContent);
+                    tagHelperContent.SetContent(childContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
@@ -265,9 +265,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "span",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var viewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);

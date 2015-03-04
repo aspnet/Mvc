@@ -120,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var htmlAttributes = new Dictionary<string, string>
@@ -131,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = true,
             };
-            output.Content.Append("original content");
+            output.Content.SetContent("original content");
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -182,16 +182,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, expectedAttributes, new HtmlEncoder())
             {
                 SelfClosing = true,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {

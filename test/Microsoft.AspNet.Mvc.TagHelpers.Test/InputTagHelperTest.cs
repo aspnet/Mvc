@@ -102,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var originalAttributes = new Dictionary<string, string>
@@ -113,9 +113,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider())
             {
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var originalAttributes = new Dictionary<string, string>
@@ -174,9 +174,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = true,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(originalContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(originalContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model: false, propertyName: nameof(Model.IsACar));
@@ -259,7 +259,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var originalAttributes = new Dictionary<string, string>
@@ -270,9 +270,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model, nameof(Model.Text));
@@ -352,7 +352,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var originalAttributes = new Dictionary<string, string>
@@ -363,9 +363,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model, nameof(Model.Text));
@@ -442,7 +442,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var originalAttributes = new Dictionary<string, string>
@@ -453,9 +453,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model, nameof(Model.Text));
@@ -547,7 +547,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var originalAttributes = new Dictionary<string, string>
@@ -558,9 +558,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model, nameof(Model.Text));
@@ -621,7 +621,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
 
@@ -629,9 +629,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider())
             {
@@ -683,7 +683,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes, new HtmlEncoder());

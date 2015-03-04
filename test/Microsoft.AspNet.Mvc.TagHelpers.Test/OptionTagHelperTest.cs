@@ -144,14 +144,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(originalContent);
+                    tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes, new HtmlEncoder())
             {
                 SelfClosing = false,
             };
-            output.Content.Append(originalContent);
+            output.Content.SetContent(originalContent);
 
             var metadataProvider = new EmptyModelMetadataProvider();
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
@@ -210,16 +210,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(originalContent);
+                    tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(originalTagName, originalAttributes, new HtmlEncoder())
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(originalPreContent);
-            output.Content.Append(originalContent);
-            output.PostContent.Append(originalPostContent);
+            output.PreContent.SetContent(originalPreContent);
+            output.Content.SetContent(originalContent);
+            output.PostContent.SetContent(originalPostContent);
 
             var metadataProvider = new EmptyModelMetadataProvider();
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
@@ -271,16 +271,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(originalContent);
+                    tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(originalTagName, originalAttributes, new HtmlEncoder())
             {
                 SelfClosing = false,
             };
-            output.PreContent.Append(originalPreContent);
-            output.Content.Append(originalContent);
-            output.PostContent.Append(originalPostContent);
+            output.PreContent.SetContent(originalPreContent);
+            output.Content.SetContent(originalContent);
+            output.PostContent.SetContent(originalPostContent);
 
             var tagHelper = new OptionTagHelper
             {

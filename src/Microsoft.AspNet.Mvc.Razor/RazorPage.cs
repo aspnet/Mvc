@@ -215,7 +215,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 _originalWriter = null;
             }
 
-            var tagHelperContentWrapperTextWriter = new TagHelperContentWrapperTextWriter(Encoding.UTF8);
+            var tagHelperContentWrapperTextWriter = new TagHelperContentWrapperTextWriter(Output.Encoding);
             var razorWriter = writer as RazorTextWriter;
             if (razorWriter != null)
             {
@@ -223,7 +223,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
             else
             {
-                tagHelperContentWrapperTextWriter.Write(writer.ToString());
+                var stringCollectionTextWriter = writer as StringCollectionTextWriter;
+                if (stringCollectionTextWriter != null)
+                {
+                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter);
+                }
+                else
+                {
+                    tagHelperContentWrapperTextWriter.Write(writer.ToString());
+                }
             }
 
             return tagHelperContentWrapperTextWriter.Content;
@@ -241,8 +249,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Writes an <see cref="ITextWriterCopyable"/> to the <paramref name="writer"/>.
         /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> to which the output must be written to.</param>
-        /// <param name="copyableTextWriter">Contains the data to be written to the output.</param>
+        /// <param name="writer">The <see cref="TextWriter"/> to which the <paramref name="copyableTextWriter"/> is written.</param>
+        /// <param name="copyableTextWriter">Contains the data to be written.</param>
         public void WriteTo(TextWriter writer, ITextWriterCopyable copyableTextWriter)
         {
             if (copyableTextWriter != null)
@@ -681,6 +689,35 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (PreviousSectionWriters == null)
             {
                 throw new InvalidOperationException(Resources.FormatRazorPage_MethodCannotBeCalled(methodName));
+            }
+        }
+
+        // internal for testing
+        internal class TagHelperContentWrapperTextWriter : TextWriter
+        {
+            public TagHelperContentWrapperTextWriter(Encoding encoding)
+            {
+                Content = new DefaultTagHelperContent();
+                Encoding = encoding;
+            }
+
+            public TagHelperContent Content { get; }
+
+            public override Encoding Encoding { get; }
+
+            public override void Write(string value)
+            {
+                Content.Append(value);
+            }
+
+            public override void Write(char value)
+            {
+                Content.Append(value.ToString());
+            }
+
+            public override string ToString()
+            {
+                return Content.ToString();
             }
         }
     }

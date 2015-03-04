@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something Else");
+                    tagHelperContent.SetContent("Something Else");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "asp-route-foo", "bar" },
                 },
                 htmlEncoder: new HtmlEncoder());
-            output.Content.Append("Something");
+            output.Content.SetContent("Something");
 
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper
@@ -93,14 +93,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 "a",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.Content.Append(string.Empty);
+            output.Content.SetContent(string.Empty);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
@@ -136,14 +136,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(
                 "a",
                 attributes: new Dictionary<string, string>(),
                 htmlEncoder: new HtmlEncoder());
-            output.Content.Append(string.Empty);
+            output.Content.SetContent(string.Empty);
 
             var generator = new Mock<IHtmlGenerator>();
             generator

@@ -193,7 +193,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(tagHelperOutputContent.OriginalChildContent);
+                    tagHelperContent.SetContent(tagHelperOutputContent.OriginalChildContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var htmlAttributes = new Dictionary<string, string>
@@ -201,14 +201,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 { "class", "form-control" },
             };
             var output = new TagHelperOutput(expectedTagName, htmlAttributes, new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             // LabelTagHelper checks IsContentModified so we don't want to forcibly set it if 
             // tagHelperOutputContent.OriginalContent is going to be null or empty.
             if (!string.IsNullOrEmpty(tagHelperOutputContent.OriginalContent))
             {
-                output.Content.Append(tagHelperOutputContent.OriginalContent);
+                output.Content.SetContent(tagHelperOutputContent.OriginalContent);
             }
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
@@ -256,13 +256,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append("Something");
+                    tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, expectedAttributes, new HtmlEncoder());
-            output.PreContent.Append(expectedPreContent);
-            output.Content.Append(expectedContent);
-            output.PostContent.Append(expectedPostContent);
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(expectedPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
             Model model = null;

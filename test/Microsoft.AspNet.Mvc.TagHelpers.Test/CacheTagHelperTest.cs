@@ -298,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
             tagHelperOutput1.PreContent.Append("<cache>");
-            tagHelperOutput1.PostContent.Append("</cache>");
+            tagHelperOutput1.PostContent.SetContent("</cache>");
             var cacheTagHelper1 = new CacheTagHelper
             {
                 VaryByCookie = "cookie1,cookie2",
@@ -323,8 +323,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "cache",
                 new Dictionary<string, string> { { "attr", "value" } },
                 new HtmlEncoder());
-            tagHelperOutput2.PreContent.Append("<cache>");
-            tagHelperOutput2.PostContent.Append("</cache>");
+            tagHelperOutput2.PreContent.SetContent("<cache>");
+            tagHelperOutput2.PostContent.SetContent("</cache>");
             var cacheTagHelper2 = new CacheTagHelper
             {
                 VaryByCookie = "cookie1,cookie2",
@@ -534,8 +534,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput1 = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput1.PreContent.Append("<cache>");
-            tagHelperOutput1.PostContent.Append("</cache>");
+            tagHelperOutput1.PreContent.SetContent("<cache>");
+            tagHelperOutput1.PostContent.SetContent("</cache>");
             var cacheTagHelper1 = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -558,8 +558,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput2 = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput2.PreContent.Append("<cache>");
-            tagHelperOutput2.PostContent.Append("</cache>");
+            tagHelperOutput2.PreContent.SetContent("<cache>");
+            tagHelperOutput2.PostContent.SetContent("</cache>");
             var cacheTagHelper2 = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -593,8 +593,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput1 = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput1.PreContent.Append("<cache>");
-            tagHelperOutput1.PostContent.Append("</cache>");
+            tagHelperOutput1.PreContent.SetContent("<cache>");
+            tagHelperOutput1.PostContent.SetContent("</cache>");
             var cacheTagHelper1 = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -618,8 +618,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput2 = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput2.PreContent.Append("<cache>");
-            tagHelperOutput2.PostContent.Append("</cache>");
+            tagHelperOutput2.PreContent.SetContent("<cache>");
+            tagHelperOutput2.PostContent.SetContent("</cache>");
             var cacheTagHelper2 = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -652,8 +652,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput1 = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput1.PreContent.Append("<cache>");
-            tagHelperOutput1.PostContent.Append("</cache>");
+            tagHelperOutput1.PreContent.SetContent("<cache>");
+            tagHelperOutput1.PostContent.SetContent("</cache>");
             var cacheTagHelper1 = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -677,8 +677,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput2 = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput2.PreContent.Append("<cache>");
-            tagHelperOutput2.PostContent.Append("</cache>");
+            tagHelperOutput2.PreContent.SetContent("<cache>");
+            tagHelperOutput2.PostContent.SetContent("</cache>");
             var cacheTagHelper2 = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -722,8 +722,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperOutput = new TagHelperOutput("cache",
                                                        new Dictionary<string, string> { { "attr", "value" } },
                                                        new HtmlEncoder());
-            tagHelperOutput.PreContent.Append("<cache>");
-            tagHelperOutput.PostContent.Append("</cache>");
+            tagHelperOutput.PreContent.SetContent("<cache>");
+            tagHelperOutput.PostContent.SetContent("</cache>");
             var cacheTagHelper = new CacheTagHelper
             {
                 ViewContext = GetViewContext(),
@@ -769,7 +769,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: () =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(childContent);
+                    tagHelperContent.SetContent(childContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
         }
