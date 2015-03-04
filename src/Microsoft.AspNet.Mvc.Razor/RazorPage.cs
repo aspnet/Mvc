@@ -692,8 +692,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        // internal for testing
-        internal class TagHelperContentWrapperTextWriter : TextWriter
+        private class TagHelperContentWrapperTextWriter : TextWriter
         {
             public TagHelperContentWrapperTextWriter(Encoding encoding)
             {
