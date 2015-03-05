@@ -951,8 +951,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-            var input = "{ \"Street\": \"One Microsoft Way\", \"Zip\": \"123\" }";
-            var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             // Act
             var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
