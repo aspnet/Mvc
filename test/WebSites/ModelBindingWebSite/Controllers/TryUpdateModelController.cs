@@ -158,6 +158,37 @@ namespace ModelBindingWebSite.Controllers
             return user;
         }
 
+        [HttpPost]
+        public async Task<object> UpdateUser_FixInvalidModelAsParameter([FromBody]User user)
+        {
+            // RegistrationMonth has Required attribute. If it is null, fix it and call TryUpdateModel
+            if (string.IsNullOrEmpty(user.RegisterationMonth))
+            {
+                user.RegisterationMonth = "March";
+            }
+
+            await TryUpdateModelAsync<User>(user, "user");
+
+            var result = new Dictionary<string, string>();
+            foreach (var item in ModelState)
+            {
+                var errorMessage = string.Empty;
+                foreach (var error in item.Value.Errors)
+                {
+                    if (error != null)
+                    {
+                        errorMessage = errorMessage + error.ErrorMessage;
+                    }
+                }
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    result.Add(item.Key, errorMessage);
+                }
+            }
+
+            return result;
+        }
+
         private User GetUser(int id)
         {
             return new User

@@ -2067,6 +2067,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.False(result[1].Checked);
         }
 
+        [Fact]
+        public async Task TryUpdateModel_InvalidModelAsParameter_FixOnServer_ReturnsEmptyResponseBody()
+        {
+            // Arrange
+            var server = TestServer.Create(_services, _app);
+            var client = server.CreateClient();
+
+            var input = "{ \"Id\": 1, \"Key\": \"123\", \"UserName\":\"SomeName\" }";
+            var content = new StringContent(input, Encoding.UTF8, "application/json");
+            var url = "http://localhost/TryUpdateModel/UpdateUser_FixInvalidModelAsParameter";
+
+            // Act
+            var response = await client.PostAsync(url, content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal("{}", body);
+        }
+
         private async Task<TVal> ReadValue<TVal>(HttpResponseMessage response)
         {
             Assert.True(response.IsSuccessStatusCode);
