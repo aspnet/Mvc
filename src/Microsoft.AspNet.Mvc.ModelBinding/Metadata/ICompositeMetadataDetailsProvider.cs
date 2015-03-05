@@ -9,7 +9,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     public interface ICompositeMetadataDetailsProvider : 
         IBindingMetadataProvider, 
         IDisplayMetadataProvider, 
-        IValiationMetadataProvider
+        IValidationMetadataProvider
     {
     }
 }

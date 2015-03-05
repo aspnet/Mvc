@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// <returns>A <see cref="ModelMetadataIdentity"/>.</returns>
         public static ModelMetadataIdentity ForProperty(
             [NotNull] Type modelType,
-            [NotNull] string name,
+            string name,
             [NotNull] Type containerType)
         {
             if (string.IsNullOrEmpty(name))

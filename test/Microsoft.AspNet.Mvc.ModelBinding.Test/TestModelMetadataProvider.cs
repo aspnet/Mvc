@@ -78,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private class TestModelMetadataDetailsProvider :
             IBindingMetadataProvider,
             IDisplayMetadataProvider,
-            IValiationMetadataProvider
+            IValidationMetadataProvider
         {
             public List<MetadataBuilder> Builders { get; } = new List<MetadataBuilder>();
 

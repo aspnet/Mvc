@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc
             yield return describe.Transient<ModelBinding.Metadata.ICompositeMetadataDetailsProvider>(services =>
             {
                 var options = services.GetRequiredService<IOptions<MvcOptions>>().Options;
-                return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataProviders);
+                return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataDetailsProviders);
             });
 
             yield return describe.Transient<IInputFormatterSelector, DefaultInputFormatterSelector>();

@@ -104,30 +104,30 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// </remarks>
         protected virtual DefaultMetadataDetailsCache[] CreatePropertyCacheEntries([NotNull] ModelMetadataIdentity key)
         {
-            var properties = PropertyHelper.GetProperties(key.ModelType);
+            var propertyHelpers = PropertyHelper.GetProperties(key.ModelType);
 
-            var propertyEntries = new DefaultMetadataDetailsCache[properties.Length];
-            for (var i = 0; i < properties.Length; i++)
+            var propertyEntries = new DefaultMetadataDetailsCache[propertyHelpers.Length];
+            for (var i = 0; i < propertyHelpers.Length; i++)
             {
-                var property = properties[i];
+                var propertyHelper = propertyHelpers[i];
                 var propertyKey = ModelMetadataIdentity.ForProperty(
-                    property.Property.PropertyType,
-                    property.Name,
+                    propertyHelper.Property.PropertyType,
+                    propertyHelper.Name,
                     key.ModelType);
 
                 var attributes = new List<object>(ModelAttributes.GetAttributesForProperty(
                     key.ModelType, 
-                    property.Property));
+                    propertyHelper.Property));
 
                 propertyEntries[i] = new DefaultMetadataDetailsCache(propertyKey, attributes);
-                if (property.Property.CanRead && property.Property.GetMethod?.IsPrivate == true)
+                if (propertyHelper.Property.CanRead && propertyHelper.Property.GetMethod?.IsPrivate == true)
                 {
-                    propertyEntries[i].PropertyAccessor = PropertyHelper.MakeFastPropertyGetter(property.Property);
+                    propertyEntries[i].PropertyAccessor = PropertyHelper.MakeFastPropertyGetter(propertyHelper.Property);
                 }
 
-                if (property.Property.CanWrite && property.Property.SetMethod?.IsPrivate == true)
+                if (propertyHelper.Property.CanWrite && propertyHelper.Property.SetMethod?.IsPrivate == true)
                 {
-                    propertyEntries[i].PropertySetter = PropertyHelper.MakeFastPropertySetter(property.Property);
+                    propertyEntries[i].PropertySetter = PropertyHelper.MakeFastPropertySetter(propertyHelper.Property);
                 }
             }
 

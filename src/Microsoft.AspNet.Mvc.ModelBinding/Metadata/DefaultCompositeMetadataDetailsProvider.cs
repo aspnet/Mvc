@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// <inheritdoc />
         public virtual void GetValidationMetadata([NotNull] ValidationMetadataProviderContext context)
         {
-            foreach (var provider in _providers.OfType<IValiationMetadataProvider>())
+            foreach (var provider in _providers.OfType<IValidationMetadataProvider>())
             {
                 provider.GetValidationMetadata(context);
             }

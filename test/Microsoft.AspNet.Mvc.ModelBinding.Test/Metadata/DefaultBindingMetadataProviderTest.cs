@@ -107,6 +107,29 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Arrange
             var attributes = new object[]
             {
+                new ModelBinderAttribute() { BindingSource = BindingSource.Body },
+                new ModelBinderAttribute() { BindingSource = BindingSource.Query },
+            };
+
+            var context = new BindingMetadataProviderContext(
+                ModelMetadataIdentity.ForType(typeof(string)),
+                attributes);
+
+            var provider = new DefaultBindingMetadataProvider();
+
+            // Act
+            provider.GetBindingMetadata(context);
+
+            // Assert
+            Assert.Equal(BindingSource.Body, context.BindingMetadata.BindingSource);
+        }
+
+        [Fact]
+        public void GetBindingDetails_FindsBindingSource_IfNullFallsBack()
+        {
+            // Arrange
+            var attributes = new object[]
+            {
                 new ModelBinderAttribute(),
                 new ModelBinderAttribute() { BindingSource = BindingSource.Body },
                 new ModelBinderAttribute() { BindingSource = BindingSource.Query },

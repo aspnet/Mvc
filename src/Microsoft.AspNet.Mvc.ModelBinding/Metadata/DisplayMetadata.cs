@@ -49,6 +49,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// Gets or sets an edit format string for the model.
         /// See <see cref="ModelMetadata.EditFormatString"/>
         /// </summary>
+        /// <see cref="IDisplayMetadataProvider"/> instances that set this property to a non-<c>null</c>, non-empty,
+        /// non-default value should also set <see cref="HasNonDefaultEditFormat"/> to <c>true</c>.
+        /// </remarks>
         public string EditFormatString { get; set; }
 
         /// <summary>

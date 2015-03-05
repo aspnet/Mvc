@@ -61,8 +61,8 @@ namespace Microsoft.AspNet.Mvc
             options.ValueProviderFactories.Add(new FormValueProviderFactory());
 
             // Set up metadata providers
-            options.ModelMetadataProviders.Add(new DefaultBindingMetadataProvider());
-            options.ModelMetadataProviders.Add(new DataAnnotationsMetadataDetailsProvider());
+            options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider());
+            options.ModelMetadataDetailsProviders.Add(new DataAnnotationsMetadataDetailsProvider());
 
             // Set up validators
             options.ModelValidatorProviders.Add(new DataAnnotationsModelValidatorProvider());

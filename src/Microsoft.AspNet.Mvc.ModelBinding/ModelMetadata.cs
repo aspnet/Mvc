@@ -119,9 +119,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to edit the <see cref="Model"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="IModelMetadataProvider"/> instances that set this property to a non-<c>null</c>, non-empty,
-        /// non-default value should also set <see cref="HasNonDefaultEditFormat"/> to <c>true</c>.
-        /// </remarks>
         public abstract string EditFormatString { get; }
 
         /// <summary>
@@ -228,7 +225,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <remarks>
         /// A collection type is defined as a <see cref="Type"/> which is assignable to
-        /// <see cref="System.Collections.IEnumerable"/>.
+        /// <see cref="System.Collections.IEnumerable"/>, and is not a <see cref="string"/>.
         /// </remarks>
         public bool IsCollectionType
         {
@@ -240,7 +237,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <remarks>
         /// <see cref="GetDisplayName()"/> will return the first of the following expressions which has a
-        /// non-<c>null</c> value: <code>DisplayName</code>, <code>PropertyName</code>, <code>ModelType.Name</code>.
+        /// non-<c>null</c> value: <c>DisplayName</c>, <c>PropertyName</c>, <c>ModelType.Name</c>.
         /// </remarks>
         /// <returns>The display name.</returns>
         public string GetDisplayName()

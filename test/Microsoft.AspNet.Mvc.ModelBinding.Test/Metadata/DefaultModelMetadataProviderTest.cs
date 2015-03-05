@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Testing;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -15,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForType_IncludesAttributes()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             // Act
             var metadata = provider.GetMetadataForType(typeof(ModelType));
@@ -32,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForType_Cached()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             // Act
             var metadata1 = Assert.IsType<DefaultModelMetadata>(provider.GetMetadataForType(typeof(ModelType)));
@@ -49,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForProperties_IncludesAllProperties()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             // Act
             var metadata = provider.GetMetadataForProperties(typeof(ModelType)).ToArray();
@@ -64,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForProperties_IncludesAllProperties_ExceptIndexer()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             // Act
             var metadata = provider.GetMetadataForProperties(typeof(ModelTypeWithIndexer)).ToArray();
@@ -78,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForProperties_Cached()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             // Act
             var metadata1 = provider.GetMetadataForProperties(typeof(ModelType)).Cast<DefaultModelMetadata>().ToArray();
@@ -98,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForProperties_IncludesMergedAttributes()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             // Act
             var metadata = provider.GetMetadataForProperties(typeof(ModelType)).First();
@@ -115,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForParameter_IncludesMergedAttributes()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             var methodInfo = GetType().GetMethod(
                 "GetMetadataForParameterTestMethod", 
@@ -145,7 +144,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetMetadataForParameter_Cached()
         {
             // Arrange
-            var provider = new EmptyModelMetadataProvider();
+            var provider = CreateProvider();
 
             var methodInfo = GetType().GetMethod(
                 "GetMetadataForParameterTestMethod",
@@ -169,6 +168,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.Same(metadata1.BindingMetadata, metadata2.BindingMetadata);
             Assert.Same(metadata1.DisplayMetadata, metadata2.DisplayMetadata);
             Assert.Same(metadata1.ValidationMetadata, metadata2.ValidationMetadata);
+        }
+
+        private static DefaultModelMetadataProvider CreateProvider()
+        {
+            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[0]);
+            return new DefaultModelMetadataProvider(detailsProvider);
         }
 
         [Model("OnType")]

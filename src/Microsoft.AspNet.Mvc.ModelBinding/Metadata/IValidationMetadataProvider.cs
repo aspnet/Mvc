@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// <summary>
     /// Provides <see cref="ValidationMetadata"/> for a <see cref="DefaultModelMetadata"/>.
     /// </summary>
-    public interface IValiationMetadataProvider : IMetadataDetailsProvider
+    public interface IValidationMetadataProvider : IMetadataDetailsProvider
     {
         /// <summary>
         /// Gets the values for properties of <see cref="ValidationMetadata"/>. 

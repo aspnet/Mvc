@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc
             Filters = new List<IFilter>();
             FormatterMappings = new FormatterMappings();
             ValidationExcludeFilters = new List<ExcludeValidationDescriptor>();
-            ModelMetadataProviders = new List<IMetadataDetailsProvider>();
+            ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<ModelValidatorProviderDescriptor>();
             CacheProfiles = new Dictionary<string, CacheProfile>(StringComparer.OrdinalIgnoreCase);
         }
@@ -156,11 +156,11 @@ namespace Microsoft.AspNet.Mvc
         /// A provider should implement one or more of the following interfaces, depending on what
         /// kind of details are provided:
         /// <ul>
-        /// <li><see cref="IModelMetadataBindingDetailsProvider"/></li>
+        /// <li><see cref="IBindingMetadataProvider"/></li>
         /// <li><see cref="IDisplayMetadataProvider"/></li>
-        /// <li><see cref="IValiationMetadataProvider"/></li>
+        /// <li><see cref="IValidationMetadataProvider"/></li>
         /// </ul>
         /// </remarks>
-        public IList<IMetadataDetailsProvider> ModelMetadataProviders { get; }
+        public IList<IMetadataDetailsProvider> ModelMetadataDetailsProviders { get; }
     }
 }

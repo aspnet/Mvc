@@ -30,7 +30,7 @@ namespace ModelBindingWebSite
                             m.ValidationExcludeFilters.Add(typeof(Address));
 
                             // ModelMetadataController relies on additional values AdditionalValuesMetadataProvider provides.
-                            m.ModelMetadataProviders.Add(new AdditionalValuesMetadataProvider());
+                            m.ModelMetadataDetailsProviders.Add(new AdditionalValuesMetadataProvider());
                         });
 
                 services.AddSingleton<ICalculator, DefaultCalculator>();
