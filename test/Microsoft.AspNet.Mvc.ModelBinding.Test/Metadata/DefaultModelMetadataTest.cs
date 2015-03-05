@@ -88,8 +88,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var key = ModelMetadataIdentity.ForProperty(typeof(string), "Message", typeof(Exception));
             var cache = new DefaultMetadataDetailsCache(key, new object[0]);
@@ -108,8 +107,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var methodInfo = GetType().GetMethod(
                 "ActionMethod",
@@ -136,8 +134,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var key = ModelMetadataIdentity.ForType(modelType);
             var cache = new DefaultMetadataDetailsCache(key, new object[0]);
@@ -158,8 +155,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var key = ModelMetadataIdentity.ForType(modelType);
             var cache = new DefaultMetadataDetailsCache(key, new object[0]);
@@ -179,9 +175,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
-            
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var expectedProperties = new DefaultModelMetadata[]
             {
@@ -256,9 +250,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
-
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var expectedProperties = new List<DefaultModelMetadata>();
             foreach (var originalName in originalNames)
@@ -360,11 +352,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             IEnumerable<string> expectedNames)
         {
             // Arrange
-            // Arrange
             var provider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
-
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var expectedProperties = new List<DefaultModelMetadata>();
             foreach (var kvp in originalNamesAndOrders)
@@ -405,8 +394,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var key = ModelMetadataIdentity.ForType(typeof(string));
             var cache = new DefaultMetadataDetailsCache(key, new object[0]);
@@ -427,8 +415,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(
-                Enumerable.Empty<IMetadataDetailsProvider>());
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
 
             var key = ModelMetadataIdentity.ForType(typeof(string));
             var cache = new DefaultMetadataDetailsCache(key, new object[0]);

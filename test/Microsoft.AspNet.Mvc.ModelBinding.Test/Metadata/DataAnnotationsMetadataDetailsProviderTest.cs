@@ -145,5 +145,53 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Assert
             Assert.Equal(true, context.BindingMetadata.IsRequired);
         }
+
+        // This is IMPORTANT. Product code needs to use GetName() instead of .Name. It's easy to regress.
+        [Fact]
+        public void GetDisplayDetails_DisplayAttribute_NameFromResources()
+        {
+            // Arrange
+            var provider = new DataAnnotationsMetadataDetailsProvider();
+
+            var display = new DisplayAttribute()
+            {
+                Name = "DisplayAttribute_Name",
+                ResourceType = typeof(Test.Resources),
+            };
+
+            var attributes = new Attribute[] { display };
+            var key = ModelMetadataIdentity.ForType(typeof(string));
+            var context = new DisplayMetadataProviderContext(key, attributes);
+
+            // Act
+            provider.GetDisplayMetadata(context);
+
+            // Assert
+            Assert.Equal("name from resources", context.DisplayMetadata.DisplayName);
+        }
+
+        // This is IMPORTANT. Product code needs to use GetDescription() instead of .Description. It's easy to regress.
+        [Fact]
+        public void GetDisplayDetails_DisplayAttribute_DescriptionFromResources()
+        {
+            // Arrange
+            var provider = new DataAnnotationsMetadataDetailsProvider();
+
+            var display = new DisplayAttribute()
+            {
+                Description = "DisplayAttribute_Description",
+                ResourceType = typeof(Test.Resources),
+            };
+
+            var attributes = new Attribute[] { display };
+            var key = ModelMetadataIdentity.ForType(typeof(string));
+            var context = new DisplayMetadataProviderContext(key, attributes);
+
+            // Act
+            provider.GetDisplayMetadata(context);
+
+            // Assert
+            Assert.Equal("description from resources", context.DisplayMetadata.Description);
+        }
     }
 }

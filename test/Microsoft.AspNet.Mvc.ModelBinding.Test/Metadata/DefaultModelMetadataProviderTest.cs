@@ -172,8 +172,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
         private static DefaultModelMetadataProvider CreateProvider()
         {
-            var detailsProvider = new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[0]);
-            return new DefaultModelMetadataProvider(detailsProvider);
+            return new DefaultModelMetadataProvider(new EmptyCompositeMetadataDetailsProvider());
         }
 
         [Model("OnType")]

@@ -29,7 +29,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public TestModelMetadataProvider()
             : this(new TestModelMetadataDetailsProvider())
         {
-
         }
 
         private TestModelMetadataProvider(TestModelMetadataDetailsProvider detailsProvider)
