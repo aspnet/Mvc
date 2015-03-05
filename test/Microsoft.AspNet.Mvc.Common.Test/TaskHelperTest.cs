@@ -12,7 +12,6 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void WaitAndThrowIfFaulted_DoesNotThrowIfTaskIsNotFaulted()
         {
-            Task.Delay(10000).Wait();
             // Arrange
             var task = Task.FromResult(0);
 
