@@ -951,6 +951,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
+            var input = "{ \"Street\": \"One Microsoft Way\", \"Zip\": \"123\" }";
+            var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             // Act
             var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
@@ -2073,13 +2075,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestServer.Create(_services, _app);
             var client = server.CreateClient();
-
-            var input = "{ \"Id\": 1, \"Key\": \"123\", \"UserName\":\"SomeName\" }";
-            var content = new StringContent(input, Encoding.UTF8, "application/json");
-            var url = "http://localhost/TryUpdateModel/UpdateUser_FixInvalidModelAsParameter";
+            var url = "http://localhost/TryUpdateModel/TryUpdateModel_ClearsModelStateEntries";
 
             // Act
-            var response = await client.PostAsync(url, content);
+            var response = await client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

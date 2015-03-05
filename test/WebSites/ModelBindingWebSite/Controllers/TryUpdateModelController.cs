@@ -9,6 +9,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http.Core.Collections;
 using ModelBindingWebSite.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ModelBindingWebSite.Controllers
 {
@@ -158,16 +159,22 @@ namespace ModelBindingWebSite.Controllers
             return user;
         }
 
-        [HttpPost]
-        public async Task<object> UpdateUser_FixInvalidModelAsParameter([FromBody]User user)
+        public async Task<object> TryUpdateModel_ClearsModelStateEntries()
         {
-            // RegistrationMonth has Required attribute. If it is null, fix it and call TryUpdateModel
-            if (string.IsNullOrEmpty(user.RegisterationMonth))
+            //Invalid model.
+            var model = new MyModel
             {
-                user.RegisterationMonth = "March";
-            }
+                Id = 1,
+                Name = "abcd"
+            };
 
-            await TryUpdateModelAsync<User>(user, "user");
+            //Validate model first and subsequent TryUpdateModel should remove
+            //modelstate entries for model and re-validate.
+            TryValidateModel(model);
+
+            //Update Name to a valid value and call TryUpdateModel
+            model.Name = "a";
+            await TryUpdateModelAsync<MyModel>(model);
 
             var result = new Dictionary<string, string>();
             foreach (var item in ModelState)
@@ -197,6 +204,14 @@ namespace ModelBindingWebSite.Controllers
                 Id = id,
                 Key = id + 20,
             };
+        }
+
+        private class MyModel
+        {
+            public int Id { get; set; }
+
+            [StringLength(2)]
+            public string Name { get; set; }
         }
 
         public class CustomValueProvider : IValueProvider
