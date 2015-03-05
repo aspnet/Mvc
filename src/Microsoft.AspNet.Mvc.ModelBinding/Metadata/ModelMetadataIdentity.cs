@@ -35,12 +35,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             return new ModelMetadataIdentity()
             {
                 ParameterInfo = parameterInfo,
-
                 Name = parameterInfo.Name,
                 ModelType = parameterInfo.ParameterType,
             };
         }
-
 
         /// <summary>
         /// Creates a <see cref="ModelMetadataIdentity"/> for the provided property.

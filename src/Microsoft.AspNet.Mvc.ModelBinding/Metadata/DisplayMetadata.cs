@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     public class DisplayMetadata
     {
         /// <summary>
-        /// Gets of a set of additional values. See <see cref="ModelMetadata.AdditionalValues"/>
+        /// Gets a set of additional values. See <see cref="ModelMetadata.AdditionalValues"/>
         /// </summary>
         public IDictionary<object, object> AdditionalValues { get; } = new Dictionary<object, object>();
 

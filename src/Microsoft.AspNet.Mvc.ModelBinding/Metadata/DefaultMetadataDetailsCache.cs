@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public IReadOnlyList<object> Attributes { get; }
 
         /// <summary>
-        /// Gets the <see cref="Metadata.BindingMetadata"/>
+        /// Gets or sets the <see cref="Metadata.BindingMetadata"/>
         /// </summary>
         public BindingMetadata BindingMetadata { get; set; }
 
@@ -43,17 +43,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public DisplayMetadata DisplayMetadata { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Metadata.ValidationMetadata"/>
+        /// Gets or sets the <see cref="ModelMetadataIdentity"/>
         /// </summary>
         public ModelMetadataIdentity Key { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Metadata.ValidationMetadata"/>
+        /// Gets or sets a property accessor delegate to get the property value from a model object.
         /// </summary>
         public Func<object, object> PropertyAccessor { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Metadata.ValidationMetadata"/>
+        /// Gets or sets a property setter delegate to set the property value on a model object.
         /// </summary>
         public Action<object, object> PropertySetter { get; set; }
 
