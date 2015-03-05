@@ -16,6 +16,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         ///     Defaults to <c>null</c>, which indicates a token will only be generated if the <c>action</c>
         ///     attribute was not explicitly defined.
         /// </value>
-        public bool? AntiForgery { get; set; }
+        public bool? GenerateAntiForgeryToken { get; set; }
     }
 }

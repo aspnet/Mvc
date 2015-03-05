@@ -113,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
             }
 
-            if (AntiForgery ?? Options.Options.AntiForgery ?? antiForgeryDefault)
+            if (AntiForgery ?? Options.Options.GenerateAntiForgeryToken ?? antiForgeryDefault)
             {
                 var antiForgeryTagBuilder = Generator.GenerateAntiForgery(ViewContext);
                 if (antiForgeryTagBuilder != null)

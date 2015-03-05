@@ -105,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string expectedPostContent)
         {
             // Arrange
-            var options = MakeOptions(new FormTagHelperOptions { AntiForgery = optionsAntiForgery });
+            var options = MakeOptions(new FormTagHelperOptions { GenerateAntiForgeryToken = optionsAntiForgery });
             var viewContext = CreateViewContext();
             var context = new TagHelperContext(
                 allAttributes: new Dictionary<string, object>(),
@@ -338,7 +338,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string expectedPostContent)
         {
             // Arrange
-            var options = MakeOptions(new FormTagHelperOptions { AntiForgery = optionsAntiForgery });
+            var options = MakeOptions(new FormTagHelperOptions { GenerateAntiForgeryToken = optionsAntiForgery });
             var viewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
 
