@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
@@ -8,24 +11,45 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
 {
     public class TagHelperOptionsCollectionExtensionsTest
     {
-        [Fact]
-        public void ConfigureForm_GetsOptionsFromConfigurationCorrectly()
+        public static TheoryData ConfigureForm_GetsOptionsFromConfigurationCorrectly_Data
+        {
+            get
+            {
+                return new TheoryData<string, bool?>
+                {
+                    { "true", true },
+                    { "false", false },
+                    { "True", true },
+                    { "False", false },
+                    { "TRue", true },
+                    { "FAlse", false },
+                    { null, null }
+                };
+            }
+        }
+
+        [Theory(Skip = "https://github.com/aspnet/Options/issues/39")]
+        [MemberData(nameof(ConfigureForm_GetsOptionsFromConfigurationCorrectly_Data))]
+        public void ConfigureForm_GetsOptionsFromConfigurationCorrectly(string configValue, bool? expectedValue)
         {
             // Arrange
-            var config = new Configuration();
-            config.Set("FormTagHelperOptions:GenerateAntiForgeryToken", "true");
+            var configValues = new Dictionary<string, string>
+            {
+                { $"{nameof(FormTagHelper)}:{nameof(FormTagHelperOptions.GenerateAntiForgeryToken)}", configValue }
+            };
+            var config = new Configuration(new MemoryConfigurationSource(configValues));
             var services = new ServiceCollection();
-
-            // Act
             services.ConfigureTagHelpers()
                 .ConfigureForm(config);
-            var options = services.BuildServiceProvider()
-                .GetService<IOptions<FormTagHelperOptions>>()
-                .Options;
+            var serviceProvider = services.BuildServiceProvider();
+
+            // Act
+            var options = new FormTagHelperOptions();
+            serviceProvider.GetService<IConfigureOptions<FormTagHelperOptions>>()
+                .Configure(options);
 
             // Assert
-            Assert.NotNull(options.GenerateAntiForgeryToken);
-            Assert.True(options.GenerateAntiForgeryToken.Value);
+            Assert.Equal(expectedValue, options.GenerateAntiForgeryToken);
         }
     }
 }
