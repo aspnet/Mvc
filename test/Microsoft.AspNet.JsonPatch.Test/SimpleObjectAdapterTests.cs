@@ -102,14 +102,61 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
 			// create patch
 			JsonPatchDocument<SimpleDTO> patchDoc = new JsonPatchDocument<SimpleDTO>();
-			patchDoc.Add<int>(o => o.IntegerList, 4, 3);
+			patchDoc.Add<int>(o => o.IntegerList, 4, 4);
 
 			Assert.Throws<JsonPatchException<SimpleDTO>>(() => { patchDoc.ApplyTo(doc); });
 		}
 
 
+
+
+
+
+
 		[Fact]
 		public void AddToListInvalidPositionTooLargeWithSerialization()
+		{
+			var doc = new SimpleDTO()
+			{
+				IntegerList = new List<int>() { 1, 2, 3 }
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTO> patchDoc = new JsonPatchDocument<SimpleDTO>();
+			patchDoc.Add<int>(o => o.IntegerList, 4, 4);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTO>>(serialized);
+
+
+
+			Assert.Throws<JsonPatchException<SimpleDTO>>(() => { deserialized.ApplyTo(doc); });
+		}
+
+
+		[Fact]
+		public void AddToListAtEnd()
+		{
+			var doc = new SimpleDTO()
+			{
+				IntegerList = new List<int>() { 1, 2, 3 }
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTO> patchDoc = new JsonPatchDocument<SimpleDTO>();
+			patchDoc.Add<int>(o => o.IntegerList, 4, 3);
+
+			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 1, 2, 3, 4 }, doc.IntegerList);
+
+
+		}
+
+
+
+		[Fact]
+		public void AddToListAtEndWithSerialization()
 		{
 			var doc = new SimpleDTO()
 			{
@@ -124,9 +171,60 @@ namespace Microsoft.AspNet.JsonPatch.Test
 			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTO>>(serialized);
 
 
+			deserialized.ApplyTo(doc);
 
-			Assert.Throws<JsonPatchException<SimpleDTO>>(() => { deserialized.ApplyTo(doc); });
+			Assert.Equal(new List<int>() { 1, 2, 3, 4 }, doc.IntegerList);
+
+
 		}
+
+
+
+		[Fact]
+		public void AddToListAtBeginning()
+		{
+			var doc = new SimpleDTO()
+			{
+				IntegerList = new List<int>() { 1, 2, 3 }
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTO> patchDoc = new JsonPatchDocument<SimpleDTO>();
+			patchDoc.Add<int>(o => o.IntegerList, 4, 0);
+
+			patchDoc.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 4, 1, 2, 3 }, doc.IntegerList);
+
+
+		}
+
+
+
+		[Fact]
+		public void AddToListAtBeginningWithSerialization()
+		{
+			var doc = new SimpleDTO()
+			{
+				IntegerList = new List<int>() { 1, 2, 3 }
+			};
+
+			// create patch
+			JsonPatchDocument<SimpleDTO> patchDoc = new JsonPatchDocument<SimpleDTO>();
+			patchDoc.Add<int>(o => o.IntegerList, 4, 0);
+
+			var serialized = JsonConvert.SerializeObject(patchDoc);
+			var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTO>>(serialized);
+
+
+			deserialized.ApplyTo(doc);
+
+			Assert.Equal(new List<int>() { 4, 1, 2, 3 }, doc.IntegerList);
+
+
+		}
+
+
 
 
 		[Fact]

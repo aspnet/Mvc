@@ -10,7 +10,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 	public class SimpleObjectAdapter<T> : IObjectAdapter<T> where T : class
 	{
 
-
 		/// <summary>
 		/// The "add" operation performs one of the following functions,
 		/// depending upon what the target location references:
@@ -162,7 +161,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 					}
 					else
 					{
-						if (positionAsInteger < array.Count)
+						// specified index must not be greater than the amount of items in the
+						// array
+						if (positionAsInteger <= array.Count)
 						{
 							array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
 						}
@@ -409,7 +410,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 						else
 						{
 							throw new JsonPatchException<T>(operationToReport,
-					   string.Format("Patch failed: provided path is invalid for array property type at location path: {0}: position larger than array size",
+					   string.Format("Patch failed: provided path is invalid for array property type at location path: {0}: position doesn't exist in array",
 					   path),
 					   objectToApplyTo);
 						}
@@ -716,7 +717,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 			Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
 
 		}
-
 
 	}
 }
