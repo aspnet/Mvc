@@ -35,18 +35,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             // Arrange
             var configValues = new Dictionary<string, string>
             {
-                { $"{nameof(FormTagHelper)}:{nameof(FormTagHelperOptions.GenerateAntiForgeryToken)}", configValue }
+                { $"{nameof(FormTagHelperOptions.GenerateAntiForgeryToken)}", configValue }
             };
             var config = new Configuration(new MemoryConfigurationSource(configValues));
-            var services = new ServiceCollection();
-            services.ConfigureTagHelpers()
-                .ConfigureForm(config);
+            var services = new ServiceCollection().AddOptions();
+            services.ConfigureTagHelpers().ConfigureForm(config);
             var serviceProvider = services.BuildServiceProvider();
 
             // Act
-            var options = new FormTagHelperOptions();
-            serviceProvider.GetService<IConfigureOptions<FormTagHelperOptions>>()
-                .Configure(options);
+            var options = serviceProvider.GetService<IOptions<FormTagHelperOptions>>().Options;
 
             // Assert
             Assert.Equal(expectedValue, options.GenerateAntiForgeryToken);
