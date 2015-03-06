@@ -17,9 +17,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class MvcSampleTests
     {
+        private const string SiteName = nameof(MvcSample) + "." + nameof(MvcSample.Web);
+
         // Path relative to Mvc\\test\Microsoft.AspNet.Mvc.FunctionalTests
-        private readonly IServiceProvider _services =
-            TestHelper.CreateServices("MvcSample.Web", Path.Combine("..", "..", "samples"));
+        private readonly static string SamplesFolder = Path.Combine("..", "..", "samples");
+
         private readonly Action<IApplicationBuilder> _app = new MvcSample.Web.Startup().Configure;
 
         [Theory]
@@ -37,10 +39,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("/Home/ValidationSummary")] // Home/ValidationSummary.cshtml
         public async Task Home_Pages_ReturnSuccess(string path)
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
@@ -67,10 +69,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("Name=SamplePerson", "false")]
         public async Task FormUrlEncoded_ReturnsAppropriateResults(string input, string expectedOutput)
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
                 var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/FormUrlEncoded/IsValidPerson");
                 request.Content = new StringContent(input, Encoding.UTF8, "application/x-www-form-urlencoded");
@@ -86,10 +88,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task FormUrlEncoded_Index_ReturnSuccess()
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
@@ -104,10 +106,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task Home_NotFoundAction_Returns404()
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
@@ -122,10 +124,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task Home_CreateUser_ReturnsXmlBasedOnAcceptHeader()
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
                 var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Home/ReturnUser");
                 request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/xml;charset=utf-8"));
@@ -153,10 +155,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("http://localhost/Filters/NotGrantedClaim", HttpStatusCode.Unauthorized)]
         public async Task FiltersController_Tests(string url, HttpStatusCode statusCode)
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
@@ -171,10 +173,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task FiltersController_Crash_ThrowsException()
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(SiteName, SamplesFolder))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act

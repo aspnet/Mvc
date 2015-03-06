@@ -19,17 +19,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     /// </summary>
     public class CustomUrlHelperTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("UrlHelperWebSite");
         private readonly Action<IApplicationBuilder> _app = new UrlHelperWebSite.Startup().Configure;
         private const string _cdnServerBaseUrl = "http://cdn.contoso.com";
 
         [Fact]
         public async Task CustomUrlHelper_GeneratesUrlFromController()
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(nameof(UrlHelperWebSite)))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
@@ -45,10 +44,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task CustomUrlHelper_GeneratesUrlFromView()
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(nameof(UrlHelperWebSite)))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
@@ -66,10 +65,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("http://localhost/Home/LinkByUrlAction", "/home/urlcontent")]
         public async Task LowercaseUrls_LinkGeneration(string url, string expectedLink)
         {
-            using (TestHelper.ReplaceCallContextServiceLocationService(_services))
+            using (TestHelper.ReplaceCallContextServiceLocationService(nameof(UrlHelperWebSite)))
             {
                 // Arrange
-                var server = TestServer.Create(_services, _app);
+                var server = TestServer.Create(_app);
                 var client = server.CreateClient();
 
                 // Act
