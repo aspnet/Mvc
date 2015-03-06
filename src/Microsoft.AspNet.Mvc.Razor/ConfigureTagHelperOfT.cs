@@ -10,15 +10,15 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <summary>
     /// Configures an <see cref="ITagHelper"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class ConfigureTagHelper<T> : IConfigureTagHelper<T>
-        where T : ITagHelper
+    /// <typeparam name="TTagHelper">The <see cref="ITagHelper"/> type.</typeparam>
+    public class ConfigureTagHelper<TTagHelper> : IConfigureTagHelper<TTagHelper>
+        where TTagHelper : ITagHelper
     {
         /// <summary>
         /// Creates an <see cref="Configure(ITagHelper, ViewContext)"/>.
         /// </summary>
         /// <param name="action">The configuration delegate.</param>
-        public ConfigureTagHelper(Action<T, ViewContext> action)
+        public ConfigureTagHelper(Action<TTagHelper, ViewContext> action)
         {
             Action = action;
         }
@@ -26,23 +26,23 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// The configuration delegate.
         /// </summary>
-        public Action<T, ViewContext> Action { get; }
+        public Action<TTagHelper, ViewContext> Action { get; }
 
         /// <summary>
-        /// Configures the <see cref="ITagHelper"/> using <see cref="Action"/>;
+        /// Configures the <see cref="TTagHelper"/> using <see cref="Action"/>;
         /// </summary>
-        /// <param name="helper">The <see cref="ITagHelper"/> to configure.</param>
+        /// <param name="helper">The <see cref="TTagHelper"/> to configure.</param>
         /// <param name="context">
-        ///     The <see cref="ViewContext"/> for the <see cref="IView"/> the <see cref="ITagHelper"/> is in.
+        ///     The <see cref="ViewContext"/> for the <see cref="IView"/> the <see cref="TTagHelper"/> is in.
         /// </param>
-        public void Configure(ITagHelper helper, ViewContext context)
+        public void Configure(TTagHelper helper, ViewContext context)
         {
-            if (!helper.GetType().IsAssignableFrom(typeof(T)))
+            if (!helper.GetType().IsAssignableFrom(typeof(TTagHelper)))
             {
                 throw new ArgumentException("", "helper");
             }
 
-            Action((T)helper, context);
+            Action(helper, context);
         }
     }
 }

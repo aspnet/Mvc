@@ -90,15 +90,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Theory]
-        [InlineData(true, "<input />")]
-        [InlineData(false, "")]
         [InlineData(null, "<input />")]
         [InlineData(true, "<input />")]
         [InlineData(false, "")]
-        [InlineData(null, "<input />")]
-        [InlineData(true, "<input />")]
-        [InlineData(false, "")]
-        [InlineData(null, "")]
         public async Task ProcessAsync_GeneratesAntiForgeryCorrectly(
             bool? antiForgery,
             string expectedPostContent)
@@ -318,12 +312,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Theory]
-        [InlineData(true, "<input />")]
-        [InlineData(false, "")]
-        [InlineData(null, "")]
-        [InlineData(true, "<input />")]
-        [InlineData(false, "")]
-        [InlineData(null, "<input />")]
         [InlineData(true, "<input />")]
         [InlineData(false, "")]
         [InlineData(null, "")]

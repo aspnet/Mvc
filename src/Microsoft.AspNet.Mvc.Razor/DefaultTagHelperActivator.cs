@@ -32,7 +32,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public void Activate([NotNull] ITagHelper tagHelper, [NotNull] ViewContext context)
+        public void Activate<TTagHelper>([NotNull] TTagHelper tagHelper, [NotNull] ViewContext context)
+            where TTagHelper : ITagHelper
         {
             var propertiesToActivate = _injectActions.GetOrAdd(tagHelper.GetType(),
                                                                _getPropertiesToActivate);
@@ -46,14 +47,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             ConfigureTagHelper(tagHelper, context);
         }
 
-        private static void ConfigureTagHelper(ITagHelper tagHelper, ViewContext context)
+        private static void ConfigureTagHelper<TTagHelper>(TTagHelper tagHelper, ViewContext context)
+            where TTagHelper : ITagHelper
         {
-            // Run any IConfigureTagHelper<> for tagHelper.GetType() in the container
-            var configureType = typeof(IConfigureTagHelper<>).MakeGenericType(tagHelper.GetType());
-            var configureEnumerableType = typeof(IEnumerable<>).MakeGenericType(configureType);
+            // Run any IConfigureTagHelper<TTagHelper> in the container
             var serviceProvider = context.HttpContext.RequestServices;
-            var configurators = ((IEnumerable)serviceProvider.GetService(configureEnumerableType))
-                .OfType<IConfigureTagHelper>();
+            var configurators = serviceProvider.GetService<IEnumerable<IConfigureTagHelper<TTagHelper>>>();
 
             foreach (var configurator in configurators)
             {

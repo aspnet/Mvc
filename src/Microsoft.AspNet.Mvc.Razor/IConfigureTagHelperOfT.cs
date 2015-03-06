@@ -8,10 +8,17 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <summary>
     /// Configures an <see cref="ITagHelper"/> before it's executed.
     /// </summary>
-    /// <typeparam name="T">The <see cref="ITagHelper"/> type.</typeparam>
-    public interface IConfigureTagHelper<in T> : IConfigureTagHelper
-        where T : ITagHelper
+    /// <typeparam name="TTagHelper">The <see cref="ITagHelper"/> type.</typeparam>
+    public interface IConfigureTagHelper<TTagHelper>
+        where TTagHelper : ITagHelper
     {
-        
+        /// <summary>
+        /// Configures the <see cref="TTagHelper"/> using <see cref="Action"/>;
+        /// </summary>
+        /// <param name="helper">The <see cref="TTagHelper"/> to configure.</param>
+        /// <param name="context">
+        ///     The <see cref="ViewContext"/> for the <see cref="IView"/> the <see cref="TTagHelper"/> is in.
+        /// </param>
+        void Configure(TTagHelper helper, ViewContext context);
     }
 }
