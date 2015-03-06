@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Test
             }
         }
 
-        [Theory(Skip = "https://github.com/aspnet/Options/issues/39")]
+        [Theory]
         [MemberData(nameof(ConfigureForm_GetsOptionsFromConfigurationCorrectly_Data))]
         public void ConfigureForm_GetsOptionsFromConfigurationCorrectly(string configValue, bool? expectedValue)
         {
