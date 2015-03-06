@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -38,6 +41,23 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 var activateInfo = propertiesToActivate[i];
                 activateInfo.Activate(tagHelper, context);
+            }
+
+            ConfigureTagHelper(tagHelper, context);
+        }
+
+        private static void ConfigureTagHelper(ITagHelper tagHelper, ViewContext context)
+        {
+            // Run any IConfigureTagHelper<> for tagHelper.GetType() in the container
+            var configureType = typeof(IConfigureTagHelper<>).MakeGenericType(tagHelper.GetType());
+            var configureEnumerableType = typeof(IEnumerable<>).MakeGenericType(configureType);
+            var serviceProvider = context.HttpContext.RequestServices;
+            var configurators = ((IEnumerable)serviceProvider.GetService(configureEnumerableType))
+                .OfType<IConfigureTagHelper>();
+
+            foreach (var configurator in configurators)
+            {
+                configurator.Configure(tagHelper, context);
             }
         }
 

@@ -10,11 +10,9 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.TagHelpers;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Internal;
 using MvcTagHelpersWebSite;
 using Xunit;
 
@@ -348,7 +346,7 @@ Products: Laptops (3)";
         {
             // Arrange
             var newServices = new ServiceCollection();
-            newServices.ConfigureTagHelpers().ConfigureForm(options => options.GenerateAntiForgeryToken = optionsAntiForgery);
+            newServices.ConfigureTagHelper<FormTagHelper>((form, vc) => form.AntiForgery = optionsAntiForgery);
             var serviceProvider = TestHelper.CreateServices("MvcTagHelpersWebSite", newServices);
             var server = TestServer.Create(serviceProvider, _app);
             var client = server.CreateClient();
