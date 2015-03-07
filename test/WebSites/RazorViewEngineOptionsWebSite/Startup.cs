@@ -7,7 +7,7 @@ using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.Framework.DependencyInjection;
 
-namespace RazorViewEngineOptionsWebsite
+namespace RazorViewEngineOptionsWebSite
 {
     public class Startup
     {

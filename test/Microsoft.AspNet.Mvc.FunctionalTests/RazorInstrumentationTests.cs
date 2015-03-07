@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RazorInstrumentationTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("RazorInstrumentationWebsite");
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(RazorInstrumentationWebSite));
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         public static IEnumerable<object[]> InstrumentationData
@@ -208,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             var services = new ServiceCollection();
             services.AddInstance(pageExecutionContext);
-            return TestHelper.CreateServices("RazorInstrumentationWebsite", services);
+            return TestHelper.CreateServices(nameof(RazorInstrumentationWebSite), services);
         }
     }
 }
