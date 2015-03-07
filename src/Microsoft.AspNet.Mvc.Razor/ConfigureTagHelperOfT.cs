@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -18,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Creates an <see cref="Configure(ITagHelper, ViewContext)"/>.
         /// </summary>
         /// <param name="action">The configuration delegate.</param>
-        public ConfigureTagHelper(Action<TTagHelper, ViewContext> action)
+        public ConfigureTagHelper([NotNull] Action<TTagHelper, ViewContext> action)
         {
             Action = action;
         }
@@ -35,13 +36,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="context">
         ///     The <see cref="ViewContext"/> for the <see cref="IView"/> the <see cref="TTagHelper"/> is in.
         /// </param>
-        public void Configure(TTagHelper helper, ViewContext context)
+        public void Configure([NotNull] TTagHelper helper, [NotNull] ViewContext context)
         {
-            if (!helper.GetType().IsAssignableFrom(typeof(TTagHelper)))
-            {
-                throw new ArgumentException("", "helper");
-            }
-
             Action(helper, context);
         }
     }
