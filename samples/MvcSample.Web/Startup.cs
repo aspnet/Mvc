@@ -1,19 +1,23 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#if DNX451
 using System;
+using Autofac;
+#endif
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
+#if DNX451
 using Microsoft.Framework.ConfigurationModel;
+#endif
 using Microsoft.Framework.DependencyInjection;
+#if DNX451
+using Microsoft.Framework.DependencyInjection.Autofac;
+#endif
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
 
-#if DNX451
-using Autofac;
-using Microsoft.Framework.DependencyInjection.Autofac;
-#endif
 
 namespace MvcSample.Web
 {
@@ -46,14 +50,10 @@ namespace MvcSample.Web
                     services.AddSingleton<UserNameService>();
                     services.AddTransient<ITestService, TestService>();
 
-                    // Setup services with a test AssemblyProvider so that only the
-                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
-                    // when the sample is used in the Functional Tests.
-                    services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
                     services.ConfigureMvcOptions(options =>
                     {
                         options.Filters.Add(typeof(PassThroughAttribute), order: 17);
-                        options.AddXmlDataContractSerializerFormatter();                        
+                        options.AddXmlDataContractSerializerFormatter();
                         options.Filters.Add(new FormatFilterAttribute());
                     });
                     services.ConfigureRazorViewEngineOptions(options =>
@@ -90,11 +90,6 @@ namespace MvcSample.Web
                     services.AddSingleton<PassThroughAttribute>();
                     services.AddSingleton<UserNameService>();
                     services.AddTransient<ITestService, TestService>();
-                    
-                    // Setup services with a test AssemblyProvider so that only the
-                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
-                    // when the sample is used in the Functional Tests.
-                    services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
 
                     services.ConfigureMvcOptions(options =>
                     {
