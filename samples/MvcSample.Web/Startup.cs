@@ -3,6 +3,7 @@
 
 #if DNX451
 using System;
+using System.IO;
 using Autofac;
 #endif
 using Microsoft.AspNet.Builder;
@@ -14,6 +15,7 @@ using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 #if DNX451
 using Microsoft.Framework.DependencyInjection.Autofac;
+using Microsoft.Framework.Runtime;
 #endif
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
@@ -26,15 +28,21 @@ namespace MvcSample.Web
         public void Configure(IApplicationBuilder app)
         {
             app.UseStatusCodePages();
-
             app.UseFileServer();
+
 #if DNX451
+            // Fully-qualify configuration path to avoid issues in functional tests. Just "config.json" would be fine
+            // but Configuration uses CallContextServiceLocator.Locator.ServiceProvider to get IApplicationEnvironment.
+            // Functional tests update that service but not in the static provider.
+            var applicationEnvironment = app.ApplicationServices.GetRequiredService<IApplicationEnvironment>();
+            var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
+
             // Set up configuration sources.
             var configuration = new Configuration()
-                    .AddJsonFile("config.json")
-                    .AddEnvironmentVariables();
-            string diSystem;
+                .AddJsonFile(configurationPath)
+                .AddEnvironmentVariables();
 
+            string diSystem;
             if (configuration.TryGet("DependencyInjection", out diSystem) &&
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {

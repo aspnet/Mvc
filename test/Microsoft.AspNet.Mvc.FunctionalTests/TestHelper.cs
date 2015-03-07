@@ -5,12 +5,10 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -58,20 +56,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private static void AddServices(
             IServiceCollection services,
             string applicationWebSiteName,
-            string applicationPath)
-        {
-            AddServices(services, applicationWebSiteName, applicationPath, configureServices: null);
-        }
-
-        private static void AddServices(
-            IServiceCollection services,
-            string applicationWebSiteName,
             string applicationPath,
             Action<IServiceCollection> configureServices)
         {
-            var provider = CallContextServiceLocator.Locator.ServiceProvider;
-            var originalEnvironment = provider.GetRequiredService<IApplicationEnvironment>();
             applicationPath = applicationPath ?? WebsitesDirectoryPath;
+
+            // Get current IApplicationEnvironment; likely added by the host.
+            var provider = services.BuildServiceProvider();
+            var originalEnvironment = provider.GetRequiredService<IApplicationEnvironment>();
 
             // When an application executes in a regular context, the application base path points to the root
             // directory where the application is located, for example MvcSample.Web. However, when executing
@@ -125,61 +117,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             };
 
             return provider;
-        }
-
-        /// <summary>
-        /// Creates a disposable action that replaces the service provider at
-        /// <see cref="CallContextServiceLocator.Locator"/> with one that overrides a couple of host services.
-        /// Service provider is switched back on <see cref="IDisposable.Dispose"/>.
-        /// </summary>
-        /// <remarks>
-        /// This is required for config since it uses the static property to get to
-        /// <see cref="IApplicationEnvironment"/>.
-        /// </remarks>
-        public static IDisposable ReplaceCallContextServiceLocationService(string applicationWebSiteName)
-        {
-            return ReplaceCallContextServiceLocationService(applicationWebSiteName, applicationPath: null);
-        }
-
-        /// <summary>
-        /// Creates a disposable action that replaces the service provider at
-        /// <see cref="CallContextServiceLocator.Locator"/> with one that overrides a couple of host services.
-        /// Service provider is switched back on <see cref="IDisposable.Dispose"/>.
-        /// </summary>
-        /// <remarks>
-        /// This is required for config since it uses the static property to get to
-        /// <see cref="IApplicationEnvironment"/>.
-        /// </remarks>
-        public static IDisposable ReplaceCallContextServiceLocationService(
-            string applicationWebSiteName,
-            string applicationPath)
-        {
-            var serviceCollection = HostingServices.Create(
-                configureHostServices: services => AddServices(services, applicationWebSiteName, applicationPath));
-            var provider = serviceCollection.BuildServiceProvider();
-
-            return ReplaceCallContextServiceLocationService(provider);
-        }
-
-        private static IDisposable ReplaceCallContextServiceLocationService(IServiceProvider serviceProvider)
-        {
-            return new CallContextProviderAction(serviceProvider);
-        }
-
-        private sealed class CallContextProviderAction : IDisposable
-        {
-            private readonly IServiceProvider _originalProvider;
-
-            public CallContextProviderAction(IServiceProvider provider)
-            {
-                _originalProvider = CallContextServiceLocator.Locator.ServiceProvider;
-                CallContextServiceLocator.Locator.ServiceProvider = provider;
-            }
-
-            public void Dispose()
-            {
-                CallContextServiceLocator.Locator.ServiceProvider = _originalProvider;
-            }
         }
     }
 }
