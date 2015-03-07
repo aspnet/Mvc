@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -29,7 +32,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public void Activate([NotNull] ITagHelper tagHelper, [NotNull] ViewContext context)
+        public void Activate<TTagHelper>([NotNull] TTagHelper tagHelper, [NotNull] ViewContext context)
+            where TTagHelper : ITagHelper
         {
             var propertiesToActivate = _injectActions.GetOrAdd(tagHelper.GetType(),
                                                                _getPropertiesToActivate);
@@ -38,6 +42,21 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 var activateInfo = propertiesToActivate[i];
                 activateInfo.Activate(tagHelper, context);
+            }
+
+            ConfigureTagHelper(tagHelper, context);
+        }
+
+        private static void ConfigureTagHelper<TTagHelper>(TTagHelper tagHelper, ViewContext context)
+            where TTagHelper : ITagHelper
+        {
+            // Run any IConfigureTagHelper<TTagHelper> in the container
+            var serviceProvider = context.HttpContext.RequestServices;
+            var configurators = serviceProvider.GetService<IEnumerable<IConfigureTagHelper<TTagHelper>>>();
+
+            foreach (var configurator in configurators)
+            {
+                configurator.Configure(tagHelper, context);
             }
         }
 

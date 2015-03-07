@@ -13,8 +13,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// When implemented in a type, activates an instantiated <see cref="ITagHelper"/>.
         /// </summary>
-        /// <param name="tagHelper">The <see cref="ITagHelper"/> to activate.</param>
+        /// <param name="tagHelper">The <see cref="TTagHelper"/> to activate.</param>
         /// <param name="context">The <see cref="ViewContext"/> for the executing view.</param>
-        void Activate(ITagHelper tagHelper, ViewContext context);
+        void Activate<TTagHelper>(TTagHelper tagHelper, ViewContext context) where TTagHelper : ITagHelper;
     }
 }
