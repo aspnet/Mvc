@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RazorViewEngineOptionsTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("RazorViewEngineOptionsWeb");
+        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(RazorViewEngineOptionsWebSite));
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         [Fact]
