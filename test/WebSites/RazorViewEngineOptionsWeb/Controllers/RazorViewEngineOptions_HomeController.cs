@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace RazorViewEngineOptionsWebsite
+namespace RazorViewEngineOptionsWebSite
 {
     public class RazorViewEngineOptions_HomeController : Controller
     {

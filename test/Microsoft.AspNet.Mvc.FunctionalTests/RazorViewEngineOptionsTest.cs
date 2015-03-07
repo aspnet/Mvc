@@ -5,14 +5,14 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.TestHost;
-using RazorViewEngineOptionsWebsite;
+using RazorViewEngineOptionsWebSite;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RazorViewEngineOptionsTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(RazorViewEngineOptionsWebsite));
+        private readonly IServiceProvider _services = TestHelper.CreateServices("RazorViewEngineOptionsWeb");
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
 
         [Fact]

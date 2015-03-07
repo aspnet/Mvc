@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace RazorViewEngineOptionsWebsite.Controllers
+namespace RazorViewEngineOptionsWebSite.Controllers
 {
     [Area("Restricted")]
     public class RazorViewEngineOptions_AdminController : Controller

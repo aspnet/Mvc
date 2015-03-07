@@ -1,4 +1,4 @@
-ConnegWebsite
+ConnegWebSite
 ===
 
 This web site illustrates in depth how MVC performs output content negotiation based on the input headers and
