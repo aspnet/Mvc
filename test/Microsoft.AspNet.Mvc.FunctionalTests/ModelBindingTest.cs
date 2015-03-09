@@ -2068,7 +2068,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task TryUpdateModel_InvalidModelAsParameter_FixOnServer_ReturnsEmptyResponseBody()
+        public async Task TryUpdateModel_ClearsModelStateEntries()
         {
             // Arrange
             var server = TestServer.Create(_services, _app);
@@ -2079,9 +2079,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.GetAsync(url);
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal("{}", body);
+            Assert.Equal(string.Empty, body);
         }
 
         private async Task<TVal> ReadValue<TVal>(HttpResponseMessage response)

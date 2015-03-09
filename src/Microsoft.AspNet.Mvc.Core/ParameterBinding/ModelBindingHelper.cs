@@ -388,6 +388,12 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        /// <summary>
+        /// Clears <see cref="ModelStateDictionary"/> entries for <see cref="ModelMetadata"/>.
+        /// </summary>
+        /// <param name="modelMetadata">The <see cref="ModelMetadata"/>.</param>
+        /// <param name="modelKey">The entry to clear. </param>
+        /// <param name="modelMetadataProvider">The <see cref="IModelMetadataProvider"/>.</param>
         public static void ClearValidationStateForModel(
             [NotNull] Type modelType,
             [NotNull] ModelStateDictionary modelstate,

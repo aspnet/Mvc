@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Microsoft.AspNet.Http.Core.Collections;
 using ModelBindingWebSite.Models;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNet.WebUtilities;
 
 namespace ModelBindingWebSite.Controllers
 {
@@ -159,39 +160,33 @@ namespace ModelBindingWebSite.Controllers
             return user;
         }
 
-        public async Task<object> TryUpdateModel_ClearsModelStateEntries()
+        public async Task<IActionResult> TryUpdateModel_ClearsModelStateEntries()
         {
-            //Invalid model.
+            var result = new ObjectResult(null);
+
+            // Invalid model.
             var model = new MyModel
             {
                 Id = 1,
-                Name = "abcd"
+                Price = -1
             };
 
-            //Validate model first and subsequent TryUpdateModel should remove
+            // Validate model first and subsequent TryUpdateModel should remove
             //modelstate entries for model and re-validate.
             TryValidateModel(model);
 
-            //Update Name to a valid value and call TryUpdateModel
-            model.Name = "a";
+            // Update Name to a valid value and call TryUpdateModel
+            model.Price = 1;
             await TryUpdateModelAsync<MyModel>(model);
 
-            var result = new Dictionary<string, string>();
-            foreach (var item in ModelState)
+            if (ModelState.IsValid)
             {
-                var errorMessage = string.Empty;
-                foreach (var error in item.Value.Errors)
-                {
-                    if (error != null)
-                    {
-                        errorMessage = errorMessage + error.ErrorMessage;
-                    }
-                }
-                if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    result.Add(item.Key, errorMessage);
-                }
+                result.StatusCode = StatusCodes.Status204NoContent;
             }
+            else
+            {
+                result.StatusCode = StatusCodes.Status500InternalServerError;
+            } 
 
             return result;
         }
@@ -210,8 +205,8 @@ namespace ModelBindingWebSite.Controllers
         {
             public int Id { get; set; }
 
-            [StringLength(2)]
-            public string Name { get; set; }
+            [Range(0,10)]
+            public double Price { get; set; }
         }
 
         public class CustomValueProvider : IValueProvider

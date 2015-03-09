@@ -223,39 +223,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal("bar", newDictionary["foo"].Value.ConvertTo(typeof(string)));
         }
 
-        [Fact]
-        public void GetFieldValidationState_ReturnsUnvalidatedIfDictionaryDoesNotContainKey()
+        [Theory]
+        [InlineData("foo")]
+        [InlineData("foo.bar")]
+        [InlineData("[0].foo.bar")]
+        [InlineData("[0].foo.bar[0]")]
+        public void GetFieldValidationState_ReturnsInvalidIfKeyChildContainsErrors(string key)
         {
             // Arrange
             var msd = new ModelStateDictionary();
-
-            // Act
-            var validationState = msd.GetFieldValidationState("foo");
-
-            // Assert
-            Assert.Equal(ModelValidationState.Unvalidated, validationState);
-        }
-
-        [Fact]
-        public void GetValidationState_ReturnsValidationStateForKey_IgnoresChildren()
-        {
-            // Arrange
-            var msd = new ModelStateDictionary();
-            msd.AddModelError("foo.bar", "error text");
-
-            // Act
-            var validationState = msd.GetValidationState("foo");
-
-            // Assert
-            Assert.Equal(ModelValidationState.Unvalidated, validationState);
-        }
-
-        [Fact]
-        public void GetFieldValidationState_ReturnsInvalidIfKeyChildContainsErrors()
-        {
-            // Arrange
-            var msd = new ModelStateDictionary();
-            msd.AddModelError("foo.bar", "error text");
+            msd.AddModelError(key, "error text");
 
             // Act
             var validationState = msd.GetFieldValidationState("foo");
@@ -264,22 +241,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(ModelValidationState.Invalid, validationState);
         }
 
-        [Fact]
-        public void GetFieldValidationState_ReturnsInvalidIfKeyContainsErrors()
-        {
-            // Arrange
-            var msd = new ModelStateDictionary();
-            msd.AddModelError("foo", "error text");
-
-            // Act
-            var validationState = msd.GetFieldValidationState("foo");
-
-            // Assert
-            Assert.Equal(ModelValidationState.Invalid, validationState);
-        }
-
-        [Fact]
-        public void GetFieldValidationState_ReturnsValidIfModelStateDoesNotContainErrors()
+        [Theory]
+        [InlineData("foo")]
+        [InlineData("foo.bar")]
+        [InlineData("[0].foo.bar")]
+        [InlineData("[0].foo.bar[0]")]
+        public void GetFieldValidationState_ReturnsValidIfModelStateDoesNotContainErrors(string key)
         {
             // Arrange
             var validState = new ModelState
@@ -289,7 +256,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
             var msd = new ModelStateDictionary
             {
-                { "foo", validState }
+                { key, validState }
             };
 
             // Act
@@ -488,6 +455,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [Theory]
         [InlineData("user")]
         [InlineData("user.Age")]
+        [InlineData("product")]
         public void GetFieldValidity_ReturnsInvalid_IfAllKeysAreValidatedAndAnyEntryIsInvalid(string key)
         {
             // Arrange
@@ -495,6 +463,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary["user.Address"] = new ModelState { ValidationState = ModelValidationState.Valid };
             dictionary["user.Name"] = new ModelState { ValidationState = ModelValidationState.Valid };
             dictionary.AddModelError("user.Age", "Age is not a valid int");
+            dictionary["[0].product.Name"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary["[0].product.Age[0]"] = new ModelState { ValidationState = ModelValidationState.Valid };
+            dictionary.AddModelError("[1].product.Name", "Name is invalid");
 
             // Act
             var validationState = dictionary.GetFieldValidationState(key);
@@ -774,25 +745,35 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary["Product.Detail2[1]"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("Product.Detail2[1]", "Product Detail2[1] invalid.");
 
+            dictionary["Product.Detail2[2]"] = new ModelState { ValidationState = ModelValidationState.Skipped };
+
+            dictionary["Product.Detail3"] = new ModelState { ValidationState = ModelValidationState.Skipped };
+
             dictionary["ProductName"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("ProductName", "ProductName invalid.");
 
             dictionary.ClearValidationState("Product");
 
             Assert.Equal(0, dictionary["Product"].Errors.Count);
-            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product"].ValidationState);
             Assert.Equal(0, dictionary["Product.Detail1"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail1"].ValidationState);
             Assert.Equal(0, dictionary["Product.Detail2[0]"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail2[0]"].ValidationState);
             Assert.Equal(0, dictionary["Product.Detail2[1]"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail2[1]"].ValidationState);
+            Assert.Equal(0, dictionary["Product.Detail2[2]"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail2[2]"].ValidationState);
+            Assert.Equal(0, dictionary["Product.Detail3"].Errors.Count);
+            Assert.Equal(ModelValidationState.Unvalidated, dictionary["Product.Detail3"].ValidationState);
             Assert.Equal(1, dictionary["ProductName"].Errors.Count);
             Assert.Equal(ModelValidationState.Invalid, dictionary["ProductName"].ValidationState);
         }
 
-        [Fact]
-        public void ModelStateDictionary_ClearsAllEntries_EmptyKey()
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void ModelStateDictionary_ClearsAllEntries_EmptyKey(string modelKey)
         {
             var dictionary = new ModelStateDictionary();
 
@@ -804,7 +785,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             dictionary["Property3"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("Property3", "Property invalid.");
 
-            dictionary.ClearValidationState("");
+            dictionary.ClearValidationState(modelKey);
 
             Assert.Equal(0, dictionary["Property1"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property1"].ValidationState);
@@ -812,6 +793,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property2"].ValidationState);
             Assert.Equal(0, dictionary["Property3"].Errors.Count);
             Assert.Equal(ModelValidationState.Unvalidated, dictionary["Property3"].ValidationState);
+        }
+
+        [Fact]
+        public void GetValidationState_ReturnsValidationStateForKey_IgnoresChildren()
+        {
+            // Arrange
+            var msd = new ModelStateDictionary();
+            msd.AddModelError("[0].foo.bar", "error text");
+
+            // Act
+            var validationState = msd.GetValidationState("foo");
+
+            // Assert
+            Assert.Equal(ModelValidationState.Unvalidated, validationState);
         }
 
         private static ValueProviderResult GetValueProviderResult(object rawValue = null, string attemptedValue = null)
