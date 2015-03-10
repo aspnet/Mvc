@@ -750,13 +750,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void ClearValidationStateForModel_NonEmtpyModelKey(string prefix)
         {
             // Arrange
-            var metadataProvider = new Mock<IModelMetadataProvider>();
-            metadataProvider.Setup(m => m.GetMetadataForType(It.IsAny<Type>()))
-                            .Returns(new ModelMetadata(
-                                metadataProvider.Object, 
-                                containerType: null, 
-                                modelType: typeof(Product), 
-                                propertyName: null));
+            var metadataProvider = new TestModelMetadataProvider();
 
             var dictionary = new ModelStateDictionary();
             dictionary["product.Name"] = new ModelState { ValidationState = ModelValidationState.Invalid };
@@ -776,7 +770,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             ModelBindingHelper.ClearValidationStateForModel(
                 typeof(Product),
                 dictionary,
-                metadataProvider.Object,
+                metadataProvider,
                 prefix);
 
             // Assert
