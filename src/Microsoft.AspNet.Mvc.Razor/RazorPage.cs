@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
@@ -249,26 +250,70 @@ namespace Microsoft.AspNet.Mvc.Razor
             return tagHelperContentWrapperTextWriter.Content;
         }
 
-        /// <summary>
-        /// Writes an <see cref="ITextWriterCopyable"/> to the <see cref="Output"/>.
-        /// </summary>
-        /// <param name="copyableTextWriter">Contains the data to be written.</param>
-        public void Write(ITextWriterCopyable copyableTextWriter)
+        public void WriteTagHelper(TagHelperExecutionContext tagHelperExecutionContext)
         {
-            WriteTo(Output, copyableTextWriter);
+            WriteTagHelperTo(Output, tagHelperExecutionContext);
         }
 
-        /// <summary>
-        /// Writes an <see cref="ITextWriterCopyable"/> to the <paramref name="writer"/>.
-        /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> to which the
-        /// <paramref name="copyableTextWriter"/> is written.</param>
-        /// <param name="copyableTextWriter">Contains the data to be written.</param>
-        public void WriteTo([NotNull] TextWriter writer, ITextWriterCopyable copyableTextWriter)
+        public void WriteTagHelperTo([NotNull] TextWriter writer, TagHelperExecutionContext tagHelperExecutionContext)
         {
-            if (copyableTextWriter != null)
+            var tagHelperOutput = tagHelperExecutionContext.Output;
+            var isTagNameNullOrWhitespace = string.IsNullOrWhiteSpace(tagHelperOutput.TagName);
+
+            if (!isTagNameNullOrWhitespace)
             {
-                copyableTextWriter.CopyTo(writer);
+                writer.Write('<');
+                writer.Write(tagHelperOutput.TagName);
+
+                foreach (var attribute in tagHelperOutput.Attributes)
+                {
+                    var value = HtmlEncoder.HtmlEncode(attribute.Value);
+                    writer.Write(' ');
+                    writer.Write(attribute.Key);
+                    writer.Write("=\"");
+                    writer.Write(value);
+                    writer.Write('"');
+                }
+
+                if (tagHelperOutput.SelfClosing)
+                {
+                    writer.Write(" /");
+                }
+
+                writer.Write('>');
+            }
+
+            if (isTagNameNullOrWhitespace || !tagHelperOutput.SelfClosing)
+            {
+                WriteTagHelperContentTo(writer, tagHelperOutput.PreContent);
+                if (tagHelperOutput.IsContentModified)
+                {
+                    WriteTagHelperContentTo(writer, tagHelperOutput.Content);
+                }
+                else if (tagHelperExecutionContext.ChildContentRetrieved)
+                {
+                    WriteTagHelperContentTo(writer, tagHelperExecutionContext.GetChildContentAsync().Result);
+                }
+                else
+                {
+                    tagHelperExecutionContext.ExecuteChildContentAsync().Wait();
+                }
+
+                WriteTagHelperContentTo(writer, tagHelperOutput.PostContent);
+            }
+
+            if (!tagHelperOutput.SelfClosing && !isTagNameNullOrWhitespace)
+            {
+                writer.Write(string.Format(CultureInfo.InvariantCulture, "</{0}>", tagHelperOutput.TagName));
+            }
+
+        }
+
+        private void WriteTagHelperContentTo(TextWriter writer, TagHelperContent content)
+        {
+            foreach (var entry in content)
+            {
+                writer.Write(entry);
             }
         }
 
@@ -310,20 +355,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     }
                     else
                     {
-                        // This path is called when GetChildContentAsync() is called in tag helper
-                        // and content is not set.
-                        var tagHelperContent = value as TagHelperContent;
-                        if (tagHelperContent != null)
-                        {
-                            foreach (var entry in tagHelperContent)
-                            {
-                                writer.Write(entry);
-                            }
-                        }
-                        else
-                        {
-                            WriteTo(writer, value.ToString());
-                        }
+                        WriteTo(writer, value.ToString());
                     }
                 }
             }

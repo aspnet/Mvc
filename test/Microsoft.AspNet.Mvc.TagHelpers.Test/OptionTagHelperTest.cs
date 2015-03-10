@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.Framework.WebEncoders;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -15,79 +14,141 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     {
         // Original content, selected attribute, value attribute, selected values (to place in FormContext.FormData)
         // and expected output (concatenation of TagHelperOutput generations).
-        public static TheoryData<string, string, string, ICollection<string>, string> GeneratesExpectedDataSet
+        public static TheoryData<string, string, string, ICollection<string>, TagHelperOutput> GeneratesExpectedDataSet
         {
             get
             {
-                return new TheoryData<string, string, string, ICollection<string>, string>
+                return new TheoryData<string, string, string, ICollection<string>, TagHelperOutput>
                 {
-                    { null, null, null, null,
-                        "<not-option label=\"my-label\"></not-option>" },
-                    { null, string.Empty, "value", null,
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"\"></not-option>" },
-                    { null, "selected", "value", null,
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"selected\"></not-option>" },
-                    { null, null, "value", new string[0],
-                        "<not-option label=\"my-label\" value=\"value\"></not-option>" },
+                    // original content, selected, value, selected values,
+                    // expected tag helper output - attributes, content
+                    {
+                        null, null, null, null,
+                        GetTagHelperOutput(
+                            "not-option", new Dictionary<string, string> { { "label", "my-label" } }, "")
+                    },
+                    {
+                        null, string.Empty, "value", null,
+                        GetTagHelperOutput(
+                            "not-option",
+                            new Dictionary<string, string> {
+                                { "label", "my-label" }, { "value", "value" }, { "selected", "" } },
+                            "")
+                    },
+                    {
+                        null, "selected", "value", null,
+                        GetTagHelperOutput(
+                            "not-option",
+                            new Dictionary<string, string> {
+                                { "label", "my-label" }, { "value", "value" }, { "selected", "selected" } },
+                            "")
+                    },
+                    {
+                        null, null, "value", new string[0],
+                        GetTagHelperOutput(
+                            "not-option",
+                            new Dictionary<string, string> {{ "label", "my-label" }, { "value", "value" } },
+                            "")
+                    },
                     { null, null, "value", new [] { string.Empty, },
-                        "<not-option label=\"my-label\" value=\"value\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" } }, "") },
                     { null, string.Empty, "value", new [] { string.Empty, },
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" }, { "selected", "" } }, "") },
                     { null, null, "value", new [] { "value", },
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"selected\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" }, { "selected", "selected" } }, "") },
                     { null, null, "value", new [] { string.Empty, "value", },
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"selected\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" }, { "selected", "selected" } }, "") },
 
-                    { string.Empty, null, null, null,
-                        "<not-option label=\"my-label\"></not-option>" },
+                    {
+                        string.Empty, null, null, null,
+                        GetTagHelperOutput(
+                            "not-option",
+                            new Dictionary<string, string> {{ "label", "my-label" } },
+                        "")
+                    },
                     { string.Empty, string.Empty, null, null,
-                        "<not-option label=\"my-label\" selected=\"\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "" } }, "") },
                     { string.Empty, "selected", null, null,
-                        "<not-option label=\"my-label\" selected=\"selected\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "selected" } }, "") },
                     { string.Empty, null, null, new string[0],
-                        "<not-option label=\"my-label\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" } }, "") },
                     { string.Empty, null, null, new [] { string.Empty, },
-                        "<not-option label=\"my-label\" selected=\"selected\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "selected" } }, "") },
                     { string.Empty, string.Empty, null, new [] { string.Empty, },
-                        "<not-option label=\"my-label\" selected=\"\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "" } }, "") },
                     { string.Empty, null, null, new [] { "text", },
-                        "<not-option label=\"my-label\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" } }, "") },
                     { string.Empty, null, null, new [] { string.Empty, "text", },
-                        "<not-option label=\"my-label\" selected=\"selected\"></not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "selected" } }, "") },
 
-                    { "text", null, null, null,
-                        "<not-option label=\"my-label\">text</not-option>" },
+                    { "text", null, null, null, GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" } }, "text") },
                     { "text", string.Empty, null, null,
-                        "<not-option label=\"my-label\" selected=\"\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "" } }, "text") },
                     { "text", "selected", null, null,
-                        "<not-option label=\"my-label\" selected=\"selected\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "selected" } }, "text") },
                     { "text", null, null, new string[0],
-                        "<not-option label=\"my-label\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" } }, "text") },
                     { "text", null, null, new [] { string.Empty, },
-                        "<not-option label=\"my-label\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" } }, "text") },
                     { "text", null, null, new [] { "text", },
-                        "<not-option label=\"my-label\" selected=\"selected\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "selected" } }, "text") },
                     { "text", string.Empty, null, new [] { "text", },
-                        "<not-option label=\"my-label\" selected=\"\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "" } }, "text") },
                     { "text", null, null, new [] { string.Empty, "text", },
-                        "<not-option label=\"my-label\" selected=\"selected\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "selected", "selected" } }, "text") },
 
-                    { "text", string.Empty, "value", null,
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"\">text</not-option>" },
-                    { "text", "selected", "value", null,
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"selected\">text</not-option>" },
+                    {
+                        "text", string.Empty, "value", null,
+                        GetTagHelperOutput(
+                            "not-option",
+                            new Dictionary<string, string> {
+                                { "label", "my-label" }, { "value", "value" }, { "selected", "" } },
+                            "text") },
+                    {
+                        "text", "selected", "value", null,
+                        GetTagHelperOutput(
+                            "not-option",
+                            new Dictionary<string, string> {
+                                { "label", "my-label" }, { "value", "value" }, { "selected", "selected" } },
+                            "text")
+                    },
                     { "text", null, "value", new string[0],
-                        "<not-option label=\"my-label\" value=\"value\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" } }, "text") },
                     { "text", null, "value", new [] { string.Empty, },
-                        "<not-option label=\"my-label\" value=\"value\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" } }, "text") },
                     { "text", string.Empty, "value", new [] { string.Empty, },
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" }, { "selected", "" } }, "text") },
                     { "text", null, "value", new [] { "text", },
-                        "<not-option label=\"my-label\" value=\"value\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" } }, "text") },
                     { "text", null, "value", new [] { "value", },
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"selected\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" }, { "selected", "selected" } }, "text") },
                     { "text", null, "value", new [] { string.Empty, "value", },
-                        "<not-option label=\"my-label\" value=\"value\" selected=\"selected\">text</not-option>" },
+                        GetTagHelperOutput("not-option", new Dictionary<string, string> {
+                        { "label", "my-label" }, { "value", "value" }, { "selected", "selected" } }, "text") }
                 };
             }
         }
@@ -122,14 +183,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string selected,
             string value,
             ICollection<string> selectedValues,
-            string expectedOutput)
+            TagHelperOutput expectedTagHelperOutput)
         {
             // Arrange
             var originalAttributes = new Dictionary<string, string>
             {
                 { "label", "my-label" },
             };
-            var expectedTagName = "not-option";
 
             var contextAttributes = new Dictionary<string, object>
             {
@@ -147,7 +207,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes, new HtmlEncoder())
+            var output = new TagHelperOutput(expectedTagHelperOutput.TagName, originalAttributes)
             {
                 SelfClosing = false,
             };
@@ -172,11 +232,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.Equal(
-                expectedOutput,
-                output.GenerateStartTag() +
-                (output.GenerateContent() as TagHelperContent).GetContent() +
-                output.GenerateEndTag());
+            Assert.Equal(expectedTagHelperOutput.TagName, output.TagName);
+            Assert.Equal(expectedTagHelperOutput.Content.GetContent(), output.Content.GetContent());
+            Assert.Equal(expectedTagHelperOutput.Attributes.Count, output.Attributes.Count);
+            Assert.True(expectedTagHelperOutput.Attributes.All(e => output.Attributes.Contains(e)));
         }
 
         [Theory]
@@ -186,7 +245,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string selected,
             string value,
             ICollection<string> selectedValues,
-            string ignored)
+            TagHelperOutput ignored)
         {
             // Arrange
             var originalAttributes = new Dictionary<string, string>
@@ -213,7 +272,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(originalTagName, originalAttributes, new HtmlEncoder())
+            var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
                 SelfClosing = false,
             };
@@ -247,7 +306,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string selected,
             string value,
             ICollection<string> ignoredValues,
-            string ignoredOutput)
+            TagHelperOutput ignoredOutput)
         {
             // Arrange
             var originalAttributes = new Dictionary<string, string>
@@ -274,7 +333,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(originalTagName, originalAttributes, new HtmlEncoder())
+            var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
                 SelfClosing = false,
             };
@@ -291,6 +350,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act & Assert (does not throw)
             // Tag helper would throw an NRE if it used ViewContext or Generator values.
             await tagHelper.ProcessAsync(tagHelperContext, output);
+        }
+
+        private static TagHelperOutput GetTagHelperOutput(string tagName, IDictionary<string, string> attributes, string content)
+        {
+            var tagHelperOutput = new TagHelperOutput(tagName, attributes);
+            tagHelperOutput.Content.SetContent(content);
+
+            return tagHelperOutput;
         }
     }
 }

@@ -687,96 +687,154 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Same(stringCollectionWriter.Buffer.BufferEntries, buffer.BufferEntries[1]);
         }
 
-        [Fact]
-        public async Task Write_ITextWriterCopyable_WritesContent()
+        public static TheoryData<TagHelperOutput, string> WriteTagHelper_InputData
+        {
+            get
+            {
+                // parameters: TagHelperOutput, expectedOutput
+                return new TheoryData<TagHelperOutput, string>
+                {
+                    {
+                        // parameters: TagName, Attributes, SelfClosing, PreContent, Content, PostContent
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, null, "Hello World!", null),
+                        "<p>Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput(null, new Dictionary<string, string>(), false, null, "Hello World!", null),
+                        "Hello World!"
+                    },
+                    {
+                        GetTagHelperOutput(
+                            "p",
+                            new Dictionary<string, string>() { { "test", "testVal" } },
+                            false,
+                            null,
+                            "Hello World!",
+                            null),
+                        "<p test=\"testVal\">Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput(
+                            "p",
+                            new Dictionary<string, string>() { { "test", "testVal" } },
+                            true,
+                            null,
+                            "Hello World!",
+                            null),
+                        "<p test=\"testVal\" />"
+                    },
+                    {
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, "Hello World!", null, null),
+                        "<p>Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, null, null, "Hello World!"),
+                        "<p>Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, "Hello World!", null, null),
+                        "<p>Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, "Hello", "Test", "World!"),
+                        "<p>HelloTestWorld!</p>"
+                    },
+                    {
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), true, "Hello", "Test", "World!"),
+                        "<p />"
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(WriteTagHelper_InputData))]
+        public async Task WriteTagHelper_WritesFormattedTagHelper(TagHelperOutput output, string expected)
         {
             // Arrange
             // This writer uses BufferEntryCollection underneath and so can copy the buffer.
             var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(writer);
-            var expectedContent = "Hello World!";
-            var contentToBeCopied = new DefaultTagHelperContent().SetContent("Hello ").Append("World!");
+            var tagHelperExecutionContext = new TagHelperExecutionContext(tagName: output.TagName,
+                   selfClosing: output.SelfClosing,
+                   items: new Dictionary<object, object>(),
+                   uniqueId: string.Empty,
+                   executeChildContentAsync: async () => await Task.FromResult(result: true),
+                   startTagHelperWritingScope: () => { },
+                   endTagHelperWritingScope: () => new DefaultTagHelperContent());
+            tagHelperExecutionContext.Output = output;
 
             // Act
             var page = CreatePage(p =>
             {
-                p.Write((ITextWriterCopyable)contentToBeCopied);
+                p.HtmlEncoder = new HtmlEncoder();
+                p.WriteTagHelper(tagHelperExecutionContext);
             }, context);
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal(expectedContent, writer.ToString());
-            Assert.Equal(2, writer.Buffer.BufferEntries.Count);
-            var expectedList = new List<object>();
-            expectedList.Add("Hello ");
-            expectedList.Add("World!");
-            Assert.Equal(expectedList, writer.Buffer.BufferEntries);
+            Assert.Equal(expected, writer.ToString());
         }
 
-        [Fact]
-        public async Task Write_ITextWriterCopyable_WritesContent_AsString()
+        [Theory]
+        // This is a scenario where GetChildContentAsync is called.
+        [InlineData(true, "HelloWorld!", "<p>HelloWorld!</p>")]
+        // This is a scenario where ExecuteChildContentAsync is called.
+        [InlineData(false, "HelloWorld!", "<p></p>")]
+        public async Task WriteTagHelper_WritesContentAppropriately(
+            bool childContentRetrieved, string input, string expected)
         {
             // Arrange
-            // This writer stores the data as a string.
-            var writer = new StringWriter();
-            var context = CreateViewContext(writer);
-            var expectedContent = "Hello World!";
-            var contentToBeCopied = new DefaultTagHelperContent().SetContent("Hello ").Append("World!");
-
-            // Act
-            var page = CreatePage(p =>
-            {
-                p.Write((ITextWriterCopyable)contentToBeCopied);
-            }, context);
-            await page.ExecuteAsync();
-
-            // Assert
-            Assert.Equal(expectedContent, writer.ToString());
-        }
-
-        [Fact]
-        public async Task WriteTo_ITextWriterCopyable_WritesContent_ToSpecifiedWriter()
-        {
-            // Arrange
-            var writer = new StringWriter();
-            var expectedContent = "Hello World!";
-            var contentToBeCopied = new DefaultTagHelperContent().SetContent("Hello ").Append("World!");
-
-            // Act
-            var page = CreatePage(p =>
-            {
-                p.WriteTo(writer, (ITextWriterCopyable)contentToBeCopied);
-            });
-            await page.ExecuteAsync();
-
-            // Assert
-            Assert.Equal(expectedContent, writer.ToString());
-        }
-
-        [Fact]
-        public async Task Write_TagHelperContent_WritesContent()
-        {
-            // Arrange
-            // This writer uses BufferEntryCollection underneath and so can copy the buffer.
+            var defaultTagHelperContent = new DefaultTagHelperContent();
             var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(writer);
-            var expectedContent = "Hello World!";
-            var contentToBeCopied = new DefaultTagHelperContent().SetContent("Hello ").Append("World!");
+            var tagHelperExecutionContext = new TagHelperExecutionContext(tagName: "p",
+                   selfClosing: false,
+                   items: new Dictionary<object, object>(),
+                   uniqueId: string.Empty,
+                   executeChildContentAsync: () => {
+                       defaultTagHelperContent.SetContent(input);
+                       return Task.FromResult(result: true);
+                   },
+                   startTagHelperWritingScope: () => { },
+                   endTagHelperWritingScope: () => defaultTagHelperContent);
+            tagHelperExecutionContext.Output =
+                new TagHelperOutput("p", new Dictionary<string, string>());
+            if (childContentRetrieved)
+            {
+                await tagHelperExecutionContext.GetChildContentAsync();
+            }
 
             // Act
             var page = CreatePage(p =>
             {
-                p.Write(contentToBeCopied);
+                p.HtmlEncoder = new HtmlEncoder();
+                p.WriteTagHelper(tagHelperExecutionContext);
             }, context);
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal(expectedContent, writer.ToString());
-            Assert.Equal(2, writer.Buffer.BufferEntries.Count);
-            var expectedList = new List<object>();
-            expectedList.Add("Hello ");
-            expectedList.Add("World!");
-            Assert.Equal(expectedList, writer.Buffer.BufferEntries);
+            Assert.Equal(expected, writer.ToString());
+        }
+
+        private static TagHelperOutput GetTagHelperOutput(
+            string tagName,
+            IDictionary<string, string> attributes,
+            bool selfClosing,
+            string preContent,
+            string content,
+            string postContent)
+        {
+            var output = new TagHelperOutput(tagName, attributes)
+            {
+                SelfClosing = selfClosing
+            };
+
+            output.PreContent.SetContent(preContent);
+            output.Content.SetContent(content);
+            output.PostContent.SetContent(postContent);
+
+            return output;
         }
 
         private static TestableRazorPage CreatePage(Action<TestableRazorPage> executeAction,
