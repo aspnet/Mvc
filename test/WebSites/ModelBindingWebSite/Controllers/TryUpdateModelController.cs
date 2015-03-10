@@ -2,15 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Core.Collections;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using System.Collections.Generic;
-using Microsoft.AspNet.Http.Core.Collections;
-using ModelBindingWebSite.Models;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.WebUtilities;
+using ModelBindingWebSite.Models;
 
 namespace ModelBindingWebSite.Controllers
 {

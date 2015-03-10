@@ -31,15 +31,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Internal
 
                 if (key.StartsWith("[", StringComparison.OrdinalIgnoreCase))
                 {
-                    var splitKey = key.Split('.');
-                    if (splitKey.Count() > 1)
+                    key = key.Substring(key.IndexOf('.') + 1);
+                    if (string.Equals(prefix, key, StringComparison.Ordinal))
                     {
-                        key = splitKey[1];
-                        if (string.Equals(prefix, key, StringComparison.Ordinal))
-                        {
-                            yield return entry;
-                            continue;
-                        }
+                        yield return entry;
+                        continue;
                     }
                 }
 

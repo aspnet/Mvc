@@ -745,6 +745,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("product")]
         [InlineData("product.Name")]
         [InlineData("product.Order[0].Name")]
+        [InlineData("product.Order[0].Address.Street")]
         [InlineData("product.Category.Name")]
         [InlineData("product.Order")]
         public void ClearValidationStateForModel_NonEmtpyModelKey(string prefix)
@@ -762,6 +763,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             dictionary["product.Category.Name"] = new ModelState { ValidationState = ModelValidationState.Valid };
             dictionary["product.Order[0].Name"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("product.Order[0].Name", "Order name invalid.");
+            dictionary["product.Order[0].Address.Street"] = 
+                new ModelState { ValidationState = ModelValidationState.Invalid };
+            dictionary.AddModelError("product.Order[0].Address.Street", "Street invalid.");
             dictionary["product.Order[1].Name"] = new ModelState { ValidationState = ModelValidationState.Valid };
             dictionary["product.Order[0]"] = new ModelState { ValidationState = ModelValidationState.Invalid };
             dictionary.AddModelError("product.Order[0]", "Order invalid.");
@@ -844,6 +848,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public class Order
         {
             public string Name { get; set; }
+            public Address Address { get; set; }
         }
     }
 }
