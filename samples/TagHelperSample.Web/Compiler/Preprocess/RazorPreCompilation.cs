@@ -10,7 +10,7 @@ namespace TagHelperSample.Web
     public class TagHelperPrecompilation : RazorPreCompileModule
     {
         public TagHelperPrecompilation(IServiceProvider provider, IApplicationEnvironment applicationEnvironment)
-            : base(provider, nameof(TagHelperSample) + "." + nameof(TagHelperSample.Web))
+            : base(provider)
         {
             GenerateSymbols =
                 string.Equals(applicationEnvironment.Configuration, "debug", StringComparison.OrdinalIgnoreCase);

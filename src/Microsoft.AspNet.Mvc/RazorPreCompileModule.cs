@@ -25,26 +25,14 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly IServiceProvider _appServices;
         private readonly IMemoryCache _memoryCache;
-        private readonly string _libraryName;
 
         /// <summary>
         /// Instantiates a new <see cref="RazorPreCompileModule"/> instance.
         /// </summary>
         /// <param name="services">The <see cref="IServiceProvider"/> for the application.</param>
         public RazorPreCompileModule(IServiceProvider services)
-            : this(services, libraryName: null)
-        {
-        }
-
-        /// <summary>
-        /// Instantiates a new <see cref="RazorPreCompileModule"/> instance.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceProvider"/> for the application.</param>
-        /// <param name="libraryName">The name of the library containing the Razor views.</param>
-        public RazorPreCompileModule(IServiceProvider services, string libraryName)
         {
             _appServices = services;
-            _libraryName = libraryName;
 
             // When ListenForMemoryPressure is true, the MemoryCache evicts items at every gen2 collection.
             // In DTH, gen2 happens frequently enough to make it undesirable for caching precompilation results. We'll
@@ -71,21 +59,16 @@ namespace Microsoft.AspNet.Mvc
             var serviceCollection = HostingServices.Create(_appServices);
             serviceCollection.AddMvc();
 
-            if (!string.IsNullOrEmpty(_libraryName))
-            {
-                // We also need an IApplicationEnvironment with a base path that matches the containing web site, to
-                // find the razor files. We don't have a guarantee that the base path of the current application is
-                // this site. For example similar functional test changes to the IApplicationEnvironment happen later,
-                // after everything is compiled.
-                var libraryManager = _appServices.GetService<ILibraryManager>();
-                var info = libraryManager.GetLibraryInformation(_libraryName);
-                var directory = Path.GetDirectoryName(info.Path);
-                var precompilationApplicationEnvironment = new PrecompilationApplicationEnvironment(
-                    applicationEnvironment,
-                    directory);
-
-                serviceCollection.AddInstance<IApplicationEnvironment>(precompilationApplicationEnvironment);
-            }
+            // We also need an IApplicationEnvironment with a base path that matches the containing web site, to
+            // find the razor files. We don't have a guarantee that the base path of the current application is
+            // this site. For example similar functional test changes to the IApplicationEnvironment happen later,
+            // after everything is compiled. IOptions<RazorViewEngineOptions> setup initializes the
+            // RazorViewEngineOptions based on this IApplicationEnvironment implementation.
+            var directory = context.ProjectContext.ProjectDirectory;
+            var precompilationApplicationEnvironment = new PrecompilationApplicationEnvironment(
+                applicationEnvironment,
+                context.ProjectContext.ProjectDirectory);
+            serviceCollection.AddInstance<IApplicationEnvironment>(precompilationApplicationEnvironment);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var viewCompiler = new RazorPreCompiler(serviceProvider, context, _memoryCache, compilationSettings)
