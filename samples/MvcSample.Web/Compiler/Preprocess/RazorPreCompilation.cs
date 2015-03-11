@@ -9,13 +9,11 @@ namespace MvcSample.Web
 {
     public class RazorPreCompilation : RazorPreCompileModule
     {
-        public RazorPreCompilation(IServiceProvider provider,
-                                   IApplicationEnvironment applicationEnvironment)
-            : base(provider)
+        public RazorPreCompilation(IServiceProvider provider, IApplicationEnvironment applicationEnvironment)
+            : base(provider, nameof(MvcSample) + "." + nameof(MvcSample.Web))
         {
-            GenerateSymbols = string.Equals(applicationEnvironment.Configuration,
-                                            "debug",
-                                            StringComparison.OrdinalIgnoreCase);
+            GenerateSymbols =
+                string.Equals(applicationEnvironment.Configuration, "debug", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
