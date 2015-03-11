@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class ScopedInstanceTests
+    public class ScopedInstanceTest
     {
         [Fact]
         public void ScopedInstanceDisposesIDisposables()
