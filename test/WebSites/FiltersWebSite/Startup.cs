@@ -14,11 +14,9 @@ namespace FiltersWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
             app.UseServices(services =>
             {
-                services.AddMvc(configuration);
+                services.AddMvc();
                 services.ConfigureAuthorization(options =>
                 {
                     // This policy cannot succeed since it has no requirements

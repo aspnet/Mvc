@@ -11,11 +11,9 @@ namespace InlineConstraints
     {
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
             app.UseServices(services =>
             {
-                services.AddMvc(configuration);
+                services.AddMvc();
             });
 
             app.UseErrorReporter();

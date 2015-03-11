@@ -10,13 +10,11 @@ namespace TempDataWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
             app.UseServices(services =>
             {
                 services.AddCachingServices();
                 services.AddSessionServices();
-                services.AddMvc(configuration);
+                services.AddMvc();
             });
 
             app.UseInMemorySession();

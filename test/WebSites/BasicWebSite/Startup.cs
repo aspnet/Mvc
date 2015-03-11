@@ -12,13 +12,11 @@ namespace BasicWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
             // Set up application services
             app.UseServices(services =>
             {
                 // Add MVC services to the services container
-                services.AddMvc(configuration);
+                services.AddMvc();
 
                 services.AddSingleton<IActionDescriptorProvider, ActionDescriptorCreationCounter>();
 

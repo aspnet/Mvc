@@ -10,8 +10,6 @@ namespace ValidationWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
             // Set up file serving for JavaScript files.
             app.UseFileServer();
 
@@ -19,7 +17,7 @@ namespace ValidationWebSite
             app.UseServices(services =>
             {
                 // Add MVC services to the services container
-                services.AddMvc(configuration);
+                services.AddMvc();
             });
 
             app.UseErrorReporter();
