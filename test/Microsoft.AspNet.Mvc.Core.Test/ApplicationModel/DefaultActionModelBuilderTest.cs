@@ -303,7 +303,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
             // Assert
             var action = Assert.Single(actions);
-            Assert.True(action.Filters.Any(f => f is CorsAuthorizationFilter));
+            Assert.Single(action.Filters, f => f is CorsAuthorizationFilter);
         }
 
         [Fact]
@@ -721,7 +721,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authOptions ?? new AuthorizationOptions());
-            return new DefaultActionModelBuilder(options.Object, null);
+            return new DefaultActionModelBuilder(options.Object, corsOptions: null);
         }
 
         private static AccessibleActionModelBuilder CreateTestAccessibleActionModelBuilder()

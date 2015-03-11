@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Adding a custom header makes it a non simple request.
             var requestBuilder = server
                 .CreateRequest("http://localhost/Cors/EditUserComment?userComment=abcd")
-                .AddHeader(CorsConstants.Origin, "http://foo.com")
+                .AddHeader(CorsConstants.Origin, "http://example.com")
                 .AddHeader(CorsConstants.AccessControlExposeHeaders, "exposed1,exposed2");
 
             // Act
@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseHeaders = response.Headers;
             Assert.Equal(
-                new[] { "http://foo.com" },
+                new[] { "http://example.com" },
                 responseHeaders.GetValues(CorsConstants.AccessControlAllowOrigin).ToArray());
             Assert.Equal(
                new[] { "true" },
@@ -120,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Adding a custom header makes it a non simple request.
             var requestBuilder = server
                 .CreateRequest("http://localhost/Cors/EditUserComment?userComment=abcd")
-                .AddHeader(CorsConstants.Origin, "http://foo.com")
+                .AddHeader(CorsConstants.Origin, "http://example.com")
                 .AddHeader(CorsConstants.AccessControlRequestMethod, "PUT")
                 .AddHeader(CorsConstants.AccessControlRequestHeaders, "header1,header2");
 
@@ -131,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseHeaders = response.Headers;
             Assert.Equal(
-                new[] { "http://foo.com" },
+                new[] { "http://example.com" },
                 responseHeaders.GetValues(CorsConstants.AccessControlAllowOrigin).ToArray());
             Assert.Equal(
                new[] { "true" },
@@ -157,7 +157,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Adding a custom header makes it a non simple request.
             var requestBuilder = server
                 .CreateRequest("http://localhost/Cors/GetUserComments")
-                .AddHeader(CorsConstants.Origin, "http://foo.com");
+                .AddHeader(CorsConstants.Origin, "http://example.com");
 
             // Act
             var response = await requestBuilder.SendAsync("PUT");
