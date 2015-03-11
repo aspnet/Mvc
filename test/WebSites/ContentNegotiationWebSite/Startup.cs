@@ -11,11 +11,13 @@ namespace ContentNegotiationWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             // Set up application services
             app.UseServices(services =>
             {
                 // Add MVC services to the services container
-                services.AddMvc();
+                services.AddMvc(configuration);
 
                 services.Configure<MvcOptions>(options =>
                 {

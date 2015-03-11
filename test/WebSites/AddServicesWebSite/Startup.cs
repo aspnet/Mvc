@@ -9,6 +9,8 @@ namespace AddServicesWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             // Not calling AddMvc() here.
             // The purpose of the Website is to demonstrate that it throws
             // when AddMvc() is not called.

@@ -11,11 +11,13 @@ namespace CompositeViewEngineWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             // Set up application services
             app.UseServices(services =>
             {
                 // Add a view engine as the first one in the list.
-                services.AddMvc()
+                services.AddMvc(configuration)
                     .Configure<MvcOptions>(options =>
                     {
                         options.ViewEngines.Insert(0, typeof(TestViewEngine));

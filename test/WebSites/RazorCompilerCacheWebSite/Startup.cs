@@ -11,9 +11,11 @@ namespace RazorCompilerCacheWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             app.UseServices(services =>
             {
-                services.AddMvc();
+                services.AddMvc(configuration);
                 services.AddSingleton<ICompilerCache, CustomCompilerCache>();
                 services.AddSingleton<CompilerCacheInitialiedService>();
             });

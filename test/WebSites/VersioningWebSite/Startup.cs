@@ -10,9 +10,11 @@ namespace VersioningWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             app.UseServices(services =>
             {
-                services.AddMvc();
+                services.AddMvc(configuration);
 
                 services.AddScoped<TestResponseGenerator>();
             });

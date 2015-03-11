@@ -18,9 +18,11 @@ namespace ControllersFromServicesWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             app.UseServices(services =>
             {
-                services.AddMvc()
+                services.AddMvc(configuration)
                         .WithControllersAsServices(
                          new[]
                          {

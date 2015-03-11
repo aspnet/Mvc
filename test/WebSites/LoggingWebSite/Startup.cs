@@ -10,6 +10,8 @@ namespace LoggingWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            var configuration = app.GetTestConfiguration();
+
             app.UseServices(services =>
             {
                 services.AddElm(options =>
@@ -18,7 +20,7 @@ namespace LoggingWebSite
                     options.Filter = (loggerName, logLevel) => true;
                 });
 
-                services.AddMvc();
+                services.AddMvc(configuration);
             });
 
             app.Map("/logs", (appBuilder) =>
