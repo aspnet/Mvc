@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +10,6 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.Fallback;
 using Moq;
 using Newtonsoft.Json.Utilities;
 using NuGet;
@@ -99,8 +99,8 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public async Task CorsRequest_FailedMatch_Writes400()
-        {
+        public async Task CorsRequest_FailedMatch_Writes200()
+        {   
             // Arrange
             var policy = new CorsPolicy();
             var filter = new CorsAuthorizationFilter(policy);
@@ -114,15 +114,14 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Act
             await filter.OnAuthorizationAsync(authorizationContext);
-            await authorizationContext.Result.ExecuteResultAsync(authorizationContext);
 
             // Assert
-            Assert.Equal(400, authorizationContext.HttpContext.Response.StatusCode);
+            Assert.Equal(200, authorizationContext.HttpContext.Response.StatusCode);
             Assert.Empty(authorizationContext.HttpContext.Response.Headers);
         }
 
         private AuthorizationContext GetAuthorizationContext(
-            ICorsEngine engine,
+            ICorsService corsService,
             FilterDescriptor[] filterDescriptors,
             RequestHeaders headers = null,
             bool isPreflight = false)
@@ -131,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.Test
             var serviceCollection = new ServiceCollection();
 
             var describer = new ServiceDescriber();
-            serviceCollection.TryAdd(describer.Instance(engine));
+            serviceCollection.TryAdd(describer.Instance(corsService));
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -163,11 +162,10 @@ namespace Microsoft.AspNet.Mvc.Test
             return authorizationContext;
         }
 
-        private ICorsEngine GetFailingEngine()
+        private ICorsService GetFailingEngine()
         {
-            var mockEngine = new Mock<ICorsEngine>();
+            var mockEngine = new Mock<ICorsService>();
             var result = GetCorsResult("http://example.com");
-            result.ErrorMessages.Add("SomeError");
 
             mockEngine
                 .Setup(o => o.EvaluatePolicy(It.IsAny<HttpContext>(), It.IsAny<CorsPolicy>()))
@@ -175,13 +173,13 @@ namespace Microsoft.AspNet.Mvc.Test
             return mockEngine.Object;
         }
 
-        private ICorsEngine GetPassingEngine(bool supportsCredentials = false)
+        private ICorsService GetPassingEngine(bool supportsCredentials = false)
         {
-            var mockEngine = new Mock<ICorsEngine>();
+            var mockEngine = new Mock<ICorsService>();
             var result = GetCorsResult(
                 "http://example.com",
                 new List<string> { "header1", "header2" },
-                new List<string> { "GET", "PUT" },
+                new List<string> { "PUT" },
                 new List<string> { "exposed1", "exposed2" },
                 123,
                 supportsCredentials);
@@ -189,6 +187,26 @@ namespace Microsoft.AspNet.Mvc.Test
             mockEngine
                 .Setup(o => o.EvaluatePolicy(It.IsAny<HttpContext>(), It.IsAny<CorsPolicy>()))
                 .Returns(result);
+
+            mockEngine
+                .Setup(o => o.ApplyResult(It.IsAny<CorsResult>(), It.IsAny<HttpResponse>()))
+                .Callback<CorsResult, HttpResponse>((result1, response1) =>
+                {
+                    var headers = response1.Headers;
+                    headers.Set(
+                        CorsConstants.AccessControlMaxAge,
+                        result1.PreflightMaxAge.Value.TotalSeconds.ToString());
+                    headers.Add(CorsConstants.AccessControlAllowOrigin, new[] { result1.AllowedOrigin });
+                    if (result1.SupportsCredentials)
+                    {
+                        headers.Add(CorsConstants.AccessControlAllowCredentials, new[] { "true" });
+                    }
+
+                    headers.Add(CorsConstants.AccessControlAllowHeaders, result1.AllowedHeaders.ToArray());
+                    headers.Add(CorsConstants.AccessControlAllowMethods, result1.AllowedMethods.ToArray());
+                    headers.Add(CorsConstants.AccessControlExposeHeaders, result1.AllowedExposedHeaders.ToArray());
+                });
+
             return mockEngine.Object;
         }
 
@@ -235,7 +253,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             if (preFlightMaxAge != null)
             {
-                result.PreflightMaxAge = preFlightMaxAge.Value;
+                result.PreflightMaxAge = TimeSpan.FromSeconds(preFlightMaxAge.Value);
             }
 
             if (supportsCredentials != null)

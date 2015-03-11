@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Cors.Core;
@@ -36,28 +37,28 @@ namespace Microsoft.AspNet.Mvc
                 return;
             }
 
-            if (context.HttpContext.Request.IsCorsRequest())
+            if (context.HttpContext.Request.Headers.ContainsKey(CorsConstants.Origin))
             {
                 var policy = _corsPolicy;
-                var engine = context.HttpContext.RequestServices.GetRequiredService<ICorsEngine>();
-                var result = engine.EvaluatePolicy(context.HttpContext, policy);
-                if (result.IsValid)
-                {
-                    WriteCorsHeaders(context.HttpContext, result);
-                }
+                var corsService = context.HttpContext.RequestServices.GetRequiredService<ICorsService>();
+                var result = corsService.EvaluatePolicy(context.HttpContext, policy);
+                corsService.ApplyResult(result, context.HttpContext.Response);
 
-                if (context.HttpContext.Request.IsPreflight())
+                var accessControlRequestMethod = 
+                        context.HttpContext.Request.Headers.Get(CorsConstants.AccessControlRequestMethod);
+                if (string.Equals(
+                        context.HttpContext.Request.Method,
+                        CorsConstants.PreflightHttpMethod,
+                        StringComparison.Ordinal) &&
+                    accessControlRequestMethod != null)
                 {
                     // If this was a preflight, there is no need to run anything else.
                     // Also the response is always 200 so that anyone after mvc can handle the pre filght request.
                     context.Result = new HttpStatusCodeResult(StatusCodes.Status200OK);
                     await Task.FromResult(true);
                 }
-                else if (!result.IsValid)
-                {
-                    // Short circuit. We do not run the action in this case.
-                    context.Result = new HttpStatusCodeResult(StatusCodes.Status400BadRequest);
-                }
+
+                // Continue with other filters and action.
             }
         }
 
@@ -69,14 +70,6 @@ namespace Microsoft.AspNet.Mvc
             // we apply this constraint only if there is no ICorsAuthorizationFilter after this.
             return actionDescriptor.FilterDescriptors.Last(
                 filter => filter.Filter is ICorsAuthorizationFilter).Filter == this;
-        }
-
-        private static void WriteCorsHeaders(HttpContext context, CorsResult result)
-        {
-            foreach (var header in result.ToResponseHeaders())
-            {
-                context.Response.Headers.Set(header.Key, header.Value);
-            }
         }
     }
 }

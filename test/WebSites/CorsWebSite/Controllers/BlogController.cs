@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Security;
 
 namespace CorsWebSite
 {

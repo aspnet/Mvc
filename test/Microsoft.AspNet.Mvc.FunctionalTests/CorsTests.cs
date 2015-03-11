@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                new[] { "true" },
                responseHeaders.GetValues(CorsConstants.AccessControlAllowCredentials).ToArray());
             Assert.Equal(
-               new[] { "exposed1,exposed2" },
+               new[] { "exposed1", "exposed2" },
                responseHeaders.GetValues(CorsConstants.AccessControlExposeHeaders).ToArray());
 
             var content = await response.Content.ReadAsStringAsync();
@@ -137,7 +137,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                new[] { "true" },
                responseHeaders.GetValues(CorsConstants.AccessControlAllowCredentials).ToArray());
             Assert.Equal(
-               new[] { "header1,header2" },
+               new[] { "header1", "header2" },
                responseHeaders.GetValues(CorsConstants.AccessControlAllowHeaders).ToArray());
             Assert.Equal(
                new[] { "PUT" },
@@ -148,7 +148,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task PolicyFailed_Disallows_ActualRequest()
+        public async Task PolicyFailed_Allows_ActualRequest_WithMissingResponseHeaders()
         {
             // Arrange
             var server = TestServer.Create(_provider, _app);
@@ -164,13 +164,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             // MVC applied the policy and since that did not pass, there were no access control headers.
-            // And the action was not executed.
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Empty(response.Headers);
 
-            // It should short circuit and hence no result.
+            // It still have executed the action.
             var content = await response.Content.ReadAsStringAsync();
-            Assert.Equal(string.Empty, content);
+            Assert.Equal("[\"usercomment1\",\"usercomment2\",\"usercomment3\"]", content);
         }
 
         [Theory]

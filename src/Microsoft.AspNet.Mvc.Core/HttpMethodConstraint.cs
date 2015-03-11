@@ -56,13 +56,16 @@ namespace Microsoft.AspNet.Mvc
 
             var request = context.RouteContext.HttpContext.Request;
             var method = request.Method;
-            if (request.IsCorsRequest())
+            if (request.Headers.ContainsKey(CorsConstants.Origin))
             {
                 // Update the http method if it is preflight request.
-                if (request.IsPreflight())
+                var accessControlRequestMethod = request.Headers.Get(CorsConstants.AccessControlRequestMethod);
+                if (string.Equals(
+                        request.Method,
+                        CorsConstants.PreflightHttpMethod,
+                        StringComparison.Ordinal) &&
+                    accessControlRequestMethod != null)
                 {
-                    var accessControlRequestMethod = 
-                        request.Headers.Get(CorsConstants.AccessControlRequestMethod);
                     method = accessControlRequestMethod;
                 }
             }
