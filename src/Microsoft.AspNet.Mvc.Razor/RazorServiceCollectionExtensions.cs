@@ -27,10 +27,10 @@ namespace Microsoft.Framework.DependencyInjection
         }
 
         /// <summary>
-        /// Adds an initialization callback for a given <see cref="ITagHelper"/> type.
+        /// Adds an initialization callback for a given <typeparamref name="TTagHelper"/>.
         /// </summary>
         /// <remarks>
-        /// The callback will be invoked on the <see cref="ITagHelper"/> of the specified type before the
+        /// The callback will be invoked on any <typeparamref name="TTagHelper"/> instance before the
         /// <see cref="ITagHelper.ProcessAsync(TagHelperContext, TagHelperOutput)"/> method is called.
         /// </remarks>
         /// <typeparam name="TTagHelper">The type of <see cref="ITagHelper"/> being initialized.</typeparam>
