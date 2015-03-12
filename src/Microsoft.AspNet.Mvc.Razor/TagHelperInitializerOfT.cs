@@ -8,16 +8,16 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <inheritdoc />
-    public class InitializeTagHelper<TTagHelper> : IInitializeTagHelper<TTagHelper>
+    public class TagHelperInitializer<TTagHelper> : ITagHelperInitializer<TTagHelper>
         where TTagHelper : ITagHelper
     {
         private readonly Action<TTagHelper, ViewContext> _initializeDelegate;
 
         /// <summary>
-        /// Creates an <see cref="InitializeTagHelper{TTagHelper}"/>.
+        /// Creates a <see cref="TagHelperInitializer{TTagHelper}"/>.
         /// </summary>
         /// <param name="action">The initialization delegate.</param>
-        public InitializeTagHelper([NotNull] Action<TTagHelper, ViewContext> action)
+        public TagHelperInitializer([NotNull] Action<TTagHelper, ViewContext> action)
         {
             _initializeDelegate = action;
         }

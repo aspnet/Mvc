@@ -48,9 +48,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         private static void InitializeTagHelper<TTagHelper>(TTagHelper tagHelper, ViewContext context)
             where TTagHelper : ITagHelper
         {
-            // Run any IInitializeTagHelper<TTagHelper> in the container
+            // Run any tag helper initializers in the container
             var serviceProvider = context.HttpContext.RequestServices;
-            var initializers = serviceProvider.GetService<IEnumerable<IInitializeTagHelper<TTagHelper>>>();
+            var initializers = serviceProvider.GetService<IEnumerable<ITagHelperInitializer<TTagHelper>>>();
 
             foreach (var initializer in initializers)
             {

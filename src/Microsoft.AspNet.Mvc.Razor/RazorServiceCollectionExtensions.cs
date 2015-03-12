@@ -35,16 +35,16 @@ namespace Microsoft.Framework.DependencyInjection
         /// </remarks>
         /// <typeparam name="TTagHelper">The type of <see cref="ITagHelper"/> being initialized.</typeparam>
         /// <param name="services">The <see cref="IServiceCollection"/> instance this method extends.</param>
-        /// <param name="initialize">An action to initialize the <see cref="ITagHelper"/>.</param>
+        /// <param name="initialize">An action to initialize the <typeparamref name="TTagHelper"/>.</param>
         /// <returns>The <see cref="IServiceCollection"/> instance this method extends.</returns>
         public static IServiceCollection InitializeTagHelper<TTagHelper>(
             [NotNull] this IServiceCollection services,
             [NotNull] Action<TTagHelper, ViewContext> initialize)
             where TTagHelper : ITagHelper
         {
-            var initializer = new InitializeTagHelper<TTagHelper>(initialize);
+            var initializer = new TagHelperInitializer<TTagHelper>(initialize);
 
-            services.AddInstance(typeof(IInitializeTagHelper<TTagHelper>), initializer);
+            services.AddInstance(typeof(ITagHelperInitializer<TTagHelper>), initializer);
 
             return services;
         }

@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// Initializes an <see cref="ITagHelper"/> before it's executed.
     /// </summary>
     /// <typeparam name="TTagHelper">The <see cref="ITagHelper"/> type.</typeparam>
-    public interface IInitializeTagHelper<TTagHelper>
+    public interface ITagHelperInitializer<TTagHelper>
         where TTagHelper : ITagHelper
     {
         /// <summary>
