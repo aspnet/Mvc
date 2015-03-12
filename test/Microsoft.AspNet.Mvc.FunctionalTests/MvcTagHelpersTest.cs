@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc.TagHelpers;
-using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
 using MvcTagHelpersWebSite;
 using Xunit;

@@ -36,7 +36,7 @@ namespace Microsoft.Framework.DependencyInjection
         /// <typeparam name="TTagHelper">The type of <see cref="ITagHelper"/> being initialized.</typeparam>
         /// <param name="services">The services available in the application.</param>
         /// <param name="initialize">An action to initialize the <see cref="ITagHelper"/>.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
+        /// <returns>The <see cref="IServiceCollection"/> instance this method extends.</returns>
         public static IServiceCollection InitializeTagHelper<TTagHelper>(
             [NotNull] this IServiceCollection services,
             [NotNull] Action<TTagHelper, ViewContext> initialize)
