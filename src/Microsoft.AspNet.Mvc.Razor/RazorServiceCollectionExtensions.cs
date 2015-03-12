@@ -34,7 +34,7 @@ namespace Microsoft.Framework.DependencyInjection
         /// <see cref="ITagHelper.ProcessAsync(TagHelperContext, TagHelperOutput)"/> method is called.
         /// </remarks>
         /// <typeparam name="TTagHelper">The type of <see cref="ITagHelper"/> being initialized.</typeparam>
-        /// <param name="services">The services available in the application.</param>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance this method extends.</param>
         /// <param name="initialize">An action to initialize the <see cref="ITagHelper"/>.</param>
         /// <returns>The <see cref="IServiceCollection"/> instance this method extends.</returns>
         public static IServiceCollection InitializeTagHelper<TTagHelper>(
