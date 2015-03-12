@@ -18,9 +18,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes the <see cref="TTagHelper"/>.
         /// </summary>
         /// <param name="helper">The <see cref="TTagHelper"/> to initialize.</param>
-        /// <param name="context">
-        ///     The <see cref="ViewContext"/> for the <see cref="IView"/> the <see cref="TTagHelper"/> is in.
-        /// </param>
+        /// <param name="context">The <see cref="ViewContext"/> for the executing view.</param>
         void Initialize([NotNull] TTagHelper helper, [NotNull] ViewContext context);
     }
 }
