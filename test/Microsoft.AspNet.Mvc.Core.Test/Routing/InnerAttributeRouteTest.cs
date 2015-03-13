@@ -202,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("template/{parameter:int}", "/template/5", true)]
         [InlineData("template/{parameter:int?}", "/template/5", true)]
         [InlineData("template/{parameter:int?}", "/template", true)]
-        [InlineData("template/{parameter:int?}", "/template/qwer", false)]        
+        [InlineData("template/{parameter:int?}", "/template/qwer", false)]
         public async Task AttributeRoute_WithOptionalInlineConstraint(string template, string request, bool expectedResult)
         {
             // Arrange
@@ -245,7 +245,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             }
         }
 
-        [Theory]        
+        [Theory]
         [InlineData("moo/{p1}.{p2?}", "/moo/foo.bar", "foo", "bar", null)]
         [InlineData("moo/{p1?}", "/moo/foo", "foo", null, null)]
         [InlineData("moo/{p1?}", "/moo", null, null, null)]
@@ -255,7 +255,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("moo/{p1}.{p2}", "/moo/foo.bar", "foo", "bar", null)]
         [InlineData("moo/foo.{p1}.{p2?}", "/moo/foo.moo.bar", "moo", "bar", null)]
         [InlineData("moo/foo.{p1}.{p2?}", "/moo/foo.moo", "moo", null, null)]
-        [InlineData("moo/.{p2?}", "/moo/.foo", null, "foo", null)]        
+        [InlineData("moo/.{p2?}", "/moo/.foo", null, "foo", null)]
         [InlineData("moo/{p1}.{p2?}", "/moo/....", "..", ".", null)]
         [InlineData("moo/{p1}.{p2?}", "/moo/.bar", ".bar", null, null)]
         [InlineData("moo/{p1}.{p2}.{p3?}", "/moo/foo.moo.bar", "foo", "moo", "bar")]
@@ -265,8 +265,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("{p1}.{p2?}/{p3}", "/foo/bar", "foo", null, "bar")]
         [InlineData("{p1}.{p2?}/{p3}", "/.foo/bar", ".foo", null, "bar")]
         public async Task AttributeRoute_WithOptionalCompositeParameter_Valid(
-            string template, 
-            string request, 
+            string template,
+            string request,
             string p1,
             string p2,
             string p3)
@@ -296,7 +296,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             // Act
             await route.RouteAsync(context);
 
-            // Assert            
+            // Assert
             Assert.True(context.IsHandled);
             if (p1 != null)
             {
@@ -355,8 +355,8 @@ namespace Microsoft.AspNet.Mvc.Routing
             // Act
             await route.RouteAsync(context);
 
-            // Assert            
-            Assert.False(context.IsHandled);            
+            // Assert
+            Assert.False(context.IsHandled);
         }
 
         [Theory]
@@ -383,7 +383,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
                 ctx.IsBound = true;
             })
-            .Returns((string)null);
+            .Returns((VirtualPathData)null);
 
             var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
 
@@ -399,11 +399,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(values: null, ambientValues: new { parameter = 5 });
 
             // Act
-            string result = route.GetVirtualPath(context);
+            var result = route.GetVirtualPath(context);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("template/5", result);
+            Assert.Equal("template/5", result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal(expectedGroup, selectedGroup);
         }
 
@@ -417,7 +420,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("template/{parameter:int:range(1,20)?}", "template", null)]
         [InlineData("template/{parameter:int:range(1,20)?}", "template/5", 5)]
         [InlineData("template/{parameter:int:range(1,20)?}", null, 21)]
-        public void AttributeRoute_GenerateLink_OptionalInlineParameter(string template, string expectedResult, object parameter)
+        public void AttributeRoute_GenerateLink_OptionalInlineParameter(string template, string expectedPath, object parameter)
         {
             // Arrange
             var expectedGroup = CreateRouteGroup(0, template);
@@ -430,7 +433,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
                 ctx.IsBound = true;
             })
-            .Returns((string)null);
+            .Returns((VirtualPathData)null);
 
             var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
 
@@ -451,10 +454,20 @@ namespace Microsoft.AspNet.Mvc.Routing
             }
 
             // Act
-            string result = route.GetVirtualPath(context);
+            var result = route.GetVirtualPath(context);
 
-            // Assert            
-            Assert.Equal(expectedResult, result);
+            // Assert
+            if (expectedPath == null)
+            {
+                Assert.Null(result);
+            }
+            else
+            {
+                Assert.NotNull(result);
+                Assert.Equal(expectedPath, result.VirtualPath);
+                Assert.Same(route, result.Router);
+                Assert.Empty(result.DataTokens);
+            }
         }
 
         [Theory]
@@ -480,7 +493,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 firstRouteGroupSelected = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
                 ctx.IsBound = true;
             })
-            .Returns((string)null);
+            .Returns((VirtualPathData)null);
 
             var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
 
@@ -497,11 +510,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(null, ambientValues: new { parameter = 5 });
 
             // Act
-            string result = route.GetVirtualPath(context);
+            var result = route.GetVirtualPath(context);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("template/5", result);
+            Assert.Equal("template/5", result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal(selectedGroup, firstRouteGroupSelected);
         }
 
@@ -523,7 +539,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
                 ctx.IsBound = true;
             })
-            .Returns((string)null);
+            .Returns((VirtualPathData)null);
 
             var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
 
@@ -539,11 +555,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(values: null, ambientValues: new { first = 5, second = 5 });
 
             // Act
-            string result = route.GetVirtualPath(context);
+            var result = route.GetVirtualPath(context);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("template/5", result);
+            Assert.Equal("template/5", result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal(expectedGroup, selectedGroup);
         }
 
@@ -565,7 +584,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 selectedGroup = (string)ctx.ProvidedValues[AttributeRouting.RouteGroupKey];
                 ctx.IsBound = true;
             })
-            .Returns((string)null);
+            .Returns((VirtualPathData)null);
 
             var matchingRoutes = Enumerable.Empty<AttributeRouteMatchingEntry>();
 
@@ -581,11 +600,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(values: null, ambientValues: new { first = 5, second = 5 });
 
             // Act
-            string result = route.GetVirtualPath(context);
+            var result = route.GetVirtualPath(context);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("first/5", result);
+            Assert.Equal("first/5", result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal(expectedGroup, selectedGroup);
         }
 
@@ -696,7 +718,8 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     vpc.IsBound = true;
                     selectedGroup = (string)vpc.ProvidedValues[AttributeRouting.RouteGroupKey];
-                });
+                })
+                .Returns((VirtualPathData)null);
 
             var matchingEntries = Enumerable.Empty<AttributeRouteMatchingEntry>();
 
@@ -711,8 +734,11 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // Assert
             Assert.NotNull(result);
+            Assert.Equal(expectedLink, result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal(expectedGroup, selectedGroup);
-            Assert.Equal(expectedLink, result);
         }
 
         [Fact]
@@ -726,7 +752,8 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     vpc.IsBound = true;
                     selectedGroup = (string)vpc.ProvidedValues[AttributeRouting.RouteGroupKey];
-                });
+                })
+                .Returns((VirtualPathData)null);
 
             var namedEntry = CreateGenerationEntry("named", requiredValues: null, order: 1, name: "NamedRoute");
             var unnamedEntry = CreateGenerationEntry("unnamed", requiredValues: null, order: 0);
@@ -746,8 +773,11 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // Assert
             Assert.NotNull(result);
+            Assert.Equal("named", result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal("1&named", selectedGroup);
-            Assert.Equal("named", result);
         }
 
         [Fact]
@@ -842,7 +872,8 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     vpc.IsBound = true;
                     selectedGroup = (string)vpc.ProvidedValues[AttributeRouting.RouteGroupKey];
-                });
+                }).
+                Returns((VirtualPathData)null);
 
             var namedEntry = CreateGenerationEntry(template, requiredValues: null, order: 1, name: "NamedRoute");
 
@@ -866,8 +897,11 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             // Assert
             Assert.NotNull(result);
+            Assert.Equal("template/5", result.VirtualPath);
+            Assert.Same(route, result.Router);
+            Assert.Empty(result.DataTokens);
+
             Assert.Equal(string.Format("1&{0}", template), selectedGroup);
-            Assert.Equal("template/5", result);
         }
 
         [Fact]
@@ -942,10 +976,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -958,10 +995,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -990,10 +1030,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { }, new { action = "Index", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1006,10 +1049,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store/Index", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store/Index", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1021,12 +1067,12 @@ namespace Microsoft.AspNet.Mvc.Routing
                 new { action = "Index", controller = "Store", area = "AwesomeCo" });
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "area", "AwesomeCo" },
-                { "controller", "Store" },
-                { "action", "Index" },
-                { AttributeRouting.RouteGroupKey, entry.RouteGroup },
-            };
+                    {
+                        { "area", "AwesomeCo" },
+                        { "controller", "Store" },
+                        { "action", "Index" },
+                        { AttributeRouting.RouteGroupKey, entry.RouteGroup },
+                    };
 
             var next = new StubRouter();
             var route = CreateAttributeRoute(next, entry);
@@ -1036,10 +1082,14 @@ namespace Microsoft.AspNet.Mvc.Routing
                 new { area = "AwesomeCo" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/AwesomeCo/dosomething/Store/Index", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/AwesomeCo/dosomething/Store/Index", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
+
             Assert.Equal(expectedValues, next.GenerationContext.ProvidedValues);
         }
 
@@ -1053,10 +1103,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1066,11 +1119,11 @@ namespace Microsoft.AspNet.Mvc.Routing
             var entry = CreateGenerationEntry("api/Store/{action}/{id:int}", new { action = "Index", controller = "Store" });
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "action", "Index" },
-                { "id", 5 },
-                { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
-            };
+                    {
+                        { "action", "Index" },
+                        { "id", 5 },
+                        { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
+                    };
 
             var next = new StubRouter();
             var route = CreateAttributeRoute(next, entry);
@@ -1078,10 +1131,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Store", id = 5 });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store/Index/5", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store/Index/5", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
+
             Assert.Equal(expectedValues, next.GenerationContext.ProvidedValues);
         }
 
@@ -1093,10 +1150,10 @@ namespace Microsoft.AspNet.Mvc.Routing
             var route = CreateAttributeRoute(entry);
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "id", "5" },
-                { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
-            };
+                    {
+                        { "id", "5" },
+                        { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
+                    };
 
             var next = new StubRouter();
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Store", id = "heyyyy" });
@@ -1118,10 +1175,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index" }, new { controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1134,10 +1194,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index", id = 5 }, new { controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api/Store?id=5", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api/Store?id=5", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1147,9 +1210,9 @@ namespace Microsoft.AspNet.Mvc.Routing
             var entry = CreateGenerationEntry("api/Store", new { action = "Index", controller = "Store" });
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                { AttributeRouting.RouteGroupKey, entry.RouteGroup },
-            };
+                    {
+                        { AttributeRouting.RouteGroupKey, entry.RouteGroup },
+                    };
 
             var next = new StubRouter();
             var route = CreateAttributeRoute(next, entry);
@@ -1175,10 +1238,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Blog" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api2/Blog", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api2/Blog", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1205,10 +1271,14 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { action = "Edit", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("api2/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("api2/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
+
             Assert.Equal(2, callCount);
         }
 
@@ -1229,10 +1299,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { area = "Help", action = "Edit", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("Help/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("Help/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1252,10 +1325,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(new { area = "Help", action = "Edit", controller = "Store" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("Help/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("Help/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1277,10 +1353,13 @@ namespace Microsoft.AspNet.Mvc.Routing
                 ambientValues: new { area = "Help" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("Help/Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("Help/Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1302,10 +1381,13 @@ namespace Microsoft.AspNet.Mvc.Routing
                 ambientValues: new { area = "Blog" });
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal("Store", path);
+            Assert.NotNull(pathData);
+            Assert.Equal("Store", pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         public static IEnumerable<object[]> OptionalParamValues
@@ -1318,61 +1400,61 @@ namespace Microsoft.AspNet.Mvc.Routing
                     // ambient values
                     // values
                     new object[]
-                    {
-                        "Test/{val1}/{val2}.{val3?}",                        
-                        new {val1 = "someval1", val2 = "someval2", val3 = "someval3a"},
-                        new {val3 = "someval3v"},
-                        "Test/someval1/someval2.someval3v",
-                    },
-                    new object[]
-                    {
-                        "Test/{val1}/{val2}.{val3?}",
-                        new {val3 = "someval3a"},
-                        new {val1 = "someval1", val2 = "someval2", val3 = "someval3v" },
-                        "Test/someval1/someval2.someval3v",
-                    },
-                    new object[]
-                    {
-                        "Test/{val1}/{val2}.{val3?}",
-                        null,
-                        new {val1 = "someval1", val2 = "someval2" },
-                        "Test/someval1/someval2",
-                    },                    
-                    new object[]
-                    {
-                        "Test/{val1}.{val2}.{val3}.{val4?}",
-                        new {val1 = "someval1", val2 = "someval2" },                        
-                        new {val4 = "someval4", val3 = "someval3" },
-                        "Test/someval1.someval2.someval3.someval4",
-                    },
-                    new object[]
-                    {
-                        "Test/{val1}.{val2}.{val3}.{val4?}",
-                        new {val1 = "someval1", val2 = "someval2" },                        
-                        new {val3 = "someval3" },
-                        "Test/someval1.someval2.someval3",
-                    },
-                    new object[]
-                    {
-                        "Test/.{val2?}",
-                        null,
-                        new {val2 = "someval2" },
-                        "Test/.someval2",
-                    },
-                    new object[]
-                    {
-                        "Test/.{val2?}",
-                        null,
-                        null,
-                        "Test/",
-                    },
-                    new object[]
-                    {
-                        "Test/{val1}.{val2}",
-                        new {val1 = "someval1", val2 = "someval2" },
-                        new {val3 = "someval3" },
-                        "Test/someval1.someval2?val3=someval3",
-                    },
+                            {
+                                "Test/{val1}/{val2}.{val3?}",
+                                new {val1 = "someval1", val2 = "someval2", val3 = "someval3a"},
+                                new {val3 = "someval3v"},
+                                "Test/someval1/someval2.someval3v",
+                            },
+                            new object[]
+                            {
+                                "Test/{val1}/{val2}.{val3?}",
+                                new {val3 = "someval3a"},
+                                new {val1 = "someval1", val2 = "someval2", val3 = "someval3v" },
+                                "Test/someval1/someval2.someval3v",
+                            },
+                            new object[]
+                            {
+                                "Test/{val1}/{val2}.{val3?}",
+                                null,
+                                new {val1 = "someval1", val2 = "someval2" },
+                                "Test/someval1/someval2",
+                            },
+                            new object[]
+                            {
+                                "Test/{val1}.{val2}.{val3}.{val4?}",
+                                new {val1 = "someval1", val2 = "someval2" },
+                                new {val4 = "someval4", val3 = "someval3" },
+                                "Test/someval1.someval2.someval3.someval4",
+                            },
+                            new object[]
+                            {
+                                "Test/{val1}.{val2}.{val3}.{val4?}",
+                                new {val1 = "someval1", val2 = "someval2" },
+                                new {val3 = "someval3" },
+                                "Test/someval1.someval2.someval3",
+                            },
+                            new object[]
+                            {
+                                "Test/.{val2?}",
+                                null,
+                                new {val2 = "someval2" },
+                                "Test/.someval2",
+                            },
+                            new object[]
+                            {
+                                "Test/.{val2?}",
+                                null,
+                                null,
+                                "Test/",
+                            },
+                            new object[]
+                            {
+                                "Test/{val1}.{val2}",
+                                new {val1 = "someval1", val2 = "someval2" },
+                                new {val3 = "someval3" },
+                                "Test/someval1.someval2?val3=someval3",
+                            },
                 };
             }
         }
@@ -1392,10 +1474,13 @@ namespace Microsoft.AspNet.Mvc.Routing
             var context = CreateVirtualPathContext(values, ambientValues);
 
             // Act
-            var path = route.GetVirtualPath(context);
+            var pathData = route.GetVirtualPath(context);
 
             // Assert
-            Assert.Equal(expected, path);
+            Assert.NotNull(pathData);
+            Assert.Equal(expected, pathData.VirtualPath);
+            Assert.Same(route, pathData.Router);
+            Assert.Empty(pathData.DataTokens);
         }
 
         [Fact]
@@ -1725,7 +1810,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             public Func<RouteContext, bool> MatchingDelegate { get; set; }
 
-            public string GetVirtualPath(VirtualPathContext context)
+            public VirtualPathData GetVirtualPath(VirtualPathContext context)
             {
                 GenerationContext = context;
 

@@ -99,12 +99,13 @@ namespace Microsoft.AspNet.Mvc
         protected virtual string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
         {
             var context = new VirtualPathContext(_httpContext, _ambientValues, values, routeName);
-            var path = _router.GetVirtualPath(context);
-            if (path == null)
+            var pathData = _router.GetVirtualPath(context);
+            if (pathData == null)
             {
                 return null;
             }
 
+            var path = pathData.VirtualPath;
             // See Routing Issue#31
             if (path.Length > 0 && path[0] != '/')
             {
