@@ -1067,12 +1067,12 @@ namespace Microsoft.AspNet.Mvc.Routing
                 new { action = "Index", controller = "Store", area = "AwesomeCo" });
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "area", "AwesomeCo" },
-                        { "controller", "Store" },
-                        { "action", "Index" },
-                        { AttributeRouting.RouteGroupKey, entry.RouteGroup },
-                    };
+            {
+                { "area", "AwesomeCo" },
+                { "controller", "Store" },
+                { "action", "Index" },
+                { AttributeRouting.RouteGroupKey, entry.RouteGroup },
+            };
 
             var next = new StubRouter();
             var route = CreateAttributeRoute(next, entry);
@@ -1119,11 +1119,11 @@ namespace Microsoft.AspNet.Mvc.Routing
             var entry = CreateGenerationEntry("api/Store/{action}/{id:int}", new { action = "Index", controller = "Store" });
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "action", "Index" },
-                        { "id", 5 },
-                        { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
-                    };
+            {
+                { "action", "Index" },
+                { "id", 5 },
+                { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
+            };
 
             var next = new StubRouter();
             var route = CreateAttributeRoute(next, entry);
@@ -1150,10 +1150,10 @@ namespace Microsoft.AspNet.Mvc.Routing
             var route = CreateAttributeRoute(entry);
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "id", "5" },
-                        { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
-                    };
+            {
+                { "id", "5" },
+                { AttributeRouting.RouteGroupKey, entry.RouteGroup  },
+            };
 
             var next = new StubRouter();
             var context = CreateVirtualPathContext(new { action = "Index", controller = "Store", id = "heyyyy" });
@@ -1210,9 +1210,9 @@ namespace Microsoft.AspNet.Mvc.Routing
             var entry = CreateGenerationEntry("api/Store", new { action = "Index", controller = "Store" });
 
             var expectedValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { AttributeRouting.RouteGroupKey, entry.RouteGroup },
-                    };
+            {
+                { AttributeRouting.RouteGroupKey, entry.RouteGroup },
+            };
 
             var next = new StubRouter();
             var route = CreateAttributeRoute(next, entry);
@@ -1400,61 +1400,61 @@ namespace Microsoft.AspNet.Mvc.Routing
                     // ambient values
                     // values
                     new object[]
-                            {
-                                "Test/{val1}/{val2}.{val3?}",
-                                new {val1 = "someval1", val2 = "someval2", val3 = "someval3a"},
-                                new {val3 = "someval3v"},
-                                "Test/someval1/someval2.someval3v",
-                            },
-                            new object[]
-                            {
-                                "Test/{val1}/{val2}.{val3?}",
-                                new {val3 = "someval3a"},
-                                new {val1 = "someval1", val2 = "someval2", val3 = "someval3v" },
-                                "Test/someval1/someval2.someval3v",
-                            },
-                            new object[]
-                            {
-                                "Test/{val1}/{val2}.{val3?}",
-                                null,
-                                new {val1 = "someval1", val2 = "someval2" },
-                                "Test/someval1/someval2",
-                            },
-                            new object[]
-                            {
-                                "Test/{val1}.{val2}.{val3}.{val4?}",
-                                new {val1 = "someval1", val2 = "someval2" },
-                                new {val4 = "someval4", val3 = "someval3" },
-                                "Test/someval1.someval2.someval3.someval4",
-                            },
-                            new object[]
-                            {
-                                "Test/{val1}.{val2}.{val3}.{val4?}",
-                                new {val1 = "someval1", val2 = "someval2" },
-                                new {val3 = "someval3" },
-                                "Test/someval1.someval2.someval3",
-                            },
-                            new object[]
-                            {
-                                "Test/.{val2?}",
-                                null,
-                                new {val2 = "someval2" },
-                                "Test/.someval2",
-                            },
-                            new object[]
-                            {
-                                "Test/.{val2?}",
-                                null,
-                                null,
-                                "Test/",
-                            },
-                            new object[]
-                            {
-                                "Test/{val1}.{val2}",
-                                new {val1 = "someval1", val2 = "someval2" },
-                                new {val3 = "someval3" },
-                                "Test/someval1.someval2?val3=someval3",
-                            },
+                    {
+                        "Test/{val1}/{val2}.{val3?}",                        
+                        new {val1 = "someval1", val2 = "someval2", val3 = "someval3a"},
+                        new {val3 = "someval3v"},
+                        "Test/someval1/someval2.someval3v",
+                    },
+                    new object[]
+                    {
+                        "Test/{val1}/{val2}.{val3?}",
+                        new {val3 = "someval3a"},
+                        new {val1 = "someval1", val2 = "someval2", val3 = "someval3v" },
+                        "Test/someval1/someval2.someval3v",
+                    },
+                    new object[]
+                    {
+                        "Test/{val1}/{val2}.{val3?}",
+                        null,
+                        new {val1 = "someval1", val2 = "someval2" },
+                        "Test/someval1/someval2",
+                    },                    
+                    new object[]
+                    {
+                        "Test/{val1}.{val2}.{val3}.{val4?}",
+                        new {val1 = "someval1", val2 = "someval2" },                        
+                        new {val4 = "someval4", val3 = "someval3" },
+                        "Test/someval1.someval2.someval3.someval4",
+                    },
+                    new object[]
+                    {
+                        "Test/{val1}.{val2}.{val3}.{val4?}",
+                        new {val1 = "someval1", val2 = "someval2" },                        
+                        new {val3 = "someval3" },
+                        "Test/someval1.someval2.someval3",
+                    },
+                    new object[]
+                    {
+                        "Test/.{val2?}",
+                        null,
+                        new {val2 = "someval2" },
+                        "Test/.someval2",
+                    },
+                    new object[]
+                    {
+                        "Test/.{val2?}",
+                        null,
+                        null,
+                        "Test/",
+                    },
+                    new object[]
+                    {
+                        "Test/{val1}.{val2}",
+                        new {val1 = "someval1", val2 = "someval2" },
+                        new {val3 = "someval3" },
+                        "Test/someval1.someval2?val3=someval3",
+                    },
                 };
             }
         }
