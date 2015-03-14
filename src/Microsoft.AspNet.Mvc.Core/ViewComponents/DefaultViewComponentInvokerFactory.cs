@@ -1,38 +1,33 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     public class DefaultViewComponentInvokerFactory : IViewComponentInvokerFactory
     {
-        private readonly IViewComponentInvokerProvider[] _providers;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ITypeActivatorCache _typeActivatorCache;
+        private readonly IViewComponentActivator _viewComponentActivator;
 
         public DefaultViewComponentInvokerFactory(
-            IEnumerable<IViewComponentInvokerProvider> providers)
+            IServiceProvider serviceProvider,
+            ITypeActivatorCache typeActivatorCache,
+            IViewComponentActivator viewComponentActivator)
         {
-            _providers = providers.OrderBy(item => item.Order).ToArray();
+            _serviceProvider = serviceProvider;
+            _typeActivatorCache = typeActivatorCache;
+            _viewComponentActivator = viewComponentActivator;
         }
 
-        public IViewComponentInvoker CreateInstance([NotNull] TypeInfo componentType, object[] args)
+        public IViewComponentInvoker CreateInstance([NotNull] ViewComponentDescriptor viewComponent, object[] args)
         {
-            var context = new ViewComponentInvokerProviderContext(componentType, args);
-
-            foreach (var provider in _providers)
-            {
-                provider.OnProvidersExecuting(context);
-            }
-
-            for (var i = _providers.Length - 1; i >= 0; i--)
-            {
-                _providers[i].OnProvidersExecuted(context);
-            }
-
-            return context.Result;
+            return new DefaultViewComponentInvoker(
+                _serviceProvider,
+                _typeActivatorCache,
+                _viewComponentActivator);
         }
     }
 }

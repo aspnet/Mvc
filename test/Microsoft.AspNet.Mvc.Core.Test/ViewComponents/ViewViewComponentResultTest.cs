@@ -301,7 +301,13 @@ namespace Microsoft.AspNet.Mvc
         {
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
             var viewContext = new ViewContext(actionContext, view, viewData, null, TextWriter.Null);
-            var viewComponentContext = new ViewComponentContext(typeof(object).GetTypeInfo(), viewContext, TextWriter.Null);
+
+            var viewComponentDescriptor = new ViewComponentDescriptor()
+            {
+                Type = typeof(object),
+            };
+
+            var viewComponentContext = new ViewComponentContext(viewComponentDescriptor, new object[0], viewContext, TextWriter.Null);
             return viewComponentContext;
         }
     }
