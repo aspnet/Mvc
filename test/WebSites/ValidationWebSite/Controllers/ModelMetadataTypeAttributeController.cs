@@ -7,7 +7,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNet.Mvc;
 using ValidationWebSite.ViewModels;
-using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace ValidationWebSite.Controllers
 {

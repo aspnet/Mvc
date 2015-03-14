@@ -57,10 +57,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var unsupportedContentType = Resources.FormatUnsupportedContentType(
                     bindingContext.OperationBindingContext.HttpContext.Request.ContentType);
                 bindingContext.ModelState.AddModelError(bindingContext.ModelName, unsupportedContentType);
-                return new ModelBindingResult(null, bindingContext.ModelName, isModelSet: false);
+                return new ModelBindingResult(model: null, key: string.Empty, isModelSet: false);
             }
 
-<<<<<<< HEAD
             object model = null;
             try
             {
@@ -70,14 +69,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 model = GetDefaultValueForType(bindingContext.ModelType);
                 bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex);
-                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                return new ModelBindingResult(model: null, key: string.Empty, isModelSet: false);
             }
 
-            return new ModelBindingResult(model, bindingContext.ModelName, isModelSet: true);
-=======
-            var model = await formatter.ReadAsync(formatterContext);
-            return new ModelBindingResult(model, string.Empty, isModelSet: true);
->>>>>>> Fixed the issue and the tests
+            return new ModelBindingResult(model, key: string.Empty, isModelSet: true);
         }
 
         private object GetDefaultValueForType(Type modelType)
