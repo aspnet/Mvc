@@ -25,7 +25,6 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         private readonly IActionModelBuilder _actionModelBuilder;
         private readonly ILogger _logger;
         private readonly AuthorizationOptions _authorizationOptions;
-        private readonly CorsOptions _corsOptions;
 
         /// <summary>
         /// Creates a new <see cref="DefaultControllerModelBuilder"/>.
@@ -34,13 +33,11 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public DefaultControllerModelBuilder(
             IActionModelBuilder actionModelBuilder, 
             ILoggerFactory loggerFactory, 
-            IOptions<AuthorizationOptions> options, 
-            IOptions<CorsOptions> corsOptions)
+            IOptions<AuthorizationOptions> authorizationOptions)
         {
             _actionModelBuilder = actionModelBuilder;
             _logger = loggerFactory.CreateLogger<DefaultControllerModelBuilder>();
-            _authorizationOptions = options?.Options ?? new AuthorizationOptions();
-            _corsOptions = corsOptions?.Options ?? new CorsOptions();
+            _authorizationOptions = authorizationOptions?.Options ?? new AuthorizationOptions();
         }
 
         /// <inheritdoc />
@@ -88,11 +85,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             var enableCors = attributes.OfType<IEnableCorsMetadata>().SingleOrDefault();
             if (enableCors != null)
             {
-                var corsPolicy = _corsOptions.GetPolicy(enableCors.PolicyName);
-                if (corsPolicy != null)
-                {
-                    controllerModel.Filters.Add(new CorsAuthorizationFilter(corsPolicy));
-                }
+                controllerModel.Filters.Add(new CorsAuthorizationFilter(enableCors.PolicyName));
             }
 
             var disableCors = attributes.OfType<IDisableCorsMetadata>().SingleOrDefault();

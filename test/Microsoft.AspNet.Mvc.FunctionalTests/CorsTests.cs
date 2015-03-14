@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.TestHost;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class CorsTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(CorsWebSite));
+        private const string SiteName = nameof(CorsWebSite);
         private readonly Action<IApplicationBuilder> _app = new CorsWebSite.Startup().Configure;
 
         [Theory]
@@ -25,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ResourceWithSimpleRequestPolicy_Allows_SimpleRequests(string method)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
             var origin = "http://example.com";
 
@@ -54,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task PolicyFailed_Disallows_PreFlightRequest(string method)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
 
             // Adding a custom header makes it a non simple request.
@@ -81,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task SuccessfulCorsRequest_AllowsCredentials_IfThePolicyAllowsCredentials()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
 
             // Adding a custom header makes it a non simple request.
@@ -114,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task SuccessfulPreflightRequest_AllowsCredentials_IfThePolicyAllowsCredentials()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
 
             // Adding a custom header makes it a non simple request.
@@ -151,13 +150,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task PolicyFailed_Allows_ActualRequest_WithMissingResponseHeaders()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
 
             // Adding a custom header makes it a non simple request.
             var requestBuilder = server
                 .CreateRequest("http://localhost/Cors/GetUserComments")
-                .AddHeader(CorsConstants.Origin, "http://example.com");
+                .AddHeader(CorsConstants.Origin, "http://example2.com");
 
             // Act
             var response = await requestBuilder.SendAsync("PUT");
@@ -179,7 +178,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task DisableCors_ActionsCanOverride_ControllerLevel(string method)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
 
             // Exclusive content is not available on other sites.
@@ -206,7 +205,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task DisableCors_PreFlight_ActionsCanOverride_ControllerLevel(string method)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
 
             // Exclusive content is not available on other sites.

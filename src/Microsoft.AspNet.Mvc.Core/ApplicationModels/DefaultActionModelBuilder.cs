@@ -22,12 +22,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     public class DefaultActionModelBuilder : IActionModelBuilder
     {
         private readonly AuthorizationOptions _authorizationOptions;
-        private readonly CorsOptions _corsOptions;
 
-        public DefaultActionModelBuilder(IOptions<AuthorizationOptions> options, IOptions<CorsOptions> corsOptions)
+        public DefaultActionModelBuilder(IOptions<AuthorizationOptions> authorizationOptions)
         {
-            _authorizationOptions = options?.Options ?? new AuthorizationOptions();
-            _corsOptions = corsOptions?.Options ?? new CorsOptions();
+            _authorizationOptions = authorizationOptions?.Options ?? new AuthorizationOptions();
         }
 
         /// <inheritdoc />
@@ -273,11 +271,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             var enableCors = attributes.OfType<IEnableCorsMetadata>().SingleOrDefault();
             if (enableCors != null)
             {
-                var corsPolicy = _corsOptions.GetPolicy(enableCors.PolicyName);
-                if (corsPolicy != null)
-                {
-                    actionModel.Filters.Add(new CorsAuthorizationFilter(corsPolicy));
-                }
+                actionModel.Filters.Add(new CorsAuthorizationFilter(enableCors.PolicyName));
             }
 
             var disableCors = attributes.OfType<IDisableCorsMetadata>().SingleOrDefault();

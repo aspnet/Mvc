@@ -768,9 +768,8 @@ namespace Microsoft.AspNet.Mvc
                 .ToList();
 
             var controllerTypeProvider = new FixedSetControllerTypeProvider(controllerTypes);
-            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null, null),
+            var modelBuilder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
                                                                  NullLoggerFactory.Instance,
-                                                                 null,
                                                                  null);
 
             return new ControllerActionDescriptorProvider(

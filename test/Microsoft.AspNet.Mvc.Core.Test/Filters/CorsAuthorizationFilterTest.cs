@@ -12,7 +12,6 @@ using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Newtonsoft.Json.Utilities;
-using NuGet;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Test
@@ -23,8 +22,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task PreFlightRequest_SuccessfulMatch_WritesHeaders()
         {
             // Arrange
-            var policy = new CorsPolicy();
-            var filter = new CorsAuthorizationFilter(policy);
+            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetPassingEngine(supportsCredentials:true);
 
             var authorizationContext = GetAuthorizationContext(
@@ -54,8 +52,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task PreFlight_FailedMatch_Writes200()
         {
             // Arrange
-            var policy = new CorsPolicy();
-            var filter = new CorsAuthorizationFilter(policy);
+            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetFailingEngine();
 
             var authorizationContext = GetAuthorizationContext(
@@ -77,8 +74,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task CorsRequest_SuccessfulMatch_WritesHeaders()
         {
             // Arrange
-            var policy = new CorsPolicy();
-            var filter = new CorsAuthorizationFilter(policy);
+            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetPassingEngine(supportsCredentials: true);
 
             var authorizationContext = GetAuthorizationContext(
@@ -102,8 +98,7 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task CorsRequest_FailedMatch_Writes200()
         {   
             // Arrange
-            var policy = new CorsPolicy();
-            var filter = new CorsAuthorizationFilter(policy);
+            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetFailingEngine();
 
             var authorizationContext = GetAuthorizationContext(
@@ -126,12 +121,16 @@ namespace Microsoft.AspNet.Mvc.Test
             RequestHeaders headers = null,
             bool isPreflight = false)
         {
+            var policyProvider = new Mock<ICorsPolicyProvider>();
+            policyProvider
+                .Setup(o => o.GetPolicyAsync(It.IsAny<HttpContext>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(new CorsPolicy()));
+                       
             // ServiceProvider
             var serviceCollection = new ServiceCollection();
 
-            var describer = new ServiceDescriber();
-            serviceCollection.TryAdd(describer.Instance(corsService));
-
+            serviceCollection.AddInstance<ICorsService>(corsService);
+            serviceCollection.AddInstance<ICorsPolicyProvider>(policyProvider.Object);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             // HttpContext
@@ -156,7 +155,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var authorizationContext = new AuthorizationContext(
                 actionContext,
-                Enumerable.Empty<IFilter>().ToList()
+                filterDescriptors.Select(filter => filter.Filter).ToList()
             );
 
             return authorizationContext;
@@ -238,17 +237,17 @@ namespace Microsoft.AspNet.Mvc.Test
 
             if (headers != null)
             {
-                result.AllowedHeaders.AddRange(headers);
+                AddRange(result.AllowedHeaders, headers);
             }
 
             if (methods != null)
             {
-                result.AllowedMethods.AddRange(methods);
+                AddRange(result.AllowedMethods, methods);
             }
 
             if (exposedHeaders != null)
             {
-                result.AllowedExposedHeaders.AddRange(exposedHeaders);
+                AddRange(result.AllowedExposedHeaders, exposedHeaders);
             }
 
             if (preFlightMaxAge != null)
@@ -262,6 +261,14 @@ namespace Microsoft.AspNet.Mvc.Test
             }
 
             return result;
+        }
+
+        private void AddRange(IList<string> target, IList<string> source)
+        {
+            foreach (var item in source)
+            {
+                target.Add(item);
+            }
         }
 
         private class RequestHeaders

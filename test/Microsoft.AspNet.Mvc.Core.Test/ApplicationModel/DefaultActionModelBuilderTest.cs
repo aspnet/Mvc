@@ -289,12 +289,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildActionModel_EnableCorsAttributeAddsCorsAuthorizationFilter()
         {
             // Arrange
-            var corsOptions = new CorsOptions();
-            corsOptions.AddPolicy("policy", new CorsPolicy());
-            var mockOptions = new Mock<IOptions<CorsOptions>>();
-            mockOptions.SetupGet(o => o.Options)
-                       .Returns(corsOptions);
-            var builder = new DefaultActionModelBuilder(null, corsOptions: mockOptions.Object);
+            var builder = new DefaultActionModelBuilder(authorizationOptions: null);
             var typeInfo = typeof(EnableCorsController).GetTypeInfo();
             var method = typeInfo.GetMethod("Action");
 
@@ -310,12 +305,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void BuildActionModel_DisableCorsAttributeAddsDisableCorsAuthorizationFilter()
         {
             // Arrange
-            var corsOptions = new CorsOptions();
-            corsOptions.AddPolicy("policy", new CorsPolicy());
-            var mockOptions = new Mock<IOptions<CorsOptions>>();
-            mockOptions.SetupGet(o => o.Options)
-                       .Returns(corsOptions);
-            var builder = new DefaultActionModelBuilder(null, corsOptions: mockOptions.Object);
+            var builder = new DefaultActionModelBuilder(authorizationOptions: null);
             var typeInfo = typeof(DisableCorsController).GetTypeInfo();
             var method = typeInfo.GetMethod("Action");
 
@@ -721,7 +711,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             var options = new Mock<IOptions<AuthorizationOptions>>();
             options.Setup(o => o.Options).Returns(authOptions ?? new AuthorizationOptions());
-            return new DefaultActionModelBuilder(options.Object, corsOptions: null);
+            return new DefaultActionModelBuilder(options.Object);
         }
 
         private static AccessibleActionModelBuilder CreateTestAccessibleActionModelBuilder()
@@ -733,7 +723,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         private class AccessibleActionModelBuilder : DefaultActionModelBuilder
         {
-            public AccessibleActionModelBuilder(IOptions<AuthorizationOptions> options) : base(options, null) { }
+            public AccessibleActionModelBuilder(IOptions<AuthorizationOptions> options) : base(options) { }
 
             public new bool IsAction([NotNull] TypeInfo typeInfo, [NotNull]MethodInfo methodInfo)
             {
