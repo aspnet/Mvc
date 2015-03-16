@@ -96,6 +96,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                     CreateTagHelperMethodName = "CreateTagHelper",
                     StartTagHelperWritingScopeMethodName = "StartTagHelperWritingScope",
                     EndTagHelperWritingScopeMethodName = "EndTagHelperWritingScope",
+
+                    WriteTagHelperAsyncMethodName = "WriteTagHelperAsync",
+                    WriteTagHelperToAsyncMethodName = "WriteTagHelperToAsync",
                 })
             {
                 ResolveUrlMethodName = "Href",

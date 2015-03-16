@@ -250,12 +250,23 @@ namespace Microsoft.AspNet.Mvc.Razor
             return tagHelperContentWrapperTextWriter.Content;
         }
 
-        public void WriteTagHelper(TagHelperExecutionContext tagHelperExecutionContext)
+        /// <summary>
+        /// Writes the output of a specified <see cref="TagHelperExecutionContext"/>.
+        /// </summary>
+        /// <param name="tagHelperExecutionContext">The execution context containing the output.</param>
+        public async Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
         {
-            WriteTagHelperTo(Output, tagHelperExecutionContext);
+            await WriteTagHelperToAsync(Output, tagHelperExecutionContext);
         }
 
-        public void WriteTagHelperTo([NotNull] TextWriter writer, TagHelperExecutionContext tagHelperExecutionContext)
+        /// <summary>
+        /// Wrutes the output of a specified <see cref="TagHelperExecutionContext"/> to the specified
+        /// <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="tagHelperExecutionContext">The execution context containing the output.</param>
+        public async Task WriteTagHelperToAsync(
+            [NotNull] TextWriter writer, [NotNull] TagHelperExecutionContext tagHelperExecutionContext)
         {
             var tagHelperOutput = tagHelperExecutionContext.Output;
             var isTagNameNullOrWhitespace = string.IsNullOrWhiteSpace(tagHelperOutput.TagName);
@@ -292,21 +303,20 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
                 else if (tagHelperExecutionContext.ChildContentRetrieved)
                 {
-                    WriteTagHelperContentTo(writer, tagHelperExecutionContext.GetChildContentAsync().Result);
+                    WriteTagHelperContentTo(writer, await tagHelperExecutionContext.GetChildContentAsync());
                 }
                 else
                 {
-                    tagHelperExecutionContext.ExecuteChildContentAsync().Wait();
+                    await tagHelperExecutionContext.ExecuteChildContentAsync();
                 }
 
                 WriteTagHelperContentTo(writer, tagHelperOutput.PostContent);
             }
 
-            if (!tagHelperOutput.SelfClosing && !isTagNameNullOrWhitespace)
+            if (!isTagNameNullOrWhitespace && !tagHelperOutput.SelfClosing)
             {
                 writer.Write(string.Format(CultureInfo.InvariantCulture, "</{0}>", tagHelperOutput.TagName));
             }
-
         }
 
         private void WriteTagHelperContentTo(TextWriter writer, TagHelperContent content)

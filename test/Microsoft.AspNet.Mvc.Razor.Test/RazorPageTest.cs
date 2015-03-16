@@ -704,6 +704,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                         "Hello World!"
                     },
                     {
+                        GetTagHelperOutput("  ", new Dictionary<string, string>(), false, null, "Hello World!", null),
+                        "Hello World!"
+                    },
+                    {
                         GetTagHelperOutput(
                             "p",
                             new Dictionary<string, string>() { { "test", "testVal" } },
@@ -716,6 +720,16 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         GetTagHelperOutput(
                             "p",
+                            new Dictionary<string, string>() { { "test", "testVal" }, { "something", "  spaced  " } },
+                            false,
+                            null,
+                            "Hello World!",
+                            null),
+                        "<p test=\"testVal\" something=\"  spaced  \">Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput(
+                            "p",
                             new Dictionary<string, string>() { { "test", "testVal" } },
                             true,
                             null,
@@ -724,15 +738,25 @@ namespace Microsoft.AspNet.Mvc.Razor
                         "<p test=\"testVal\" />"
                     },
                     {
+                        GetTagHelperOutput(
+                            "p",
+                            new Dictionary<string, string>() { { "test", "testVal" }, { "something", "  spaced  " } },
+                            true,
+                            null,
+                            "Hello World!",
+                            null),
+                        "<p test=\"testVal\" something=\"  spaced  \" />"
+                    },
+                    {
                         GetTagHelperOutput("p", new Dictionary<string, string>(), false, "Hello World!", null, null),
+                        "<p>Hello World!</p>"
+                    },
+                    {
+                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, null, "Hello World!", null),
                         "<p>Hello World!</p>"
                     },
                     {
                         GetTagHelperOutput("p", new Dictionary<string, string>(), false, null, null, "Hello World!"),
-                        "<p>Hello World!</p>"
-                    },
-                    {
-                        GetTagHelperOutput("p", new Dictionary<string, string>(), false, "Hello World!", null, null),
                         "<p>Hello World!</p>"
                     },
                     {
@@ -749,17 +773,16 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         [Theory]
         [MemberData(nameof(WriteTagHelper_InputData))]
-        public async Task WriteTagHelper_WritesFormattedTagHelper(TagHelperOutput output, string expected)
+        public async Task WriteTagHelperAsync_WritesFormattedTagHelper(TagHelperOutput output, string expected)
         {
             // Arrange
-            // This writer uses BufferEntryCollection underneath and so can copy the buffer.
             var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(writer);
             var tagHelperExecutionContext = new TagHelperExecutionContext(tagName: output.TagName,
                    selfClosing: output.SelfClosing,
                    items: new Dictionary<object, object>(),
                    uniqueId: string.Empty,
-                   executeChildContentAsync: async () => await Task.FromResult(result: true),
+                   executeChildContentAsync: () => Task.FromResult(result: true),
                    startTagHelperWritingScope: () => { },
                    endTagHelperWritingScope: () => new DefaultTagHelperContent());
             tagHelperExecutionContext.Output = output;
@@ -768,7 +791,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(p =>
             {
                 p.HtmlEncoder = new HtmlEncoder();
-                p.WriteTagHelper(tagHelperExecutionContext);
+                p.WriteTagHelperAsync(tagHelperExecutionContext).Wait();
             }, context);
             await page.ExecuteAsync();
 
@@ -781,7 +804,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         [InlineData(true, "HelloWorld!", "<p>HelloWorld!</p>")]
         // This is a scenario where ExecuteChildContentAsync is called.
         [InlineData(false, "HelloWorld!", "<p></p>")]
-        public async Task WriteTagHelper_WritesContentAppropriately(
+        public async Task WriteTagHelperAsync_WritesContentAppropriately(
             bool childContentRetrieved, string input, string expected)
         {
             // Arrange
@@ -809,7 +832,62 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(p =>
             {
                 p.HtmlEncoder = new HtmlEncoder();
-                p.WriteTagHelper(tagHelperExecutionContext);
+                p.WriteTagHelperAsync(tagHelperExecutionContext).Wait();
+            }, context);
+            await page.ExecuteAsync();
+
+            // Assert
+            Assert.Equal(expected, writer.ToString());
+        }
+
+        [Fact]
+        public async Task WriteTagHelperToAsync_WritesToSpecifiedWriter()
+        {
+            // Arrange
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
+            var context = CreateViewContext(new StringWriter());
+            var tagHelperExecutionContext = new TagHelperExecutionContext(tagName: "p",
+                   selfClosing: false,
+                   items: new Dictionary<object, object>(),
+                   uniqueId: string.Empty,
+                   executeChildContentAsync: () => { return Task.FromResult(result: true); },
+                   startTagHelperWritingScope: () => { },
+                   endTagHelperWritingScope: () => new DefaultTagHelperContent());
+            tagHelperExecutionContext.Output =
+                new TagHelperOutput("p", new Dictionary<string, string>());
+
+            // Act
+            var page = CreatePage(p =>
+            {
+                p.WriteTagHelperToAsync(writer, tagHelperExecutionContext).Wait();
+            }, context);
+            await page.ExecuteAsync();
+
+            // Assert
+            Assert.Equal("Hello World!", writer.ToString());
+        }
+
+        [Theory]
+        [MemberData(nameof(WriteTagHelper_InputData))]
+        public async Task WriteTagHelperToAsync_WritesFormattedTagHelper(TagHelperOutput output, string expected)
+        {
+            // Arrange
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
+            var context = CreateViewContext(new StringWriter());
+            var tagHelperExecutionContext = new TagHelperExecutionContext(tagName: output.TagName,
+                   selfClosing: output.SelfClosing,
+                   items: new Dictionary<object, object>(),
+                   uniqueId: string.Empty,
+                   executeChildContentAsync: () => Task.FromResult(result: true),
+                   startTagHelperWritingScope: () => { },
+                   endTagHelperWritingScope: () => new DefaultTagHelperContent());
+            tagHelperExecutionContext.Output = output;
+
+            // Act
+            var page = CreatePage(p =>
+            {
+                p.HtmlEncoder = new HtmlEncoder();
+                p.WriteTagHelperToAsync(writer, tagHelperExecutionContext).Wait();
             }, context);
             await page.ExecuteAsync();
 
