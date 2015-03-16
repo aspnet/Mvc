@@ -203,7 +203,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("template/{parameter:int?}", "/template/5", true)]
         [InlineData("template/{parameter:int?}", "/template", true)]
         [InlineData("template/{parameter:int?}", "/template/qwer", false)]
-        public async Task AttributeRoute_WithOptionalInlineConstraint(string template, string request, bool expectedResult)
+        public async Task AttributeRoute_WithOptionalInlineConstraint(
+            string template, string request, bool expectedResult)
         {
             // Arrange
             var expectedRouteGroup = string.Format("{0}&&{1}", 0, template);
@@ -420,7 +421,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         [InlineData("template/{parameter:int:range(1,20)?}", "template", null)]
         [InlineData("template/{parameter:int:range(1,20)?}", "template/5", 5)]
         [InlineData("template/{parameter:int:range(1,20)?}", null, 21)]
-        public void AttributeRoute_GenerateLink_OptionalInlineParameter(string template, string expectedPath, object parameter)
+        public void AttributeRoute_GenerateLink_OptionalInlineParameter
+            (string template, string expectedPath, object parameter)
         {
             // Arrange
             var expectedGroup = CreateRouteGroup(0, template);
@@ -872,8 +874,8 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     vpc.IsBound = true;
                     selectedGroup = (string)vpc.ProvidedValues[AttributeRouting.RouteGroupKey];
-                }).
-                Returns((VirtualPathData)null);
+                })
+                .Returns((VirtualPathData)null);
 
             var namedEntry = CreateGenerationEntry(template, requiredValues: null, order: 1, name: "NamedRoute");
 
