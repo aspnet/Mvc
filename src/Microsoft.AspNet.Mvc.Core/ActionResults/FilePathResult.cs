@@ -105,6 +105,8 @@ namespace Microsoft.AspNet.Mvc
 
             var path = NormalizePath(FileName);
 
+            // Note that we cannot use 'File.Exists' check as the file could be a non-physical
+            // file. For example, an embedded resource.
             if (IsPathRooted(path))
             {
                 // The path is absolute
