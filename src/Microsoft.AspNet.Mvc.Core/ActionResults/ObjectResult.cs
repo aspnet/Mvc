@@ -71,94 +71,70 @@ namespace Microsoft.AspNet.Mvc
         public virtual IOutputFormatter SelectFormatter(OutputFormatterContext formatterContext,
                                                        IEnumerable<IOutputFormatter> formatters)
         {
+            // Check if any content-type was explicitly set (for example, via ProducesAttribute 
+            // or Url path extension mapping). If yes, then ignore content-negotiation and use this content-type.
             if (ContentTypes.Count == 1)
             {
-                // There is only one content type specified so we can skip looking at the accept headers.
                 return SelectFormatterUsingAnyAcceptableContentType(formatterContext,
                                                                     formatters,
                                                                     ContentTypes);
             }
 
-            var incomingAcceptHeaderMediaTypes = formatterContext.ActionContext.HttpContext.Request.GetTypedHeaders().Accept ??
-                                                    new MediaTypeHeaderValue[] { };
-
-            // By default we want to ignore considering accept headers for content negotiation when
-            // they have a media type like */* in them. Browsers typically have these media types.
-            // In these cases we would want the first formatter in the list of output formatters to
-            // write the response. This default behavior can be changed through options, so checking here.
-            var options = formatterContext.ActionContext.HttpContext
-                                                        .RequestServices
-                                                        .GetRequiredService<IOptions<MvcOptions>>()
-                                                        .Options;
-
-            var respectAcceptHeader = true;
-            if (options.RespectBrowserAcceptHeader == false
-                && incomingAcceptHeaderMediaTypes.Any(mediaType => mediaType.MatchesAllTypes))
-            {
-                respectAcceptHeader = false;
-            }
-            
-            IEnumerable<MediaTypeHeaderValue> sortedAcceptHeaderMediaTypes = null;
-            if (respectAcceptHeader)
-            {
-                sortedAcceptHeaderMediaTypes = SortMediaTypeHeaderValues(incomingAcceptHeaderMediaTypes)
-                                                .Where(header => header.Quality != HeaderQuality.NoMatch);
-            }
+            var acceptHeaderMediaTypes = GetAcceptHeaders(formatterContext);
 
             IOutputFormatter selectedFormatter = null;
             if (ContentTypes == null || ContentTypes.Count == 0)
             {
-                if (respectAcceptHeader)
+                // Check if we have enough information to do content-negotiation, otherwise get the first formatter
+                // which can write the type.
+                MediaTypeHeaderValue requestContentType = null;
+                MediaTypeHeaderValue.TryParse(
+                    formatterContext.ActionContext.HttpContext.Request.ContentType,
+                    out requestContentType);
+                if (!acceptHeaderMediaTypes.Any() && requestContentType == null)
                 {
-                    // Select based on sorted accept headers.
+                    return SelectFormatterBasedOnTypeMatch(formatterContext, formatters);
+                }
+
+                //
+                // Content-Negotiation starts from this point on.
+                //
+
+                // 1. Select based on sorted accept headers.
+                if (acceptHeaderMediaTypes.Any())
+                {
                     selectedFormatter = SelectFormatterUsingSortedAcceptHeaders(
                                                                             formatterContext,
                                                                             formatters,
-                                                                            sortedAcceptHeaderMediaTypes);
+                                                                            acceptHeaderMediaTypes);
                 }
 
-                if (selectedFormatter == null)
+                // 2. No formatter was found based on accept headers, fall back on request Content-Type header.
+                if (selectedFormatter == null && requestContentType != null)
                 {
-                    var requestContentType = formatterContext.ActionContext.HttpContext.Request.ContentType;
-
-                    // No formatter found based on accept headers, fall back on request contentType.
-                    MediaTypeHeaderValue incomingContentType = null;
-                    MediaTypeHeaderValue.TryParse(requestContentType, out incomingContentType);
-
-                    // In case the incomingContentType is null (as can be the case with get requests),
-                    // we need to pick the first formatter which
-                    // can support writing this type.
-                    var contentTypes = new[] { incomingContentType };
                     selectedFormatter = SelectFormatterUsingAnyAcceptableContentType(
                                                                                 formatterContext,
                                                                                 formatters,
-                                                                                contentTypes);
+                                                                                new[] { requestContentType });
+                }
 
-                    // This would be the case when no formatter could write the type base on the
-                    // accept headers and the request content type. Fallback on type based match.
-                    if (selectedFormatter == null)
-                    {
-                        foreach (var formatter in formatters)
-                        {
-                            var supportedContentTypes = formatter.GetSupportedContentTypes(
-                                                                         formatterContext.DeclaredType,
-                                                                         formatterContext.Object?.GetType(),
-                                                                         contentType: null);
+                // 3. No formatter was found based on Accept and request Content-Type headers, so
+                // fallback on type based match.
+                if (selectedFormatter == null)
+                {
+                    // Set this flag to indicate that content-negotiation has failed to let formatters decide
+                    // if they want to write the response or not.
+                    formatterContext.FailedContentNegotiation = true;
 
-                            if (formatter.CanWriteResult(formatterContext, supportedContentTypes?.FirstOrDefault()))
-                            {
-                                return formatter;
-                            }
-                        }
-                    }
+                    return SelectFormatterBasedOnTypeMatch(formatterContext, formatters);
                 }
             }
             else
             {
-                if (respectAcceptHeader)
+                if (acceptHeaderMediaTypes.Any())
                 {
                     // Filter and remove accept headers which cannot support any of the user specified content types.
-                    var filteredAndSortedAcceptHeaders = sortedAcceptHeaderMediaTypes
+                    var filteredAndSortedAcceptHeaders = acceptHeaderMediaTypes
                                                                     .Where(acceptHeader =>
                                                                             ContentTypes
                                                                                 .Any(contentType =>
@@ -186,6 +162,26 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return selectedFormatter;
+        }
+
+        public virtual IOutputFormatter SelectFormatterBasedOnTypeMatch(
+            OutputFormatterContext formatterContext,
+            IEnumerable<IOutputFormatter> formatters)
+        {
+            foreach (var formatter in formatters)
+            {
+                var supportedContentTypes = formatter.GetSupportedContentTypes(
+                                                             formatterContext.DeclaredType,
+                                                             formatterContext.Object?.GetType(),
+                                                             contentType: null);
+
+                if (formatter.CanWriteResult(formatterContext, supportedContentTypes?.FirstOrDefault()))
+                {
+                    return formatter;
+                }
+            }
+
+            return null;
         }
 
         public virtual IOutputFormatter SelectFormatterUsingSortedAcceptHeaders(
@@ -222,6 +218,37 @@ namespace Microsoft.AspNet.Mvc
                                                     .Any(contentType =>
                                                             formatter.CanWriteResult(formatterContext, contentType)));
             return selectedFormatter;
+        }
+
+        public virtual IEnumerable<MediaTypeHeaderValue> GetAcceptHeaders(OutputFormatterContext formatterContext)
+        {
+            var incomingAcceptHeaderMediaTypes = formatterContext.ActionContext.HttpContext.Request.GetTypedHeaders().Accept ??
+                                                    new MediaTypeHeaderValue[] { };
+
+            // By default we want to ignore considering accept headers for content negotiation when
+            // they have a media type like */* in them. Browsers typically have these media types.
+            // In these cases we would want the first formatter in the list of output formatters to
+            // write the response. This default behavior can be changed through options, so checking here.
+            var options = formatterContext.ActionContext.HttpContext
+                                                        .RequestServices
+                                                        .GetRequiredService<IOptions<MvcOptions>>()
+                                                        .Options;
+
+            var respectAcceptHeader = true;
+            if (options.RespectBrowserAcceptHeader == false
+                && incomingAcceptHeaderMediaTypes.Any(mediaType => mediaType.MatchesAllTypes))
+            {
+                respectAcceptHeader = false;
+            }
+
+            var sortedAcceptHeaderMediaTypes = Enumerable.Empty<MediaTypeHeaderValue>();
+            if (respectAcceptHeader)
+            {
+                sortedAcceptHeaderMediaTypes = SortMediaTypeHeaderValues(incomingAcceptHeaderMediaTypes)
+                                                .Where(header => header.Quality != HeaderQuality.NoMatch);
+            }
+
+            return sortedAcceptHeaderMediaTypes;
         }
 
         private void ThrowIfUnsupportedContentType()

@@ -10,15 +10,14 @@ using Microsoft.Net.Http.Headers;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// A formatter which does not have a supported content type and selects itself if no content type is passed to it.
-    /// Sets the status code to 406 if selected.
+    /// A formatter which does not have a supported content type and selects itself if content-negotation has failed.
     /// </summary>
     public class HttpNotAcceptableOutputFormatter : IOutputFormatter
     {
         /// <inheritdoc />
         public bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
-            return contentType == null;
+            return context.FailedContentNegotiation;
         }
 
         /// <inheritdoc />
