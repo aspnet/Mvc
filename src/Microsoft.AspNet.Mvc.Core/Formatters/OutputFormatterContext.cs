@@ -45,5 +45,7 @@ namespace Microsoft.AspNet.Mvc
         /// Null indicates no value set by the <see cref="ObjectResult"/>.
         /// </remarks>
         public int? StatusCode { get; set; }
+
+        public bool FailedContentNegotiation { get; set; }
     }
 }
