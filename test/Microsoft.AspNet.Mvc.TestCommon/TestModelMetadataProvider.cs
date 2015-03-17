@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
-using Microsoft.Framework.Internal;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -18,7 +17,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var detailsProviders = new IMetadataDetailsProvider[]
             {
                 new DefaultBindingMetadataProvider(),
+                new DefaultValidationMetadataProvider(),
                 new DataAnnotationsMetadataDetailsProvider(),
+                new DataMemberRequiredValidationMetadataProvider(),
             };
 
             var compositeDetailsProvider = new DefaultCompositeMetadataDetailsProvider(detailsProviders);

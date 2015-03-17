@@ -356,5 +356,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 return DisplayMetadata.TemplateHint;
             }
         }
+
+        /// <inheritdoc />
+        public override IReadOnlyList<object> ValidatorMetadata
+        {
+            get
+            {
+                return new ReadOnlyCollection<object>(ValidationMetadata.ValiatorMetadata);
+            }
+        }
     }
 }

@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -328,10 +328,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 var propertyName = property.Name;
                 var propertyMetadata = bindingContext.ModelMetadata.Properties[propertyName];
-                var requiredValidator = bindingContext.OperationBindingContext
-                                                      .ValidatorProvider
-                                                      .GetValidators(propertyMetadata)
-                                                      .FirstOrDefault(v => v != null && v.IsRequired);
+
+                var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
+                bindingContext.OperationBindingContext.ValidatorProvider.GetValidators(validatorProviderContext);
+
+                var requiredValidator = validatorProviderContext.Validators
+                    .FirstOrDefault(v => v != null && v.IsRequired);
                 if (requiredValidator != null)
                 {
                     validationInfo.RequiredValidators[propertyName] = requiredValidator;
