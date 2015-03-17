@@ -14,11 +14,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     {
         // Original content, selected attribute, value attribute, selected values (to place in FormContext.FormData)
         // and expected output (concatenation of TagHelperOutput generations).
-        public static TheoryData<string, string, string, ICollection<string>, TagHelperOutput> GeneratesExpectedDataSet
+        public static TheoryData<string, string, string, IEnumerable<string>, TagHelperOutput> GeneratesExpectedDataSet
         {
             get
             {
-                return new TheoryData<string, string, string, ICollection<string>, TagHelperOutput>
+                return new TheoryData<string, string, string, IEnumerable<string>, TagHelperOutput>
                 {
                     // original content, selected, value, selected values,
                     // expected tag helper output - attributes, content
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             "")
                     },
                     {
-                        null, null, "value", new string[0],
+                        null, null, "value", Enumerable.Empty<string>(),
                         GetTagHelperOutput(
                             "not-option",
                             new Dictionary<string, string>
@@ -133,7 +133,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             "")
                     },
                     {
-                        string.Empty, null, null, new string[0],
+                        string.Empty, null, null, Enumerable.Empty<string>(),
                         GetTagHelperOutput(
                             "not-option",
                             new Dictionary<string, string>
@@ -214,7 +214,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             "text")
                     },
                     {
-                        "text", null, null, new string[0],
+                        "text", null, null, Enumerable.Empty<string>(),
                         GetTagHelperOutput(
                             "not-option",
                             new Dictionary<string, string>
@@ -285,7 +285,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             "text")
                     },
                     {
-                        "text", null, "value", new string[0],
+                        "text", null, "value", Enumerable.Empty<string>(),
                         GetTagHelperOutput(
                             "not-option",
                             new Dictionary<string, string>
@@ -377,7 +377,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string originalContent,
             string selected,
             string value,
-            ICollection<string> selectedValues,
+            IEnumerable<string> selectedValues,
             TagHelperOutput expectedTagHelperOutput)
         {
             // Arrange
@@ -430,7 +430,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedTagHelperOutput.TagName, output.TagName);
             Assert.Equal(expectedTagHelperOutput.Content.GetContent(), output.Content.GetContent());
             Assert.Equal(expectedTagHelperOutput.Attributes.Count, output.Attributes.Count);
-            Assert.True(expectedTagHelperOutput.Attributes.All(e => output.Attributes.Contains(e)));
+            foreach (var attribute in output.Attributes)
+            {
+                Assert.Contains(attribute, expectedTagHelperOutput.Attributes);
+            }
         }
 
         [Theory]
@@ -439,7 +442,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string originalContent,
             string selected,
             string value,
-            ICollection<string> selectedValues,
+            IEnumerable<string> selectedValues,
             TagHelperOutput ignored)
         {
             // Arrange
@@ -500,7 +503,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string originalContent,
             string selected,
             string value,
-            ICollection<string> ignoredValues,
+            IEnumerable<string> ignoredValues,
             TagHelperOutput ignoredOutput)
         {
             // Arrange

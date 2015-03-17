@@ -251,22 +251,30 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Writes the output of a specified <see cref="TagHelperExecutionContext"/>.
+        /// Writes the content of a specified <paramref name="tagHelperExecutionContext"/>.
         /// </summary>
         /// <param name="tagHelperExecutionContext">The execution context containing the output.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that on completion writes the <paramref name="tagHelperExecutionContext"/> content.
+        /// </returns>
         public async Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
         {
             await WriteTagHelperToAsync(Output, tagHelperExecutionContext);
         }
 
         /// <summary>
-        /// Wrutes the output of a specified <see cref="TagHelperExecutionContext"/> to the specified
+        /// Writes the content of a specified <paramref name="tagHelperExecutionContext"/> to the specified
         /// <paramref name="writer"/>.
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="tagHelperExecutionContext">The execution context containing the output.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that on completion writes the <paramref name="tagHelperExecutionContext"/> content
+        /// to the <paramref name="writer"/>.
+        /// </returns>
         public async Task WriteTagHelperToAsync(
-            [NotNull] TextWriter writer, [NotNull] TagHelperExecutionContext tagHelperExecutionContext)
+            [NotNull] TextWriter writer,
+            [NotNull] TagHelperExecutionContext tagHelperExecutionContext)
         {
             var tagHelperOutput = tagHelperExecutionContext.Output;
             var isTagNameNullOrWhitespace = string.IsNullOrWhiteSpace(tagHelperOutput.TagName);
@@ -303,7 +311,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
                 else if (tagHelperExecutionContext.ChildContentRetrieved)
                 {
-                    WriteTagHelperContentTo(writer, await tagHelperExecutionContext.GetChildContentAsync());
+                    var childContent = await tagHelperExecutionContext.GetChildContentAsync();
+                    WriteTagHelperContentTo(writer, childContent);
                 }
                 else
                 {
