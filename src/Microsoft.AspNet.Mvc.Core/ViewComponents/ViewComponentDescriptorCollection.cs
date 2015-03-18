@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         /// </summary>
         /// <param name="items">The result of view component discovery</param>
         /// <param name="version">The unique version of discovered view components.</param>
-        public ViewComponentDescriptorCollection([NotNull] IReadOnlyList<ViewComponentDescriptor> items, int version)
+        public ViewComponentDescriptorCollection([NotNull] IEnumerable<ViewComponentDescriptor> items, int version)
         {
-            Items = items;
+            Items = new List<ViewComponentDescriptor>(items);
             Version = version;
         }
 

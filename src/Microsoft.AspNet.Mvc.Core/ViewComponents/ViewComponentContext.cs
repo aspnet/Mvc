@@ -6,8 +6,20 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// A context for View Components.
+    /// </summary>
     public class ViewComponentContext
     {
+        /// <summary>
+        /// Creates a new <see cref="ViewComponentContext"/>.
+        /// </summary>
+        /// <param name="viewComponentDescriptor">
+        /// The <see cref="ViewComponentContext"/> for the View Component being invoked.
+        /// </param>
+        /// <param name="arguments">The View Component arguments.</param>
+        /// <param name="viewContext">The <see cref="ViewContext"/>.</param>
+        /// <param name="writer">The <see cref="TextWriter"/> for writing output.</param>
         public ViewComponentContext(
             [NotNull] ViewComponentDescriptor viewComponentDescriptor,
             [NotNull] object[] arguments,
@@ -20,12 +32,28 @@ namespace Microsoft.AspNet.Mvc
             Writer = writer;
         }
 
+        /// <summary>
+        /// Gets the View Component arguments. 
+        /// </summary>
         public object[] Arguments { get; }
 
+        /// <summary>
+        /// Gets the <see cref="ViewComponentDescriptor"/> for the View Component being invoked.
+        /// </summary>
         public ViewComponentDescriptor ViewComponentDescriptor { get; }
 
+        /// <summary>
+        /// Gets the <see cref="ViewContext"/>.
+        /// </summary>
         public ViewContext ViewContext { get; }
 
+        /// <summary>
+        /// Gets the <see cref="TextWriter"/> for writing output.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="IViewComponentHelper.Invoke(string, object[])"/> or a similar overload is used to invoke the
+        /// View Component, then <see cref="Writer"/> will be different than <see cref="ViewContext.Writer"/>.
+        /// </remarks>
         public TextWriter Writer { get; }
     }
 }

@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             _viewComponentActivator = viewComponentActivator;
         }
 
+        /// <inheritdoc />
         public IViewComponentInvoker CreateInstance([NotNull] ViewComponentDescriptor viewComponent, object[] args)
         {
             return new DefaultViewComponentInvoker(

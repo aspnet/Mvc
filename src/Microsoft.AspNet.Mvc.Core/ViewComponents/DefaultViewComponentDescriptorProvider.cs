@@ -67,17 +67,6 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 Type = typeInfo.AsType(),
             };
 
-            Debug.Assert(!string.IsNullOrEmpty(candidate.FullName));
-            var separatorIndex = candidate.FullName.LastIndexOf('.');
-            if (separatorIndex >= 0)
-            {
-                candidate.ShortName = candidate.FullName.Substring(separatorIndex + 1);
-            }
-            else
-            {
-                candidate.ShortName = candidate.FullName;
-            }
-
             return candidate;
         }
     }

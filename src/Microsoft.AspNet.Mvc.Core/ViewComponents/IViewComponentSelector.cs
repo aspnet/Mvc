@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         /// Selects a View Component based on <paramref name="componentName"/>.
         /// </summary>
         /// <param name="componentName">The View Component name.</param>
-        /// <returns>A <see cref="ViewComponentDescriptor"/>.</returns>
+        /// <returns>A <see cref="ViewComponentDescriptor"/>, or <c>null</c> if no match is found.</returns>
         ViewComponentDescriptor SelectComponent([NotNull] string componentName);
     }
 }
