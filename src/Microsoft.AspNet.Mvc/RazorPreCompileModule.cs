@@ -62,8 +62,9 @@ namespace Microsoft.AspNet.Mvc
             var replacedServices = new ServiceCollection();
             replacedServices.AddMvc();
             replacedServices.AddInstance<IApplicationEnvironment>(precompilationApplicationEnvironment);
+            var wrappedServices = new WrappingServiceProvider(_appServices, replacedServices);
 
-            var viewCompiler = new RazorPreCompiler(new WrappingServiceProvider(_appServices, replacedServices), context, _memoryCache, compilationSettings)
+            var viewCompiler = new RazorPreCompiler(wrappedServices, context, _memoryCache, compilationSettings)
             {
                 GenerateSymbols = GenerateSymbols
             };
@@ -79,23 +80,21 @@ namespace Microsoft.AspNet.Mvc
         // REVIEW: Welcome back to life delegating SP!!!
         private class WrappingServiceProvider : IServiceProvider
         {
-            private readonly IServiceProvider _inner;
-            private readonly IServiceProvider _outer;
+            private readonly IServiceProvider _fallback;
+            private readonly IServiceProvider _override;
 
             // Need full wrap for generics like IOptions
-            public WrappingServiceProvider(IServiceProvider fallback,
-                                           IServiceCollection replacedServices)
+            public WrappingServiceProvider(IServiceProvider fallback, IServiceCollection replacedServices)
             {
-                _inner = fallback;
-                _outer = replacedServices.BuildServiceProvider();
+                _fallback = fallback;
+                _override = replacedServices.BuildServiceProvider();
             }
 
             public object GetService(Type serviceType)
             {
-                return _outer.GetService(serviceType) ?? _inner.GetService(serviceType);
+                return _override.GetService(serviceType) ?? _fallback.GetService(serviceType);
             }
         }
-
 
         private class PrecompilationApplicationEnvironment : IApplicationEnvironment
         {

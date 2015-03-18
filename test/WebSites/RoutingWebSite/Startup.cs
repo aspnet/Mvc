@@ -20,7 +20,7 @@ namespace RoutingWebSite
         {
             var configuration = app.GetTestConfiguration();
 
-           app.UseErrorReporter();
+            app.UseErrorReporter();
 
             app.UseMvc(routes =>
             {
