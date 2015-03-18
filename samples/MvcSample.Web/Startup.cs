@@ -25,6 +25,65 @@ namespace MvcSample.Web
 {
     public class Startup
     {
+        public IServiceProvider ConfigureServices(IServiceCollection services)
+        {
+            services.AddCaching();
+            services.AddSession();
+
+            services.AddMvc();
+            services.AddSingleton<PassThroughAttribute>();
+            services.AddSingleton<UserNameService>();
+            services.AddTransient<ITestService, TestService>();
+
+            services.ConfigureMvc(options =>
+            {
+                options.Filters.Add(typeof(PassThroughAttribute), order: 17);
+                options.AddXmlDataContractSerializerFormatter();
+                options.Filters.Add(new FormatFilterAttribute());
+            });
+
+#if DNX451
+            //var applicationEnvironment = app.ApplicationServices.GetRequiredService<IApplicationEnvironment>();
+            //var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
+            var configurationPath = "config.json";
+
+            // Set up configuration sources.
+            var configuration = new Configuration()
+                .AddJsonFile(configurationPath)
+                .AddEnvironmentVariables();
+            string diSystem;
+            if (configuration.TryGet("DependencyInjection", out diSystem) &&
+                diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
+            {
+
+                services.ConfigureRazorViewEngine(options =>
+                {
+                    var expander = new LanguageViewLocationExpander(
+                        context => context.HttpContext.Request.Query["language"]);
+                    options.ViewLocationExpanders.Insert(0, expander);
+                });
+
+                // Create the autofac container
+                ContainerBuilder builder = new ContainerBuilder();
+
+                // Create the container and use the default application services as a fallback
+                AutofacRegistration.Populate(
+                    builder,
+                    services);
+
+                builder.RegisterModule<MonitoringModule>();
+
+                IContainer container = builder.Build();
+
+                return container.Resolve<IServiceProvider>();
+            }
+            else
+#endif
+            {
+                return services.BuildServiceProvider();
+            }
+        }
+
         public void Configure(IApplicationBuilder app)
         {
             app.UseStatusCodePages();
@@ -47,66 +106,8 @@ namespace MvcSample.Web
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {
                 app.UseMiddleware<MonitoringMiddlware>();
-
-                app.UseServices(services =>
-                {
-                    services.AddCaching();
-                    services.AddSession();
-
-                    services.AddMvc();
-                    services.AddSingleton<PassThroughAttribute>();
-                    services.AddSingleton<UserNameService>();
-                    services.AddTransient<ITestService, TestService>();
-
-                    services.ConfigureMvc(options =>
-                    {
-                        options.Filters.Add(typeof(PassThroughAttribute), order: 17);
-                        options.AddXmlDataContractSerializerFormatter();
-                        options.Filters.Add(new FormatFilterAttribute());
-                    });
-                    services.ConfigureRazorViewEngine(options =>
-                    {
-                        var expander = new LanguageViewLocationExpander(
-                            context => context.HttpContext.Request.Query["language"]);
-                        options.ViewLocationExpanders.Insert(0, expander);
-                    });
-
-                    // Create the autofac container
-                    ContainerBuilder builder = new ContainerBuilder();
-
-                    // Create the container and use the default application services as a fallback
-                    AutofacRegistration.Populate(
-                        builder,
-                        services);
-
-                    builder.RegisterModule<MonitoringModule>();
-
-                    IContainer container = builder.Build();
-
-                    return container.Resolve<IServiceProvider>();
-                });
             }
-            else
 #endif
-            {
-                app.UseServices(services =>
-                {
-                    services.AddCaching();
-                    services.AddSession();
-
-                    services.AddMvc();
-                    services.AddSingleton<PassThroughAttribute>();
-                    services.AddSingleton<UserNameService>();
-                    services.AddTransient<ITestService, TestService>();
-
-                    services.ConfigureMvc(options =>
-                    {
-                        options.Filters.Add(typeof(PassThroughAttribute), order: 17);
-                        options.AddXmlDataContractSerializerFormatter();
-                        options.Filters.Add(new FormatFilterAttribute());
-                    });
-                });
-            }
 
             app.UseInMemorySession();
             app.UseMvc(routes =>
