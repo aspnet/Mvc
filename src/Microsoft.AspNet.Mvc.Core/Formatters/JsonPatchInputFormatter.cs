@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.JsonPatch;
+using Microsoft.AspNet.JsonPatch.Operations;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -18,7 +23,7 @@ namespace Microsoft.AspNet.Mvc
             SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
 
-            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/jsonpatch"));
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json-patch+json"));
 
             _jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -86,8 +91,31 @@ namespace Microsoft.AspNet.Mvc
 
                 try
                 {
-                    var contractObject = SerializerSettings.ContractResolver.ResolveContract(type);
-                    return Task.FromResult(jsonSerializer.Deserialize(jsonReader, type));
+                    var genericType = type.GetGenericArguments()[0];
+
+                    // load jObject
+                    var jArray = JArray.Load(jsonReader);
+
+                    // Create target object for Json => list of operations, typed to genericType
+                    var genericOperation = typeof(Operation<>);
+                    var concreteOperationType = genericOperation.MakeGenericType(genericType);
+
+                    var genericList = typeof(List<>);
+                    var concreteList = genericList.MakeGenericType(concreteOperationType);
+                    var targetOperations = Activator.CreateInstance(concreteList);
+
+                    //Create a new reader for this jObject, and set all properties to match the original reader.
+                    JsonReader jObjectReader = jArray.CreateReader();
+                    jObjectReader.Culture = jsonReader.Culture;
+                    jObjectReader.DateParseHandling = jsonReader.DateParseHandling;
+                    jObjectReader.DateTimeZoneHandling = jsonReader.DateTimeZoneHandling;
+                    jObjectReader.FloatParseHandling = jsonReader.FloatParseHandling;
+
+                    // Populate the object properties
+                    jsonSerializer.Populate(jObjectReader, targetOperations);
+
+                    // container target: the typed JsonPatchDocument.
+                    return Task.FromResult(Activator.CreateInstance(type, targetOperations, jsonSerializer.ContractResolver));
                 }
                 finally
                 {
