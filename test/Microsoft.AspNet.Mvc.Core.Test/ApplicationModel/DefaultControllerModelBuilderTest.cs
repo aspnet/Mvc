@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         }
 
         [Fact]
-        public void BuildControllerModel_EnableCorsAttributeAddsCorsAuthorizationFilter()
+        public void BuildControllerModel_EnableCorsAttributeAddsCorsAuthorizationFilterFactory()
         {
             // Arrange
             var corsOptions = new CorsOptions();
@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             var model = builder.BuildControllerModel(typeInfo);
 
             // Assert
-            Assert.True(model.Filters.Any(f => f is CorsAuthorizationFilter));
+            Assert.Single(model.Filters, f => f is CorsAuthorizationFilterFactory);
         }
 
         [Fact]

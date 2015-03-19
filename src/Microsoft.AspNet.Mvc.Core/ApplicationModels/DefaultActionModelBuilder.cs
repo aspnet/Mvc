@@ -268,13 +268,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             AddRange(actionModel.ActionConstraints, attributes.OfType<IActionConstraintMetadata>());
             AddRange(actionModel.Filters, attributes.OfType<IFilter>());
 
-            var enableCors = attributes.OfType<IEnableCorsMetadata>().SingleOrDefault();
+            var enableCors = attributes.OfType<IEnableCorsAttribute>().SingleOrDefault();
             if (enableCors != null)
             {
-                actionModel.Filters.Add(new CorsAuthorizationFilter(enableCors.PolicyName));
+                actionModel.Filters.Add(new CorsAuthorizationFilterFactory(enableCors.PolicyName));
             }
 
-            var disableCors = attributes.OfType<IDisableCorsMetadata>().SingleOrDefault();
+            var disableCors = attributes.OfType<IDisableCorsAttribute>().SingleOrDefault();
             if (disableCors != null)
             {
                 actionModel.Filters.Add(new DisableCorsAuthorizationFilter());

@@ -6,7 +6,7 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// A filter which can be used to enable/disable cors support for a resource.
     /// </summary>
-    public interface ICorsAuthorizationFilter : IAsyncAuthorizationFilter
+    public interface ICorsAuthorizationFilter : IAsyncAuthorizationFilter, IOrderedFilter
     {
     }
 }

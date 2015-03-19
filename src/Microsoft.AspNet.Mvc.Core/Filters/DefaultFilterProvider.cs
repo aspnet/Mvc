@@ -34,10 +34,6 @@ namespace Microsoft.AspNet.Mvc.Filters
                 {
                     ProvideFilter(context, item);
                 }
-                context.Results =
-                    context.Results
-                    .OrderBy(filter => filter.Descriptor, FilterDescriptorCorsComparer.Comparer)
-                    .ToList();
             }
         }
 
@@ -85,33 +81,6 @@ namespace Microsoft.AspNet.Mvc.Filters
             if (container != null)
             {
                 container.FilterDefinition = filterMetadata;
-            }
-        }
-
-        private class FilterDescriptorCorsComparer : IComparer<FilterDescriptor>
-        {
-            private static readonly FilterDescriptorCorsComparer _comparer = new FilterDescriptorCorsComparer();
-
-            public static FilterDescriptorCorsComparer Comparer
-            {
-                get { return _comparer; }
-            }
-
-            public int Compare([NotNull]FilterDescriptor x, [NotNull]FilterDescriptor y)
-            {
-                var isThisCorsFilter = x.Filter is ICorsAuthorizationFilter;
-                var isOtherCorsFilter = y.Filter is ICorsAuthorizationFilter;
-                if (isThisCorsFilter && !isOtherCorsFilter)
-                {
-                    return -1;
-                }
-
-                if (isOtherCorsFilter && !isThisCorsFilter)
-                {
-                    return 1;
-                }
-
-                return 0;
             }
         }
     }

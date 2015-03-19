@@ -286,7 +286,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         }
 
         [Fact]
-        public void BuildActionModel_EnableCorsAttributeAddsCorsAuthorizationFilter()
+        public void BuildActionModel_EnableCorsAttributeAddsCorsAuthorizationFilterFactory()
         {
             // Arrange
             var builder = new DefaultActionModelBuilder(authorizationOptions: null);
@@ -298,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
             // Assert
             var action = Assert.Single(actions);
-            Assert.Single(action.Filters, f => f is CorsAuthorizationFilter);
+            Assert.Single(action.Filters, f => f is CorsAuthorizationFilterFactory);
         }
 
         [Fact]

@@ -82,13 +82,13 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             AddRange(controllerModel.Filters, attributes.OfType<IFilter>());
             AddRange(controllerModel.RouteConstraints, attributes.OfType<IRouteConstraintProvider>());
 
-            var enableCors = attributes.OfType<IEnableCorsMetadata>().SingleOrDefault();
+            var enableCors = attributes.OfType<IEnableCorsAttribute>().SingleOrDefault();
             if (enableCors != null)
             {
-                controllerModel.Filters.Add(new CorsAuthorizationFilter(enableCors.PolicyName));
+                controllerModel.Filters.Add(new CorsAuthorizationFilterFactory(enableCors.PolicyName));
             }
 
-            var disableCors = attributes.OfType<IDisableCorsMetadata>().SingleOrDefault();
+            var disableCors = attributes.OfType<IDisableCorsAttribute>().SingleOrDefault();
             if (disableCors != null)
             {
                 controllerModel.Filters.Add(new DisableCorsAuthorizationFilter());

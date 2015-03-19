@@ -16,11 +16,6 @@ namespace CorsWebSite
             app.UseServices(services =>
             {
                 services.AddMvc();
-                services.Configure<MvcOptions>(options =>
-                {
-                    options.AddXmlDataContractSerializerFormatter();
-                });
-
                 services.ConfigureCors(options =>
                 {
                     options.AddPolicy(
@@ -28,14 +23,14 @@ namespace CorsWebSite
                         builder =>
                         {
                             builder.AllowAnyOrigin()
-                                   .AddMethods("GET", "POST", "HEAD");
+                                   .WithMethods("GET", "POST", "HEAD");
                         });
 
                     options.AddPolicy(
                         "AllowSpecificOrigin",
                         builder =>
                         {
-                            builder.AddOrigins("http://example.com");
+                            builder.WithOrigins("http://example.com");
                         });
 
                     options.AddPolicy(
@@ -43,7 +38,7 @@ namespace CorsWebSite
                         builder =>
                         {
                             builder.AllowCredentials()
-                                   .AddOrigins("http://example.com");
+                                   .WithOrigins("http://example.com");
                         });
 
                     options.AddPolicy(
@@ -53,20 +48,13 @@ namespace CorsWebSite
                             builder.AllowCredentials()
                                    .AllowAnyOrigin()
                                    .AllowAnyHeader()
-                                   .AddMethods("PUT", "POST")
-                                   .AddExposedHeaders("exposed1", "exposed2");
+                                   .WithMethods("PUT", "POST")
+                                   .WithExposedHeaders("exposed1", "exposed2");
                         });
                 });
             });
 
-            app.UseErrorReporter();
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action}/{id?}");
-            });
+            app.UseMvc();
         }
     }
 }

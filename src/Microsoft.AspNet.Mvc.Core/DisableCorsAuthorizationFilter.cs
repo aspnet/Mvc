@@ -15,6 +15,15 @@ namespace Microsoft.AspNet.Mvc
     public class DisableCorsAuthorizationFilter : ICorsAuthorizationFilter
     {
         /// <inheritdoc />
+        public int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultCorsSortOrder;
+            }
+        }
+
+        /// <inheritdoc />
         public Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
             var accessControlRequestMethod = 

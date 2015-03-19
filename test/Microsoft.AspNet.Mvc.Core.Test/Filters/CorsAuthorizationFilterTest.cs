@@ -22,11 +22,10 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task PreFlightRequest_SuccessfulMatch_WritesHeaders()
         {
             // Arrange
-            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetPassingEngine(supportsCredentials:true);
+            var filter = GetFilter(mockEngine);
 
             var authorizationContext = GetAuthorizationContext(
-                mockEngine,
                 new[] { new FilterDescriptor(filter, FilterScope.Action) },
                 GetRequestHeaders(true),
                 isPreflight: true);
@@ -52,11 +51,10 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task PreFlight_FailedMatch_Writes200()
         {
             // Arrange
-            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetFailingEngine();
+            var filter = GetFilter(mockEngine);
 
             var authorizationContext = GetAuthorizationContext(
-                mockEngine,               
                 new[] { new FilterDescriptor(filter, FilterScope.Action) },
                 GetRequestHeaders(),
                 isPreflight: true);
@@ -74,11 +72,10 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task CorsRequest_SuccessfulMatch_WritesHeaders()
         {
             // Arrange
-            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetPassingEngine(supportsCredentials: true);
+            var filter = GetFilter(mockEngine);
 
             var authorizationContext = GetAuthorizationContext(
-                mockEngine,
                 new[] { new FilterDescriptor(filter, FilterScope.Action) },
                 GetRequestHeaders(true),
                 isPreflight: true);
@@ -98,11 +95,10 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task CorsRequest_FailedMatch_Writes200()
         {   
             // Arrange
-            var filter = new CorsAuthorizationFilter(string.Empty);
             var mockEngine = GetFailingEngine();
+            var filter = GetFilter(mockEngine);
 
             var authorizationContext = GetAuthorizationContext(
-                mockEngine,
                 new[] { new FilterDescriptor(filter, FilterScope.Action) },
                 GetRequestHeaders(),
                 isPreflight: false);
@@ -115,27 +111,27 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.Empty(authorizationContext.HttpContext.Response.Headers);
         }
 
-        private AuthorizationContext GetAuthorizationContext(
-            ICorsService corsService,
-            FilterDescriptor[] filterDescriptors,
-            RequestHeaders headers = null,
-            bool isPreflight = false)
+        private CorsAuthorizationFilter GetFilter(ICorsService corsService)
         {
             var policyProvider = new Mock<ICorsPolicyProvider>();
             policyProvider
                 .Setup(o => o.GetPolicyAsync(It.IsAny<HttpContext>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(new CorsPolicy()));
-                       
-            // ServiceProvider
-            var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddInstance<ICorsService>(corsService);
-            serviceCollection.AddInstance<ICorsPolicyProvider>(policyProvider.Object);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            return new CorsAuthorizationFilter(corsService, policyProvider.Object)
+            {
+                PolicyName = string.Empty
+            };
+        }
 
+        private AuthorizationContext GetAuthorizationContext(
+            FilterDescriptor[] filterDescriptors,
+            RequestHeaders headers = null,
+            bool isPreflight = false)
+        {
+            
             // HttpContext
             var httpContext = new DefaultHttpContext();
-            httpContext.RequestServices = serviceProvider;
             if (headers != null)
             {
                 httpContext.Request.Headers.Add(CorsConstants.AccessControlRequestHeaders, headers.Headers.Split(','));

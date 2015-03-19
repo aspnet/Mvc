@@ -18,16 +18,34 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class CorsAuthorizationFilter : ICorsAuthorizationFilter
     {
-        private readonly string _corsPolicyName;
+        private ICorsService _corsService;
+        private ICorsPolicyProvider _corsPolicyProvider;
 
         /// <summary>
         /// Creates a new instace of <see cref="CorsAuthorizationFilter"/>.
         /// </summary>
-        /// <param name="policyName">The policy name which needs to be applied.</param>
-        public CorsAuthorizationFilter(string policyName)
+        /// <param name="corsService">The <see cref="ICorsService"/>.</param>
+        /// <param name="policyProvider">The <see cref="ICorsPolicyProvider"/>.</param>
+        public CorsAuthorizationFilter(ICorsService corsService, ICorsPolicyProvider policyProvider)
         {
-            _corsPolicyName = policyName;
+            _corsService = corsService;
+            _corsPolicyProvider = policyProvider;
         }
+
+        /// <summary>
+        /// The policy name used to fetch a <see cref="CorsPolicy"/>.
+        /// </summary>
+        public string PolicyName { get; set; }
+
+        /// <inheritdoc />
+        public int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultCorsSortOrder;
+            }
+        }
+
 
         /// <inheritdoc />
         public async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
@@ -42,11 +60,9 @@ namespace Microsoft.AspNet.Mvc
             var request = httpContext.Request;
             if (request.Headers.ContainsKey(CorsConstants.Origin))
             {
-                var corsPolicyProvider = httpContext.RequestServices.GetRequiredService<ICorsPolicyProvider>();
-                var policy = await corsPolicyProvider.GetPolicyAsync(httpContext, _corsPolicyName);
-                var corsService = httpContext.RequestServices.GetRequiredService<ICorsService>();
-                var result = corsService.EvaluatePolicy(context.HttpContext, policy);
-                corsService.ApplyResult(result, context.HttpContext.Response);
+                var policy = await _corsPolicyProvider.GetPolicyAsync(httpContext, PolicyName);
+                var result = _corsService.EvaluatePolicy(context.HttpContext, policy);
+                _corsService.ApplyResult(result, context.HttpContext.Response);
 
                 var accessControlRequestMethod = 
                         httpContext.Request.Headers.Get(CorsConstants.AccessControlRequestMethod);
