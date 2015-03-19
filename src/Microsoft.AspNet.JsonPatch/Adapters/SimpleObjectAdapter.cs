@@ -12,70 +12,69 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
     public class SimpleObjectAdapter<T> : IObjectAdapter<T> where T : class
     {
         /// <summary>
-		/// The "add" operation performs one of the following functions,
-		/// depending upon what the target location references:
-		/// 
-		/// o  If the target location specifies an array index, a new value is
-		///    inserted into the array at the specified index.
-		/// 
-		/// o  If the target location specifies an object member that does not
-		///    already exist, a new member is added to the object.
-		/// 
-		/// o  If the target location specifies an object member that does exist,
-		///    that member's value is replaced.
-		/// 
-		/// The operation object MUST contain a "value" member whose content
-		/// specifies the value to be added.
-		/// 
-		/// For example:
-		/// 
-		/// { "op": "add", "path": "/a/b/c", "value": [ "foo", "bar" ] }
-		/// 
-		/// When the operation is applied, the target location MUST reference one
-		/// of:
-		/// 
-		/// o  The root of the target document - whereupon the specified value
-		///    becomes the entire content of the target document.
-		/// 
-		/// o  A member to add to an existing object - whereupon the supplied
-		///    value is added to that object at the indicated location.  If the
-		///    member already exists, it is replaced by the specified value.
-		/// 
-		/// o  An element to add to an existing array - whereupon the supplied
-		///    value is added to the array at the indicated location.  Any
-		///    elements at or above the specified index are shifted one position
-		///    to the right.  The specified index MUST NOT be greater than the
-		///    number of elements in the array.  If the "-" character is used to
-		///    index the end of the array (see [RFC6901]), this has the effect of
-		///    appending the value to the array.
-		/// 
-		/// Because this operation is designed to add to existing objects and
-		/// arrays, its target location will often not exist.  Although the
-		/// pointer's error handling algorithm will thus be invoked, this
-		/// specification defines the error handling behavior for "add" pointers
-		/// to ignore that error and add the value as specified.
-		/// 
-		/// However, the object itself or an array containing it does need to
-		/// exist, and it remains an error for that not to be the case.  For
-		/// example, an "add" with a target location of "/a/b" starting with this
-		/// document:
-		/// 
-		/// { "a": { "foo": 1 } }
-		/// 
-		/// is not an error, because "a" exists, and "b" will be added to its
-		/// value.  It is an error in this document:
-		/// 
-		/// { "q": { "bar": 2 } }
-		/// 
-		/// because "a" does not exist.
-		/// </summary>
-		/// <param name="operation">The add operation</param>
-		/// <param name="objectApplyTo">Object to apply the operation to</param>
-		public void Add(Operation<T> operation, T objectToApplyTo)
+        /// The "add" operation performs one of the following functions,
+        /// depending upon what the target location references:
+        ///
+        /// o  If the target location specifies an array index, a new value is
+        ///    inserted into the array at the specified index.
+        ///
+        /// o  If the target location specifies an object member that does not
+        ///    already exist, a new member is added to the object.
+        ///
+        /// o  If the target location specifies an object member that does exist,
+        ///    that member's value is replaced.
+        ///
+        /// The operation object MUST contain a "value" member whose content
+        /// specifies the value to be added.
+        ///
+        /// For example:
+        ///
+        /// { "op": "add", "path": "/a/b/c", "value": [ "foo", "bar" ] }
+        ///
+        /// When the operation is applied, the target location MUST reference one
+        /// of:
+        ///
+        /// o  The root of the target document - whereupon the specified value
+        ///    becomes the entire content of the target document.
+        ///
+        /// o  A member to add to an existing object - whereupon the supplied
+        ///    value is added to that object at the indicated location.  If the
+        ///    member already exists, it is replaced by the specified value.
+        ///
+        /// o  An element to add to an existing array - whereupon the supplied
+        ///    value is added to the array at the indicated location.  Any
+        ///    elements at or above the specified index are shifted one position
+        ///    to the right.  The specified index MUST NOT be greater than the
+        ///    number of elements in the array.  If the "-" character is used to
+        ///    index the end of the array (see [RFC6901]), this has the effect of
+        ///    appending the value to the array.
+        ///
+        /// Because this operation is designed to add to existing objects and
+        /// arrays, its target location will often not exist.  Although the
+        /// pointer's error handling algorithm will thus be invoked, this
+        /// specification defines the error handling behavior for "add" pointers
+        /// to ignore that error and add the value as specified.
+        ///
+        /// However, the object itself or an array containing it does need to
+        /// exist, and it remains an error for that not to be the case.  For
+        /// example, an "add" with a target location of "/a/b" starting with this
+        /// document:
+        ///
+        /// { "a": { "foo": 1 } }
+        ///
+        /// is not an error, because "a" exists, and "b" will be added to its
+        /// value.  It is an error in this document:
+        ///
+        /// { "q": { "bar": 2 } }
+        ///
+        /// because "a" does not exist.
+        /// </summary>
+        /// <param name="operation">The add operation</param>
+        /// <param name="objectApplyTo">Object to apply the operation to</param>
+        public void Add(Operation<T> operation, T objectToApplyTo)
         {
             Add(operation.path, operation.value, objectToApplyTo, operation);
         }
-
 
         /// <summary>
         /// Add is used by various operations (eg: add, copy, ...), yet through different operations;
@@ -159,16 +158,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     }
                     else
                     {
-                        if (positionAsInteger < array.Count)
+                        // specified index must not be greater than the amount of items in the array
+                        if (positionAsInteger <= array.Count)
                         {
                             array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
                         }
                         else
                         {
                             throw new JsonPatchException<T>(operationToReport,
-                       string.Format("Patch failed: provided path is invalid for array property type at location path: {0}: position larger than array size",
-                       path),
-                       objectToApplyTo);
+                                string.Format("Patch failed: provided path is invalid for array property type at " +
+                                    "location path: {0}: position doesn't exist in array",
+                                    path),
+                                objectToApplyTo);
                         }
                     }
 
@@ -206,21 +207,21 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <summary>
         /// The "move" operation removes the value at a specified location and
         /// adds it to the target location.
-        /// 
+        ///
         /// The operation object MUST contain a "from" member, which is a string
         /// containing a JSON Pointer value that references the location in the
         /// target document to move the value from.
-        /// 
+        ///
         /// The "from" location MUST exist for the operation to be successful.
-        /// 
+        ///
         /// For example:
-        /// 
+        ///
         /// { "op": "move", "from": "/a/b/c", "path": "/a/b/d" }
-        /// 
+        ///
         /// This operation is functionally identical to a "remove" operation on
         /// the "from" location, followed immediately by an "add" operation at
         /// the target location with the value that was just removed.
-        /// 
+        ///
         /// The "from" location MUST NOT be a proper prefix of the "path"
         /// location; i.e., a location cannot be moved into one of its children.
         /// </summary>
@@ -313,16 +314,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
         }
 
-
         /// <summary>
         /// The "remove" operation removes the value at the target location.
         ///
         /// The target location MUST exist for the operation to be successful.
-        /// 
+        ///
         /// For example:
-        /// 
+        ///
         /// { "op": "remove", "path": "/a/b/c" }
-        /// 
+        ///
         /// If removing an element from an array, any elements above the
         /// specified index are shifted one position to the left.
         /// </summary>
@@ -333,14 +333,12 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             Remove(operation.path, objectToApplyTo, operation);
         }
 
-
         /// <summary>
         /// Remove is used by various operations (eg: remove, move, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
         private void Remove(string path, T objectToApplyTo, Operation<T> operationToReport)
         {
-
             var removeFromList = false;
             var positionAsInteger = -1;
             var actualPathToProperty = path;
@@ -375,8 +373,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             // get the property, and remove it - in this case, for DTO's, that means setting
             // it to null or its default value; in case of an array, remove at provided index
             // or at the end.
-
-
             if (removeFromList || positionAsInteger > -1)
             {
 
@@ -660,7 +656,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     objectToApplyTo);
             }
 
-            // get the property path          
+            // get the property path
 
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
