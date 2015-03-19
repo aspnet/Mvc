@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if DNX451
 using System;
+#if DNX451
 using System.IO;
 using Autofac;
 #endif
@@ -18,6 +18,7 @@ using Microsoft.Framework.DependencyInjection.Autofac;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
 #endif
+using System.ComponentModel;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
 
@@ -64,7 +65,7 @@ namespace MvcSample.Web
                 });
 
                 // Create the autofac container
-                ContainerBuilder builder = new ContainerBuilder();
+                var builder = new ContainerBuilder();
 
                 // Create the container and use the default application services as a fallback
                 AutofacRegistration.Populate(
@@ -73,7 +74,7 @@ namespace MvcSample.Web
 
                 builder.RegisterModule<MonitoringModule>();
 
-                IContainer container = builder.Build();
+                var container = builder.Build();
 
                 return container.Resolve<IServiceProvider>();
             }

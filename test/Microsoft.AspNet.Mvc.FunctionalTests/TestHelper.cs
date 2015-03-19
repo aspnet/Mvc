@@ -5,10 +5,9 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting.Startup;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
 
@@ -114,6 +113,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 applicationBasePath,
                 applicationWebSiteName);
             services.AddInstance<IApplicationEnvironment>(environment);
+            services.AddInstance<IHostingEnvironment>(new HostingEnvironment(environment));
 
             // Injecting a custom assembly provider. Overrides AddMvc() because that uses TryAdd().
             var assemblyProvider = CreateAssemblyProvider(applicationWebSiteName);

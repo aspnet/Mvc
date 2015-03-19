@@ -347,7 +347,12 @@ Products: Laptops (3)";
             // Arrange
             var newServices = new ServiceCollection();
             newServices.InitializeTagHelper<FormTagHelper>((helper, _) => helper.AntiForgery = optionsAntiForgery);
-            var server = TestHelper.CreateServer(_app, SiteName, services => services.Add(newServices));
+            var server = TestHelper.CreateServer(_app, SiteName, 
+                services =>
+                {
+                    services.Add(newServices);
+                    _configureServices(services);
+                });
             var client = server.CreateClient();
             var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
 
