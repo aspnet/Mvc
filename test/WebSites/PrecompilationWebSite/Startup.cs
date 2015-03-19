@@ -15,7 +15,6 @@ namespace PrecompilationWebSite
             services.AddMvc();
         }
 
-
         public void Configure(IApplicationBuilder app)
         {
             var configuration = app.GetTestConfiguration();

@@ -5,10 +5,12 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting.Startup;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -42,7 +44,38 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 configureServices: configureServices);
         }
 
-        private static TestServer CreateServer(
+        public static TestServer CreateServer(
+            Action<IApplicationBuilder> builder,
+            string applicationWebSiteName,
+            string applicationPath,
+            Func<IServiceCollection, IServiceProvider> configureServices)
+        {
+            return TestServer.Create(
+                CallContextServiceLocator.Locator.ServiceProvider,
+                builder,
+                services =>
+                {
+                    AddTestServices(services, applicationWebSiteName, applicationPath, configureServices: null);
+                    return (configureServices != null) ? configureServices(services) : services.BuildServiceProvider();
+                });
+        }
+
+        public static TestServer CreateServer(
+            Action<IApplicationBuilder> builder,
+            string applicationWebSiteName,
+            Func<IServiceCollection, IServiceProvider> configureServices)
+        {
+            return TestServer.Create(
+                CallContextServiceLocator.Locator.ServiceProvider,
+                builder,
+                services =>
+                {
+                    AddTestServices(services, applicationWebSiteName, applicationPath: null, configureServices: null);
+                    return configureServices(services);
+                });
+        }
+
+        public static TestServer CreateServer(
             Action<IApplicationBuilder> builder,
             string applicationWebSiteName,
             string applicationPath,
@@ -50,10 +83,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             return TestServer.Create(
                 builder,
-                services => AddServices(services, applicationWebSiteName, applicationPath, configureServices));
+                services => AddTestServices(services, applicationWebSiteName, applicationPath, configureServices));
         }
 
-        private static void AddServices(
+        private static void AddTestServices(
             IServiceCollection services,
             string applicationWebSiteName,
             string applicationPath,
@@ -84,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Injecting a custom assembly provider. Overrides AddMvc() because that uses TryAdd().
             var assemblyProvider = CreateAssemblyProvider(applicationWebSiteName);
-            services.AddInstance<IAssemblyProvider>(assemblyProvider);
+            services.AddInstance(assemblyProvider);
 
             if (configureServices != null)
             {

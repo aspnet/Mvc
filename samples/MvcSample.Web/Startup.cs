@@ -16,10 +16,10 @@ using Microsoft.Framework.DependencyInjection;
 #if DNX451
 using Microsoft.Framework.DependencyInjection.Autofac;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Infrastructure;
 #endif
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
-
 
 namespace MvcSample.Web
 {
@@ -43,9 +43,9 @@ namespace MvcSample.Web
             });
 
 #if DNX451
-            //var applicationEnvironment = app.ApplicationServices.GetRequiredService<IApplicationEnvironment>();
-            //var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
-            var configurationPath = "config.json";
+            // REVIEW: This is hella hacky
+            var applicationEnvironment = services.BuildServiceProvider().GetRequiredService<IApplicationEnvironment>();
+            var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
 
             // Set up configuration sources.
             var configuration = new Configuration()
