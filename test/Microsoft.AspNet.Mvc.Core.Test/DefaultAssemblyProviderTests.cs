@@ -212,7 +212,10 @@ namespace Microsoft.AspNet.Mvc.Core
                 get
                 {
                     var mvcAssemblies = AllLoadedAssemblies
-                        .Where(n => n.StartsWith(_mvcName) && !n.Contains(".Test"))
+                        .Where(
+                            n => n.StartsWith(_mvcName)
+                            && !n.EndsWith("WebApiCompatShim")
+                            && !n.Contains("Test"))
                         .ToList();
 
                     // The following assemblies are not reachable from Microsoft.AspNet.Mvc
