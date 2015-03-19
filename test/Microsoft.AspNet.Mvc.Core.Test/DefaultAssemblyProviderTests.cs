@@ -104,31 +104,39 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             // Arrange
             var provider = new MvcAssembliesTestingProvider();
-            var allAssemblies = provider.AllLoadedAssemblies;
-            var expected = provider.ExpectedReferenceAssemblies;
+
+            var expected = new HashSet<string>
+                {
+                    "Microsoft.AspNet.Mvc",
+                    "Microsoft.AspNet.Mvc.Core",
+                    "Microsoft.AspNet.Mvc.ModelBinding",
+                    "Microsoft.AspNet.Mvc.Razor.Host",
+                    "Microsoft.AspNet.Mvc.Razor",
+                    "Microsoft.AspNet.Mvc.TagHelpers",
+                    "Microsoft.AspNet.Mvc.Xml",
+                    "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces",
+                };
 
             // Act
-            var referenceAssemblies = provider.DefaultAssemblyProviderReferenceAssemblies;
+            var referenceAssemblies = provider.ReferenceAssemblies;
 
             // Assert
-            Assert.Contains("Microsoft.AspNet.Mvc", allAssemblies);
             Assert.True(expected.SetEquals(referenceAssemblies));
         }
 
         [Fact]
-        public void ReferenceAssemblies_ReturnsLoadedReferenceAssemblies()
+        public void ReferenceAssemblies_ReturnsLoadableReferenceAssemblies()
         {
             // Arrange
             var provider = new MvcAssembliesTestingProvider();
-            var allAssemblies = provider.AllLoadedAssemblies;
-            var expected = provider.LoadedMvcReferenceAssemblies;
+
+            var expected = provider.LoadableReferenceAssemblies;
 
             // Act
-            var actualAssemblies = provider.LoadedMvcReferenceAssemblies;
+            var referenceAssemblies = provider.ReferenceAssemblies;
 
             // Assert
-            Assert.Contains("Microsoft.AspNet.Mvc", allAssemblies);
-            Assert.True(expected.SetEquals(actualAssemblies));
+            Assert.True(expected.SetEquals(referenceAssemblies));
         }
 
         private static ILibraryInformation CreateLibraryInfo(string name)
@@ -202,51 +210,32 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             private static readonly ILibraryManager _libraryManager = GetLibraryManager();
             private static readonly string _mvcName = "Microsoft.AspNet.Mvc";
-            private static IEnumerable<string> _assemblies; 
+            private static HashSet<string> _mvcReferenceAssemblies;
 
             public MvcAssembliesTestingProvider() : base(_libraryManager)
             { }
 
-            public HashSet<string> LoadedMvcReferenceAssemblies
+            public HashSet<string> LoadableReferenceAssemblies
             {
                 get
                 {
-                    var mvcAssemblies = AllLoadedAssemblies
-                        .Where(
-                            n => n.StartsWith(_mvcName)
-                            && !n.EndsWith("WebApiCompatShim")
-                            && !n.Contains("Test"))
-                        .ToList();
-
-                    // The following assemblies are not reachable from Microsoft.AspNet.Mvc
-                    mvcAssemblies.Add("Microsoft.AspNet.Mvc.TagHelpers");
-                    mvcAssemblies.Add("Microsoft.AspNet.Mvc.Xml");
-                    mvcAssemblies.Add("Microsoft.AspNet.PageExecutionInstrumentation.Interfaces");
-
-                    return new HashSet<string>(mvcAssemblies.Distinct());
-                }
-            }
-
-            public HashSet<string> ExpectedReferenceAssemblies
-            {
-                get
-                {
-                    return new HashSet<string>
+                    if (_mvcReferenceAssemblies != null)
                     {
-                        "Microsoft.AspNet.Mvc",
-                        "Microsoft.AspNet.Mvc.Common",
-                        "Microsoft.AspNet.Mvc.Core",
-                        "Microsoft.AspNet.Mvc.ModelBinding",
-                        "Microsoft.AspNet.Mvc.Razor.Host",
-                        "Microsoft.AspNet.Mvc.Razor",
-                        "Microsoft.AspNet.Mvc.TagHelpers",
-                        "Microsoft.AspNet.Mvc.Xml",
-                        "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces",
-                    };
+                        return _mvcReferenceAssemblies;
+                    }
+
+                    var dependencies = new HashSet<string>() { _mvcName };
+                    dependencies = GetAllDepedencies(_mvcName, dependencies);
+
+                    _mvcReferenceAssemblies = new HashSet<string>(
+                        SelectMvcAssemblies(
+                            GetLoadableAssemblies(dependencies)));
+
+                    return _mvcReferenceAssemblies;
                 }
             }
 
-            public IEnumerable<string> DefaultAssemblyProviderReferenceAssemblies
+            public new HashSet<string> ReferenceAssemblies
             {
                 get
                 {
@@ -254,15 +243,53 @@ namespace Microsoft.AspNet.Mvc.Core
                 }
             }
 
-            public IEnumerable<string> AllLoadedAssemblies
+            private static HashSet<string> GetAllDepedencies(string libraryName, HashSet<string> dependencies)
             {
-                get
-                {
-                    _assemblies = _assemblies ??
-                        _libraryManager.GetLibraries().Select(n => n.Name).Distinct();
+                var directDependencies = _libraryManager.GetLibraryInformation(libraryName).Dependencies;
 
-                    return _assemblies;
+                if (directDependencies != null && directDependencies.Count() > 0)
+                {
+                    foreach (var dependency in directDependencies)
+                    {
+                        GetAllDepedencies(dependency, dependencies);
+                        dependencies.Add(dependency);
+                    }
                 }
+
+                return dependencies;
+            }
+
+            private static IEnumerable<string> SelectMvcAssemblies(IEnumerable<string> assemblies)
+            {
+                var exceptionalAssebmlies = new string[]
+                {
+                    "Microsoft.AspNet.Mvc.WebApiCompatShim",
+                    "Microsoft.AspNet.Mvc.Common"
+                };
+
+                var mvcAssemblies = assemblies
+                    .Distinct()
+                    .Where(n => n.StartsWith(_mvcName))
+                    .Except(exceptionalAssebmlies)
+                    .ToList();
+
+                // The following assemblies are not reachable from Microsoft.AspNet.Mvc
+                mvcAssemblies.Add("Microsoft.AspNet.Mvc.TagHelpers");
+                mvcAssemblies.Add("Microsoft.AspNet.Mvc.Xml");
+                mvcAssemblies.Add("Microsoft.AspNet.PageExecutionInstrumentation.Interfaces");
+
+                System.Diagnostics.Debugger.Launch();
+
+                return mvcAssemblies;
+            }
+
+            private static IEnumerable<string> GetLoadableAssemblies(IEnumerable<string> libraries)
+            {
+                return libraries
+                    .Select(n => _libraryManager.GetLibraryInformation(n))
+                    .SelectMany(n => n.LoadableAssemblies)
+                    .Distinct()
+                    .Select(n => n.Name);
             }
 
             private static ILibraryManager GetLibraryManager()
