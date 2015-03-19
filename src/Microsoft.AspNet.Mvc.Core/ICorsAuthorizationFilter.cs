@@ -8,5 +8,9 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public interface ICorsAuthorizationFilter : IAsyncAuthorizationFilter, IOrderedFilter
     {
+        /// <summary>
+        /// The policy name used to fetch a <see cref="CorsPolicy"/>.
+        /// </summary>
+        string PolicyName { get; set; }
     }
 }

@@ -18,8 +18,6 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class CorsAuthorizationFilterFactory : IFilterFactory, IOrderedFilter
     {
-        private readonly string _policyName;
-
         /// <summary>
         /// Creates a new insntace of <see cref="CorsAuthorizationFilterFactory"/>.
         /// </summary>
@@ -38,9 +36,12 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
+        /// <inheritdoc />
+        public string PolicyName { get; set; }
+
         public IFilter CreateInstance([NotNull] IServiceProvider serviceProvider)
         {
-            var filter = serviceProvider.GetRequiredService<ICorsAuthorizationFilter>() as CorsAuthorizationFilter;
+            var filter = serviceProvider.GetRequiredService<ICorsAuthorizationFilter>();
             filter.PolicyName = _policyName;
             return filter;
         }
