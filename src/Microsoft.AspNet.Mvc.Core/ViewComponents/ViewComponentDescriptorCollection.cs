@@ -25,11 +25,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         /// <summary>
         /// Returns the cached <see cref="IReadOnlyList{ViewComponentDescriptor}"/>.
         /// </summary>
-        public IReadOnlyList<ViewComponentDescriptor> Items { get; private set; }
+        public IReadOnlyList<ViewComponentDescriptor> Items { get; }
 
         /// <summary>
         /// Returns the unique version of the currently cached items.
         /// </summary>
-        public int Version { get; private set; }
+        public int Version { get; }
     }
 }

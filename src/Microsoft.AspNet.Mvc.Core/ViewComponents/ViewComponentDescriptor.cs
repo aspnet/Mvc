@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     /// <summary>
     /// A descriptor for a View Component.
@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc
         /// </para>
         /// <example>
         ///     Class Name: Contoso.Products.LoginViewComponent
-        ///     View Component ShortName: Contoso.Products.Login
+        ///     View Component ShortName: Login
         /// </example>
         /// <example>
         ///     Class Name: Contoso.Blog.Tags

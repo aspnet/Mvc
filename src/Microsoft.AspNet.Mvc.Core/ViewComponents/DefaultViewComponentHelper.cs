@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             await InvokeCoreAsync(_viewContext.Writer, descriptor, arguments);
         }
 
-        private ViewComponentDescriptor SelectComponent([NotNull] string name)
+        private ViewComponentDescriptor SelectComponent(string name)
         {
             var descriptor = _selector.SelectComponent(name);
             if (descriptor == null)
@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             return descriptor;
         }
 
-        private ViewComponentDescriptor SelectComponent([NotNull] Type componentType)
+        private ViewComponentDescriptor SelectComponent(Type componentType)
         {
             var descriptors = _descriptorProvider.ViewComponents;
             foreach (var descriptor in descriptors.Items)

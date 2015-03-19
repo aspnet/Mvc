@@ -7,6 +7,8 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     public interface IViewComponentInvokerFactory
     {
-        IViewComponentInvoker CreateInstance([NotNull] ViewComponentDescriptor viewComponent, object[] args);
+        IViewComponentInvoker CreateInstance(
+            [NotNull] ViewComponentDescriptor viewComponentDescriptor, 
+            object[] args);
     }
 }

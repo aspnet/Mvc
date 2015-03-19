@@ -77,7 +77,9 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
         private object CreateComponent([NotNull] ViewComponentContext context)
         {
-            var component = _typeActivatorCache.CreateInstance<object>(_serviceProvider, context.ViewComponentDescriptor.Type);
+            var component = _typeActivatorCache.CreateInstance<object>(
+                _serviceProvider, 
+                context.ViewComponentDescriptor.Type);
             _viewComponentActivator.Activate(component, context.ViewContext);
             return component;
         }

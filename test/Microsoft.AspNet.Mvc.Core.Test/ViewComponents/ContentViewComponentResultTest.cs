@@ -5,6 +5,7 @@ using System.IO;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewComponents;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;

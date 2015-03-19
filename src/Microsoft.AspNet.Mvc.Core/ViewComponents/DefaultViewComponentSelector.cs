@@ -73,7 +73,9 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 return Select(_lookupByFullName, name);
             }
 
-            private static ViewComponentDescriptor Select(ILookup<string, ViewComponentDescriptor> candidates, string name)
+            private static ViewComponentDescriptor Select(
+                ILookup<string, ViewComponentDescriptor> candidates,
+                string name)
             {
                 var matches = candidates[name];
 

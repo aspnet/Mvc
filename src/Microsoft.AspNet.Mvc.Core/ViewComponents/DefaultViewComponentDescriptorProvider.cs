@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Framework.Internal;
@@ -10,7 +9,7 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     /// <summary>
-    /// Default implementation of <see cref="IViewComponentDescriptorProvider"/>/
+    /// Default implementation of <see cref="IViewComponentDescriptorProvider"/>.
     /// </summary>
     public class DefaultViewComponentDescriptorProvider : IViewComponentDescriptorProvider
     {
@@ -37,17 +36,17 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
         /// <summary>
         /// Gets the candidate <see cref="TypeInfo"/> instances. The results of this will be provided to
-        /// <see cref="IsViewComponentType(TypeInfo)"/> for filtering.
+        /// <see cref="IsViewComponentType"/> for filtering.
         /// </summary>
         /// <returns>A list of <see cref="TypeInfo"/> instances.</returns>
         protected virtual IEnumerable<TypeInfo> GetCandidateTypes()
         {
             var assemblies = _assemblyProvider.CandidateAssemblies;
-            return assemblies.SelectMany(a => a.DefinedTypes);
+            return assemblies.SelectMany(a => a.ExportedTypes).Select(t => t.GetTypeInfo());
         }
 
         /// <summary>
-        /// Determines whether or not the given <see cref="TypeInfo"/> represents a View Component class.
+        /// Determines whether or not the given <see cref="TypeInfo"/> is a View Component class.
         /// </summary>
         /// <param name="typeInfo">The <see cref="TypeInfo"/>.</param>
         /// <returns>

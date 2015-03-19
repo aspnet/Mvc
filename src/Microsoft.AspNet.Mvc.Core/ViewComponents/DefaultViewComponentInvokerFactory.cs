@@ -23,7 +23,12 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         }
 
         /// <inheritdoc />
-        public IViewComponentInvoker CreateInstance([NotNull] ViewComponentDescriptor viewComponent, object[] args)
+        // We don't currently make use of the descriptor or the arguments here (they are available on the context).
+        // We might do this some day to cache which method we select, so resist the urge to 'clean' this without
+        // considering that possibility.
+        public IViewComponentInvoker CreateInstance(
+            [NotNull] ViewComponentDescriptor viewComponentDescriptor, 
+            object[] args)
         {
             return new DefaultViewComponentInvoker(
                 _serviceProvider,

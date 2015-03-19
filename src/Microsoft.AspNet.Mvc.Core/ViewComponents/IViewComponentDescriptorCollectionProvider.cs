@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The default implementation does not update the cache,it is up to the user
+    /// The default implementation does not update the cache, it is up to the user
     /// to create or use an implementation that can update the available view components in
     /// the application. The implementor is also responsible for updating the
     /// <see cref="ViewComponentDescriptorCollection.Version"/> in a thread safe way.
