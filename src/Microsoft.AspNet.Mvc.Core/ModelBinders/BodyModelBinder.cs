@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var unsupportedContentType = Resources.FormatUnsupportedContentType(
                     bindingContext.OperationBindingContext.HttpContext.Request.ContentType);
                 bindingContext.ModelState.AddModelError(bindingContext.ModelName, unsupportedContentType);
-                return new ModelBindingResult(model: null, key: string.Empty, isModelSet: false);
+                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
             }
 
             object model = null;
@@ -69,9 +69,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 model = GetDefaultValueForType(bindingContext.ModelType);
                 bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex);
-                return new ModelBindingResult(model: null, key: string.Empty, isModelSet: false);
+                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
             }
 
+            // key is empty so the ModelState key does not contain model name as a prefix.
             return new ModelBindingResult(model, key: string.Empty, isModelSet: true);
         }
 
