@@ -7,6 +7,7 @@ using Microsoft.Framework.Runtime;
 using Moq;
 using Xunit;
 using Microsoft.AspNet.Http;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.Core
 {
@@ -98,6 +99,38 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Empty(nullProviderCandidates.Select(a => a.Name));
         }
 
+        [Fact]
+        public void ReferenceAssemblies_ReturnsExpectedReferenceAssemblies()
+        {
+            // Arrange
+            var provider = new MvcAssembliesTestingProvider();
+            var allAssemblies = provider.AllLoadedAssemblies;
+            var expected = provider.ExpectedReferenceAssemblies;
+
+            // Act
+            var referenceAssemblies = provider.DefaultAssemblyProviderReferenceAssemblies;
+
+            // Assert
+            Assert.Contains("Microsoft.AspNet.Mvc", allAssemblies);
+            Assert.True(expected.SetEquals(referenceAssemblies));
+        }
+
+        [Fact]
+        public void ReferenceAssemblies_ReturnsLoadedReferenceAssemblies()
+        {
+            // Arrange
+            var provider = new MvcAssembliesTestingProvider();
+            var allAssemblies = provider.AllLoadedAssemblies;
+            var expected = provider.LoadedMvcReferenceAssemblies;
+
+            // Act
+            var actualAssemblies = provider.LoadedMvcReferenceAssemblies;
+
+            // Assert
+            Assert.Contains("Microsoft.AspNet.Mvc", allAssemblies);
+            Assert.True(expected.SetEquals(actualAssemblies));
+        }
+
         private static ILibraryInformation CreateLibraryInfo(string name)
         {
             var info = new Mock<ILibraryInformation>();
@@ -162,6 +195,79 @@ namespace Microsoft.AspNet.Mvc.Core
 
             public NullAssemblyProvider(ILibraryManager libraryManager) : base(libraryManager)
             {
+            }
+        }
+
+        private class MvcAssembliesTestingProvider : DefaultAssemblyProvider
+        {
+            private static readonly ILibraryManager _libraryManager = GetLibraryManager();
+            private static readonly string _mvcName = "Microsoft.AspNet.Mvc";
+            private static IEnumerable<string> _assemblies; 
+
+            public MvcAssembliesTestingProvider() : base(_libraryManager)
+            { }
+
+            public HashSet<string> LoadedMvcReferenceAssemblies
+            {
+                get
+                {
+                    var mvcAssemblies = AllLoadedAssemblies
+                        .Where(n => n.StartsWith(_mvcName) && !n.Contains(".Test"))
+                        .ToList();
+
+                    // The following assemblies are not reachable from Microsoft.AspNet.Mvc
+                    mvcAssemblies.Add("Microsoft.AspNet.Mvc.TagHelpers");
+                    mvcAssemblies.Add("Microsoft.AspNet.Mvc.Xml");
+                    mvcAssemblies.Add("Microsoft.AspNet.PageExecutionInstrumentation.Interfaces");
+
+                    return new HashSet<string>(mvcAssemblies.Distinct());
+                }
+            }
+
+            public HashSet<string> ExpectedReferenceAssemblies
+            {
+                get
+                {
+                    return new HashSet<string>
+                    {
+                        "Microsoft.AspNet.Mvc",
+                        "Microsoft.AspNet.Mvc.Common",
+                        "Microsoft.AspNet.Mvc.Core",
+                        "Microsoft.AspNet.Mvc.ModelBinding",
+                        "Microsoft.AspNet.Mvc.Razor.Host",
+                        "Microsoft.AspNet.Mvc.Razor",
+                        "Microsoft.AspNet.Mvc.TagHelpers",
+                        "Microsoft.AspNet.Mvc.Xml",
+                        "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces",
+                    };
+                }
+            }
+
+            public IEnumerable<string> DefaultAssemblyProviderReferenceAssemblies
+            {
+                get
+                {
+                    return base.ReferenceAssemblies;
+                }
+            }
+
+            public IEnumerable<string> AllLoadedAssemblies
+            {
+                get
+                {
+                    _assemblies = _assemblies ??
+                        _libraryManager.GetLibraries().Select(n => n.Name).Distinct();
+
+                    return _assemblies;
+                }
+            }
+
+            private static ILibraryManager GetLibraryManager()
+            {
+                var services = Hosting.HostingServices.Create();
+                var builder = services.BuildServiceProvider();
+
+                return builder.GetRequiredService<ILibraryManager>();
             }
         }
     }

@@ -23,18 +23,21 @@ namespace Microsoft.AspNet.Mvc
         /// Gets the set of assembly names that are used as root for discovery of
         /// MVC controllers, view components and views.
         /// </summary>
-        // DefaultControllerTypeProvider uses CandidateAssemblies to determine if the base type of a POCO controller
-        // lives in an assembly that references MVC. CandidateAssemblies excludes all assemblies from the
-        // ReferenceAssemblies set. Consequently adding WebApiCompatShim to this set would cause the ApiController to
-        /// fail this test.
+        /// <see cref="DefaultControllerTypeProvider"/> uses <see cref="CandidateAssemblies"/> to determine
+        /// if the base type of a POCO controller lives in an assembly that references MVC.
+        /// <see cref="CandidateAssemblies"/> excludes all assemblies from the <see cref="ReferenceAssemblies"/> set.
+        /// Consequently adding WebApiCompatShim to this set would cause the ApiController to fail this test.
         protected virtual HashSet<string> ReferenceAssemblies { get; } = new HashSet<string>(StringComparer.Ordinal)
         {
             "Microsoft.AspNet.Mvc",
+            "Microsoft.AspNet.Mvc.Common",
             "Microsoft.AspNet.Mvc.Core",
             "Microsoft.AspNet.Mvc.ModelBinding",
             "Microsoft.AspNet.Mvc.Razor",
             "Microsoft.AspNet.Mvc.Razor.Host",
             "Microsoft.AspNet.Mvc.TagHelpers",
+            "Microsoft.AspNet.Mvc.Xml",
+            "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces",
         };
 
         /// <inheritdoc />
