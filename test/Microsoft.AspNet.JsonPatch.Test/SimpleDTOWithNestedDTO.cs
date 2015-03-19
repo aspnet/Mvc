@@ -3,7 +3,6 @@
 
 namespace Microsoft.AspNet.JsonPatch.Test
 {
-
     public class SimpleDTOWithNestedDTO
     {
         public int IntegerValue { get; set; }
