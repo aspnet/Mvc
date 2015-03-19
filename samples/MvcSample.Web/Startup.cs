@@ -18,7 +18,6 @@ using Microsoft.Framework.DependencyInjection.Autofac;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Infrastructure;
 #endif
-using System.ComponentModel;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
 
@@ -26,6 +25,10 @@ namespace MvcSample.Web
 {
     public class Startup
     {
+#if DNX451
+        private bool _autoFac;
+#endif
+
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddCaching();
@@ -44,7 +47,9 @@ namespace MvcSample.Web
             });
 
 #if DNX451
-            // REVIEW: This is hella hacky
+            // Fully-qualify configuration path to avoid issues in functional tests. Just "config.json" would be fine
+            // but Configuration uses CallContextServiceLocator.Locator.ServiceProvider to get IApplicationEnvironment.
+            // Functional tests update that service but not in the static provider.
             var applicationEnvironment = services.BuildServiceProvider().GetRequiredService<IApplicationEnvironment>();
             var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
 
@@ -56,7 +61,7 @@ namespace MvcSample.Web
             if (configuration.TryGet("DependencyInjection", out diSystem) &&
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {
-
+                _autoFac = true;
                 services.ConfigureRazorViewEngine(options =>
                 {
                     var expander = new LanguageViewLocationExpander(
@@ -91,20 +96,7 @@ namespace MvcSample.Web
             app.UseFileServer();
 
 #if DNX451
-            // Fully-qualify configuration path to avoid issues in functional tests. Just "config.json" would be fine
-            // but Configuration uses CallContextServiceLocator.Locator.ServiceProvider to get IApplicationEnvironment.
-            // Functional tests update that service but not in the static provider.
-            var applicationEnvironment = app.ApplicationServices.GetRequiredService<IApplicationEnvironment>();
-            var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
-
-            // Set up configuration sources.
-            var configuration = new Configuration()
-                .AddJsonFile(configurationPath)
-                .AddEnvironmentVariables();
-
-            string diSystem;
-            if (configuration.TryGet("DependencyInjection", out diSystem) &&
-                diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
+            if (_autoFac)
             {
                 app.UseMiddleware<MonitoringMiddlware>();
             }

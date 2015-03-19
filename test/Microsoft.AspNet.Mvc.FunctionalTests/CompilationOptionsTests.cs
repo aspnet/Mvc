@@ -18,7 +18,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
         private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
 
-
         [Fact]
         public async Task CompilationOptions_AreUsedByViewsAndPartials()
         {

@@ -18,7 +18,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IApplicationBuilder> _app = new BestEffortLinkGenerationWebSite.Startup().Configure;
         private readonly Action<IServiceCollection> _configureServices = new BestEffortLinkGenerationWebSite.Startup().ConfigureServices;
 
-
         private const string ExpectedOutput = @"<html>
 <body>
 <a href=""/Home/About"">About Us</a>
