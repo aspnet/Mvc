@@ -99,6 +99,8 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Empty(nullProviderCandidates.Select(a => a.Name));
         }
 
+        // This makes sure the DefaultAssemblyProvider.ReferenceAssemblies list are not accindently changed.
+        // If ReferenceAssemblies is intentionally changed, the expected list should be updated together.
         [Fact]
         public void ReferenceAssemblies_ReturnsExpectedReferenceAssemblies()
         {
@@ -210,7 +212,6 @@ namespace Microsoft.AspNet.Mvc.Core
         {
             private static readonly ILibraryManager _libraryManager = GetLibraryManager();
             private static readonly string _mvcName = "Microsoft.AspNet.Mvc";
-            private static HashSet<string> _mvcReferenceAssemblies;
 
             public MvcAssembliesTestingProvider() : base(_libraryManager)
             { }
@@ -219,19 +220,12 @@ namespace Microsoft.AspNet.Mvc.Core
             {
                 get
                 {
-                    if (_mvcReferenceAssemblies != null)
-                    {
-                        return _mvcReferenceAssemblies;
-                    }
-
                     var dependencies = new HashSet<string>() { _mvcName };
-                    dependencies = GetAllDepedencies(_mvcName, dependencies);
+                    GetAllDependencies(_mvcName, dependencies);
 
-                    _mvcReferenceAssemblies = new HashSet<string>(
+                    return new HashSet<string>(
                         SelectMvcAssemblies(
                             GetLoadableAssemblies(dependencies)));
-
-                    return _mvcReferenceAssemblies;
                 }
             }
 
@@ -243,20 +237,18 @@ namespace Microsoft.AspNet.Mvc.Core
                 }
             }
 
-            private static HashSet<string> GetAllDepedencies(string libraryName, HashSet<string> dependencies)
+            private static void GetAllDependencies(string libraryName, HashSet<string> dependencies)
             {
                 var directDependencies = _libraryManager.GetLibraryInformation(libraryName).Dependencies;
 
-                if (directDependencies != null && directDependencies.Count() > 0)
+                if (directDependencies != null)
                 {
                     foreach (var dependency in directDependencies)
                     {
-                        GetAllDepedencies(dependency, dependencies);
+                        GetAllDependencies(dependency, dependencies);
                         dependencies.Add(dependency);
                     }
                 }
-
-                return dependencies;
             }
 
             private static IEnumerable<string> SelectMvcAssemblies(IEnumerable<string> assemblies)
@@ -277,8 +269,6 @@ namespace Microsoft.AspNet.Mvc.Core
                 mvcAssemblies.Add("Microsoft.AspNet.Mvc.TagHelpers");
                 mvcAssemblies.Add("Microsoft.AspNet.Mvc.Xml");
                 mvcAssemblies.Add("Microsoft.AspNet.PageExecutionInstrumentation.Interfaces");
-
-                System.Diagnostics.Debugger.Launch();
 
                 return mvcAssemblies;
             }
