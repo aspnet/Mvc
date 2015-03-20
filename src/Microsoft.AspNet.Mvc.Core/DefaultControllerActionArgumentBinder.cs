@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
+using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc
@@ -53,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
                 operationBindingContext,
                 actionContext.ModelState,
                 controllerProperties,
-                actionDescriptor.CommonParameters);
+                actionDescriptor.BoundProperties);
             var controllerType = actionDescriptor.ControllerTypeInfo.AsType();
             ActivateProperties(controller, controllerType, controllerProperties);
 
@@ -68,23 +69,19 @@ namespace Microsoft.AspNet.Mvc
 
         private void ActivateProperties(object controller, Type containerType, Dictionary<string, object> properties)
         {
+            var propertyHelpers = PropertyHelper.GetProperties(controller);
             foreach (var property in properties)
             {
-                SetProperty(property.Key, containerType, controller, property.Value);
-            }
-        }
+                var propertyHelper = propertyHelpers.First(helper => helper.Name == property.Key);
+                if (propertyHelper.Property == null || !propertyHelper.Property.CanWrite)
+                {
+                    // nothing to do
+                    return;
+                }
 
-        private void SetProperty(string propertyName, Type containerType, object container, object value)
-        {
-            var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
-            var property = containerType.GetProperty(propertyName, bindingFlags);
-            if (property == null || !property.CanWrite)
-            {
-                // nothing to do
-                return;
+                var setter = PropertyHelper.MakeFastPropertySetter(propertyHelper.Property);
+                setter(controller, property.Value);
             }
-
-            property.SetValue(container, value);
         }
 
         private async Task PopulateArgumentsAsync(

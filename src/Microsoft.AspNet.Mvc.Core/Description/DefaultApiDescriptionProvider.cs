@@ -147,14 +147,14 @@ namespace Microsoft.AspNet.Mvc.Description
                 }
             }
 
-            if (context.ActionDescriptor.CommonParameters != null)
+            if (context.ActionDescriptor.BoundProperties != null)
             {
-                foreach (var actionParameter in context.ActionDescriptor.CommonParameters)
+                foreach (var actionParameter in context.ActionDescriptor.BoundProperties)
                 {
                     var visitor = new PseudoModelBindingVisitor(context, actionParameter);
                     var modelMetadata = context.MetadataProvider.GetMetadataForProperty(
-                    containerType: context.ActionDescriptor.ControllerTypeInfo.AsType(),
-                    propertyName: actionParameter.Name);
+                        containerType: context.ActionDescriptor.ControllerTypeInfo.AsType(),
+                        propertyName: actionParameter.Name);
 
                     var bindingContext = ApiParameterDescriptionContext.GetContext(
                         modelMetadata,

@@ -2065,7 +2065,7 @@ namespace Microsoft.AspNet.Mvc
             var actionDescriptor = new ControllerActionDescriptor
             {
                 ControllerTypeInfo = typeof(TestController).GetTypeInfo(),
-                CommonParameters = new List<ParameterDescriptor>(),
+                BoundProperties = new List<ParameterDescriptor>(),
                 MethodInfo = typeof(TestController).GetTypeInfo()
                     .DeclaredMethods
                     .First(m => m.Name.Equals("ActionMethodWithDefaultValues", StringComparison.Ordinal)),

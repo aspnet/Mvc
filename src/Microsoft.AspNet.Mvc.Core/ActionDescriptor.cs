@@ -31,9 +31,9 @@ namespace Microsoft.AspNet.Mvc
         public IList<ParameterDescriptor> Parameters { get; set; }
 
         /// <summary>
-        /// The set of parameters which are common across actions.
+        /// The set of properties which are model bound.
         /// </summary>
-        public IList<ParameterDescriptor> CommonParameters { get; set; }
+        public IList<ParameterDescriptor> BoundProperties { get; set; }
 
         public IList<FilterDescriptor> FilterDescriptors { get; set; }
 

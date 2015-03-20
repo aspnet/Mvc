@@ -902,7 +902,7 @@ namespace Microsoft.AspNet.Mvc.Description
         }
 
         [Fact]
-        public void GetApiDescription_WithControllerProperties_Mergers_ParameterDescription()
+        public void GetApiDescription_WithControllerProperties_Merges_ParameterDescription()
         {
             // Arrange
             var action = CreateActionDescriptor("FromQueryName", typeof(TestController));
@@ -997,14 +997,14 @@ namespace Microsoft.AspNet.Mvc.Description
                     BindingFlags.Instance | BindingFlags.Public);
 
                 action.ControllerTypeInfo = controllerType.GetTypeInfo();
-                action.CommonParameters = new List<ParameterDescriptor>();
+                action.BoundProperties = new List<ParameterDescriptor>();
 
                 foreach (var property in action.ControllerTypeInfo.GetProperties())
                 {
                     var bindingInfo = BindingInfo.GetBindingInfo(property.GetCustomAttributes().OfType<object>());
                     if (bindingInfo != null)
                     {
-                        action.CommonParameters.Add(new ParameterDescriptor()
+                        action.BoundProperties.Add(new ParameterDescriptor()
                         {
                             BindingInfo = bindingInfo,
                             Name = property.Name,

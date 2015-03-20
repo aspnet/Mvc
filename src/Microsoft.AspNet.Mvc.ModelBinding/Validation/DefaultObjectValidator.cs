@@ -157,7 +157,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        private bool ValidateProperties(string currentModelKey, ModelExplorer modelExplorer, ValidationContext validationContext)
+        private bool ValidateProperties(
+            string currentModelKey,
+            ModelExplorer modelExplorer,
+            ValidationContext validationContext)
         {
             var isValid = true;
 
@@ -167,7 +170,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var propertyMetadata = propertyExplorer.Metadata;
                 var propertyValidationContext = new ValidationContext()
                 {
-                    ModelValidationContext = ModelValidationContext.GetChildValidationContext(validationContext.ModelValidationContext, propertyExplorer),
+                    ModelValidationContext = ModelValidationContext.GetChildValidationContext(
+                        validationContext.ModelValidationContext,
+                        propertyExplorer),
                     Visited = validationContext.Visited
                 };
 

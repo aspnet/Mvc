@@ -195,7 +195,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             [FromQuery]
             public string Bound { get; set; }
 
-            public string UnBound { get; set; }
+            public string Unbound { get; set; }
         }
 
         public class SomeFiltersController : IAsyncActionFilter, IResultFilter

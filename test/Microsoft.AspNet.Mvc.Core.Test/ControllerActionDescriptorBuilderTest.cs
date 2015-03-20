@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc
             var descriptors = ControllerActionDescriptorBuilder.Build(applicationModel);
 
             // Assert
-            var property = Assert.Single(descriptors.Single().CommonParameters);
+            var property = Assert.Single(descriptors.Single().BoundProperties);
             Assert.Equal("BoundProperty", property.Name);
             Assert.Equal(typeof(string), property.ParameterType);
             Assert.Equal(BindingSource.Query, property.BindingInfo.BindingSource);

@@ -45,8 +45,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public ControllerModel BuildControllerModel([NotNull] TypeInfo typeInfo)
         {
             var controllerModel = CreateControllerModel(typeInfo);
+            var controllerType = typeInfo.AsType();
 
-            foreach (var methodInfo in typeInfo.AsType().GetMethods())
+            foreach (var methodInfo in controllerType.GetMethods())
             {
                 var actionModels = _actionModelBuilder.BuildActionModels(typeInfo, methodInfo);
                 if (actionModels != null)
@@ -59,9 +60,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 }
             }
 
-            var controllerType = typeInfo.AsType();
-            foreach (var propertyInfo in controllerType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var propertyHelper in PropertyHelper.GetProperties(controllerType))
             {
+                var propertyInfo = propertyHelper.Property;
                 var propertyModel = CreatePropertyModel(propertyInfo);
                 if (propertyModel != null)
                 {

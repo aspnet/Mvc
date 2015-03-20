@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc
                 {
                     // Controllers with multiple [Route] attributes (or user defined implementation of
                     // IRouteTemplateProvider) will generate one action descriptor per IRouteTemplateProvider
-                    // instance.s
+                    // instance.
                     // Actions with multiple [Http*] attributes or other (IRouteTemplateProvider implementations
                     // have already been identified as different actions during action discovery.
                     var actionDescriptors = CreateActionDescriptors(application, controller, action);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc
                         AddRouteConstraints(removalConstraints, actionDescriptor, controller, action);
                         AddProperties(actionDescriptor, action, controller, application);
 
-                        actionDescriptor.CommonParameters = controllerPropertyDescriptors;
+                        actionDescriptor.BoundProperties = controllerPropertyDescriptors;
                         if (IsAttributeRoutedAction(actionDescriptor))
                         {
                             hasAttributeRoutes = true;

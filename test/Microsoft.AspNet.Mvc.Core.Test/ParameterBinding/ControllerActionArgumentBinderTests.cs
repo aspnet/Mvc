@@ -280,7 +280,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var actionDescriptor = GetActionDescriptor();
-            actionDescriptor.CommonParameters.Add(
+            actionDescriptor.BoundProperties.Add(
                 new ParameterDescriptor
                 {
                     Name = "ValueBinderMarkedProperty",
@@ -311,7 +311,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             // Arrange
             Func<object, int> method = foo => 1;
             var actionDescriptor = GetActionDescriptor();
-            actionDescriptor.CommonParameters.Add(
+            actionDescriptor.BoundProperties.Add(
                 new ParameterDescriptor
                 {
                     Name = "ValueBinderMarkedProperty",
@@ -352,7 +352,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             // Arrange
             var actionDescriptor = GetActionDescriptor();
-            actionDescriptor.CommonParameters.Add(
+            actionDescriptor.BoundProperties.Add(
                 new ParameterDescriptor
                 {
                     Name = "ValueBinderMarkedProperty",
@@ -388,7 +388,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             {
                 MethodInfo = method.Method,
                 ControllerTypeInfo = typeof(TestController).GetTypeInfo(),
-                CommonParameters = new List<ParameterDescriptor>(),
+                BoundProperties = new List<ParameterDescriptor>(),
                 Parameters = new List<ParameterDescriptor>()
             };
         }
