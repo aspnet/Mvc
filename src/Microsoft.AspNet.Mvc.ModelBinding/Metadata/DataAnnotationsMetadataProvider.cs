@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// An implementation of <see cref="IBindingMetadataProvider"/> and <see cref="IDisplayMetadataProvider"/> for
     /// the System.ComponentModel.DataAnnotations attribute classes.
     /// </summary>
-    public class DataAnnotationsMetadataDetailsProvider : 
+    public class DataAnnotationsMetadataProvider : 
         IBindingMetadataProvider,
         IDisplayMetadataProvider,
         IValidationMetadataProvider
@@ -168,6 +168,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             }
         }
 
+        /// <inheritdoc />
         public void GetValidationMetadata([NotNull] ValidationMetadataProviderContext context)
         {
             foreach (var attribute in context.Attributes.OfType<ValidationAttribute>())

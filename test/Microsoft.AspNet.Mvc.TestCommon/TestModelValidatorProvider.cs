@@ -5,7 +5,6 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
-    // 
     internal class TestModelValidatorProvider : CompositeModelValidatorProvider
     {
         // Creates a provider with all the defaults - includes data annotations

@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc
             // Set up metadata providers
             options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider());
             options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider());
-            options.ModelMetadataDetailsProviders.Add(new DataAnnotationsMetadataDetailsProvider());
+            options.ModelMetadataDetailsProviders.Add(new DataAnnotationsMetadataProvider());
             options.ModelMetadataDetailsProviders.Add(new DataMemberRequiredValidationMetadataProvider());
 
             // Set up validators
