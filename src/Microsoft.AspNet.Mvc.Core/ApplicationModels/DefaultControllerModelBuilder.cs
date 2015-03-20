@@ -45,8 +45,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public ControllerModel BuildControllerModel([NotNull] TypeInfo typeInfo)
         {
             var controllerModel = CreateControllerModel(typeInfo);
-            var controllerType = typeInfo.AsType();
-            foreach (var methodInfo in controllerType.GetMethods())
+
+            foreach (var methodInfo in typeInfo.AsType().GetMethods())
             {
                 var actionModels = _actionModelBuilder.BuildActionModels(typeInfo, methodInfo);
                 if (actionModels != null)
@@ -59,6 +59,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 }
             }
 
+            var controllerType = typeInfo.AsType();
             foreach (var propertyInfo in controllerType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var propertyModel = CreatePropertyModel(propertyInfo);
@@ -156,8 +157,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // is needed to so that the result of ToArray() is object
             var attributes = propertyInfo.GetCustomAttributes(inherit: true).OfType<object>().ToArray();
             var propertyModel = new PropertyModel(propertyInfo, attributes);
+            var bindingInfo = BindingInfo.GetBindingInfo(attributes);
 
-            propertyModel.BinderMetadata = attributes.OfType<IBinderMetadata>().FirstOrDefault();
+            propertyModel.BindingInfo = bindingInfo;
             propertyModel.PropertyName = propertyInfo.Name;
 
             return propertyModel;

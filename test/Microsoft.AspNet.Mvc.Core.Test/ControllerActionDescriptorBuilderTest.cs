@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc
@@ -23,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
                     controller.ControllerType.GetProperty("BoundProperty"),
                     new List<object>() { })
                 {
-                    BinderMetadata = new FromQueryAttribute(),
+                    BindingInfo = BindingInfo.GetBindingInfo(new object[] { new FromQueryAttribute() }),
                     PropertyName = "BoundProperty"
                 });
 
@@ -45,7 +46,7 @@ namespace Microsoft.AspNet.Mvc
             var property = Assert.Single(descriptors.Single().CommonParameters);
             Assert.Equal("BoundProperty", property.Name);
             Assert.Equal(typeof(string), property.ParameterType);
-            Assert.NotNull(property.BinderMetadata);
+            Assert.Equal(BindingSource.Query, property.BindingInfo.BindingSource);
         }
 
         [Fact]

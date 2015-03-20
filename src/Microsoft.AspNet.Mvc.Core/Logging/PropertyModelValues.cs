@@ -13,13 +13,12 @@ namespace Microsoft.AspNet.Mvc.Logging
     /// <see cref="ControllerModelValues"/>, this contains the name, type, and
     /// binder metadata of the property.
     /// </summary>
-    public class PropertyModelValues : LoggerStructureBase
+    public class PropertyModelValues : ReflectionBasedLogValues
     {
         public PropertyModelValues([NotNull] PropertyModel inner)
         {
             PropertyName = inner.PropertyName;
             PropertyType = inner.PropertyInfo.PropertyType;
-            BinderMetadata = inner.BinderMetadata?.GetType();
         }
 
         /// <summary>
@@ -31,11 +30,6 @@ namespace Microsoft.AspNet.Mvc.Logging
         /// The <see cref="Type"/> of the property.
         /// </summary>
         public Type PropertyType { get; }
-
-        /// <summary>
-        /// The <see cref="Type"/> of the <see cref="PropertyModel.BinderMetadata"/>.
-        /// </summary>
-        public Type BinderMetadata { get; }
 
         public override string Format()
         {

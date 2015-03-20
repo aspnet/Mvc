@@ -1001,12 +1001,12 @@ namespace Microsoft.AspNet.Mvc.Description
 
                 foreach (var property in action.ControllerTypeInfo.GetProperties())
                 {
-                    var binderMetadata = property.GetCustomAttributes().OfType<IBinderMetadata>().FirstOrDefault();
-                    if (binderMetadata != null)
+                    var bindingInfo = BindingInfo.GetBindingInfo(property.GetCustomAttributes().OfType<object>());
+                    if (bindingInfo != null)
                     {
                         action.CommonParameters.Add(new ParameterDescriptor()
                         {
-                            BinderMetadata = binderMetadata,
+                            BindingInfo = bindingInfo,
                             Name = property.Name,
                             ParameterType = property.PropertyType,
                         });

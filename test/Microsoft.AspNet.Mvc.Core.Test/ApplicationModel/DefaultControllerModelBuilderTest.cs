@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
 using Moq;
@@ -86,10 +87,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // Assert
             Assert.Equal(2, model.ControllerProperties.Count);
             Assert.Equal("Bound", model.ControllerProperties[0].PropertyName);
-            Assert.IsType<FromQueryAttribute>(model.ControllerProperties[0].BinderMetadata);
+            Assert.Equal(BindingSource.Query, model.ControllerProperties[0].BindingInfo.BindingSource);
             Assert.NotNull(model.ControllerProperties[0].Controller);
             var attribute = Assert.Single(model.ControllerProperties[0].Attributes);
-            Assert.Same(attribute, model.ControllerProperties[0].BinderMetadata);
+            Assert.IsType<FromQueryAttribute>(attribute);
         }
 
         [Fact]

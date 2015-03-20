@@ -11,6 +11,7 @@ using Microsoft.AspNet.Mvc.ApplicationModels;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Description;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -42,12 +43,17 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var controller in application.Controllers)
             {
-                var controllerPropertyDescriptors = controller.ControllerProperties.Select(CreateParameterDescriptor);
+                // Only add properties which are explictly marked to bind.
+                // The attribute check is required for ModelBinder attribute.
+                var controllerPropertyDescriptors = controller.ControllerProperties
+                    .Where(p => p.BindingInfo != null)
+                    .Select(CreateParameterDescriptor)
+                    .ToList();
                 foreach (var action in controller.Actions)
                 {
                     // Controllers with multiple [Route] attributes (or user defined implementation of
                     // IRouteTemplateProvider) will generate one action descriptor per IRouteTemplateProvider
-                    // instance.
+                    // instance.s
                     // Actions with multiple [Http*] attributes or other (IRouteTemplateProvider implementations
                     // have already been identified as different actions during action discovery.
                     var actionDescriptors = CreateActionDescriptors(application, controller, action);
@@ -61,11 +67,7 @@ namespace Microsoft.AspNet.Mvc
                         AddRouteConstraints(removalConstraints, actionDescriptor, controller, action);
                         AddProperties(actionDescriptor, action, controller, application);
 
-                        // Only add properties which are explictly marked to bind.
-                        actionDescriptor.CommonParameters = controllerPropertyDescriptors
-                            .Where(p => p.BinderMetadata != null)
-                            .ToList();
-
+                        actionDescriptor.CommonParameters = controllerPropertyDescriptors;
                         if (IsAttributeRoutedAction(actionDescriptor))
                         {
                             hasAttributeRoutes = true;
@@ -294,7 +296,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var parameterDescriptor = new ParameterDescriptor()
             {
-                BinderMetadata = property.BinderMetadata,
+                BindingInfo = property.BindingInfo,
                 Name = property.PropertyName,
                 ParameterType = property.PropertyInfo.PropertyType,
             };

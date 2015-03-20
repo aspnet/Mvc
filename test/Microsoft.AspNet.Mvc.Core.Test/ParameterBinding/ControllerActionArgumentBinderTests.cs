@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -234,7 +235,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockValidatorProvider.Setup(o => o.Validate(It.IsAny<ModelValidationContext>()))
                                  .Verifiable();
             var argumentBinder = GetArgumentBinder(mockValidatorProvider.Object);
-                TestModelMetadataProvider.CreateDefaultProvider(),
 
             // Act
             var result = await argumentBinder
@@ -337,7 +337,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             mockValidatorProvider.Setup(o => o.Validate(It.IsAny<ModelValidationContext>()))
                                  .Verifiable();
             var argumentBinder = GetArgumentBinder(mockValidatorProvider.Object);
-                TestModelMetadataProvider.CreateDefaultProvider(),
 
             // Act
             var result = await argumentBinder
@@ -411,7 +410,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         {
             var options = new MockMvcOptionsAccessor();
             options.Options.MaxModelValidationErrors = 5;
-                TestModelMetadataProvider.CreateDefaultProvider(),
 
             if (validator == null)
             {
@@ -421,7 +419,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             }
 
             return new DefaultControllerActionArgumentBinder(
-                new DataAnnotationsModelMetadataProvider(),
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 validator,
                 options);
         }

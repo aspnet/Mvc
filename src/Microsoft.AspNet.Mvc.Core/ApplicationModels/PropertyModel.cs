@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             Controller = other.Controller;
             Attributes = new List<object>(other.Attributes);
-            BinderMetadata = other.BinderMetadata;
+            BindingInfo = other.BindingInfo;
             PropertyInfo = other.PropertyInfo;
             PropertyName = other.PropertyName;
         }
@@ -52,9 +52,9 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public IReadOnlyList<object> Attributes { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="IBinderMetadata"/> associated with this model.
+        /// Gets or sets the <see cref="BindingInfo"/> associated with this model.
         /// </summary>
-        public IBinderMetadata BinderMetadata { get; set; }
+        public BindingInfo BindingInfo { get; set; }
 
         /// <summary>
         /// Gets the underlying <see cref="PropertyInfo"/>.

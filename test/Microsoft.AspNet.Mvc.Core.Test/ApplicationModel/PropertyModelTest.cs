@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                                                new List<object>() { new FromBodyAttribute() });
 
             propertyModel.Controller = new ControllerModel(typeof(TestController).GetTypeInfo(), new List<object>());
-            propertyModel.BinderMetadata = (IBinderMetadata)propertyModel.Attributes[0];
+            propertyModel.BindingInfo = BindingInfo.GetBindingInfo(propertyModel.Attributes);
             propertyModel.PropertyName = "Property";
 
             // Act

@@ -185,7 +185,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerPropertyAndAnActionWithoutFromBody_InvokesWithoutErrors()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -199,7 +199,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerPropertyAndAnActionParameterWithFromBody_Throws()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -217,7 +217,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerPropertyAndAModelPropertyWithFromBody_Throws()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -235,7 +235,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task MultipleControllerPropertiesMarkedWithFromBody_Throws()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act

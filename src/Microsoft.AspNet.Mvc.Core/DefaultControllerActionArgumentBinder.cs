@@ -50,17 +50,17 @@ namespace Microsoft.AspNet.Mvc
             var operationBindingContext = GetOperationBindingContext(actionContext, actionBindingContext);
             var controllerProperties = new Dictionary<string, object>(StringComparer.Ordinal);
             await PopulateArgumentsAsync(
-                actionContext,
-                actionBindingContext,
                 operationBindingContext,
+                actionContext.ModelState,
                 controllerProperties,
                 actionDescriptor.CommonParameters);
+            var controllerType = actionDescriptor.ControllerTypeInfo.AsType();
             ActivateProperties(controller, controllerType, controllerProperties);
 
             var actionArguments = new Dictionary<string, object>(StringComparer.Ordinal);
             await PopulateArgumentsAsync(
-                actionContext,
-                actionBindingContext,
+                operationBindingContext,
+                actionContext.ModelState,
                 actionArguments,
                 actionDescriptor.Parameters);
             return actionArguments;
@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc
 
         private async Task PopulateArgumentsAsync(
             OperationBindingContext operationContext,
-            ModelState modelState,
+            ModelStateDictionary modelState,
             IDictionary<string, object> arguments,
             IEnumerable<ParameterDescriptor> parameterMetadata)
         {
@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc
                     metadata,
                     parameter.BindingInfo,
                     modelState,
-                    operationBindingContext);
+                    operationContext);
 
                 var modelBindingResult = await operationContext.ModelBinder.BindModelAsync(modelBindingContext);
                 if (modelBindingResult != null && modelBindingResult.IsModelSet)
