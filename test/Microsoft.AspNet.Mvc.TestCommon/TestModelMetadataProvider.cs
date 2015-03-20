@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 new DefaultBindingMetadataProvider(),
                 new DefaultValidationMetadataProvider(),
-                new DataAnnotationsMetadataDetailsProvider(),
+                new DataAnnotationsMetadataProvider(),
                 new DataMemberRequiredValidationMetadataProvider(),
             };
 
@@ -37,7 +37,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
                 {
                     new DefaultBindingMetadataProvider(),
-                    new DataAnnotationsMetadataDetailsProvider(),
+                    new DefaultValidationMetadataProvider(),
+                    new DataAnnotationsMetadataProvider(),
                     detailsProvider
                 }))
         {

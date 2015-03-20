@@ -116,8 +116,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Arrange
             var provider = CreateProvider();
 
-            System.Diagnostics.Debugger.Launch();
-
             // Act
             var metadata = provider.GetMetadataForProperties(typeof(DerivedModelWithHiding));
 
