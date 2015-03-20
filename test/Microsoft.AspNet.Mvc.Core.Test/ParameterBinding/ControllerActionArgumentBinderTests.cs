@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             Assert.Empty(result);
@@ -119,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             Assert.Empty(result);
@@ -165,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             Assert.Equal(1, result.Count);
@@ -195,7 +195,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             mockValidatorProvider.Verify(
@@ -238,7 +238,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             mockValidatorProvider.Verify(o => o.Validate(It.IsAny<ModelValidationContext>()), Times.Never());
@@ -269,7 +269,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             Assert.Equal(5, actionContext.ModelState.MaxAllowedErrors);
@@ -298,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             mockValidatorProvider.Verify(
@@ -340,7 +340,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             // Act
             var result = await argumentBinder
-                .GetActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
+                .BindActionArgumentsAsync(actionContext, actionBindingContext, new TestController());
 
             // Assert
             mockValidatorProvider.Verify(o => o.Validate(It.IsAny<ModelValidationContext>()), Times.Never());
@@ -366,7 +366,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var controller = new TestController();
 
             // Act
-            var result = await argumentBinder.GetActionArgumentsAsync(actionContext, actionBindingContext, controller);
+            var result = await argumentBinder.BindActionArgumentsAsync(actionContext, actionBindingContext, controller);
 
             // Assert
             Assert.Equal("Hello", controller.ValueBinderMarkedProperty);

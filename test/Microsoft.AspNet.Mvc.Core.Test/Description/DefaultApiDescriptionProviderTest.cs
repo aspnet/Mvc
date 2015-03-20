@@ -911,7 +911,7 @@ namespace Microsoft.AspNet.Mvc.Description
             // Act
             var descriptions = GetApiDescriptions(action);
 
-            // Assert
+               // Assert
             var description = Assert.Single(descriptions);
             Assert.Equal(5, description.ParameterDescriptions.Count);
 

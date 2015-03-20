@@ -280,25 +280,25 @@ namespace Microsoft.AspNet.Mvc
             return actionDescriptor;
         }
 
-        private static ParameterDescriptor CreateParameterDescriptor(ParameterModel parameter)
+        private static ParameterDescriptor CreateParameterDescriptor(ParameterModel parameterModel)
         {
             var parameterDescriptor = new ParameterDescriptor()
             {
-                Name = parameter.ParameterName,
-                ParameterType = parameter.ParameterInfo.ParameterType,
-                BindingInfo = parameter.BindingInfo
+                Name = parameterModel.ParameterName,
+                ParameterType = parameterModel.ParameterInfo.ParameterType,
+                BindingInfo = parameterModel.BindingInfo
             };
 
             return parameterDescriptor;
         }
 
-        private static ParameterDescriptor CreateParameterDescriptor(PropertyModel property)
+        private static ParameterDescriptor CreateParameterDescriptor(PropertyModel propertyModel)
         {
             var parameterDescriptor = new ParameterDescriptor()
             {
-                BindingInfo = property.BindingInfo,
-                Name = property.PropertyName,
-                ParameterType = property.PropertyInfo.PropertyType,
+                BindingInfo = propertyModel.BindingInfo,
+                Name = propertyModel.PropertyName,
+                ParameterType = propertyModel.PropertyInfo.PropertyType,
             };
 
             return parameterDescriptor;

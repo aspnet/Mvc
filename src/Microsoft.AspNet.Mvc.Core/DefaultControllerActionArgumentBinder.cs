@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc
             _validator = validator;
         }
 
-        public async Task<IDictionary<string, object>> GetActionArgumentsAsync(
+        public async Task<IDictionary<string, object>> BindActionArgumentsAsync(
             ActionContext actionContext,
             ActionBindingContext actionBindingContext, 
             object controller)
