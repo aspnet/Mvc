@@ -99,8 +99,8 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.Empty(nullProviderCandidates.Select(a => a.Name));
         }
 
-        // This makes sure the DefaultAssemblyProvider.ReferenceAssemblies list are not accindently changed.
-        // If ReferenceAssemblies is intentionally changed, the expected list should be updated together.
+        // This test verifies DefaultAssemblyProvider.ReferenceAssemblies returns the assembly list that we intended.
+        // If ReferenceAssemblies needs to be changed, the expected list in this test should be updated together.
         [Fact]
         public void ReferenceAssemblies_ReturnsExpectedReferenceAssemblies()
         {
@@ -126,6 +126,9 @@ namespace Microsoft.AspNet.Mvc.Core
             Assert.True(expected.SetEquals(referenceAssemblies));
         }
 
+        // This test verifies DefaultAssemblyProvider.ReferenceAssemblies reflects the actual loadable assemblies
+        // of the libraries that Microsoft.AspNet.Mvc dependes on.
+        // If we add or remove dependencies, this test should be changed together.
         [Fact]
         public void ReferenceAssemblies_ReturnsLoadableReferenceAssemblies()
         {
