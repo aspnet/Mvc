@@ -5,9 +5,7 @@ using System.Collections.Generic;
 using Microsoft.AspNet.JsonPatch;
 using Microsoft.AspNet.Mvc;
 
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
-
-namespace MvcSample.Web.Controllers.Controllers
+namespace MvcSample.Web.Controllers
 {
     [Route("api/[controller]")]
     public class JsonPatchController : Controller
@@ -18,7 +16,7 @@ namespace MvcSample.Web.Controllers.Controllers
         }
 
         [HttpPatch]
-        public IActionResult Patch([FromBody]JsonPatchDocument<Customer> patchDoc)
+        public IActionResult Patch([FromBody] JsonPatchDocument<Customer> patchDoc)
         {
             var customer = new Customer
             {

@@ -8,12 +8,12 @@ namespace Microsoft.AspNet.JsonPatch
     /// <summary>
     /// Metadata for JsonProperty.
     /// </summary>
-    public class JsonPropertyMetadata
+    public class JsonPatchProperty
     {
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        public JsonPropertyMetadata(JsonProperty property, object parent)
+        public JsonPatchProperty(JsonProperty property, object parent)
         {
             Property = property;
             Parent = parent;

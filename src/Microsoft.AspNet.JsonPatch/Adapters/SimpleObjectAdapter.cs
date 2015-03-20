@@ -119,11 +119,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 }
             }
 
-            var propertyMetadata = PropertyHelpers
+            var patchProperty = PropertyHelpers
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does property at path exist?
-            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operationToReport, path);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path);
 
             // it exists.  If it' an array, add to that array.  If it's not, we replace.
             // is the path an array (but not a string (= char[]))?  In this case,
@@ -131,25 +131,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             if (appendList || positionAsInteger > -1)
             {
                 // what if it's an array but there's no position??
-                if (IsNonStringArray(propertyMetadata))
+                if (IsNonStringArray(patchProperty))
                 {
                     // now, get the generic type of the enumerable
                     var genericTypeOfArray = PropertyHelpers.GetEnumerableType(
-                        propertyMetadata.Property.PropertyType);
+                        patchProperty.Property.PropertyType);
 
                     var conversionResult = PropertyHelpers.ConvertToActualType(genericTypeOfArray, value);
 
-                    if (!conversionResult.CanBeConverted)
-                    {
-                        throw new JsonPatchException<T>(operationToReport,
-                            string.Format("Patch failed: provided value is invalid for array property type at " +
-                                "location path: {0}",
-                                path),
-                            objectToApplyTo);
-                    }
+                    CheckIfPropertyCanBeSet(conversionResult, objectToApplyTo, operationToReport, path);
 
                     // get value (it can be cast, we just checked that)
-                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
 
                     if (appendList)
                     {
@@ -184,24 +177,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             else
             {
                 var conversionResultTuple = PropertyHelpers.ConvertToActualType(
-                    propertyMetadata.Property.PropertyType,
+                    patchProperty.Property.PropertyType,
                     value);
 
-                // conversion successful
-                if (conversionResultTuple.CanBeConverted)
-                {
-                    propertyMetadata.Property.ValueProvider.SetValue(
-                        propertyMetadata.Parent,
+                // Is conversion successful
+                CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operationToReport, path);
+
+                patchProperty.Property.ValueProvider.SetValue(
+                        patchProperty.Parent,
                         conversionResultTuple.ConvertedInstance);
-                }
-                else
-                {
-                    throw new JsonPatchException<T>(operationToReport,
-                        string.Format("Patch failed: provided value is invalid for property type at location " +
-                            "path: {0}",
-                            path),
-                        objectToApplyTo);
-                }
             }
         }
 
@@ -243,23 +227,23 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     operation.from.IndexOf('/' + positionAsInteger.ToString()));
             }
 
-            var propertyMetadata = PropertyHelpers
+            var patchProperty = PropertyHelpers
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operation, operation.from);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from);
 
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
             if (positionAsInteger > -1)
             {
-                if (IsNonStringArray(propertyMetadata))
+                if (IsNonStringArray(patchProperty))
                 {
                     // now, get the generic type of the enumerable
-                    var genericTypeOfArray = PropertyHelpers.GetEnumerableType(propertyMetadata.Property.PropertyType);
+                    var genericTypeOfArray = PropertyHelpers.GetEnumerableType(patchProperty.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
 
                     if (array.Count <= positionAsInteger)
                     {
@@ -285,7 +269,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             {
                 // no list, just get the value
                 // set the new value
-                valueAtFromLocation = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                valueAtFromLocation = patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
             }
 
             // remove that value
@@ -340,11 +324,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 }
             }
 
-            var propertyMetadata = PropertyHelpers
+            var patchProperty = PropertyHelpers
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does the target location exist?
-            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operationToReport, path);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path);
 
             // get the property, and remove it - in this case, for DTO's, that means setting
             // it to null or its default value; in case of an array, remove at provided index
@@ -352,13 +336,13 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             if (removeFromList || positionAsInteger > -1)
             {
                 // what if it's an array but there's no position??
-                if (IsNonStringArray(propertyMetadata))
+                if (IsNonStringArray(patchProperty))
                 {
                     // now, get the generic type of the enumerable
-                    var genericTypeOfArray = PropertyHelpers.GetEnumerableType(propertyMetadata.Property.PropertyType);
+                    var genericTypeOfArray = PropertyHelpers.GetEnumerableType(patchProperty.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
 
                     if (removeFromList)
                     {
@@ -395,13 +379,13 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 // null in case of reference types
                 object value = null;
 
-                if (propertyMetadata.Property.PropertyType.GetTypeInfo().IsValueType
-                    && Nullable.GetUnderlyingType(propertyMetadata.Property.PropertyType) == null)
+                if (patchProperty.Property.PropertyType.GetTypeInfo().IsValueType
+                    && Nullable.GetUnderlyingType(patchProperty.Property.PropertyType) == null)
                 {
-                    value = Activator.CreateInstance(propertyMetadata.Property.PropertyType);
+                    value = Activator.CreateInstance(patchProperty.Property.PropertyType);
                 }
 
-                propertyMetadata.Property.ValueProvider.SetValue(propertyMetadata.Parent, value);
+                patchProperty.Property.ValueProvider.SetValue(patchProperty.Parent, value);
             }
         }
 
@@ -469,11 +453,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     operation.path.IndexOf('/' + positionInPathAsInteger.ToString()));
             }
 
-            var propertyMetadata = PropertyHelpers
+            var patchProperty = PropertyHelpers
                 .FindPropertyAndParent(objectToApplyTo, actualPathProperty, ContractResolver);
 
             // does property at path exist?
-            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operation, operation.path);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.path);
 
             // get the property path
             Type typeOfFinalPropertyAtPathLocation;
@@ -482,14 +466,14 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             // the path must end with "/position" or "/-", which we already determined before.
             if (positionInPathAsInteger > -1)
             {
-                if (IsNonStringArray(propertyMetadata))
+                if (IsNonStringArray(patchProperty))
                 {
                     // now, get the generic type of the enumerable
                     typeOfFinalPropertyAtPathLocation = PropertyHelpers
-                        .GetEnumerableType(propertyMetadata.Property.PropertyType);
+                        .GetEnumerableType(patchProperty.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
 
                     if (array.Count <= positionInPathAsInteger)
                     {
@@ -514,25 +498,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             else
             {
                 // no list, just get the value
-                valueAtPathLocation = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
-                typeOfFinalPropertyAtPathLocation = propertyMetadata.Property.PropertyType;
+                valueAtPathLocation = patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
+                typeOfFinalPropertyAtPathLocation = patchProperty.Property.PropertyType;
             }
 
             var conversionResultTuple = PropertyHelpers.ConvertToActualType(
                 typeOfFinalPropertyAtPathLocation,
                 operation.value);
 
-            // conversion successful
-            if (conversionResultTuple.CanBeConverted)
-            {
-            }
-            else
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: provided value is invalid for property type at location path: {0}",
-                        operation.path),
-                    objectToApplyTo);
-            }
+            // Is conversion successful
+            CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operation, operation.path);
+
+            //Compare
         }
 
         /// <summary>
@@ -598,24 +575,24 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     operation.from.IndexOf('/' + positionAsInteger.ToString()));
             }
 
-            var propertyMetadata = PropertyHelpers
+            var patchProperty = PropertyHelpers
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operation, operation.from);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from);
 
             // get the property path
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
             if (positionAsInteger > -1)
             {
-                if (IsNonStringArray(propertyMetadata))
+                if (IsNonStringArray(patchProperty))
                 {
                     // now, get the generic type of the enumerable
-                    var genericTypeOfArray = PropertyHelpers.GetEnumerableType(propertyMetadata.Property.PropertyType);
+                    var genericTypeOfArray = PropertyHelpers.GetEnumerableType(patchProperty.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
 
                     if (array.Count <= positionAsInteger)
                     {
@@ -641,7 +618,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             {
                 // no list, just get the value
                 // set the new value
-                valueAtFromLocation = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
+                valueAtFromLocation = patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
             }
 
             // add operation to target location with that value.
@@ -649,18 +626,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         }
 
         private void CheckIfPropertyExists(
-            JsonPropertyMetadata propertyMetadata,
+            JsonPatchProperty patchProperty,
             T objectToApplyTo,
             Operation<T> operation,
             string propertyPath)
         {
-            if (propertyMetadata == null)
+            if (patchProperty == null)
             {
                 throw new JsonPatchException<T>(operation,
                     string.Format("Patch failed: property at location {0} does not exist", propertyPath),
                     objectToApplyTo);
             }
-            if (propertyMetadata.Property.Ignored)
+            if (patchProperty.Property.Ignored)
             {
                 throw new JsonPatchException<T>(operation,
                     string.Format("Patch failed: cannot update property at location {0}", propertyPath),
@@ -668,11 +645,26 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
         }
 
-        private bool IsNonStringArray(JsonPropertyMetadata propertyMetadata)
+        private bool IsNonStringArray(JsonPatchProperty patchProperty)
         {
-            return !(propertyMetadata.Property.PropertyType == typeof(string))
+            return !(patchProperty.Property.PropertyType == typeof(string))
                     && typeof(IList).GetTypeInfo().IsAssignableFrom(
-                        propertyMetadata.Property.PropertyType.GetTypeInfo());
+                        patchProperty.Property.PropertyType.GetTypeInfo());
+        }
+
+        private void CheckIfPropertyCanBeSet(ConversionResult result,
+            T objectToApplyTo,
+            Operation<T> operation,
+            string path)
+        {
+            if (!result.CanBeConverted)
+            {
+                throw new JsonPatchException<T>(operation,
+                            string.Format("Patch failed: provided value is invalid for property type at " +
+                                "location path: {0}",
+                                path),
+                            objectToApplyTo);
+            }
         }
     }
 }

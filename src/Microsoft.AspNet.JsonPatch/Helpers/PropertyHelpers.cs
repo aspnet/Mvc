@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 {
     internal static class PropertyHelpers
     {
-        public static JsonPropertyMetadata FindPropertyAndParent(
+        public static JsonPatchProperty FindPropertyAndParent(
             object targetObject,
             string propertyPath,
             IContractResolver contractResolver)
@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
                         {
                             if (i == (splitPath.Length - 1))
                             {
-                                return new JsonPropertyMetadata(property, targetObject);
+                                return new JsonPatchProperty(property, targetObject);
                             }
                             else
                             {
