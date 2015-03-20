@@ -8,6 +8,7 @@ using Moq;
 using Xunit;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.AspNet.Mvc.Core
 {
@@ -287,10 +288,8 @@ namespace Microsoft.AspNet.Mvc.Core
 
             private static ILibraryManager GetLibraryManager()
             {
-                var services = Hosting.HostingServices.Create();
-                var builder = services.BuildServiceProvider();
-
-                return builder.GetRequiredService<ILibraryManager>();
+                return CallContextServiceLocator.Locator.ServiceProvider
+                    .GetRequiredService<ILibraryManager>();
             }
         }
     }
