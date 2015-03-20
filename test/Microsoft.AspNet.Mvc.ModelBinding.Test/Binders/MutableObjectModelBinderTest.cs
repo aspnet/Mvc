@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Core;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
@@ -1031,10 +1031,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 isModelSet: false,
                 key: "foo");
 
-            var requiredValidator = bindingContext.OperationBindingContext
-                                                  .ValidatorProvider
-                                                  .GetValidators(propertyMetadata)
-                                                  .FirstOrDefault(v => v.IsRequired);
+            var validatorProvider = bindingContext.OperationBindingContext.ValidatorProvider;
+            var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
+            validatorProvider.GetValidators(validatorProviderContext);
+
+            var requiredValidator = validatorProviderContext.Validators.FirstOrDefault(v => v.IsRequired);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
@@ -1164,11 +1165,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 key: "foo",
                 isModelSet: true);
 
+            var validatorProvider = bindingContext.OperationBindingContext.ValidatorProvider;
+            var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
+            validatorProvider.GetValidators(validatorProviderContext);
 
-            var requiredValidator = bindingContext.OperationBindingContext
-                                                  .ValidatorProvider
-                                                  .GetValidators(propertyMetadata)
-                                                  .FirstOrDefault(v => v.IsRequired);
+            var requiredValidator = validatorProviderContext.Validators.FirstOrDefault(v => v.IsRequired);
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
@@ -1363,12 +1364,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private static ModelBindingContext CreateContext(ModelMetadata metadata, object model)
         {
-            var providers = new IModelValidatorProvider[]
-            {
-                new DataAnnotationsModelValidatorProvider(),
-                new DataMemberModelValidatorProvider()
-            };
-
             return new ModelBindingContext
             {
                 Model = model,
@@ -1378,17 +1373,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 OperationBindingContext = new OperationBindingContext
                 {
                     MetadataProvider = TestModelMetadataProvider.CreateDefaultProvider(),
-                    ValidatorProvider = new CompositeModelValidatorProvider(providers)
+                    ValidatorProvider = TestModelValidatorProvider.CreateDefaultProvider(),
                 }
             };
         }
 
         private static IModelValidator GetRequiredValidator(ModelBindingContext bindingContext, ModelMetadata propertyMetadata)
         {
-            return bindingContext.OperationBindingContext
-                                 .ValidatorProvider
-                                 .GetValidators(propertyMetadata)
-                                 .FirstOrDefault(v => v.IsRequired);
+            var validatorProvider = bindingContext.OperationBindingContext.ValidatorProvider;
+            var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
+            validatorProvider.GetValidators(validatorProviderContext);
+
+            return validatorProviderContext.Validators.FirstOrDefault(v => v.IsRequired);
         }
 
         private static ModelMetadata GetMetadataForCanUpdateProperty(string propertyName)
