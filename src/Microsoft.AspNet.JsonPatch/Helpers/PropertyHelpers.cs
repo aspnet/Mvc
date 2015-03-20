@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using Newtonsoft.Json;
@@ -23,7 +24,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
                 // skip the first one if it's empty
                 var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
 
-                for (int i = startIndex; i <= splitPath.Length - 1; i++)
+                for (int i = startIndex; i < splitPath.Length; i++)
                 {
                     var jsonContract = (JsonObjectContract)contractResolver.ResolveContract(targetObject.GetType());
 
@@ -38,6 +39,14 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
                             else
                             {
                                 targetObject = property.ValueProvider.GetValue(targetObject);
+
+                                // if property is of IList type then get the array index from splitPath and get the
+                                // object at the indexed position from the list.
+                                if (typeof(IList).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
+                                {
+                                    var index = int.Parse(splitPath[++i]);
+                                    targetObject = ((IList)targetObject)[index];
+                                }
                             }
 
                             break;

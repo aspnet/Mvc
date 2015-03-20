@@ -123,30 +123,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does property at path exist?
-            if (propertyMetadata == null)
-            {
-                throw new JsonPatchException<T>(operationToReport,
-                    string.Format("Patch failed: property at location path: {0} does not exist", path),
-                    objectToApplyTo);
-            }
-            if (propertyMetadata.Property.Ignored)
-            {
-                throw new JsonPatchException<T>(operationToReport,
-                    string.Format("Patch failed: cannot update property at location path: {0}", path),
-                    objectToApplyTo);
-            }
+            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operationToReport, path);
 
             // it exists.  If it' an array, add to that array.  If it's not, we replace.
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
             if (appendList || positionAsInteger > -1)
             {
-                var isNonStringArray = !(propertyMetadata.Property.PropertyType == typeof(string))
-                    && typeof(IList).GetTypeInfo().IsAssignableFrom(
-                        propertyMetadata.Property.PropertyType.GetTypeInfo());
-
                 // what if it's an array but there's no position??
-                if (isNonStringArray)
+                if (IsNonStringArray(propertyMetadata))
                 {
                     // now, get the generic type of the enumerable
                     var genericTypeOfArray = PropertyHelpers.GetEnumerableType(
@@ -164,7 +149,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     }
 
                     // get value (it can be cast, we just checked that)
-                    var array = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent) as IList;
+                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
 
                     if (appendList)
                     {
@@ -262,34 +247,19 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            if (propertyMetadata == null)
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: property at location from: {0} does not exist", operation.from),
-                    objectToApplyTo);
-            }
-            if (propertyMetadata.Property.Ignored)
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: cannot update property at location path: {0}", operation.from),
-                    objectToApplyTo);
-            }
+            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operation, operation.from);
 
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
             if (positionAsInteger > -1)
             {
-                var isNonStringArray = !(propertyMetadata.Property.PropertyType == typeof(string))
-                    && typeof(IList).GetTypeInfo().IsAssignableFrom(
-                        propertyMetadata.Property.PropertyType.GetTypeInfo());
-
-                if (isNonStringArray)
+                if (IsNonStringArray(propertyMetadata))
                 {
                     // now, get the generic type of the enumerable
                     var genericTypeOfArray = PropertyHelpers.GetEnumerableType(propertyMetadata.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent) as IList;
+                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
 
                     if (array.Count <= positionAsInteger)
                     {
@@ -374,36 +344,21 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does the target location exist?
-            if (propertyMetadata == null)
-            {
-                throw new JsonPatchException<T>(operationToReport,
-                    string.Format("Patch failed: property at location path: {0} does not exist", path),
-                    objectToApplyTo);
-            }
-            if (propertyMetadata.Property.Ignored)
-            {
-                throw new JsonPatchException<T>(operationToReport,
-                    string.Format("Patch failed: cannot update property at location path: {0}", path),
-                    objectToApplyTo);
-            }
+            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operationToReport, path);
 
             // get the property, and remove it - in this case, for DTO's, that means setting
             // it to null or its default value; in case of an array, remove at provided index
             // or at the end.
             if (removeFromList || positionAsInteger > -1)
             {
-                var isNonStringArray = !(propertyMetadata.Property.PropertyType == typeof(string))
-                    && typeof(IList).GetTypeInfo().IsAssignableFrom(propertyMetadata.Property.PropertyType.GetTypeInfo());
-
                 // what if it's an array but there's no position??
-                if (isNonStringArray)
+                if (IsNonStringArray(propertyMetadata))
                 {
                     // now, get the generic type of the enumerable
                     var genericTypeOfArray = PropertyHelpers.GetEnumerableType(propertyMetadata.Property.PropertyType);
 
-                    // TODO: nested!
                     // get value (it can be cast, we just checked that)
-                    var array = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent) as IList;
+                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
 
                     if (removeFromList)
                     {
@@ -518,18 +473,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathProperty, ContractResolver);
 
             // does property at path exist?
-            if (propertyMetadata == null)
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: property at location path: {0} does not exist", operation.path),
-                    objectToApplyTo);
-            }
-            if (propertyMetadata.Property.Ignored)
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: cannot update property at location path: {0}", operation.path),
-                    objectToApplyTo);
-            }
+            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operation, operation.path);
 
             // get the property path
             Type typeOfFinalPropertyAtPathLocation;
@@ -538,19 +482,14 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             // the path must end with "/position" or "/-", which we already determined before.
             if (positionInPathAsInteger > -1)
             {
-
-                var isNonStringArray = !(propertyMetadata.Property.PropertyType == typeof(string))
-                    && typeof(IList).GetTypeInfo().IsAssignableFrom(
-                        propertyMetadata.Property.PropertyType.GetTypeInfo());
-
-                if (isNonStringArray)
+                if (IsNonStringArray(propertyMetadata))
                 {
                     // now, get the generic type of the enumerable
                     typeOfFinalPropertyAtPathLocation = PropertyHelpers
                         .GetEnumerableType(propertyMetadata.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent) as IList;
+                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
 
                     if (array.Count <= positionInPathAsInteger)
                     {
@@ -586,7 +525,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             // conversion successful
             if (conversionResultTuple.CanBeConverted)
             {
-                // COMPARE - TODO
             }
             else
             {
@@ -664,35 +602,20 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            if (propertyMetadata == null)
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: property at location from: {0} does not exist", operation.from),
-                    objectToApplyTo);
-            }
-            if (propertyMetadata.Property.Ignored)
-            {
-                throw new JsonPatchException<T>(operation,
-                    string.Format("Patch failed: cannot update property at location path: {0}", operation.from),
-                    objectToApplyTo);
-            }
+            CheckIfPropertyExists(propertyMetadata, objectToApplyTo, operation, operation.from);
 
             // get the property path
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
             if (positionAsInteger > -1)
             {
-                var isNonStringArray = !(propertyMetadata.Property.PropertyType == typeof(string))
-                    && typeof(IList).GetTypeInfo().IsAssignableFrom(
-                        propertyMetadata.Property.PropertyType.GetTypeInfo());
-
-                if (isNonStringArray)
+                if (IsNonStringArray(propertyMetadata))
                 {
                     // now, get the generic type of the enumerable
                     var genericTypeOfArray = PropertyHelpers.GetEnumerableType(propertyMetadata.Property.PropertyType);
 
                     // get value (it can be cast, we just checked that)
-                    var array = propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent) as IList;
+                    var array = (IList)propertyMetadata.Property.ValueProvider.GetValue(propertyMetadata.Parent);
 
                     if (array.Count <= positionAsInteger)
                     {
@@ -723,6 +646,33 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
             // add operation to target location with that value.
             Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
+        }
+
+        private void CheckIfPropertyExists(
+            JsonPropertyMetadata propertyMetadata,
+            T objectToApplyTo,
+            Operation<T> operation,
+            string propertyPath)
+        {
+            if (propertyMetadata == null)
+            {
+                throw new JsonPatchException<T>(operation,
+                    string.Format("Patch failed: property at location {0} does not exist", propertyPath),
+                    objectToApplyTo);
+            }
+            if (propertyMetadata.Property.Ignored)
+            {
+                throw new JsonPatchException<T>(operation,
+                    string.Format("Patch failed: cannot update property at location {0}", propertyPath),
+                    objectToApplyTo);
+            }
+        }
+
+        private bool IsNonStringArray(JsonPropertyMetadata propertyMetadata)
+        {
+            return !(propertyMetadata.Property.PropertyType == typeof(string))
+                    && typeof(IList).GetTypeInfo().IsAssignableFrom(
+                        propertyMetadata.Property.PropertyType.GetTypeInfo());
         }
     }
 }

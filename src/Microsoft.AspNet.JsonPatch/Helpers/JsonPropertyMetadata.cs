@@ -3,7 +3,7 @@
 
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.AspNet.JsonPatch.Helpers
+namespace Microsoft.AspNet.JsonPatch
 {
     /// <summary>
     /// Metadata for JsonProperty.
@@ -15,8 +15,8 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
         /// </summary>
         public JsonPropertyMetadata(JsonProperty property, object parent)
         {
-            Property = property ?? null;
-            Parent = parent ?? null;
+            Property = property;
+            Parent = parent;
         }
 
         /// <summary>
