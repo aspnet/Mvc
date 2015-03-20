@@ -116,6 +116,7 @@ namespace Microsoft.AspNet.Mvc
                     arguments[parameter.Name] = modelBindingResult.Model;
                     var validationContext = new ModelValidationContext(
                         modelBindingResult.Key,
+                        modelBindingContext.BindingSource,
                         operationContext.ValidatorProvider,
                         modelState,
                         modelExplorer);

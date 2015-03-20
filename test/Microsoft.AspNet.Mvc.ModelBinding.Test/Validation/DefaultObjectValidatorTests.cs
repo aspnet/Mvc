@@ -519,6 +519,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 ModelValidationContext = new ModelValidationContext(
                     key,
+                    null,
                     new CompositeModelValidatorProvider(providers),
                     modelStateDictionary,
                     modelExplorer),

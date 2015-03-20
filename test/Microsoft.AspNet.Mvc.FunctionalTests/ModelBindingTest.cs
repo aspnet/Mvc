@@ -26,6 +26,22 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IServiceCollection> _configureServices = new ModelBindingWebSite.Startup().ConfigureServices;
 
         [Fact]
+        public async Task DoNotValidate_ParametersOrControllerProperties_IfSourceNotFromRequest()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Validation/DoNotValidateParameter");
+
+            // Assert
+            var stringValue = await response.Content.ReadAsStringAsync();
+            var isModelStateValid = JsonConvert.DeserializeObject<bool>(stringValue);
+            Assert.True(isModelStateValid);
+        }
+
+        [Fact]
         public async Task TypeBasedExclusion_ForBodyAndNonBodyBoundModels()
         {
             // Arrange
