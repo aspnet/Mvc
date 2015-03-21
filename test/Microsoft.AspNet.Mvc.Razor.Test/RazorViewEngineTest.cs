@@ -594,7 +594,109 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             Assert.Equal(expected, result.SearchedLocations);
         }
 
-       [Fact]
+        [Theory]
+        // Looks in RouteValueDefaults
+        [InlineData(true)]
+        // Looks in RouteConstraints
+        [InlineData(false)]
+        public void FindPage_SelectsActionCaseInsensitively(bool isAttributeRouted)
+        {
+            // The RouteData contains "Foo", and the ActionDescriptor contains "foo"
+            // which matches the case of the constructor thus searching in the appropriate location.
+            // Arrange
+            var routeValues = new Dictionary<string, object>
+            {
+                { "controller", "Foo" }
+            };
+
+            var page = Mock.Of<IRazorPage>();
+            var pageFactory = new Mock<IRazorPageFactory>();
+            pageFactory.Setup(p => p.CreateInstance("/Views/foo/layout.cshtml"))
+                       .Returns(page)
+                       .Verifiable();
+
+            var viewEngine = CreateViewEngine(pageFactory.Object);
+            var routes = new Dictionary<string, string>()
+            {
+                { "controller", "foo" }
+            };
+
+            var context = GetActionContextWithRoutes(routeValues, routes, isAttributeRouted);
+
+            // Act
+            var result = viewEngine.FindPage(context, "layout");
+
+            // Assert
+            Assert.Equal("layout", result.Name);
+            Assert.Same(page, result.Page);
+            Assert.Null(result.SearchedLocations);
+            pageFactory.Verify();
+        }
+
+        [Theory]
+        // Looks in RouteValueDefaults
+        [InlineData(true)]
+        // Looks in RouteConstraints
+        [InlineData(false)]
+        public void FindPage_LooksForPages_UsingActionDescriptor(bool isAttributeRouted)
+        {
+            // Arrange
+            var expected = new[]
+            {
+                "/Views/bar/bar.cshtml",
+                "/Views/Shared/bar.cshtml",
+            };
+
+            var routeValues = new Dictionary<string, object>();
+            var routes = new Dictionary<string, string>()
+            {
+                { "controller", "bar" }
+            };
+            var page = Mock.Of<IRazorPage>();
+
+            var viewEngine = CreateViewEngine();
+            var context = GetActionContextWithRoutes(routeValues, routes, isAttributeRouted);
+
+            // Act
+            var result = viewEngine.FindPage(context, "bar");
+
+            // Assert
+            Assert.Equal("bar", result.Name);
+            Assert.Null(result.Page);
+            Assert.Equal(expected, result.SearchedLocations);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void FindPage_LooksForPages_UsesRouteValuesAsFallback(bool isAttributeRouted)
+        {
+            // Arrange
+            var expected = new[]
+            {
+                "/Views/bar/bar.cshtml",
+                "/Views/Shared/bar.cshtml",
+            };
+
+            var routeValues = new Dictionary<string, object>()
+            {
+                { "controller", "bar" }
+            };
+            var page = Mock.Of<IRazorPage>();
+
+            var viewEngine = CreateViewEngine();
+            var context = GetActionContextWithRoutes(routeValues, new Dictionary<string, string>(), isAttributeRouted);
+
+            // Act
+            var result = viewEngine.FindPage(context, "bar");
+
+            // Assert
+            Assert.Equal("bar", result.Name);
+            Assert.Null(result.Page);
+            Assert.Equal(expected, result.SearchedLocations);
+        }
+
+        [Fact]
         public void AreaViewLocationFormats_ContainsExpectedLocations()
         {
             // Arrange
@@ -673,7 +775,42 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                 routeData.Values.Add(kvp.Key, kvp.Value);
             }
 
-            return new ActionContext(httpContext, routeData, new ActionDescriptor());
+            var actionDesciptor = new ActionDescriptor();
+            actionDesciptor.RouteConstraints = new List<RouteDataActionConstraint>();
+            return new ActionContext(httpContext, routeData, actionDesciptor);
+        }
+
+        private static ActionContext GetActionContextWithRoutes(
+            IDictionary<string, object> routeValues,
+            IDictionary<string, string> routeConstraints,
+            bool isAttributeRouted)
+        {
+            var httpContext = new DefaultHttpContext();
+            var routeData = new RouteData();
+            foreach (var kvp in routeValues)
+            {
+                routeData.Values.Add(kvp.Key, kvp.Value);
+            }
+
+            var actionDescriptor = new ActionDescriptor();
+            if (isAttributeRouted)
+            {
+                actionDescriptor.AttributeRouteInfo = new Routing.AttributeRouteInfo();
+                foreach (var kvp in routeConstraints)
+                {
+                    actionDescriptor.RouteValueDefaults.Add(kvp.Key, kvp.Value);
+                }
+            }
+            else
+            {
+                actionDescriptor.RouteConstraints = new List<RouteDataActionConstraint>();
+                foreach (var kvp in routeConstraints)
+                {
+                    actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(kvp.Key, kvp.Value));
+                }
+            }
+
+            return new ActionContext(httpContext, routeData, actionDescriptor);
         }
 
         private class OverloadedLocationViewEngine : RazorViewEngine

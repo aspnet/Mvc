@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.AspNet.Mvc.Razor.OptionDescriptors;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.Internal;
@@ -164,8 +165,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                                                             bool isPartial)
         {
             // Initialize the dictionary for the typical case of having controller and action tokens.
-            var routeValues = context.RouteData.Values;
-            var areaName = routeValues.GetValueOrDefault<string>(AreaKey);
+            var areaName = GetNormalizedRouteValue(AreaKey, context);
 
             // Only use the area view location formats if we have an area token.
             var viewLocations = !string.IsNullOrEmpty(areaName) ? AreaViewLocationFormats :
@@ -204,7 +204,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // 3. Use the expanded locations to look up a page.
-            var controllerName = routeValues.GetValueOrDefault<string>(ControllerKey);
+            var controllerName = GetNormalizedRouteValue(ControllerKey, context);
             var searchedLocations = new List<string>();
             foreach (var path in viewLocations)
             {
@@ -226,6 +226,29 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // 3b. We did not find a page for any of the paths.
             return new RazorPageResult(pageName, searchedLocations);
+        }
+
+        private string GetNormalizedRouteValue(string key, ActionContext context)
+        {
+            if (context.ActionDescriptor.AttributeRouteInfo == null)
+            {
+                var match = context.ActionDescriptor.RouteConstraints.SingleOrDefault(r => r.RouteKey == key);
+                if (match != null)
+                {
+                    return match.RouteValue;
+                }
+            }
+            else
+            {
+                object match;
+                context.ActionDescriptor.RouteValueDefaults.TryGetValue(key, out match);
+                if (match != null)
+                {
+                    return match.ToString();
+                }
+            }
+
+            return context.RouteData.Values.GetValueOrDefault<string>(key);
         }
 
         private ViewEngineResult CreateViewEngineResult(RazorPageResult result,
