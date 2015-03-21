@@ -25,7 +25,9 @@ namespace FiltersWebSite.Controllers
 
             public void OnResourceExecuting(ResourceExecutingContext context)
             {
-                var jsonFormatter = context.InputFormatters.OfType<JsonInputFormatter>().Single();
+                // InputFormatters collection contains JsonInputFormatter and JsonPatchInputFormatter. Since list is in
+                // sorted order, selecting the first in the list picks JsonInputFormatter.
+                var jsonFormatter = context.InputFormatters.OfType<JsonInputFormatter>().FirstOrDefault();
 
                 context.InputFormatters.Clear();
                 context.InputFormatters.Add(jsonFormatter);
