@@ -170,8 +170,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// for an <see cref="Enum"/>.
         /// </summary>
         /// <value>
-        /// <c>true</c> if <see cref="System.Reflection.TypeInfo.IsEnum"/> is <c>true</c> for <see cref="ModelType"/>
-        /// or <c>Nullable.GetUnderlyingType(ModelType)</c>; <c>false</c> otherwise.
+        /// <c>true</c> if <c>type.IsEnum</c> (<c>type.GetTypeInfo().IsEnum</c> for DNX Core 5.0) is <c>true</c> for
+        /// <see cref="ModelType"/> or <c>Nullable.GetUnderlyingType(ModelType)</c>; <c>false</c> otherwise.
         /// </value>
         public abstract bool IsEnum { get; }
 
