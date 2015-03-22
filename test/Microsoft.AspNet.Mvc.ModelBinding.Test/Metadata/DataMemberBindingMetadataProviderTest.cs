@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private class ClassWithDataMemberIsRequiredFalse
         {
             [DataMember(IsRequired = false)]
-            public int TheProperty { get; set; }
+            public string TheProperty { get; set; }
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private class ClassWithDataMemberIsRequiredTrueWithoutDataContract
         {
             [DataMember(IsRequired = true)]
-            public int TheProperty { get; set; }
+            public string TheProperty { get; set; }
         }
     }
 }

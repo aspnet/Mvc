@@ -33,6 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.Empty(metadata.AdditionalValues);
             Assert.Equal(typeof(string), metadata.ModelType);
 
+            Assert.True(metadata.CanBeBound);
             Assert.True(metadata.ConvertEmptyStringToNull);
             Assert.False(metadata.HasNonDefaultEditFormat);
             Assert.False(metadata.HideSurroundingHtml);
@@ -128,49 +129,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.Equal(typeof(string), metadata.ModelType);
             Assert.Equal("input", metadata.PropertyName);
             Assert.Null(metadata.ContainerType);
-        }
-
-        [Theory]
-        [InlineData(typeof(string))]
-        [InlineData(typeof(IDisposable))]
-        [InlineData(typeof(Nullable<int>))]
-        public void IsRequired_ReturnsFalse_ForNullableTypes(Type modelType)
-        {
-            // Arrange
-            var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
-
-            var key = ModelMetadataIdentity.ForType(modelType);
-            var cache = new DefaultMetadataDetailsCache(key, new object[0]);
-
-            var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
-
-            // Act
-            var isRequired = metadata.IsRequired;
-
-            // Assert
-            Assert.False(isRequired);
-        }
-
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(DayOfWeek))]
-        public void IsRequired_ReturnsTrue_ForNonNullableTypes(Type modelType)
-        {
-            // Arrange
-            var provider = new EmptyModelMetadataProvider();
-            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
-
-            var key = ModelMetadataIdentity.ForType(modelType);
-            var cache = new DefaultMetadataDetailsCache(key, new object[0]);
-
-            var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
-
-            // Act
-            var isRequired = metadata.IsRequired;
-
-            // Assert
-            Assert.True(isRequired);
         }
 
 #if !DNXCORE50

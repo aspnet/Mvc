@@ -86,6 +86,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract BindingSource BindingSource { get; }
 
         /// <summary>
+        /// Gets a value indicating whether or not the model value is allowed to be model-bound. This is only
+        /// applicable when the current instance represents a property.
+        /// </summary>
+        public abstract bool CanBeBound { get; }
+
+        /// <summary>
         /// Gets a value indicating whether or not to convert an empty string value to <c>null</c> when
         /// representing a model as text.
         /// </summary>

@@ -273,14 +273,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         protected virtual IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
         {
-            var validationInfo = GetPropertyValidationInfo(bindingContext);
-            var newPropertyFilter = GetPropertyFilter();
-            return bindingContext.ModelMetadata.Properties
-                                 .Where(propertyMetadata =>
-                                    newPropertyFilter(bindingContext, propertyMetadata.PropertyName) &&
-                                    (validationInfo.RequiredProperties.Contains(propertyMetadata.PropertyName) ||
-                                    !validationInfo.SkipProperties.Contains(propertyMetadata.PropertyName)) &&
-                                    CanUpdateProperty(propertyMetadata));
+            var propertyBindingInfo = GetPropertyBindingInfo(bindingContext);
+
+            var propertyFilter = GetPropertyFilter();
+            return 
+                bindingContext.ModelMetadata
+                .Properties
+                .Where(propertyMetadata =>
+                {
+                    return 
+                        propertyFilter(bindingContext, propertyMetadata.PropertyName) &&
+                        (propertyBindingInfo.RequiredProperties.Contains(propertyMetadata.PropertyName) ||
+                        !propertyBindingInfo.SkipProperties.Contains(propertyMetadata.PropertyName)) &&
+                        CanUpdateProperty(propertyMetadata);
+                });
         }
 
         private static Func<ModelBindingContext, string, bool> GetPropertyFilter()
@@ -310,21 +316,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        internal static PropertyValidationInfo GetPropertyValidationInfo(ModelBindingContext bindingContext)
+        internal static PropertyBindingInfo GetPropertyBindingInfo(ModelBindingContext bindingContext)
         {
-            var validationInfo = new PropertyValidationInfo();
-            var modelTypeInfo = bindingContext.ModelType.GetTypeInfo();
-            var typeAttribute = modelTypeInfo.GetCustomAttribute<BindingBehaviorAttribute>();
-            var properties = bindingContext.ModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
+            var validationInfo = new PropertyBindingInfo();
+            foreach (var propertyMetadata in bindingContext.ModelMetadata.Properties)
             {
-                var propertyName = property.Name;
-                var propertyMetadata = bindingContext.ModelMetadata.Properties[propertyName];
-                if (propertyMetadata == null)
-                {
-                    // Skip indexer properties and others ModelMetadata ignores.
-                    continue;
-                }
+                var propertyName = propertyMetadata.PropertyName;
 
                 var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
                 bindingContext.OperationBindingContext.ValidatorProvider.GetValidators(validatorProviderContext);
@@ -336,22 +333,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     validationInfo.RequiredValidators[propertyName] = requiredValidator;
                 }
 
-                var propertyAttribute = property.GetCustomAttribute<BindingBehaviorAttribute>();
-                var bindingBehaviorAttribute = propertyAttribute ?? typeAttribute;
-                if (bindingBehaviorAttribute != null)
+                if (!propertyMetadata.CanBeBound)
                 {
-                    switch (bindingBehaviorAttribute.Behavior)
-                    {
-                        case BindingBehavior.Required:
-                            validationInfo.RequiredProperties.Add(propertyName);
-                            break;
-
-                        case BindingBehavior.Never:
-                            validationInfo.SkipProperties.Add(propertyName);
-                            break;
-                    }
+                    validationInfo.SkipProperties.Add(propertyName);
                 }
-                else if (requiredValidator != null)
+                else if (propertyMetadata.IsRequired || requiredValidator != null)
                 {
                     validationInfo.RequiredProperties.Add(propertyName);
                 }
@@ -365,7 +351,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
 
-            var validationInfo = GetPropertyValidationInfo(bindingContext);
+            var validationInfo = GetPropertyBindingInfo(bindingContext);
 
             // Eliminate provided properties from requiredProperties; leaving just *missing* required properties.
             var boundProperties = dto.Results.Where(p => p.Value.IsModelSet).Select(p => p.Key.PropertyName);
@@ -392,8 +378,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     addedError = RunValidator(validator, bindingContext, propertyExplorer, modelStateKey);
                 }
 
-                // Fall back to default message if BindingBehaviorAttribute required this property or validator
-                // (oddly) succeeded.
+                // Fall back to default message if the property is required, but the validator didn't 
+                // add a message.
                 if (!addedError)
                 {
                     bindingContext.ModelState.TryAddModelError(
@@ -536,9 +522,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return addedError;
         }
 
-        internal sealed class PropertyValidationInfo
+        internal sealed class PropertyBindingInfo
         {
-            public PropertyValidationInfo()
+            public PropertyBindingInfo()
             {
                 RequiredProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 RequiredValidators = new Dictionary<string, IModelValidator>(StringComparer.OrdinalIgnoreCase);

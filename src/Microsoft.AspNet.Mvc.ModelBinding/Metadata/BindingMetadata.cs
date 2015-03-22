@@ -29,6 +29,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public Type BinderType { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating if the model is allowed for model binding. Will be ignored
+        /// if the model metadata being created is not a property.
+        /// </summary>
+        public bool CanBeBound { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not the model is read-only. Will be ignored
         /// if the model metadata being created is not a property. If <c>null</c> then
         /// <see cref="ModelMetadata.IsReadOnly"/> will be  computed based on the accessibility
