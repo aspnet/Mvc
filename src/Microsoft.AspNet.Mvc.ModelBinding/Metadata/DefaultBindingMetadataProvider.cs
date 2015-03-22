@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
@@ -52,6 +53,41 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 context.BindingMetadata.PropertyBindingPredicateProvider = new CompositePredicateProvider(
                     predicateProviders);
+            }
+
+            // BindingBehaviorAttribute (CanBeBound, IsRequired)
+            if (context.Key.MetadataKind == ModelMetadataKind.Property)
+            {
+                BindingBehaviorAttribute bindingBehaviorAttribute = null;
+
+                // Not using context.Attributes here because we need to fall back to an attribute
+                // on the container type, that means that attributes on the property type need to be ignored.
+                var containerType = context.Key.ContainerType;
+                var property = containerType.GetProperty(context.Key.Name);
+                if (property != null)
+                {
+                    bindingBehaviorAttribute = property.GetCustomAttribute<BindingBehaviorAttribute>();
+                }
+                
+                if (bindingBehaviorAttribute == null)
+                {
+                    var containerTypeInfo = containerType.GetTypeInfo();
+                    bindingBehaviorAttribute = containerTypeInfo.GetCustomAttribute<BindingBehaviorAttribute>();
+                }
+
+                if (bindingBehaviorAttribute != null)
+                {
+                    if (bindingBehaviorAttribute.Behavior == BindingBehavior.Never)
+                    {
+                        // We're explicitly not using IsReadOnly here. IsReadOnly = true can be model bound if the
+                        // model type has mutable properties.
+                        context.BindingMetadata.CanBeBound = false;
+                    }
+                    else if (bindingBehaviorAttribute.Behavior == BindingBehavior.Required)
+                    {
+                        context.BindingMetadata.IsRequired = true;
+                    }
+                }
             }
         }
 

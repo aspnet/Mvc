@@ -742,15 +742,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             // Act
-            var validationInfo = MutableObjectModelBinder.GetPropertyValidationInfo(bindingContext);
+            var bindingInfo = MutableObjectModelBinder.GetPropertyBindingInfo(bindingContext);
 
             // Assert
-            Assert.Equal(new[] { "Required" }, validationInfo.RequiredProperties);
-            Assert.Equal(new[] { "Never" }, validationInfo.SkipProperties);
+            Assert.Equal(new[] { "Required" }, bindingInfo.RequiredProperties);
+            Assert.Equal(new[] { "Never" }, bindingInfo.SkipProperties);
         }
 
         [Fact]
-        public void GetPropertyValidationInfo_WithIndexerProperties_Succeeds()
+        public void GetPropertyBindingInfo_WithIndexerProperties_Succeeds()
         {
             // Arrange
             var bindingContext = new ModelBindingContext
@@ -764,11 +764,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             // Act
-            var validationInfo = MutableObjectModelBinder.GetPropertyValidationInfo(bindingContext);
+            var bindingInfo = MutableObjectModelBinder.GetPropertyBindingInfo(bindingContext);
 
             // Assert
-            Assert.Equal(Enumerable.Empty<string>(), validationInfo.RequiredProperties);
-            Assert.Equal(Enumerable.Empty<string>(), validationInfo.SkipProperties);
+            Assert.Equal(Enumerable.Empty<string>(), bindingInfo.RequiredProperties);
+            Assert.Equal(Enumerable.Empty<string>(), bindingInfo.SkipProperties);
         }
 
         [Fact]

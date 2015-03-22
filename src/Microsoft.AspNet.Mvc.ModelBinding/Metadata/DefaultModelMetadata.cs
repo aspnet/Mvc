@@ -20,7 +20,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
         private ReadOnlyDictionary<object, object> _additionalValues;
         private bool? _isReadOnly;
-        private bool? _isRequired;
         private ModelPropertyCollection _properties;
         private ReadOnlyCollection<object> _validatorMetadata;
 
@@ -153,6 +152,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             get
             {
                 return BindingMetadata.BinderType;
+            }
+        }
+
+        /// <inheritdoc />
+        public override bool CanBeBound
+        {
+            get
+            {
+                return BindingMetadata.CanBeBound;
             }
         }
 
@@ -299,19 +307,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                if (!_isRequired.HasValue)
-                {
-                    if (BindingMetadata.IsRequired.HasValue)
-                    {
-                        _isRequired = BindingMetadata.IsRequired;
-                    }
-                    else
-                    {
-                        _isRequired = !ModelType.AllowsNullValue();
-                    }
-                }
-
-                return _isRequired.Value;
+                return BindingMetadata.IsRequired ?? false;
             }
         }
 

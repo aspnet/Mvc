@@ -216,6 +216,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
+            public override bool CanBeBound
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
             public override bool ConvertEmptyStringToNull
             {
                 get

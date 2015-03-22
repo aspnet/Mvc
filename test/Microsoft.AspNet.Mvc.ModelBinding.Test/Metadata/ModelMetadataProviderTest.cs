@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Framework.Internal;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
@@ -586,6 +584,52 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.Same(typeof(int), metadata.BinderType);
         }
 
+        [Fact]
+        public void BindingBehaviorAttribute_AttributeOnType_IgnoredForTypeMetadata()
+        {
+            // Arrange
+            var provider = TestModelMetadataProvider.CreateDefaultProvider();
+
+            // Act
+            var metadata = provider.GetMetadataForType(typeof(BindNeverType));
+
+            // Assert
+            Assert.True(metadata.CanBeBound);
+            Assert.False(metadata.IsRequired);
+        }
+
+        [Fact]
+        public void BindingBehaviorAttribute_AttributeOnType()
+        {
+            // Arrange
+            var provider = TestModelMetadataProvider.CreateDefaultProvider();
+
+            // Act
+            var metadata = provider.GetMetadataForProperty(
+                typeof(BindNeverType),
+                nameof(BindNeverType.AttributeSetOnType)); // Has BindingBehavior.Never
+
+            // Assert
+            Assert.False(metadata.CanBeBound);
+            Assert.False(metadata.IsRequired);
+        }
+
+        [Fact]
+        public void BindingBehaviorAttribute_AttributeOnProperty_Overrides()
+        {
+            // Arrange
+            var provider = TestModelMetadataProvider.CreateDefaultProvider();
+
+            // Act
+            var metadata = provider.GetMetadataForProperty(
+                typeof(BindNeverType),
+                nameof(BindNeverType.AttributeOnPropertyOverride)); // Has BindingBehavior.Never
+
+            // Assert
+            Assert.True(metadata.CanBeBound);
+            Assert.False(metadata.IsRequired);
+        }
+
         private IModelMetadataProvider CreateProvider(params object[] attributes)
         {
             return new AttributeInjectModelMetadataProvider(attributes);
@@ -619,14 +663,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                     DataFormatString = "value",
                 };
             }
-        }
-
-        private void ActionWithoutBindAttribute(User param)
-        {
-        }
-
-        private void ActionWithBindAttribute([Bind(new string[] { "IsAdmin" }, Prefix = "ParameterPrefix")] User param)
-        {
         }
 
         public class TypeBasedBinderAttribute : Attribute, IModelNameProvider
@@ -691,6 +727,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             public int UserName { get; set; }
 
             public int NotIncludedOrExcluded { get; set; }
+        }
+
+        [BindingBehavior(BindingBehavior.Never)]
+        private class BindNeverType
+        {
+            public string AttributeSetOnType { get; set; }
+
+            [BindingBehavior(BindingBehavior.Optional)]
+            public string AttributeOnPropertyOverride { get; set; }
         }
 
         private class AttributeInjectModelMetadataProvider : DefaultModelMetadataProvider
