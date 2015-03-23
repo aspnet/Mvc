@@ -24,8 +24,7 @@ namespace Microsoft.AspNet.Mvc
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
             var actionContext = GetActionContext(contentBytes);
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(JsonPatchDocument<Customer>));
-            var context = new InputFormatterContext(actionContext, metadata.ModelType);
+            var context = new InputFormatterContext(actionContext, typeof(JsonPatchDocument<Customer>));
 
             // Act
             var model = await formatter.ReadAsync(context);
@@ -47,8 +46,7 @@ namespace Microsoft.AspNet.Mvc
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
             var actionContext = GetActionContext(contentBytes);
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(JsonPatchDocument<Customer>));
-            var context = new InputFormatterContext(actionContext, metadata.ModelType);
+            var context = new InputFormatterContext(actionContext, typeof(JsonPatchDocument<Customer>));
 
             // Act
             var model = await formatter.ReadAsync(context);
@@ -65,6 +63,8 @@ namespace Microsoft.AspNet.Mvc
         [Theory]
         [InlineData("application/json-patch+json", true)]
         [InlineData("application/json", false)]
+        [InlineData("application/*", true)]
+        [InlineData("*/*", true)]
         public void CanRead_ReturnsTrueOnlyForJsonPatchContentType(string requestContentType, bool expectedCanRead)
         {
             // Arrange
@@ -73,8 +73,7 @@ namespace Microsoft.AspNet.Mvc
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
             var actionContext = GetActionContext(contentBytes, contentType: requestContentType);
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(JsonPatchDocument<Customer>));
-            var formatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+            var formatterContext = new InputFormatterContext(actionContext, typeof(JsonPatchDocument<Customer>));
 
             // Act
             var result = formatter.CanRead(formatterContext);
@@ -83,8 +82,10 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedCanRead, result);
         }
 
-        [Fact]
-        public void CanRead_ReturnsFalse_NonJsonPatchContentType()
+        [Theory]
+        [InlineData(typeof(Customer))]
+        [InlineData(typeof(IJsonPatchDocument))]
+        public void CanRead_ReturnsFalse_NonJsonPatchContentType(Type modelType)
         {
             // Arrange
             var formatter = new JsonPatchInputFormatter();
@@ -92,14 +93,34 @@ namespace Microsoft.AspNet.Mvc
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
             var actionContext = GetActionContext(contentBytes, contentType: "application/json-patch+json");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(Customer));
-            var formatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+            var formatterContext = new InputFormatterContext(actionContext, modelType);
 
             // Act
             var result = formatter.CanRead(formatterContext);
 
             // Assert
             Assert.False(result);
+        }
+
+        [Fact]
+        public async Task JsonPatchInputFormatter_ReturnsModelStateErrors_InvalidModelType()
+        {
+            // Arrange
+            var exceptionMessage = "Cannot deserialize the current JSON array (e.g. [1,2,3]) into type " +
+                "'Microsoft.AspNet.Mvc.JsonPatchInputFormatterTest+Customer' because the type requires a JSON object ";
+
+            var formatter = new JsonPatchInputFormatter();
+            var content = "[{\"op\": \"add\", \"path\" : \"Customer/Name\", \"value\":\"John\"}]";
+            var contentBytes = Encoding.UTF8.GetBytes(content);
+
+            var actionContext = GetActionContext(contentBytes, contentType: "application/json-patch+json");
+            var context = new InputFormatterContext(actionContext, typeof(Customer));
+
+            // Act
+            var model = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.Contains(exceptionMessage, actionContext.ModelState[""].Errors[0].Exception.Message);
         }
 
         private static ActionContext GetActionContext(byte[] contentBytes,
@@ -125,7 +146,7 @@ namespace Microsoft.AspNet.Mvc
             return httpContext.Object;
         }
 
-        public class Customer
+        private class Customer
         {
             public string Name { get; set; }
         }

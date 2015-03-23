@@ -633,13 +633,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         {
             if (patchProperty == null)
             {
-                throw new JsonPatchException<T>(operation,
+                throw new JsonPatchException<T>(
+                    operation,
                     string.Format("Patch failed: property at location {0} does not exist", propertyPath),
                     objectToApplyTo);
             }
             if (patchProperty.Property.Ignored)
             {
-                throw new JsonPatchException<T>(operation,
+                throw new JsonPatchException<T>(
+                    operation,
                     string.Format("Patch failed: cannot update property at location {0}", propertyPath),
                     objectToApplyTo);
             }
@@ -652,18 +654,16 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         patchProperty.Property.PropertyType.GetTypeInfo());
         }
 
-        private void CheckIfPropertyCanBeSet(ConversionResult result,
+        private void CheckIfPropertyCanBeSet(
+            ConversionResult result,
             T objectToApplyTo,
             Operation<T> operation,
             string path)
         {
+            var errorMessage = "Patch failed: provided value is invalid for property type at location path: ";
             if (!result.CanBeConverted)
             {
-                throw new JsonPatchException<T>(operation,
-                            string.Format("Patch failed: provided value is invalid for property type at " +
-                                "location path: {0}",
-                                path),
-                            objectToApplyTo);
+                throw new JsonPatchException<T>(operation, string.Format(errorMessage + "{0}", path), objectToApplyTo);
             }
         }
     }

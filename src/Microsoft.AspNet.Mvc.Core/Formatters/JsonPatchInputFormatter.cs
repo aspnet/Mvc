@@ -12,9 +12,8 @@ namespace Microsoft.AspNet.Mvc
     {
         public JsonPatchInputFormatter()
         {
-            // Remove json mediatype header and only include json-patch+json value.
-            SupportedMediaTypes.Remove(MediaTypeHeaderValue.Parse("application/json"));
-            SupportedMediaTypes.Remove(MediaTypeHeaderValue.Parse("text/json"));
+            // Clear all values and only include json-patch+json value.
+            SupportedMediaTypes.Clear();
 
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json-patch+json"));
         }
@@ -22,9 +21,11 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public override Task<object> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
         {
-            var jsonSerializer = CreateJsonSerializer();
-            var jsonPatchDocument = base.ReadRequestBodyAsync(context).Result as IJsonPatchDocument;
-            jsonPatchDocument.ContractResolver = jsonSerializer.ContractResolver;
+            var jsonPatchDocument = (IJsonPatchDocument)base.ReadRequestBodyAsync(context).Result;
+            if (jsonPatchDocument != null)
+            {
+                jsonPatchDocument.ContractResolver = SerializerSettings.ContractResolver;
+            }
 
             return Task.FromResult((object)jsonPatchDocument);
         }
@@ -32,19 +33,13 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public override bool CanRead(InputFormatterContext context)
         {
-            if (!typeof(IJsonPatchDocument).IsAssignableFrom(context.ModelType))
+            if (!typeof(IJsonPatchDocument).IsAssignableFrom(context.ModelType) ||
+                !context.ModelType.IsGenericType)
             {
                 return false;
             }
 
-            var contentType = context.ActionContext.HttpContext.Request.ContentType;
-
-            if (!string.Equals(contentType, "application/json-patch+json"))
-            {
-                return false;
-            }
-
-            return true;
+            return base.CanRead(context);
         }
     }
 }
