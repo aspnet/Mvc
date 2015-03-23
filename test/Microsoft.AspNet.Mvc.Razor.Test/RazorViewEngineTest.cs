@@ -601,33 +601,33 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         [InlineData(false)]
         public void FindPage_SelectsActionCaseInsensitively(bool isAttributeRouted)
         {
-            // The RouteData contains "Foo", and the ActionDescriptor contains "foo"
+            // The ActionDescriptor contains "Foo" and the RouteData contains "foo"
             // which matches the case of the constructor thus searching in the appropriate location.
             // Arrange
             var routeValues = new Dictionary<string, object>
             {
-                { "controller", "Foo" }
+                { "controller", "foo" }
             };
 
-            var page = Mock.Of<IRazorPage>();
+            var page = new Mock<IRazorPage>(MockBehavior.Strict).Object;
             var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("/Views/foo/layout.cshtml"))
+            pageFactory.Setup(p => p.CreateInstance("/Views/Foo/details.cshtml"))
                        .Returns(page)
                        .Verifiable();
 
             var viewEngine = CreateViewEngine(pageFactory.Object);
-            var routes = new Dictionary<string, string>()
+            var routesInActionDescriptor = new Dictionary<string, string>()
             {
-                { "controller", "foo" }
+                { "controller", "Foo" }
             };
 
-            var context = GetActionContextWithRoutes(routeValues, routes, isAttributeRouted);
+            var context = GetActionContextWithActionDescriptor(routeValues, routesInActionDescriptor, isAttributeRouted);
 
             // Act
-            var result = viewEngine.FindPage(context, "layout");
+            var result = viewEngine.FindPage(context, "details");
 
             // Assert
-            Assert.Equal("layout", result.Name);
+            Assert.Equal("details", result.Name);
             Assert.Same(page, result.Page);
             Assert.Null(result.SearchedLocations);
             pageFactory.Verify();
@@ -638,30 +638,65 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         [InlineData(true)]
         // Looks in RouteConstraints
         [InlineData(false)]
-        public void FindPage_LooksForPages_UsingActionDescriptor(bool isAttributeRouted)
+        public void FindPage_LooksForPages_UsingActionDescriptor_Controller(bool isAttributeRouted)
         {
             // Arrange
             var expected = new[]
             {
-                "/Views/bar/bar.cshtml",
-                "/Views/Shared/bar.cshtml",
+                "/Views/bar/foo.cshtml",
+                "/Views/Shared/foo.cshtml",
             };
 
             var routeValues = new Dictionary<string, object>();
-            var routes = new Dictionary<string, string>()
+            var routesInActionDescriptor = new Dictionary<string, string>()
             {
                 { "controller", "bar" }
             };
             var page = Mock.Of<IRazorPage>();
 
             var viewEngine = CreateViewEngine();
-            var context = GetActionContextWithRoutes(routeValues, routes, isAttributeRouted);
+            var context = GetActionContextWithActionDescriptor(routeValues, routesInActionDescriptor, isAttributeRouted);
 
             // Act
-            var result = viewEngine.FindPage(context, "bar");
+            var result = viewEngine.FindPage(context, "foo");
 
             // Assert
-            Assert.Equal("bar", result.Name);
+            Assert.Equal("foo", result.Name);
+            Assert.Null(result.Page);
+            Assert.Equal(expected, result.SearchedLocations);
+        }
+
+        [Theory]
+        // Looks in RouteValueDefaults
+        [InlineData(true)]
+        // Looks in RouteConstraints
+        [InlineData(false)]
+        public void FindPage_LooksForPages_UsingActionDescriptor_Areas(bool isAttributeRouted)
+        {
+            // Arrange
+            var expected = new[]
+            {
+                "/Areas/world/Views/bar/foo.cshtml",
+                "/Areas/world/Views/Shared/foo.cshtml",
+                "/Views/Shared/foo.cshtml"
+            };
+
+            var routeValues = new Dictionary<string, object>();
+            var routesInActionDescriptor = new Dictionary<string, string>()
+            {
+                { "controller", "bar" },
+                { "area", "world" }
+            };
+            var page = Mock.Of<IRazorPage>();
+
+            var viewEngine = CreateViewEngine();
+            var context = GetActionContextWithActionDescriptor(routeValues, routesInActionDescriptor, isAttributeRouted);
+
+            // Act
+            var result = viewEngine.FindPage(context, "foo");
+
+            // Assert
+            Assert.Equal("foo", result.Name);
             Assert.Null(result.Page);
             Assert.Equal(expected, result.SearchedLocations);
         }
@@ -674,18 +709,18 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             // Arrange
             var expected = new[]
             {
-                "/Views/bar/bar.cshtml",
+                "/Views/foo/bar.cshtml",
                 "/Views/Shared/bar.cshtml",
             };
 
             var routeValues = new Dictionary<string, object>()
             {
-                { "controller", "bar" }
+                { "controller", "foo" }
             };
             var page = Mock.Of<IRazorPage>();
 
             var viewEngine = CreateViewEngine();
-            var context = GetActionContextWithRoutes(routeValues, new Dictionary<string, string>(), isAttributeRouted);
+            var context = GetActionContextWithActionDescriptor(routeValues, new Dictionary<string, string>(), isAttributeRouted);
 
             // Act
             var result = viewEngine.FindPage(context, "bar");
@@ -780,9 +815,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             return new ActionContext(httpContext, routeData, actionDesciptor);
         }
 
-        private static ActionContext GetActionContextWithRoutes(
+        private static ActionContext GetActionContextWithActionDescriptor(
             IDictionary<string, object> routeValues,
-            IDictionary<string, string> routeConstraints,
+            IDictionary<string, string> routesInActionDescriptor,
             bool isAttributeRouted)
         {
             var httpContext = new DefaultHttpContext();
@@ -796,7 +831,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             if (isAttributeRouted)
             {
                 actionDescriptor.AttributeRouteInfo = new Routing.AttributeRouteInfo();
-                foreach (var kvp in routeConstraints)
+                foreach (var kvp in routesInActionDescriptor)
                 {
                     actionDescriptor.RouteValueDefaults.Add(kvp.Key, kvp.Value);
                 }
@@ -804,7 +839,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             else
             {
                 actionDescriptor.RouteConstraints = new List<RouteDataActionConstraint>();
-                foreach (var kvp in routeConstraints)
+                foreach (var kvp in routesInActionDescriptor)
                 {
                     actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(kvp.Key, kvp.Value));
                 }

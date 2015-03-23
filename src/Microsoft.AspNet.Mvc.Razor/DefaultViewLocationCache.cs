@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -49,7 +50,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             var keyBuilder = new StringBuilder();
             var routeValues = context.ActionContext.RouteData.Values;
-            var controller = routeValues.GetValueOrDefault<string>(RazorViewEngine.ControllerKey);
+            var controller = RouteUtility.GetNormalizedRouteValue(
+                RazorViewEngine.ControllerKey,
+                context.ActionContext);
 
             // format is "{viewName}:{isPartial}:{controllerName}:{areaName}:"
             keyBuilder.Append(context.ViewName)
@@ -58,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                       .Append(CacheKeySeparator)
                       .Append(controller);
 
-            var area = routeValues.GetValueOrDefault<string>(RazorViewEngine.AreaKey);
+            var area = RouteUtility.GetNormalizedRouteValue(RazorViewEngine.AreaKey, context.ActionContext);
             if (!string.IsNullOrEmpty(area))
             {
                 keyBuilder.Append(CacheKeySeparator)
