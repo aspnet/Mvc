@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             var keyBuilder = new StringBuilder();
             var routeValues = context.ActionContext.RouteData.Values;
-            var controller = RouteValueUtility.GetNormalizedRouteValue(
+            var controller = RazorViewEngine.GetNormalizedRouteValue(
                 context.ActionContext,
                 RazorViewEngine.ControllerKey);
 
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                       .Append(CacheKeySeparator)
                       .Append(controller);
 
-            var area = RouteValueUtility.GetNormalizedRouteValue(context.ActionContext, RazorViewEngine.AreaKey);
+            var area = RazorViewEngine.GetNormalizedRouteValue(context.ActionContext, RazorViewEngine.AreaKey);
             if (!string.IsNullOrEmpty(area))
             {
                 keyBuilder.Append(CacheKeySeparator)

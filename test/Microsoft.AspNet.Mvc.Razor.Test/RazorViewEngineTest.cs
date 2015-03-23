@@ -10,6 +10,7 @@ using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
+using Microsoft.AspNet.Mvc.Routing;
 
 namespace Microsoft.AspNet.Mvc.Razor.Test
 {
@@ -647,7 +648,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                 "/Views/Shared/foo.cshtml",
             };
 
-            var routeValues = new Dictionary<string, object>();
+            var routeValues = new Dictionary<string, object>
+            {
+                { "controller", "Bar" }
+            };
             var routesInActionDescriptor = new Dictionary<string, string>()
             {
                 { "controller", "bar" }
@@ -681,7 +685,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
                 "/Views/Shared/foo.cshtml"
             };
 
-            var routeValues = new Dictionary<string, object>();
+            var routeValues = new Dictionary<string, object>
+            {
+                { "controller", "Bar" },
+                { "area", "World" }
+            };
             var routesInActionDescriptor = new Dictionary<string, string>()
             {
                 { "controller", "bar" },
@@ -763,6 +771,252 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             Assert.Equal(viewLocations, viewEngine.ViewLocationFormats);
         }
 
+        [Fact]
+        public void GetNormalizedRouteValue_ReturnsValueFromRouteConstraints_IfKeyHandlingIsRequired()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                RouteConstraints = new[]
+                {
+                    new RouteDataActionConstraint(key, "Route-Value")
+                }
+            };
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Equal("Route-Value", result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_ReturnsRouteValue_IfValueDoesNotMatchRouteConstraint()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                RouteConstraints = new[]
+                {
+                    new RouteDataActionConstraint(key, "different-value")
+                }
+            };
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Equal("route-value", result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_ReturnsNull_IfRouteConstraintKeyHandlingIsDeny()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                RouteConstraints = new[]
+                {
+                    new RouteDataActionConstraint(key, routeValue: string.Empty)
+                }
+            };
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_ReturnsRouteDataValue_IfRouteConstraintKeyHandlingIsCatchAll()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                RouteConstraints = new[]
+                {
+                    RouteDataActionConstraint.CreateCatchAll(key)
+                }
+            };
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Equal("route-value", result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_UsesRouteValueDefaults_IfAttributeRouted()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                AttributeRouteInfo = new AttributeRouteInfo(),
+            };
+            actionDescriptor.RouteValueDefaults[key] = "Route-Value";
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Equal("Route-Value", result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_UsesRouteValue_IfRouteValueDefaultsDoesNotMatchRouteValue()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                AttributeRouteInfo = new AttributeRouteInfo(),
+            };
+            actionDescriptor.RouteValueDefaults[key] = "different-value";
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Equal("route-value", result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_ConvertsRouteDefaultToStringValue_IfAttributeRouted()
+        {
+            using (new CultureReplacer())
+            {
+                // Arrange
+                var key = "some-key";
+                var actionDescriptor = new ActionDescriptor
+                {
+                    AttributeRouteInfo = new AttributeRouteInfo(),
+                };
+                actionDescriptor.RouteValueDefaults[key] = 32;
+
+                var actionContext = new ActionContext
+                {
+                    ActionDescriptor = actionDescriptor,
+                    RouteData = new RouteData()
+                };
+
+                actionContext.RouteData.Values[key] = 32;
+
+                // Act
+                var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+                // Assert
+                Assert.Equal("32", result);
+            }
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_UsesRouteDataValue_IfKeyDoesNotExistInRouteDefaultValues()
+        {
+            // Arrange
+            var key = "some-key";
+            var actionDescriptor = new ActionDescriptor
+            {
+                AttributeRouteInfo = new AttributeRouteInfo(),
+            };
+
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = actionDescriptor,
+                RouteData = new RouteData()
+            };
+
+            actionContext.RouteData.Values[key] = "route-value";
+
+            // Act
+            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+            // Assert
+            Assert.Equal("route-value", result);
+        }
+
+        [Fact]
+        public void GetNormalizedRouteValue_ConvertsRouteValueToString()
+        {
+            using (new CultureReplacer())
+            {
+                // Arrange
+                var key = "some-key";
+                var actionDescriptor = new ActionDescriptor
+                {
+                    AttributeRouteInfo = new AttributeRouteInfo(),
+                };
+
+                var actionContext = new ActionContext
+                {
+                    ActionDescriptor = actionDescriptor,
+                    RouteData = new RouteData()
+                };
+
+                actionContext.RouteData.Values[key] = 43;
+
+                // Act
+                var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
+
+                // Assert
+                Assert.Equal("43", result);
+            }
+        }
+
         private RazorViewEngine CreateViewEngine(IRazorPageFactory pageFactory = null,
                                                  IRazorViewFactory viewFactory = null,
                                                  IEnumerable<IViewLocationExpander> expanders = null,
@@ -830,7 +1084,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             var actionDescriptor = new ActionDescriptor();
             if (isAttributeRouted)
             {
-                actionDescriptor.AttributeRouteInfo = new Routing.AttributeRouteInfo();
+                actionDescriptor.AttributeRouteInfo = new AttributeRouteInfo();
                 foreach (var kvp in routesInActionDescriptor)
                 {
                     actionDescriptor.RouteValueDefaults.Add(kvp.Key, kvp.Value);
