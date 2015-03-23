@@ -166,7 +166,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                                                             bool isPartial)
         {
             // Initialize the dictionary for the typical case of having controller and action tokens.
-            var areaName = RouteUtility.GetNormalizedRouteValue(AreaKey, context);
+            var areaName = RouteValueUtility.GetNormalizedRouteValue(context, AreaKey);
 
             // Only use the area view location formats if we have an area token.
             var viewLocations = !string.IsNullOrEmpty(areaName) ? AreaViewLocationFormats :
@@ -205,7 +205,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             // 3. Use the expanded locations to look up a page.
-            var controllerName = RouteUtility.GetNormalizedRouteValue(ControllerKey, context);
+            var controllerName = RouteValueUtility.GetNormalizedRouteValue(context, ControllerKey);
             var searchedLocations = new List<string>();
             foreach (var path in viewLocations)
             {
