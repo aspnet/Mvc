@@ -772,11 +772,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     // <select/>, Html.DropDownListFor() and Html.ListBoxFor() helper case. Do not use ViewData.
                     rawValue = modelExplorer.Model;
                 }
-            }
 
-            if (rawValue == null)
-            {
-                return null;
+                if (rawValue == null)
+                {
+                    return null;
+                }
             }
 
             // Convert raw value to a collection.
@@ -787,7 +787,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 if (rawValues == null || rawValues is string)
                 {
                     throw new InvalidOperationException(
-                        Resources.FormatHtmlHelper_SelectExpressionNotEnumerable("expression"));
+                        Resources.FormatHtmlHelper_SelectExpressionNotEnumerable(nameof(expression)));
                 }
             }
             else
@@ -797,34 +797,30 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             modelExplorer = modelExplorer ??
                 ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
+
+            var enumNames = modelExplorer.Metadata.EnumNamesAndValues;
             var isEnum = modelExplorer.Metadata.IsEnum;
             var innerType =
                 Nullable.GetUnderlyingType(modelExplorer.Metadata.ModelType) ?? modelExplorer.Metadata.ModelType;
 
             // Convert raw value collection to strings.
-            var currentValues = new HashSet<string>(StringComparer.Ordinal);
+            var currentValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var value in rawValues)
             {
-                if (value == null)
+                // Add original or converted string.
+                var stringValue = (value as string) ?? Convert.ToString(value, CultureInfo.CurrentCulture);
+
+                // Do not add simple names of enum properties because UpdateSelectListItemsWithDefaultValue checks
+                // those names directly.
+                if (enumNames == null || !enumNames.ContainsKey(stringValue.Trim()))
                 {
-                    continue;
+                    currentValues.Add(stringValue);
                 }
 
-                if (!isEnum)
-                {
-                    // Add original or converted string.
-                    var stringValue = (value as string) ?? Convert.ToString(value, CultureInfo.CurrentCulture);
-                    if (!string.IsNullOrEmpty(stringValue))
-                    {
-                        currentValues.Add(stringValue);
-                    }
-
-                    // No enum special-case required.
-                    continue;
-                }
-
+                // Remainder handles isEnum cases. Convert.ToString() returns field names for enum values but select
+                // list may (well, should) contain integer values.
                 var enumValue = value as Enum;
-                if (enumValue == null)
+                if (isEnum && enumValue == null && value != null)
                 {
                     var valueType = value.GetType();
                     if (typeof(long).IsAssignableFrom(valueType) || typeof(ulong).IsAssignableFrom(valueType))
@@ -835,7 +831,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     else
                     {
                         // E.g. got a string from ModelState.
-                        var stringValue = (value as string) ?? Convert.ToString(value, CultureInfo.CurrentCulture);
                         if (!string.IsNullOrEmpty(stringValue))
                         {
                             var methodInfo = ConvertEnumFromStringMethod.MakeGenericMethod(innerType);
@@ -844,7 +839,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     }
                 }
 
-                // Ignore invalid values found in ModelState or ViewData. Cannot be round-tripped.
                 if (enumValue != null)
                 {
                     // Add integer value.
