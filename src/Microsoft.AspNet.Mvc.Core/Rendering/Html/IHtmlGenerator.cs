@@ -301,7 +301,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <param name="expression">Expression name, relative to the current model.</param>
         /// <param name="allowMultiple">
-        /// If <c>true</c>, allow multiple items in the return value. Otherwise returns at most one entry.
+        /// If <c>true</c>, require a collection <paramref name="expression"/> result. Otherwise, treat result as a
+        /// single value.
         /// </param>
         /// <returns>
         /// <para>
@@ -316,8 +317,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// <para>
         /// If the <paramref name="expression"/> result or the element type is an <see cref="System.Enum"/>, returns a
-        /// <see cref="string"/> containing the integer representation of the <see cref="System.Enum"/> value.
-        /// Otherwise returns the default <see cref="string"/> conversion of the value.
+        /// <see cref="string"/> containing the integer representation of the <see cref="System.Enum"/> value as well
+        /// as all <see cref="System.Enum"/> names for that value. Otherwise returns the default <see cref="string"/>
+        /// conversion of the value.
         /// </para>
         /// </returns>
         /// <remarks>

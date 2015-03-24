@@ -427,10 +427,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
             if (currentValues != null)
             {
-                selectList = UpdateSelectListItemsWithDefaultValue(
-                    modelExplorer,
-                    selectList,
-                    currentValues);
+                selectList = UpdateSelectListItemsWithDefaultValue(modelExplorer, selectList, currentValues);
             }
 
             // Convert each ListItem to an <option> tag and wrap them with <optgroup> if requested.
@@ -810,8 +807,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 // Add original or converted string.
                 var stringValue = (value as string) ?? Convert.ToString(value, CultureInfo.CurrentCulture);
 
-                // Do not add simple names of enum properties because UpdateSelectListItemsWithDefaultValue checks
-                // those names directly.
+                // Do not add simple names of enum properties here because whitespace isn't relevant for their binding.
+                // Will add matching names just below.
                 if (enumNames == null || !enumNames.ContainsKey(stringValue.Trim()))
                 {
                     currentValues.Add(stringValue);
@@ -839,7 +836,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 if (enumValue != null)
                 {
                     // Add integer value.
-                    currentValues.Add(enumValue.ToString("d"));
+                    var integerString = enumValue.ToString("d");
+                    currentValues.Add(integerString);
+
+                    // Add all simple names for this value.
+                    var matchingNames = enumNames
+                        .Where(kvp => string.Equals(integerString, kvp.Value, StringComparison.Ordinal))
+                        .Select(kvp => kvp.Key);
+                    foreach (var name in matchingNames)
+                    {
+                        currentValues.Add(name);
+                    }
                 }
             }
 
@@ -1183,21 +1190,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             IEnumerable<SelectListItem> selectList,
             IReadOnlyCollection<string> currentValues)
         {
-            var enumNames = modelExplorer.Metadata.EnumNamesAndValues;
-
             // Perform deep copy of selectList to avoid changing user's Selected property values.
             var newSelectList = new List<SelectListItem>();
             foreach (SelectListItem item in selectList)
             {
                 var value = item.Value ?? item.Text;
-                var matchedValue = value;
-                var selected = currentValues.Contains(matchedValue);
-                if (!selected && enumNames != null && enumNames.TryGetValue(value, out matchedValue))
-                {
-                    // Check if select list contains enum names and not values.
-                    selected = currentValues.Contains(matchedValue);
-                }
-
+                var selected = currentValues.Contains(value);
                 var copy = new SelectListItem
                 {
                     Disabled = item.Disabled,
