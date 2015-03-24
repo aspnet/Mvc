@@ -41,7 +41,7 @@ namespace ResponseCacheWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.GetTestConfiguration();
+            app.UseCultureReplacer();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

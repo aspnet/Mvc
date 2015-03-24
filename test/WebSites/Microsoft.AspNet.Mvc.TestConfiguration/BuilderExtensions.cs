@@ -7,9 +7,9 @@ namespace Microsoft.AspNet.Builder
 {
     public static class BuilderExtensions
     {
-        public static IApplicationBuilder GetTestConfiguration(this IApplicationBuilder app)
+        // Should be added to the pipeline as early as possible.
+        public static IApplicationBuilder UseCultureReplacer(this IApplicationBuilder app)
         {
-            // Unconditionally place CultureReplacerMiddleware as early as possible in the pipeline.
             return app.UseMiddleware<CultureReplacerMiddleware>();
         }
 

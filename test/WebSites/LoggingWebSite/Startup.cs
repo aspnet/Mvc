@@ -22,7 +22,7 @@ namespace LoggingWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.GetTestConfiguration();
+            app.UseCultureReplacer();
 
             app.Map("/logs", (appBuilder) =>
             {

@@ -16,7 +16,7 @@ namespace CustomRouteWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.GetTestConfiguration();
+            app.UseCultureReplacer();
 
             app.UseMvc(routes =>
             {

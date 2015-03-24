@@ -18,7 +18,7 @@ namespace RequestServicesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.GetTestConfiguration();
+            app.UseCultureReplacer();
 
             // Initializes the RequestId service for each request
             app.UseMiddleware<RequestIdMiddleware>();
