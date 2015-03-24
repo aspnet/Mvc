@@ -488,6 +488,44 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Fact]
+        public void RendersLinkTags_AddsFileVersion_WithRequestPathBase()
+        {
+            // Arrange
+            var context = MakeTagHelperContext(
+                attributes: new Dictionary<string, object>
+                {
+                    ["href"] = "/bar/css/site.css",
+                    ["rel"] = "stylesheet",
+                    ["asp-file-version"] = "true"
+                });
+            var output = MakeTagHelperOutput("link", attributes: new Dictionary<string, string>
+            {
+                ["href"] = "/bar/css/site.css",
+                ["rel"] = "stylesheet"
+            });
+            var logger = new Mock<ILogger<LinkTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext("/bar");
+            var helper = new LinkTagHelper
+            {
+                HtmlEncoder = new TestHtmlEncoder(),
+                Logger = logger.Object,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext,
+                HrefInclude = "**/*.css",
+                FileVersion = true,
+                Cache = MakeCache(),
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Equal("<link href=\"HtmlEncode[[/bar/css/site.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-" +
+                "j1ncoSt3SABJtkGk]]\" rel=\"stylesheet\" />", output.Content.GetContent());
+        }
+
+        [Fact]
         public void RendersLinkTags_GlobbedHref_AddsFileVersion()
         {
             // Arrange
@@ -531,9 +569,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\" rel=\"stylesheet\" />", output.Content.GetContent());
         }
 
-        private static ViewContext MakeViewContext()
+        private static ViewContext MakeViewContext(string requestPathBase = null)
         {
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+            if (requestPathBase != null)
+            {
+                actionContext.HttpContext.Request.PathBase = new Http.PathString(requestPathBase);
+            }
+
             var metadataProvider = new EmptyModelMetadataProvider();
             var viewData = new ViewDataDictionary(metadataProvider);
             var viewContext = new ViewContext(

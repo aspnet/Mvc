@@ -96,17 +96,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         [Theory]
-        [InlineData("/hello/world", "/hello/world")]
-        [InlineData("/testApp/hello/world", "/hello/world")]
-        [InlineData("~/testApp/hello/world", "/hello/world")]
-        [InlineData("/hello/world", "/hello/world")]
-        public void SetsValueInCache(string filePath, string watchPath)
+        [InlineData("/hello/world", "/hello/world", null)]
+        [InlineData("/testApp/hello/world", "/hello/world", "/testApp")]
+        [InlineData("/hello/world", "/hello/world", null)]
+        public void SetsValueInCache(string filePath, string watchPath, string requestPathBase)
         {
             // Arrange
             var trigger = new Mock<IExpirationTrigger>();
-            var hostingEnvironment = GetMockHostingEnvironment(filePath);
+            var hostingEnvironment = GetMockHostingEnvironment(filePath, requestPathBase != null);
             Mock.Get(hostingEnvironment.WebRootFileProvider)
-                .Setup(f => f.Watch(It.IsAny<string>())).Returns(trigger.Object);
+                .Setup(f => f.Watch(watchPath)).Returns(trigger.Object);
 
             object cacheValue = null;
             var cache = new Mock<IMemoryCache>();
@@ -130,7 +129,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var fileVersionProvider = new FileVersionProvider(
                 hostingEnvironment.WebRootFileProvider,
                 cache.Object,
-                GetRequestPathBase());
+                GetRequestPathBase(requestPathBase));
 
             // Act
             var result = fileVersionProvider.AddFileVersionToPath(filePath);

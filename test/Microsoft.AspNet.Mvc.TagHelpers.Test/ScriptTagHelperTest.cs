@@ -587,6 +587,44 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Fact]
+        public async Task RenderScriptTags_WithFileVersion_AndRequestPathBase()
+        {
+            // Arrange
+            var context = MakeTagHelperContext(
+                attributes: new Dictionary<string, object>
+                {
+                    ["src"] = "/bar/js/site.js",
+                    ["asp-file-version"] = "true"
+                });
+            var output = MakeTagHelperOutput("script", attributes: new Dictionary<string, string>
+            {
+                ["src"] = "/bar/js/site.js"
+            });
+
+            var logger = new Mock<ILogger<ScriptTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext("/bar");
+
+            var helper = new ScriptTagHelper
+            {
+                Logger = logger.Object,
+                HostingEnvironment = hostingEnvironment,
+                ViewContext = viewContext,
+                FileVersion = true,
+                HtmlEncoder = new TestHtmlEncoder(),
+                Cache = MakeCache(),
+            };
+
+            // Act
+            await helper.ProcessAsync(context, output);
+
+            // Assert
+            Assert.Equal(
+                "<script src=\"HtmlEncode[[/bar/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
+                "</script>", output.Content.GetContent());
+        }
+
+        [Fact]
         public async Task RenderScriptTags_FallbackSrc_WithFileVersion()
         {
             // Arrange
@@ -690,9 +728,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
         }
 
-        private static ViewContext MakeViewContext()
+        private static ViewContext MakeViewContext(string requestPathBase = null)
         {
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+            if (requestPathBase != null)
+            {
+                actionContext.HttpContext.Request.PathBase = new Http.PathString(requestPathBase);
+            }
+
             var metadataProvider = new EmptyModelMetadataProvider();
             var viewData = new ViewDataDictionary(metadataProvider);
             var viewContext = new ViewContext(

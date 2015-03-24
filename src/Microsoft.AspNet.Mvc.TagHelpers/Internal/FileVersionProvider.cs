@@ -51,13 +51,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var fileInfo = _fileProvider.GetFileInfo(resolvedPath);
             if (!fileInfo.Exists)
             {
-                if (_requestPathBase.HasValue)
+                if (_requestPathBase.HasValue &&
+                    resolvedPath.StartsWith(_requestPathBase.Value, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (resolvedPath.StartsWith(_requestPathBase.Value, StringComparison.OrdinalIgnoreCase))
-                    {
-                        resolvedPath = resolvedPath.Substring(_requestPathBase.Value.Length + 1);
-                    }
-
+                    resolvedPath = resolvedPath.Substring(_requestPathBase.Value.Length);
                     fileInfo = _fileProvider.GetFileInfo(resolvedPath);
                 }
 

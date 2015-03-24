@@ -27,6 +27,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     [TargetElement("script", Attributes = FallbackSrcIncludeAttributeName)]
     [TargetElement("script", Attributes = FallbackSrcExcludeAttributeName)]
     [TargetElement("script", Attributes = FallbackTestExpressionAttributeName)]
+    [TargetElement("script", Attributes = FileVersionAttributeName)]
     public class ScriptTagHelper : TagHelper
     {
         private const string SrcIncludeAttributeName = "asp-src-include";

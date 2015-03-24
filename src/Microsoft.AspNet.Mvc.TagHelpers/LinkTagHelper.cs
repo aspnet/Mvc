@@ -29,6 +29,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     [TargetElement("link", Attributes = FallbackTestClassAttributeName)]
     [TargetElement("link", Attributes = FallbackTestPropertyAttributeName)]
     [TargetElement("link", Attributes = FallbackTestValueAttributeName)]
+    [TargetElement("link", Attributes = FileVersionAttributeName)]
     public class LinkTagHelper : TagHelper
     {
         private const string HrefIncludeAttributeName = "asp-href-include";
