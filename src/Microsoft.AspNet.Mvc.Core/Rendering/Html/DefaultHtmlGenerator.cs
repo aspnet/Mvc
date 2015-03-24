@@ -1092,15 +1092,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return (Enum)Enum.ToObject(targetType, value);
             }
             catch (Exception exception)
+            when (exception is FormatException || exception.InnerException is FormatException)
             {
-                if (exception is FormatException || exception.InnerException is FormatException)
-                {
-                    // The integer was too large for this enum type.
-                    return null;
-                }
-
-                // Truly unexpected.
-                throw;
+                // The integer was too large for this enum type.
+                return null;
             }
         }
 
