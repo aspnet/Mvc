@@ -799,7 +799,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
 
             var enumNames = modelExplorer.Metadata.EnumNamesAndValues;
-            var isEnum = modelExplorer.Metadata.IsEnum;
+            var isTargetEnum = modelExplorer.Metadata.IsEnum;
             var innerType =
                 Nullable.GetUnderlyingType(modelExplorer.Metadata.ModelType) ?? modelExplorer.Metadata.ModelType;
 
@@ -820,7 +820,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 // Remainder handles isEnum cases. Convert.ToString() returns field names for enum values but select
                 // list may (well, should) contain integer values.
                 var enumValue = value as Enum;
-                if (isEnum && enumValue == null && value != null)
+                if (isTargetEnum && enumValue == null && value != null)
                 {
                     var valueType = value.GetType();
                     if (typeof(long).IsAssignableFrom(valueType) || typeof(ulong).IsAssignableFrom(valueType))
@@ -828,14 +828,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         // E.g. user added an int to a ViewData entry and called a string-based HTML helper.
                         enumValue = ConvertEnumFromInteger(value, innerType);
                     }
-                    else
+                    else if (!string.IsNullOrEmpty(stringValue))
                     {
                         // E.g. got a string from ModelState.
-                        if (!string.IsNullOrEmpty(stringValue))
-                        {
-                            var methodInfo = ConvertEnumFromStringMethod.MakeGenericMethod(innerType);
-                            enumValue = (Enum)methodInfo.Invoke(obj: null, parameters: new[] { stringValue });
-                        }
+                        var methodInfo = ConvertEnumFromStringMethod.MakeGenericMethod(innerType);
+                        enumValue = (Enum)methodInfo.Invoke(obj: null, parameters: new[] { stringValue });
                     }
                 }
 
