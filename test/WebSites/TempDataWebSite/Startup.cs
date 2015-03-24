@@ -18,7 +18,7 @@ namespace TempDataWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
+            app.GetTestConfiguration();
 
             app.UseInMemorySession();
             app.UseMvc(routes =>

@@ -18,7 +18,7 @@ namespace RequestServicesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
+            app.GetTestConfiguration();
 
             // Initializes the RequestId service for each request
             app.UseMiddleware<RequestIdMiddleware>();

@@ -27,7 +27,7 @@ namespace UrlHelperWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
+            app.GetTestConfiguration();
 
 
             // Add MVC to the request pipeline

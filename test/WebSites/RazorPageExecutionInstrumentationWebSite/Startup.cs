@@ -21,7 +21,7 @@ namespace RazorPageExecutionInstrumentationWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
+            app.GetTestConfiguration();
 
             app.Use(async (HttpContext context, Func<Task> next) =>
             {

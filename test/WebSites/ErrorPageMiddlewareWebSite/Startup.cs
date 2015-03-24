@@ -16,7 +16,7 @@ namespace ErrorPageMiddlewareWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
+            app.GetTestConfiguration();
 
             app.UseErrorPage();
             app.UseMvc();

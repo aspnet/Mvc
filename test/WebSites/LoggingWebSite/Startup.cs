@@ -22,7 +22,7 @@ namespace LoggingWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
+            app.GetTestConfiguration();
 
             app.Map("/logs", (appBuilder) =>
             {
