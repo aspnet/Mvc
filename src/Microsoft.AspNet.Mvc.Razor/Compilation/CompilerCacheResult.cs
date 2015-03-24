@@ -3,7 +3,7 @@
 
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.Razor
+namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
     /// <summary>
     /// Result of <see cref="ICompilerCache"/>.
