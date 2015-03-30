@@ -5,11 +5,11 @@ using Microsoft.AspNet.Razor.Parser.SyntaxTree;
 using Microsoft.AspNet.Razor.Text;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Razor.Test
+namespace Microsoft.AspNet.Mvc.Razor.Precompilation
 {
     public class RazorErrorExtensionsTest
     {
-        public static TheoryData ToDiagnostic_DoesNotThrowWhenRazorErrorLocationIsZeroOrUndefinedData
+        public static TheoryData ToDiagnostic_SucceedsWhenRazorErrorLocationIsZeroOrUndefinedData
         {
             get
             {
@@ -24,8 +24,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         }
 
         [Theory]
-        [MemberData(nameof(ToDiagnostic_DoesNotThrowWhenRazorErrorLocationIsZeroOrUndefinedData))]
-        public void ToDiagnostic_DoesNotThrowWhenRazorErrorLocationIsZeroOrUndefined(
+        [MemberData(nameof(ToDiagnostic_SucceedsWhenRazorErrorLocationIsZeroOrUndefinedData))]
+        public void ToDiagnostic_SucceedsWhenRazorErrorLocationIsZeroOrUndefined(
             SourceLocation location,
             int length)
         {
@@ -48,8 +48,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
         public void ToDiagnostic_ConvertsRazorErrorLocation_ToSourceLineMappings()
         {
             // Arrange
-            var sourceLocation = new SourceLocation(30, 10, 1);
-            var error = new RazorError("some message", sourceLocation, 5);
+            var sourceLocation = new SourceLocation(absoluteIndex: 30, lineIndex: 10, characterIndex: 1);
+            var error = new RazorError("some message", sourceLocation, length: 5);
 
             // Act
             var diagnostics = error.ToDiagnostics("/some-path");
