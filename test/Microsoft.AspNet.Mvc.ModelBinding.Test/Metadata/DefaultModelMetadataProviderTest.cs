@@ -26,7 +26,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.Equal("OnType", attribute.Value);
         }
 
-        // The attributes and other 'details' are cached
         [Fact]
         public void GetMetadataForType_Cached()
         {
@@ -38,6 +37,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             var metadata2 = Assert.IsType<DefaultModelMetadata>(provider.GetMetadataForType(typeof(ModelType)));
 
             // Assert
+            Assert.Same(metadata1, metadata2);
             Assert.Same(metadata1.Attributes, metadata2.Attributes);
             Assert.Same(metadata1.BindingMetadata, metadata2.BindingMetadata);
             Assert.Same(metadata1.DisplayMetadata, metadata2.DisplayMetadata);
@@ -86,11 +86,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Assert
             for (var i = 0; i < metadata1.Length; i++)
             {
+                Assert.Same(metadata1[0], metadata2[1]);
                 Assert.Same(metadata1[i].Attributes, metadata2[i].Attributes);
                 Assert.Same(metadata1[i].BindingMetadata, metadata2[i].BindingMetadata);
                 Assert.Same(metadata1[i].DisplayMetadata, metadata2[i].DisplayMetadata);
                 Assert.Same(metadata1[i].ValidationMetadata, metadata2[i].ValidationMetadata);
             }
+        }
+
+        [Fact]
+        public void GetMetadataForType_PropertiesCollection_Cached()
+        {
+            // Arrange
+            var provider = CreateProvider();
+
+            // Act
+            var metadata1 = Assert.IsType<DefaultModelMetadata>(provider.GetMetadataForType(typeof(ModelType)));
+            var metadata2 = Assert.IsType<DefaultModelMetadata>(provider.GetMetadataForType(typeof(ModelType)));
+
+            // Assert
+            Assert.Same(metadata1.Properties, metadata2.Properties);
         }
 
         [Fact]

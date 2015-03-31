@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     {
         private readonly IModelMetadataProvider _provider;
         private readonly ICompositeMetadataDetailsProvider _detailsProvider;
-        private readonly DefaultMetadataDetailsCache _cache;
+        private readonly DefaultMetadataDetails _cache;
 
         private ReadOnlyDictionary<object, object> _additionalValues;
         private bool? _isReadOnly;
@@ -29,11 +29,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// </summary>
         /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
-        /// <param name="cache">The <see cref="DefaultMetadataDetailsCache"/>.</param>
+        /// <param name="cache">The <see cref="DefaultMetadataDetails"/>.</param>
         public DefaultModelMetadata(
             [NotNull] IModelMetadataProvider provider,
             [NotNull] ICompositeMetadataDetailsProvider detailsProvider,
-            [NotNull] DefaultMetadataDetailsCache cache)
+            [NotNull] DefaultMetadataDetails cache)
             : base(cache.Key)
         {
             _provider = provider;
