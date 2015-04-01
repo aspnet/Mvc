@@ -282,8 +282,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             // Act & Assert
             var exception = Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
-            Assert.Equal("For Operation 'add', array property at location path: '/simpledto/integerlist/4' index is " +
-                "larger than array size.", exception.Message);
+            Assert.Equal("For operation 'add' on array property at path '/simpledto/integerlist/4', the index is " +
+                "larger than the array size.", exception.Message);
 
         }
 
@@ -311,8 +311,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
                 {
                     deserialized.ApplyTo(doc);
                 });
-            Assert.Equal("For Operation 'add', array property at location path: '/simpledto/integerlist/4' index is " +
-                "larger than array size.", exception.Message);
+            Assert.Equal("For operation 'add' on array property at path '/simpledto/integerlist/4', the index is " +
+                "larger than the array size.", exception.Message);
         }
 
         [Fact]
@@ -528,8 +528,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             // Act & Assert
             var exception = Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
-            Assert.Equal("For Operation 'remove', array property at location path: '/simpledto/integerlist/3' index " +
-                "is larger than array size.", exception.Message);
+            Assert.Equal("For operation 'remove' on array property at path '/simpledto/integerlist/3', the index is " +
+                "larger than the array size.", exception.Message);
         }
 
         [Fact]
@@ -556,8 +556,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
                 {
                     deserialized.ApplyTo(doc);
                 });
-            Assert.Equal("For Operation 'remove', array property at location path: '/simpledto/integerlist/3' index " +
-                "is larger than array size.", exception.Message);
+            Assert.Equal("For operation 'remove' on array property at path '/simpledto/integerlist/3', the index is " +
+                "larger than the array size.", exception.Message);
         }
 
         [Fact]
@@ -1014,8 +1014,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             // Act & Assert
             var exception = Assert.Throws<JsonPatchException<SimpleDTOWithNestedDTO>>(() => { patchDoc.ApplyTo(doc); });
-            Assert.Equal("For Operation 'replace', array property at location path: '/simpledto/integerlist/3' index " +
-                "is larger than array size.", exception.Message);
+            Assert.Equal("For operation 'replace' on array property at path '/simpledto/integerlist/3', the index is " +
+                "larger than the array size.", exception.Message);
         }
 
         [Fact]
@@ -1042,8 +1042,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
                 {
                     deserialized.ApplyTo(doc);
                 });
-            Assert.Equal("For Operation 'replace', array property at location path: '/simpledto/integerlist/3' index " +
-                "is larger than array size.", exception.Message);
+            Assert.Equal("For operation 'replace' on array property at path '/simpledto/integerlist/3', the index is " +
+                "larger than the array size.", exception.Message);
         }
 
         [Fact]

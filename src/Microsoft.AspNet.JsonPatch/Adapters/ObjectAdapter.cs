@@ -157,19 +157,19 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         }
                         else
                         {
-                            throw new JsonPatchException<T>(operationToReport,
-                                Resources.InvalidIndexForArrayProperty(operationToReport.op, path),
-                                objectToApplyTo,
-                                422);
+                            throw new JsonPatchException<T>(
+                                operationToReport,
+                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path),
+                                objectToApplyTo);
                         }
                     }
                 }
                 else
                 {
-                    throw new JsonPatchException<T>(operationToReport,
-                       Resources.InvalidPathForArrayProperty(operationToReport.op, path),
-                       objectToApplyTo,
-                       422);
+                    throw new JsonPatchException<T>(
+                        operationToReport,
+                        Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path),
+                        objectToApplyTo);
                 }
             }
             else
@@ -245,20 +245,20 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     if (array.Count <= positionAsInteger)
                     {
-                        throw new JsonPatchException<T>(operation,
-                            Resources.InvalidIndexForArrayProperty(operation.op, operation.from),
-                            objectToApplyTo,
-                            422);
+                        throw new JsonPatchException<T>(
+                            operation,
+                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from),
+                            objectToApplyTo);
                     }
 
                     valueAtFromLocation = array[positionAsInteger];
                 }
                 else
                 {
-                    throw new JsonPatchException<T>(operation,
-                       Resources.InvalidPathForArrayProperty(operation.op, operation.from),
-                       objectToApplyTo,
-                       422);
+                    throw new JsonPatchException<T>(
+                        operation,
+                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from),
+                        objectToApplyTo);
                 }
             }
             else
@@ -352,19 +352,19 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         }
                         else
                         {
-                            throw new JsonPatchException<T>(operationToReport,
-                               Resources.InvalidIndexForArrayProperty(operationToReport.op, path),
-                                objectToApplyTo,
-                                422);
+                            throw new JsonPatchException<T>(
+                                operationToReport,
+                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path),
+                                objectToApplyTo);
                         }
                     }
                 }
                 else
                 {
-                    throw new JsonPatchException<T>(operationToReport,
-                       Resources.InvalidPathForArrayProperty(operationToReport.op, path),
-                       objectToApplyTo,
-                       422);
+                    throw new JsonPatchException<T>(
+                        operationToReport,
+                        Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path),
+                        objectToApplyTo);
                 }
             }
             else
@@ -471,20 +471,20 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     if (array.Count <= positionInPathAsInteger)
                     {
-                        throw new JsonPatchException<T>(operation,
-                            Resources.InvalidIndexForArrayProperty(operation.op, operation.path),
-                            objectToApplyTo,
-                            422);
+                        throw new JsonPatchException<T>(
+                            operation,
+                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.path),
+                            objectToApplyTo);
                     }
 
                     valueAtPathLocation = array[positionInPathAsInteger];
                 }
                 else
                 {
-                    throw new JsonPatchException<T>(operation,
-                       Resources.InvalidPathForArrayProperty(operation.op, operation.path),
-                       objectToApplyTo,
-                       422);
+                    throw new JsonPatchException<T>(
+                        operation,
+                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.path),
+                        objectToApplyTo);
                 }
             }
             else
@@ -589,19 +589,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     if (array.Count <= positionAsInteger)
                     {
                         throw new JsonPatchException<T>(operation,
-                            Resources.InvalidIndexForArrayProperty(operation.op, operation.from),
-                            objectToApplyTo,
-                            422);
+                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from),
+                            objectToApplyTo);
                     }
 
                     valueAtFromLocation = array[positionAsInteger];
                 }
                 else
                 {
-                    throw new JsonPatchException<T>(operation,
-                       Resources.InvalidPathForArrayProperty(operation.op, operation.from),
-                       objectToApplyTo,
-                       422);
+                    throw new JsonPatchException<T>(
+                        operation,
+                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from),
+                        objectToApplyTo);
                 }
             }
             else
@@ -625,16 +624,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             {
                 throw new JsonPatchException<T>(
                     operation,
-                    Resources.PropertyDoesNotExist(propertyPath),
-                    objectToApplyTo, 422);
+                    Resources.FormatPropertyDoesNotExist(propertyPath),
+                    objectToApplyTo);
             }
             if (patchProperty.Property.Ignored)
             {
                 throw new JsonPatchException<T>(
                     operation,
-                    Resources.CannotUpdateProperty(propertyPath),
-                    objectToApplyTo,
-                    422);
+                    Resources.FormatCannotUpdateProperty(propertyPath),
+                    objectToApplyTo);
             }
         }
 
@@ -655,9 +653,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             {
                 throw new JsonPatchException<T>(
                     operation,
-                    Resources.InvalidValueForProperty(result.ConvertedInstance, path),
-                    objectToApplyTo,
-                    422);
+                    Resources.FormatInvalidValueForProperty(result.ConvertedInstance, path),
+                    objectToApplyTo);
             }
         }
     }

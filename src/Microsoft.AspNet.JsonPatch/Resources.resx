@@ -121,13 +121,16 @@
     <value>Cannot update property at path '{0}'.</value>
   </data>
   <data name="InvalidIndexForArrayProperty" xml:space="preserve">
-    <value>For Operation '{0}', array property at location path: '{1}' index is larger than array size.</value>
+    <value>For operation '{0}' on array property at path '{1}', the index is larger than the array size.</value>
+  </data>
+  <data name="InvalidJsonPatchDocument" xml:space="preserve">
+    <value>The JsonPatchDocument was malformed and could not be parsed.</value>
   </data>
   <data name="InvalidPathForArrayProperty" xml:space="preserve">
-    <value>For Operation '{0}', provided path is invalid for array property at location path: '{1}'.</value>
+    <value>For operation '{0}',  the provided path is invalid for array property at path '{1}'.</value>
   </data>
   <data name="InvalidValueForProperty" xml:space="preserve">
-    <value>Provided value '{0}' is invalid for property at path: '{1}'.</value>
+    <value>Provided value '{0}' is invalid for property at path '{1}'.</value>
   </data>
   <data name="PropertyDoesNotExist" xml:space="preserve">
     <value>Property does not exist at path '{0}'.</value>
