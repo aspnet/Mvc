@@ -31,17 +31,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public IReadOnlyList<object> Attributes { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Metadata.BindingMetadata"/>
+        /// Gets or sets the <see cref="Metadata.BindingMetadata"/>.
         /// </summary>
         public BindingMetadata BindingMetadata { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Metadata.DisplayMetadata"/>
+        /// Gets or sets the <see cref="Metadata.DisplayMetadata"/>.
         /// </summary>
         public DisplayMetadata DisplayMetadata { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="ModelMetadataIdentity"/>
+        /// Gets or sets the <see cref="ModelMetadataIdentity"/>.
         /// </summary>
         public ModelMetadataIdentity Key { get; }
 

@@ -80,17 +80,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             var provider = CreateProvider();
 
             // Act
-            var metadata1 = provider.GetMetadataForProperties(typeof(ModelType)).Cast<DefaultModelMetadata>().ToArray();
-            var metadata2 = provider.GetMetadataForProperties(typeof(ModelType)).Cast<DefaultModelMetadata>().ToArray();
+            var properties1 = provider.GetMetadataForProperties(typeof(ModelType)).Cast<DefaultModelMetadata>().ToArray();
+            var properties2 = provider.GetMetadataForProperties(typeof(ModelType)).Cast<DefaultModelMetadata>().ToArray();
 
             // Assert
-            for (var i = 0; i < metadata1.Length; i++)
+            Assert.Equal(properties1.Length, properties2.Length);
+            for (var i = 0; i < properties1.Length; i++)
             {
-                Assert.Same(metadata1[0], metadata2[1]);
-                Assert.Same(metadata1[i].Attributes, metadata2[i].Attributes);
-                Assert.Same(metadata1[i].BindingMetadata, metadata2[i].BindingMetadata);
-                Assert.Same(metadata1[i].DisplayMetadata, metadata2[i].DisplayMetadata);
-                Assert.Same(metadata1[i].ValidationMetadata, metadata2[i].ValidationMetadata);
+                Assert.Same(properties1[i], properties2[i]);
+                Assert.Same(properties1[i].Attributes, properties2[i].Attributes);
+                Assert.Same(properties1[i].BindingMetadata, properties2[i].BindingMetadata);
+                Assert.Same(properties1[i].DisplayMetadata, properties2[i].DisplayMetadata);
+                Assert.Same(properties1[i].ValidationMetadata, properties2[i].ValidationMetadata);
             }
         }
 

@@ -39,6 +39,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             var key = ModelMetadataIdentity.ForType(modelType);
 
             var cacheEntry = _typeCache.GetOrAdd(key, _cacheEntryFactory);
+
+            // We're relying on a safe race-condition for Properties - take care only
+            // to set the value onces the properties are fully-initialized.
             if (cacheEntry.Details.Properties == null)
             {
                 var propertyDetails = CreatePropertyDetails(key);
