@@ -35,10 +35,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             EnsureModel(bindingContext);
-            var result = await CreateAndPopulateDto(bindingContext, mutableObjectBinderContext.PropertyMetadata);
+            var result = await BindProperties(bindingContext, mutableObjectBinderContext.PropertyMetadata);
 
             // post-processing, e.g. property setters and hooking up validation
-            ProcessDto(bindingContext, (ComplexModelDto)result.Model);
+            ProcessResult(bindingContext, result);
             return new ModelBindingResult(
                 bindingContext.Model,
                 bindingContext.ModelName,
@@ -197,11 +197,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return false;
             }
 
-            if (modelType == typeof(ComplexModelDto))
-            {
-                // forbidden type - will cause a stack overflow if we try binding this type
-                return false;
-            }
             return true;
         }
 
@@ -236,24 +231,37 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return true;
         }
 
-        private async Task<ModelBindingResult> CreateAndPopulateDto(
+        private async Task<IDictionary<ModelMetadata, ModelBindingResult>> BindProperties(
             ModelBindingContext bindingContext,
             IEnumerable<ModelMetadata> propertyMetadatas)
         {
-            // create a DTO and call into the DTO binder
-            var dto = new ComplexModelDto(bindingContext.ModelMetadata, propertyMetadatas);
+            var result = new Dictionary<ModelMetadata, ModelBindingResult>();
+            foreach (var propertyMetadata in propertyMetadatas)
+            {
+                var propertyModelName = ModelBindingHelper.CreatePropertyModelName(
+                        bindingContext.ModelName,
+                        propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName);
 
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var dtoMetadata = metadataProvider.GetMetadataForType(typeof(ComplexModelDto));
+                var propertyBindingContext = ModelBindingContext.GetChildModelBindingContext(
+                    bindingContext,
+                    propertyModelName,
+                    propertyMetadata);
 
-            var childContext = ModelBindingContext.GetChildModelBindingContext(
-                bindingContext,
-                bindingContext.ModelName,
-                dtoMetadata);
+                var modelBindingResult =
+                    await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(propertyBindingContext);
+                if (modelBindingResult == null)
+                {
+                    // Could not bind. Add a result so MutableObjectModelBinder will check for [DefaultValue].
+                    result[propertyMetadata] =
+                        new ModelBindingResult(model: null, key: propertyModelName, isModelSet: false);
+                }
+                else
+                {
+                    result[propertyMetadata] = modelBindingResult;
+                }
+            }
 
-            childContext.Model = dto;
-
-            return await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childContext);
+            return result;
         }
 
         protected virtual object CreateModel(ModelBindingContext bindingContext)
@@ -360,7 +368,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return validationInfo;
         }
 
-        internal void ProcessDto(ModelBindingContext bindingContext, ComplexModelDto dto)
+        internal void ProcessResult(
+            ModelBindingContext bindingContext,
+            IDictionary<ModelMetadata, ModelBindingResult> result)
         {
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
@@ -368,7 +378,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var validationInfo = GetPropertyValidationInfo(bindingContext);
 
             // Eliminate provided properties from requiredProperties; leaving just *missing* required properties.
-            var boundProperties = dto.Results.Where(p => p.Value.IsModelSet).Select(p => p.Key.PropertyName);
+            var boundProperties = result.Where(p => p.Value.IsModelSet).Select(p => p.Key.PropertyName);
             validationInfo.RequiredProperties.ExceptWith(boundProperties);
 
             foreach (var missingRequiredProperty in validationInfo.RequiredProperties)
@@ -404,7 +414,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // For each property that ComplexModelDtoModelBinder attempted to bind, call the setter, recording
             // exceptions as necessary.
-            foreach (var entry in dto.Results)
+            foreach (var entry in result)
             {
                 var dtoResult = entry.Value;
                 if (dtoResult != null)
