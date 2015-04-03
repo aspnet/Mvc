@@ -17,9 +17,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         private readonly Func<Type, ObjectFactory> _createFactory =
             (t) => ActivatorUtilities.CreateFactory(t, Type.EmptyTypes);
-        private ConcurrentDictionary<Type, ObjectFactory> _typeActivatorCache =
+        private readonly ConcurrentDictionary<Type, ObjectFactory> _typeActivatorCache =
                new ConcurrentDictionary<Type, ObjectFactory>();
-
 
         public async Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -37,19 +36,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelBinder = instance as IModelBinder;
             if (modelBinder == null)
             {
-                var modelBinderProvider = instance as IModelBinderProvider;
-                if (modelBinderProvider != null)
-                {
-                    modelBinder = new CompositeModelBinder(modelBinderProvider.ModelBinders);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        Resources.FormatBinderType_MustBeIModelBinderOrIModelBinderProvider(
-                            bindingContext.BinderType.FullName,
-                            typeof(IModelBinder).FullName,
-                            typeof(IModelBinderProvider).FullName));
-                }
+                throw new InvalidOperationException(
+                    Resources.FormatBinderType_MustBeIModelBinder(
+                        bindingContext.BinderType.FullName,
+                        typeof(IModelBinder).FullName));
             }
 
             var result = await modelBinder.BindModelAsync(bindingContext);

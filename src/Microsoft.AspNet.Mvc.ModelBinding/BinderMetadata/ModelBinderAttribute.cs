@@ -41,14 +41,12 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (value != null)
                 {
-                    if (!typeof(IModelBinder).IsAssignableFrom(value) &&
-                        !typeof(IModelBinderProvider).IsAssignableFrom(value))
+                    if (!typeof(IModelBinder).IsAssignableFrom(value))
                     {
                         throw new InvalidOperationException(
-                            Resources.FormatBinderType_MustBeIModelBinderOrIModelBinderProvider(
+                            Resources.FormatBinderType_MustBeIModelBinder(
                                 value.FullName,
-                                typeof(IModelBinder).FullName,
-                                typeof(IModelBinderProvider).FullName));
+                                typeof(IModelBinder).FullName));
                     }
                 }
 
