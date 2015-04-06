@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.JsonPatch.Converters
             }
             catch (Exception ex)
             {
-                throw new JsonPatchException(Resources.FormatInvalidJsonPatchDocument(), ex);
+                throw new JsonPatchException(Resources.FormatInvalidJsonPatchDocument(objectType.Name), ex);
             }
         }
 

@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.JsonPatch
             = new ResourceManager("Microsoft.AspNet.JsonPatch.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
-        /// Cannot update property at path '{0}'.
+        /// The property at path '{0}' could not be updated.
         /// </summary>
         internal static string CannotUpdateProperty
         {
@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
-        /// Cannot update property at path '{0}'.
+        /// The property at path '{0}' could not be updated.
         /// </summary>
         internal static string FormatCannotUpdateProperty(object p0)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
-        /// The JsonPatchDocument was malformed and could not be parsed.
+        /// The  type '{0}' was malformed and could not be parsed.
         /// </summary>
         internal static string InvalidJsonPatchDocument
         {
@@ -51,15 +51,15 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
-        /// The JsonPatchDocument was malformed and could not be parsed.
+        /// The  type '{0}' was malformed and could not be parsed.
         /// </summary>
-        internal static string FormatInvalidJsonPatchDocument()
+        internal static string FormatInvalidJsonPatchDocument(object p0)
         {
-            return GetString("InvalidJsonPatchDocument");
+            return string.Format(CultureInfo.CurrentCulture, GetString("InvalidJsonPatchDocument"), p0);
         }
 
         /// <summary>
-        /// For operation '{0}',  the provided path is invalid for array property at path '{1}'.
+        /// For operation '{0}', the provided path is invalid for array property at path '{1}'.
         /// </summary>
         internal static string InvalidPathForArrayProperty
         {
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
-        /// For operation '{0}',  the provided path is invalid for array property at path '{1}'.
+        /// For operation '{0}', the provided path is invalid for array property at path '{1}'.
         /// </summary>
         internal static string FormatInvalidPathForArrayProperty(object p0, object p1)
         {
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
-        /// Provided value '{0}' is invalid for property at path '{1}'.
+        /// The value '{0}' is invalid for property at path '{1}'.
         /// </summary>
         internal static string InvalidValueForProperty
         {
@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
-        /// Provided value '{0}' is invalid for property at path '{1}'.
+        /// The value '{0}' is invalid for property at path '{1}'.
         /// </summary>
         internal static string FormatInvalidValueForProperty(object p0, object p1)
         {
