@@ -357,13 +357,17 @@ namespace Microsoft.AspNet.JsonPatch
             ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver));
         }
 
-        public void ApplyTo(T objectToApplyTo, IObjectAdapter<T> adapter)
+        public void ApplyTo(T objectToApplyTo, Action<string> action)
         {
+            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver), action);
+        }
 
+        public void ApplyTo(T objectToApplyTo, IObjectAdapter<T> adapter, Action<string> action = null)
+        {
             // apply each operation in order
             foreach (var op in Operations)
             {
-                op.Apply(objectToApplyTo, adapter);
+                op.Apply(objectToApplyTo, adapter, action);
             }
         }
 

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.JsonPatch;
 using Microsoft.AspNet.Mvc;
 
@@ -34,8 +35,13 @@ namespace MvcSample.Web.Controllers
                 }
             };
 
-            patchDoc.ApplyTo(customer);
+            patchDoc.ApplyTo(customer, ModelState);
 
+            if (!ModelState.IsValid)
+            {
+                var entry = ModelState.SingleOrDefault(m => m.Key.Contains("JsonPatchDocument"));
+                return new ObjectResult(entry.Value.Errors[0].ErrorMessage);
+            }
             return new ObjectResult(customer);
         }
 

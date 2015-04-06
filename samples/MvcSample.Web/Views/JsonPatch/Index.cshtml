@@ -27,6 +27,25 @@
                 });
             });
 
+            $('#invalidaddorder').on("click", function () {
+                var obj = [{
+                    "op": "Add",
+                    "path": "Customer/Orders/5",
+                    "value": { "OrderName": "Name5" }
+                }]
+                $.ajax({
+                    url: 'jsonpatch',
+                    type: 'PATCH',
+                    data: JSON.stringify(obj),
+                    dataType: 'json',
+                    contentType: 'application/json-patch+json',
+                    success: function (data) {
+                        $('#invalidaddlabel').text(data)
+                    }
+                });
+            });
+
+
             $('#removeorder').on("click", function () {
                 var obj = [{
                     "op": "Remove",
@@ -93,6 +112,12 @@
         <button id="addorder" type="submit" class="btn btn-primary"> Add </button>
         <br />
         <label id="addlabel" name="addlabel"></label>
+        <br />
+    </div>
+    <div>
+        <button id="invalidaddorder" type="submit" class="btn btn-primary"> Invalid Add </button>
+        <br />
+        <label id="invalidaddlabel" name="invalidaddlabel"></label>
         <br />
     </div>
     <div>

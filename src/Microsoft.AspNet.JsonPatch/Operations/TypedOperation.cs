@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNet.JsonPatch.Adapters;
 
 namespace Microsoft.AspNet.JsonPatch.Operations
@@ -24,27 +25,27 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         }
 
-        public void Apply(T objectToApplyTo, IObjectAdapter<T> adapter)
+        public void Apply(T objectToApplyTo, IObjectAdapter<T> adapter, Action<string> action = null)
         {
             switch (OperationType)
             {
                 case OperationType.Add:
-                    adapter.Add(this, objectToApplyTo);
+                    adapter.Add(this, objectToApplyTo, action);
                     break;
                 case OperationType.Remove:
-                    adapter.Remove(this, objectToApplyTo);
+                    adapter.Remove(this, objectToApplyTo, action);
                     break;
                 case OperationType.Replace:
-                    adapter.Replace(this, objectToApplyTo);
+                    adapter.Replace(this, objectToApplyTo, action);
                     break;
                 case OperationType.Move:
-                    adapter.Move(this, objectToApplyTo);
+                    adapter.Move(this, objectToApplyTo, action);
                     break;
                 case OperationType.Copy:
-                    adapter.Copy(this, objectToApplyTo);
+                    adapter.Copy(this, objectToApplyTo, action);
                     break;
                 case OperationType.Test:
-                    adapter.Test(this, objectToApplyTo);
+                    adapter.Test(this, objectToApplyTo, action);
                     break;
                 default:
                     break;
