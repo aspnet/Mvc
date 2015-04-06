@@ -23,9 +23,10 @@ namespace MvcTagHelpersWebSite.Controllers
         }
 
         [HttpGet("/catalog/{id:int}")]
-        public ViewResult Details(int id)
+        public ViewResult Details(int id, [FromHeader]bool? isCacheEnabled)
         {
             ViewData["ProductId"] = id;
+            ViewData["IsCacheEnabled"] = isCacheEnabled ?? true;
             return View();
         }
 
