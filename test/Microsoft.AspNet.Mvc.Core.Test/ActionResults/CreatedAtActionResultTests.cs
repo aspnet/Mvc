@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Core;
@@ -91,7 +92,17 @@ namespace Microsoft.AspNet.Mvc
             var httpContext = new DefaultHttpContext();
             httpContext.Request.PathBase = new PathString("");
             httpContext.Response.Body = new MemoryStream();
+
             var services = new Mock<IServiceProvider>();
+
+            var mockContextAccessor = new Mock<IScopedInstance<ActionBindingContext>>();
+            mockContextAccessor
+                .SetupGet(o => o.Value)
+                .Returns(new ActionBindingContext());
+
+            services.Setup(o => o.GetService(typeof(IScopedInstance<ActionBindingContext>)))
+                       .Returns(mockContextAccessor.Object);
+
             httpContext.RequestServices = services.Object;
 
             var optionsAccessor = new MockMvcOptionsAccessor();

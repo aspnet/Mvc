@@ -876,6 +876,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
 
+            httpContext.Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))
+                       .Returns(new ActionBindingContext());
+
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
         }
 
