@@ -9,11 +9,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
     public interface IObjectAdapter<T>
       where T : class
     {
-        void Add(Operation<T> operation, T objectToApplyTo, Action<string> action);
-        void Copy(Operation<T> operation, T objectToApplyTo, Action<string> action);
-        void Move(Operation<T> operation, T objectToApplyTo, Action<string> action);
-        void Remove(Operation<T> operation, T objectToApplyTo, Action<string> action);
-        void Replace(Operation<T> operation, T objectToApplyTo, Action<string> action);
-        void Test(Operation<T> operation, T objectToApplyTo, Action<string> action);
+        void Add(Operation<T> operation, T objectToApplyTo);
+        void Copy(Operation<T> operation, T objectToApplyTo);
+        void Move(Operation<T> operation, T objectToApplyTo);
+        void Remove(Operation<T> operation, T objectToApplyTo);
+        void Replace(Operation<T> operation, T objectToApplyTo);
+        void Test(Operation<T> operation, T objectToApplyTo);
 	}
 }

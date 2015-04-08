@@ -23,8 +23,30 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] T objectToApplyTo,
             [NotNull] ModelStateDictionary modelState) where T : class
         {
-            var modelStateError = new ModelStateError(modelState, patchDoc.GetType().Name);
-            patchDoc.ApplyTo(objectToApplyTo, modelStateError.AddErrorMessage);
+            patchDoc.ApplyTo(objectToApplyTo, modelState, prefix: string.Empty);
+        }
+
+        /// <summary>
+        /// Applies json patch operations on object and logs errors in <see cref="ModelStateDictionary"/>.
+        /// </summary>
+        /// <param name="patchDoc">The <see cref="JsonPatchDocument{T}"/>.</param>
+        /// <param name="objectToApplyTo">The entity on which <see cref="JsonPatchDocument{T}"/> is applied.</param>
+        /// <param name="modelState">The <see cref="ModelStateDictionary"/> to add errors.</param>
+        /// <param name="prefix">The prefix to use when looking up values in <see cref="ModelStateDictionary"/>.</param>
+        public static void ApplyTo<T>(
+            [NotNull] this JsonPatchDocument<T> patchDoc,
+            [NotNull] T objectToApplyTo,
+            [NotNull] ModelStateDictionary modelState,
+            string prefix) where T : class
+        {
+            if (prefix == null)
+            {
+                prefix = string.Empty;
+            }
+            patchDoc.ApplyTo(objectToApplyTo, jsonPatchError =>
+            {
+                modelState.TryAddModelError(prefix + patchDoc.GetType().Name, jsonPatchError.ErrorMessage);
+            });
         }
     }
 }

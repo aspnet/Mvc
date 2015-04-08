@@ -41,6 +41,9 @@
                     contentType: 'application/json-patch+json',
                     success: function (data) {
                         $('#invalidaddlabel').text(data)
+                    },
+                    error: function (request, status, error) {
+                        $('#invalidaddlabel').text(error)
                     }
                 });
             });

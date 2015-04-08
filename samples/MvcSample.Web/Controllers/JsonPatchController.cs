@@ -39,8 +39,7 @@ namespace MvcSample.Web.Controllers
 
             if (!ModelState.IsValid)
             {
-                var entry = ModelState.SingleOrDefault(m => m.Key.Contains("JsonPatchDocument"));
-                return new ObjectResult(entry.Value.Errors[0].ErrorMessage);
+                return HttpBadRequest(ModelState);
             }
             return new ObjectResult(customer);
         }

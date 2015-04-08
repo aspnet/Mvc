@@ -25,27 +25,27 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         }
 
-        public void Apply(T objectToApplyTo, IObjectAdapter<T> adapter, Action<string> action = null)
+        public void Apply(T objectToApplyTo, IObjectAdapter<T> adapter)
         {
             switch (OperationType)
             {
                 case OperationType.Add:
-                    adapter.Add(this, objectToApplyTo, action);
+                    adapter.Add(this, objectToApplyTo);
                     break;
                 case OperationType.Remove:
-                    adapter.Remove(this, objectToApplyTo, action);
+                    adapter.Remove(this, objectToApplyTo);
                     break;
                 case OperationType.Replace:
-                    adapter.Replace(this, objectToApplyTo, action);
+                    adapter.Replace(this, objectToApplyTo);
                     break;
                 case OperationType.Move:
-                    adapter.Move(this, objectToApplyTo, action);
+                    adapter.Move(this, objectToApplyTo);
                     break;
                 case OperationType.Copy:
-                    adapter.Copy(this, objectToApplyTo, action);
+                    adapter.Copy(this, objectToApplyTo);
                     break;
                 case OperationType.Test:
-                    adapter.Test(this, objectToApplyTo, action);
+                    adapter.Test(this, objectToApplyTo);
                     break;
                 default:
                     break;

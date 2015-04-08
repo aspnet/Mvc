@@ -354,20 +354,20 @@ namespace Microsoft.AspNet.JsonPatch
 
         public void ApplyTo(T objectToApplyTo)
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver));
+            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver, null));
         }
 
-        public void ApplyTo(T objectToApplyTo, Action<string> action)
+        public void ApplyTo(T objectToApplyTo, Action<JsonPatchError<T>> logErrorAction)
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver), action);
+            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver, logErrorAction));
         }
 
-        public void ApplyTo(T objectToApplyTo, IObjectAdapter<T> adapter, Action<string> action = null)
+        public void ApplyTo(T objectToApplyTo, IObjectAdapter<T> adapter)
         {
             // apply each operation in order
             foreach (var op in Operations)
             {
-                op.Apply(objectToApplyTo, adapter, action);
+                op.Apply(objectToApplyTo, adapter);
             }
         }
 

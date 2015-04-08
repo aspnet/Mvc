@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using Microsoft.AspNet.JsonPatch;
 using Microsoft.AspNet.JsonPatch.Exceptions;
 using Microsoft.AspNet.JsonPatch.Helpers;
 using Microsoft.AspNet.JsonPatch.Operations;
@@ -16,9 +17,12 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
     {
         public IContractResolver ContractResolver { get; set; }
 
-        public ObjectAdapter(IContractResolver contractResolver)
+        public Action<JsonPatchError<T>> LogErrorAction { get; set; }
+
+        public ObjectAdapter(IContractResolver contractResolver, Action<JsonPatchError<T>> logErrorAction)
         {
             ContractResolver = contractResolver;
+            LogErrorAction = logErrorAction;
         }
 
         /// <summary>
@@ -81,9 +85,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The add operation</param>
         /// <param name="objectApplyTo">Object to apply the operation to</param>
-        public void Add(Operation<T> operation, T objectToApplyTo, Action<string> action = null)
+        public void Add(Operation<T> operation, T objectToApplyTo)
         {
-            Add(operation.path, operation.value, objectToApplyTo, operation, action);
+            Add(operation.path, operation.value, objectToApplyTo, operation);
         }
 
         /// <summary>
@@ -94,8 +98,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             string path,
             object value,
             T objectToApplyTo,
-            Operation<T> operationToReport,
-            Action<string> action = null)
+            Operation<T> operationToReport)
         {
             // add, in this implementation, does not just "add" properties - that's
             // technically impossible;  It can however be used to add items to arrays,
@@ -128,7 +131,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does property at path exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path, action);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path);
 
             // it exists.  If it' an array, add to that array.  If it's not, we replace.
             // is the path an array (but not a string (= char[]))?  In this case,
@@ -148,8 +151,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         conversionResult,
                         objectToApplyTo,
                         operationToReport,
-                        path,
-                        action);
+                        path);
 
                     // get value (it can be cast, we just checked that)
                     var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
@@ -167,21 +169,23 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         }
                         else
                         {
-                            LogError(
+                            LogError(new JsonPatchError<T>(
                                 objectToApplyTo,
                                 operationToReport,
-                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path),
-                                action);
+                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+
+                            return;
                         }
                     }
                 }
                 else
                 {
-                    LogError(
+                    LogError(new JsonPatchError<T>(
                         objectToApplyTo,
                         operationToReport,
-                        Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path),
-                        action);
+                        Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+
+                    return;
                 }
             }
             else
@@ -195,8 +199,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     conversionResultTuple,
                     objectToApplyTo,
                     operationToReport,
-                    path,
-                    action);
+                    path);
 
                 patchProperty.Property.ValueProvider.SetValue(
                         patchProperty.Parent,
@@ -227,7 +230,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The move operation</param>
         /// <param name="objectApplyTo">Object to apply the operation to</param>
-        public void Move(Operation<T> operation, T objectToApplyTo, Action<string> action = null)
+        public void Move(Operation<T> operation, T objectToApplyTo)
         {
             // get value at from location
             object valueAtFromLocation = null;
@@ -246,7 +249,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from, action);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from);
 
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
@@ -262,22 +265,24 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     if (array.Count <= positionAsInteger)
                     {
-                        LogError(
+                        LogError(new JsonPatchError<T>(
                             objectToApplyTo,
                             operation,
-                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from),
-                            action);
+                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
+
+                        return;
                     }
 
                     valueAtFromLocation = array[positionAsInteger];
                 }
                 else
                 {
-                    LogError(
+                    LogError(new JsonPatchError<T>(
                         objectToApplyTo,
                         operation,
-                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from),
-                        action);
+                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from)));
+
+                    return;
                 }
             }
             else
@@ -308,9 +313,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The remove operation</param>
         /// <param name="objectApplyTo">Object to apply the operation to</param>
-        public void Remove(Operation<T> operation, T objectToApplyTo, Action<string> action = null)
+        public void Remove(Operation<T> operation, T objectToApplyTo)
         {
-            Remove(operation.path, objectToApplyTo, operation, action);
+            Remove(operation.path, objectToApplyTo, operation);
         }
 
         /// <summary>
@@ -320,8 +325,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         private void Remove(
             string path,
             T objectToApplyTo,
-            Operation<T> operationToReport,
-            Action<string> action = null)
+            Operation<T> operationToReport)
         {
             var removeFromList = false;
             var positionAsInteger = -1;
@@ -347,7 +351,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does the target location exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path, action);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path);
 
             // get the property, and remove it - in this case, for DTO's, that means setting
             // it to null or its default value; in case of an array, remove at provided index
@@ -375,21 +379,23 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         }
                         else
                         {
-                            LogError(
+                            LogError(new JsonPatchError<T>(
                                 objectToApplyTo,
                                 operationToReport,
-                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path),
-                                action);
+                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+
+                            return;
                         }
                     }
                 }
                 else
                 {
-                    LogError(
+                    LogError(new JsonPatchError<T>(
                         objectToApplyTo,
                         operationToReport,
-                        Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path),
-                        action);
+                        Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path)));
+
+                    return;
                 }
             }
             else
@@ -457,7 +463,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The test operation</param>
         /// <param name="objectApplyTo">Object to apply the operation to</param>
-        public void Test(Operation<T> operation, T objectToApplyTo, Action<string> action = null)
+        public void Test(Operation<T> operation, T objectToApplyTo)
         {
             // get value at path location
             object valueAtPathLocation = null;
@@ -476,7 +482,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathProperty, ContractResolver);
 
             // does property at path exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.path, action);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.path);
 
             // get the property path
             Type typeOfFinalPropertyAtPathLocation = null;
@@ -496,22 +502,24 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     if (array.Count <= positionInPathAsInteger)
                     {
-                        LogError(
+                        LogError(new JsonPatchError<T>(
                             objectToApplyTo,
                             operation,
-                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.path),
-                            action);
+                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.path)));
+
+                        return;
                     }
 
                     valueAtPathLocation = array[positionInPathAsInteger];
                 }
                 else
                 {
-                    LogError(
+                    LogError(new JsonPatchError<T>(
                         objectToApplyTo,
                         operation,
-                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.path),
-                        action);
+                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.path)));
+
+                    return;
                 }
             }
             else
@@ -526,7 +534,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 operation.value);
 
             // Is conversion successful
-            CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operation, operation.path, action);
+            CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operation, operation.path);
 
             //Compare
         }
@@ -551,10 +559,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The replace operation</param>
         /// <param name="objectApplyTo">Object to apply the operation to</param>
-        public void Replace(Operation<T> operation, T objectToApplyTo, Action<string> action)
+        public void Replace(Operation<T> operation, T objectToApplyTo)
         {
-            Remove(operation.path, objectToApplyTo, operation, action);
-            Add(operation.path, operation.value, objectToApplyTo, operation, action);
+            Remove(operation.path, objectToApplyTo, operation);
+            Add(operation.path, operation.value, objectToApplyTo, operation);
         }
 
         /// <summary>
@@ -579,7 +587,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The copy operation</param>
         /// <param name="objectApplyTo">Object to apply the operation to</param>
-        public void Copy(Operation<T> operation, T objectToApplyTo, Action<string> action = null)
+        public void Copy(Operation<T> operation, T objectToApplyTo)
         {
             // get value at from location
             object valueAtFromLocation = null;
@@ -598,7 +606,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from, action);
+            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from);
 
             // get the property path
             // is the path an array (but not a string (= char[]))?  In this case,
@@ -615,22 +623,24 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     if (array.Count <= positionAsInteger)
                     {
-                        LogError(
+                        LogError(new JsonPatchError<T>(
                             objectToApplyTo,
                             operation,
-                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from),
-                            action);
+                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
+
+                        return;
                     }
 
                     valueAtFromLocation = array[positionAsInteger];
                 }
                 else
                 {
-                    LogError(
+                    LogError(new JsonPatchError<T>(
                         objectToApplyTo,
                         operation,
-                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from),
-                        action);
+                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from)));
+
+                    return;
                 }
             }
             else
@@ -641,31 +651,30 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
 
             // add operation to target location with that value.
-            Add(operation.path, valueAtFromLocation, objectToApplyTo, operation, action);
+            Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
         }
 
         private void CheckIfPropertyExists(
             JsonPatchProperty patchProperty,
             T objectToApplyTo,
             Operation<T> operation,
-            string propertyPath,
-            Action<string> action = null)
+            string propertyPath)
         {
             if (patchProperty == null)
             {
-                LogError(
+                LogError(new JsonPatchError<T>(
                     objectToApplyTo,
                     operation,
-                    Resources.FormatPropertyDoesNotExist(propertyPath),
-                    action);
+                    Resources.FormatPropertyDoesNotExist(propertyPath)));
+
+                return;
             }
             if (patchProperty.Property.Ignored)
             {
-                LogError(
+                LogError(new JsonPatchError<T>(
                     objectToApplyTo,
                     operation,
-                    Resources.FormatCannotUpdateProperty(propertyPath),
-                    action);
+                    Resources.FormatCannotUpdateProperty(propertyPath)));
             }
         }
 
@@ -680,32 +689,26 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             ConversionResult result,
             T objectToApplyTo,
             Operation<T> operation,
-            string path,
-            Action<string> action)
+            string path)
         {
             if (!result.CanBeConverted)
             {
-                LogError(
+                LogError(new JsonPatchError<T>(
                     objectToApplyTo,
                     operation,
-                    Resources.FormatInvalidValueForProperty(result.ConvertedInstance, path),
-                    action);
+                    Resources.FormatInvalidValueForProperty(result.ConvertedInstance, path)));
             }
         }
 
-        private void LogError(
-            T objectToApplyTo,
-            Operation<T> operation,
-            string errorMessage,
-            Action<string> action = null)
+        private void LogError(JsonPatchError<T> jsonPatchError)
         {
-            if (action != null)
+            if (LogErrorAction != null)
             {
-                action(errorMessage);
+                LogErrorAction(jsonPatchError);
             }
             else
             {
-                throw new JsonPatchException<T>(operation, errorMessage, objectToApplyTo);
+                throw new JsonPatchException<T>(jsonPatchError);
             }
         }
     }
