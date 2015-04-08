@@ -12,7 +12,7 @@ namespace MvcTagHelpersWebSite.Controllers
         public ProductsService ProductsService { get; set; }
 
         [HttpGet("/catalog")]
-        public ViewResult Splash(int categoryId, int correlationId, [FromHeader] string locale)
+        public ViewResult Splash(int categoryId, int correlationId, [FromHeader]string locale)
         {
             var category = categoryId == 1 ? "Laptops" : "Phones";
             ViewData["Category"] = category;
