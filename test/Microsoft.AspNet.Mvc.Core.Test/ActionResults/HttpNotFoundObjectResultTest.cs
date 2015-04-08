@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc
                 .SetupGet(o => o.Value)
                 .Returns(new ActionBindingContext()
                 {
-                    OutputFormatters = new List<IOutputFormatter>()
+                    OutputFormatters = optionsAccessor.Options.OutputFormatters
                 });
 
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))

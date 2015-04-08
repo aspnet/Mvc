@@ -94,15 +94,6 @@ namespace Microsoft.AspNet.Mvc
             httpContext.Response.Body = new MemoryStream();
 
             var services = new Mock<IServiceProvider>();
-
-            var mockContextAccessor = new Mock<IScopedInstance<ActionBindingContext>>();
-            mockContextAccessor
-                .SetupGet(o => o.Value)
-                .Returns(new ActionBindingContext());
-
-            services.Setup(o => o.GetService(typeof(IScopedInstance<ActionBindingContext>)))
-                       .Returns(mockContextAccessor.Object);
-
             httpContext.RequestServices = services.Object;
 
             var optionsAccessor = new MockMvcOptionsAccessor();
@@ -110,6 +101,14 @@ namespace Microsoft.AspNet.Mvc
             optionsAccessor.Options.OutputFormatters.Add(new JsonOutputFormatter());
             services.Setup(p => p.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
+
+            var mockContextAccessor = new Mock<IScopedInstance<ActionBindingContext>>();
+            mockContextAccessor
+                .SetupGet(o => o.Value)
+                .Returns(new ActionBindingContext() { OutputFormatters = optionsAccessor.Options.OutputFormatters });
+
+            services.Setup(o => o.GetService(typeof(IScopedInstance<ActionBindingContext>)))
+                       .Returns(mockContextAccessor.Object);
 
             return httpContext;
         }

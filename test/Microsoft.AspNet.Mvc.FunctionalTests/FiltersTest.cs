@@ -589,7 +589,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ResourceFilter_ShortCircuitsUsingObjectResult_NoFormatters()
+        public async Task ResourceFilter_ShortCircuitsUsingObjectResult_UsesOptions()
         {
             // Arrange
             var input = "{ sampleInt: 10 }";
@@ -604,8 +604,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.SendAsync(request);
 
             // Assert
-            // No formatter was set.
-            Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
+            // Uses formatters from options.
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Notice this has been formatted using StringOutputFormatter and not JsonOutputFormatter.
+            Assert.Equal("someValue", await response.Content.ReadAsStringAsync());
         }
 
         [Fact]

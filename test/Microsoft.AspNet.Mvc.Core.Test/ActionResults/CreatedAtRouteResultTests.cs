@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc
             var mockContextAccessor = new Mock<IScopedInstance<ActionBindingContext>>();
             mockContextAccessor
                 .SetupGet(o => o.Value)
-                .Returns(new ActionBindingContext());
+                .Returns((ActionBindingContext)null);
 
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))
                        .Returns(mockContextAccessor.Object);

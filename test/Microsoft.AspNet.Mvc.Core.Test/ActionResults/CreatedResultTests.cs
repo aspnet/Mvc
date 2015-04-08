@@ -94,9 +94,14 @@ namespace Microsoft.AspNet.Mvc
             httpContext
                 .Setup(p => p.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
+
+            var mockActionBindingContext = new Mock<IScopedInstance<ActionBindingContext>>();
+            mockActionBindingContext
+                .SetupGet(o=> o.Value)
+                .Returns(new ActionBindingContext() { OutputFormatters = optionsAccessor.Options.OutputFormatters });
             httpContext
                 .Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))
-                .Returns(new ActionBindingContext());
+                .Returns(mockActionBindingContext.Object);
 
             return httpContext.Object;
         }
