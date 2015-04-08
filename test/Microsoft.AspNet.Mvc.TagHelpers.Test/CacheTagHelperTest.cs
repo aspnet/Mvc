@@ -243,7 +243,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var id = "unique-id";
             var childContent = "original-child-content";
             var cache = new Mock<IMemoryCache>();
-            cache.CallBase = true;
             cache.Setup(c => c.Set(
                 /*key*/ It.IsAny<string>(),
                 /*link*/ It.IsAny<IEntryLink>(),
@@ -283,7 +282,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var id = "unique-id";
             var childContent = "original-child-content";
             var cache = new Mock<IMemoryCache>();
-            cache.CallBase = true;
             cache.Setup(c => c.Set(
                 /*key*/ It.IsAny<string>(),
                 /*link*/ It.IsAny<IEntryLink>(),
@@ -311,6 +309,47 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Empty(tagHelperOutput.PostContent.GetContent());
             Assert.True(tagHelperOutput.IsContentModified);
             Assert.Equal(childContent, tagHelperOutput.Content.GetContent());
+            cache.Verify(c => c.Set(
+                /*key*/ It.IsAny<string>(),
+                /*link*/ It.IsAny<IEntryLink>(),
+                /*state*/ It.IsAny<object>(),
+                /*create*/ It.IsAny<Func<ICacheSetContext, object>>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_DoesNotUseCache_OnPassingFalseWhenEnabled()
+        {
+            // Arrange
+            var cache = new Mock<IMemoryCache>();
+            cache.Setup(c => c.Set(
+                /*key*/ It.IsAny<string>(),
+                /*link*/ It.IsAny<IEntryLink>(),
+                /*state*/ It.IsAny<object>(),
+                /*create*/ It.IsAny<Func<ICacheSetContext, object>>()))
+                .Returns(new DefaultTagHelperContent().SetContent("ok"))
+                .Verifiable();
+            object cacheResult;
+            cache.Setup(c => c.TryGetValue(It.IsAny<string>(), It.IsAny<IEntryLink>(), out cacheResult))
+                .Returns(false);
+            var tagHelperContext = GetTagHelperContext("unique-id", "original-child-content");
+            var tagHelperOutput = new TagHelperOutput("cache", new Dictionary<string, object>());
+            var cacheTagHelper = new CacheTagHelper
+            {
+                ViewContext = GetViewContext(),
+                MemoryCache = cache.Object,
+                Enabled = true
+            };
+
+            // Act
+            await cacheTagHelper.ProcessAsync(tagHelperContext, tagHelperOutput);
+
+            // set enabled to false in the cache tag helper.
+            cacheTagHelper.Enabled = false;
+            await cacheTagHelper.ProcessAsync(tagHelperContext, tagHelperOutput);
+
+            // Assert
+            // if cache was not disabled this would have been called more than once.
             cache.Verify(c => c.Set(
                 /*key*/ It.IsAny<string>(),
                 /*link*/ It.IsAny<IEntryLink>(),
