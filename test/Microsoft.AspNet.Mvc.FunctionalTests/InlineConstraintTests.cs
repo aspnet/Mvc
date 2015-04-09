@@ -478,6 +478,35 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [Theory]
+        // Testing custom inline constraint configured via MapRoute
+        [InlineData("software", HttpStatusCode.OK, "software From Software Controller Index")]
+        // Testing custom inline constraint updated in ConstraintMap
+        [InlineData("hardware", HttpStatusCode.NotFound, null)]
+        [InlineData("HARDWARE", HttpStatusCode.OK, "HARDWARE From Hardware Controller Index")]
+        // Testing custom inline constraint configured with Attribute Routing
+        [InlineData("consumable", HttpStatusCode.OK, "consumable From Consumable Controller Index")]
+        public async Task CustomInlineConstraint_Add_Update(
+            string type,
+            HttpStatusCode expectedResult,
+            string expectedBody)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/producttype/index/" + type);
+            var body = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(expectedResult, response.StatusCode);
+            if(expectedResult == HttpStatusCode.OK)
+            {
+                Assert.Contains(expectedBody, body);
+            }
+        }
+
         public static IEnumerable<object[]> QueryParameters
         {
             // The first four parameters are controller name, action name, parameters in the query and their values.   
