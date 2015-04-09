@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         public void ChallengeResult_Execute()
         {
             // Arrange
-            var result = new ChallengeResult(new string[] { }, null);
+            var result = new ChallengeResult("", null);
             var httpContext = new Mock<HttpContext>();
             var httpResponse = new Mock<HttpResponse>();
             httpContext.Setup(o => o.Response).Returns(httpResponse.Object);
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             result.ExecuteResult(actionContext);
 
             // Assert
-            httpResponse.Verify(c => c.Challenge(null, (IEnumerable<string>)new string[] { }), Times.Exactly(1));
+            httpResponse.Verify(c => c.Challenge(null, ""), Times.Exactly(1));
         }
     }
 }
