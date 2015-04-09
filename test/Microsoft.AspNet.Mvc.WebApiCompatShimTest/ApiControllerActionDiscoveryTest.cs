@@ -12,7 +12,7 @@ using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
-using Microsoft.Framework.Logging;
+using Microsoft.AspNet.Testing.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
