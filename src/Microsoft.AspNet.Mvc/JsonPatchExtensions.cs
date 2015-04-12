@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc
     public static class JsonPatchExtensions
     {
         /// <summary>
-        /// Applies json patch operations on object and logs errors in <see cref="ModelStateDictionary"/>.
+        /// Applies JSON patch operations on object and logs errors in <see cref="ModelStateDictionary"/>.
         /// </summary>
         /// <param name="patchDoc">The <see cref="JsonPatchDocument{T}"/>.</param>
         /// <param name="objectToApplyTo">The entity on which <see cref="JsonPatchDocument{T}"/> is applied.</param>
@@ -43,6 +43,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 prefix = string.Empty;
             }
+
             patchDoc.ApplyTo(objectToApplyTo, jsonPatchError =>
             {
                 modelState.TryAddModelError(prefix + patchDoc.GetType().Name, jsonPatchError.ErrorMessage);

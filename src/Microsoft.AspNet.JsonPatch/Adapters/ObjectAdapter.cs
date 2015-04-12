@@ -4,21 +4,31 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using Microsoft.AspNet.JsonPatch;
 using Microsoft.AspNet.JsonPatch.Exceptions;
 using Microsoft.AspNet.JsonPatch.Helpers;
 using Microsoft.AspNet.JsonPatch.Operations;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AspNet.JsonPatch.Adapters
 {
+    /// <inheritdoc />
     public class ObjectAdapter<T> : IObjectAdapter<T> where T : class
     {
+        /// <summary>
+        /// Gets or sets the <see cref="IContractResolver"/>.
+        /// </summary>
         public IContractResolver ContractResolver { get; set; }
 
-        public Action<JsonPatchError<T>> LogErrorAction { get; set; }
+        /// <summary>
+        /// Action for logging <see cref="JsonPatchError{T}"/>.
+        /// </summary>
+        public Action<JsonPatchError<T>> LogErrorAction { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectAdapter{T}"/>.
+        /// </summary>
+        /// <param name="contractResolver"></param>
+        /// <param name="logErrorAction"></param>
         public ObjectAdapter(IContractResolver contractResolver, Action<JsonPatchError<T>> logErrorAction)
         {
             ContractResolver = contractResolver;
@@ -94,11 +104,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Add is used by various operations (eg: add, copy, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
-        private void Add(
-            string path,
-            object value,
-            T objectToApplyTo,
-            Operation<T> operationToReport)
+        private void Add(string path, object value, T objectToApplyTo, Operation<T> operationToReport)
         {
             // add, in this implementation, does not just "add" properties - that's
             // technically impossible;  It can however be used to add items to arrays,
@@ -322,10 +328,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Remove is used by various operations (eg: remove, move, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
-        private void Remove(
-            string path,
-            T objectToApplyTo,
-            Operation<T> operationToReport)
+        private void Remove(string path, T objectToApplyTo, Operation<T> operationToReport)
         {
             var removeFromList = false;
             var positionAsInteger = -1;

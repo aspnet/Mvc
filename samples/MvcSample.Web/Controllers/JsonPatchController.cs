@@ -41,6 +41,7 @@ namespace MvcSample.Web.Controllers
             {
                 return HttpBadRequest(ModelState);
             }
+
             return new ObjectResult(customer);
         }
 
