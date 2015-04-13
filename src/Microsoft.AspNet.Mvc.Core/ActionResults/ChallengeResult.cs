@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.Framework.Internal;
 
@@ -48,7 +47,7 @@ namespace Microsoft.AspNet.Mvc
         public override void ExecuteResult([NotNull] ActionContext context)
         {
             var response = context.HttpContext.Response;
-            if (AuthenticationSchemes.Any())
+            if (AuthenticationSchemes.Count > 0)
             {
                 foreach (var scheme in AuthenticationSchemes)
                 {
