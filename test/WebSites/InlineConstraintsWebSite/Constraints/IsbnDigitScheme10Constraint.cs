@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Http;
@@ -30,41 +31,37 @@ namespace InlineConstraintsWebSite.Constraints
             }
 
             object value;
-            var isbnNumbers = string.Empty;
 
-            if (values.TryGetValue(routeKey, out value))
+            if (!values.TryGetValue(routeKey, out value))
             {
-                isbnNumbers = value as string;
+                return false;
+            }
 
-                if (isbnNumbers.Any(n => !char.IsDigit(n)))
-                {
-                    return false;
-                }
+            var isbnNumber = value as string;
 
-                if (isbnNumbers.Length != 10)
-                {
-                    return false;
-                }
+            if (isbnNumber == null
+                || isbnNumber.Length != 10
+                || isbnNumber.Any(n => !char.IsDigit(n)))
+            {
+                return false;
             }
 
             var sum = 0;
-            for (int i = 0; i < isbnNumbers.Length - 1; ++i)
+            Func<char, int> convertToInt = (char n) => (int)char.GetNumericValue(n);
+
+            for (int i = 0; i < isbnNumber.Length - 1; ++i)
             {
-                sum += ConvertToInt(isbnNumbers[i]) * (i + 1);
+                sum += convertToInt(isbnNumber[i]) * (i + 1);
             }
 
             var checkSum = sum % 11;
-            if (checkSum == ConvertToInt(isbnNumbers.Last()))
+
+            if (checkSum == convertToInt(isbnNumber.Last()))
             {
                 return true;
             }
 
             return false;
-        }
-
-        private int ConvertToInt(char n)
-        {
-            return (int)char.GetNumericValue(n);
         }
     }
 }

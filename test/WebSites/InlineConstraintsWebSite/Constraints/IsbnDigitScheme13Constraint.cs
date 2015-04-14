@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Http;
@@ -10,13 +11,6 @@ namespace InlineConstraintsWebSite.Constraints
 {
     public class IsbnDigitScheme13Constraint : IRouteConstraint
     {
-        private readonly bool _turnOn;
-
-        public IsbnDigitScheme13Constraint(bool turnOn)
-        {
-            _turnOn = turnOn;
-        }
-
         public bool Match(
             HttpContext httpContext,
             IRouter route,
@@ -24,50 +18,40 @@ namespace InlineConstraintsWebSite.Constraints
             IDictionary<string, object> values,
             RouteDirection routeDirection)
         {
-            if (!_turnOn)
+            object value;
+
+            if (!values.TryGetValue(routeKey, out value))
             {
-                return true;
+                return false;
             }
 
-            object value;
-            var isbnNumbers = string.Empty;
+            var isbnNumber = value as string;
 
-            if (values.TryGetValue(routeKey, out value))
+            if (isbnNumber == null
+                || isbnNumber.Length != 13
+                || isbnNumber.Any(n => !char.IsDigit(n)))
             {
-                isbnNumbers = value as string;
-
-                if (isbnNumbers.Any(n => !char.IsDigit(n)))
-                {
-                    return false;
-                }
-
-                if (isbnNumbers.Length != 13)
-                {
-                    return false;
-                }
+                return false;
             }
 
             var sum = 0;
             var multipliedBy = new int[] { 1, 3 };
+            Func<char, int> convertToInt = (char n) => (int)char.GetNumericValue(n);
 
-            for (int i = 0; i < isbnNumbers.Length - 1; ++i)
+            for (int i = 0; i < isbnNumber.Length - 1; ++i)
             {
                 sum +=
-                    ConvertToInt(isbnNumbers[i]) * multipliedBy[i % 2];
+                    convertToInt(isbnNumber[i]) * multipliedBy[i % 2];
             }
 
             var checkSum = 10 - sum % 10;
-            if (checkSum == ConvertToInt(isbnNumbers.Last()))
+
+            if (checkSum == convertToInt(isbnNumber.Last()))
             {
                 return true;
             }
 
             return false;
-        }
-
-        private int ConvertToInt(char n)
-        {
-            return (int)char.GetNumericValue(n);
         }
     }
 }

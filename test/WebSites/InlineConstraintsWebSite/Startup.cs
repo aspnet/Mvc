@@ -3,10 +3,8 @@
 
 using InlineConstraintsWebSite.Constraints;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Constraints;
 using Microsoft.Framework.DependencyInjection;
-using System.Collections.Generic;
 
 namespace InlineConstraints
 {
@@ -15,18 +13,17 @@ namespace InlineConstraints
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.Configure<RouteOptions>(
+            services.ConfigureRouting(
                 routeOptions => routeOptions.ConstraintMap.Add(
                     "IsbnDigitScheme10",
                     typeof(IsbnDigitScheme10Constraint)));
 
-            services.Configure<RouteOptions>(
+            services.ConfigureRouting(
                 routeOptions => routeOptions.ConstraintMap.Add(
                     "IsbnDigitScheme13",
                     typeof(IsbnDigitScheme10Constraint)));
 
-            services.Configure<RouteOptions>(
+            services.ConfigureRouting(
                 routeOptions =>
                 {
                     if (routeOptions.ConstraintMap.ContainsKey("IsbnDigitScheme13"))
@@ -53,11 +50,6 @@ namespace InlineConstraints
                     template: "book/{action}/{isbnNumber:IsbnDigitScheme10(true)}",
                     defaults: new { controller = "InlineConstraints_Isbn10" });
 
-                routes.MapRoute(
-                    name: "isbn10",
-                    template: "book/{action}/{isbnNumber:IsbnDigitScheme10(true)}",
-                    defaults: new { controller = "InlineConstraints_Isbn10" });
-
                 routes.MapRoute("StoreId",
                         "store/{action}/{id:guid?}",
                         defaults: new { controller = "InlineConstraints_Store" });
@@ -72,7 +64,6 @@ namespace InlineConstraints
                 routes.MapRoute("areaExists", "area-exists/{controller=Home}/{action=Index}");
                 routes.MapRoute("areaWithoutExists-area", "area-withoutexists/{area}/{controller=Home}/{action=Index}");
                 routes.MapRoute("areaWithoutExists", "area-withoutexists/{controller=Home}/{action=Index}");
-
             });
         }
     }
