@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.ObjectTemplate(html);
 
             // Assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result.ToString());
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.ObjectTemplate(html);
 
             // Assert
-            Assert.Equal("(null value)", result);
+            Assert.Equal("(null value)", result.ToString());
         }
 
         [Theory]
@@ -112,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.ObjectTemplate(html);
 
             // Assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equal(expectedResult, result.ToString().ToString());
         }
 
         [Fact]
@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.ObjectTemplate(htmlHelper);
 
             // Assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result.ToString());
         }
 
         [Fact]
@@ -162,7 +162,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.ObjectTemplate(html);
 
             // Assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result.ToString());
         }
 
         [Fact]
@@ -204,7 +204,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.ObjectTemplate(html);
 
             // Assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result.ToString());
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.HiddenInputTemplate(html);
 
             // Assert
-            Assert.Equal("Formatted string", result);
+            Assert.Equal("Formatted string", result.ToString());
         }
 
         [Fact]
@@ -249,7 +249,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = DefaultDisplayTemplates.HiddenInputTemplate(html);
 
             // Assert
-            Assert.Empty(result);
+            Assert.Empty(result.ToString());
         }
 
         [Fact]

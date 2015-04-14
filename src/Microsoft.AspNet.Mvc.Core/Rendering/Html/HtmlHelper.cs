@@ -219,7 +219,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         /// <inheritdoc />
@@ -231,7 +231,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
+            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing, ViewContext.Writer.Encoding);
         }
 
         /// <inheritdoc />
@@ -462,9 +462,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                                                       readOnly: true,
                                                       additionalViewData: additionalViewData);
 
-            var templateResult = templateBuilder.Build();
-
-            return new HtmlString(templateResult);
+            return templateBuilder.Build();
         }
 
         protected virtual async Task RenderPartialCoreAsync([NotNull] string partialViewName,
@@ -555,7 +553,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         /// <inheritdoc />
@@ -656,7 +654,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            var elements = checkbox.ToString(TagRenderMode.SelfClosing) + hidden.ToString(TagRenderMode.SelfClosing);
+            var elements = new StringCollectionTextWriter(ViewContext.Writer.Encoding);
+            checkbox.WriteTo(elements, TagRenderMode.SelfClosing);
+            hidden.WriteTo(elements, TagRenderMode.SelfClosing);
 
             return new HtmlString(elements);
         }
@@ -701,7 +701,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         protected virtual HtmlString GenerateEditor(
@@ -720,9 +720,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 readOnly: false,
                 additionalViewData: additionalViewData);
 
-            var templateResult = templateBuilder.Build();
-
-            return new HtmlString(templateResult);
+            return templateBuilder.Build();
         }
 
         /// <summary>
@@ -764,7 +762,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes);
             if (tagBuilder != null)
             {
-                ViewContext.Writer.Write(tagBuilder.ToString(TagRenderMode.StartTag));
+                tagBuilder.WriteTo(ViewContext.Writer, TagRenderMode.StartTag);
             }
 
             return CreateForm();
@@ -806,7 +804,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes);
             if (tagBuilder != null)
             {
-                ViewContext.Writer.Write(tagBuilder.ToString(TagRenderMode.StartTag));
+                tagBuilder.WriteTo(ViewContext.Writer, TagRenderMode.StartTag);
             }
 
             return CreateForm();
@@ -832,7 +830,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
+            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing, ViewContext.Writer.Encoding);
         }
 
         protected virtual string GenerateId(string expression)
@@ -860,7 +858,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         protected HtmlString GenerateListBox(
@@ -882,7 +880,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         protected virtual string GenerateName(string expression)
@@ -908,7 +906,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
+            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing, ViewContext.Writer.Encoding);
         }
 
         protected virtual HtmlString GenerateRadioButton(
@@ -930,7 +928,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
+            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing, ViewContext.Writer.Encoding);
         }
 
         protected virtual HtmlString GenerateTextArea(
@@ -952,7 +950,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         protected virtual HtmlString GenerateTextBox(
@@ -974,7 +972,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
+            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing, ViewContext.Writer.Encoding);
         }
 
         protected virtual HtmlString GenerateValidationMessage(
@@ -994,7 +992,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         protected virtual HtmlString GenerateValidationSummary(
@@ -1014,7 +1012,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, ViewContext.Writer.Encoding);
         }
 
         protected virtual string GenerateValue(string expression, object value, string format, bool useViewData)

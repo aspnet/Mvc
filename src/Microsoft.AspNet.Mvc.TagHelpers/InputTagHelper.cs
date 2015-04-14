@@ -200,7 +200,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // This TagBuilder contains the one <input/> element of interest. Since this is not the "checkbox"
                 // special-case, output is a self-closing element no longer guaranteed.
                 output.MergeAttributes(tagBuilder);
-                output.Content.Append(tagBuilder.InnerHtml);
+                output.Content.Append(tagBuilder.InnerHtml.ToString());
             }
         }
 

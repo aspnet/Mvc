@@ -151,7 +151,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
-                InnerHtml = "New HTML"
+                InnerHtml = new HtmlString("New HTML")
             };
 
             tagBuilder.Attributes.Add("data-foo", "bar");
@@ -242,7 +242,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             output.PostContent.SetContent("Content of validation message");
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
-                InnerHtml = "New HTML"
+                InnerHtml = new HtmlString("New HTML")
             };
 
             var generator = new Mock<IHtmlGenerator>();
