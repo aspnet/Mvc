@@ -482,7 +482,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // Testing custom inline constraint updated in ConstraintMapg
         [InlineData("1234567890128", "13 Digit ISBN Number")]
         // Testing custom inline constraint configured via MapRoute
-        [InlineData("1234567881", "10 Digit ISBN Number")]
+        [InlineData("1-234-56789-X", "10 Digit ISBN Number")]
         public async Task CustomInlineConstraint_Add_Update(string isbn, string expectedBody)
         {
             // Arrange

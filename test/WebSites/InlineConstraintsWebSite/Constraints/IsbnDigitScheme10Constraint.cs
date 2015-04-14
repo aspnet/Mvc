@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Routing;
 
@@ -11,11 +12,11 @@ namespace InlineConstraintsWebSite.Constraints
 {
     public class IsbnDigitScheme10Constraint : IRouteConstraint
     {
-        private readonly bool _turnOn;
+        private readonly bool _allowDashes;
 
-        public IsbnDigitScheme10Constraint(bool turnOn)
+        public IsbnDigitScheme10Constraint(bool allowDashes)
         {
-            _turnOn = turnOn;
+            _allowDashes = allowDashes;
         }
 
         public bool Match(
@@ -25,9 +26,11 @@ namespace InlineConstraintsWebSite.Constraints
             IDictionary<string, object> values,
             RouteDirection routeDirection)
         {
-            if (!_turnOn)
+            var isbnRegExpression = @"^(\d{9})(\d|X)\z";
+
+            if (_allowDashes)
             {
-                return true;
+                isbnRegExpression = @"^(\d{1})[-]\d{3}[-]\d{5}[-][\d|X]\z";
             }
 
             object value;
@@ -38,16 +41,21 @@ namespace InlineConstraintsWebSite.Constraints
             }
 
             var isbnNumber = value as string;
+            var isbnRegEx = new Regex(isbnRegExpression, RegexOptions.IgnoreCase);
 
             if (isbnNumber == null
-                || isbnNumber.Length != 10
-                || isbnNumber.Any(n => !char.IsDigit(n)))
+                || !isbnRegEx.Match(isbnNumber).Success)
             {
                 return false;
             }
 
             var sum = 0;
-            Func<char, int> convertToInt = (char n) => (int)char.GetNumericValue(n);
+            Func<char, int> convertToInt = (char n) => (int)n - (int)'0';
+
+            if (_allowDashes)
+            {
+                isbnNumber = isbnNumber = isbnNumber.Replace("-", string.Empty);
+            }
 
             for (int i = 0; i < isbnNumber.Length - 1; ++i)
             {
@@ -55,13 +63,16 @@ namespace InlineConstraintsWebSite.Constraints
             }
 
             var checkSum = sum % 11;
+            var lastDigit = isbnNumber.Last();
 
-            if (checkSum == convertToInt(isbnNumber.Last()))
+            if (checkSum == 10)
             {
-                return true;
+                return char.ToUpperInvariant(lastDigit) == 'X';
             }
-
-            return false;
+            else
+            {
+                return checkSum == convertToInt(lastDigit);
+            }
         }
     }
 }

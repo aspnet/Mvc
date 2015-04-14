@@ -23,6 +23,7 @@ namespace InlineConstraints
                     "IsbnDigitScheme13",
                     typeof(IsbnDigitScheme10Constraint)));
 
+            // Update an existing constraint from ConstraintMap for test purpose.
             services.ConfigureRouting(
                 routeOptions =>
                 {

@@ -27,16 +27,22 @@ namespace InlineConstraintsWebSite.Constraints
 
             var isbnNumber = value as string;
 
+            Func<char, bool> isValidIsbnChar = (char c) =>
+            {
+                var ascii = (int)c - (int)'0';
+                return 0 <= ascii && ascii <= 9;
+            };
+
             if (isbnNumber == null
                 || isbnNumber.Length != 13
-                || isbnNumber.Any(n => !char.IsDigit(n)))
+                || isbnNumber.Any(n => !isValidIsbnChar(n)))
             {
                 return false;
             }
 
             var sum = 0;
             var multipliedBy = new int[] { 1, 3 };
-            Func<char, int> convertToInt = (char n) => (int)char.GetNumericValue(n);
+            Func<char, int> convertToInt = (char n) => (int)n - (int)'0';
 
             for (int i = 0; i < isbnNumber.Length - 1; ++i)
             {
