@@ -13,6 +13,8 @@ namespace InlineConstraintsWebSite.Constraints
     public class IsbnDigitScheme10Constraint : IRouteConstraint
     {
         private readonly bool _allowDashes;
+        private readonly static Regex _isbnRegex
+            = new Regex(@"\A(\d{9})(\d|X)\z", RegexOptions.IgnoreCase);
 
         public IsbnDigitScheme10Constraint(bool allowDashes)
         {
@@ -26,13 +28,6 @@ namespace InlineConstraintsWebSite.Constraints
             IDictionary<string, object> values,
             RouteDirection routeDirection)
         {
-            var isbnRegExpression = @"^(\d{9})(\d|X)\z";
-
-            if (_allowDashes)
-            {
-                isbnRegExpression = @"^(\d{1})[-]\d{3}[-]\d{5}[-][\d|X]\z";
-            }
-
             object value;
 
             if (!values.TryGetValue(routeKey, out value))
@@ -40,22 +35,17 @@ namespace InlineConstraintsWebSite.Constraints
                 return false;
             }
 
-            var isbnNumber = value as string;
-            var isbnRegEx = new Regex(isbnRegExpression, RegexOptions.IgnoreCase);
+            var inputString = value as string;
+            string isbnNumber;
 
-            if (isbnNumber == null
-                || !isbnRegEx.Match(isbnNumber).Success)
+            if (inputString == null
+                || !TryGetIsbn10(inputString, _allowDashes, out isbnNumber))
             {
                 return false;
             }
 
             var sum = 0;
-            Func<char, int> convertToInt = (char n) => (int)n - (int)'0';
-
-            if (_allowDashes)
-            {
-                isbnNumber = isbnNumber = isbnNumber.Replace("-", string.Empty);
-            }
+            Func<char, int> convertToInt = (char n) => n - '0';
 
             for (int i = 0; i < isbnNumber.Length - 1; ++i)
             {
@@ -73,6 +63,40 @@ namespace InlineConstraintsWebSite.Constraints
             {
                 return checkSum == convertToInt(lastDigit);
             }
+        }
+
+        private static bool TryGetIsbn10(string value, bool allowDashes, out string isbnNumber)
+        {
+            if (!allowDashes)
+            {
+                if (_isbnRegex.IsMatch(value))
+                {
+                    isbnNumber = value;
+                    return true;
+                }
+                else
+                {
+                    isbnNumber = null;
+                    return false;
+                }
+            }
+
+            var isbnParts = value.Split(
+                new char[] { '-' },
+                StringSplitOptions.RemoveEmptyEntries);
+
+            if (isbnParts.Length == 4)
+            {
+                value = value.Replace("-", string.Empty);
+                if (_isbnRegex.IsMatch(value))
+                {
+                    isbnNumber = value;
+                    return true;
+                }
+            }
+
+            isbnNumber = null;
+            return false;
         }
     }
 }
