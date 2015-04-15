@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] T objectToApplyTo,
             [NotNull] ModelStateDictionary modelState) where T : class
         {
-            patchDoc.ApplyTo(objectToApplyTo, modelState, prefix: string.Empty);
+            patchDoc.ApplyTo(objectToApplyTo, modelState, prefix: null);
         }
 
         /// <summary>
@@ -39,14 +39,15 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] ModelStateDictionary modelState,
             string prefix) where T : class
         {
-            if (prefix == null)
+            var key = patchDoc.GetType().Name;
+            if (!string.IsNullOrEmpty(prefix))
             {
-                prefix = string.Empty;
+                key = prefix + "." + patchDoc.GetType().Name;
             }
 
             patchDoc.ApplyTo(objectToApplyTo, jsonPatchError =>
             {
-                modelState.TryAddModelError(prefix + patchDoc.GetType().Name, jsonPatchError.ErrorMessage);
+                modelState.TryAddModelError(key, jsonPatchError.ErrorMessage);
             });
         }
     }

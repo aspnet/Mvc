@@ -12,6 +12,8 @@ namespace Microsoft.AspNet.JsonPatch.Test
 {
     public class ObjectAdapterTests
     {
+        public string ErrorMessage { get; set; }
+
         [Fact]
         public void AddResultsShouldReplace()
         {
@@ -140,6 +142,27 @@ namespace Microsoft.AspNet.JsonPatch.Test
         }
 
         [Fact]
+        public void AddToListInvalidPositionTooLarge_LogError()
+        {
+            // Arrange
+            var doc = new SimpleDTO()
+            {
+                IntegerList = new List<int>() { 1, 2, 3 }
+            };
+
+            // create patch
+            var patchDoc = new JsonPatchDocument<SimpleDTO>();
+            patchDoc.Add<int>(o => o.IntegerList, 4, 4);
+
+            // Act
+            patchDoc.ApplyTo(doc, LogErrorMessage);
+
+            // Assert
+            Assert.Equal("For operation 'add' on array property at path '/integerlist/4', the index is " +
+                "larger than the array size.", ErrorMessage);
+        }
+
+        [Fact]
         public void AddToListAtEnd()
         {
             // Arrange
@@ -262,6 +285,26 @@ namespace Microsoft.AspNet.JsonPatch.Test
             // Act & Assert
             var exception = Assert.Throws<JsonPatchException<SimpleDTO>>(() => { deserialized.ApplyTo(doc); });
             Assert.Equal("Property does not exist at path '/integerlist/-1'.", exception.Message);
+        }
+
+        [Fact]
+        public void AddToListInvalidPositionTooSmall_LogError()
+        {
+            // Arrange
+            var doc = new SimpleDTO()
+            {
+                IntegerList = new List<int>() { 1, 2, 3 }
+            };
+
+            // create patch
+            var patchDoc = new JsonPatchDocument<SimpleDTO>();
+            patchDoc.Add<int>(o => o.IntegerList, 4, -1);
+
+            // Act
+            patchDoc.ApplyTo(doc, LogErrorMessage);
+
+            // Assert
+            Assert.Equal("Property does not exist at path '/integerlist/-1'.", ErrorMessage);
         }
 
         [Fact]
@@ -435,6 +478,27 @@ namespace Microsoft.AspNet.JsonPatch.Test
         }
 
         [Fact]
+        public void RemoveFromListInvalidPositionTooLarge_LogError()
+        {
+            // Arrange
+            var doc = new SimpleDTO()
+            {
+                IntegerList = new List<int>() { 1, 2, 3 }
+            };
+
+            // create patch
+            var patchDoc = new JsonPatchDocument<SimpleDTO>();
+            patchDoc.Remove<int>(o => o.IntegerList, 3);
+
+            // Act
+            patchDoc.ApplyTo(doc, LogErrorMessage);
+
+            // Assert
+            Assert.Equal("For operation 'remove' on array property at path '/integerlist/3', the index is " +
+                "larger than the array size.", ErrorMessage);
+        }
+
+        [Fact]
         public void RemoveFromListInvalidPositionTooSmall()
         {
             // Arrange
@@ -471,6 +535,26 @@ namespace Microsoft.AspNet.JsonPatch.Test
             // Act & Assert
             var exception = Assert.Throws<JsonPatchException<SimpleDTO>>(() => { deserialized.ApplyTo(doc); });
             Assert.Equal("Property does not exist at path '/integerlist/-1'.", exception.Message);
+        }
+
+        [Fact]
+        public void RemoveFromListInvalidPositionTooSmall_LogError()
+        {
+            // Arrange
+            var doc = new SimpleDTO()
+            {
+                IntegerList = new List<int>() { 1, 2, 3 }
+            };
+
+            // create patch
+            var patchDoc = new JsonPatchDocument<SimpleDTO>();
+            patchDoc.Remove<int>(o => o.IntegerList, -1);
+
+            // Act
+            patchDoc.ApplyTo(doc, LogErrorMessage);
+
+            // Assert
+            Assert.Equal("Property does not exist at path '/integerlist/-1'.", ErrorMessage);
         }
 
         [Fact]
@@ -1577,6 +1661,11 @@ namespace Microsoft.AspNet.JsonPatch.Test
             // Assert
             Assert.Equal(0, doc.IntegerValue);
             Assert.Equal(new List<int>() { 1, 2, 3, 5 }, doc.IntegerList);
+        }
+
+        private void LogErrorMessage(JsonPatchError<SimpleDTO> patchError)
+        {
+            ErrorMessage = patchError.ErrorMessage;
         }
     }
 }

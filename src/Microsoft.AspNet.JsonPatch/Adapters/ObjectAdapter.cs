@@ -15,16 +15,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
     public class ObjectAdapter<T> : IObjectAdapter<T> where T : class
     {
         /// <summary>
-        /// Gets or sets the <see cref="IContractResolver"/>.
-        /// </summary>
-        public IContractResolver ContractResolver { get; set; }
-
-        /// <summary>
-        /// Action for logging <see cref="JsonPatchError{T}"/>.
-        /// </summary>
-        public Action<JsonPatchError<T>> LogErrorAction { get; private set; }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="ObjectAdapter{T}"/>.
         /// </summary>
         /// <param name="contractResolver"></param>
@@ -34,6 +24,16 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             ContractResolver = contractResolver;
             LogErrorAction = logErrorAction;
         }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IContractResolver"/>.
+        /// </summary>
+        public IContractResolver ContractResolver { get; set; }
+
+        /// <summary>
+        /// Action for logging <see cref="JsonPatchError{T}"/>.
+        /// </summary>
+        public Action<JsonPatchError<T>> LogErrorAction { get; }
 
         /// <summary>
         /// The "add" operation performs one of the following functions,
@@ -137,7 +137,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does property at path exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path);
+            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path))
+            {
+                return;
+            }
 
             // it exists.  If it' an array, add to that array.  If it's not, we replace.
             // is the path an array (but not a string (= char[]))?  In this case,
@@ -153,11 +156,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     var conversionResult = PropertyHelpers.ConvertToActualType(genericTypeOfArray, value);
 
-                    CheckIfPropertyCanBeSet(
-                        conversionResult,
-                        objectToApplyTo,
-                        operationToReport,
-                        path);
+                    if (!CheckIfPropertyCanBeSet(conversionResult, objectToApplyTo, operationToReport, path))
+                    {
+                        return;
+                    }
 
                     // get value (it can be cast, we just checked that)
                     var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
@@ -201,11 +203,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     value);
 
                 // Is conversion successful
-                CheckIfPropertyCanBeSet(
-                    conversionResultTuple,
-                    objectToApplyTo,
-                    operationToReport,
-                    path);
+                if (!CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operationToReport, path))
+                {
+                    return;
+                }
 
                 patchProperty.Property.ValueProvider.SetValue(
                         patchProperty.Parent,
@@ -255,7 +256,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from);
+            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from))
+            {
+                return;
+            }
 
             // is the path an array (but not a string (= char[]))?  In this case,
             // the path must end with "/position" or "/-", which we already determined before.
@@ -354,7 +358,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathToProperty, ContractResolver);
 
             // does the target location exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path);
+            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path))
+            {
+                return;
+            }
 
             // get the property, and remove it - in this case, for DTO's, that means setting
             // it to null or its default value; in case of an array, remove at provided index
@@ -485,7 +492,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualPathProperty, ContractResolver);
 
             // does property at path exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.path);
+            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.path))
+            {
+                return;
+            }
 
             // get the property path
             Type typeOfFinalPropertyAtPathLocation = null;
@@ -537,7 +547,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 operation.value);
 
             // Is conversion successful
-            CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operation, operation.path);
+            if (!CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operation, operation.path))
+            {
+                return;
+            }
 
             //Compare
         }
@@ -609,7 +622,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 .FindPropertyAndParent(objectToApplyTo, actualFromProperty, ContractResolver);
 
             // does property at from exist?
-            CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from);
+            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from))
+            {
+                return;
+            }
 
             // get the property path
             // is the path an array (but not a string (= char[]))?  In this case,
@@ -657,7 +673,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
         }
 
-        private void CheckIfPropertyExists(
+        private bool CheckIfPropertyExists(
             JsonPatchProperty patchProperty,
             T objectToApplyTo,
             Operation<T> operation,
@@ -670,7 +686,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     operation,
                     Resources.FormatPropertyDoesNotExist(propertyPath)));
 
-                return;
+                return false;
             }
             if (patchProperty.Property.Ignored)
             {
@@ -678,7 +694,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     objectToApplyTo,
                     operation,
                     Resources.FormatCannotUpdateProperty(propertyPath)));
+
+                return false;
             }
+
+            return true;
         }
 
         private bool IsNonStringArray(JsonPatchProperty patchProperty)
@@ -688,7 +708,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         patchProperty.Property.PropertyType.GetTypeInfo());
         }
 
-        private void CheckIfPropertyCanBeSet(
+        private bool CheckIfPropertyCanBeSet(
             ConversionResult result,
             T objectToApplyTo,
             Operation<T> operation,
@@ -700,7 +720,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     objectToApplyTo,
                     operation,
                     Resources.FormatInvalidValueForProperty(result.ConvertedInstance, path)));
+
+                return false;
             }
+
+            return true;
         }
 
         private void LogError(JsonPatchError<T> jsonPatchError)
