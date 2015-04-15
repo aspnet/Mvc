@@ -13,8 +13,6 @@ namespace InlineConstraintsWebSite.Constraints
     public class IsbnDigitScheme10Constraint : IRouteConstraint
     {
         private readonly bool _allowDashes;
-        private readonly static Regex _isbnRegex
-            = new Regex(@"\A(\d{9})(\d|X)\z", RegexOptions.IgnoreCase);
 
         public IsbnDigitScheme10Constraint(bool allowDashes)
         {
@@ -69,7 +67,7 @@ namespace InlineConstraintsWebSite.Constraints
         {
             if (!allowDashes)
             {
-                if (_isbnRegex.IsMatch(value))
+                if (CheckIsbn10Characters(value))
                 {
                     isbnNumber = value;
                     return true;
@@ -88,7 +86,7 @@ namespace InlineConstraintsWebSite.Constraints
             if (isbnParts.Length == 4)
             {
                 value = value.Replace("-", string.Empty);
-                if (_isbnRegex.IsMatch(value))
+                if (CheckIsbn10Characters(value))
                 {
                     isbnNumber = value;
                     return true;
@@ -97,6 +95,21 @@ namespace InlineConstraintsWebSite.Constraints
 
             isbnNumber = null;
             return false;
+        }
+
+        private static bool CheckIsbn10Characters(string value)
+        {
+            if (value.Length != 10)
+            {
+                return false;
+            }
+
+            var digits = value.Substring(0, 9);
+            var checksum = value.Last();
+
+            return digits.All(n => '0' <= n && n <= '9')
+                && ('0' <= checksum && checksum <= '9'
+                    || 'X' == char.ToUpperInvariant(checksum));
         }
     }
 }
