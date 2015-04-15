@@ -39,28 +39,38 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 
             // Assert
             Assert.Equal(2, codeTrees.Count);
-            var viewStartChunks = codeTrees[0].Chunks;
-            Assert.Equal(3, viewStartChunks.Count);
+            var globalImportChunks = codeTrees[0].Chunks;
+            Assert.Equal(3, globalImportChunks.Count);
 
-            Assert.IsType<LiteralChunk>(viewStartChunks[0]);
-            var usingChunk = Assert.IsType<UsingChunk>(viewStartChunks[1]);
+            var globalImportPath = @"Views\home\_GlobalImport.cshtml";
+            Assert.IsType<LiteralChunk>(globalImportChunks[0]);
+
+            Assert.Equal(globalImportPath, globalImportChunks[1].Start.FilePath);
+            var usingChunk = Assert.IsType<UsingChunk>(globalImportChunks[1]);
             Assert.Equal("MyNamespace", usingChunk.Namespace);
-            Assert.IsType<LiteralChunk>(viewStartChunks[2]);
+            Assert.Equal(globalImportPath, globalImportChunks[2].Start.FilePath);
+            Assert.IsType<LiteralChunk>(globalImportChunks[2]);
 
-            viewStartChunks = codeTrees[1].Chunks;
-            Assert.Equal(5, viewStartChunks.Count);
+            globalImportChunks = codeTrees[1].Chunks;
+            globalImportPath = @"Views\_GlobalImport.cshtml";
+            Assert.Equal(5, globalImportChunks.Count);
 
-            Assert.IsType<LiteralChunk>(viewStartChunks[0]);
+            Assert.Equal(globalImportPath, globalImportChunks[0].Start.FilePath);
+            Assert.IsType<LiteralChunk>(globalImportChunks[0]);
 
-            var injectChunk = Assert.IsType<InjectChunk>(viewStartChunks[1]);
+            Assert.Equal(globalImportPath, globalImportChunks[1].Start.FilePath);
+            var injectChunk = Assert.IsType<InjectChunk>(globalImportChunks[1]);
             Assert.Equal("MyHelper<TModel>", injectChunk.TypeName);
             Assert.Equal("Helper", injectChunk.MemberName);
 
-            var setBaseTypeChunk = Assert.IsType<SetBaseTypeChunk>(viewStartChunks[2]);
+            Assert.Equal(globalImportPath, globalImportChunks[2].Start.FilePath);
+            var setBaseTypeChunk = Assert.IsType<SetBaseTypeChunk>(globalImportChunks[2]);
             Assert.Equal("MyBaseType", setBaseTypeChunk.TypeName);
 
-            Assert.IsType<StatementChunk>(viewStartChunks[3]);
-            Assert.IsType<LiteralChunk>(viewStartChunks[4]);
+            Assert.Equal(globalImportPath, globalImportChunks[3].Start.FilePath);
+            Assert.IsType<StatementChunk>(globalImportChunks[3]);
+            Assert.Equal(globalImportPath, globalImportChunks[4].Start.FilePath);
+            Assert.IsType<LiteralChunk>(globalImportChunks[4]);
         }
 
         [Fact]
