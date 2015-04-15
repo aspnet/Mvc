@@ -19,11 +19,6 @@ namespace JsonPatchWebSite
         {
             app.UseCultureReplacer();
 
-            // Set up file serving for JavaScript files.
-            app.UseFileServer();
-
-            app.UseErrorReporter();
-
             // Add MVC to the request pipeline
             app.UseMvc(routes =>
             {

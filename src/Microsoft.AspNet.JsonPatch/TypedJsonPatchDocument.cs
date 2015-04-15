@@ -354,7 +354,7 @@ namespace Microsoft.AspNet.JsonPatch
 
         public void ApplyTo(T objectToApplyTo)
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver, null));
+            ApplyTo(objectToApplyTo, new ObjectAdapter<T>(ContractResolver, logErrorAction: null));
         }
 
         public void ApplyTo(T objectToApplyTo, Action<JsonPatchError<T>> logErrorAction)

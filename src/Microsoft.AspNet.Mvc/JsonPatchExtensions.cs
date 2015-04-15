@@ -23,11 +23,11 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] T objectToApplyTo,
             [NotNull] ModelStateDictionary modelState) where T : class
         {
-            patchDoc.ApplyTo(objectToApplyTo, modelState, prefix: null);
+            patchDoc.ApplyTo(objectToApplyTo, modelState, prefix: string.Empty);
         }
 
         /// <summary>
-        /// Applies json patch operations on object and logs errors in <see cref="ModelStateDictionary"/>.
+        /// Applies JSON patch operations on object and logs errors in <see cref="ModelStateDictionary"/>.
         /// </summary>
         /// <param name="patchDoc">The <see cref="JsonPatchDocument{T}"/>.</param>
         /// <param name="objectToApplyTo">The entity on which <see cref="JsonPatchDocument{T}"/> is applied.</param>
@@ -39,15 +39,17 @@ namespace Microsoft.AspNet.Mvc
             [NotNull] ModelStateDictionary modelState,
             string prefix) where T : class
         {
-            var key = patchDoc.GetType().Name;
+            var key = string.Empty;
             if (!string.IsNullOrEmpty(prefix))
             {
-                key = prefix + "." + patchDoc.GetType().Name;
+                key = prefix + ".";
             }
 
             patchDoc.ApplyTo(objectToApplyTo, jsonPatchError =>
             {
-                modelState.TryAddModelError(key, jsonPatchError.ErrorMessage);
+                modelState.TryAddModelError(
+                    key + jsonPatchError.AffectedObject.GetType().Name,
+                    jsonPatchError.ErrorMessage);
             });
         }
     }

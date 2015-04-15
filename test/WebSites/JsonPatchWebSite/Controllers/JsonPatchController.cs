@@ -8,6 +8,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace JsonPatchWebSite.Controllers
 {
+    [Route("jsonpatch/[action]")]
     public class JsonPatchController : Controller
     {
         [HttpPatch]

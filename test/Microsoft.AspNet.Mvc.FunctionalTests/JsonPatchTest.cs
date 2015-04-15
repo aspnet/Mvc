@@ -22,8 +22,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
 
         [Theory]
-        [InlineData("http://localhost/JsonPatch/JsonPatchWithModelState")]
-        [InlineData("http://localhost/JsonPatch/JsonPatchWithModelStateAndPrefix?prefix=Patch")]
+        [InlineData("http://localhost/jsonpatch/JsonPatchWithModelState")]
+        [InlineData("http://localhost/jsonpatch/JsonPatchWithModelStateAndPrefix?prefix=Patch")]
         public async Task JsonPatch_ValidAddOperation_List(string url)
         {
             // Arrange
@@ -48,10 +48,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("Name2", customer.Orders[2].OrderName);
         }
 
-
         [Theory]
-        [InlineData("http://localhost/JsonPatch/JsonPatchWithModelState")]
-        [InlineData("http://localhost/JsonPatch/JsonPatchWithModelStateAndPrefix?prefix=Patch")]
+        [InlineData("http://localhost/jsonpatch/JsonPatchWithModelState")]
+        [InlineData("http://localhost/jsonpatch/JsonPatchWithModelStateAndPrefix?prefix=Patch")]
         public async Task JsonPatch_MultipleValidOperations_Success(string url)
         {
             // Arrange
@@ -86,35 +85,35 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 return new[]
                 {
                     new object[] {
-                        "http://localhost/JsonPatch/JsonPatchWithModelStateAndPrefix?prefix=Patch",
+                        "http://localhost/jsonpatch/JsonPatchWithModelStateAndPrefix?prefix=Patch",
                         "[{ \"op\": \"add\", \"path\": \"Customer/Orders/5\", " +
                         "\"value\": { \"OrderName\": \"Name5\" }}]",
-                        "{\"Patch.JsonPatchDocument`1\":[\"For operation 'add' on array property at path " +
+                        "{\"Patch.Customer\":[\"For operation 'add' on array property at path " +
                         "'Customer/Orders/5', the index is larger than the array size.\"]}"
                     },
                     new object[] {
-                        "http://localhost/JsonPatch/JsonPatchWithModelState",
+                        "http://localhost/jsonpatch/JsonPatchWithModelState",
                         "[{ \"op\": \"add\", \"path\": \"Customer/Orders/5\", " +
                         "\"value\": { \"OrderName\": \"Name5\" }}]",
-                        "{\"JsonPatchDocument`1\":[\"For operation 'add' on array property at path " +
+                        "{\"Customer\":[\"For operation 'add' on array property at path " +
                         "'Customer/Orders/5', the index is larger than the array size.\"]}"
                     },
                     new object[] {
-                        "http://localhost/JsonPatch/JsonPatchWithModelStateAndPrefix?prefix=Patch",
+                        "http://localhost/jsonpatch/JsonPatchWithModelStateAndPrefix?prefix=Patch",
                         "[{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", \"value\": " +
                         "{ \"OrderName\": \"Name2\" }}, {\"op\": \"copy\", \"from\": \"Customer/Orders/4\", " +
                         "\"path\": \"Customer/Orders/3\" }, {\"op\": \"replace\", \"path\": " +
                         "\"Customer/Orders/2/OrderName\", \"value\": \"ReplacedName\" }]",
-                        "{\"Patch.JsonPatchDocument`1\":[\"For operation 'copy' on array property at path " +
+                        "{\"Patch.Customer\":[\"For operation 'copy' on array property at path " +
                         "'Customer/Orders/4', the index is larger than the array size.\"]}"
                     },
                     new object[] {
-                        "http://localhost/JsonPatch/JsonPatchWithModelState",
+                        "http://localhost/jsonpatch/JsonPatchWithModelState",
                         "[{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", \"value\": " +
                         "{ \"OrderName\": \"Name2\" }}, {\"op\": \"copy\", \"from\": \"Customer/Orders/4\", " +
                         "\"path\": \"Customer/Orders/3\" }, {\"op\": \"replace\", \"path\": " +
                         "\"Customer/Orders/2/OrderName\", \"value\": \"ReplacedName\" }]",
-                        "{\"JsonPatchDocument`1\":[\"For operation 'copy' on array property at path " +
+                        "{\"Customer\":[\"For operation 'copy' on array property at path " +
                         "'Customer/Orders/4', the index is larger than the array size.\"]}"
                     }
                 };

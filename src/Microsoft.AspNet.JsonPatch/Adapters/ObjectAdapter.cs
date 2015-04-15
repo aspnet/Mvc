@@ -17,8 +17,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectAdapter{T}"/>.
         /// </summary>
-        /// <param name="contractResolver"></param>
-        /// <param name="logErrorAction"></param>
+        /// <param name="contractResolver">The <see cref="IContractResolver"/>.</param>
+        /// <param name="logErrorAction">The <see cref="Action"/> for logging <see cref="JsonPatchError{T}"/>.</param>
         public ObjectAdapter(IContractResolver contractResolver, Action<JsonPatchError<T>> logErrorAction)
         {
             ContractResolver = contractResolver;
@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <summary>
         /// Gets or sets the <see cref="IContractResolver"/>.
         /// </summary>
-        public IContractResolver ContractResolver { get; set; }
+        public IContractResolver ContractResolver { get; }
 
         /// <summary>
         /// Action for logging <see cref="JsonPatchError{T}"/>.
@@ -688,6 +688,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                 return false;
             }
+
             if (patchProperty.Property.Ignored)
             {
                 LogError(new JsonPatchError<T>(
