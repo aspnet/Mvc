@@ -68,6 +68,11 @@ namespace Microsoft.AspNet.Mvc
 
         private void ActivateProperties(object controller, Type containerType, Dictionary<string, object> properties)
         {
+            if (properties.Count == 0)
+            {
+                return;
+            }
+
             var propertyHelpers = PropertyHelper.GetProperties(controller);
             foreach (var property in properties)
             {
