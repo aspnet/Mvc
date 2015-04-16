@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                return _details.Attributes;
+                return _details.Attributes.Attributes;
             }
         }
 
