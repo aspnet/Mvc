@@ -434,7 +434,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object model,
             ViewDataDictionary viewData)
         {
-            using (var writer = new StringCollectionTextWriter(Encoding.UTF8))
+            using (var writer = new StringCollectionTextWriter())
             {
                 await RenderPartialCoreAsync(partialViewName, model, viewData, writer);
 
