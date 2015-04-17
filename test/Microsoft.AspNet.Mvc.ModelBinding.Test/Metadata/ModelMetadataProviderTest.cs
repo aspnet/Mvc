@@ -888,7 +888,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 var entry = base.CreateTypeDetails(key);
                 return new DefaultMetadataDetails(
                     key,
-                    new ModelAttributes(_attributes.Concat(entry.Attributes.TypeAttributes).ToArray()));
+                    new ModelAttributes(_attributes.Concat(entry.ModelAttributes.TypeAttributes).ToArray()));
             }
         }
     }

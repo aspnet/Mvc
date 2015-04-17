@@ -19,16 +19,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// </summary>
         /// <param name="key">The <see cref="ModelMetadataIdentity"/>.</param>
         /// <param name="attributes">The set of model attributes.</param>
-        public DefaultMetadataDetails([NotNull] ModelMetadataIdentity key, [NotNull] ModelAttributes attributes)
+        public DefaultMetadataDetails(ModelMetadataIdentity key, [NotNull] ModelAttributes attributes)
         {
             Key = key;
-            Attributes = attributes;
+            ModelAttributes = attributes;
         }
 
         /// <summary>
         /// Gets or sets the set of model attributes.
         /// </summary>
-        public ModelAttributes Attributes { get; }
+        public ModelAttributes ModelAttributes { get; }
 
         /// <summary>
         /// Gets or sets the <see cref="Metadata.BindingMetadata"/>.
