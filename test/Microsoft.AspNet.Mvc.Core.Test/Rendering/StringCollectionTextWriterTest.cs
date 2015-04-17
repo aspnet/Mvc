@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var expected = new[] { "True", "3", "18446744073709551615", "Hello world", "3.14", "2.718", "m" };
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
 
             // Act
             writer.Write(true);
@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Arrange
             var newLine = Environment.NewLine;
             var expected = new List<object> { "False", newLine, "1.1", newLine, "3", newLine };
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
 
             // Act
             writer.WriteLine(false);
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var input1 = new ArraySegment<char>(new char[] { 'a', 'b', 'c', 'd' }, 1, 3);
             var input2 = new ArraySegment<char>(new char[] { 'e', 'f' }, 0, 2);
             var input3 = new ArraySegment<char>(new char[] { 'g', 'h', 'i', 'j' }, 3, 1);
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
 
             // Act
             writer.Write(input1.Array, input1.Offset, input1.Count);
@@ -102,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var newLine = Environment.NewLine;
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
 
             // Act
             writer.WriteLine();
@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var input2 = "from";
             var input3 = "ASP";
             var input4 = ".Net";
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
 
             // Act
             writer.Write(input1);
@@ -139,8 +139,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void Copy_CopiesContent_IfTargetTextWriterIsAStringCollectionTextWriter()
         {
             // Arrange
-            var source = new StringCollectionTextWriter();
-            var target = new StringCollectionTextWriter();
+            var source = new StringCollectionTextWriter(Encoding.UTF8);
+            var target = new StringCollectionTextWriter(Encoding.UTF8);
 
             // Act
             source.Write("Hello world");
@@ -158,7 +158,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public void Copy_WritesContent_IfTargetTextWriterIsNotAStringCollectionTextWriter()
         {
             // Arrange
-            var source = new StringCollectionTextWriter();
+            var source = new StringCollectionTextWriter(Encoding.UTF8);
             var target = new StringWriter();
             var expected = @"Hello world" + Environment.NewLine + "abc";
 

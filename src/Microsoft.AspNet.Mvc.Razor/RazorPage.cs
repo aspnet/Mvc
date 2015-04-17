@@ -176,7 +176,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </remarks>
         public void StartTagHelperWritingScope()
         {
-            StartTagHelperWritingScope(new StringCollectionTextWriter());
+            StartTagHelperWritingScope(new StringCollectionTextWriter(Output.Encoding));
         }
 
         /// <summary>

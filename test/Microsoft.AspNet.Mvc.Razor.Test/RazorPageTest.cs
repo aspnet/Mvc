@@ -691,7 +691,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var writer = new RazorTextWriter(TextWriter.Null, Encoding.UTF8);
-            var stringCollectionWriter = new StringCollectionTextWriter();
+            var stringCollectionWriter = new StringCollectionTextWriter(Encoding.UTF8);
             stringCollectionWriter.Write("text1");
             stringCollectionWriter.Write("text2");
 
@@ -1090,7 +1090,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task WriteTagHelperAsync_WritesFormattedTagHelper(TagHelperOutput output, string expected)
         {
             // Arrange
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(writer);
             var tagHelperExecutionContext = new TagHelperExecutionContext(
                 tagName: output.TagName,
@@ -1124,7 +1124,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var defaultTagHelperContent = new DefaultTagHelperContent();
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(writer);
             var tagHelperExecutionContext = new TagHelperExecutionContext(
                 tagName: "p",
@@ -1160,7 +1160,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task WriteTagHelperToAsync_WritesToSpecifiedWriter()
         {
             // Arrange
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(new StringWriter());
             var tagHelperExecutionContext = new TagHelperExecutionContext(
                 tagName: "p",
@@ -1189,7 +1189,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task WriteTagHelperToAsync_WritesFormattedTagHelper(TagHelperOutput output, string expected)
         {
             // Arrange
-            var writer = new StringCollectionTextWriter();
+            var writer = new StringCollectionTextWriter(Encoding.UTF8);
             var context = CreateViewContext(new StringWriter());
             var tagHelperExecutionContext = new TagHelperExecutionContext(
                 tagName: output.TagName,
