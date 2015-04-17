@@ -11,6 +11,8 @@ namespace InlineConstraintsWebSite.Constraints
 {
     public class IsbnDigitScheme13Constraint : IRouteConstraint
     {
+        private static readonly int[] _isbn13Weights = new int[] { 1, 3 };
+
         public bool Match(
             HttpContext httpContext,
             IRouter route,
@@ -35,13 +37,12 @@ namespace InlineConstraintsWebSite.Constraints
             }
 
             var sum = 0;
-            var multipliedBy = new int[] { 1, 3 };
             Func<char, int> convertToInt = (char n) => n - '0';
 
             for (int i = 0; i < isbnNumber.Length - 1; ++i)
             {
                 sum +=
-                    convertToInt(isbnNumber[i]) * multipliedBy[i % 2];
+                    convertToInt(isbnNumber[i]) * _isbn13Weights[i % 2];
             }
 
             var checkSum = 10 - sum % 10;

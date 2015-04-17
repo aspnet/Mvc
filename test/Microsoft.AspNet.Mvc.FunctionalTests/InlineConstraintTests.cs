@@ -479,7 +479,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Theory]
-        // Testing custom inline constraint updated in ConstraintMapg
+        // Testing custom inline constraint updated in ConstraintMap
         [InlineData("1234567890128", "13 Digit ISBN Number")]
         // Testing custom inline constraint configured via MapRoute
         [InlineData("1-234-56789-X", "10 Digit ISBN Number")]
