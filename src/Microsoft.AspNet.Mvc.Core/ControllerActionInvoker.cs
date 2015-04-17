@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Core
             [NotNull] IReadOnlyList<IValueProviderFactory> valueProviderFactories,
             [NotNull] IScopedInstance<ActionBindingContext> actionBindingContextAccessor,
             [NotNull] ITempDataDictionary tempData,
-            int maxAllowedErrorsInModelState)
+            int maxModelValidationErrors)
             : base(
                   actionContext,
                   filterProviders,
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Core
                   modelValidatorProviders, 
                   valueProviderFactories,
                   actionBindingContextAccessor,
-                  maxAllowedErrorsInModelState)
+                  maxModelValidationErrors)
         {
             _descriptor = descriptor;
             _controllerFactory = controllerFactory;

@@ -89,7 +89,6 @@ namespace Microsoft.AspNet.Mvc
             IDictionary<string, object> arguments,
             IEnumerable<ParameterDescriptor> parameterMetadata)
         {
-            modelState.MaxAllowedErrors = _options.MaxModelValidationErrors;
             foreach (var parameter in parameterMetadata)
             {
                 var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
