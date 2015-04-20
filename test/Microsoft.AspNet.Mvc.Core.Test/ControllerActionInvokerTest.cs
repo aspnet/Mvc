@@ -2121,8 +2121,7 @@ namespace Microsoft.AspNet.Mvc
                 new IOutputFormatter[0],
                 new DefaultControllerActionArgumentBinder(
                     metadataProvider,
-                    new DefaultObjectValidator(new IExcludeTypeValidationFilter[0], metadataProvider),
-                    new MockMvcOptionsAccessor()),
+                    new DefaultObjectValidator(new IExcludeTypeValidationFilter[0], metadataProvider)),
                 new IModelBinder[] { binder.Object },
                 new IModelValidatorProvider[0],
                 new IValueProviderFactory[0],

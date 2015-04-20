@@ -20,16 +20,13 @@ namespace Microsoft.AspNet.Mvc
     public class DefaultControllerActionArgumentBinder : IControllerActionArgumentBinder
     {
         private readonly IModelMetadataProvider _modelMetadataProvider;
-        private readonly MvcOptions _options;
         private readonly IObjectModelValidator _validator;
 
         public DefaultControllerActionArgumentBinder(
             IModelMetadataProvider modelMetadataProvider,
-            IObjectModelValidator validator,
-            IOptions<MvcOptions> optionsAccessor)
+            IObjectModelValidator validator)
         {
             _modelMetadataProvider = modelMetadataProvider;
-            _options = optionsAccessor.Options;
             _validator = validator;
         }
 
