@@ -5,7 +5,7 @@ using Microsoft.AspNet.JsonPatch.Adapters;
 
 namespace Microsoft.AspNet.JsonPatch.Operations
 {
-    public class Operation<T> : Operation where T : class
+    public class Operation<TModel> : Operation where TModel : class
     {
         public Operation()
         {
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         }
 
-        public void Apply(T objectToApplyTo, IObjectAdapter<T> adapter)
+        public void Apply(TModel objectToApplyTo, IObjectAdapter<TModel> adapter)
         {
             switch (OperationType)
             {
