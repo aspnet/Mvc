@@ -438,11 +438,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             // Convert each ListItem to an <option> tag and wrap them with <optgroup> if requested.
-            var listItemBuilder = GenerateGroupsAndOptions(optionLabel, selectList);
+            var listItemBuilder = GenerateGroupsAndOptions(viewContext, optionLabel, selectList);
 
             var tagBuilder = new TagBuilder("select", _htmlEncoder)
             {
-                InnerHtml = listItemBuilder.ToString()
+                InnerHtml = listItemBuilder
             };
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes));
             tagBuilder.MergeAttribute("name", fullName, true /* replaceExisting */);
@@ -531,7 +531,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // The first newline is always trimmed when a TextArea is rendered, so we add an extra one
             // in case the value being rendered is something like "\r\nHello".
-            tagBuilder.InnerHtml = Environment.NewLine + _htmlEncoder.HtmlEncode(value);
+            tagBuilder.InnerHtml = new HtmlString(Environment.NewLine + _htmlEncoder.HtmlEncode(value));
 
             return tagBuilder;
         }
@@ -647,7 +647,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return null;
             }
 
-            string wrappedMessage;
+            var wrappedMessage = new StringCollectionTextWriter(viewContext.Writer.Encoding);
             if (!string.IsNullOrEmpty(message))
             {
                 if (string.IsNullOrEmpty(headerTag))
@@ -656,16 +656,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 }
                 var messageTag = new TagBuilder(headerTag, _htmlEncoder);
                 messageTag.SetInnerText(message);
-                wrappedMessage = messageTag.ToString(TagRenderMode.Normal) + Environment.NewLine;
-            }
-            else
-            {
-                wrappedMessage = null;
+                messageTag.WriteTo(wrappedMessage, TagRenderMode.Normal);
+                wrappedMessage.WriteLine();
             }
 
             // If excludePropertyErrors is true, describe any validation issue with the current model in a single item.
             // Otherwise, list individual property errors.
-            var htmlSummary = new StringBuilder();
+            var htmlSummary = new StringCollectionTextWriter(viewContext.Writer.Encoding);
             var modelStates = ValidationHelpers.GetModelStateList(viewContext.ViewData, excludePropertyErrors);
 
             foreach (var modelState in modelStates)
@@ -678,19 +675,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     {
                         var listItem = new TagBuilder("li", _htmlEncoder);
                         listItem.SetInnerText(errorText);
-                        htmlSummary.AppendLine(listItem.ToString(TagRenderMode.Normal));
+                        listItem.WriteTo(htmlSummary, TagRenderMode.Normal);
+                        htmlSummary.WriteLine();
                     }
                 }
             }
 
-            if (htmlSummary.Length == 0)
+            // To be changed
+            if (htmlSummary.ToString().Length == 0)
             {
-                htmlSummary.AppendLine(HiddenListItem);
+                htmlSummary.WriteLine(HiddenListItem);
             }
 
             var unorderedList = new TagBuilder("ul", _htmlEncoder)
             {
-                InnerHtml = htmlSummary.ToString()
+                InnerHtml = new HtmlString(htmlSummary)
             };
 
             var tagBuilder = new TagBuilder("div", _htmlEncoder);
@@ -705,7 +704,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 tagBuilder.AddCssClass(HtmlHelper.ValidationSummaryCssClassName);
             }
 
-            tagBuilder.InnerHtml = wrappedMessage + unorderedList.ToString(TagRenderMode.Normal);
+            var innerContent = new StringCollectionTextWriter(viewContext.Writer.Encoding);
+            wrappedMessage.CopyTo(innerContent);
+            unorderedList.WriteTo(innerContent, TagRenderMode.Normal);
+            tagBuilder.InnerHtml = new HtmlString(innerContent);
 
             if (formContext != null && !excludePropertyErrors)
             {
@@ -867,7 +869,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             var tagBuilder = new TagBuilder("option", htmlEncoder)
             {
-                InnerHtml = encodedText,
+                InnerHtml = new HtmlString(encodedText),
             };
 
             if (item.Value != null)
@@ -1052,7 +1054,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             var tagBuilder = new TagBuilder("a", _htmlEncoder)
             {
-                InnerHtml = _htmlEncoder.HtmlEncode(linkText),
+                InnerHtml = new HtmlString(_htmlEncoder.HtmlEncode(linkText)),
             };
 
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes));
@@ -1208,19 +1210,24 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return newSelectList;
         }
 
-        private StringBuilder GenerateGroupsAndOptions(string optionLabel, IEnumerable<SelectListItem> selectList)
+        private HtmlString GenerateGroupsAndOptions(
+            [NotNull] ViewContext viewContext,
+            string optionLabel,
+            IEnumerable<SelectListItem> selectList)
         {
-            var listItemBuilder = new StringBuilder();
+            var listItemBuilder = new StringCollectionTextWriter(viewContext.Writer.Encoding);
 
             // Make optionLabel the first item that gets rendered.
             if (optionLabel != null)
             {
-                listItemBuilder.AppendLine(GenerateOption(new SelectListItem()
-                {
-                    Text = optionLabel,
-                    Value = string.Empty,
-                    Selected = false,
-                }));
+                listItemBuilder.WriteLine(GenerateOption(
+                    viewContext,
+                    new SelectListItem()
+                    {
+                        Text = optionLabel,
+                        Value = string.Empty,
+                        Selected = false,
+                    }));
             }
 
             // Group items in the SelectList if requested.
@@ -1247,29 +1254,32 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         groupBuilder.MergeAttribute("disabled", "disabled");
                     }
 
-                    listItemBuilder.AppendLine(groupBuilder.ToString(TagRenderMode.StartTag));
+                    groupBuilder.WriteTo(listItemBuilder, TagRenderMode.StartTag);
+                    listItemBuilder.WriteLine();
                 }
 
                 foreach (var item in group)
                 {
-                    listItemBuilder.AppendLine(GenerateOption(item));
+                    GenerateOption(viewContext, item).WriteTo(listItemBuilder);
+                    listItemBuilder.WriteLine();
                 }
 
                 if (optGroup != null)
                 {
-                    listItemBuilder.AppendLine(groupBuilder.ToString(TagRenderMode.EndTag));
+                    groupBuilder.WriteTo(listItemBuilder, TagRenderMode.EndTag);
+                    listItemBuilder.WriteLine();
                 }
             }
 
-            return listItemBuilder;
+            return new HtmlString(listItemBuilder);
         }
 
-        private string GenerateOption(SelectListItem item)
+        private HtmlString GenerateOption([NotNull] ViewContext viewContext, SelectListItem item)
         {
             var encodedText = Encode(item.Text);
             var tagBuilder = GenerateOption(item, encodedText, _htmlEncoder);
 
-            return tagBuilder.ToString(TagRenderMode.Normal);
+            return tagBuilder.ToHtmlString(TagRenderMode.Normal, viewContext.Writer.Encoding);
         }
     }
 }

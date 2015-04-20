@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.WebEncoders;
 using Xunit;
@@ -98,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.Core.Rendering
             tagBuilder.Attributes.Add("ID", string.Empty);
 
             // Act
-            var value = tagBuilder.ToHtmlString(renderingMode);
+            var value = tagBuilder.ToHtmlString(renderingMode, Encoding.UTF8);
 
             // Assert
             Assert.Equal(expectedOutput, value.ToString());

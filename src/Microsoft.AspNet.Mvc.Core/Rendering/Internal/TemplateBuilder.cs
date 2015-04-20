@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
             _metadata = modelExplorer.Metadata;
         }
 
-        public string Build()
+        public HtmlString Build()
         {
             if (_metadata.ConvertEmptyStringToNull && string.Empty.Equals(_model))
             {
@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
             // don't check to make sure that the object hasn't already been displayed
             if (_viewData.TemplateInfo.Visited(_modelExplorer))
             {
-                return string.Empty;
+                return new HtmlString(string.Empty);
             }
 
             // We need to copy the ModelExplorer to copy the model metadata. Otherwise we might

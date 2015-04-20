@@ -160,7 +160,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
-                InnerHtml = "New HTML"
+                InnerHtml = new HtmlString("New HTML")
             };
             tagBuilder.Attributes.Add("data-foo", "bar");
             tagBuilder.Attributes.Add("data-hello", "world");
@@ -218,7 +218,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
             {
-                InnerHtml = "New HTML"
+                InnerHtml = new HtmlString("New HTML")
             };
             tagBuilder.Attributes.Add("data-foo", "bar");
             tagBuilder.Attributes.Add("data-hello", "world");

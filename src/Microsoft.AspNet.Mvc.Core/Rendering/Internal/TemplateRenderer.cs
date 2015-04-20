@@ -21,8 +21,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
         private const string EditorTemplateViewPath = "EditorTemplates";
         public const string IEnumerableOfIFormFileName = "IEnumerable`" + nameof(IFormFile);
 
-        private static readonly Dictionary<string, Func<IHtmlHelper, string>> _defaultDisplayActions =
-            new Dictionary<string, Func<IHtmlHelper, string>>(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, Func<IHtmlHelper, HtmlString>> _defaultDisplayActions =
+            new Dictionary<string, Func<IHtmlHelper, HtmlString>>(StringComparer.OrdinalIgnoreCase)
             {
                 { "Collection", DefaultDisplayTemplates.CollectionTemplate },
                 { "EmailAddress", DefaultDisplayTemplates.EmailAddressTemplate },
@@ -36,8 +36,8 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
                 { typeof(object).Name, DefaultDisplayTemplates.ObjectTemplate },
             };
 
-        private static readonly Dictionary<string, Func<IHtmlHelper, string>> _defaultEditorActions =
-            new Dictionary<string, Func<IHtmlHelper, string>>(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, Func<IHtmlHelper, HtmlString>> _defaultEditorActions =
+            new Dictionary<string, Func<IHtmlHelper, HtmlString>>(StringComparer.OrdinalIgnoreCase)
             {
                 { "Collection", DefaultEditorTemplates.CollectionTemplate },
                 { "EmailAddress", DefaultEditorTemplates.EmailAddressInputTemplate },
@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
             _readOnly = readOnly;
         }
 
-        public string Render()
+        public HtmlString Render()
         {
             var defaultActions = GetDefaultActions();
             var modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
                 var viewEngineResult = _viewEngine.FindPartialView(_viewContext, fullViewName);
                 if (viewEngineResult.Success)
                 {
-                    using (var writer = new StringWriter(CultureInfo.InvariantCulture))
+                    using (var writer = new StringCollectionTextWriter(_viewContext.Writer.Encoding))
                     {
                         // Forcing synchronous behavior so users don't have to await templates.
                         var view = viewEngineResult.View;
@@ -110,12 +110,12 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
                             var viewContext = new ViewContext(_viewContext, viewEngineResult.View, _viewData, writer);
                             var renderTask = viewEngineResult.View.RenderAsync(viewContext);
                             TaskHelper.WaitAndThrowIfFaulted(renderTask);
-                            return writer.ToString();
+                            return new HtmlString(writer);
                         }
                     }
                 }
 
-                Func<IHtmlHelper, string> defaultAction;
+                Func<IHtmlHelper, HtmlString> defaultAction;
                 if (defaultActions.TryGetValue(viewName, out defaultAction))
                 {
                     return defaultAction(MakeHtmlHelper(_viewContext, _viewData));
@@ -126,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Internal
                 Resources.FormatTemplateHelpers_NoTemplate(_viewData.ModelExplorer.ModelType.FullName));
         }
 
-        private Dictionary<string, Func<IHtmlHelper, string>> GetDefaultActions()
+        private Dictionary<string, Func<IHtmlHelper, HtmlString>> GetDefaultActions()
         {
             return _readOnly ? _defaultDisplayActions : _defaultEditorActions;
         }
