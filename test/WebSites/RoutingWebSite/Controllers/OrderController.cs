@@ -5,7 +5,7 @@ using Microsoft.AspNet.Mvc;
 
 namespace RoutingWebSite.Controllers
 {
-    [Route("Order/[action]/{orderId?}", Name = "Order")]
+    [Route("Order/[action]/{orderId?}", Name = "Order_[action]")]
     public class OrderController : Controller
     {
         private readonly TestResponseGenerator _generator;

@@ -804,13 +804,40 @@ namespace Microsoft.AspNet.Mvc.Test
                 "The following errors occurred with attribute routing information:"
                 + Environment.NewLine + Environment.NewLine +
                 "Error 1:" + Environment.NewLine +
-                "Attribute routes with the same name 'Products_Get' must have the same template:"
+                "Attribute routes with the same name 'Products' must have the same template:"
                 + Environment.NewLine +
                 "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
                 "SameNameDifferentTemplatesController.Get' - Template: 'Products'"
                 + Environment.NewLine +
                 "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
-                "SameNameDifferentTemplatesController.Get' - Template: 'Products/{id}'";
+                "SameNameDifferentTemplatesController.Get' - Template: 'Products/{id}'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.Put' - Template: 'Products/{id}'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.Post' - Template: 'Products'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.Delete' - Template: 'Products/{id}'"
+                + Environment.NewLine + Environment.NewLine +
+                "Error 2:" + Environment.NewLine +
+                "Attribute routes with the same name 'Items' must have the same template:"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.GetItems' - Template: 'Items/{id}'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.PostItems' - Template: 'Items'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.PutItems' - Template: 'Items/{id}'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.DeleteItems' - Template: 'Items/{id}'"
+                + Environment.NewLine +
+                "Action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "SameNameDifferentTemplatesController.PatchItems' - Template: 'Items'";
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(() => { provider.GetDescriptors(); });
@@ -824,42 +851,26 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var provider = GetProvider(typeof(DifferentCasingsAttributeRouteNamesController).GetTypeInfo());
-            var putActionName = nameof(DifferentCasingsAttributeRouteNamesController.Put);
-            var deleteActionName = nameof(DifferentCasingsAttributeRouteNamesController.Delete);
-            var getActionName = nameof(DifferentCasingsAttributeRouteNamesController.Get);
 
             // Act
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var getActions = descriptors.Where(a => a.Name.Equals(getActionName));
-            Assert.Equal(2, getActions.Count());
-
-            foreach (var getAction in getActions)
+            foreach (var descriptor in descriptors)
             {
-                Assert.NotNull(getAction.AttributeRouteInfo);
-                Assert.Equal("{id}", getAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
-                Assert.Equal("Products_Get", getAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
+                Assert.NotNull(descriptor.AttributeRouteInfo);
+                Assert.Equal("{id}", descriptor.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal("Products", descriptor.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
             }
-
-            var editAction = Assert.Single(descriptors, a => a.Name.Equals(putActionName));
-            Assert.NotNull(editAction.AttributeRouteInfo);
-            Assert.Equal("{id}", editAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("Products_Put", editAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
-
-            var deleteAction = Assert.Single(descriptors, a => a.Name.Equals(deleteActionName));
-            Assert.NotNull(deleteAction.AttributeRouteInfo);
-            Assert.Equal("{id}", deleteAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("Products_Delete", deleteAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
-        public void AttributeRouting_SameRouteName_AllowsMultipleActions_WithSameTemplate()
+        public void AttributeRouting_RouteNameTokenReplace_AllowsMultipleActions_WithSameRouteNameTemplate()
         {
             // Arrange
-            var provider = GetProvider(typeof(SameRouteNameTemplatesController).GetTypeInfo());
-            var editActionName = nameof(SameRouteNameTemplatesController.Edit);
-            var getActionName = nameof(SameRouteNameTemplatesController.Get);
+            var provider = GetProvider(typeof(ActionRouteNameTemplatesController).GetTypeInfo());
+            var editActionName = nameof(ActionRouteNameTemplatesController.Edit);
+            var getActionName = nameof(ActionRouteNameTemplatesController.Get);
 
             // Act
             var actions = provider.GetDescriptors();
@@ -879,6 +890,42 @@ namespace Microsoft.AspNet.Mvc.Test
             Assert.NotNull(editAction.AttributeRouteInfo);
             Assert.Equal("Products/Edit", editAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
             Assert.Equal("Products_Edit", editAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void AttributeRouting_RouteNameTokenReplace_AreaControllerActionTokensInRoute()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(ControllerActionRouteNameTemplatesController).GetTypeInfo());
+            var editActionName = nameof(ControllerActionRouteNameTemplatesController.Edit);
+            var getActionName = nameof(ControllerActionRouteNameTemplatesController.Get);
+
+            // Act
+            var actions = provider.GetDescriptors();
+
+            // Assert
+            var getActions = actions.Where(a => a.Name.Equals(getActionName));
+            Assert.Equal(2, getActions.Count());
+
+            foreach (var getAction in getActions)
+            {
+                Assert.NotNull(getAction.AttributeRouteInfo);
+                Assert.Equal(
+                    "ControllerActionRouteNameTemplates/Get",
+                    getAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal(
+                    "Products_ControllerActionRouteNameTemplates_Get",
+                    getAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
+            }
+
+            var editAction = Assert.Single(actions, a => a.Name.Equals(editActionName));
+            Assert.NotNull(editAction.AttributeRouteInfo);
+            Assert.Equal(
+                "ControllerActionRouteNameTemplates/Edit",
+                editAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(
+                "Products_ControllerActionRouteNameTemplates_Edit",
+                editAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -1621,10 +1668,47 @@ namespace Microsoft.AspNet.Mvc.Test
 
             [HttpGet("{id}", Name = "Products")]
             public void Get(int id) { }
+
+            [HttpPut("{id}", Name = "Products")]
+            public void Put(int id) { }
+
+            [HttpPost]
+            public void Post() { }
+
+            [HttpDelete("{id}", Name = "Products")]
+            public void Delete(int id) { }
+
+            [HttpGet("/Items/{id}", Name = "Items")]
+            public void GetItems(int id) { }
+
+            [HttpPost("/Items", Name = "Items")]
+            public void PostItems() { }
+
+            [HttpPut("/Items/{id}", Name = "Items")]
+            public void PutItems(int id) { }
+
+            [HttpDelete("/Items/{id}", Name = "Items")]
+            public void DeleteItems(int id) { }
+
+            [HttpPatch("/Items", Name = "Items")]
+            public void PatchItems() { }
         }
 
-        [Route("Products/[action]", Name = "Products")]
-        private class SameRouteNameTemplatesController
+        [Route("Products/[action]", Name = "Products_[action]")]
+        private class ActionRouteNameTemplatesController
+        {
+            [HttpGet]
+            public void Get() { }
+
+            [HttpPost]
+            public void Get(int id) { }
+
+            public void Edit() { }
+        }
+
+        [Area("Products")]
+        [Route("[controller]/[action]", Name = "[area]_[controller]_[action]")]
+        private class ControllerActionRouteNameTemplatesController
         {
             [HttpGet]
             public void Get() { }

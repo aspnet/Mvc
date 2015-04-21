@@ -1378,7 +1378,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("/Order/Add", "POST", "Add")]
         [InlineData("/Order/Edit/1", "PUT", "Edit")]
         [InlineData("/Order/GetOrder", "GET", "GetOrder")]
-        public async Task AttributeRouting_SameRouteName_Reachable(string path, string verb, string actionName)
+        public async Task AttributeRouting_RouteNameTokenReplace_Reachable(string path, string verb, string actionName)
         {
             // Arrange
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
