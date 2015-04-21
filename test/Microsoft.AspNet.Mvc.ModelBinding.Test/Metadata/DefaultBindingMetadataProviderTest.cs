@@ -246,7 +246,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Arrange
             var propertyAttributes = new object[]
             {
-                new BindingBehaviorAttribute(BindingBehavior.Required),
+                new BindRequiredAttribute(),
             };
 
             var context = new BindingMetadataProviderContext(
@@ -293,13 +293,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetBindingDetails_FindsBindRequired_OnContainerClass()
         {
             // Arrange
-            var propertyAttributes = new object[]
-            {
-            };
-
             var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindRequiredOnClass)),
-                new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
+                new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
 
             var provider = new DefaultBindingMetadataProvider();
 
@@ -315,13 +311,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public void GetBindingDetails_FindsBindNever_OnContainerClass()
         {
             // Arrange
-            var propertyAttributes = new object[]
-            {
-            };
-
             var context = new BindingMetadataProviderContext(
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindNeverOnClass)),
-                new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
+                new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
 
             var provider = new DefaultBindingMetadataProvider();
 

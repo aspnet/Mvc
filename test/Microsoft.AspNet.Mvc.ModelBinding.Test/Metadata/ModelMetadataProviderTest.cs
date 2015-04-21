@@ -712,7 +712,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.Null(metadata.PropertySetter);
             Assert.NotNull(metadata.PropertyGetter);
         }
-        
+
         [Fact]
         public void Metadata_Null_ForPrivateGetProperty()
         {
