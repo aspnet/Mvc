@@ -16,6 +16,5 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         void Move(Operation<TModel> operation, TModel objectToApplyTo);
         void Remove(Operation<TModel> operation, TModel objectToApplyTo);
         void Replace(Operation<TModel> operation, TModel objectToApplyTo);
-        void Test(Operation<TModel> operation, TModel objectToApplyTo);
     }
 }
