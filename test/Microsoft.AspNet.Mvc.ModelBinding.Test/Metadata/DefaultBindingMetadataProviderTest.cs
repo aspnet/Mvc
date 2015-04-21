@@ -326,6 +326,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         [Fact]
+        public void GetBindingDetails_FindsBindNever_OnBaseClass()
+        {
+            // Arrange
+            var context = new BindingMetadataProviderContext(
+                ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(InheritedBindNeverOnClass)),
+                new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
+
+            var provider = new DefaultBindingMetadataProvider();
+
+            // Act
+            provider.GetBindingMetadata(context);
+
+            // Assert
+            Assert.False(context.BindingMetadata.IsBindingAllowed);
+            Assert.False(context.BindingMetadata.IsBindingRequired);
+        }
+
+        [Fact]
         public void GetBindingDetails_OverrideBehaviorOnClass_OverrideWithOptional()
         {
             // Arrange
@@ -417,6 +435,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.False(context.BindingMetadata.IsBindingRequired);
         }
 
+        // This overrides an inherited class-level attribute with a different class-level attribute.
+        [Fact]
+        public void GetBindingDetails_OverrideBehaviorOnBaseClass_OverrideWithRequired_OnClass()
+        {
+            // Arrange
+            var context = new BindingMetadataProviderContext(
+                ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindRequiredOverridesInheritedBindNever)),
+                new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
+
+            var provider = new DefaultBindingMetadataProvider();
+
+            // Act
+            provider.GetBindingMetadata(context);
+
+            // Assert
+            Assert.True(context.BindingMetadata.IsBindingAllowed);
+            Assert.True(context.BindingMetadata.IsBindingRequired);
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -491,6 +528,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private class BindRequiredOnClass
         {
             public string Property { get; set; }
+        }
+
+        [BindRequired]
+        private class BindRequiredOverridesInheritedBindNever : BindNeverOnClass
+        {
         }
     }
 }

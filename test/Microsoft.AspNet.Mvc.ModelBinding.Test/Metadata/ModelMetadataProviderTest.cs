@@ -774,12 +774,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         [Fact]
-        public void BindingBehavior_Never_SetOnPropertyAndClass()
+        public void BindingBehavior_Never_DuplicatedPropertyAndClass()
         {
             // Arrange
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var type = typeof(BindingBehaviorModel);
-            var propertyName = nameof(BindingBehaviorModel.BindingBehaviorNever);
+            var propertyName = nameof(BindingBehaviorModel.BindingBehaviorNeverDuplicatedFromClass);
 
             // Act
             var metadata = metadataProvider.GetMetadataForProperty(type, propertyName);
@@ -795,7 +795,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Arrange
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var type = typeof(BindingBehaviorModel);
-            var propertyName = nameof(BindingBehaviorModel.BindingBehaviorNever);
+            var propertyName = nameof(BindingBehaviorModel.BindingBehaviorNeverSetOnClass);
 
             // Act
             var metadata = metadataProvider.GetMetadataForProperty(type, propertyName);
@@ -958,7 +958,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             public int BindingBehaviorOptionalOverride { get; set; }
 
             [BindingBehavior(BindingBehavior.Never)]
-            public int BindingBehaviorNever { get; set; }
+            public int BindingBehaviorNeverDuplicatedFromClass { get; set; }
 
             public int BindingBehaviorNeverSetOnClass { get; set; }
         }
