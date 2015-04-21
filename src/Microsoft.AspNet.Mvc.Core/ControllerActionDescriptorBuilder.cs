@@ -80,6 +80,12 @@ namespace Microsoft.AspNet.Mvc
                             // for this action.
                             ReplaceAttributeRouteTokens(actionDescriptor, routeTemplateErrors);
 
+                            var attributeRouteInfo = actionDescriptor.AttributeRouteInfo;
+                            if (attributeRouteInfo.Name != null)
+                            {
+                                attributeRouteInfo.Name = attributeRouteInfo.Name + "_" + action.ActionName;
+                            }
+
                             // Attribute routed actions will ignore conventional routed constraints. Instead they have
                             // a single route constraint "RouteGroup" associated with it.
                             ReplaceRouteConstraints(actionDescriptor);
