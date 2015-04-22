@@ -929,6 +929,26 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
+        public void AttributeRouting_RouteNameTokenReplace_InvalidToken()
+        {
+            // Arrange
+            var provider = GetProvider(typeof(RouteNameIncorrectTokenController).GetTypeInfo());
+
+            var expectedMessage =
+                "The following errors occurred with attribute routing information:" + Environment.NewLine +
+                Environment.NewLine +
+                "Error 1:" + Environment.NewLine +
+                "For action: 'Microsoft.AspNet.Mvc.Test.ControllerActionDescriptorProviderTests+" +
+                "RouteNameIncorrectTokenController.Get'" + Environment.NewLine +
+                "Error: While processing template 'Products_[unknown]', a replacement value for the token 'unknown' " +
+                "could not be found. Available tokens: 'action, controller'.";
+
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => { provider.GetDescriptors(); });
+            Assert.Equal(expectedMessage, ex.Message);
+        }
+
+        [Fact]
         public void AttributeRouting_RouteGroupConstraint_IsAddedOnceForNonAttributeRoutes()
         {
             // Arrange
@@ -1717,6 +1737,12 @@ namespace Microsoft.AspNet.Mvc.Test
             public void Get(int id) { }
 
             public void Edit() { }
+        }
+
+        [Route("Products/[action]", Name = "Products_[unknown]")]
+        private class RouteNameIncorrectTokenController
+        {
+            public void Get() { }
         }
 
         private class DifferentCasingsAttributeRouteNamesController
