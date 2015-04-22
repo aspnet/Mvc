@@ -31,7 +31,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "[{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", " +
+            var input = "[{ \"op\": \"add\", " +
+                "\"path\": \"Customer/Orders/2\", " +
                "\"value\": { \"OrderName\": \"Name2\" }}]";
             var request = new HttpRequestMessage
             {
@@ -59,7 +60,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "[{ \"op\": \"replace\", \"path\": \"Customer/Orders/0/OrderName\", " +
+            var input = "[{ \"op\": \"replace\", " +
+                "\"path\": \"Customer/Orders/0/OrderName\", " +
                "\"value\": \"ReplacedOrder\" }]";
             var request = new HttpRequestMessage
             {
@@ -87,7 +89,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "[{ \"op\": \"copy\", \"path\": \"Customer/Orders/1/OrderName\", " +
+            var input = "[{ \"op\": \"copy\", " +
+                "\"path\": \"Customer/Orders/1/OrderName\", " +
                "\"from\": \"Customer/Orders/0/OrderName\"}]";
             var request = new HttpRequestMessage
             {
@@ -102,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var body = await response.Content.ReadAsStringAsync();
             var customer = JsonConvert.DeserializeObject<Customer>(body);
-            Assert.Equal("Order1", customer.Orders[1].OrderName);
+            Assert.Equal("Order0", customer.Orders[1].OrderName);
         }
 
         [Theory]
@@ -115,7 +118,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "[{ \"op\": \"move\", \"path\": \"Customer/Orders/1/OrderName\", " +
+            var input = "[{ \"op\": \"move\", " +
+                "\"path\": \"Customer/Orders/1/OrderName\", " +
                "\"from\": \"Customer/Orders/0/OrderName\"}]";
             var request = new HttpRequestMessage
             {
@@ -130,7 +134,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var body = await response.Content.ReadAsStringAsync();
             var customer = JsonConvert.DeserializeObject<Customer>(body);
-            Assert.Equal("Order1", customer.Orders[1].OrderName);
+            Assert.Equal("Order0", customer.Orders[1].OrderName);
             Assert.Null(customer.Orders[0].OrderName);
         }
 
@@ -144,7 +148,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "[{ \"op\": \"remove\", \"path\": \"Customer/Orders/1/OrderName\"}]";
+            var input = "[{ \"op\": \"remove\", " +
+                "\"path\": \"Customer/Orders/1/OrderName\"}]";
             var request = new HttpRequestMessage
             {
                 Content = new StringContent(input, Encoding.UTF8, "application/json-patch+json"),
@@ -171,9 +176,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "[{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", " +
-               "\"value\": { \"OrderName\": \"Name2\" }}, {\"op\": \"copy\", \"from\": \"Customer/Orders/2\", " +
-                "\"path\": \"Customer/Orders/3\" }, {\"op\": \"replace\", \"path\": \"Customer/Orders/2/OrderName\", " +
+            var input = "[{ \"op\": \"add\", "+
+                "\"path\": \"Customer/Orders/2\", " +
+               "\"value\": { \"OrderName\": \"Name2\" }}, " +
+               "{\"op\": \"copy\", " +
+               "\"from\": \"Customer/Orders/2\", " +
+                "\"path\": \"Customer/Orders/3\" }, " +
+                "{\"op\": \"replace\", " +
+                "\"path\": \"Customer/Orders/2/OrderName\", " +
                 "\"value\": \"ReplacedName\" }]";
             var request = new HttpRequestMessage
             {
@@ -200,33 +210,45 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 {
                     new object[] {
                         "http://localhost/jsonpatch/JsonPatchWithModelStateAndPrefix?prefix=Patch",
-                        "[{ \"op\": \"add\", \"path\": \"Customer/Orders/5\", " +
+                        "[{ \"op\": \"add\", " +
+                        "\"path\": \"Customer/Orders/5\", " +
                         "\"value\": { \"OrderName\": \"Name5\" }}]",
                         "{\"Patch.Customer\":[\"For operation 'add' on array property at path " +
                         "'Customer/Orders/5', the index is larger than the array size.\"]}"
                     },
                     new object[] {
                         "http://localhost/jsonpatch/JsonPatchWithModelState",
-                        "[{ \"op\": \"add\", \"path\": \"Customer/Orders/5\", " +
+                        "[{ \"op\": \"add\", " +
+                        "\"path\": \"Customer/Orders/5\", " +
                         "\"value\": { \"OrderName\": \"Name5\" }}]",
                         "{\"Customer\":[\"For operation 'add' on array property at path " +
                         "'Customer/Orders/5', the index is larger than the array size.\"]}"
                     },
                     new object[] {
                         "http://localhost/jsonpatch/JsonPatchWithModelStateAndPrefix?prefix=Patch",
-                        "[{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", \"value\": " +
-                        "{ \"OrderName\": \"Name2\" }}, {\"op\": \"copy\", \"from\": \"Customer/Orders/4\", " +
-                        "\"path\": \"Customer/Orders/3\" }, {\"op\": \"replace\", \"path\": " +
-                        "\"Customer/Orders/2/OrderName\", \"value\": \"ReplacedName\" }]",
+                        "[{ \"op\": \"add\", " +
+                        "\"path\": \"Customer/Orders/2\", " +
+                        "\"value\": { \"OrderName\": \"Name2\" }}, " +
+                        "{\"op\": \"copy\", " +
+                        "\"from\": \"Customer/Orders/4\", " +
+                        "\"path\": \"Customer/Orders/3\" }, " +
+                        "{\"op\": \"replace\", " +
+                        "\"path\": \"Customer/Orders/2/OrderName\", " +
+                        "\"value\": \"ReplacedName\" }]",
                         "{\"Patch.Customer\":[\"For operation 'copy' on array property at path " +
                         "'Customer/Orders/4', the index is larger than the array size.\"]}"
                     },
                     new object[] {
                         "http://localhost/jsonpatch/JsonPatchWithModelState",
-                        "[{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", \"value\": " +
-                        "{ \"OrderName\": \"Name2\" }}, {\"op\": \"copy\", \"from\": \"Customer/Orders/4\", " +
-                        "\"path\": \"Customer/Orders/3\" }, {\"op\": \"replace\", \"path\": " +
-                        "\"Customer/Orders/2/OrderName\", \"value\": \"ReplacedName\" }]",
+                        "[{ \"op\": \"add\", " +
+                        "\"path\": \"Customer/Orders/2\", " +
+                        "\"value\": { \"OrderName\": \"Name2\" }}, " +
+                        "{\"op\": \"copy\", " +
+                        "\"from\": \"Customer/Orders/4\", " +
+                        "\"path\": \"Customer/Orders/3\" }, " +
+                        "{\"op\": \"replace\", " +
+                        "\"path\": \"Customer/Orders/2/OrderName\", " +
+                        "\"value\": \"ReplacedName\" }]",
                         "{\"Customer\":[\"For operation 'copy' on array property at path " +
                         "'Customer/Orders/4', the index is larger than the array size.\"]}"
                     }
@@ -263,7 +285,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var input = "{ \"op\": \"add\", \"path\": \"Customer/Orders/2\", " +
+            var input = "{ \"op\": \"add\", " +
+                "\"path\": \"Customer/Orders/2\", " +
                "\"value\": { \"OrderName\": \"Name2\" }}";
             var request = new HttpRequestMessage
             {
