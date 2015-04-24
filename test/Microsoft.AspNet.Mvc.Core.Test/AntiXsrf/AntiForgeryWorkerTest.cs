@@ -459,11 +459,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return mockValidator;
         }
 
-        private Mock<ITokenStore> GetTokenStore(HttpContext context, TestTokenSet testTokenSet, bool saveNewCookie = true)
+        private Mock<IAntiForgeryTokenStore> GetTokenStore(HttpContext context, TestTokenSet testTokenSet, bool saveNewCookie = true)
         {
             var oldCookieToken = testTokenSet.OldCookieToken;
             var formToken = testTokenSet.FormToken;
-            var mockTokenStore = new Mock<ITokenStore>(MockBehavior.Strict);
+            var mockTokenStore = new Mock<IAntiForgeryTokenStore>(MockBehavior.Strict);
             mockTokenStore.Setup(o => o.GetCookieToken(context))
                           .Returns(oldCookieToken);
             mockTokenStore.Setup(o => o.GetFormTokenAsync(context))
@@ -546,7 +546,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
             public Mock<ITokenProvider> TokenProvider { get; set; }
 
-            public Mock<ITokenStore> TokenStore { get; set; }
+            public Mock<IAntiForgeryTokenStore> TokenStore { get; set; }
 
             public Mock<IAntiForgeryTokenSerializer> TokenSerializer { get; set; }
         }
