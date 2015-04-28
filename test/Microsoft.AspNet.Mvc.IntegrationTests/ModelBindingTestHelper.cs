@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
@@ -14,6 +15,18 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         public static OperationBindingContext GetOperationBindingContext()
         {
             var httpContext = ModelBindingTestHelper.GetHttpContext();
+            return GetOperationBindingContext(httpContext);
+        }
+
+        public static OperationBindingContext GetOperationBindingContext(
+            HttpContext httpContext,
+            Action<MvcOptions> optionsSetup = null)
+        {
+            if (httpContext.RequestServices == null)
+            {
+                InitializeServices(httpContext, optionsSetup);
+            }
+
             var actionBindingContextAccessor =
               httpContext.RequestServices.GetRequiredService<IScopedInstance<ActionBindingContext>>().Value;
             return new OperationBindingContext()
@@ -41,8 +54,13 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         public static HttpContext GetHttpContext()
         {
-            var options = (new TestMvcOptions()).Options;
             var httpContext = new DefaultHttpContext();
+            InitializeServices(httpContext);
+            return httpContext;
+        }
+
+        private static void InitializeServices(HttpContext httpContext, Action<MvcOptions> optionsSetup = null)
+        {
             var serviceCollection = MvcServices.GetDefaultServices();
             httpContext.RequestServices = serviceCollection.BuildServiceProvider();
 
@@ -52,10 +70,15 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 httpContext.RequestServices.GetRequiredService<IScopedInstance<ActionContext>>();
             actionContextAccessor.Value = actionContext;
 
+            var options = new TestMvcOptions().Options;
+            if (optionsSetup != null)
+            {
+                optionsSetup(options);
+            }
+
             var actionBindingContextAccessor =
                 httpContext.RequestServices.GetRequiredService<IScopedInstance<ActionBindingContext>>();
             actionBindingContextAccessor.Value = GetActionBindingContext(options, actionContext);
-            return httpContext;
         }
 
         private static ActionBindingContext GetActionBindingContext(MvcOptions options, ActionContext actionContext)
