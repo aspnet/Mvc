@@ -22,6 +22,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private readonly Encoding _encoding;
 
         /// <summary>
+        /// Creates a new instance of <see cref="StringCollectionTextWriter"/> with <see cref="Encoding"/>
+        /// defaulting to <see cref="UnicodeEncoding"/>.
+        /// </summary>
+        public StringCollectionTextWriter()
+            : this(new UnicodeEncoding(bigEndian: false, byteOrderMark: false))
+        {
+        }
+
+        /// <summary>
         /// Creates a new instance of <see cref="StringCollectionTextWriter"/>.
         /// </summary>
         /// <param name="encoding">The character <see cref="Encoding"/> in which the output is written.</param>

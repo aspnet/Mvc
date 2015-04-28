@@ -14,6 +14,28 @@ namespace Microsoft.AspNet.Mvc.Rendering
     public class StringCollectionTextWriterTest
     {
         [Fact]
+        public void SetsUnicodeEncodingByDefault()
+        {
+            // Arrange
+            var writer = new StringCollectionTextWriter();
+            var unicodeEncoding = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
+
+            // Act & Assert
+            Assert.Equal(unicodeEncoding, writer.Encoding);
+        }
+
+        [Fact]
+        public void SetsSpecifiedEncodingWhenPassed()
+        {
+            // Arrange
+            var utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            var writer = new StringCollectionTextWriter(utf8Encoding);
+
+            // Act & Assert
+            Assert.Equal(utf8Encoding, writer.Encoding);
+        }
+
+        [Fact]
         [ReplaceCulture]
         public void Write_WritesDataTypes_ToBuffer()
         {
