@@ -162,6 +162,97 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 File.WriteAllText(Path.Combine(viewsDirectory, "_GlobalImport.cshtml"), globalContent.TrimEnd(' '));
             }
         }
+        
+        [Fact]
+        public async Task PrecompiledView_RendersWithoutSourceFile()
+        {
+            // Arrange
+            IServiceCollection serviceCollection = null;
+            var server = TestHelper.CreateServer(_app, SiteName, services =>
+            {
+                _configureServices(services);
+                serviceCollection = services;
+            });
+            var client = server.CreateClient();
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var applicationEnvironment = serviceProvider.GetRequiredService<IApplicationEnvironment>();
+
+            var viewsDirectory = Path.Combine(applicationEnvironment.ApplicationBasePath, "Views", "Home");
+            var layoutContent = File.ReadAllText(Path.Combine(viewsDirectory, "Layout.cshtml"));
+            var indexContent = File.ReadAllText(Path.Combine(viewsDirectory, "Index.cshtml"));
+            var viewstartContent = File.ReadAllText(Path.Combine(viewsDirectory, "_ViewStart.cshtml"));
+            var globalContent = File.ReadAllText(Path.Combine(viewsDirectory, "_GlobalImport.cshtml"));
+            
+            // We will render a view that writes the fully qualified name of the Assembly containing the type of
+            // the view. If the view is precompiled, this assembly will be PrecompilationWebsite.
+            var assemblyNamePrefix = GetAssemblyNamePrefix();
+            
+            try
+            {
+                // Act - 1
+                var response = await client.GetAsync("http://localhost/Home/Index");
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                // Assert - 1
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var parsedResponse1 = new ParsedResponse(responseContent);
+                Assert.StartsWith(assemblyNamePrefix, parsedResponse1.ViewStart);
+                Assert.StartsWith(assemblyNamePrefix, parsedResponse1.Layout);
+                Assert.StartsWith(assemblyNamePrefix, parsedResponse1.Index);
+
+                // Act - 2
+                // Delete the Layout file and verify it is still served.
+                await DeleteFile(viewsDirectory, "Layout.cshtml");
+                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
+
+                // Assert - 2
+                var response2 = new ParsedResponse(responseContent);
+                Assert.StartsWith(assemblyNamePrefix, response2.ViewStart);
+                Assert.StartsWith(assemblyNamePrefix, response2.Index);
+                Assert.StartsWith(assemblyNamePrefix, response2.Layout);
+
+                // Act - 3
+                // Delete the _ViewStart file and verify it is still served.
+                await DeleteFile(viewsDirectory, "_ViewStart.cshtml");
+                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
+
+                // Assert - 3
+                var response3 = new ParsedResponse(responseContent);
+                Assert.StartsWith(assemblyNamePrefix, response3.ViewStart);
+                Assert.StartsWith(response2.Index, response3.Index);
+                Assert.StartsWith(response2.Layout, response3.Layout);
+
+                // Act - 4
+                // Delete the _GlobalImport file and verify it is still served.
+                await DeleteFile(viewsDirectory, "_GlobalImport.cshtml");
+                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
+
+                // Assert - 4
+                var response4 = new ParsedResponse(responseContent);
+                Assert.StartsWith(response3.ViewStart, response4.ViewStart);
+                Assert.StartsWith(response3.Index, response4.Index);
+                Assert.StartsWith(response3.Layout, response4.Layout);
+
+                // Act - 5
+                // Delete the Index file and verify it is still served.
+                await DeleteFile(viewsDirectory, "Index.cshtml");
+                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
+
+                // Assert - 5
+                var response5 = new ParsedResponse(responseContent);
+                Assert.StartsWith(response4.Layout, response5.Layout);
+                Assert.StartsWith(response4.ViewStart, response5.ViewStart);
+                Assert.StartsWith(response4.Index, response5.Index);
+            }
+            finally
+            {
+                File.WriteAllText(Path.Combine(viewsDirectory, "Layout.cshtml"), layoutContent.TrimEnd(' '));
+                File.WriteAllText(Path.Combine(viewsDirectory, "Index.cshtml"), indexContent.TrimEnd(' '));
+                File.WriteAllText(Path.Combine(viewsDirectory, "_ViewStart.cshtml"), viewstartContent.TrimEnd(' '));
+                File.WriteAllText(Path.Combine(viewsDirectory, "_GlobalImport.cshtml"), globalContent.TrimEnd(' '));
+            }
+        }
 
         [Fact]
         public async Task PrecompiledView_UsesCompilationOptionsFromApplication()
@@ -282,6 +373,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Delay to allow the file system watcher to catch up.
             await Task.Delay(_cacheDelayInterval);
 
+            return path;
+        }
+        
+        private static async Task<string> DeleteFile(string viewsDir, string file)
+        {
+            var path = Path.Combine(viewsDir, file);
+            File.Delete(path);
+            
+            // Delay to allow the file system watcher to catch up.
+            await Task.Delay(_cacheDelayInterval);
+            
             return path;
         }
 
