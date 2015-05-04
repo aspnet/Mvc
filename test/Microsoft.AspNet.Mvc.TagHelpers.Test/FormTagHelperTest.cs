@@ -48,7 +48,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList
                 {
                     { "id", "myform" },
-                    { "asp-route-foo", "bar" },
                 });
             output.PostContent.SetContent("Something");
             var urlHelper = new Mock<IUrlHelper>();
@@ -68,6 +67,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 Controller = "home",
                 Generator = htmlGenerator,
                 ViewContext = viewContext,
+                RouteValues =
+                {
+                    { "foo", "bar" },
+                },
             };
 
             // Act
@@ -145,7 +148,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Fact]
-        public async Task ProcessAsync_BindsRouteValuesFromTagHelperOutput()
+        public async Task ProcessAsync_BindsRouteValues()
         {
             // Arrange
             var testViewContext = CreateViewContext();
@@ -163,11 +166,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedAttribute = new TagHelperAttribute("asp-ROUTEE-NotRoute", "something");
             var output = new TagHelperOutput(
                 "form",
-                attributes: new TagHelperAttributeList()
-                {
-                    { "asp-route-val", "hello" },
-                    { "asp-roUte--Foo", "bar" }
-                });
+                attributes: new TagHelperAttributeList());
             output.Attributes.Add(expectedAttribute);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
@@ -201,6 +200,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 AntiForgery = false,
                 Generator = generator.Object,
                 ViewContext = testViewContext,
+                RouteValues =
+                {
+                    { "val", "hello" },
+                    { "-Foo", "bar" },
+                },
             };
 
             // Act & Assert
@@ -237,7 +241,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList());
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
-                .Setup(mock => mock.GenerateForm(viewContext, "Index", "Home", null, null, null))
+                .Setup(mock => mock.GenerateForm(
+                    viewContext,
+                    "Index",
+                    "Home",
+                    It.IsAny<IDictionary<string, object>>(),
+                    null,
+                    null))
                 .Returns(new TagBuilder("form", new CommonTestEncoder()))
                 .Verifiable();
             var formTagHelper = new FormTagHelper
@@ -280,10 +290,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var output = new TagHelperOutput(
                 "form",
-                attributes: new TagHelperAttributeList
-                {
-                    { "asp-route-foo", "bar" }
-                });
+                attributes: new TagHelperAttributeList());
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateRouteForm(
@@ -300,6 +307,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 Route = "Default",
                 Generator = generator.Object,
                 ViewContext = viewContext,
+                RouteValues =
+                {
+                    { "foo", "bar" },
+                },
             };
 
             // Act & Assert
@@ -384,7 +395,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             if (propertyName == "asp-route-")
             {
-                tagHelperOutput.Attributes.Add("asp-route-foo", "bar");
+                formTagHelper.RouteValues.Add("foo", "bar");
             }
             else
             {

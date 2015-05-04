@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
@@ -18,7 +17,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private const string AntiForgeryAttributeName = "asp-anti-forgery";
         private const string ControllerAttributeName = "asp-controller";
         private const string RouteAttributeName = "asp-route";
-        private const string RouteAttributePrefix = "asp-route-";
+        private const string RouteValuesDictionaryName = "asp-all-route-data";
+        private const string RouteValuesPrefix = "asp-route-";
         private const string HtmlActionAttributeName = "action";
 
         [Activate]
@@ -57,6 +57,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [HtmlAttributeName(RouteAttributeName)]
         public string Route { get; set; }
 
+        /// <summary>
+        /// Additional parameters for the route.
+        /// </summary>
+        [HtmlAttributeName(RouteValuesDictionaryName, DictionaryAttributePrefix = RouteValuesPrefix)]
+        public IDictionary<string, object> RouteValues { get; set; } =
+            new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
         /// <inheritdoc />
         /// <remarks>
         /// Does nothing if user provides an <c>action</c> attribute and <see cref="AntiForgery"/> is <c>null</c> or
@@ -69,12 +76,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             var antiForgeryDefault = true;
-            var routePrefixedAttributes = output.FindPrefixedAttributes(RouteAttributePrefix);
 
             // If "action" is already set, it means the user is attempting to use a normal <form>.
             if (output.Attributes.ContainsName(HtmlActionAttributeName))
             {
-                if (Action != null || Controller != null || Route != null || routePrefixedAttributes.Any())
+                if (Action != null || Controller != null || Route != null || RouteValues.Count != 0)
                 {
                     // User also specified bound attributes we cannot use.
                     throw new InvalidOperationException(
@@ -84,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             ActionAttributeName,
                             ControllerAttributeName,
                             RouteAttributeName,
-                            RouteAttributePrefix));
+                            RouteValuesPrefix));
                 }
 
                 // User is using the FormTagHelper like a normal <form> tag. Anti-forgery default should be false to
@@ -94,14 +100,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             else
             {
                 TagBuilder tagBuilder;
-                var routeValues = GetRouteValues(output, routePrefixedAttributes);
                 if (Route == null)
                 {
                     tagBuilder = Generator.GenerateForm(
                         ViewContext,
                         Action,
                         Controller,
-                        routeValues,
+                        RouteValues,
                         method: null,
                         htmlAttributes: null);
                 }
@@ -121,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     tagBuilder = Generator.GenerateRouteForm(
                         ViewContext,
                         Route,
-                        routeValues,
+                        RouteValues,
                         method: null,
                         htmlAttributes: null);
                 }
@@ -141,27 +146,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     output.PostContent.Append(antiForgeryTagBuilder.ToString(TagRenderMode.SelfClosing));
                 }
             }
-        }
-
-        // TODO: https://github.com/aspnet/Razor/issues/89 - We will not need this method once #89 is completed.
-        private static Dictionary<string, object> GetRouteValues(
-            TagHelperOutput output,
-            IEnumerable<TagHelperAttribute> routePrefixedAttributes)
-        {
-            Dictionary<string, object> routeValues = null;
-            if (routePrefixedAttributes.Any())
-            {
-                // Prefixed values should be treated as bound attributes, remove them from the output.
-                output.RemoveRange(routePrefixedAttributes);
-
-                // Remove prefix from keys and convert all values to strings. HtmlString and similar classes are not
-                // meaningful to routing.
-                routeValues = routePrefixedAttributes.ToDictionary(
-                    attribute => attribute.Name.Substring(RouteAttributePrefix.Length),
-                    attribute => (object)attribute.Value.ToString());
-            }
-
-            return routeValues;
         }
     }
 }
