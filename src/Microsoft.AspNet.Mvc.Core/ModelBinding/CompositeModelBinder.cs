@@ -86,7 +86,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return new ModelBindingResult(
                 modelBindingResult.Model,
                 bindingContext.ModelName,
-                modelBindingResult.IsModelSet);
+                modelBindingResult.IsModelSet,
+                modelBindingResult.ValidationNode);
         }
 
         private async Task<ModelBindingResult> TryBind(ModelBindingContext bindingContext)

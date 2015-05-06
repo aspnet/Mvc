@@ -8,6 +8,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class ModelBindingResult
     {
+        private ModelValidationNode _validationNode;
+
         /// <summary>
         /// Creates a new <see cref="ModelBindingResult"/>.
         /// </summary>
@@ -16,10 +18,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="isModelSet">A value that represents if the model has been set by the
         /// <see cref="IModelBinder"/>.</param>
         public ModelBindingResult(object model, string key, bool isModelSet)
+            : this (model, key, isModelSet, validationNode: null)
+        {
+        }
+
+        public ModelBindingResult(object model, string key, bool isModelSet, ModelValidationNode validationNode)
         {
             Model = model;
             Key = key;
             IsModelSet = isModelSet;
+            ValidationNode = validationNode;
         }
 
         /// <summary>
@@ -47,5 +55,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </para>
         /// </summary>
         public bool IsModelSet { get; }
+
+        public ModelValidationNode ValidationNode
+        {
+            get
+            {
+                //if (_validationNode == null)
+                //{
+                //    _validationNode = new ModelValidationNode(Key, null);
+                //}
+
+                return _validationNode;
+            }
+            set
+            {
+                _validationNode = value;
+            }
+        }
     }
 }

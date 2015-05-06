@@ -30,7 +30,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 newModel = valueProviderResult.ConvertTo(bindingContext.ModelType);
                 ModelBindingHelper.ReplaceEmptyStringWithNull(bindingContext.ModelMetadata, ref newModel);
-                return new ModelBindingResult(newModel, bindingContext.ModelName, isModelSet: true);
+                return new ModelBindingResult(
+                    newModel,
+                    bindingContext.ModelName,
+                    isModelSet: true,
+                    validationNode: new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata));
             }
             catch (Exception ex)
             {

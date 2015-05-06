@@ -45,11 +45,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await CreateAndPopulateDto(bindingContext, mutableObjectBinderContext.PropertyMetadata);
 
             // post-processing, e.g. property setters and hooking up validation
-            ProcessDto(bindingContext, (ComplexModelDto)result.Model);
+            var validationNode = ProcessDto(bindingContext, (ComplexModelDto)result.Model);
             return new ModelBindingResult(
                 bindingContext.Model,
                 bindingContext.ModelName,
-                isModelSet: true);
+                isModelSet: true,
+                validationNode: validationNode);
         }
 
         /// <summary>
@@ -374,10 +375,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return validationInfo;
         }
 
-        internal void ProcessDto(ModelBindingContext bindingContext, ComplexModelDto dto)
+        internal ModelValidationNode ProcessDto(ModelBindingContext bindingContext, ComplexModelDto dto)
         {
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
+            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
 
             var validationInfo = GetPropertyValidationInfo(bindingContext);
 
@@ -430,8 +432,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         out requiredValidator);
 
                     SetProperty(bindingContext, modelExplorer, propertyMetadata, dtoResult, requiredValidator);
+                    validationNode.ChildNodes.Add(dtoResult.ValidationNode);
                 }
             }
+
+            return validationNode;
         }
 
         /// <summary>

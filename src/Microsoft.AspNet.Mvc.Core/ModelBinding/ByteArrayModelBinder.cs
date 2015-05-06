@@ -39,7 +39,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             try
             {
                 var model = Convert.FromBase64String(value);
-                return new ModelBindingResult(model, bindingContext.ModelName, isModelSet: true);
+                return new ModelBindingResult(
+                    model,
+                    bindingContext.ModelName,
+                    isModelSet: true,
+                    validationNode: new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata));
             }
             catch (Exception ex)
             {

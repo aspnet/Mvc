@@ -14,9 +14,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ModelBindingHelper.ValidateBindingContext(bindingContext,
                                                       typeof(KeyValuePair<TKey, TValue>),
                                                       allowNullModel: true);
+            //var modelExplorer = new ModelExplorer(
+            //    bindingContext.OperationBindingContext.MetadataProvider,
+            //    bindingContext.ModelMetadata,
+            //    bindingContext.Model);
 
-            var keyResult = await TryBindStrongModel<TKey>(bindingContext, "Key");
-            var valueResult = await TryBindStrongModel<TValue>(bindingContext, "Value");
+            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+            var keyResult = await TryBindStrongModel<TKey>(bindingContext, "Key", validationNode);
+            var valueResult = await TryBindStrongModel<TValue>(bindingContext, "Value", validationNode);
 
             if (keyResult.IsModelSet && valueResult.IsModelSet)
             {
@@ -55,8 +60,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        internal async Task<ModelBindingResult> TryBindStrongModel<TModel>(ModelBindingContext parentBindingContext,
-                                                                          string propertyName)
+        internal async Task<ModelBindingResult> TryBindStrongModel<TModel>(
+            ModelBindingContext parentBindingContext,
+            string propertyName,
+            ModelValidationNode validationNode)
         {
             var propertyModelMetadata =
                 parentBindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(typeof(TModel));
@@ -72,6 +79,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 propertyBindingContext);
             if (modelBindingResult != null)
             {
+                if (modelBindingResult.ValidationNode != null)
+                {
+                    validationNode.ChildNodes.Add(modelBindingResult.ValidationNode);
+                }
+
                 return modelBindingResult;
             }
 

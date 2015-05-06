@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Collections;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -535,6 +538,62 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(0, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
+        }
+
+        private class Person4
+        {
+            public IList<Address4> Addresses { get; set; }
+        }
+
+        private class Address4
+        {
+            public int Zip { get; set; }
+
+            public string Street { get; set; }
+        }
+
+        [Fact]
+        public async Task CollectionModelBinder_UsesCustomIndexes()
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "parameter",
+                ParameterType = typeof(Person4)
+            };
+
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
+            {
+                UpdateRequest(request);
+            });
+
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            Assert.NotNull(modelBindingResult);
+            Assert.True(modelBindingResult.IsModelSet);
+            Assert.IsType<Person4>(modelBindingResult.Model);
+
+            Assert.Equal(0, modelState.Count);
+            Assert.Equal(0, modelState.ErrorCount);
+            Assert.True(modelState.IsValid);
+        }
+
+        private void UpdateRequest(HttpRequest request)
+        {
+            var formCollection = new FormCollection(new Dictionary<string, string[]>()
+            {
+                { "Addresses.index", new [] { "Key1", "Key2" } },
+                { "Addresses[Key1].Street", new [] { "Street1" } },
+                { "Addresses[Key2].Street", new [] { "Street2" } },
+            });
+
+            request.Form = formCollection;
+            request.ContentType = "application/x-www-form-urlencoded";
         }
     }
 }

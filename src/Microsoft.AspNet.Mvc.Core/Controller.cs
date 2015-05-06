@@ -1335,7 +1335,7 @@ namespace Microsoft.AspNet.Mvc
                 modelState: ModelState,
                 modelExplorer: modelExplorer);
 
-            ObjectValidator.Validate(validationContext);
+            ObjectValidator.Validate(validationContext, new ModelValidationNode(modelName, modelExplorer.Metadata));
             return ModelState.IsValid;
         }
 

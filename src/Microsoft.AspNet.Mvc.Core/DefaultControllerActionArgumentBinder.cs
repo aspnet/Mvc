@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc
                     operationContext.ValidatorProvider,
                     modelState,
                     modelExplorer);
-                _validator.Validate(validationContext);
+                _validator.Validate(validationContext, modelBindingResult.ValidationNode);
             }
 
             return modelBindingResult;

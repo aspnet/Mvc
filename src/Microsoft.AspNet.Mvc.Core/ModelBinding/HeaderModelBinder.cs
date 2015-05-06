@@ -51,7 +51,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            return Task.FromResult(new ModelBindingResult(model, bindingContext.ModelName, isModelSet: model != null));
+            ModelValidationNode validationNode = null;
+            if (model != null)
+            {
+                validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+            }
+
+            return Task.FromResult(
+                new ModelBindingResult(
+                    model,
+                    bindingContext.ModelName,
+                    isModelSet: model != null,
+                    validationNode: validationNode));
         }
     }
 }

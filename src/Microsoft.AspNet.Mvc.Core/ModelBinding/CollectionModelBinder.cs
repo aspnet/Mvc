@@ -31,16 +31,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
 
             IEnumerable<TElement> boundCollection;
+            CollectionResult result = null;
             if (valueProviderResult == null)
             {
-                boundCollection = await BindComplexCollection(bindingContext);
+                result = await BindComplexCollection(bindingContext);
+                boundCollection = result.Model;
             }
             else
             {
-                boundCollection = await BindSimpleCollection(
+                result = await BindSimpleCollection(
                     bindingContext,
                     valueProviderResult.RawValue,
                     valueProviderResult.Culture);
+                boundCollection = result.Model;
             }
 
             var model = bindingContext.Model;
@@ -54,12 +57,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 CopyToModel(model, boundCollection);
             }
 
-            return new ModelBindingResult(model, bindingContext.ModelName, isModelSet: true);
+            return new ModelBindingResult(
+                model,
+                bindingContext.ModelName,
+                isModelSet: true,
+                validationNode: result?.ValidationNode);
         }
 
         // Used when the ValueProvider contains the collection to be bound as a single element, e.g. the raw value
         // is [ "1", "2" ] and needs to be converted to an int[].
-        internal async Task<IEnumerable<TElement>> BindSimpleCollection(
+        internal async Task<CollectionResult> BindSimpleCollection(
             ModelBindingContext bindingContext,
             object rawValue,
             CultureInfo culture)
@@ -74,6 +81,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
+            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
             {
@@ -94,15 +102,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 if (result != null)
                 {
                     boundValue = result.Model;
+                    if (result.ValidationNode != null)
+                    {
+                        validationNode.ChildNodes.Add(result.ValidationNode);
+                    }
                 }
                 boundCollection.Add(ModelBindingHelper.CastOrDefault<TElement>(boundValue));
             }
 
-            return boundCollection;
+            return new CollectionResult
+            {
+                ValidationNode = validationNode,
+                Model = boundCollection
+            };
         }
 
         // Used when the ValueProvider contains the collection to be bound as multiple elements, e.g. foo[0], foo[1].
-        private async Task<IEnumerable<TElement>> BindComplexCollection(ModelBindingContext bindingContext)
+        private async Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
         {
             var indexPropertyName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, "index");
             var valueProviderResultIndex = await bindingContext.ValueProvider.GetValueAsync(indexPropertyName);
@@ -111,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return await BindComplexCollectionFromIndexes(bindingContext, indexNames);
         }
 
-        internal async Task<IEnumerable<TElement>> BindComplexCollectionFromIndexes(
+        internal async Task<CollectionResult> BindComplexCollectionFromIndexes(
             ModelBindingContext bindingContext,
             IEnumerable<string> indexNames)
         {
@@ -131,6 +147,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
             var boundCollection = new List<TElement>();
+            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelNames.CreateIndexModelName(bindingContext.ModelName, indexName);
@@ -150,6 +167,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     didBind = true;
                     boundValue = result.Model;
+                    if (result.ValidationNode != null)
+                    {
+                        validationNode.ChildNodes.Add(result.ValidationNode);
+                    }
                 }
 
                 // infinite size collection stops on first bind failure
@@ -161,7 +182,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 boundCollection.Add(ModelBindingHelper.CastOrDefault<TElement>(boundValue));
             }
 
-            return boundCollection;
+            return new CollectionResult
+            {
+                ValidationNode = validationNode,
+                Model = boundCollection
+            };
+        }
+
+        internal class CollectionResult
+        {
+            public ModelValidationNode ValidationNode { get; set; }
+
+            public IEnumerable<TElement> Model { get; set; }
         }
 
         /// <summary>
