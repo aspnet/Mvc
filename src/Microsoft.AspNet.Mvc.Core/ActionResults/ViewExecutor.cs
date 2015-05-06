@@ -16,7 +16,6 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public static class ViewExecutor
     {
-        private const int BufferSize = 1024;
         private static readonly MediaTypeHeaderValue DefaultContentType = new MediaTypeHeaderValue("text/html")
         {
             Encoding = Encodings.UTF8EncodingWithoutBOM
@@ -64,23 +63,10 @@ namespace Microsoft.AspNet.Mvc
 
             response.ContentType = contentTypeHeader.ToString();
 
-            var wrappedStream = new StreamWrapper(response.Body);
-
-            using (var writer = new StreamWriter(wrappedStream, encoding, BufferSize, leaveOpen: true))
+            using (var writer = new HttpResponseStreamWriter(response.Body, encoding))
             {
-                try
-                {
-                    var viewContext = new ViewContext(actionContext, view, viewData, tempData, writer);
-                    await view.RenderAsync(viewContext);
-                }
-                catch
-                {
-                    // Need to prevent writes/flushes on dispose because the StreamWriter will flush even if
-                    // nothing got written. This leads to a response going out on the wire prematurely in case an
-                    // exception is being thrown inside the try catch block.
-                    wrappedStream.BlockWrites = true;
-                    throw;
-                }
+                var viewContext = new ViewContext(actionContext, view, viewData, tempData, writer);
+                await view.RenderAsync(viewContext);
             }
         }
 
