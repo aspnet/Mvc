@@ -288,7 +288,9 @@ namespace Microsoft.AspNet.Mvc
                 var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, modelBindingResult.Model);
                 var modelValidationContext = new ModelValidationContext(modelBindingContext, modelExplorer);
                 modelValidationContext.RootPrefix = prefix;
-                objectModelValidator.Validate(modelValidationContext, new ModelValidationNode(prefix, modelBindingContext.ModelMetadata));
+                objectModelValidator.Validate(
+                    modelValidationContext,
+                    new ModelValidationNode(prefix, modelBindingContext.ModelMetadata, modelBindingResult.Model));
                 return modelState.IsValid;
             }
 

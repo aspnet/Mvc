@@ -34,7 +34,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     newModel,
                     bindingContext.ModelName,
                     isModelSet: true,
-                    validationNode: new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata));
+                    validationNode: new ModelValidationNode(
+                        bindingContext.ModelName,
+                        bindingContext.ModelMetadata,
+                        bindingContext.Model ?? newModel));
             }
             catch (Exception ex)
             {

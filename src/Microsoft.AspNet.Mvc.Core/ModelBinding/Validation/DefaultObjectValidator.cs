@@ -123,15 +123,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationContext.Visited.Add(modelExplorer.Model);
 
             // Validate the children first - depth-first traversal
-            var enumerableModel = modelExplorer.Model as IEnumerable;
-            if (enumerableModel == null)
-            {
-                isValid = ValidateProperties(modelKey, modelExplorer, validationContext);
-            }
-            else
-            {
-                isValid = ValidateElements(modelKey, enumerableModel, validationContext);
-            }
+            //var enumerableModel = modelExplorer.Model as IEnumerable;
+            //if (enumerableModel == null)
+            //{
+            isValid = ValidateProperties(modelKey, modelExplorer, validationContext);
+            //}
+            //else
+            //{
+            //    isValid = ValidateElements(modelKey, enumerableModel, validationContext);
+            //}
 
             if (isValid)
             {
@@ -175,17 +175,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             ValidationContext validationContext)
         {
             var isValid = true;
-
-            foreach (var childNode in validationContext.RootValidationNode.ChildNodes)
+            foreach (var childNode in validationContext.RootValidationNode.ChildNodes.Where(child => child != null))
             {
                 var childModelExplorer = childNode.ModelMetadata.MetadataKind == Metadata.ModelMetadataKind.Type ?
-                    modelExplorer :
+                    _modelMetadataProvider.GetModelExplorerForType(childNode.ModelMetadata.ModelType, childNode.Model) :
                     modelExplorer.GetExplorerForProperty(childNode.ModelMetadata.PropertyName);
                 var propertyValidationContext = new ValidationContext()
                 {
                     ModelValidationContext = ModelValidationContext.GetChildValidationContext(
                         validationContext.ModelValidationContext,
-                        modelExplorer.GetExplorerForProperty(childNode.ModelMetadata.PropertyName)),
+                        childModelExplorer),
                     Visited = validationContext.Visited,
                     RootValidationNode = childNode
                 };
@@ -197,34 +196,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 {
                     isValid = false;
                 }
-
-                return isValid;
             }
-
-            //foreach (var property in modelExplorer.Metadata.Properties)
-            //{
-            //    var propertyExplorer = modelExplorer.GetExplorerForProperty(property.PropertyName);
-            //    var propertyMetadata = propertyExplorer.Metadata;
-            //    var propertyValidationContext = new ValidationContext()
-            //    {
-            //        ModelValidationContext = ModelValidationContext.GetChildValidationContext(
-            //            validationContext.ModelValidationContext,
-            //            propertyExplorer),
-            //        Visited = validationContext.Visited,
-            //        RootValidationNode =  validationContext.
-            //    };
-
-            //    var propertyBindingName = propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName;
-            //    var childKey = ModelNames.CreatePropertyModelName(currentModelKey, propertyBindingName);
-
-            //    if (!ValidateNonVisitedNodeAndChildren(
-            //        childKey,
-            //        propertyValidationContext,
-            //        validators: null))
-            //    {
-            //        isValid = false;
-            //    }
-            //}
 
             return isValid;
         }

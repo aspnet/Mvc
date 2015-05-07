@@ -81,7 +81,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
-            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+            var validationNode = new ModelValidationNode(
+                bindingContext.ModelName,
+                bindingContext.ModelMetadata,
+                boundCollection); // This model should represent the ICollection<T> object.
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
             {
@@ -147,7 +150,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
             var boundCollection = new List<TElement>();
-            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+            var validationNode = new ModelValidationNode(
+                bindingContext.ModelName,
+                bindingContext.ModelMetadata,
+                boundCollection); // This model should represent the ICollection<T> object.
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelNames.CreateIndexModelName(bindingContext.ModelName, indexName);

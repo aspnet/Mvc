@@ -379,7 +379,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
-            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+
+            // This validation node is to be discarded because it represents the dto.
+            var validationNode = new ModelValidationNode(
+                bindingContext.ModelName,
+                bindingContext.ModelMetadata,
+                bindingContext.Model);
 
             var validationInfo = GetPropertyValidationInfo(bindingContext);
 

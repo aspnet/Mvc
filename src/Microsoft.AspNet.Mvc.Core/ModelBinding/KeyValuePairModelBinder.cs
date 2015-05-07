@@ -19,7 +19,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             //    bindingContext.ModelMetadata,
             //    bindingContext.Model);
 
-            var validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+            var validationNode = new ModelValidationNode(
+                bindingContext.ModelName,
+                bindingContext.ModelMetadata,
+                bindingContext.Model);
+
             var keyResult = await TryBindStrongModel<TKey>(bindingContext, "Key", validationNode);
             var valueResult = await TryBindStrongModel<TValue>(bindingContext, "Value", validationNode);
 
@@ -29,6 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     ModelBindingHelper.CastOrDefault<TKey>(keyResult.Model),
                     ModelBindingHelper.CastOrDefault<TValue>(valueResult.Model));
 
+                validationNode.Model = model;
                 // Success
                 return new ModelBindingResult(model, bindingContext.ModelName, isModelSet: true);
             }

@@ -54,7 +54,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ModelValidationNode validationNode = null;
             if (model != null)
             {
-                validationNode = new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata);
+                validationNode = new ModelValidationNode(
+                    bindingContext.ModelName,
+                    bindingContext.ModelMetadata,
+                    model);
             }
 
             return Task.FromResult(
