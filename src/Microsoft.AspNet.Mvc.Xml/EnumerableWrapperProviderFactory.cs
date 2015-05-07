@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Xml
@@ -37,15 +38,16 @@ namespace Microsoft.AspNet.Mvc.Xml
             {
                 // Example: IEnumerable<SerializableError>
                 var declaredType = context.DeclaredType;
+                var declaredTypeInfo = declaredType.GetTypeInfo();
 
                 // We only wrap interfaces types(ex: IEnumerable<T>, IQueryable<T>, IList<T> etc.) and not
                 // concrete types like List<T>, Collection<T> which implement IEnumerable<T>.
-                if (declaredType != null && declaredType.IsInterface() && declaredType.IsGenericType())
+                if (declaredType != null && declaredTypeInfo.IsInterface && declaredTypeInfo.IsGenericType)
                 {
                     var enumerableOfT = declaredType.ExtractGenericInterface(typeof(IEnumerable<>));
                     if (enumerableOfT != null)
                     {
-                        var elementType = enumerableOfT.GetGenericArguments()[0];
+                        var elementType = enumerableOfT.GenericTypeArguments[0];
 
                         var wrapperProviderContext = new WrapperProviderContext(
                                                                     elementType,
@@ -53,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Xml
 
                         var elementWrapperProvider = _wrapperProviderFactories.GetWrapperProvider(wrapperProviderContext);
 
-                        return new EnumerableWrapperProvider(enumerableOfT, elementWrapperProvider);
+                        return new EnumerableWrapperProvider(enumerableOfT.AsType(), elementWrapperProvider);
                     }
                 }
             }

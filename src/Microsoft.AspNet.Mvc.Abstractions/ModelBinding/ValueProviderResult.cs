@@ -148,7 +148,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (!(canConvertFrom || converter.CanConvertTo(destinationType)))
             {
                 // EnumConverter cannot convert integer, so we verify manually
-                if (destinationType.IsEnum() && (value is int))
+                if (destinationType.GetTypeInfo().IsEnum && (value is int))
                 {
                     return Enum.ToObject(destinationType, (int)value);
                 }

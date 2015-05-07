@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
@@ -15,12 +14,13 @@ namespace Microsoft.AspNet.Mvc
     {
         private static readonly Type TaskGenericType = typeof(Task<>);
 
-        public static Type GetTaskInnerTypeOrNull([NotNull]Type type)
+        public static Type GetTaskInnerTypeOrNull([NotNull] Type type)
         {
-            if (type.GetTypeInfo().IsGenericType && !type.GetTypeInfo().IsGenericTypeDefinition)
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition)
             {
-                var genericTypeDefinition = type.GetGenericTypeDefinition();
-                var genericArguments = type.GetGenericArguments();
+                var genericTypeDefinition = typeInfo.GetGenericTypeDefinition();
+                var genericArguments = typeInfo.GenericTypeArguments;
                 if (genericArguments.Length == 1 && TaskGenericType == genericTypeDefinition)
                 {
                     // Only Return if there is a single argument.
@@ -78,19 +78,6 @@ namespace Microsoft.AspNet.Mvc
         public static bool HasStringConverter(Type type)
         {
             return TypeDescriptor.GetConverter(type).CanConvertFrom(typeof(string));
-        }
-
-        public static bool IsCollectionType(Type type)
-        {
-            if (type == typeof(string))
-            {
-                // Even though string implements IEnumerable, we don't really think of it
-                // as a collection for the purposes of model binding.
-                return false;
-            }
-
-            // We only need to look for IEnumerable, because IEnumerable<T> extends it.
-            return typeof(IEnumerable).IsAssignableFrom(type);
         }
     }
 }

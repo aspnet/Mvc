@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.Framework.Internal;
 
@@ -312,7 +314,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </remarks>
         public bool IsCollectionType
         {
-            get { return TypeHelper.IsCollectionType(ModelType); }
+            get
+            {
+                if (ModelType == typeof(string))
+                {
+                    // Even though string implements IEnumerable, we don't really think of it
+                    // as a collection for the purposes of model binding.
+                    return false;
+                }
+
+                // We only need to look for IEnumerable, because IEnumerable<T> extends it.
+                return typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(ModelType.GetTypeInfo());
+            }
         }
 
         /// <summary>

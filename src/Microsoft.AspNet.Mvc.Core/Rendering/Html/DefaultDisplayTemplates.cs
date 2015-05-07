@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var genericEnumerableType = collection.GetType().ExtractGenericInterface(typeof(IEnumerable<>));
             if (genericEnumerableType != null)
             {
-                typeInCollection = genericEnumerableType.GetGenericArguments()[0];
+                typeInCollection = genericEnumerableType.GenericTypeArguments[0];
             }
 
             var typeInCollectionIsNullableValueType = typeInCollection.IsNullableValueType();

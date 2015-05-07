@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             IWrapperProvider elementWrapperProvider)
         {
             var enumerableOfT = sourceEnumerableOfT.ExtractGenericInterface(typeof(IEnumerable<>));
-            if (!sourceEnumerableOfT.IsInterface() || enumerableOfT == null)
+            if (!sourceEnumerableOfT.GetTypeInfo().IsInterface || enumerableOfT == null)
             {
                 throw new ArgumentException(
                     Resources.FormatEnumerableWrapperProvider_InvalidSourceEnumerableOfT(typeof(IEnumerable<>).Name), 
@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Xml
 
             _wrapperProvider = elementWrapperProvider;
 
-            var declaredElementType = enumerableOfT.GetGenericArguments()[0];
+            var declaredElementType = enumerableOfT.GenericTypeArguments[0];
             var wrappedElementType = elementWrapperProvider?.WrappingType ?? declaredElementType;
             WrappingType = typeof(DelegatingEnumerable<,>).MakeGenericType(wrappedElementType, declaredElementType);
 

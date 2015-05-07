@@ -413,7 +413,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static Type GetElementType(Type type)
         {
-            Debug.Assert(typeof(IEnumerable).IsAssignableFrom(type));
+            Debug.Assert(typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
             if (type.IsArray)
             {
                 return type.GetElementType();
@@ -421,7 +421,7 @@ namespace Microsoft.AspNet.Mvc
 
             foreach (var implementedInterface in type.GetInterfaces())
             {
-                if (implementedInterface.IsGenericType() &&
+                if (implementedInterface.GetTypeInfo().IsGenericType &&
                     implementedInterface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 {
                     return implementedInterface.GetGenericArguments()[0];
@@ -477,7 +477,7 @@ namespace Microsoft.AspNet.Mvc
                                                            Type openModelType,
                                                            Type openBinderType)
         {
-            var typeArguments = TypeExtensions.GetTypeArgumentsIfMatch(closedModelType, openModelType);
+            var typeArguments = GetTypeArgumentsIfMatch(closedModelType, openModelType);
             return (typeArguments != null) ? openBinderType.MakeGenericType(typeArguments) : null;
         }
 
@@ -531,6 +531,18 @@ namespace Microsoft.AspNet.Mvc
             {
                 return null;
             }
+        }
+
+        private static Type[] GetTypeArgumentsIfMatch([NotNull] Type closedType, Type matchingOpenType)
+        {
+            var closedTypeInfo = closedType.GetTypeInfo();
+            if (!closedTypeInfo.IsGenericType)
+            {
+                return null;
+            }
+
+            var openType = closedType.GetGenericTypeDefinition();
+            return (matchingOpenType == openType) ? closedTypeInfo.GenericTypeArguments : null;
         }
     }
 }

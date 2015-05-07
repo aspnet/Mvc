@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc
                 // With the following settings here, if a value is not present on the wire for value types
                 // like primitive, struct etc., Json.net's serializer would throw exception which we catch
                 // and add it to model state.
-                if (propertyType.IsValueType() && !propertyType.IsNullableValueType())
+                if (propertyType.GetTypeInfo().IsValueType && !propertyType.IsNullableValueType())
                 {
                     property.Required = Required.AllowNull;
                 }

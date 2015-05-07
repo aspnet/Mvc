@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
             // TKey.
             if (dictionaryType != null)
             {
-                var typeArguments = dictionaryType.GetGenericArguments();
+                var typeArguments = dictionaryType.GenericTypeArguments;
                 var keyType = typeArguments[0];
                 var returnType = typeArguments[1];
 
