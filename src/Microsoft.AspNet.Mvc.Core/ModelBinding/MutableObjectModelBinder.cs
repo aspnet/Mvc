@@ -380,7 +380,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
 
-            // This validation node is to be discarded because it represents the dto.
             var validationNode = new ModelValidationNode(
                 bindingContext.ModelName,
                 bindingContext.ModelMetadata,
@@ -437,7 +436,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         out requiredValidator);
 
                     SetProperty(bindingContext, modelExplorer, propertyMetadata, dtoResult, requiredValidator);
-                    validationNode.ChildNodes.Add(dtoResult.ValidationNode);
+
+                    var dtoValidationNode = dtoResult.ValidationNode;
+                    if (dtoValidationNode == null)
+                    {
+                        // Make sure that irrespective of if the properties of the model were bound with a value,
+                        // create a validation node so that these get validated.
+                        dtoValidationNode = new ModelValidationNode(dtoResult.Key, entry.Key, dtoResult.Model);
+                    }
+
+                    validationNode.ChildNodes.Add(dtoValidationNode);
                 }
             }
 

@@ -1337,7 +1337,10 @@ namespace Microsoft.AspNet.Mvc
 
             ObjectValidator.Validate(
                 validationContext,
-                new ModelValidationNode(modelName, modelExplorer.Metadata, model));
+                new ModelValidationNode(modelName, modelExplorer.Metadata, model)
+                {
+                    BuildChildNodesUsingModel = true
+                });
             return ModelState.IsValid;
         }
 

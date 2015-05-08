@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 validationNode: new ModelValidationNode(
                     bindingContext.ModelName,
                     bindingContext.ModelMetadata,
-                    bindingContext.Model)); // should represent the actual bound model.
+                    model));
         }
 
         internal static async Task<ValueProviderResult> GetCompatibleValueProviderResult(ModelBindingContext context)

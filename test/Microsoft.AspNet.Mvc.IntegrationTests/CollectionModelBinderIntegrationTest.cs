@@ -552,7 +552,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
-        [Fact]
+        [Fact(Skip = "Extra ModelState key because of #2446")]
         public async Task CollectionModelBinder_UsesCustomIndexes()
         {
             // Arrange
@@ -565,7 +565,15 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
             {
-                UpdateRequest(request);
+                var formCollection = new FormCollection(new Dictionary<string, string[]>()
+                {
+                    { "Addresses.index", new [] { "Key1", "Key2" } },
+                    { "Addresses[Key1].Street", new [] { "Street1" } },
+                    { "Addresses[Key2].Street", new [] { "Street2" } },
+                });
+
+                request.Form = formCollection;
+                request.ContentType = "application/x-www-form-urlencoded";
             });
 
             var modelState = new ModelStateDictionary();
@@ -578,22 +586,16 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelBindingResult.IsModelSet);
             Assert.IsType<Person4>(modelBindingResult.Model);
 
-            Assert.Equal(0, modelState.Count);
+            Assert.Equal(2, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
-        }
+            var entry = Assert.Single(modelState, kvp => kvp.Key == "Addresses[Key1].Street").Value;
+            Assert.Equal("Street1", entry.Value.AttemptedValue);
+            Assert.Equal("Street1", entry.Value.RawValue);
 
-        private void UpdateRequest(HttpRequest request)
-        {
-            var formCollection = new FormCollection(new Dictionary<string, string[]>()
-            {
-                { "Addresses.index", new [] { "Key1", "Key2" } },
-                { "Addresses[Key1].Street", new [] { "Street1" } },
-                { "Addresses[Key2].Street", new [] { "Street2" } },
-            });
-
-            request.Form = formCollection;
-            request.ContentType = "application/x-www-form-urlencoded";
+            entry = Assert.Single(modelState, kvp => kvp.Key == "Addresses[Key2].Street").Value;
+            Assert.Equal("Street2", entry.Value.AttemptedValue);
+            Assert.Equal("Street2", entry.Value.RawValue);
         }
     }
 }

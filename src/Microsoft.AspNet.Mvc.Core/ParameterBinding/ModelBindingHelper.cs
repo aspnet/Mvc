@@ -290,7 +290,10 @@ namespace Microsoft.AspNet.Mvc
                 modelValidationContext.RootPrefix = prefix;
                 objectModelValidator.Validate(
                     modelValidationContext,
-                    new ModelValidationNode(prefix, modelBindingContext.ModelMetadata, modelBindingResult.Model));
+                    new ModelValidationNode(prefix, modelBindingContext.ModelMetadata, modelBindingResult.Model)
+                    {
+                        BuildChildNodesUsingModel = true
+                    });
                 return modelState.IsValid;
             }
 

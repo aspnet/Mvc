@@ -423,7 +423,12 @@ namespace System.Web.Http
                 modelState: ModelState,
                 modelExplorer: modelExplorer);
 
-            ObjectValidator.Validate(modelValidationContext);
+            ObjectValidator.Validate(
+                modelValidationContext,
+                new ModelValidationNode(keyPrefix, modelExplorer.Metadata, entity)
+                {
+                    BuildChildNodesUsingModel = true
+                });
         }
 
         protected virtual void Dispose(bool disposing)

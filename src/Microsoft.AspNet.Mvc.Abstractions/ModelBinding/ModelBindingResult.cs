@@ -8,8 +8,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class ModelBindingResult
     {
-        private ModelValidationNode _validationNode;
-
         /// <summary>
         /// Creates a new <see cref="ModelBindingResult"/>.
         /// </summary>
@@ -56,21 +54,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public bool IsModelSet { get; }
 
-        public ModelValidationNode ValidationNode
-        {
-            get
-            {
-                //if (_validationNode == null)
-                //{
-                //    _validationNode = new ModelValidationNode(Key, null);
-                //}
-
-                return _validationNode;
-            }
-            set
-            {
-                _validationNode = value;
-            }
-        }
+        /// <summary>
+        /// A <see cref="ModelValidationNode"/> associated with the current <see cref="ModelBindingResult"/>.
+        /// </summary>
+        public ModelValidationNode ValidationNode { get; set; }
     }
 }

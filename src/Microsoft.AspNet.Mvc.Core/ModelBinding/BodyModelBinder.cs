@@ -61,7 +61,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 // the parameter name/a custom name. In all other cases (like when binding body to a property) we
                 // consider the entire ModelName as a prefix.
                 var modelBindingKey = isTopLevelObject ? string.Empty : bindingContext.ModelName;
-                return new ModelBindingResult(model, key: modelBindingKey, isModelSet: true);
+
+                var validationNode = new ModelValidationNode(modelBindingKey, bindingContext.ModelMetadata, model)
+                {
+                    BuildChildNodesUsingModel = true
+                };
+
+                return new ModelBindingResult(model, key: modelBindingKey, isModelSet: true, validationNode: validationNode);
             }
             catch (Exception ex)
             {

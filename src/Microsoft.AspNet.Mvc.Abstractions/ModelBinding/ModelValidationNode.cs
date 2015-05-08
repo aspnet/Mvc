@@ -13,7 +13,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
         }
 
-        public ModelValidationNode([NotNull] string key, ModelMetadata modelMetadata, object model, [NotNull] IList<ModelValidationNode> childNodes)
+        public ModelValidationNode(
+            [NotNull] string key,
+            [NotNull] ModelMetadata modelMetadata,
+            object model,
+            [NotNull] IList<ModelValidationNode> childNodes)
         {
             Key = key;
             ModelMetadata = modelMetadata;
@@ -25,12 +29,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public ModelMetadata ModelMetadata { get; set; }
 
-        /// <summary>
-        /// Represents the Actual name of the property which this <see cref="ModelValidationNode"/> represents.
-        /// </summary>
-        public string PropertyName { get; set; }
-
         public object Model { get; set; }
+
+        public bool BuildChildNodesUsingModel { get; set; } = false;
 
         public IList<ModelValidationNode> ChildNodes { get; set; }
     }
