@@ -190,13 +190,13 @@ namespace Microsoft.AspNet.Mvc
             }
             else if (itemType.GetTypeInfo().IsGenericType)
             {
-                if (itemType.ExtractGenericInterface(typeof(IList<>)) != null)
+                if (TypeHelper.ExtractGenericInterface(itemType, typeof(IList<>)) != null)
                 {
                     var genericTypeArguments = itemType.GetGenericArguments();
                     Debug.Assert(genericTypeArguments.Length == 1, "IList<T> has one generic argument");
                     actualType = genericTypeArguments[0];
                 }
-                else if (itemType.ExtractGenericInterface(typeof(IDictionary<,>)) != null)
+                else if (TypeHelper.ExtractGenericInterface(itemType, typeof(IDictionary<,>)) != null)
                 {
                     var genericTypeArguments = itemType.GetGenericArguments();
                     Debug.Assert(genericTypeArguments.Length == 2, "IDictionary<TKey, TValue> has two generic arguments");

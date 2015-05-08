@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             {
                 if (!context.AllAttributes.ContainsName(attribute) ||
                     context.AllAttributes[attribute] == null ||
-                    (typeof(string).GetTypeInfo().IsAssignableFrom(context.AllAttributes[attribute].Value.GetType().GetTypeInfo()) &&
+                    (context.AllAttributes[attribute].Value is string &&
                     string.IsNullOrWhiteSpace(context.AllAttributes[attribute].Value as string)))
                 {
                     // Missing attribute!

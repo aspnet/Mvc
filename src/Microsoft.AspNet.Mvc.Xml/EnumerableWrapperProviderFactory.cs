@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Xml
                 // concrete types like List<T>, Collection<T> which implement IEnumerable<T>.
                 if (declaredType != null && declaredTypeInfo.IsInterface && declaredTypeInfo.IsGenericType)
                 {
-                    var enumerableOfT = declaredType.ExtractGenericInterface(typeof(IEnumerable<>));
+                    var enumerableOfT = TypeHelper.ExtractGenericInterface(declaredType, typeof(IEnumerable<>));
                     if (enumerableOfT != null)
                     {
                         var elementType = enumerableOfT.GenericTypeArguments[0];

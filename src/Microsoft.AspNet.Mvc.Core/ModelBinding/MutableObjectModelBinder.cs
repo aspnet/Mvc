@@ -511,7 +511,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return;
             }
 
-            if (value != null || property.PropertyType.AllowsNullValue())
+            if (value != null || TypeHelper.AllowsNullValue(property.PropertyType))
             {
                 try
                 {
@@ -555,9 +555,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Determine T if this is an ICollection<T> property. No need for a T[] case because CanUpdateProperty()
             // ensures property is either settable or not an array. Underlying assumption is that CanUpdateProperty()
             // and SetProperty() are overridden together.
-            var collectionTypeArguments = propertyExplorer.ModelType
-                .ExtractGenericInterface(typeof(ICollection<>))
-                ?.GenericTypeArguments;
+            var collectionTypeArguments = TypeHelper.ExtractGenericInterface(
+                propertyExplorer.ModelType, typeof(ICollection<>))?.GenericTypeArguments;
             if (collectionTypeArguments == null)
             {
                 // Not a collection model.

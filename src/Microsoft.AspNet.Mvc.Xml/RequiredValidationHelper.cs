@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             // which would also be probed for Required attribute validation.
             if (modelType.GetTypeInfo().IsGenericType)
             {
-                var enumerableOfT = modelType.ExtractGenericInterface(typeof(IEnumerable<>));
+                var enumerableOfT = TypeHelper.ExtractGenericInterface(modelType, typeof(IEnumerable<>));
                 if (enumerableOfT != null)
                 {
                     modelType = enumerableOfT.GenericTypeArguments[0];
@@ -125,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.Xml
 
                 // Since DefaultObjectValidator can handle Required attribute validation for reference types,
                 // we only consider value types here.
-                if (propertyType.GetTypeInfo().IsValueType && !propertyType.IsNullableValueType())
+                if (propertyType.GetTypeInfo().IsValueType && !TypeHelper.IsNullableValueType(propertyType))
                 {
                     var validationError = GetValidationError(propertyInfo);
                     if (validationError != null)

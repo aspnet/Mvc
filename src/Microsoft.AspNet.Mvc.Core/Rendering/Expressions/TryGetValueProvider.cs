@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Rendering.Expressions
                 _tryGetValueDelegateCacheLock.ExitReadLock();
             }
 
-            var dictionaryType = targetType.ExtractGenericInterface(typeof(IDictionary<,>));
+            var dictionaryType = TypeHelper.ExtractGenericInterface(targetType, typeof(IDictionary<,>));
 
             // Just wrap a call to the underlying IDictionary<TKey, TValue>.TryGetValue() where string can be cast to
             // TKey.

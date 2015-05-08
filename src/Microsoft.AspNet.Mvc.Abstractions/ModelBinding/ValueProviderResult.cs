@@ -73,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public static bool CanConvertFromString(Type destinationType)
         {
             return TypeHelper.IsSimpleType(UnwrapNullableType(destinationType)) ||
-                   TypeHelper.HasStringConverter(destinationType);
+                   TypeDescriptor.GetConverter(destinationType).CanConvertFrom(typeof(string));
         }
 
         private object UnwrapPossibleArrayType(CultureInfo culture, object value, Type destinationType)

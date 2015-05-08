@@ -106,13 +106,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var typeInCollection = typeof(string);
-            var genericEnumerableType = collection.GetType().ExtractGenericInterface(typeof(IEnumerable<>));
+            var genericEnumerableType = TypeHelper.ExtractGenericInterface(collection.GetType(), typeof(IEnumerable<>));
             if (genericEnumerableType != null)
             {
                 typeInCollection = genericEnumerableType.GenericTypeArguments[0];
             }
 
-            var typeInCollectionIsNullableValueType = typeInCollection.IsNullableValueType();
+            var typeInCollectionIsNullableValueType = TypeHelper.IsNullableValueType(typeInCollection);
 
             var oldPrefix = htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefix;
 

@@ -473,14 +473,6 @@ namespace Microsoft.AspNet.Mvc
             return (model is TModel) ? (TModel)model : default(TModel);
         }
 
-        internal static Type GetPossibleBinderInstanceType(Type closedModelType,
-                                                           Type openModelType,
-                                                           Type openBinderType)
-        {
-            var typeArguments = GetTypeArgumentsIfMatch(closedModelType, openModelType);
-            return (typeArguments != null) ? openBinderType.MakeGenericType(typeArguments) : null;
-        }
-
         internal static void ReplaceEmptyStringWithNull(ModelMetadata modelMetadata, ref object model)
         {
             if (model is string &&
@@ -531,18 +523,6 @@ namespace Microsoft.AspNet.Mvc
             {
                 return null;
             }
-        }
-
-        private static Type[] GetTypeArgumentsIfMatch([NotNull] Type closedType, Type matchingOpenType)
-        {
-            var closedTypeInfo = closedType.GetTypeInfo();
-            if (!closedTypeInfo.IsGenericType)
-            {
-                return null;
-            }
-
-            var openType = closedType.GetGenericTypeDefinition();
-            return (matchingOpenType == openType) ? closedTypeInfo.GenericTypeArguments : null;
         }
     }
 }

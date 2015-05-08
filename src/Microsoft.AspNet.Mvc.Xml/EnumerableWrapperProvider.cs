@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Xml
             [NotNull] Type sourceEnumerableOfT,
             IWrapperProvider elementWrapperProvider)
         {
-            var enumerableOfT = sourceEnumerableOfT.ExtractGenericInterface(typeof(IEnumerable<>));
+            var enumerableOfT = TypeHelper.ExtractGenericInterface(sourceEnumerableOfT, typeof(IEnumerable<>));
             if (!sourceEnumerableOfT.GetTypeInfo().IsInterface || enumerableOfT == null)
             {
                 throw new ArgumentException(
