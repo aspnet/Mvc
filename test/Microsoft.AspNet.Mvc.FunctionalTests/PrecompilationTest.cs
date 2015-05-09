@@ -190,60 +190,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             
             try
             {
-                // Act - 1
+                // Act
+                await DeleteFile(viewsDirectory, "_ViewStart.cshtml");
+                await DeleteFile(viewsDirectory, "_Layout.cshtml");
+                await DeleteFile(viewsDirectory, "Index.cshtml");
+            
                 var response = await client.GetAsync("http://localhost/Home/Index");
                 var responseContent = await response.Content.ReadAsStringAsync();
-
-                // Assert - 1
+                
+                // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 var parsedResponse1 = new ParsedResponse(responseContent);
                 Assert.StartsWith(assemblyNamePrefix, parsedResponse1.ViewStart);
                 Assert.StartsWith(assemblyNamePrefix, parsedResponse1.Layout);
                 Assert.StartsWith(assemblyNamePrefix, parsedResponse1.Index);
-
-                // Act - 2
-                // Delete the Layout file and verify it is still served.
-                await DeleteFile(viewsDirectory, "Layout.cshtml");
-                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
-
-                // Assert - 2
-                var response2 = new ParsedResponse(responseContent);
-                Assert.StartsWith(assemblyNamePrefix, response2.ViewStart);
-                Assert.StartsWith(assemblyNamePrefix, response2.Index);
-                Assert.StartsWith(assemblyNamePrefix, response2.Layout);
-
-                // Act - 3
-                // Delete the _ViewStart file and verify it is still served.
-                await DeleteFile(viewsDirectory, "_ViewStart.cshtml");
-                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
-
-                // Assert - 3
-                var response3 = new ParsedResponse(responseContent);
-                Assert.StartsWith(assemblyNamePrefix, response3.ViewStart);
-                Assert.StartsWith(response2.Index, response3.Index);
-                Assert.StartsWith(response2.Layout, response3.Layout);
-
-                // Act - 4
-                // Delete the _GlobalImport file and verify it is still served.
-                await DeleteFile(viewsDirectory, "_GlobalImport.cshtml");
-                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
-
-                // Assert - 4
-                var response4 = new ParsedResponse(responseContent);
-                Assert.StartsWith(response3.ViewStart, response4.ViewStart);
-                Assert.StartsWith(response3.Index, response4.Index);
-                Assert.StartsWith(response3.Layout, response4.Layout);
-
-                // Act - 5
-                // Delete the Index file and verify it is still served.
-                await DeleteFile(viewsDirectory, "Index.cshtml");
-                responseContent = await client.GetStringAsync("http://localhost/Home/Index");
-
-                // Assert - 5
-                var response5 = new ParsedResponse(responseContent);
-                Assert.StartsWith(response4.Layout, response5.Layout);
-                Assert.StartsWith(response4.ViewStart, response5.ViewStart);
-                Assert.StartsWith(response4.Index, response5.Index);
             }
             finally
             {
