@@ -68,6 +68,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         [Activate]
         public IHtmlEncoder HtmlEncoder { get; set; }
 
+        /// <summary>
+        /// Gets the <see cref="IJsonHelper"/> to be used for serializing JSON.
+        /// </summary>
+        [Activate]
+        public IJsonHelper Json { get; set; }
+
         /// <inheritdoc />
         public IPageExecutionContext PageExecutionContext { get; set; }
 
