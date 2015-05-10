@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </summary>
         /// <param name="value">The value to serialize as JSON.</param>
         /// <returns>A new <see cref="HtmlString"/> containing the serialized JSON.</returns>
-        HtmlString Serialize([NotNull] object value);
+        HtmlString Serialize(object value);
 
         /// <summary>
         /// Returns serialized JSON for the <paramref name="value"/>.
@@ -24,6 +24,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="value">The value to serialize as JSON.</param>
         /// <param name="serializerSettings">The <see cref="JsonSerializerSettings"/> to be used by the serializer.</param>
         /// <returns>A new <see cref="HtmlString"/> containing the serialized JSON.</returns>
-        HtmlString Serialize([NotNull] object value, [NotNull] JsonSerializerSettings serializerSettings);
+        HtmlString Serialize(object value, [NotNull] JsonSerializerSettings serializerSettings);
     }
 }

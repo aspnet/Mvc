@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString Serialize([NotNull] object value)
+        public HtmlString Serialize(object value)
         {
             var jsonOutputFormatter = GetJsonOutputFormatter();
 
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString Serialize([NotNull] object value, [NotNull] JsonSerializerSettings serializerSettings)
+        public HtmlString Serialize(object value, [NotNull] JsonSerializerSettings serializerSettings)
         {
             JsonOutputFormatter jsonOutputFormatter = new JsonOutputFormatter
             {
