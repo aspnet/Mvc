@@ -223,9 +223,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Name = "John <b>Smith</b>"
             });
 
-            var expectedBody = String.Format(@"<script type=""text/javascript"">
-    var json = {0};
-</script>", json);
+            var expectedBody = String.Format(@"<script type=""text/javascript"">" + Environment.NewLine +
+                                             @"    var json = {0};" + Environment.NewLine +
+                                             @"</script>", json);
 
             // Act
             var response = await client.GetAsync("https://localhost/Home/JsonHelperInView");
@@ -251,9 +251,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Name = "John <b>Smith</b>"
             }, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
-            var expectedBody = String.Format(@"<script type=""text/javascript"">
-    var json = {0};
-</script>", json);
+            var expectedBody = String.Format(@"<script type=""text/javascript"">" + Environment.NewLine +
+                                             @"    var json = {0};" + Environment.NewLine +
+                                             @"</script>", json);
 
             // Act
             var response = await client.GetAsync("https://localhost/Home/JsonHelperWithSettingsInView");
