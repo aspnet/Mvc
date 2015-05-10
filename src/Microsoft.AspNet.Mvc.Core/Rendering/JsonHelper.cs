@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 if (_viewContext == null)
                 {
-                    throw new InvalidOperationException(Resources.HtmlHelper_NotContextualized);
+                    throw new InvalidOperationException(Resources.JsonHelper_NotContextualized);
                 }
 
                 return _viewContext;
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString Serialize(object value)
+        public HtmlString Serialize([NotNull] object value)
         {
             var jsonOutputFormatter = GetJsonOutputFormatter();
 
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString Serialize(object value, JsonSerializerSettings serializerSettings)
+        public HtmlString Serialize([NotNull] object value, [NotNull] JsonSerializerSettings serializerSettings)
         {
             JsonOutputFormatter jsonOutputFormatter = new JsonOutputFormatter
             {

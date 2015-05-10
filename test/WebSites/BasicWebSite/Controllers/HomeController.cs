@@ -66,6 +66,17 @@ namespace BasicWebSite.Controllers
             return View(person);
         }
 
+        public IActionResult JsonHelperWithSettingsInView()
+        {
+            Person person = new Person
+            {
+                Id = 9000,
+                Name = "John <b>Smith</b>"
+            };
+
+            return View(person);
+        }
+
         public IActionResult JsonTextInView()
         {
             return View();

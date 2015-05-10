@@ -514,4 +514,7 @@
   <data name="ValidatableObjectAdapter_IncompatibleType" xml:space="preserve">
     <value>The model object inside the metadata claimed to be compatible with '{0}', but was actually '{1}'.</value>
   </data>
+  <data name="JsonHelper_NotContextualized" xml:space="preserve">
+    <value>Must call 'Contextualize' method before using this JsonHelper instance.</value>
+  </data>
 </root>

@@ -1,14 +1,3 @@
-﻿@model BasicWebSite.Models.Person
-
-<p>
-    Expected: John &lt;b&gt;Smith&lt;/b&gt;
-</p>
-<script type="text/javascript">
-    var person = @Json.Serialize(Model);
-
-    var p = document.createElement('p');
-    var text = document.createTextNode('Actual: ' + person.Name);
-    p.appendChild(text);
-
-    document.body.appendChild(p);
+﻿<script type="text/javascript">
+    var json = @Json.Serialize(Model);
 </script>

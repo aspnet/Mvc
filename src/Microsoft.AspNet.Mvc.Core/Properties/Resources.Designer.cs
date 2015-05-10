@@ -763,6 +763,22 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
+        /// Must call 'Contextualize' method before using this JsonHelper instance.
+        /// </summary>
+        internal static string JsonHelper_NotContextualized
+        {
+            get { return GetString("JsonHelper_NotContextualized"); }
+        }
+
+        /// <summary>
+        /// Must call 'Contextualize' method before using this JsonHelper instance.
+        /// </summary>
+        internal static string FormatJsonHelper_NotContextualized()
+        {
+            return GetString("JsonHelper_NotContextualized");
+        }
+
+        /// <summary>
         /// The '{0}' template was used with an object of type '{1}', which does not implement '{2}'.
         /// </summary>
         internal static string Templates_TypeMustImplementIEnumerable
