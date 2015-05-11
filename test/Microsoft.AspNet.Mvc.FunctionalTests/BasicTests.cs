@@ -223,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Name = "John <b>Smith</b>"
             });
 
-            var expectedBody = String.Format(@"<script type=""text/javascript"">" + Environment.NewLine +
+            var expectedBody = string.Format(@"<script type=""text/javascript"">" + Environment.NewLine +
                                              @"    var json = {0};" + Environment.NewLine +
                                              @"</script>", json);
 
@@ -251,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Name = "John <b>Smith</b>"
             }, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
-            var expectedBody = String.Format(@"<script type=""text/javascript"">" + Environment.NewLine +
+            var expectedBody = string.Format(@"<script type=""text/javascript"">" + Environment.NewLine +
                                              @"    var json = {0};" + Environment.NewLine +
                                              @"</script>", json);
 

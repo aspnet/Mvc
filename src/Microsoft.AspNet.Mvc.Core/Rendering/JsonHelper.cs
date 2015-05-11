@@ -34,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <inheritdoc />
         public HtmlString Serialize(object value, [NotNull] JsonSerializerSettings serializerSettings)
         {
-            JsonOutputFormatter jsonOutputFormatter = new JsonOutputFormatter
+            var jsonOutputFormatter = new JsonOutputFormatter
             {
                 SerializerSettings = serializerSettings
             };
@@ -44,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private HtmlString SerializeInternal(JsonOutputFormatter jsonOutputFormatter, object value)
         {
-            StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var stringWriter = new StringWriter(CultureInfo.InvariantCulture);
             jsonOutputFormatter.WriteObject(stringWriter, value);
 
             return new HtmlString(stringWriter.ToString());
