@@ -30,6 +30,17 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
             Assert.NotNull(jsonFormatter.SerializerSettings);
         }
 
+        [Fact]
+        public void Constructor_UsesSerializerSettings()
+        {
+            // Arrange
+            // Act
+            var serializerSettings = new JsonSerializerSettings();
+            var jsonFormatter = new JsonInputFormatter(serializerSettings);
+
+            // Assert
+            Assert.Same(serializerSettings, jsonFormatter.SerializerSettings);
+        }
 
         [Fact]
         public async Task ChangesTo_DefaultSerializerSettings_TakesEffect()
@@ -142,11 +153,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
             var formattedContent = "\"" + content + "\"";
             var mediaType = string.Format("application/json; charset={0}", encodingAsString);
             var encoding = CreateOrGetSupportedEncoding(formatter, encodingAsString, isDefaultEncoding);
-            var preamble = encoding.GetPreamble();
-            var data = encoding.GetBytes(formattedContent);
-            var expectedData = new byte[preamble.Length + data.Length];
-            Buffer.BlockCopy(preamble, 0, expectedData, 0, preamble.Length);
-            Buffer.BlockCopy(data, 0, expectedData, preamble.Length, data.Length);
+            var expectedData = encoding.GetBytes(formattedContent);
 
             var memStream = new MemoryStream();
             var outputFormatterContext = new OutputFormatterContext

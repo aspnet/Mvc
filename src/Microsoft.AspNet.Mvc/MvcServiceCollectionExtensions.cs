@@ -102,7 +102,12 @@ namespace Microsoft.Framework.DependencyInjection
                 return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataDetailsProviders);
             }));
 
-            services.TryAdd(ServiceDescriptor.Instance(typeof(JsonOutputFormatter), new JsonOutputFormatter()));
+            // JsonOutputFormatter should use the SerializerSettings on MvcOptions
+            services.TryAdd(ServiceDescriptor.Singleton<JsonOutputFormatter>(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Options;
+                return new JsonOutputFormatter(options.SerializerSettings);
+            }));
 
             // Razor, Views and runtime compilation
 
@@ -144,6 +149,7 @@ namespace Microsoft.Framework.DependencyInjection
             // View and rendering helpers
             services.TryAdd(ServiceDescriptor.Transient<IHtmlHelper, HtmlHelper>());
             services.TryAdd(ServiceDescriptor.Transient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>)));
+            services.TryAdd(ServiceDescriptor.Transient<IJsonHelper, JsonHelper>());
             services.TryAdd(ServiceDescriptor.Scoped<IUrlHelper, UrlHelper>());
 
             // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
