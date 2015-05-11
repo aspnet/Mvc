@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 var validationNode = new ModelValidationNode(modelBindingKey, bindingContext.ModelMetadata, model)
                 {
-                    BuildChildNodesUsingModel = true
+                    ValidateAllProperties = true
                 };
 
                 return new ModelBindingResult(model, key: modelBindingKey, isModelSet: true, validationNode: validationNode);

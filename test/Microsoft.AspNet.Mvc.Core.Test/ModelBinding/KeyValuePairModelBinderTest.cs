@@ -103,11 +103,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task TryBindStrongModel_BinderExists_BinderReturnsCorrectlyTypedObject_ReturnsTrue()
         {
             // Arrange
-            ModelBindingContext bindingContext = GetBindingContext(new SimpleHttpValueProvider());
+            var bindingContext = GetBindingContext(new SimpleHttpValueProvider());
             var binder = new KeyValuePairModelBinder<int, string>();
+            var modelValidationNode = new ModelValidationNode("key", bindingContext.ModelMetadata, bindingContext.Model);
 
             // Act
-            var result = await binder.TryBindStrongModel<int>(bindingContext, "key");
+            var result = await binder.TryBindStrongModel<int>(bindingContext, "key", modelValidationNode);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -131,9 +132,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
 
             var binder = new KeyValuePairModelBinder<int, string>();
+            var modelValidationNode = new ModelValidationNode("key", bindingContext.ModelMetadata, bindingContext.Model);
 
             // Act
-            var result = await binder.TryBindStrongModel<int>(bindingContext, "key");
+            var result = await binder.TryBindStrongModel<int>(bindingContext, "key", modelValidationNode);
 
             // Assert
             Assert.True(result.IsModelSet);

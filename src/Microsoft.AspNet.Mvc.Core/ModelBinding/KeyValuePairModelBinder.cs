@@ -30,10 +30,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     ModelBindingHelper.CastOrDefault<TValue>(valueResult.Model));
 
                 // Update the model for the top level validation node.
-                validationNode.Model = model;
+                var modelValidationNode =
+                    new ModelValidationNode(validationNode.Key, validationNode.ModelMetadata, model);
 
                 // Success
-                return new ModelBindingResult(model, bindingContext.ModelName, isModelSet: true);
+                return new ModelBindingResult(
+                    model,
+                    bindingContext.ModelName,
+                    isModelSet: true,
+                    validationNode: modelValidationNode);
             }
             else if (!keyResult.IsModelSet && valueResult.IsModelSet)
             {

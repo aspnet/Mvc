@@ -39,11 +39,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             [NotNull] ModelValidationContext modelValidationContext,
             [NotNull] ModelValidationNode validationNode)
         {
-            if (validationNode == null)
-            {
-                return;
-            }
-
             var validationContext = new ValidationContext()
             {
                 ModelValidationContext = modelValidationContext,
@@ -62,12 +57,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             ValidationContext validationContext,
             IList<IModelValidator> validators)
         {
-            var modelValidationContext = validationContext.ModelValidationContext;
-            var modelExplorer = modelValidationContext.ModelExplorer;
-            var modelState = modelValidationContext.ModelState;
+            var currentValidationNode = validationContext.ValidationNode;
+            if (currentValidationNode.SuppressValidation)
+            {
+                return true;
+            }
 
             // Recursion guard to avoid stack overflows
             RuntimeHelpers.EnsureSufficientExecutionStack();
+
+            var modelValidationContext = validationContext.ModelValidationContext;
+            var modelExplorer = modelValidationContext.ModelExplorer;
+            var modelState = modelValidationContext.ModelState;
 
             var bindingSource = modelValidationContext.BindingSource;
             if (bindingSource != null && !bindingSource.IsFromRequest)
@@ -99,9 +100,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 validators = GetValidators(modelValidationContext.ValidatorProvider, modelExplorer.Metadata);
             }
 
-            // We don't need to recursively traverse the graph for null values
-            var currentValidationNode = validationContext.ValidationNode;
-            if (currentValidationNode.ChildNodes.Count == 0 && !currentValidationNode.BuildChildNodesUsingModel)
+            // We don't need to recursively traverse the graph if there are no child nodes.
+            if (currentValidationNode.ChildNodes.Count == 0 && !currentValidationNode.ValidateAllProperties)
             {
                 return ShallowValidate(modelKey, modelExplorer, validationContext, validators);
             }
@@ -116,14 +116,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
 
             // Check to avoid infinite recursion. This can happen with cycles in an object graph.
-            // Note that this is only applicble in case the model is pre-existing.
+            // Note that this is only applicable in case the model is pre-existing (like in case of TryUpdateModel).
             if (validationContext.Visited.Contains(modelExplorer.Model))
             {
                 return true;
             }
 
             validationContext.Visited.Add(modelExplorer.Model);
-            isValid = ValidateProperties(modelKey, modelExplorer, validationContext);
+            isValid = ValidateChildNodes(modelKey, modelExplorer, validationContext);
             if (isValid)
             {
                 // Don't bother to validate this node if children failed.
@@ -162,13 +162,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
         private IList<IModelValidator> GetValidators(IModelValidatorProvider provider, ModelMetadata metadata)
         {
-            var validatorProvider = provider;
             var validatorProviderContext = new ModelValidatorProviderContext(metadata);
-            validatorProvider.GetValidators(validatorProviderContext);
+            provider.GetValidators(validatorProviderContext);
             return validatorProviderContext.Validators;
         }
 
-        private bool ValidateProperties(
+        private bool ValidateChildNodes(
             string currentModelKey,
             ModelExplorer modelExplorer,
             ValidationContext validationContext)
@@ -176,7 +175,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var isValid = true;
             var validators = ExpandValidationNodeAndGetValidators(validationContext, modelExplorer);
 
-            foreach (var childNode in validationContext.ValidationNode.ChildNodes.Where(child => child != null))
+            foreach (var childNode in validationContext.ValidationNode.ChildNodes)
             {
                 var childModelExplorer = childNode.ModelMetadata.MetadataKind == Metadata.ModelMetadataKind.Type ?
                     _modelMetadataProvider.GetModelExplorerForType(childNode.ModelMetadata.ModelType, childNode.Model) :
@@ -274,7 +273,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             ValidationContext context, ModelExplorer modelExplorer)
         {
             var validationNode = context.ValidationNode;
-            if (validationNode == null || !validationNode.BuildChildNodesUsingModel || validationNode.Model == null)
+            if (validationNode.ChildNodes.Count != 0 ||
+                !validationNode.ValidateAllProperties ||
+                validationNode.Model == null)
             {
                 return null;
             }
@@ -289,7 +290,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     var childKey = ModelNames.CreatePropertyModelName(validationNode.Key, propertyBindingName);
                     var childNode = new ModelValidationNode(childKey, property, propertyExplorer.Model)
                     {
-                        BuildChildNodesUsingModel = true
+                        ValidateAllProperties = true
                     };
                     validationNode.ChildNodes.Add(childNode);
                 }
@@ -308,7 +309,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     var elementKey = ModelNames.CreateIndexModelName(validationNode.Key, index);
                     var childNode = new ModelValidationNode(elementKey, elementMetadata, elementExplorer.Model)
                     {
-                        BuildChildNodesUsingModel = true
+                        ValidateAllProperties = true
                     };
 
                     validationNode.ChildNodes.Add(childNode);

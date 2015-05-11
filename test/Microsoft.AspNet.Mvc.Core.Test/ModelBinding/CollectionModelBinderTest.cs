@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var boundCollection = await binder.BindComplexCollectionFromIndexes(bindingContext, new[] { "foo", "bar", "baz" });
 
             // Assert
-            Assert.Equal(new[] { 42, 0, 200 }, boundCollection.ToArray());
+            Assert.Equal(new[] { 42, 0, 200 }, boundCollection.Model.ToArray());
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var boundCollection = await binder.BindComplexCollectionFromIndexes(bindingContext, indexNames: null);
 
             // Assert
-            Assert.Equal(new[] { 42, 100 }, boundCollection.ToArray());
+            Assert.Equal(new[] { 42, 100 }, boundCollection.Model.ToArray());
         }
 
         [Theory]
@@ -193,8 +193,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var boundCollection = await binder.BindSimpleCollection(context, rawValue: new object[0], culture: null);
 
             // Assert
-            Assert.NotNull(boundCollection);
-            Assert.Empty(boundCollection);
+            Assert.NotNull(boundCollection.Model);
+            Assert.Empty(boundCollection.Model);
         }
 
         [Fact]
@@ -231,7 +231,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var boundCollection = await modelBinder.BindSimpleCollection(bindingContext, new int[1], culture);
 
             // Assert
-            Assert.Equal(new[] { 42 }, boundCollection.ToArray());
+            Assert.Equal(new[] { 42 }, boundCollection.Model.ToArray());
         }
 
         private static ModelBindingContext GetModelBindingContext(

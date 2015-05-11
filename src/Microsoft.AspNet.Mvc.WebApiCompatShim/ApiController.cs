@@ -427,7 +427,7 @@ namespace System.Web.Http
                 modelValidationContext,
                 new ModelValidationNode(keyPrefix, modelExplorer.Metadata, entity)
                 {
-                    BuildChildNodesUsingModel = true
+                    ValidateAllProperties = true
                 });
         }
 

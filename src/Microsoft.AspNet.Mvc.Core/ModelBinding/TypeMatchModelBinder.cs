@@ -22,11 +22,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return new ModelBindingResult(
                 model,
                 bindingContext.ModelName,
-                isModelSet: true,
-                validationNode: new ModelValidationNode(
-                    bindingContext.ModelName,
-                    bindingContext.ModelMetadata,
-                    model));
+                isModelSet: true);
         }
 
         internal static async Task<ValueProviderResult> GetCompatibleValueProviderResult(ModelBindingContext context)

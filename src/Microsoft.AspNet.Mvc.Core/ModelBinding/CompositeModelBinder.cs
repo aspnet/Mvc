@@ -55,6 +55,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             bindingContext.OperationBindingContext.BodyBindingState =
                 newBindingContext.OperationBindingContext.BodyBindingState;
 
+            var bindingKey = bindingContext.ModelName;
             if (modelBindingResult.IsModelSet)
             {
                 // Update the model state key if we are bound using an empty prefix and it is a complex type.
@@ -78,16 +79,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     // In this case, for the model parameter the key would be SimpleType instead of model.SimpleType.
                     // (i.e here the prefix for the model key is empty).
                     // For the id parameter the key would be id.
-                    return modelBindingResult;
+                    bindingKey = string.Empty;
                 }
             }
 
-            // Fall through to update the ModelBindingResult's key.
+            var modelValidationNode = GetModelValidationNode(
+                bindingKey,
+                modelBindingResult,
+                bindingContext.ModelMetadata);
+
             return new ModelBindingResult(
                 modelBindingResult.Model,
-                bindingContext.ModelName,
+                bindingKey,
                 modelBindingResult.IsModelSet,
-                modelBindingResult.ValidationNode);
+                modelValidationNode);
         }
 
         private async Task<ModelBindingResult> TryBind(ModelBindingContext bindingContext)
@@ -203,6 +208,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return state;
+        }
+
+        private static ModelValidationNode GetModelValidationNode(
+            string key,
+            ModelBindingResult result,
+            ModelMetadata metadata)
+        {
+            if (result.IsModelSet && result.ValidationNode == null)
+            {
+                return new ModelValidationNode(
+                    key,
+                    metadata,
+                    result.Model);
+            }
+
+            return result.ValidationNode;
         }
     }
 }

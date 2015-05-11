@@ -212,9 +212,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var context = GetModelValidationContext(model, type);
 
             var validator = new DefaultObjectValidator(context.ExcludeFilters, context.ModelMetadataProvider);
+            var topLevelValidationNode =
+                new ModelValidationNode(string.Empty, context.ModelValidationContext.ModelExplorer.Metadata, model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act
-            validator.Validate(context.ModelValidationContext);
+            validator.Validate(context.ModelValidationContext, topLevelValidationNode);
 
             // Assert
             var actualErrors = new Dictionary<string, string>();
@@ -240,6 +245,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var testValidationContext = GetModelValidationContext(new Uri("/api/values", UriKind.Relative), typeof(Uri));
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act & Assert
             Assert.Throws(
@@ -249,7 +262,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     new DefaultObjectValidator(
                         testValidationContext.ExcludeFilters,
                         testValidationContext.ModelMetadataProvider)
-                        .Validate(testValidationContext.ModelValidationContext);
+                        .Validate(testValidationContext.ModelValidationContext, topLevelValidationNode);
                 });
         }
 
@@ -277,12 +290,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var testValidationContext = GetModelValidationContext(input, type, string.Empty, excludedTypes);
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act & Assert (does not throw)
             new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider)
-                .Validate(testValidationContext.ModelValidationContext);
+                .Validate(testValidationContext.ModelValidationContext, topLevelValidationNode);
             Assert.True(testValidationContext.ModelValidationContext.ModelState.IsValid);
         }
 
@@ -294,6 +315,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var testValidationContext = GetModelValidationContext(
                 new Uri("/api/values", UriKind.Relative), typeof(Uri));
             var validationContext = testValidationContext.ModelValidationContext;
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act & Assert
             Assert.Throws<InvalidOperationException>(
@@ -302,7 +331,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     new DefaultObjectValidator(
                         testValidationContext.ExcludeFilters,
                         testValidationContext.ModelMetadataProvider)
-                        .Validate(validationContext);
+                        .Validate(validationContext, topLevelValidationNode);
                 });
             Assert.True(validationContext.ModelState.IsValid);
         }
@@ -315,12 +344,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var model = new Address() { Street = "Microsoft Way" };
             var testValidationContext = GetModelValidationContext(model, model.GetType());
             var validationContext = testValidationContext.ModelValidationContext;
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act (does not throw)
             new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider)
-                .Validate(validationContext);
+                .Validate(validationContext, topLevelValidationNode);
 
             // Assert
             Assert.Contains("Street", validationContext.ModelState.Keys);
@@ -340,12 +377,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     new TypeThatOverridesEquals { Funny = "hehe" }
                 };
             var testValidationContext = GetModelValidationContext(instance, typeof(TypeThatOverridesEquals[]));
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act & Assert (does not throw)
             new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider)
-                .Validate(testValidationContext.ModelValidationContext);
+                .Validate(testValidationContext.ModelValidationContext, topLevelValidationNode);
         }
 
         [Fact]
@@ -370,9 +415,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var validator = new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    "user",
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act
-            validator.Validate(validationContext);
+            validator.Validate(validationContext, topLevelValidationNode);
 
             // Assert
             Assert.Equal(new[] { "key1", "user.Password", "", "user.ConfirmPassword" },
@@ -404,9 +457,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var validator = new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act
-            validator.Validate(validationContext);
+            validator.Validate(validationContext, topLevelValidationNode);
 
             // Assert
             Assert.False(validationContext.ModelState.ContainsKey("user.Password"));
@@ -440,9 +501,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var validator = new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    string.Empty,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act
-            validator.Validate(validationContext);
+            validator.Validate(validationContext, topLevelValidationNode);
 
             // Assert
             var modelState = validationContext.ModelState["user.Password"];
@@ -467,9 +536,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var validator = new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters, 
                 testValidationContext.ModelMetadataProvider);
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    "serviceProvider",
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act
-            validator.Validate(validationContext);
+            validator.Validate(validationContext, topLevelValidationNode);
 
             // Assert
             Assert.True(validationContext.ModelState.IsValid);
@@ -509,9 +586,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var validator = new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    "items",
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
 
             // Act
-            validator.Validate(validationContext);
+            validator.Validate(validationContext, topLevelValidationNode);
 
             // Assert
             Assert.True(validationContext.ModelState.IsValid);
@@ -552,8 +637,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
 
+            var topLevelValidationNode =
+                new ModelValidationNode(
+                    "items",
+                    testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
+                    testValidationContext.ModelValidationContext.ModelExplorer.Model)
+                {
+                    ValidateAllProperties = true
+                };
+
             // Act
-            validator.Validate(validationContext);
+            validator.Validate(validationContext, topLevelValidationNode);
 
             // Assert
             Assert.True(validationContext.ModelState.IsValid);

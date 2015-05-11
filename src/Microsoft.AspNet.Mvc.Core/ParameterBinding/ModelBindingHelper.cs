@@ -292,7 +292,7 @@ namespace Microsoft.AspNet.Mvc
                     modelValidationContext,
                     new ModelValidationNode(prefix, modelBindingContext.ModelMetadata, modelBindingResult.Model)
                     {
-                        BuildChildNodesUsingModel = true
+                        ValidateAllProperties = true
                     });
                 return modelState.IsValid;
             }

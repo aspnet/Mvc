@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var validationNode = new ModelValidationNode(
                 bindingContext.ModelName,
                 bindingContext.ModelMetadata,
-                boundCollection); // This model should represent the ICollection<T> object.
+                boundCollection);
             var rawValueArray = RawValueToObjectArray(rawValue);
             foreach (var rawValueElement in rawValueArray)
             {
@@ -102,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 object boundValue = null;
                 var result =
                     await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(innerBindingContext);
-                if (result != null)
+                if (result != null && result.IsModelSet)
                 {
                     boundValue = result.Model;
                     if (result.ValidationNode != null)
@@ -153,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var validationNode = new ModelValidationNode(
                 bindingContext.ModelName,
                 bindingContext.ModelMetadata,
-                boundCollection); // This model should represent the ICollection<T> object.
+                boundCollection);
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelNames.CreateIndexModelName(bindingContext.ModelName, indexName);
@@ -169,7 +169,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 var result =
                     await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childBindingContext);
-                if (result != null)
+                if (result != null && result.IsModelSet)
                 {
                     didBind = true;
                     boundValue = result.Model;

@@ -33,11 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return new ModelBindingResult(
                     newModel,
                     bindingContext.ModelName,
-                    isModelSet: true,
-                    validationNode: new ModelValidationNode(
-                        bindingContext.ModelName,
-                        bindingContext.ModelMetadata,
-                        newModel));
+                    isModelSet: true);
             }
             catch (Exception ex)
             {

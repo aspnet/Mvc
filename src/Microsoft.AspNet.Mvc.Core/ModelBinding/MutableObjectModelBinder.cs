@@ -44,8 +44,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             EnsureModel(bindingContext);
             var result = await CreateAndPopulateDto(bindingContext, mutableObjectBinderContext.PropertyMetadata);
 
+            var validationNode = new ModelValidationNode(
+              bindingContext.ModelName,
+              bindingContext.ModelMetadata,
+              bindingContext.Model);
+
             // post-processing, e.g. property setters and hooking up validation
-            var validationNode = ProcessDto(bindingContext, (ComplexModelDto)result.Model);
+            ProcessDto(bindingContext, (ComplexModelDto)result.Model, validationNode);
             return new ModelBindingResult(
                 bindingContext.Model,
                 bindingContext.ModelName,
@@ -375,16 +380,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return validationInfo;
         }
 
-        internal ModelValidationNode ProcessDto(ModelBindingContext bindingContext, ComplexModelDto dto)
+        internal ModelValidationNode ProcessDto(
+            ModelBindingContext bindingContext,
+            ComplexModelDto dto,
+            ModelValidationNode validationNode)
         {
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
-
-            var validationNode = new ModelValidationNode(
-                bindingContext.ModelName,
-                bindingContext.ModelMetadata,
-                bindingContext.Model);
-
             var validationInfo = GetPropertyValidationInfo(bindingContext);
 
             // Eliminate provided properties from requiredProperties; leaving just *missing* required properties.

@@ -25,14 +25,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Model = model;
         }
 
-        public string Key { get; set; }
+        public string Key { get; }
 
-        public ModelMetadata ModelMetadata { get; set; }
+        public ModelMetadata ModelMetadata { get; }
 
-        public object Model { get; set; }
+        public object Model { get; }
 
-        public bool BuildChildNodesUsingModel { get; set; } = false;
+        public IList<ModelValidationNode> ChildNodes { get; }
 
-        public IList<ModelValidationNode> ChildNodes { get; set; }
+        public bool ValidateAllProperties { get; set; } = false;
+
+        public bool SuppressValidation { get; set; } = false;
     }
 }
