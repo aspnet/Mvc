@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<TModel>", HtmlHelperPropertyName),
             new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IJsonHelper", "Json"),
             new InjectChunk("Microsoft.AspNet.Mvc.IViewComponentHelper", "Component"),
-            new InjectChunk("Microsoft.AspNet.Mvc.IUrlHelper", "Url")
+            new InjectChunk("Microsoft.AspNet.Mvc.IUrlHelper", "Url"),
         };
 
         // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>.

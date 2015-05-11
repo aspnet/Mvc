@@ -4,9 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
-using Microsoft.AspNet.Mvc.Core;
 using Newtonsoft.Json;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Rendering
@@ -14,46 +12,23 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// <summary>
     /// Default implementation of <see cref="IJsonHelper"/>.
     /// </summary>
-    public class JsonHelper : IJsonHelper, ICanHasViewContext
+    public class JsonHelper : IJsonHelper
     {
-        private ViewContext _viewContext;
-        private JsonOutputFormatter _jsonOutputFormatter;
+        private readonly JsonOutputFormatter _jsonOutputFormatter;
 
-        /// <inheritdoc />
-        public ViewContext ViewContext
+        /// <summary>
+        /// Initializes a new instance of <see cref="JsonHelper"/> that is backed by <paramref name="jsonOutputFormatter"/>.
+        /// </summary>
+        /// <param name="jsonOutputFormatter">The <see cref="JsonOutputFormatter"/> used to serialize JSON.</param>
+        public JsonHelper([NotNull] JsonOutputFormatter jsonOutputFormatter)
         {
-            get
-            {
-                if (_viewContext == null)
-                {
-                    throw new InvalidOperationException(Resources.JsonHelper_NotContextualized);
-                }
-
-                return _viewContext;
-            }
-            private set
-            {
-                _viewContext = value;
-            }
-        }
-
-        private JsonOutputFormatter GetJsonOutputFormatter()
-        {
-            if (_jsonOutputFormatter == null)
-            {
-                var services = ViewContext.HttpContext.RequestServices;
-                _jsonOutputFormatter = services.GetRequiredService<JsonOutputFormatter>();
-            }
-
-            return _jsonOutputFormatter;
+            _jsonOutputFormatter = jsonOutputFormatter;
         }
 
         /// <inheritdoc />
         public HtmlString Serialize(object value)
         {
-            var jsonOutputFormatter = GetJsonOutputFormatter();
-
-            return SerializeInternal(jsonOutputFormatter, value);
+            return SerializeInternal(_jsonOutputFormatter, value);
         }
 
         /// <inheritdoc />
@@ -73,12 +48,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             jsonOutputFormatter.WriteObject(stringWriter, value);
 
             return new HtmlString(stringWriter.ToString());
-        }
-
-        /// <inheritdoc />
-        public virtual void Contextualize([NotNull] ViewContext viewContext)
-        {
-            ViewContext = viewContext;
         }
     }
 }
