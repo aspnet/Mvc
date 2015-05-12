@@ -1211,6 +1211,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal("Doe", model.LastName);
             Assert.Equal(dob, model.DateOfBirth);
             Assert.True(bindingContext.ModelState.IsValid);
+
+            // Ensure that we add child nodes for all the nodes which have a result (irrespective of if they 
+            // are bound or not).
+            Assert.Equal(2, modelValidationNode.ChildNodes.Count());
+
+            var validationNode = modelValidationNode.ChildNodes[0];
+            Assert.Equal("", validationNode.Key);
+            Assert.Equal("John", validationNode.Model);
+
+            validationNode = modelValidationNode.ChildNodes[1];
+            Assert.Equal("", validationNode.Key);
+            Assert.Equal("Doe", validationNode.Model);
         }
 
         [Fact]

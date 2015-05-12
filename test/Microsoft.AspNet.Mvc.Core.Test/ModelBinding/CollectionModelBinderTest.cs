@@ -34,6 +34,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.Equal(new[] { 42, 0, 200 }, boundCollection.Model.ToArray());
+            Assert.Equal(
+                new[] { "someName[foo]", "someName[baz]" },
+                boundCollection.ValidationNode.ChildNodes.Select(o => o.Key).ToArray());
         }
 
         [Fact]
@@ -54,6 +57,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.Equal(new[] { 42, 100 }, boundCollection.Model.ToArray());
+            Assert.Equal(
+                new[] { "someName[0]", "someName[1]" },
+                boundCollection.ValidationNode.ChildNodes.Select(o => o.Key).ToArray());
         }
 
         [Theory]
@@ -217,13 +223,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var culture = new CultureInfo("fr-FR");
             var bindingContext = GetModelBindingContext(new SimpleHttpValueProvider());
-
+            ModelValidationNode childValidationNode = null;
             Mock.Get<IModelBinder>(bindingContext.OperationBindingContext.ModelBinder)
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
                 .Returns((ModelBindingContext mbc) =>
                 {
                     Assert.Equal("someName", mbc.ModelName);
-                    return Task.FromResult(new ModelBindingResult(42, mbc.ModelName, true));
+                    childValidationNode = new ModelValidationNode("someName", mbc.ModelMetadata, mbc.Model);
+                    return Task.FromResult(new ModelBindingResult(42, mbc.ModelName, true, childValidationNode));
                 });
             var modelBinder = new CollectionModelBinder<int>();
 
@@ -232,6 +239,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.Equal(new[] { 42 }, boundCollection.Model.ToArray());
+            Assert.Equal(new[] { childValidationNode }, boundCollection.ValidationNode.ChildNodes.ToArray());
         }
 
         private static ModelBindingContext GetModelBindingContext(
@@ -267,7 +275,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     if (value != null)
                     {
                         var model = value.ConvertTo(mbc.ModelType);
-                        return new ModelBindingResult(model, mbc.ModelName, true);
+                        var modelValidationNode = new ModelValidationNode(mbc.ModelName, mbc.ModelMetadata, model);
+                        return new ModelBindingResult(model, mbc.ModelName, true, modelValidationNode);
                     }
 
                     return null;

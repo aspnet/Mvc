@@ -31,7 +31,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 // Update the model for the top level validation node.
                 var modelValidationNode =
-                    new ModelValidationNode(validationNode.Key, validationNode.ModelMetadata, model);
+                    new ModelValidationNode(
+                        validationNode.Key,
+                        validationNode.ModelMetadata,
+                        model,
+                        validationNode.ChildNodes);
 
                 // Success
                 return new ModelBindingResult(

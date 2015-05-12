@@ -57,24 +57,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             ValidationContext validationContext,
             IList<IModelValidator> validators)
         {
-            var currentValidationNode = validationContext.ValidationNode;
-            if (currentValidationNode.SuppressValidation)
-            {
-                return true;
-            }
-
             // Recursion guard to avoid stack overflows
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
             var modelValidationContext = validationContext.ModelValidationContext;
             var modelExplorer = modelValidationContext.ModelExplorer;
             var modelState = modelValidationContext.ModelState;
-
-            var bindingSource = modelValidationContext.BindingSource;
-            if (bindingSource != null && !bindingSource.IsFromRequest)
+            var currentValidationNode = validationContext.ValidationNode;
+            if (currentValidationNode.SuppressValidation)
             {
-                // Short circuit if the metadata represents something that was not bound using request data.
-                // For example model bound using [FromServices]. Treat such objects as skipped.
+                // Short circuit if the node is marked to be suppressed
                 var validationState = modelState.GetFieldValidationState(modelKey);
                 if (validationState == ModelValidationState.Unvalidated)
                 {
