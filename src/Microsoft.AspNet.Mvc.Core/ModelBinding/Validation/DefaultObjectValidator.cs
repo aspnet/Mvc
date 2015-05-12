@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             };
 
             ValidateNonVisitedNodeAndChildren(
-                modelValidationContext.RootPrefix,
+                validationNode.Key,
                 validationContext,
                 validators: null);
         }

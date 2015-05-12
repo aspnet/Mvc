@@ -10,8 +10,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public ModelValidationContext(
             [NotNull] ModelBindingContext bindingContext,
             [NotNull] ModelExplorer modelExplorer)
-            : this(bindingContext.ModelName,
-                   bindingContext.BindingSource,
+            : this(bindingContext.BindingSource,
                    bindingContext.OperationBindingContext.ValidatorProvider,
                    bindingContext.ModelState,
                    modelExplorer)
@@ -19,14 +18,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         }
 
         public ModelValidationContext(
-            string rootPrefix,
             BindingSource bindingSource,
             [NotNull] IModelValidatorProvider validatorProvider,
             [NotNull] ModelStateDictionary modelState,
             [NotNull] ModelExplorer modelExplorer)
         {
             ModelState = modelState;
-            RootPrefix = rootPrefix;
             ValidatorProvider = validatorProvider;
             ModelExplorer = modelExplorer;
             BindingSource = bindingSource;
@@ -45,7 +42,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             [NotNull] ModelExplorer modelExplorer)
         {
             return new ModelValidationContext(
-                parentContext.RootPrefix,
                 modelExplorer.Metadata.BindingSource,
                 parentContext.ValidatorProvider,
                 parentContext.ModelState,
@@ -55,8 +51,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public ModelExplorer ModelExplorer { get; }
 
         public ModelStateDictionary ModelState { get; }
-
-        public string RootPrefix { get; set; }
 
         public BindingSource BindingSource { get; set; }
 

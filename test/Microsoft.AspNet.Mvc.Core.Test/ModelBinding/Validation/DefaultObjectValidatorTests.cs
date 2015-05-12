@@ -289,7 +289,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             object input, Type type, List<Type> excludedTypes)
         {
             // Arrange
-            var testValidationContext = GetModelValidationContext(input, type, string.Empty, excludedTypes);
+            var testValidationContext = GetModelValidationContext(input, type, excludedTypes);
             var topLevelValidationNode =
                 new ModelValidationNode(
                     string.Empty,
@@ -406,7 +406,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var testValidationContext = GetModelValidationContext(
                 user,
                 typeof(User),
-                "user",
                 new List<Type> { typeof(string) });
 
             var validationContext = testValidationContext.ModelValidationContext;
@@ -433,7 +432,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var modelState = validationContext.ModelState["user.ConfirmPassword"];
             Assert.Empty(modelState.Errors);
             Assert.Equal(modelState.ValidationState, ModelValidationState.Skipped);
-            
+
             var error = Assert.Single(validationContext.ModelState[""].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
         }
@@ -451,7 +450,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var testValidationContext = GetModelValidationContext(
                 user,
                 typeof(User),
-                "user",
                 new List<Type> { typeof(User) });
             var validationContext = testValidationContext.ModelValidationContext;
             var validator = new DefaultObjectValidator(
@@ -459,7 +457,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 testValidationContext.ModelMetadataProvider);
             var topLevelValidationNode =
                 new ModelValidationNode(
-                    string.Empty,
+                    "user",
                     testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
                     testValidationContext.ModelValidationContext.ModelExplorer.Model)
                 {
@@ -490,7 +488,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var testValidationContext = GetModelValidationContext(
                 user,
                 typeof(User),
-                "user",
                 new List<Type> { typeof(User) });
             var validationContext = testValidationContext.ModelValidationContext;
 
@@ -503,7 +500,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 testValidationContext.ModelMetadataProvider);
             var topLevelValidationNode =
                 new ModelValidationNode(
-                    string.Empty,
+                    "user",
                     testValidationContext.ModelValidationContext.ModelExplorer.Metadata,
                     testValidationContext.ModelValidationContext.ModelExplorer.Model)
                 {
@@ -529,8 +526,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Arrange
             var testValidationContext = GetModelValidationContext(
                 new TestServiceProvider(),
-                typeof(TestServiceProvider),
-                "serviceProvider");
+                typeof(TestServiceProvider));
 
             var validationContext = testValidationContext.ModelValidationContext;
             var validator = new DefaultObjectValidator(
@@ -581,7 +577,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var testValidationContext = GetModelValidationContext(
                 model,
                 type,
-                "items",
                 excludedTypes: null,
                 modelStateDictionary: modelStateDictionary);
 
@@ -631,7 +626,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var testValidationContext = GetModelValidationContext(
                 model,
                 typeof(Dictionary<string, string>),
-                "items",
                 excludedTypes: null,
                 modelStateDictionary: modelStateDictionary);
 
@@ -677,8 +671,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Arrange
             var testValidationContext = GetModelValidationContext(
                 LonelyPerson,
-                typeof(Person),
-                "person");
+                typeof(Person));
 
             var validationContext = testValidationContext.ModelValidationContext;
             var validator = new DefaultObjectValidator(
@@ -707,8 +700,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Arrange
             var testValidationContext = GetModelValidationContext(
                 LonelyPerson,
-                typeof(Person),
-                "person");
+                typeof(Person));
 
             var validationContext = testValidationContext.ModelValidationContext;
             var validator = new DefaultObjectValidator(
@@ -747,16 +739,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         private TestModelValidationContext GetModelValidationContext(
             object model,
             Type type,
-            string key = "",
             List<Type> excludedTypes = null)
         {
-            return GetModelValidationContext(model, type, key, excludedTypes, new ModelStateDictionary());
+            return GetModelValidationContext(model, type, excludedTypes, new ModelStateDictionary());
         }
 
         private TestModelValidationContext GetModelValidationContext(
             object model,
             Type type,
-            string key,
             List<Type> excludedTypes,
             ModelStateDictionary modelStateDictionary)
         {
@@ -778,7 +768,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             return new TestModelValidationContext
             {
                 ModelValidationContext = new ModelValidationContext(
-                    key,
                     null,
                     TestModelValidatorProvider.CreateDefaultProvider(),
                     modelStateDictionary,

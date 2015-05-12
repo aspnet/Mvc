@@ -417,7 +417,6 @@ namespace System.Web.Http
             var modelExplorer = MetadataProvider.GetModelExplorerForType(typeof(TEntity), entity);
 
             var modelValidationContext = new ModelValidationContext(
-                keyPrefix,
                 bindingSource: null,
                 validatorProvider: BindingContext.ValidatorProvider,
                 modelState: ModelState,
