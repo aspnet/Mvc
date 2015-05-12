@@ -38,8 +38,8 @@ namespace Microsoft.AspNet.Mvc
             var formatter = new JsonInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes("content");
 
-            var actionContext = GetActionContext(contentBytes, contentType: requestContentType);
-            var formatterContext = new InputFormatterContext(actionContext, typeof(string));
+            var httpContext = GetHttpContext(contentBytes, contentType: requestContentType);
+            var formatterContext = new InputFormatterContext(httpContext, new ModelStateDictionary(), typeof(string));
 
             // Act
             var result = formatter.CanRead(formatterContext);
@@ -80,8 +80,8 @@ namespace Microsoft.AspNet.Mvc
             var formatter = new JsonInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
-            var actionContext = GetActionContext(contentBytes);
-            var context = new InputFormatterContext(actionContext, type);
+            var httpContext = GetHttpContext(contentBytes);
+            var context = new InputFormatterContext(httpContext, new ModelStateDictionary(), type);
 
             // Act
             var model = await formatter.ReadAsync(context);
@@ -98,9 +98,8 @@ namespace Microsoft.AspNet.Mvc
             var formatter = new JsonInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
-            var actionContext = GetActionContext(contentBytes);
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(User));
-            var context = new InputFormatterContext(actionContext, metadata.ModelType);
+            var httpContext = GetHttpContext(contentBytes);
+            var context = new InputFormatterContext(httpContext, new ModelStateDictionary(), typeof(User));
 
             // Act
             var model = await formatter.ReadAsync(context);
@@ -119,16 +118,18 @@ namespace Microsoft.AspNet.Mvc
             var formatter = new JsonInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
-            var actionContext = GetActionContext(contentBytes);
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(User));
-            var context = new InputFormatterContext(actionContext, metadata.ModelType);
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes);
+
+            var context = new InputFormatterContext(httpContext, modelState, typeof(User));
 
             // Act
             var model = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.Equal("Could not convert string to decimal: not-an-age. Path 'Age', line 1, position 39.",
-                         actionContext.ModelState["Age"].Errors[0].Exception.Message);
+            Assert.Equal(
+                "Could not convert string to decimal: not-an-age. Path 'Age', line 1, position 39.",
+                modelState["Age"].Errors[0].Exception.Message);
         }
 
         [Fact]
@@ -139,19 +140,21 @@ namespace Microsoft.AspNet.Mvc
             var formatter = new JsonInputFormatter();
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
-            var actionContext = GetActionContext(contentBytes);
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(User));
-            var context = new InputFormatterContext(actionContext, metadata.ModelType);
-            actionContext.ModelState.MaxAllowedErrors = 3;
-            actionContext.ModelState.AddModelError("key1", "error1");
-            actionContext.ModelState.AddModelError("key2", "error2");
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes);
+
+            var context = new InputFormatterContext(httpContext, modelState, typeof(User));
+
+            modelState.MaxAllowedErrors = 3;
+            modelState.AddModelError("key1", "error1");
+            modelState.AddModelError("key2", "error2");
 
             // Act
             var model = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.False(actionContext.ModelState.ContainsKey("age"));
-            var error = Assert.Single(actionContext.ModelState[""].Errors);
+            Assert.False(modelState.ContainsKey("age"));
+            var error = Assert.Single(modelState[""].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
         }
 
@@ -177,17 +180,18 @@ namespace Microsoft.AspNet.Mvc
             // by default we ignore missing members, so here explicitly changing it
             jsonFormatter.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Error;
 
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(UserLogin));
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, typeof(UserLogin));
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
-            Assert.False(actionContext.ModelState.IsValid);
+            Assert.False(modelState.IsValid);
 
-            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            var modelErrorMessage = modelState.Values.First().Errors[0].Exception.Message;
             Assert.Contains("Required property 'Password' not found in JSON", modelErrorMessage);
         }
 
@@ -205,17 +209,18 @@ namespace Microsoft.AspNet.Mvc
                 MissingMemberHandling = MissingMemberHandling.Error
             };
 
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(UserLogin));
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, typeof(UserLogin));
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
-            Assert.False(actionContext.ModelState.IsValid);
+            Assert.False(modelState.IsValid);
 
-            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            var modelErrorMessage = modelState.Values.First().Errors[0].Exception.Message;
             Assert.Contains("Required property 'Password' not found in JSON", modelErrorMessage);
         }
 
@@ -225,9 +230,11 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var contentBytes = Encoding.UTF8.GetBytes("{\"Id\":\"null\",\"Name\":\"Programming C#\"}");
             var jsonFormatter = new JsonInputFormatter();
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(Book));
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+            
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, typeof(Book));
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
@@ -237,10 +244,10 @@ namespace Microsoft.AspNet.Mvc
             Assert.NotNull(book);
             Assert.Equal(0, book.Id);
             Assert.Equal("Programming C#", book.Name);
-            Assert.False(actionContext.ModelState.IsValid);
+            Assert.False(modelState.IsValid);
 
-            Assert.Equal(1, actionContext.ModelState.Values.First().Errors.Count);
-            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            Assert.Equal(1, modelState.Values.First().Errors.Count);
+            var modelErrorMessage = modelState.Values.First().Errors[0].Exception.Message;
             Assert.Contains("Could not convert string to integer: null. Path 'Id'", modelErrorMessage);
         }
 
@@ -252,18 +259,20 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var contentBytes = Encoding.UTF8.GetBytes("{ \"Name\" : \"Programming C#\"}");
             var jsonFormatter = new JsonInputFormatter();
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(type);
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+            
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, type);
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
-            Assert.False(actionContext.ModelState.IsValid);
-            Assert.Equal(1, actionContext.ModelState.Count);
+            Assert.False(modelState.IsValid);
+            Assert.Equal(1, modelState.Count);
 
-            var modelErrorMessage = actionContext.ModelState.Values.First().Errors[0].Exception.Message;
+            var modelErrorMessage = modelState.Values.First().Errors[0].Exception.Message;
             Assert.Contains("Required property 'Id' not found in JSON", modelErrorMessage);
         }
 
@@ -273,17 +282,19 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var contentBytes = Encoding.UTF8.GetBytes("{\"Longitude\":{}}");
             var jsonFormatter = new JsonInputFormatter();
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(GpsCoordinate));
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+            
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, typeof(GpsCoordinate));
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
-            Assert.False(actionContext.ModelState.IsValid);
-            Assert.Equal(2, actionContext.ModelState.Count);
-            var errorMessages = GetModelStateErrorMessages(actionContext.ModelState);
+            Assert.False(modelState.IsValid);
+            Assert.Equal(2, modelState.Count);
+            var errorMessages = GetModelStateErrorMessages(modelState);
             Assert.Equal(3, errorMessages.Count());
             Assert.Contains(
                 errorMessages,
@@ -302,15 +313,17 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var contentBytes = Encoding.UTF8.GetBytes("{\"Name\":\"Seattle\"}");
             var jsonFormatter = new JsonInputFormatter();
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(Location));
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+            
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, typeof(Location));
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
-            Assert.True(actionContext.ModelState.IsValid);
+            Assert.True(modelState.IsValid);
             var location = obj as Location;
             Assert.NotNull(location);
             Assert.Equal(0, location.Id);
@@ -323,15 +336,17 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var contentBytes = Encoding.UTF8.GetBytes("{}");
             var jsonFormatter = new JsonInputFormatter();
-            var actionContext = GetActionContext(contentBytes, "application/json;charset=utf-8");
-            var metadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(Venue));
-            var inputFormatterContext = new InputFormatterContext(actionContext, metadata.ModelType);
+
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes, "application/json;charset=utf-8");
+
+            var inputFormatterContext = new InputFormatterContext(httpContext, modelState, typeof(Venue));
 
             // Act
             var obj = await jsonFormatter.ReadAsync(inputFormatterContext);
 
             // Assert
-            Assert.True(actionContext.ModelState.IsValid);
+            Assert.True(modelState.IsValid);
             var venue = obj as Venue;
             Assert.NotNull(venue);
             Assert.Null(venue.Location);
@@ -339,16 +354,9 @@ namespace Microsoft.AspNet.Mvc
             Assert.Null(venue.Name);
         }
 
-        private static ActionContext GetActionContext(byte[] contentBytes,
-                                                 string contentType = "application/xml")
-        {
-            return new ActionContext(GetHttpContext(contentBytes, contentType),
-                                     new AspNet.Routing.RouteData(),
-                                     new ActionDescriptor());
-        }
-
-        private static HttpContext GetHttpContext(byte[] contentBytes,
-                                                        string contentType = "application/json")
+        private static HttpContext GetHttpContext(
+            byte[] contentBytes,
+            string contentType = "application/json")
         {
             var request = new Mock<HttpRequest>();
             var headers = new Mock<IHeaderDictionary>();

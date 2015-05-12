@@ -2,33 +2,42 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Represents information used by an input formatter for
-    /// deserializing the request body into an object.
+    /// A context object used by an input formatter for deserializing the request body into an object.
     /// </summary>
     public class InputFormatterContext
     {
         /// <summary>
         /// Creates a new instance of <see cref="InputFormatterContext"/>.
         /// </summary>
-        public InputFormatterContext([NotNull] ActionContext actionContext,
-                                     [NotNull] Type modelType)
+        public InputFormatterContext(
+            [NotNull] HttpContext httpContext,
+            [NotNull] ModelStateDictionary modelState,
+            [NotNull] Type modelType)
         {
-            ActionContext = actionContext;
+            HttpContext = httpContext;
+            ModelState = modelState;
             ModelType = modelType;
         }
 
         /// <summary>
-        /// Action context associated with the current call.
+        /// Gets the <see cref="Http.HttpContext"/> associated with the current operation.
         /// </summary>
-        public ActionContext ActionContext { get; private set; }
+        public HttpContext HttpContext { get; private set; }
 
         /// <summary>
-        /// Represents the expected type of the model represented by the request body.
+        /// Gets the <see cref="ModelStateDictionary"/> associated with the current operation.
+        /// </summary>
+        public ModelStateDictionary ModelState { get; }
+
+        /// <summary>
+        /// Gets the expected <see cref="Type"/> of the model represented by the request body.
         /// </summary>
         public Type ModelType { get; private set; }
     }
