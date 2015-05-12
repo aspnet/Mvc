@@ -177,6 +177,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var testProvider = new SessionStateTempDataProvider();
             var inputGuid = Guid.NewGuid();
+            var inputDatetimeVal = new DateTime(DateTime.Now.Ticks, DateTimeKind.Local);
             var inputDictionary = new Dictionary<string, string>
             {
                 { "Hello", "World" },
@@ -186,7 +187,7 @@ namespace Microsoft.AspNet.Mvc
                 { "string", "value" },
                 { "int", 10 },
                 { "bool", false },
-                { "DateTime", new DateTime() },
+                { "DateTime", inputDatetimeVal },
                 { "Guid", inputGuid },
                 { "List`string", new List<string> { "one", "two" } },
                 { "Dictionary", inputDictionary },
@@ -206,7 +207,7 @@ namespace Microsoft.AspNet.Mvc
             var boolVal = Assert.IsType<bool>(TempData["bool"]);
             Assert.Equal(false, boolVal);
             var datetimeVal = Assert.IsType<DateTime>(TempData["DateTime"]);
-            Assert.Equal(new DateTime().ToString(), datetimeVal.ToString());
+            Assert.Equal(inputDatetimeVal.ToString(), datetimeVal.ToString());
             var guidVal = Assert.IsType<Guid>(TempData["Guid"]);
             Assert.Equal(inputGuid.ToString(), guidVal.ToString());
             var list = (IList<string>)TempData["List`string"];
