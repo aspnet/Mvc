@@ -34,7 +34,12 @@ namespace BasicWebSite.Controllers
 
         public IActionResult RedirectToRouteActionAsMethodAction()
         {
-            return RedirectToRoute("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" });
+            return RedirectToRoute(new { action = "ActionReturningTask", controller = "Home" });
+        }
+
+        public IActionResult RedirectToRouteUsingRouteName()
+        {
+            return RedirectToRoute("OrdersApi", new { id = 10 });
         }
 
         public IActionResult NoContentResult()
