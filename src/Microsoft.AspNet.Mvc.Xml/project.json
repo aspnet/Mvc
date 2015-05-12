@@ -1,14 +1,14 @@
 {
     "description": "Contains DataContractSerializer and XmlSerializer based input and output formatters",
-    "version": "6.0.0-*",
+    "version": "6.0.0-beta4",
     "compilationOptions": {
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
-        "Microsoft.Framework.PropertyHelper.Internal": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.NotNullAttribute.Internal": { "version": "1.0.0-*", "type": "build" }
+        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-beta4", "type": "build" },
+        "Microsoft.AspNet.Mvc.Core": "6.0.0-beta4",
+        "Microsoft.Framework.PropertyHelper.Internal": { "version": "1.0.0-beta4", "type": "build" },
+        "Microsoft.Framework.NotNullAttribute.Internal": { "version": "1.0.0-beta4", "type": "build" }
     },
     "frameworks": {
         "dnx451": {
@@ -19,8 +19,8 @@
         },
         "dnxcore50": {
             "dependencies": {
-                "System.Runtime.Serialization.Xml": "4.0.10-beta-*",
-                "System.Xml.XmlSerializer": "4.0.10-beta-*"
+                "System.Runtime.Serialization.Xml": "4.0.10-beta-22816",
+                "System.Xml.XmlSerializer": "4.0.10-beta-22816"
             }
         }
     }

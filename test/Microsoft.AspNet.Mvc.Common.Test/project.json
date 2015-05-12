@@ -3,13 +3,13 @@
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Framework.PropertyHelper.Internal": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.CopyOnWriteDictionary.Internal": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.NotNullAttribute.Internal": { "version": "1.0.0-*", "type": "build" },
-        "xunit.runner.aspnet": "2.0.0-aspnet-*",
-        "Microsoft.Framework.DependencyInjection": "1.0.0-*"
+        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-beta4", "type": "build" },
+        "Microsoft.AspNet.Testing": "1.0.0-beta4",
+        "Microsoft.Framework.PropertyHelper.Internal": { "version": "1.0.0-beta4", "type": "build" },
+        "Microsoft.Framework.CopyOnWriteDictionary.Internal": { "version": "1.0.0-beta4", "type": "build" },
+        "Microsoft.Framework.NotNullAttribute.Internal": { "version": "1.0.0-beta4", "type": "build" },
+        "xunit.runner.aspnet": "2.0.0-aspnet-beta4",
+        "Microsoft.Framework.DependencyInjection": "1.0.0-beta4"
     },
     "commands": {
         "test": "xunit.runner.aspnet"
