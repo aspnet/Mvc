@@ -34,7 +34,7 @@ namespace BasicWebSite.Controllers
 
         public IActionResult RedirectToRouteActionAsMethodAction()
         {
-            return RedirectToRoute(new { action = "ActionReturningTask", controller = "Home" });
+            return RedirectToRoute("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" });
         }
 
         public IActionResult RedirectToRouteUsingRouteName()
