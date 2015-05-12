@@ -88,6 +88,20 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
+        public async Task Invoke_AuthSchemesFailShouldSetEmptyPrincipalOnContext()
+        {
+            // Arrange
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder("Fails").RequireAuthenticatedUser().Build());
+            var authorizationContext = GetAuthorizationContext(services => services.AddAuthorization());
+
+            // Act
+            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.NotNull(authorizationContext.HttpContext.User?.Identity);
+        }
+
+        [Fact]
         public async Task Invoke_SingleValidClaimShouldSucceed()
         {
             // Arrange
@@ -303,6 +317,7 @@ namespace Microsoft.AspNet.Mvc.Test
             httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
             auth.Setup(c => c.AuthenticateAsync("Bearer")).ReturnsAsync(new AuthenticationResult(bearerPrincipal, new AuthenticationProperties(), new AuthenticationDescription()));
             auth.Setup(c => c.AuthenticateAsync("Basic")).ReturnsAsync(new AuthenticationResult(basicPrincipal, new AuthenticationProperties(), new AuthenticationDescription()));
+            auth.Setup(c => c.AuthenticateAsync("Fails")).ReturnsAsync(null);
 
             // AuthorizationContext
             var actionContext = new ActionContext(
