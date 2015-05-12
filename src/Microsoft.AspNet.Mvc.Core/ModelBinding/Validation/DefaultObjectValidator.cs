@@ -248,9 +248,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 }
             }
 
-            if (isValid)
+            if (modelState.ContainsKey(modelKey))
             {
-                validationContext.ModelValidationContext.ModelState.MarkFieldValid(modelKey);
+                if (isValid)
+                {
+                    validationContext.ModelValidationContext.ModelState.MarkFieldValid(modelKey);
+                }
             }
 
             return isValid;

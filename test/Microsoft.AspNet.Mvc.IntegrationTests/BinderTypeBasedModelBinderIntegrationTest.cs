@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
             var key = Assert.Single(modelState.Keys);
             Assert.Equal("CustomParameter", key);
-            Assert.Null(modelState[key].Value); // value is only set if the custom model binder sets it.
+            Assert.NotNull(modelState[key].Value); //Do not validate as its the test model binder which sets the value.
         }
 
         private class Person
@@ -177,7 +177,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
-        [Fact(Skip = "Extra entries in model state #2446")]
+        [Fact]
         public async Task BindProperty_WithData_EmptyPrefix_GetsBound()
         {
             // Arrange
@@ -209,16 +209,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // ModelState
             Assert.True(modelState.IsValid);
 
-            // Should there be another key for what is there in the complex object ?
-            // This should probably behave like body binder, where even the body gets validated by default.
-            Assert.Equal(2, modelState.Keys.Count);
+            Assert.Equal(1, modelState.Keys.Count);
             var key = Assert.Single(modelState.Keys, k => k == "Parameter1.Address.Street");
-            Assert.Null(modelState[key].Value); // value is only set if the custom model binder sets it.
-            key = Assert.Single(modelState.Keys, k => k == "Parameter1.Address");
-            Assert.Null(modelState[key].Value); // value is only set if the custom model binder sets it.
+            Assert.NotNull(modelState[key].Value); // Value is set by test model binder, no need to validate it.
         }
 
-        [Fact(Skip = "Extra entries in model state #2446")]
+        [Fact]
         public async Task BindProperty_WithData_WithPrefix_GetsBound()
         {
             // Arrange
@@ -252,14 +248,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // ModelState
             Assert.True(modelState.IsValid);
-
-            // Should there be another key for what is there in the complex object ?
-            // This should probably behave like body binder, where even the body gets validated by default.
-            Assert.Equal(2, modelState.Keys.Count);
+            Assert.Equal(1, modelState.Keys.Count);
             var key = Assert.Single(modelState.Keys, k => k == "CustomParameter.Address.Street");
-            Assert.Null(modelState[key].Value); // value is only set if the custom model binder sets it.
-            key = Assert.Single(modelState.Keys, k => k == "CustomParameter.Address");
-            Assert.Null(modelState[key].Value); // value is only set if the custom model binder sets it.
+            Assert.NotNull(modelState[key].Value); // Value is set by test model binder, no need to validate it.
         }
 
         private class AddressModelBinder : IModelBinder
@@ -273,7 +264,22 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
                 var address = new Address() { Street = "SomeStreet" };
 
-                return Task.FromResult(new ModelBindingResult(address, bindingContext.ModelName, true));
+                bindingContext.ModelState.SetModelValue(
+                  bindingContext.ModelName + ".Street",
+                  new ValueProviderResult(
+                      address.Street,
+                      address.Street,
+                      System.Globalization.CultureInfo.CurrentCulture));
+
+                var validationNode = new ModelValidationNode(
+                  bindingContext.ModelName,
+                  bindingContext.ModelMetadata,
+                  address)
+                {
+                    ValidateAllProperties = true
+                };
+
+                return Task.FromResult(new ModelBindingResult(address, bindingContext.ModelName, true, validationNode));
             }
         }
 
@@ -282,6 +288,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
             {
                 var model = "Success";
+                bindingContext.ModelState.SetModelValue(
+                    bindingContext.ModelName,
+                    new ValueProviderResult(model, model, System.Globalization.CultureInfo.CurrentCulture));
+
                 var modelValidationNode = new ModelValidationNode(
                     bindingContext.ModelName,
                     bindingContext.ModelMetadata,
