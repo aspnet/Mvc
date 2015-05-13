@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using ModelBindingWebSite.Models;
@@ -14,19 +15,19 @@ namespace ModelBindingWebSite.Controllers
         [FromServices]
         public ITestService ControllerService { get; set; }
 
-        public bool SkipValidation(Resident resident)
+        public object SkipValidation(Resident resident)
         {
-            return ModelState.IsValid;
+            return ModelState;
         }
 
-        public bool AvoidRecursive(SelfishPerson selfishPerson)
+        public object AvoidRecursive(SelfishPerson selfishPerson)
         {
-            return ModelState.IsValid;
+            return ModelState;
         }
 
-        public bool DoNotValidateParameter([FromServices] ITestService service)
+        public object DoNotValidateParameter([FromServices] ITestService service)
         {
-            return ModelState.IsValid;
+            return ModelState;
         }
     }
 

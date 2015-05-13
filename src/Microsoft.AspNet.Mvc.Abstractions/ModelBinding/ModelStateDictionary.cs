@@ -502,7 +502,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return GetEnumerator();
         }
 
-        private static IEnumerable<KeyValuePair<string, TValue>> FindKeysWithPrefix<TValue>(
+        public static IEnumerable<KeyValuePair<string, TValue>> FindKeysWithPrefix<TValue>(
             [NotNull] IDictionary<string, TValue> dictionary,
             [NotNull] string prefix)
         {
@@ -523,8 +523,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 if (key.StartsWith("[", StringComparison.OrdinalIgnoreCase))
                 {
-                    key = key.Substring(key.IndexOf('.') + 1);
-                    if (string.Equals(prefix, key, StringComparison.Ordinal))
+                    var subKey = key.Substring(key.IndexOf('.') + 1);
+                    if (string.Equals(prefix, subKey, StringComparison.Ordinal))
                     {
                         yield return entry;
                         continue;
