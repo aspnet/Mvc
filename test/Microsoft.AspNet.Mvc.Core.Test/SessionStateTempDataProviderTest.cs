@@ -211,14 +211,16 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(10, intVal);
         }
 
-        [Fact]
-        public void SaveAndLoad_BoolCanBeStoredAndLoaded()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SaveAndLoad_BoolCanBeStoredAndLoaded(bool value)
         {
             // Arrange
             var testProvider = new SessionStateTempDataProvider();
             var input = new Dictionary<string, object>
             {
-                { "bool", false }
+                { "bool", value }
             };
             var context = GetHttpContext(new TestSessionCollection(), true);
 
@@ -228,7 +230,7 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             var boolVal = Assert.IsType<bool>(TempData["bool"]);
-            Assert.Equal(false, boolVal);
+            Assert.Equal(value, boolVal);
         }
 
         [Fact]
@@ -236,7 +238,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var testProvider = new SessionStateTempDataProvider();
-            var inputDatetime = new DateTime(2010, 12, 12, 0, 0, 0, DateTimeKind.Local);
+            var inputDatetime = new DateTime(2010, 12, 12, 1, 2, 3, DateTimeKind.Local);
             var input = new Dictionary<string, object>
             {
                 { "DateTime", inputDatetime }
@@ -291,6 +293,8 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             var list = (IList<string>)TempData["List`string"];
             Assert.Equal(2, list.Count);
+            Assert.Equal("one", list[0]);
+            Assert.Equal("two", list[1]);
         }
 
         [Fact]
@@ -318,7 +322,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void SaveAndLoad_EmptyDictionaryCanBeStoredAndLoaded()
+        public void SaveAndLoad_EmptyDictionary_RoundTripsAsNull()
         {
             // Arrange
             var testProvider = new SessionStateTempDataProvider();
