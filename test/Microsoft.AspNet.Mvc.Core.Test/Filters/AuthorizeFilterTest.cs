@@ -9,7 +9,6 @@ using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
@@ -91,7 +90,9 @@ namespace Microsoft.AspNet.Mvc.Test
         public async Task Invoke_AuthSchemesFailShouldSetEmptyPrincipalOnContext()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder("Fails").RequireAuthenticatedUser().Build());
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder("Fails")
+                .RequireAuthenticatedUser()
+                .Build());
             var authorizationContext = GetAuthorizationContext(services => services.AddAuthorization());
 
             // Act
