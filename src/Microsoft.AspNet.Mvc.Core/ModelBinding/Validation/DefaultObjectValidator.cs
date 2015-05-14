@@ -142,7 +142,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
 
             // At this point we just want to mark all sub-entries present in the model state as skipped.
-            var entries = ModelStateDictionary.FindKeysWithPrefix(modelState, currentModelKey);
+            var entries = modelState.FindKeysWithPrefix(currentModelKey);
             foreach (var entry in entries)
             {
                 entry.Value.ValidationState = ModelValidationState.Skipped;

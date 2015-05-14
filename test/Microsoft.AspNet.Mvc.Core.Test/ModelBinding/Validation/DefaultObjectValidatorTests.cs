@@ -360,6 +360,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 .Validate(validationContext, topLevelValidationNode);
 
             // Assert
+            Assert.Equal(1, validationContext.ModelState.Count);
             Assert.Contains("Street", validationContext.ModelState.Keys);
             var streetState = validationContext.ModelState["Street"];
             Assert.Equal(2, streetState.Errors.Count);
@@ -559,6 +560,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
             // Assert
             Assert.True(validationContext.ModelState.IsValid);
+            Assert.Equal(1, validationContext.ModelState.Count);
             var modelState = validationContext.ModelState["person.Address"];
             Assert.Equal(modelState.ValidationState, ModelValidationState.Skipped);
         }
@@ -607,6 +609,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
             // Assert
             Assert.True(validationContext.ModelState.IsValid);
+            Assert.Equal(3, validationContext.ModelState.Count);
             var modelState = validationContext.ModelState["items[0]"];
             Assert.Equal(modelState.ValidationState, ModelValidationState.Valid);
 
@@ -663,6 +666,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
             // Assert
             Assert.True(validationContext.ModelState.IsValid);
+            Assert.Equal(4, validationContext.ModelState.Count);
             var modelState = validationContext.ModelState["items[0].Key"];
             Assert.Equal(ModelValidationState.Skipped, modelState.ValidationState);
             modelState = validationContext.ModelState["items[0].Value"];
