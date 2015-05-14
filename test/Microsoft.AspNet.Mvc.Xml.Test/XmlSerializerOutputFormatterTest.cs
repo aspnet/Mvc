@@ -227,8 +227,9 @@ namespace Microsoft.AspNet.Mvc.Xml
             // Assert
             var body = outputFormatterContext.HttpContext.Response.Body;
             body.Position = 0;
-
-            var content = new StreamReader(body, Encoding.Unicode).ReadToEnd();
+            var content = new StreamReader(
+                body,
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true)).ReadToEnd();
             XmlAssert.Equal(expectedOutput, content);
         }
 
