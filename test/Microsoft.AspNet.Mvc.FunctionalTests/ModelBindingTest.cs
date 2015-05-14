@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.DependencyInjection;
 using ModelBindingWebSite.Models;
 using ModelBindingWebSite.ViewModels;
@@ -33,12 +34,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync("http://localhost/Validation/DoNotValidateParameter");
+            var response = await client.GetStringAsync("http://localhost/Validation/DoNotValidateParameter");
 
             // Assert
-            var stringValue = await response.Content.ReadAsStringAsync();
-            var isModelStateValid = JsonConvert.DeserializeObject<bool>(stringValue);
-            Assert.True(isModelStateValid);
+            var modelState = JsonConvert.DeserializeObject<ModelStateDictionary>(response);
+            Assert.Empty(modelState);
+            Assert.True(modelState.IsValid);
         }
 
         [Fact]
@@ -55,12 +56,32 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Act
             // Make sure the non body based object gets created with an invalid zip.
             var response = await client.PostAsync(
-                "http://localhost/Validation/SkipValidation?ShippingAddresses[0].Zip=45&HomeAddress.Zip=46", content);
+                "http://localhost/Validation/SkipValidation?HomeAddress.Country.Name=US"+
+                "&ShippingAddresses[0].Zip=45&HomeAddress.Zip=46",
+                content);
 
             // Assert
             var stringValue = await response.Content.ReadAsStringAsync();
-            var isModelStateValid = JsonConvert.DeserializeObject<bool>(stringValue);
-            Assert.True(isModelStateValid);
+            var modelState = JsonConvert.DeserializeObject<ModelStateDictionary>(stringValue);
+
+            Assert.Equal(3, modelState.Count);
+            Assert.Equal(0, modelState.ErrorCount);
+            Assert.True(modelState.IsValid);
+
+            var entry = Assert.Single(modelState, e => e.Key == "HomeAddress.Country.Name").Value;
+            Assert.Equal("US", entry.Value.AttemptedValue);
+            Assert.Equal("US", entry.Value.RawValue);
+            Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
+
+            entry = Assert.Single(modelState, e => e.Key == "ShippingAddresses[0].Zip").Value;
+            Assert.Equal("45", entry.Value.AttemptedValue);
+            Assert.Equal("45", entry.Value.RawValue);
+            Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
+
+            entry = Assert.Single(modelState, e => e.Key == "HomeAddress.Zip").Value;
+            Assert.Equal("46", entry.Value.AttemptedValue);
+            Assert.Equal("46", entry.Value.RawValue);
+            Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
         }
 
         [Fact]
@@ -76,8 +97,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             var stringValue = await response.Content.ReadAsStringAsync();
-            var isModelStateValid = JsonConvert.DeserializeObject<bool>(stringValue);
-            Assert.True(isModelStateValid);
+            var json = JsonConvert.DeserializeObject<ModelStateDictionary>(stringValue);
+            Assert.True(json.IsValid);
         }
 
         [Theory]
