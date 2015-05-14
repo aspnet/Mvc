@@ -303,5 +303,55 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal("{\"\":[\"The input was not valid.\"]}", body);
         }
+
+        [Fact]
+        public async Task JsonPatch_JsonConverterOnProperty_Success()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var input = "[{ \"op\": \"add\", " +
+                "\"path\": \"Customer/Orders/2\", " +
+               "\"value\": { \"OrderName\": \"Name2\" }}]";
+            var request = new HttpRequestMessage
+            {
+                Content = new StringContent(input, Encoding.UTF8, "application/json-patch+json"),
+                Method = new HttpMethod("PATCH"),
+                RequestUri = new Uri("http://localhost/jsonpatch/JsonPatchWithoutModelState")
+            };
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("OrderTypeSetInConverter", body);
+        }
+
+        [Fact]
+        public async Task JsonPatch_JsonConverterOnClass_Success()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var input = "[{ \"op\": \"add\", " +
+                "\"path\": \"Product/ProductCategory\", " +
+               "\"value\": { \"CategoryName\": \"Name2\" }}]";
+            var request = new HttpRequestMessage
+            {
+                Content = new StringContent(input, Encoding.UTF8, "application/json-patch+json"),
+                Method = new HttpMethod("PATCH"),
+                RequestUri = new Uri("http://localhost/jsonpatch/JsonPatchForProduct")
+            };
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("CategorySetInConverter", body);
+        }
     }
 }
