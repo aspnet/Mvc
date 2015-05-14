@@ -11,6 +11,7 @@ using JsonPatchWebSite.Models;
 using Microsoft.AspNet.Builder;
 using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -313,7 +314,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var input = "[{ \"op\": \"add\", " +
                 "\"path\": \"Customer/Orders/2\", " +
-               "\"value\": { \"OrderName\": \"Name2\" }}]";
+               "\"value\": { \"OrderType\": \"Type2\" }}]";
             var request = new HttpRequestMessage
             {
                 Content = new StringContent(input, Encoding.UTF8, "application/json-patch+json"),
@@ -326,7 +327,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Contains("OrderTypeSetInConverter", body);
+            dynamic d = JObject.Parse(body);
+            Assert.Equal("OrderTypeSetInConverter", (string)d.Orders[2].OrderType);
         }
 
         [Fact]
@@ -351,7 +353,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Contains("CategorySetInConverter", body);
+            dynamic d = JObject.Parse(body);
+            Assert.Equal("CategorySetInConverter", (string)d.ProductCategory.CategoryName);
+
         }
     }
 }
