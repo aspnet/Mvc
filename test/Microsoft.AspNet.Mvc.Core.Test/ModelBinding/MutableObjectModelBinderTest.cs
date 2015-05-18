@@ -849,7 +849,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         [Fact]
         [ReplaceCulture]
-        public void ProcessDto_BindRequiredFieldNull_RaisesModelError()
+        public void ProcessDto_ValueTypePropertyWithBindRequired_SetToNull_CapturesException()
         {
             // Arrange
             var model = new ModelWithBindRequired
@@ -905,14 +905,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
 
             var modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("A value is required.", modelError.ErrorMessage);
+            Assert.Equal(string.Empty, modelError.ErrorMessage);
+            Assert.IsType<NullReferenceException>(modelError.Exception);
         }
 
         [Fact]
         [ReplaceCulture]
-        public void ProcessDto_RequiredFieldMissing_RaisesModelError()
+        public void ProcessDto_MissingDataForRequiredFields_NoErrors()
         {
             // Arrange
             var model = new ModelWithRequired();
@@ -930,32 +929,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.False(modelStateDictionary.IsValid);
-            Assert.Equal(2, modelStateDictionary.Count);
-
-            // Check Age error.
-            ModelState modelState;
-            Assert.True(modelStateDictionary.TryGetValue("theModel." + nameof(ModelWithRequired.Age), out modelState));
-
-            var modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            var expected = ValidationAttributeUtil.GetRequiredErrorMessage(nameof(ModelWithRequired.Age));
-            Assert.Equal(expected, modelError.ErrorMessage);
-
-            // Check City error.
-            Assert.True(modelStateDictionary.TryGetValue("theModel." + nameof(ModelWithRequired.City), out modelState));
-
-            modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            expected = ValidationAttributeUtil.GetRequiredErrorMessage(nameof(ModelWithRequired.City));
-            Assert.Equal(expected, modelError.ErrorMessage);
+            Assert.True(modelStateDictionary.IsValid);
+            Assert.Empty(modelStateDictionary);
         }
 
         [Fact]
         [ReplaceCulture]
-        public void ProcessDto_RequiredFieldNull_RaisesModelError()
+        public void ProcessDto_ValueTypeProperty_WithRequiredAttribute_SetToNull_NoError()
         {
             // Arrange
             var model = new ModelWithRequired();
@@ -984,22 +964,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.False(modelStateDictionary.IsValid);
-            Assert.Single(modelStateDictionary);
-
-            // Check City error.
-            ModelState modelState;
-            Assert.True(modelStateDictionary.TryGetValue("theModel." + nameof(ModelWithRequired.City), out modelState));
-
-            var modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            var expected = ValidationAttributeUtil.GetRequiredErrorMessage(nameof(ModelWithRequired.City));
-            Assert.Equal(expected, modelError.ErrorMessage);
+            Assert.True(modelStateDictionary.IsValid);
+            Assert.Empty(modelStateDictionary);
         }
 
         [Fact]
-        public void ProcessDto_RequiredFieldMissing_RaisesModelErrorWithMessage()
+        public void ProcessDto_PropertyWithRequiredAttribute_NoPropertiesSet_NoError()
         {
             // Arrange
             var model = new Person();
@@ -1016,42 +986,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
-            Assert.False(modelStateDictionary.IsValid);
-            Assert.Equal(2, modelStateDictionary.Count);
-
-            // Check ValueTypeRequired error.
-            var modelStateEntry = Assert.Single(
-                modelStateDictionary,
-                entry => entry.Key == "theModel." + nameof(Person.ValueTypeRequired));
-            Assert.Equal("theModel." + nameof(Person.ValueTypeRequired), modelStateEntry.Key);
-
-            var modelState = modelStateEntry.Value;
-            Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
-
-            var modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("Sample message", modelError.ErrorMessage);
-
-            // Check ValueTypeRequiredWithDefaultValue error.
-            modelStateEntry = Assert.Single(
-                modelStateDictionary,
-                entry => entry.Key == "theModel." + nameof(Person.ValueTypeRequiredWithDefaultValue));
-            Assert.Equal("theModel." + nameof(Person.ValueTypeRequiredWithDefaultValue), modelStateEntry.Key);
-
-            modelState = modelStateEntry.Value;
-            Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
-
-            modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("Another sample message", modelError.ErrorMessage);
+            Assert.True(modelStateDictionary.IsValid);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void ProcessDto_RequiredFieldNull_RaisesModelErrorWithMessage(bool isModelSet)
+        [Fact]
+        public void ProcessDto_ValueTypeProperty_TriesToSetNullModel_CapturesException()
         {
             // Arrange
             var model = new Person();
@@ -1070,7 +1009,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var propertyMetadata = dto.PropertyMetadata.Single(p => p.PropertyName == nameof(Person.ValueTypeRequired));
             dto.Results[propertyMetadata] = new ModelBindingResult(
                 null,
-                isModelSet: isModelSet,
+                isModelSet: true,
                 key: "theModel." + nameof(Person.ValueTypeRequired));
 
             // Make ValueTypeRequiredWithDefaultValue invalid
@@ -1078,8 +1017,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 .Single(p => p.PropertyName == nameof(Person.ValueTypeRequiredWithDefaultValue));
             dto.Results[propertyMetadata] = new ModelBindingResult(
                 model: null,
-                isModelSet: isModelSet,
+                isModelSet: true,
                 key: "theModel." + nameof(Person.ValueTypeRequiredWithDefaultValue));
+
             var modelValidationNode = new ModelValidationNode(string.Empty, containerMetadata, model);
 
             // Act
@@ -1097,10 +1037,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelState = modelStateEntry.Value;
             Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
 
-            var modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("Sample message", modelError.ErrorMessage);
+            var error = Assert.Single(modelState.Errors);
+            Assert.Equal(string.Empty, error.ErrorMessage);
+            Assert.IsType<NullReferenceException>(error.Exception);
 
             // Check ValueTypeRequiredWithDefaultValue error.
             modelStateEntry = Assert.Single(
@@ -1111,13 +1050,53 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             modelState = modelStateEntry.Value;
             Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
 
-            modelError = Assert.Single(modelState.Errors);
-            Assert.Null(modelError.Exception);
-            Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("Another sample message", modelError.ErrorMessage);
+            error = Assert.Single(modelState.Errors);
+            Assert.Equal(string.Empty, error.ErrorMessage);
+            Assert.IsType<NullReferenceException>(error.Exception);
 
             Assert.Equal(0, model.ValueTypeRequired);
             Assert.Equal(expectedValue, model.ValueTypeRequiredWithDefaultValue);
+        }
+
+        [Fact]
+        public void ProcessDto_ValueTypeProperty_NoValue_NoError()
+        {
+            // Arrange
+            var model = new Person();
+            var containerMetadata = GetMetadataForType(model.GetType());
+
+            var bindingContext = CreateContext(containerMetadata, model);
+            var modelStateDictionary = bindingContext.ModelState;
+
+            var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // The [DefaultValue] on ValueTypeRequiredWithDefaultValue is ignored by model binding.
+            var expectedValue = 0;
+
+            // Make ValueTypeRequired invalid.
+            var propertyMetadata = dto.PropertyMetadata.Single(p => p.PropertyName == nameof(Person.ValueTypeRequired));
+            dto.Results[propertyMetadata] = new ModelBindingResult(
+                null,
+                isModelSet: false,
+                key: "theModel." + nameof(Person.ValueTypeRequired));
+
+            // Make ValueTypeRequiredWithDefaultValue invalid
+            propertyMetadata = dto.PropertyMetadata
+                .Single(p => p.PropertyName == nameof(Person.ValueTypeRequiredWithDefaultValue));
+            dto.Results[propertyMetadata] = new ModelBindingResult(
+                model: null,
+                isModelSet: false,
+                key: "theModel." + nameof(Person.ValueTypeRequiredWithDefaultValue));
+
+            var modelValidationNode = new ModelValidationNode(string.Empty, containerMetadata, model);
+
+            // Act
+            testableBinder.ProcessDto(bindingContext, dto, modelValidationNode);
+
+            // Assert
+            Assert.True(modelStateDictionary.IsValid);
+            Assert.Empty(modelStateDictionary);
         }
 
         [Fact]
@@ -1241,12 +1220,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 isModelSet: false,
                 key: "foo");
 
-            var validatorProvider = bindingContext.OperationBindingContext.ValidatorProvider;
-            var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
-            validatorProvider.GetValidators(validatorProviderContext);
-
-            var requiredValidator = validatorProviderContext.Validators.FirstOrDefault(v => v.IsRequired);
-
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
@@ -1254,8 +1227,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator);
+                dtoResult);
 
             // Assert
             var person = Assert.IsType<Person>(bindingContext.Model);
@@ -1287,8 +1259,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator: null);
+                dtoResult);
 
             // Assert
             var person = Assert.IsType<Person>(bindingContext.Model);
@@ -1320,8 +1291,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator: null);
+                dtoResult);
 
             // Assert
             var person = Assert.IsType<Person>(bindingContext.Model);
@@ -1352,8 +1322,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator: null);
+                dtoResult);
 
             // Assert
             // If didn't throw, success!
@@ -1406,8 +1375,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator: null);
+                dtoResult);
 
             // Assert
             Assert.Equal("Joe", propertAccessor(model));
@@ -1486,8 +1454,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator: null);
+                dtoResult);
 
             // Assert
             Assert.Equal(collection, propertyAccessor(model));
@@ -1511,12 +1478,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 key: "foo",
                 isModelSet: true);
 
-            var validatorProvider = bindingContext.OperationBindingContext.ValidatorProvider;
-            var validatorProviderContext = new ModelValidatorProviderContext(propertyMetadata);
-            validatorProvider.GetValidators(validatorProviderContext);
-
-            var requiredValidator = validatorProviderContext.Validators.FirstOrDefault(v => v.IsRequired);
-
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
@@ -1524,8 +1485,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator);
+                dtoResult);
 
             // Assert
             Assert.True(bindingContext.ModelState.IsValid);
@@ -1560,8 +1520,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator: null);
+                dtoResult);
 
             // Assert
             Assert.Equal("Date of death can't be before date of birth." + Environment.NewLine
@@ -1569,8 +1528,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                          bindingContext.ModelState["foo"].Errors[0].Exception.Message);
         }
 
+        // This can only really be done by writing an invalid model binder and returning 'isModelSet: true' 
+        // with a null model for a value type.
         [Fact]
-        public void SetProperty_SettingNonNullableValueTypeToNull_RequiredValidatorNotPresent_RegistersValidationCallback()
+        public void SetProperty_SettingNonNullableValueTypeToNull_CapturesException()
         {
             // Arrange
             var model = new Person();
@@ -1583,9 +1544,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var dtoResult = new ModelBindingResult(
                 model: null,
                 isModelSet: true,
-                key: "foo");
-
-            var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
+                key: "foo.DateOfBirth");
 
             var testableBinder = new TestableMutableObjectModelBinder();
 
@@ -1594,50 +1553,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator);
+                dtoResult);
 
             // Assert
             Assert.False(bindingContext.ModelState.IsValid);
-        }
 
-        [Fact]
-        public void SetProperty_SettingNonNullableValueTypeToNull_RequiredValidatorPresent_AddsModelError()
-        {
-            // Arrange
-            var model = new Person();
-            var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            bindingContext.ModelName = " foo";
-
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["ValueTypeRequired"];
-
-            var dtoResult = new ModelBindingResult(
-                model: null,
-                isModelSet: true,
-                key: "foo.ValueTypeRequired");
-
-            var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
-
-            var testableBinder = new TestableMutableObjectModelBinder();
-
-            // Act
-            testableBinder.SetProperty(
-                bindingContext,
-                modelExplorer,
-                propertyMetadata,
-                dtoResult,
-                requiredValidator);
-
-            // Assert
-            Assert.False(bindingContext.ModelState.IsValid);
-            Assert.Equal("Sample message", bindingContext.ModelState["foo.ValueTypeRequired"].Errors[0].ErrorMessage);
+            var entry = Assert.Single(bindingContext.ModelState, kvp => kvp.Key == "foo.DateOfBirth").Value;
+            var error = Assert.Single(entry.Errors);
+            Assert.Equal(string.Empty, error.ErrorMessage);
+            Assert.IsType<NullReferenceException>(error.Exception);
         }
 
         [Fact]
         [ReplaceCulture]
-        public void SetProperty_SettingNullableTypeToNull_RequiredValidatorNotPresent_PropertySetterThrows_AddsRequiredMessageString()
+        public void SetProperty_PropertySetterThrows_CapturesException()
         {
             // Arrange
             var model = new ModelWhosePropertySetterThrows();
@@ -1645,7 +1574,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             bindingContext.ModelName = "foo";
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(ModelWhosePropertySetterThrows), model);
             var propertyMetadata = bindingContext.ModelMetadata.Properties["NameNoAttribute"];
 
             var dtoResult = new ModelBindingResult(
@@ -1653,8 +1582,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 isModelSet: true,
                 key: "foo.NameNoAttribute");
 
-            var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
-
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
@@ -1662,8 +1589,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext,
                 modelExplorer,
                 propertyMetadata,
-                dtoResult,
-                requiredValidator);
+                dtoResult);
 
             // Assert
             Assert.False(bindingContext.ModelState.IsValid);
@@ -1671,41 +1597,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal("This is a different exception." + Environment.NewLine
                        + "Parameter name: value",
                          bindingContext.ModelState["foo.NameNoAttribute"].Errors[0].Exception.Message);
-        }
-
-        [Fact]
-        public void SetProperty_SettingNullableTypeToNull_RequiredValidatorPresent_PropertySetterThrows_AddsRequiredMessageString()
-        {
-            // Arrange
-            var model = new ModelWhosePropertySetterThrows();
-            var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            bindingContext.ModelName = "foo";
-
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["Name"];
-
-            var dtoResult = new ModelBindingResult(
-                model: null,
-                isModelSet: true,
-                key: "foo.Name");
-
-            var requiredValidator = GetRequiredValidator(bindingContext, propertyMetadata);
-
-            var testableBinder = new TestableMutableObjectModelBinder();
-
-            // Act
-            testableBinder.SetProperty(
-                bindingContext,
-                modelExplorer,
-                propertyMetadata,
-                dtoResult,
-                requiredValidator);
-
-            // Assert
-            Assert.False(bindingContext.ModelState.IsValid);
-            var error = Assert.Single(bindingContext.ModelState["foo.Name"].Errors);
-            Assert.Equal("This message comes from the [Required] attribute.", error.ErrorMessage);
         }
 
         private static ModelBindingContext CreateContext(ModelMetadata metadata, object model)
@@ -2030,15 +1921,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelBindingContext bindingContext,
                 ModelExplorer modelExplorer,
                 ModelMetadata propertyMetadata,
-                ModelBindingResult dtoResult,
-                IModelValidator requiredValidator)
+                ModelBindingResult dtoResult)
             {
                 base.SetProperty(
                     bindingContext,
                     modelExplorer,
                     propertyMetadata,
-                    dtoResult,
-                    requiredValidator);
+                    dtoResult);
             }
         }
     }
