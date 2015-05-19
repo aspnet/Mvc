@@ -1150,6 +1150,109 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(0m, model.PropertyWithDefaultValue);     // [DefaultValue] has no effect
         }
 
+        // This uses [Required] with [BindRequired] to provide a custom validation messsage.
+        [Fact]
+        public void ProcessDto_ValueTypePropertyWithBindRequired_CustomValidationMessage()
+        {
+            // Arrange
+            var model = new ModelWithBindRequiredAndRequiredAttribute();
+            var containerMetadata = GetMetadataForType(model.GetType());
+
+            var bindingContext = CreateContext(containerMetadata, model);
+            var modelStateDictionary = bindingContext.ModelState;
+
+            var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // Make ValueTypeProperty not have a value.
+            var propertyMetadata = containerMetadata
+                .Properties[nameof(ModelWithBindRequiredAndRequiredAttribute.ValueTypeProperty)];
+            dto.Results[propertyMetadata] = new ModelBindingResult(
+                null,
+                isModelSet: false,
+                key: "theModel." + nameof(ModelWithBindRequiredAndRequiredAttribute.ValueTypeProperty));
+
+            // Make ReferenceTypeProperty have a value.
+            propertyMetadata = containerMetadata
+                .Properties[nameof(ModelWithBindRequiredAndRequiredAttribute.ReferenceTypeProperty)];
+            dto.Results[propertyMetadata] = new ModelBindingResult(
+                model: "value",
+                isModelSet: true,
+                key: "theModel." + nameof(ModelWithBindRequiredAndRequiredAttribute.ReferenceTypeProperty));
+
+            var modelValidationNode = new ModelValidationNode(string.Empty, containerMetadata, model);
+
+            // Act
+            testableBinder.ProcessDto(bindingContext, dto, modelValidationNode);
+
+            // Assert
+            Assert.False(modelStateDictionary.IsValid);
+
+            var entry = Assert.Single(
+                modelStateDictionary,
+                kvp => kvp.Key == "theModel." + nameof(ModelWithBindRequiredAndRequiredAttribute.ValueTypeProperty))
+                .Value;
+            var error = Assert.Single(entry.Errors);
+            Assert.Null(error.Exception);
+            Assert.Equal("Custom Message ValueTypeProperty", error.ErrorMessage);
+
+            // Model gets provided values.
+            Assert.Equal(0, model.ValueTypeProperty);
+            Assert.Equal("value", model.ReferenceTypeProperty);
+        }
+
+        // This uses [Required] with [BindRequired] to provide a custom validation messsage.
+        [Fact]
+        public void ProcessDto_ReferenceTypePropertyWithBindRequired_CustomValidationMessage()
+        {
+            // Arrange
+            var model = new ModelWithBindRequiredAndRequiredAttribute();
+            var containerMetadata = GetMetadataForType(model.GetType());
+
+            var bindingContext = CreateContext(containerMetadata, model);
+            var modelStateDictionary = bindingContext.ModelState;
+
+            var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
+            var testableBinder = new TestableMutableObjectModelBinder();
+
+            // Make ValueTypeProperty have a value.
+            var propertyMetadata = containerMetadata
+                .Properties[nameof(ModelWithBindRequiredAndRequiredAttribute.ValueTypeProperty)];
+            dto.Results[propertyMetadata] = new ModelBindingResult(
+                17,
+                isModelSet: true,
+                key: "theModel." + nameof(ModelWithBindRequiredAndRequiredAttribute.ValueTypeProperty));
+
+            // Make ReferenceTypeProperty not have a value.
+            propertyMetadata = containerMetadata
+                .Properties[nameof(ModelWithBindRequiredAndRequiredAttribute.ReferenceTypeProperty)];
+            dto.Results[propertyMetadata] = new ModelBindingResult(
+                model: null,
+                isModelSet: false,
+                key: "theModel." + nameof(ModelWithBindRequiredAndRequiredAttribute.ReferenceTypeProperty));
+
+            var modelValidationNode = new ModelValidationNode(string.Empty, containerMetadata, model);
+
+            // Act
+            testableBinder.ProcessDto(bindingContext, dto, modelValidationNode);
+
+            // Assert
+            Assert.False(modelStateDictionary.IsValid);
+
+            var entry = Assert.Single(
+                modelStateDictionary,
+                kvp => kvp.Key == "theModel." + nameof(ModelWithBindRequiredAndRequiredAttribute.ReferenceTypeProperty))
+                .Value;
+            var error = Assert.Single(entry.Errors);
+            Assert.Null(error.Exception);
+            Assert.Equal("Custom Message ReferenceTypeProperty", error.ErrorMessage);
+
+            // Model gets provided values.
+            Assert.Equal(17, model.ValueTypeProperty);
+            Assert.Null(model.ReferenceTypeProperty);
+        }
+
+
         [Fact]
         public void ProcessDto_Success()
         {
@@ -1730,6 +1833,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             [BindingBehavior(BindingBehavior.Optional)]
             public string Optional { get; set; }
+        }
+
+        [BindRequired]
+        private class ModelWithBindRequiredAndRequiredAttribute
+        {
+            [Range(5, 20)]
+            [Required(ErrorMessage = "Custom Message {0}")]
+            public int ValueTypeProperty { get; set; }
+
+            [StringLength(25)]
+            [Required(ErrorMessage = "Custom Message {0}")]
+            public string ReferenceTypeProperty { get; set; }
         }
 
         private sealed class MyModelTestingCanUpdateProperty
