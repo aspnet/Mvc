@@ -62,10 +62,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 foreach (var attributeDescriptor in descriptor.Attributes)
                 {
-                    if (string.Equals(
-                        attributeDescriptor.PrefixedValueTypeName,
-                        _modelExpressionTypeName,
-                        StringComparison.Ordinal))
+                    if (attributeDescriptor.IsIndexer &&
+                        string.Equals(
+                            attributeDescriptor.TypeName,
+                            _modelExpressionTypeName,
+                            StringComparison.Ordinal))
                     {
                         errorSink.OnError(SourceLocation.Undefined, Resources.FormatMvcRazorParser_InvalidPropertyType(
                             descriptor.TypeName,

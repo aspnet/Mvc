@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
@@ -73,8 +74,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// Additional parameters for the route.
         /// </summary>
         [HtmlAttributeName(RouteValuesDictionaryName, DictionaryAttributePrefix = RouteValuesPrefix)]
-        public IDictionary<string, object> RouteValues { get; set; } =
-            new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<string, string> RouteValues { get; set; } =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <inheritdoc />
         /// <remarks>Does nothing if user provides an <c>href</c> attribute.</remarks>
@@ -113,6 +114,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
             else
             {
+                // Convert from Dictionary<string, string> to Dictionary<string, object>.
+                var routeValues = RouteValues.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
+
                 TagBuilder tagBuilder;
                 if (Route == null)
                 {
@@ -122,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                                               protocol: Protocol,
                                                               hostname: Host,
                                                               fragment: Fragment,
-                                                              routeValues: RouteValues,
+                                                              routeValues: routeValues,
                                                               htmlAttributes: null);
                 }
                 else if (Action != null || Controller != null)
@@ -143,7 +147,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                                              protocol: Protocol,
                                                              hostName: Host,
                                                              fragment: Fragment,
-                                                             routeValues: RouteValues,
+                                                             routeValues: routeValues,
                                                              htmlAttributes: null);
                 }
 

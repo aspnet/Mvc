@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
@@ -61,8 +62,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// Additional parameters for the route.
         /// </summary>
         [HtmlAttributeName(RouteValuesDictionaryName, DictionaryAttributePrefix = RouteValuesPrefix)]
-        public IDictionary<string, object> RouteValues { get; set; } =
-            new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<string, string> RouteValues { get; set; } =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <inheritdoc />
         /// <remarks>
@@ -99,6 +100,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
             else
             {
+                // Convert from Dictionary<string, string> to Dictionary<string, object>.
+                var routeValues = RouteValues.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
+
                 TagBuilder tagBuilder;
                 if (Route == null)
                 {
@@ -106,7 +110,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         ViewContext,
                         Action,
                         Controller,
-                        RouteValues,
+                        routeValues,
                         method: null,
                         htmlAttributes: null);
                 }
@@ -126,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     tagBuilder = Generator.GenerateRouteForm(
                         ViewContext,
                         Route,
-                        RouteValues,
+                        routeValues,
                         method: null,
                         htmlAttributes: null);
                 }

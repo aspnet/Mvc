@@ -45,9 +45,9 @@
         </a>
     </div>
     <div>
-        <a asp-route="areaRoute" asp-route-area='"Customer"'
-           asp-route-controller='"Customer"'
-           asp-route-action='"Index"'
+        <a asp-route="areaRoute" asp-route-area="Customer"
+           asp-route-controller="Customer"
+           asp-route-action="Index"
            asp-fragment="fragment">Customer Area Customer Index</a>
     </div>
     <div>
@@ -75,15 +75,15 @@
     <div>
         <a asp-route="productRoute"
            asp-fragment="fragment"
-           asp-route-action='"Submit"'
-           asp-route-area='"NonExistentArea"'
+           asp-route-action="Submit"
+           asp-route-area="NonExistentArea"
            asp-route-id="1">Product Route Non-existent Area Parameter</a>
     </div>
     <div>
         <a asp-route="areaRoute"
-           asp-route-area='"NonExistentArea"'
-           asp-route-controller='"Customer"'
-           asp-route-action='"Index"'
+           asp-route-area="NonExistentArea"
+           asp-route-controller="Customer"
+           asp-route-action="Index"
            asp-protocol="http"
            asp-fragment="fragment">Non-existent Area</a>
     </div>

@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new TagHelperAttributeList
                 {
                     { "id", "myanchor" },
-                    { "asp-route-foo", "bar" },
+                    { "asp-route-name", "value" },
                     { "asp-action", "index" },
                     { "asp-controller", "home" },
                     { "asp-fragment", "hello=world" },
@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 Protocol = "http",
                 RouteValues =
                 {
-                    {  "foo", "bar" },
+                    {  "name", "value" },
                 },
             };
 
@@ -205,7 +205,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             if (propertyName == "asp-route-")
             {
-                anchorTagHelper.RouteValues.Add("foo", "bar");
+                anchorTagHelper.RouteValues.Add("name", "value");
             }
             else
             {

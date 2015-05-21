@@ -72,6 +72,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                     ExecutionContextAddTagHelperAttributeMethodName =
                         nameof(TagHelperExecutionContext.AddTagHelperAttribute),
                     ExecutionContextAddHtmlAttributeMethodName = nameof(TagHelperExecutionContext.AddHtmlAttribute),
+                    ExecutionContextAddMinimizedHtmlAttributeMethodName =
+                        nameof(TagHelperExecutionContext.AddMinimizedHtmlAttribute),
                     ExecutionContextOutputPropertyName = nameof(TagHelperExecutionContext.Output),
 
                     RunnerTypeName = typeof(TagHelperRunner).FullName,
@@ -85,6 +87,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                     // Can't use nameof because RazorPage is not accessible here.
                     CreateTagHelperMethodName = "CreateTagHelper",
+                    FormatInvalidIndexerAssignmentMethodName = "InvalidTagHelperIndexerAssignment",
                     StartTagHelperWritingScopeMethodName = "StartTagHelperWritingScope",
                     EndTagHelperWritingScopeMethodName = "EndTagHelperWritingScope",
 

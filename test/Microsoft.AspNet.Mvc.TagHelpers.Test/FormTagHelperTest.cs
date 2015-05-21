@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new TagHelperAttributeList
                 {
                     { "id", "myform" },
-                    { "asp-route-foo", "bar" },
+                    { "asp-route-name", "value" },
                     { "asp-action", "index" },
                     { "asp-controller", "home" },
                     { "method", "post" },
@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 ViewContext = viewContext,
                 RouteValues =
                 {
-                    { "foo", "bar" },
+                    { "name", "value" },
                 },
             };
 
@@ -189,8 +189,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         Assert.Equal(2, routeValueDictionary.Count);
                         var routeValue = Assert.Single(routeValueDictionary, attr => attr.Key.Equals("val"));
                         Assert.Equal("hello", routeValue.Value);
-                        routeValue = Assert.Single(routeValueDictionary, attr => attr.Key.Equals("-Foo"));
-                        Assert.Equal("bar", routeValue.Value);
+                        routeValue = Assert.Single(routeValueDictionary, attr => attr.Key.Equals("-Name"));
+                        Assert.Equal("Value", routeValue.Value);
                     })
                 .Returns(new TagBuilder("form", new CommonTestEncoder()))
                 .Verifiable();
@@ -203,7 +203,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 RouteValues =
                 {
                     { "val", "hello" },
-                    { "-Foo", "bar" },
+                    { "-Name", "Value" },
                 },
             };
 
@@ -296,7 +296,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Setup(mock => mock.GenerateRouteForm(
                     viewContext,
                     "Default",
-                    It.Is<Dictionary<string, object>>(m => string.Equals(m["foo"], "bar")),
+                    It.Is<Dictionary<string, object>>(m => string.Equals(m["name"], "value")),
                     null,
                     null))
                 .Returns(new TagBuilder("form", new CommonTestEncoder()))
@@ -309,7 +309,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 ViewContext = viewContext,
                 RouteValues =
                 {
-                    { "foo", "bar" },
+                    { "name", "value" },
                 },
             };
 
@@ -395,7 +395,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             if (propertyName == "asp-route-")
             {
-                formTagHelper.RouteValues.Add("foo", "bar");
+                formTagHelper.RouteValues.Add("name", "value");
             }
             else
             {
