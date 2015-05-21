@@ -136,6 +136,6 @@
     <value>Only one '{0}' statement is allowed in a file.</value>
   </data>
   <data name="MvcRazorParser_InvalidPropertyType" xml:space="preserve">
-    <value>Invalid tag helper property '{0}.{1}' of type '{2}'. Dictionary values must not be of type '{3}'.</value>
+    <value>Invalid tag helper property '{0}.{1}'. Dictionary values must not be of type '{2}'.</value>
   </data>
 </root>

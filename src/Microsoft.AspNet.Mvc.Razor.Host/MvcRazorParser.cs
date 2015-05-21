@@ -71,7 +71,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                         errorSink.OnError(SourceLocation.Undefined, Resources.FormatMvcRazorParser_InvalidPropertyType(
                             descriptor.TypeName,
                             attributeDescriptor.Name,
-                            attributeDescriptor.TypeName,
                             _modelExpressionTypeName));
                     }
                 }

@@ -107,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host
         }
 
         /// <summary>
-        /// Invalid tag helper property '{0}.{1}' of type '{2}'. Dictionary values must not be of type '{3}'.
+        /// Invalid tag helper property '{0}.{1}'. Dictionary values must not be of type '{2}'.
         /// </summary>
         internal static string MvcRazorParser_InvalidPropertyType
         {
@@ -115,11 +115,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Host
         }
 
         /// <summary>
-        /// Invalid tag helper property '{0}.{1}' of type '{2}'. Dictionary values must not be of type '{3}'.
+        /// Invalid tag helper property '{0}.{1}'. Dictionary values must not be of type '{2}'.
         /// </summary>
-        internal static string FormatMvcRazorParser_InvalidPropertyType(object p0, object p1, object p2, object p3)
+        internal static string FormatMvcRazorParser_InvalidPropertyType(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("MvcRazorParser_InvalidPropertyType"), p0, p1, p2, p3);
+            return string.Format(CultureInfo.CurrentCulture, GetString("MvcRazorParser_InvalidPropertyType"), p0, p1, p2);
         }
 
         private static string GetString(string name, params string[] formatterNames)

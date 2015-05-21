@@ -115,7 +115,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             else
             {
                 // Convert from Dictionary<string, string> to Dictionary<string, object>.
-                var routeValues = RouteValues.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
+                var routeValues = RouteValues.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => (object)kvp.Value,
+                    StringComparer.OrdinalIgnoreCase);
 
                 TagBuilder tagBuilder;
                 if (Route == null)
