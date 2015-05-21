@@ -21,8 +21,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 if (result != null && result.IsModelSet)
                 {
-                    // Success - propegate the values returned by the model binder.
-                    return new ModelBindingResult(result.Model, result.Key, result.IsModelSet, result.ValidationNode);
+                    // Success - propagate the values returned by the model binder.
+                    return result;
                 }
 
                 // If this is the fallback case, and we didn't bind as a top-level model, then generate a
@@ -32,13 +32,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 if (isTopLevelObject && (hasExplicitAlias || bindingContext.ModelName == string.Empty))
                 {
-
-                    var model = result?.Model;
-                    if (model == null && bindingInfo.UnderlyingModelType.IsArray)
+                    object model;
+                    if (bindingInfo.UnderlyingModelType.IsArray)
                     {
                         model = Array.CreateInstance(bindingInfo.UnderlyingModelType.GetElementType(), 0);
                     }
-                    else if (model == null)
+                    else
                     {
                         model = Activator.CreateInstance(bindingInfo.UnderlyingModelType);
                     }
@@ -51,9 +50,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     return new ModelBindingResult(model, bindingContext.ModelName, true, validationNode);
                 }
 
-                // We always want to return a result for model-types that we handle.
-                //
-                // Always tell the model binding system to skip other model binders i.e. return non-null.
+                // We always want to return a result for model types that we handle; tell the model binding
+                // system to skip other model binders by returning non-null.
                 return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
             }
 
@@ -62,13 +60,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private static GenericModelBindingInfo ResolveGenericBindingInfo(Type modelType)
         {
-            return GetArrayBinder(modelType) ??
-                   GetCollectionBinder(modelType) ??
-                   GetDictionaryBinder(modelType) ??
-                   GetKeyValuePairBinder(modelType);
+            return GetArrayBinderInfo(modelType) ??
+                   GetCollectionBinderInfo(modelType) ??
+                   GetDictionaryBinderInfo(modelType) ??
+                   GetKeyValuePairBinderInfo(modelType);
         }
 
-        private static GenericModelBindingInfo GetArrayBinder(Type modelType)
+        private static GenericModelBindingInfo GetArrayBinderInfo(Type modelType)
         {
             if (modelType.IsArray)
             {
@@ -85,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return null;
         }
 
-        private static GenericModelBindingInfo GetCollectionBinder(Type modelType)
+        private static GenericModelBindingInfo GetCollectionBinderInfo(Type modelType)
         {
             return GetGenericModelBindingInfo(
                 typeof(ICollection<>),
@@ -94,7 +92,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 modelType);
         }
 
-        private static GenericModelBindingInfo GetDictionaryBinder(Type modelType)
+        private static GenericModelBindingInfo GetDictionaryBinderInfo(Type modelType)
         {
             return GetGenericModelBindingInfo(
                 typeof(IDictionary<,>),
@@ -103,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 modelType);
         }
 
-        private static GenericModelBindingInfo GetKeyValuePairBinder(Type modelType)
+        private static GenericModelBindingInfo GetKeyValuePairBinderInfo(Type modelType)
         {
             var modelTypeInfo = modelType.GetTypeInfo();
             if (modelTypeInfo.IsGenericType &&
@@ -122,6 +120,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return null;
         }
 
+        //
+        // Example: 
+        //      GetGenericBinderType(typeof(IList<T>), typeof(List<T>), typeof(ListBinder<T&>), ...)
+        //
+        // This means that the ListBinder<T> type can work with models that implement IList<T>, and if there is no 
+        // existing model instance, the binder will create a List{T}. 
+        //
+        // This method will return null if the given model type isn't compatible with the combination of
+        // supportedInterfaceType and modelType. If supportedInterfaceType and modelType are compatible, then
+        // it will return the closed-generic newInstanceType and closed-generic openBinderType.
+        // </remarks>
         private static GenericModelBindingInfo GetGenericModelBindingInfo(
             Type supportedInterfaceType,
             Type newInstanceType,
