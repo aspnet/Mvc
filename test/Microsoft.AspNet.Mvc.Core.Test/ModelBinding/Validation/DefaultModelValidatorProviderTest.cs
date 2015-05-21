@@ -115,7 +115,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Assert
             var validators = context.Validators;
 
-            Assert.IsType<RangeAttributeAdapter>(Assert.Single(validators));
+            Assert.Equal(2, validators.Count);
+            Assert.Single(validators, v => v is RequiredAttributeAdapter);
+            Assert.Single(validators, v => v is RangeAttributeAdapter);
         }
 
         [Fact]
@@ -157,7 +159,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Assert
             var validators = context.Validators;
 
-            Assert.IsType<RangeAttributeAdapter>(Assert.Single(validators));
+            Assert.Equal(2, validators.Count);
+            Assert.Single(validators, v => v is RequiredAttributeAdapter);
+            Assert.Single(validators, v => v is RangeAttributeAdapter);
         }
 
         [Fact]
