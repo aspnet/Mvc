@@ -13,129 +13,83 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         public async Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
-            var bindingInfo = ResolveGenericBindingInfo(bindingContext.ModelType);
-            if (bindingInfo != null)
+            var binderType = ResolveBinderType(bindingContext.ModelType);
+            if (binderType != null)
             {
-                var binder = (IModelBinder)Activator.CreateInstance(bindingInfo.ModelBinderType);
+                var binder = (IModelBinder)Activator.CreateInstance(binderType);
                 var result = await binder.BindModelAsync(bindingContext);
 
-                if (result != null && result.IsModelSet)
-                {
-                    // Success - propagate the values returned by the model binder.
-                    return result;
-                }
+                var modelBindingResult = result != null ?
+                    new ModelBindingResult(result.Model, result.Key, result.IsModelSet, result.ValidationNode) :
+                    new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
 
-                // If this is the fallback case, and we didn't bind as a top-level model, then generate a
-                // default 'empty' model and return it.
-                var isTopLevelObject = bindingContext.ModelMetadata.ContainerType == null;
-                var hasExplicitAlias = bindingContext.BinderModelName != null;
-
-                if (isTopLevelObject && (hasExplicitAlias || bindingContext.ModelName == string.Empty))
-                {
-                    object model;
-                    if (bindingInfo.UnderlyingModelType.IsArray)
-                    {
-                        model = Array.CreateInstance(bindingInfo.UnderlyingModelType.GetElementType(), 0);
-                    }
-                    else
-                    {
-                        model = Activator.CreateInstance(bindingInfo.UnderlyingModelType);
-                    }
-
-                    var validationNode = new ModelValidationNode(
-                        bindingContext.ModelName,
-                        bindingContext.ModelMetadata,
-                        model);
-
-                    return new ModelBindingResult(model, bindingContext.ModelName, true, validationNode);
-                }
-
-                // We always want to return a result for model types that we handle; tell the model binding
-                // system to skip other model binders by returning non-null.
-                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                // Were able to resolve a binder type.
+                // Always tell the model binding system to skip other model binders i.e. return non-null.
+                return modelBindingResult;
             }
 
             return null;
         }
 
-        private static GenericModelBindingInfo ResolveGenericBindingInfo(Type modelType)
+        private static Type ResolveBinderType(Type modelType)
         {
-            return GetArrayBinderInfo(modelType) ??
-                   GetCollectionBinderInfo(modelType) ??
-                   GetDictionaryBinderInfo(modelType) ??
-                   GetKeyValuePairBinderInfo(modelType);
+            return GetArrayBinder(modelType) ??
+                   GetCollectionBinder(modelType) ??
+                   GetDictionaryBinder(modelType) ??
+                   GetKeyValuePairBinder(modelType);
         }
 
-        private static GenericModelBindingInfo GetArrayBinderInfo(Type modelType)
+        private static Type GetArrayBinder(Type modelType)
         {
             if (modelType.IsArray)
             {
                 var elementType = modelType.GetElementType();
-                var modelBinderType = typeof(ArrayModelBinder<>).MakeGenericType(elementType);
-
-                return new GenericModelBindingInfo()
-                {
-                    ModelBinderType = modelBinderType,
-                    UnderlyingModelType = modelType,
-                };
+                return typeof(ArrayModelBinder<>).MakeGenericType(elementType);
             }
-
             return null;
         }
 
-        private static GenericModelBindingInfo GetCollectionBinderInfo(Type modelType)
+        private static Type GetCollectionBinder(Type modelType)
         {
-            return GetGenericModelBindingInfo(
-                typeof(ICollection<>),
-                typeof(List<>),
-                typeof(CollectionModelBinder<>),
-                modelType);
+            return GetGenericBinderType(
+                        typeof(ICollection<>),
+                        typeof(List<>),
+                        typeof(CollectionModelBinder<>),
+                        modelType);
         }
 
-        private static GenericModelBindingInfo GetDictionaryBinderInfo(Type modelType)
+        private static Type GetDictionaryBinder(Type modelType)
         {
-            return GetGenericModelBindingInfo(
-                typeof(IDictionary<,>),
-                typeof(Dictionary<,>),
-                typeof(DictionaryModelBinder<,>),
-                modelType);
+            return GetGenericBinderType(
+                        typeof(IDictionary<,>),
+                        typeof(Dictionary<,>),
+                        typeof(DictionaryModelBinder<,>),
+                        modelType);
         }
 
-        private static GenericModelBindingInfo GetKeyValuePairBinderInfo(Type modelType)
+        private static Type GetKeyValuePairBinder(Type modelType)
         {
             var modelTypeInfo = modelType.GetTypeInfo();
             if (modelTypeInfo.IsGenericType &&
                 modelTypeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
             {
-                var modelBinderType = typeof(KeyValuePairModelBinder<,>)
-                    .MakeGenericType(modelTypeInfo.GenericTypeArguments);
-
-                return new GenericModelBindingInfo()
-                {
-                    ModelBinderType = modelBinderType,
-                    UnderlyingModelType = modelType,
-                };
+                return typeof(KeyValuePairModelBinder<,>).MakeGenericType(modelTypeInfo.GenericTypeArguments);
             }
 
             return null;
         }
 
-        //
-        // Example: 
-        //      GetGenericBinderType(typeof(IList<T>), typeof(List<T>), typeof(ListBinder<T&>), ...)
-        //
-        // This means that the ListBinder<T> type can work with models that implement IList<T>, and if there is no 
-        // existing model instance, the binder will create a List{T}. 
-        //
-        // This method will return null if the given model type isn't compatible with the combination of
-        // supportedInterfaceType and modelType. If supportedInterfaceType and modelType are compatible, then
-        // it will return the closed-generic newInstanceType and closed-generic openBinderType.
-        // </remarks>
-        private static GenericModelBindingInfo GetGenericModelBindingInfo(
-            Type supportedInterfaceType,
-            Type newInstanceType,
-            Type openBinderType,
-            Type modelType)
+        /// <remarks>
+        /// Example: <c>GetGenericBinderType(typeof(IList&lt;T&gt;), typeof(List&lt;T&gt;),
+        /// typeof(ListBinder&lt;T&gt;), ...)</c> means that the <c>ListBinder&lt;T&gt;</c> type can update models that
+        /// implement <see cref="IList{T}"/>, and if for some reason the existing model instance is not updatable the
+        /// binder will create a <see cref="List{T}"/> object and bind to that instead. This method will return
+        /// <c>ListBinder&lt;T&gt;</c> or <c>null</c>, depending on whether the type and updatability checks succeed.
+        /// </remarks>
+        private static Type GetGenericBinderType(Type supportedInterfaceType,
+                                                 Type newInstanceType,
+                                                 Type openBinderType,
+                                                 Type modelType)
         {
             Debug.Assert(supportedInterfaceType != null);
             Debug.Assert(openBinderType != null);
@@ -154,11 +108,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return null;
             }
 
-            return new GenericModelBindingInfo()
-            {
-                ModelBinderType = openBinderType.MakeGenericType(modelTypeArguments),
-                UnderlyingModelType = closedNewInstanceType,
-            };
+            return openBinderType.MakeGenericType(modelTypeArguments);
         }
 
         // Get the generic arguments for the binder, based on the model type. Or null if not compatible.
@@ -179,14 +129,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return modelTypeArguments;
-        }
-
-        private class GenericModelBindingInfo
-        {
-            public Type ModelBinderType { get; set; }
-
-            // The concrete type that should be created if needed
-            public Type UnderlyingModelType { get; set; }
         }
     }
 }
