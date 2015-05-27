@@ -31,17 +31,34 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void ResponseCacheFilter_ThrowsIfDurationIsNotSet_WhenNoStoreIsFalse()
+        public void ResponseCacheFilter_DoesNotThrowIfDurationIsNotSet_WhenNoStoreIsFalse()
         {
-            // Arrange, Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                () => new ResponseCacheFilter(
-                    new CacheProfile
-                    {
-                        Duration = null
-                    }));
-            Assert.Equal(
-                "If the 'NoStore' property is not set to true, 'Duration' property must be specified.",
+            // Arrange, Act
+            var cache = new ResponseCacheFilter(
+                new CacheProfile
+                {
+                    Duration = null
+                });
+
+            // Assert
+            Assert.NotNull(cache);
+        }
+
+        [Fact]
+        public void OnActionExecuting_ThrowsIfDurationIsNotSet_WhenNoStoreIsFalse()
+        {
+            // Arrange
+            var cache = new ResponseCacheFilter(
+                new CacheProfile()
+                {
+                    Duration = null
+                });
+
+            var context = GetActionExecutingContext(new List<IFilter> { cache });
+
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => cache.OnActionExecuting(context));
+            Assert.Equal("If the 'NoStore' property is not set to true, 'Duration' property must be specified.",
                 ex.Message);
         }
 
