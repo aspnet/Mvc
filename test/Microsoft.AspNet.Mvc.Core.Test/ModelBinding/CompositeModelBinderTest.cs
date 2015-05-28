@@ -291,7 +291,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var modelBinder = new Mock<IModelBinder>();
             modelBinder
                 .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult(new ModelBindingResult(null, "someName", true)));
+                .Returns(Task.FromResult(new ModelBindingResult(model: "some value", key: "someName", isModelSet: true)));
 
             var composite = CreateCompositeBinder(modelBinder.Object);
 
@@ -302,7 +302,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.NotNull(result);
             Assert.True(result.IsModelSet);
             Assert.Equal("someName", result.Key);
-            Assert.Null(result.Model);
+            Assert.Equal("some value", result.Model);
         }
 
         [Fact]
@@ -445,6 +445,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 .Returns(
                     delegate (ModelBindingContext context)
                     {
+                        // Note this ModelBindingResult is not valid.
                         return Task.FromResult(
                             new ModelBindingResult(model: 42, key: "someName", isModelSet: false));
                     });
@@ -455,7 +456,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            // The result is null because of issue #2473
             Assert.Null(result);
         }
 

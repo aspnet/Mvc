@@ -139,13 +139,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var innerBinder = new Mock<IModelBinder>();
             innerBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns((ModelBindingContext mbc) =>
+                .Returns((ModelBindingContext context) =>
                 {
-                    Assert.Equal("someName.key", mbc.ModelName);
-                    return Task.FromResult(new ModelBindingResult(null, string.Empty, true));
+                    Assert.Equal("someName.key", context.ModelName);
+                    return Task.FromResult(new ModelBindingResult(model: "not int", key: string.Empty, isModelSet: true));
                 });
             var bindingContext = GetBindingContext(new SimpleHttpValueProvider(), innerBinder.Object);
-
 
             var binder = new KeyValuePairModelBinder<int, string>();
             var modelValidationNodeList = new List<ModelValidationNode>();
@@ -155,7 +154,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.True(result.IsModelSet);
-            Assert.Null(result.Model);
+            Assert.Equal("not int", result.Model);
             Assert.Empty(bindingContext.ModelState);
         }
 

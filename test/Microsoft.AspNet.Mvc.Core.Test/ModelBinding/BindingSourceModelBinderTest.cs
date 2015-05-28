@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var binder = new TestableBindingSourceModelBinder(BindingSource.Body);
 
-            // Act 
+            // Act
             var result = await binder.BindModelAsync(context);
 
             // Assert
@@ -60,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var binder = new TestableBindingSourceModelBinder(BindingSource.Body);
 
-            // Act 
+            // Act
             var result = await binder.BindModelAsync(context);
 
             // Assert
@@ -84,12 +84,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var binder = new TestableBindingSourceModelBinder(BindingSource.Body);
 
-            // Act 
+            // Act
             var result = await binder.BindModelAsync(context);
 
             // Assert
             Assert.NotNull(result);
-            Assert.True(result.IsModelSet);
+            Assert.False(result.IsModelSet);
             Assert.True(binder.WasBindModelCoreCalled);
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
             {
                 WasBindModelCoreCalled = true;
-                return Task.FromResult(new ModelBindingResult(null, bindingContext.ModelName, true));
+                return Task.FromResult(new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false));
             }
         }
     }

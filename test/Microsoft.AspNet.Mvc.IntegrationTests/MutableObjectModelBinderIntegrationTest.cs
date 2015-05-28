@@ -2043,7 +2043,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
             request.Form = formCollection;
-            request.ContentType = "multipart/form-data";
+            request.ContentType = "multipart/form-data; boundary=----WebKitFormBoundarymx2fSWqWSd0OxQqq";
             request.Headers["Content-Disposition"] = "form-data; name=" + name + "; filename=text.txt";
 
             fileCollection.Add(new FormFile(memoryStream, 0, memoryStream.Length)
