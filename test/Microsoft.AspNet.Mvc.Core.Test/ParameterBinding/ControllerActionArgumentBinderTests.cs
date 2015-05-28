@@ -361,7 +361,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
                 .Returns(Task.FromResult(
-                    result: new ModelBindingResult(model: null, key: string.Empty, isModelSet: true)));
+                    result: new ModelBindingResult(model: null, key: string.Empty, isModelSet: false)));
             var actionBindingContext = new ActionBindingContext()
             {
                 ModelBinder = binder.Object,

@@ -12,89 +12,11 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 {
     public class BinderTypeBasedModelBinderIntegrationTest
     {
-        // The NullModelBinder and NullModelNotSetModelBinder return a non null ModelBindingResult but a null model.
-        [Theory(Skip = "ModelBindingResult should be non null if a model binder returns a non null resul #2473.")]
-        [InlineData(typeof(NullModelBinder), true)]
-        [InlineData(typeof(NullModelNotSetModelBinder), false)]
-        public async Task BindParameter_WithModelBinderType_NoData(Type modelBinderType, bool isModelSet)
-        {
-            // Arrange
-            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
-            var parameter = new ParameterDescriptor()
-            {
-                Name = "Parameter1",
-                BindingInfo = new BindingInfo()
-                {
-                    BinderType = modelBinderType
-                },
-
-                ParameterType = typeof(string)
-            };
-
-            // No data is passed.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request => { });
-            var modelState = new ModelStateDictionary();
-
-            // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
-
-            // Assert
-
-            // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
-            Assert.Null(modelBindingResult.Model);
-            Assert.Equal(isModelSet, modelBindingResult.IsModelSet);
-
-            // ModelState
-            Assert.True(modelState.IsValid);
-            var key = Assert.Single(modelState.Keys);
-            Assert.Equal("CustomParameter", key);
-            Assert.Equal(0, modelState.ErrorCount);
-            Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
-            Assert.Null(modelState[key].Value); // value is only set if the custom model binder sets it.
-        }
-
         private class Person2
         {
         }
 
-        // Since the NullResultModelBinder returns a null ModelBindingResult, it acts
-        // as a non greedy model binder, however since it is applied using a BinderTypeBasedModelBinder, 
-        // which wraps this model binder and behaves as a greed model binder, we get a non null result.
-        [Fact(Skip = "ModelBindingResult should be non null if a model binder returns a non null resul #2473.")]
-        public async Task BindParameter_WithModelBinderType_NonGreedy_NoData()
-        {
-            // Arrange
-            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
-            var parameter = new ParameterDescriptor()
-            {
-                Name = "Parameter1",
-                BindingInfo = new BindingInfo()
-                {
-                    BinderType = typeof(NullResultModelBinder)
-                },
-
-                ParameterType = typeof(Person2)
-            };
-
-            // No data is passed.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request => { });
-            var modelState = new ModelStateDictionary();
-
-            // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
-
-            // Assert
-
-            // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
-
-            // ModelState
-            Assert.True(modelState.IsValid);
-            Assert.Empty(modelState.Keys);
-        }
-        
-        // ModelBinderAttribute can be used without specifing the binder type. 
+        // ModelBinderAttribute can be used without specifying the binder type.
         // In such cases BinderTypeBasedModelBinder acts like a non greedy binder where
         // it returns a null ModelBindingResult allowing other ModelBinders to run.
         [Fact]
@@ -303,22 +225,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                     bindingContext.ModelMetadata,
                     model);
                 return Task.FromResult(new ModelBindingResult(model, bindingContext.ModelName, true, modelValidationNode));
-            }
-        }
-
-        private class NullModelBinder : IModelBinder
-        {
-            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
-            {
-                return Task.FromResult(new ModelBindingResult(null, bindingContext.ModelName, true));
-            }
-        }
-
-        private class NullModelNotSetModelBinder : IModelBinder
-        {
-            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
-            {
-                return Task.FromResult(new ModelBindingResult(null, bindingContext.ModelName, false));
             }
         }
 
