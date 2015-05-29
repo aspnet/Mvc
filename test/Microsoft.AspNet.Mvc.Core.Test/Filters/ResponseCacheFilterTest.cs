@@ -323,6 +323,85 @@ namespace Microsoft.AspNet.Mvc
             Assert.False(cache.IsOverridden(context));
         }
 
+        [Fact]
+        public void FilterDurationProperty_OverridesCachePolicySetting()
+        {
+            // Arrange
+            var cache = new ResponseCacheFilter(
+                new CacheProfile
+                {
+                    Duration = 10
+                });
+            cache.Duration = 20;
+            var context = GetActionExecutingContext(new List<IFilter> { cache });
+
+            // Act
+            cache.OnActionExecuting(context);
+
+            // Assert
+            Assert.Equal("public,max-age=20", context.HttpContext.Response.Headers.Get("Cache-control"));
+        }
+
+        [Fact]
+        public void FilterLocationProperty_OverridesCachePolicySetting()
+        {
+            // Arrange
+            var cache = new ResponseCacheFilter(
+                new CacheProfile
+                {
+                    Duration = 10,
+                    Location = ResponseCacheLocation.None
+                });
+            cache.Location = ResponseCacheLocation.Client;
+            var context = GetActionExecutingContext(new List<IFilter> { cache });
+
+            // Act
+            cache.OnActionExecuting(context);
+
+            // Assert
+            Assert.Equal("private,max-age=10", context.HttpContext.Response.Headers.Get("Cache-control"));
+        }
+
+        [Fact]
+        public void FilterNoStoreProperty_OverridesCachePolicySetting()
+        {
+            // Arrange
+            var cache = new ResponseCacheFilter(
+                new CacheProfile
+                {
+                    NoStore = true
+                });
+            cache.NoStore = false;
+            cache.Duration = 10;
+            var context = GetActionExecutingContext(new List<IFilter> { cache });
+
+            // Act
+            cache.OnActionExecuting(context);
+
+            // Assert
+            Assert.Equal("public,max-age=10", context.HttpContext.Response.Headers.Get("Cache-control"));
+        }
+
+        [Fact]
+        public void FilterVaryByProperty_OverridesCachePolicySetting()
+        {
+            // Arrange
+            var cache = new ResponseCacheFilter(
+                new CacheProfile
+                {
+                    NoStore = true,
+                    VaryByHeader = "Accept"
+                });
+            cache.VaryByHeader = "Test";
+            var context = GetActionExecutingContext(new List<IFilter> { cache });
+
+            // Act
+            cache.OnActionExecuting(context);
+
+            // Assert
+            Assert.Equal("Test", context.HttpContext.Response.Headers.Get("Vary"));
+        }
+
         private ActionExecutingContext GetActionExecutingContext(List<IFilter> filters = null)
         {
             return new ActionExecutingContext(
