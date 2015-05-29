@@ -76,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState); // Should be skipped. bug#2447
         }
 
-        [Fact(Skip = "ByteArrayModelBinder should return a non-null result #2456")]
+        [Fact]
         public async Task BindParameter_NoData_DoesNotGetBound()
         {
             // Arrange
@@ -92,8 +92,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ParameterType = typeof(byte[])
             };
 
-            // No data is passed.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(httpContext => { });
+            // No data is passed. The ByteArrayModelBinder should ensure no later binders run.
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+                updateOptions: ModelBindingTestHelper.UpdateOptionsToEnsureNothingFollows<ByteArrayModelBinder>);
             var modelState = new ModelStateDictionary();
 
             // Act
@@ -102,15 +103,11 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
+            Assert.Null(modelBindingResult);
 
             // ModelState
             Assert.True(modelState.IsValid);
             Assert.Empty(modelState.Keys);
-
-            Assert.Equal("CustomParameter", modelBindingResult.Key);
-            Assert.True(modelBindingResult.IsModelSet);
-            Assert.Equal(new byte[0], modelBindingResult.Model);
         }
 
         [Fact(Skip = "ModelState.Value not set due to #2445")]

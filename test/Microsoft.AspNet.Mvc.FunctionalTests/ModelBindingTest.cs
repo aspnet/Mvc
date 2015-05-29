@@ -778,7 +778,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("\0", await response.Content.ReadAsStringAsync());
+            Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync());
         }
 
         [Fact]
@@ -1462,7 +1462,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             };
             var url = "http://localhost/dealers/43/update-vehicle?dealer.name=TestCarDealer&dealer.location=NE";
-            
+
             // Act
             var response = await client.PostAsJsonAsync(url, postedContent);
 
