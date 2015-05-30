@@ -3,7 +3,6 @@
 
 #if DNX451
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Testing;
 using Xunit;
@@ -30,7 +29,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.NotNull(binderResult);
+            Assert.False(binderResult.IsModelSet);
+            Assert.Equal("foo", binderResult.Key);
+            Assert.Null(binderResult.Model);
+
+            Assert.Empty(bindingContext.ModelState); // No submitted value for "foo".
         }
 
         [Fact]
@@ -81,7 +85,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task BindModelReturnsFalseWhenValueNotFound()
+        public async Task BindModelReturnsWithIsModelSetFalse_WhenValueNotFound()
         {
             // Arrange
             var valueProvider = new SimpleHttpValueProvider()
@@ -96,7 +100,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.NotNull(binderResult);
+            Assert.False(binderResult.IsModelSet);
+            Assert.Equal("foo", binderResult.Key);
+            Assert.Null(binderResult.Model);
+
+            Assert.Empty(bindingContext.ModelState); // No submitted data for "foo".
         }
 
         [Fact]
