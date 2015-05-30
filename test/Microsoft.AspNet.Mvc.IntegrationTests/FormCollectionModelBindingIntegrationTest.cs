@@ -144,9 +144,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ParameterType = typeof(FormCollection)
             };
 
-            // No data is passed. The FormCollectionModelBinder should ensure no later binders run.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
-                updateOptions: ModelBindingTestHelper.UpdateOptionsToEnsureNothingFollows<FormCollectionModelBinder>);
+            // No data is passed.
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
+            {
+            });
 
             var modelState = new ModelStateDictionary();
 

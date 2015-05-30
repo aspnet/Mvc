@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Xunit;
 
 namespace Microsoft.AspNet.Mvc.IntegrationTests
 {
@@ -69,21 +67,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                     metadataProvider);
         }
 
-        public static void UpdateOptionsToEnsureNothingFollows<TModelBinder>(MvcOptions options)
-        {
-            var index = 0;
-            for (; index < options.ModelBinders.Count; index++)
-            {
-                if (typeof(TModelBinder) == options.ModelBinders[index].GetType())
-                {
-                    options.ModelBinders.Insert(index + 1, new AssertIfCalledModelBinder());
-                    return;
-                }
-            }
-
-            Assert.False(true, $"Unable to find { typeof(TModelBinder).FullName } in { nameof(MvcOptions) }.");
-        }
-
         private static void InitializeServices(HttpContext httpContext, Action<MvcOptions> updateOptions = null)
         {
             var serviceCollection = new ServiceCollection();
@@ -126,16 +109,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ModelBinder = new CompositeModelBinder(options.ModelBinders),
                 ValueProvider = valueProvider
             };
-        }
-
-        private class AssertIfCalledModelBinder : IModelBinder
-        {
-            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
-            {
-                Assert.False(true, "This model binder should never be used");
-
-                return Task.FromResult<ModelBindingResult>(result: null);
-            }
         }
     }
 }

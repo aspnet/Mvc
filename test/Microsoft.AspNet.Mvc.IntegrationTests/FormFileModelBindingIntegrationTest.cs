@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -142,10 +141,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ParameterType = typeof(IFormFile)
             };
 
-            // No data is passed. The FormFileModelBinder should ensure no later binders run.
+            // No data is passed.
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
-                request => UpdateRequest(request, data: null, name: null),
-                ModelBindingTestHelper.UpdateOptionsToEnsureNothingFollows<FormFileModelBinder>);
+                request => UpdateRequest(request, data: null, name: null));
 
             var modelState = new ModelStateDictionary();
 

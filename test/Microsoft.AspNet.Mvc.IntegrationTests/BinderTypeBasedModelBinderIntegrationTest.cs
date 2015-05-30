@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -12,8 +11,110 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 {
     public class BinderTypeBasedModelBinderIntegrationTest
     {
+        [Fact]
+        [InlineData(typeof(NullModelNotSetModelBinder), false)]
+        public async Task BindParameter_WithModelBinderType_NullData_ReturnsNull()
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "Parameter1",
+                BindingInfo = new BindingInfo()
+                {
+                    BinderType = typeof(NullModelBinder)
+                },
+
+                ParameterType = typeof(string)
+            };
+
+            // No data is passed.
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+
+            // ModelBindingResult
+            Assert.NotNull(modelBindingResult);
+            Assert.True(modelBindingResult.IsModelSet);
+            Assert.Null(modelBindingResult.Model);
+
+            // ModelState (not set unless inner binder sets it)
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState);
+        }
+
+        [Fact]
+        public async Task BindParameter_WithModelBinderType_NoData_ReturnsNull()
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "Parameter1",
+                BindingInfo = new BindingInfo()
+                {
+                    BinderType = typeof(NullModelNotSetModelBinder)
+                },
+
+                ParameterType = typeof(string)
+            };
+
+            // No data is passed.
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+
+            // ModelBindingResult
+            Assert.Null(modelBindingResult);
+
+            // ModelState (not set unless inner binder sets it)
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState);
+        }
+
         private class Person2
         {
+        }
+
+        [Fact]
+        public async Task BindParameter_WithModelBinderType_NonGreedy_NoData_ReturnsNull()
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "Parameter1",
+                BindingInfo = new BindingInfo()
+                {
+                    BinderType = typeof(NullResultModelBinder)
+                },
+
+                ParameterType = typeof(Person2)
+            };
+
+            // No data is passed.
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+
+            // ModelBindingResult
+            Assert.Null(modelBindingResult);
+
+            // ModelState
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState.Keys);
         }
 
         // ModelBinderAttribute can be used without specifying the binder type.
@@ -36,7 +137,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             };
 
             // No data is passed.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request => { });
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
             var modelState = new ModelStateDictionary();
 
             // Act
@@ -71,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ParameterType = typeof(Person2)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request => { });
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
             var modelState = new ModelStateDictionary();
 
             // Act
@@ -115,7 +216,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ParameterType = typeof(Person)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request => { });
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
             var modelState = new ModelStateDictionary();
 
             // Act
@@ -156,7 +257,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 ParameterType = typeof(Person)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request => { });
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
             var modelState = new ModelStateDictionary();
 
             // Act
@@ -225,6 +326,22 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                     bindingContext.ModelMetadata,
                     model);
                 return Task.FromResult(new ModelBindingResult(model, bindingContext.ModelName, true, modelValidationNode));
+            }
+        }
+
+        private class NullModelBinder : IModelBinder
+        {
+            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+            {
+                return Task.FromResult(new ModelBindingResult(null, bindingContext.ModelName, true));
+            }
+        }
+
+        private class NullModelNotSetModelBinder : IModelBinder
+        {
+            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+            {
+                return Task.FromResult(new ModelBindingResult(null, bindingContext.ModelName, false));
             }
         }
 

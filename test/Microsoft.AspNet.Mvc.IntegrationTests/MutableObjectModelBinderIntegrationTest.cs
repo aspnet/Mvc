@@ -397,7 +397,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         // We don't provide enough data in this test for the 'Person' model to be created. So even though there is
         // a [FromServices], it won't be used.
-        [Fact(Skip = "Extra entries in model state  #2646.")]
+        [Fact]
         public async Task MutableObjectModelBinder_BindsNestedPOCO_WithServicesModelBinder_WithPrefix_NoData()
         {
             // Arrange
