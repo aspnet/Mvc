@@ -328,7 +328,9 @@ namespace Microsoft.AspNet.Mvc.Razor
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedCode, results.GeneratedCode);
 
-            if (!Enumerable.SequenceEqual(expectedLineMappings, results.DesignTimeLineMappings))
+            Assert.NotNull(results.DesignTimeLineMappings); // Guard
+            if (expectedLineMappings == null ||
+                !Enumerable.SequenceEqual(expectedLineMappings, results.DesignTimeLineMappings))
             {
                 var lineMappings = new StringBuilder();
                 lineMappings.AppendLine($"// !!! Do not check in. Instead paste content into test method. !!!");
