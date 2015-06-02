@@ -63,12 +63,6 @@ namespace MvcSample.Web
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {
                 _autoFac = true;
-                services.ConfigureRazorViewEngine(options =>
-                {
-                    var expander = new LanguageViewLocationExpander(
-                        context => context.HttpContext.Request.Query["language"]);
-                    options.ViewLocationExpanders.Insert(0, expander);
-                });
 
                 // Create the autofac container
                 var builder = new ContainerBuilder();
@@ -102,6 +96,7 @@ namespace MvcSample.Web
                 app.UseMiddleware<MonitoringMiddlware>();
             }
 #endif
+            app.UseRequestLocalization();
 
             app.UseInMemorySession();
             app.UseMvc(routes =>

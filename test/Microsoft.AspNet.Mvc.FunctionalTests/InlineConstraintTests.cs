@@ -49,7 +49,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var exception = response.GetServerException();
             Assert.Equal("The view 'Index' was not found." +
-                         " The following locations were searched:__/Areas/Users/Views/Home/Index.cshtml__" +
+                         " The following locations were searched:__/Areas/Users/Views/Home/en-GB/Index.cshtml__" +
+                         "/Areas/Users/Views/Shared/en-GB/Index.cshtml__/Views/Shared/en-GB/Index.cshtml__" +
+                         "/Areas/Users/Views/Home/en/Index.cshtml__/Areas/Users/Views/Shared/en/Index.cshtml__" +
+                         "/Views/Shared/en/Index.cshtml__/Areas/Users/Views/Home/Index.cshtml__" +
                          "/Areas/Users/Views/Shared/Index.cshtml__/Views/Shared/Index.cshtml.",
                          exception.ExceptionMessage);
         }

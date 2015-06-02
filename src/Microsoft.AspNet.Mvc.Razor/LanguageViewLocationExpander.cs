@@ -3,13 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Razor;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
 
-namespace MvcSample.Web
+namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// A <see cref="IViewLocationExpander"/> that replaces adds the language as an extension prefix to view names.
+    /// A <see cref="IViewLocationExpander"/> that adds the language as an extension prefix to view names.
     /// </summary>
     /// <example>
     /// For the default case with no areas, views are generated with the following patterns (assuming controller is
@@ -21,36 +22,32 @@ namespace MvcSample.Web
     /// </example>
     public class LanguageViewLocationExpander : IViewLocationExpander
     {
-        private const string ValueKey = "language";
-        private readonly Func<ActionContext, string> _valueFactory;
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="LanguageViewLocationExpander"/>.
-        /// </summary>
-        /// <param name="valueFactory">A factory that provides tbe language to use for expansion.</param>
-        public LanguageViewLocationExpander(Func<ActionContext, string> valueFactory)
-        {
-            _valueFactory = valueFactory;
-        }
-
         /// <inheritdoc />
         public void PopulateValues(ViewLocationExpanderContext context)
         {
-            var value = _valueFactory(context.ActionContext);
-            if (!string.IsNullOrEmpty(value))
-            {
-                context.Values[ValueKey] = value;
-            }
         }
 
         /// <inheritdoc />
         public virtual IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context,
                                                                IEnumerable<string> viewLocations)
         {
-            string value;
-            if (context.Values.TryGetValue(ValueKey, out value))
+#if DNX451
+            var cultureInfo = Thread.CurrentThread.CurrentUICulture;
+#else
+            var cultureInfo = CultureInfo.CurrentUICulture;
+#endif
+
+            var updatedViewLocations = new List<string>();
+            while (cultureInfo != cultureInfo.Parent)
             {
-                return ExpandViewLocationsCore(viewLocations, value);
+                updatedViewLocations.AddRange(ExpandViewLocationsCore(viewLocations, cultureInfo.Name));
+                cultureInfo = cultureInfo.Parent;
+            }
+
+            if (updatedViewLocations.Any())
+            {
+                updatedViewLocations.AddRange(viewLocations);
+                return updatedViewLocations;
             }
 
             return viewLocations;
@@ -62,7 +59,6 @@ namespace MvcSample.Web
             foreach (var location in viewLocations)
             {
                 yield return location.Replace("{0}", value + "/{0}");
-                yield return location;
             }
         }
     }

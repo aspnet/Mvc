@@ -27,6 +27,7 @@ namespace Microsoft.AspNet.Mvc
                                            IApplicationEnvironment applicationEnvironment)
         {
             razorOptions.FileProvider = new PhysicalFileProvider(applicationEnvironment.ApplicationBasePath);
+            razorOptions.ViewLocationExpanders.Insert(0, new LanguageViewLocationExpander());
         }
     }
 }
