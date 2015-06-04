@@ -46,6 +46,8 @@ namespace MvcSample.Web
                 options.Filters.Add(new FormatFilterAttribute());
             });
 
+            services.AddMvcLocalization();
+
 #if DNX451
             // Fully-qualify configuration path to avoid issues in functional tests. Just "config.json" would be fine
             // but Configuration uses CallContextServiceLocator.Locator.ServiceProvider to get IApplicationEnvironment.

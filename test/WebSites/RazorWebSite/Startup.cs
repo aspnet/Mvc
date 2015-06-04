@@ -32,6 +32,7 @@ namespace RazorWebSite
                 options.HtmlHelperOptions.ValidationMessageElement = "validationMessageElement";
                 options.HtmlHelperOptions.ValidationSummaryMessageElement = "validationSummaryElement";
             });
+            services.AddMvcLocalization();
         }
 
         public void Configure(IApplicationBuilder app)
