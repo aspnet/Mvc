@@ -254,11 +254,13 @@ namespace Microsoft.Framework.DependencyInjection
             return WithControllersAsServices(services, controllerTypes.Select(type => type.AsType()));
         }
 
-        public static IServiceCollection AddMvcLocalization([NotNull] this IServiceCollection services)
+        public static IServiceCollection AddMvcLocalization(
+            [NotNull] this IServiceCollection services,
+            LanguageViewLocationExpanderOption option = LanguageViewLocationExpanderOption.Suffix)
         {
             services.ConfigureRazorViewEngine(options =>
             {
-                options.ViewLocationExpanders.Add(new LanguageViewLocationExpander());
+                options.ViewLocationExpanders.Add(new LanguageViewLocationExpander(option));
             });
 
             return services;

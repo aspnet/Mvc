@@ -26,6 +26,21 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private const string ValueKey = "language";
 
+        public LanguageViewLocationExpander(
+            LanguageViewLocationExpanderOption option = LanguageViewLocationExpanderOption.Suffix)
+        {
+            if (option == LanguageViewLocationExpanderOption.SubFolder)
+            {
+                ReplacementSubString = "/{0}";
+            }
+            else
+            {
+                ReplacementSubString = ".{0}";
+            }
+        }
+
+        public string ReplacementSubString { get; set; }
+
         /// <inheritdoc />
         public void PopulateValues([NotNull] ViewLocationExpanderContext context)
         {
@@ -71,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 while (temporaryCultureInfo != temporaryCultureInfo.Parent)
                 {
-                    yield return location.Replace("{0}", temporaryCultureInfo.Name + "/{0}");
+                    yield return location.Replace("{0}", temporaryCultureInfo.Name + ReplacementSubString);
 
                     temporaryCultureInfo = temporaryCultureInfo.Parent;
                 }
