@@ -22,11 +22,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     new[]
                     {
-                        "/Views/{1}/en-GB.{0}.cshtml",
-                        "/Views/{1}/en.{0}.cshtml",
+                        "/Views/{1}/{0}.en-GB.cshtml",
+                        "/Views/{1}/{0}.en.cshtml",
                         "/Views/{1}/{0}.cshtml",
-                        "/Views/Shared/en-GB.{0}.cshtml",
-                        "/Views/Shared/en.{0}.cshtml",
+                        "/Views/Shared/{0}.en-GB.cshtml",
+                        "/Views/Shared/{0}.en.cshtml",
                         "/Views/Shared/{0}.cshtml"
                     }
                 };
@@ -61,14 +61,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     new[]
                     {
-                        "/Areas/{2}/Views/{1}/en-GB.{0}.cshtml",
-                        "/Areas/{2}/Views/{1}/en.{0}.cshtml",
+                        "/Areas/{2}/Views/{1}/{0}.en-GB.cshtml",
+                        "/Areas/{2}/Views/{1}/{0}.en.cshtml",
                         "/Areas/{2}/Views/{1}/{0}.cshtml",
-                        "/Areas/{2}/Views/Shared/en-GB.{0}.cshtml",
-                        "/Areas/{2}/Views/Shared/en.{0}.cshtml",
+                        "/Areas/{2}/Views/Shared/{0}.en-GB.cshtml",
+                        "/Areas/{2}/Views/Shared/{0}.en.cshtml",
                         "/Areas/{2}/Views/Shared/{0}.cshtml",
-                        "/Views/Shared/en-GB.{0}.cshtml",
-                        "/Views/Shared/en.{0}.cshtml",
+                        "/Views/Shared/{0}.en-GB.cshtml",
+                        "/Views/Shared/{0}.en.cshtml",
                         "/Views/Shared/{0}.cshtml"
                     }
                 };
