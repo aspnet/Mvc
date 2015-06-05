@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
+using LocalizationWebSite;
 using Microsoft.AspNet.Builder;
 using Microsoft.Framework.DependencyInjection;
-using LocalizationWebSite;
-using System.Threading.Tasks;
 using Microsoft.Net.Http.Headers;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -26,22 +26,28 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             get
             {
                 var expected1 =
- @"en-gb-index
+ @"<language-layout>
+en-gb-index
 partial
-mypartial";
+mypartial
+</language-layout>";
 
                 yield return new[] { "en-GB", expected1 };
 
                 var expected2 =
- @"fr-index
+ @"<fr-language-layout>
+fr-index
 fr-partial
-mypartial";
+mypartial
+</fr-language-layout>";
                 yield return new[] { "fr", expected2 };
 
                 var expected3 =
- @"index
+ @"<language-layout>
+index
 partial
-mypartial";
+mypartial
+</language-layout>";
                 yield return new[] { "na", expected3 };
 
             }
@@ -58,8 +64,6 @@ mypartial";
             client.DefaultRequestHeaders.Add(
                 "Cookie",
                 new CookieHeaderValue("ASPNET_CULTURE", cultureCookie).ToString());
-
-            System.Diagnostics.Debugger.Launch();
 
             // Act
             var body = await client.GetStringAsync("http://localhost/");
