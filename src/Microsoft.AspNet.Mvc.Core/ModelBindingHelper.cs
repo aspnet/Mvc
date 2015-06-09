@@ -422,9 +422,10 @@ namespace Microsoft.AspNet.Mvc
             if (string.IsNullOrEmpty(modelKey))
             {
                 var modelMetadata = metadataProvider.GetMetadataForType(modelType);
-                if (modelMetadata.IsCollectionType)
+                var elementMetadata = modelMetadata.ElementMetadata;
+                if (elementMetadata != null)
                 {
-                    modelMetadata = modelMetadata.ElementMetadata;
+                    modelMetadata = elementMetadata;
                 }
 
                 foreach (var property in modelMetadata.Properties)

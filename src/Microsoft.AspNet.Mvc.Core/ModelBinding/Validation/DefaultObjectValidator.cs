@@ -169,9 +169,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             ExpandValidationNode(validationContext, modelExplorer);
 
             IList<IModelValidator> validators = null;
-            if (modelExplorer.Metadata.IsCollectionType)
+            var elementMetadata = modelExplorer.Metadata.ElementMetadata;
+            if (elementMetadata != null)
             {
-                var elementMetadata = modelExplorer.Metadata.ElementMetadata;
                 validators = GetValidators(validationContext.ModelValidationContext.ValidatorProvider, elementMetadata);
             }
 
@@ -281,7 +281,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 return;
             }
 
-            if (!modelExplorer.Metadata.IsCollectionType)
+            var elementMetadata = modelExplorer.Metadata.ElementMetadata;
+            if (elementMetadata == null)
             {
                 foreach (var property in validationNode.ModelMetadata.Properties)
                 {
@@ -297,7 +298,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
             else
             {
-                var elementMetadata = modelExplorer.Metadata.ElementMetadata;
                 var enumerableModel = (IEnumerable)modelExplorer.Model;
 
                 // An integer index is incorrect in scenarios where there is a custom index provided by the user.

@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 #if DNXCORE50
 using System.Reflection;
@@ -233,13 +234,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 if (!_haveCalculatedElementMetadata)
                 {
-                    // Short-circuit checks below. As in IsCollectionType, do not consider string a collection.
-                    _haveCalculatedElementMetadata = ModelType == typeof(string);
-                }
-
-                if (!_haveCalculatedElementMetadata)
-                {
                     _haveCalculatedElementMetadata = true;
+                    if (!IsCollectionType)
+                    {
+                        // Short-circuit checks below. If not IsCollectionType, ElementMetadata is null.
+                        // For example, as in IsCollectionType, do not consider strings collections.
+                        return null;
+                    }
 
                     Type elementType = null;
                     if (ModelType.IsArray)
@@ -257,11 +258,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                         }
                     }
 
-                    if (elementType != null)
-                    {
-                        // Success
-                        _elementMetadata = _provider.GetMetadataForType(elementType);
-                    }
+                    Debug.Assert(
+                        elementType != null,
+                        $"Unable to find element type for '{ ModelType.FullName }' though IsCollectionType is true.");
+
+                    // Success
+                    _elementMetadata = _provider.GetMetadataForType(elementType);
                 }
 
                 return _elementMetadata;
