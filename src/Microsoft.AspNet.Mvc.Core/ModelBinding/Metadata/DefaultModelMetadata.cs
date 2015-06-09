@@ -2,9 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+#if DNXCORE50
+using System.Reflection;
+#endif
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
@@ -19,6 +23,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private readonly DefaultMetadataDetails _details;
 
         private ReadOnlyDictionary<object, object> _additionalValues;
+        private ModelMetadata _elementMetadata;
+        private bool _haveCalculatedElementMetadata;
         private bool? _isReadOnly;
         private bool? _isRequired;
         private ModelPropertyCollection _properties;
@@ -217,6 +223,48 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             get
             {
                 return DisplayMetadata.EditFormatString;
+            }
+        }
+
+        /// <inheritdoc />
+        public override ModelMetadata ElementMetadata
+        {
+            get
+            {
+                if (!_haveCalculatedElementMetadata)
+                {
+                    // Short-circuit checks below. As in IsCollectionType, do not consider string a collection.
+                    _haveCalculatedElementMetadata = ModelType == typeof(string);
+                }
+
+                if (!_haveCalculatedElementMetadata)
+                {
+                    _haveCalculatedElementMetadata = true;
+
+                    Type elementType = null;
+                    if (ModelType.IsArray)
+                    {
+                        elementType = ModelType.GetElementType();
+                    }
+                    else
+                    {
+                        elementType = ClosedGenericMatcher.ExtractGenericInterface(ModelType, typeof(IEnumerable<>))
+                            ?.GenericTypeArguments[0];
+                        if (elementType == null && typeof(IEnumerable).IsAssignableFrom(ModelType))
+                        {
+                            // ModelType implements IEnumerable but not IEnumerable<T>.
+                            elementType = typeof(object);
+                        }
+                    }
+
+                    if (elementType != null)
+                    {
+                        // Success
+                        _elementMetadata = _provider.GetMetadataForType(elementType);
+                    }
+                }
+
+                return _elementMetadata;
             }
         }
 
