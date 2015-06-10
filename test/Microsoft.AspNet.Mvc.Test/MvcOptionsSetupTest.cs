@@ -90,11 +90,10 @@ namespace Microsoft.AspNet.Mvc
             setup2.Configure(mvcOptions);
 
             // Assert
-            Assert.Equal(4, mvcOptions.OutputFormatters.Count);
-            Assert.IsType<HttpNoContentOutputFormatter>(mvcOptions.OutputFormatters[0]);
-            Assert.IsType<StringOutputFormatter>(mvcOptions.OutputFormatters[1]);
-            Assert.IsType<StreamOutputFormatter>(mvcOptions.OutputFormatters[2]);
-            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[3]);
+            Assert.Equal(3, mvcOptions.OutputFormatters.Count);
+            Assert.IsType<StringOutputFormatter>(mvcOptions.OutputFormatters[0]);
+            Assert.IsType<StreamOutputFormatter>(mvcOptions.OutputFormatters[1]);
+            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[2]);
         }
 
         [Fact]
