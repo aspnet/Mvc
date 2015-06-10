@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/GetSiteUser");
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
@@ -1052,7 +1052,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "?Value=someValue");
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync());
         }
 
@@ -2159,7 +2159,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(string.Empty, body);
+            Assert.Equal("null", body);
         }
 
         private async Task<TVal> ReadValue<TVal>(HttpResponseMessage response)

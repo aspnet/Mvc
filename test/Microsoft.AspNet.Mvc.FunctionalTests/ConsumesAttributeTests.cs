@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var product = JsonConvert.DeserializeObject<Product>(
                     await response.Content.ReadAsStringAsync());
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(product);
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var product = JsonConvert.DeserializeObject<Product>(
                       await response.Content.ReadAsStringAsync());
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(product);
         }
 

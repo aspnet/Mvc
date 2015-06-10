@@ -17,6 +17,7 @@ namespace ContentNegotiationWebSite
             services.ConfigureMvc(options =>
             {
                 options.AddXmlDataContractSerializerFormatter();
+                options.OutputFormatters.Insert(0, new HttpNoContentOutputFormatter());
             });
         }
 

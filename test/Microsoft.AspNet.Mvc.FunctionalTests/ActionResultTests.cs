@@ -301,7 +301,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            Assert.Equal("", await response.Content.ReadAsStringAsync());
+            Assert.Equal("null", await response.Content.ReadAsStringAsync());
         }
 
         [Fact]

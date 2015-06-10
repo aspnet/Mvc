@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             response = await client.SendAsync(GetRequest("Home/GetTempData", response));
 
             // Assert 3
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
