@@ -279,6 +279,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var bindingContext = new ModelBindingContext
             {
+                IsTopLevelObject = true,
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",
                 ValueProvider = Mock.Of<IValueProvider>(),

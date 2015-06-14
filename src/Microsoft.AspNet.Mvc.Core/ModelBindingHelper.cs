@@ -303,8 +303,9 @@ namespace Microsoft.AspNet.Mvc
                 ModelState = modelState,
                 ValueProvider = valueProvider,
                 FallbackToEmptyPrefix = true,
+                IsTopLevelObject = true,
                 OperationBindingContext = operationBindingContext,
-                PropertyFilter = predicate
+                PropertyFilter = predicate,
             };
 
             var modelBindingResult = await modelBinder.BindModelAsync(modelBindingContext);
