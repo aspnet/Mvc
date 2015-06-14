@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if DNXCORE50
 using System.Reflection;
+#endif
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Internal;
@@ -20,25 +22,33 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
+            var typeMatched = false;
+            object value = null;
             if (bindingContext.ModelType == typeof(IFormFile))
             {
+                typeMatched = true;
                 var postedFiles = await GetFormFilesAsync(bindingContext);
-                var value = postedFiles.FirstOrDefault();
-                var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
-                return new ModelBindingResult(
-                    value,
-                    bindingContext.ModelName,
-                    isModelSet: value != null,
-                    validationNode: validationNode);
+                value = postedFiles.FirstOrDefault();
             }
-            else if (typeof(IEnumerable<IFormFile>).GetTypeInfo().IsAssignableFrom(
-                    bindingContext.ModelType.GetTypeInfo()))
+            else if (typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
             {
+                typeMatched = true;
                 var postedFiles = await GetFormFilesAsync(bindingContext);
-                var value = ModelBindingHelper.ConvertValuesToCollectionType(bindingContext.ModelType, postedFiles);
-                var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
+                value = ModelBindingHelper.ConvertValuesToCollectionType(bindingContext.ModelType, postedFiles);
+            }
+
+            if (typeMatched)
+            {
+                ModelValidationNode validationNode = null;
+                if (value != null)
+                {
+                    validationNode =
+                        new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
+
+                    var valueProviderResult = new ValueProviderResult(value, attemptedValue: null, culture: null);
+                    bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+                }
+
                 return new ModelBindingResult(
                     value,
                     bindingContext.ModelName,
