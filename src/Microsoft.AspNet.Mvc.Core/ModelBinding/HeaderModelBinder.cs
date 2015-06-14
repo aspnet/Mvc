@@ -59,6 +59,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     bindingContext.ModelName,
                     bindingContext.ModelMetadata,
                     model);
+
+                var attemptedValue = (model as string) ?? request.Headers.Get(headerName);
+                var valueProviderResult = new ValueProviderResult(model, attemptedValue, culture: null);
+                bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
             }
 
             return Task.FromResult(

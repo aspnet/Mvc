@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return null;
             }
 
-            object model = null;
+            object model;
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             if (request.HasFormContentType)
             {
@@ -36,8 +36,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
                 else
                 {
-                    var formValuesLookup = form.ToDictionary(p => p.Key,
-                                                             p => p.Value);
+                    var formValuesLookup = form.ToDictionary(p => p.Key, p => p.Value);
                     model = new FormCollection(formValuesLookup, form.Files);
                 }
             }
@@ -45,6 +44,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 model = new FormCollection(new Dictionary<string, string[]>());
             }
+
+            var valueProviderResult = new ValueProviderResult(model, attemptedValue: null, culture: null);
+            bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
 
             var validationNode =
                  new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);
