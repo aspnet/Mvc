@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         }
 
-        internal void Apply(TModel objectToApplyTo, IObjectAdapter<TModel> adapter)
+        internal void Apply(TModel objectToApplyTo, IObjectAdapter adapter)
         {
             switch (OperationType)
             {

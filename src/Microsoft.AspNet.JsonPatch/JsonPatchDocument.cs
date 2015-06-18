@@ -40,13 +40,13 @@ namespace Microsoft.AspNet.JsonPatch
             ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction: null));
         }
 
-        public void ApplyTo<TModel>(TModel objectToApplyTo, Action<JsonPatchError<TModel>> logErrorAction)
+        public void ApplyTo<TModel>(TModel objectToApplyTo, Action<JsonPatchError> logErrorAction)
             where TModel : class
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction));
         }
 
-        public void ApplyTo<TModel>(TModel objectToApplyTo, IObjectAdapter<TModel> adapter)
+        public void ApplyTo<TModel>(TModel objectToApplyTo, IObjectAdapter adapter)
               where TModel : class
         {
             // apply each operation in order
