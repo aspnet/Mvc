@@ -1,9 +1,7 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNet.JsonPatch.Exceptions;
 using Microsoft.AspNet.JsonPatch.Operations;
 using Newtonsoft.Json;
@@ -12,38 +10,32 @@ using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AspNet.JsonPatch.Converters
 {
-    public class TypedJsonPatchDocumentConverter : JsonConverter
+    public class JsonPatchDocumentConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
             return true;
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, 
             JsonSerializer serializer)
         {
+
             try
             {
-                if (reader.TokenType == JsonToken.Null)
-                {
-                    return null;
-                }
 
-                var genericType = objectType.GetGenericArguments()[0];
+                if (reader.TokenType == JsonToken.Null)
+                    return null;
 
                 // load jObject
                 var jObject = JArray.Load(reader);
 
-                // Create target object for Json => list of operations, typed to genericType
-                var genericOperation = typeof(Operation<>);
-                var concreteOperationType = genericOperation.MakeGenericType(genericType);
-
-                var genericList = typeof(List<>);
-                var concreteList = genericList.MakeGenericType(concreteOperationType);
-
+                // Create target object for Json => list of operations
+                var concreteList = typeof(List<Operation>);
                 var targetOperations = Activator.CreateInstance(concreteList);
 
-                //Create a new reader for this jObject, and set all properties to match the original reader.
+                // Create a new reader for this jObject, and set all properties 
+                // to match the original reader.
                 var jObjectReader = jObject.CreateReader();
                 jObjectReader.Culture = reader.Culture;
                 jObjectReader.DateParseHandling = reader.DateParseHandling;
@@ -53,15 +45,17 @@ namespace Microsoft.AspNet.JsonPatch.Converters
                 // Populate the object properties
                 serializer.Populate(jObjectReader, targetOperations);
 
-                // container target: the typed JsonPatchDocument.
+                // container target: the JsonPatchDocument. 
                 var container = Activator.CreateInstance(objectType, targetOperations, new DefaultContractResolver());
 
                 return container;
+
             }
             catch (Exception ex)
             {
                 throw new JsonPatchException(Resources.FormatInvalidJsonPatchDocument(objectType.Name), ex);
             }
+
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -73,6 +67,7 @@ namespace Microsoft.AspNet.JsonPatch.Converters
 
                 // write out the operations, no envelope
                 serializer.Serialize(writer, lst);
+
             }
         }
     }
