@@ -23,13 +23,14 @@ namespace Microsoft.AspNet.JsonPatch
         {
             Operations = new List<Operation>();
             ContractResolver = new DefaultContractResolver();
+             
         }
 
         // Create from list of operations  
-        public JsonPatchDocument(List<Operation> operations)
+        public JsonPatchDocument(List<Operation> operations, IContractResolver contractResolver)
         {
             Operations = operations;
-
+            ContractResolver = contractResolver;
         }
 
 
