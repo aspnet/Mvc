@@ -64,32 +64,31 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
         //}
 
 
-        //[Fact]
-        //public void GenericPatchDocToNonGenericMustSerialize()
-        //{
-        //    var doc = new SimpleDTO()
-        //    {
-        //        StringProperty = "A",
-        //        AnotherStringProperty = "B"
-        //    };
+        [Fact]
+        public void GenericPatchDocToNonGenericMustSerialize()
+        {
+            var doc = new SimpleDTO()
+            {
+                StringProperty = "A",
+                AnotherStringProperty = "B"
+            };
 
-        //    JsonPatchDocument<SimpleDTO> patchDocTyped = new JsonPatchDocument<SimpleDTO>();
-        //    patchDocTyped.Copy<string>(o => o.StringProperty, o => o.AnotherStringProperty);
-
-
-        //    JsonPatchDocument patchDocUntyped = new JsonPatchDocument();
-        //   // patchDocUntyped.Copy("StringProperty", "AnotherStringProperty");
+            JsonPatchDocument<SimpleDTO> patchDocTyped = new JsonPatchDocument<SimpleDTO>();
+            patchDocTyped.Copy<string>(o => o.StringProperty, o => o.AnotherStringProperty);
 
 
-        //    var serializedTyped = JsonConvert.SerializeObject(patchDocTyped);
-        //    var serializedUntyped = JsonConvert.SerializeObject(patchDocUntyped);
-        //    var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serializedTyped);
+            JsonPatchDocument patchDocUntyped = new JsonPatchDocument();
+         
 
-        //    deserialized.ApplyTo(doc);
+            var serializedTyped = JsonConvert.SerializeObject(patchDocTyped);
+            var serializedUntyped = JsonConvert.SerializeObject(patchDocUntyped);
+            var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serializedTyped);
 
-        //    Assert.Equal("A", doc.AnotherStringProperty);
+            deserialized.ApplyTo(doc);
 
-        //}
+            Assert.Equal("A", doc.AnotherStringProperty);
+
+        }
 
 
     }
