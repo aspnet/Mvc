@@ -162,7 +162,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         {
             // Arrange
             var expectedValue = modelType == typeof(string) ?
-                (object) value :
+                (object)value :
                 (object)value.Split(',').Select(v => v.Trim()).ToArray();
 
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();

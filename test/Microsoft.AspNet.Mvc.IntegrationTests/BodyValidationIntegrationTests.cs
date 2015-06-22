@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task FromBodyAndRequiredOnValueTypeProperty_EmptyBody_AddsModelStateError()
+        public async Task FromBodyAndRequiredOnValueTypeProperty_EmptyBody_JsonFormatterAddsModelStateError()
         {
             // Arrange
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
@@ -146,9 +146,11 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var entry = Assert.Single(modelState);
             Assert.Equal(string.Empty, entry.Key);
             var error = Assert.Single(entry.Value.Errors);
-            Assert.StartsWith(
-                "No JSON content found and type 'System.Int32' is not nullable.",
-                error.Exception.Message);
+            Assert.NotNull(error.Exception);
+
+            // Json.NET currently throws an exception starting with "No JSON content found and type 'System.Int32' is
+            // not nullable." but do not tie test to a particular Json.NET build.
+            Assert.NotEmpty(error.Exception.Message);
         }
 
         private class Person2
@@ -227,7 +229,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         [Theory]
         [InlineData("{ \"Street\" : \"someStreet\" }")]
         [InlineData("{}")]
-        public async Task FromBodyOnProperty_RequiredOnValueTypeSubProperty_AddsModelStateError(string inputText)
+        public async Task FromBodyOnProperty_Succeeds_IgnoresRequiredOnValueTypeSubProperty(string inputText)
         {
             // Arrange
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
@@ -257,8 +259,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.IsType<Person3>(modelBindingResult.Model);
 
             Assert.True(modelState.IsValid);
-            Assert.Equal(1, modelState.Count);
-            Assert.Single(modelState, kvp => kvp.Key == "CustomParameter.Address");
+            var entry = Assert.Single(modelState);
+            Assert.Equal("CustomParameter.Address", entry.Key);
         }
     }
 }

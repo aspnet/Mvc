@@ -69,13 +69,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // ModelState
             Assert.True(modelState.IsValid);
-            Assert.Equal(2, modelState.Count);
-            Assert.Single(modelState, kvp => kvp.Key == "Address.Zip");
-            var entry = Assert.Single(modelState, kvp => kvp.Key == "Address.FileCollection").Value;
-            Assert.Empty(entry.Errors);
-            Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
-            Assert.Null(entry.Value.AttemptedValue);
-            Assert.Equal(formCollection, entry.Value.RawValue);
+            var entry = Assert.Single(modelState);
+            Assert.Equal("Address.Zip", entry.Key);
+            Assert.Empty(entry.Value.Errors);
+            Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
         }
 
         [Fact]
@@ -121,12 +118,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // ModelState
             Assert.True(modelState.IsValid);
-            var entry = Assert.Single(modelState);
-            Assert.Equal("CustomParameter", entry.Key);
-            Assert.Empty(entry.Value.Errors);
-            Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
-            Assert.Null(entry.Value.Value.AttemptedValue);
-            Assert.Equal(formCollection, entry.Value.Value.RawValue);
+            Assert.Empty(modelState);
         }
 
         [Fact]
@@ -160,12 +152,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // ModelState
             Assert.True(modelState.IsValid);
-            var entry = Assert.Single(modelState);
-            Assert.Equal("CustomParameter", entry.Key);
-            Assert.Empty(entry.Value.Errors);
-            Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
-            Assert.Null(entry.Value.Value.AttemptedValue);
-            Assert.Equal(collection, entry.Value.Value.RawValue);
+            Assert.Empty(modelState);
 
             // FormCollection
             Assert.Empty(collection);

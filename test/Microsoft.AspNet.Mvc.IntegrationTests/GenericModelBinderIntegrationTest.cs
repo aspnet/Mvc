@@ -52,13 +52,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
-
-            var entry = Assert.Single(modelState);
-            Assert.Equal("parameter[10]", entry.Key);
-            Assert.Empty(entry.Value.Errors);
-            Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
-            Assert.Null(entry.Value.Value.AttemptedValue);
-            Assert.Equal(formCollection, entry.Value.Value.RawValue);
+            Assert.Empty(modelState);
         }
 
         // This isn't an especially useful scenario - but it exercises what happens when you
@@ -97,13 +91,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
-
-            var entry = Assert.Single(modelState);
-            Assert.Equal("[10]", entry.Key);
-            Assert.Empty(entry.Value.Errors);
-            Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
-            Assert.Null(entry.Value.Value.AttemptedValue);
-            Assert.Equal(formCollection, entry.Value.Value.RawValue);
+            Assert.Empty(modelState);
         }
 
         // This isn't an especially useful scenario - but it exercises what happens when you

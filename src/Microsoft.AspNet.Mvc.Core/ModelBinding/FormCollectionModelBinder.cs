@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return null;
             }
 
-            object model;
+            object model = null;
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             if (request.HasFormContentType)
             {
@@ -44,9 +44,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 model = new FormCollection(new Dictionary<string, string[]>());
             }
-
-            var valueProviderResult = new ValueProviderResult(model, attemptedValue: null, culture: null);
-            bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
 
             var validationNode =
                  new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);

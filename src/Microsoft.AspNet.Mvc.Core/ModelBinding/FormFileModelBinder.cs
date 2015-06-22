@@ -22,41 +22,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
-            var typeMatched = false;
-            object value = null;
+            object value;
             if (bindingContext.ModelType == typeof(IFormFile))
             {
-                typeMatched = true;
                 var postedFiles = await GetFormFilesAsync(bindingContext);
                 value = postedFiles.FirstOrDefault();
             }
             else if (typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
             {
-                typeMatched = true;
                 var postedFiles = await GetFormFilesAsync(bindingContext);
                 value = ModelBindingHelper.ConvertValuesToCollectionType(bindingContext.ModelType, postedFiles);
             }
-
-            if (typeMatched)
+            else
             {
-                ModelValidationNode validationNode = null;
-                if (value != null)
-                {
-                    validationNode =
-                        new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
-
-                    var valueProviderResult = new ValueProviderResult(value, attemptedValue: null, culture: null);
-                    bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
-                }
-
-                return new ModelBindingResult(
-                    value,
-                    bindingContext.ModelName,
-                    isModelSet: value != null,
-                    validationNode: validationNode);
+                // This binder does not support the requested type.
+                return null;
             }
 
-            return null;
+            ModelValidationNode validationNode = null;
+            if (value != null)
+            {
+                validationNode =
+                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
+
+                var valueProviderResult = new ValueProviderResult(rawValue: value);
+                bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+            }
+
+            return new ModelBindingResult(
+                value,
+                bindingContext.ModelName,
+                isModelSet: value != null,
+                validationNode: validationNode);
         }
 
         private async Task<List<IFormFile>> GetFormFilesAsync(ModelBindingContext bindingContext)
