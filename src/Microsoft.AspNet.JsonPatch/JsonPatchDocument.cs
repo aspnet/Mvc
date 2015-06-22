@@ -21,6 +21,12 @@ namespace Microsoft.AspNet.JsonPatch
         [JsonIgnore]
         public IContractResolver ContractResolver { get; set; }
 
+        /// <summary>
+        /// Action for logging <see cref="JsonPatchError"/>.
+        /// </summary>
+        public Action<JsonPatchError> LogErrorAction { get; }
+
+
         public JsonPatchDocument()
         {
             Operations = new List<Operation>();
@@ -28,7 +34,16 @@ namespace Microsoft.AspNet.JsonPatch
              
         }
 
-        // Create from list of operations  
+
+        public JsonPatchDocument(Action<JsonPatchError> logErrorAction)
+            : this()
+        {
+            LogErrorAction = LogErrorAction;
+        }
+
+        // Create from list of operations - logErrorAction isn't required in this case, as
+        // logging errors through that specific logErrorAction happens when the PatchDocument
+        // is created, not after deserialization.
         public JsonPatchDocument(List<Operation> operations, IContractResolver contractResolver)
         {
             Operations = operations;
@@ -41,9 +56,11 @@ namespace Microsoft.AspNet.JsonPatch
             var checkPathResult = PathHelpers.CheckPath(path);
             if (!checkPathResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
-                   string.Format("Provided string is not a valid path: {0}",
-                          path), null);
+                LogError(new JsonPatchError(
+                   null,
+                   null,
+                    string.Format("Provided string is not a valid path: {0}",
+                          path)));           
             }
 
             Operations.Add(new Operation("add", checkPathResult.AdjustedPath, null, value));
@@ -55,9 +72,11 @@ namespace Microsoft.AspNet.JsonPatch
             var checkPathResult = PathHelpers.CheckPath(path);
             if (!checkPathResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
+                LogError(new JsonPatchError(
+                  null,
+                  null,
                    string.Format("Provided string is not a valid path: {0}",
-                          path), null);
+                         path)));
             }
 
             Operations.Add(new Operation("remove", checkPathResult.AdjustedPath, null, null));
@@ -69,9 +88,11 @@ namespace Microsoft.AspNet.JsonPatch
             var checkPathResult = PathHelpers.CheckPath(path);
             if (!checkPathResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
+                LogError(new JsonPatchError(
+                  null,
+                  null,
                    string.Format("Provided string is not a valid path: {0}",
-                          path), null);
+                         path)));
             }
 
             Operations.Add(new Operation("replace", checkPathResult.AdjustedPath, null, value));
@@ -85,16 +106,20 @@ namespace Microsoft.AspNet.JsonPatch
 
             if (!checkPathResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
-                   string.Format("Provided string is not a valid path: {0}",
-                          path), null);
+                LogError(new JsonPatchError(
+                   null,
+                   null,
+                    string.Format("Provided string is not a valid path: {0}",
+                          path)));
             }
 
             if (!checkFromResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
+                LogError(new JsonPatchError(
+                  null,
+                  null,
                    string.Format("Provided string is not a valid path: {0}",
-                          from), null);
+                         from)));
             }
 
 
@@ -109,16 +134,20 @@ namespace Microsoft.AspNet.JsonPatch
 
             if (!checkPathResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
+                LogError(new JsonPatchError(
+                  null,
+                  null,
                    string.Format("Provided string is not a valid path: {0}",
-                          path), null);
+                         path)));
             }
 
             if (!checkFromResult.IsCorrectlyFormedPath)
             {
-                throw new JsonPatchException(
+                LogError(new JsonPatchError(
+                  null,
+                  null,
                    string.Format("Provided string is not a valid path: {0}",
-                          from), null);
+                         from)));
             }
 
             Operations.Add(new Operation("copy", checkPathResult.AdjustedPath, checkFromResult.AdjustedPath));
@@ -148,7 +177,23 @@ namespace Microsoft.AspNet.JsonPatch
             }
         }
 
-         
+        // LogError method is required on untyped JsonPatchDocument, as errors may 
+        // be thrown in case of invalid paths.
+
+        private void LogError(JsonPatchError jsonPatchError)
+        {
+            if (LogErrorAction != null)
+            {
+                LogErrorAction(jsonPatchError);
+            }
+            else
+            {
+                throw new JsonPatchException(jsonPatchError);
+            }
+        }
+
+
+
         public List<Operation> GetOperations()
         {
             var allOps = new List<Operation>();

@@ -18,8 +18,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="operation">The <see cref="Operation"/> that caused the error.</param>
         /// <param name="errorMessage">The error message.</param>
         public JsonPatchError(
-            [NotNull] object affectedObject,
-            [NotNull] Operation operation,
+             object affectedObject,
+             Operation operation,
             [NotNull] string errorMessage)
         {
             AffectedObject = affectedObject;
