@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Initializes a new instance of <see cref="ObjectAdapter{TModel}"/>.
         /// </summary>
         /// <param name="contractResolver">The <see cref="IContractResolver"/>.</param>
-        /// <param name="logErrorAction">The <see cref="Action"/> for logging <see cref="JsonPatchError{TModel}"/>.</param>
+        /// <param name="logErrorAction">The <see cref="Action"/> for logging <see cref="JsonPatchError"/>.</param>
         public ObjectAdapter(IContractResolver contractResolver,
             Action<JsonPatchError> logErrorAction)
         {
