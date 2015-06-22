@@ -15,10 +15,10 @@ using Newtonsoft.Json.Serialization;
 namespace Microsoft.AspNet.JsonPatch.Adapters
 {
     /// <inheritdoc />
-    internal class ObjectAdapter<TModel> : IObjectAdapter where TModel : class
+    internal class ObjectAdapter : IObjectAdapter //where TModel : class
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="ObjectAdapter{TModel}"/>.
+        /// Initializes a new instance of <see cref="ObjectAdapter"/>.
         /// </summary>
         /// <param name="contractResolver">The <see cref="IContractResolver"/>.</param>
         /// <param name="logErrorAction">The <see cref="Action"/> for logging <see cref="JsonPatchError"/>.</param>
@@ -110,13 +110,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         private void Add(string path, object value, object objectToApplyTo, Operation operationToReport)
         {
-            // add, in this implementation, does not just "add" properties - that's
-            // technically impossible;  It can however be used to add items to arrays,
-            // or to replace values.
 
             // first up: if the path ends in a numeric value, we're inserting in a list and
             // that value represents the position; if the path ends in "-", we're appending
             // to the list.
+
             var appendList = false;
             var positionAsInteger = -1;
             var actualPathToProperty = path;
@@ -128,93 +126,371 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
             else
             {
-                positionAsInteger = GetNumericEnd(path);
+                var checkNumericEndResult = GetNumericEnd(path);
 
-                if (positionAsInteger > -1)
+                if (checkNumericEndResult.HasNumericEnd)
                 {
-                    actualPathToProperty = path.Substring(0,
-                        path.LastIndexOf('/' + positionAsInteger.ToString()));
-                }
-            }
-
-            var patchProperty = FindPropertyAndParent(objectToApplyTo, actualPathToProperty);
-
-            // does property at path exist?
-            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path))
-            {
-                return;
-            }
-
-            // it exists.  If it' an array, add to that array.  If it's not, we replace.
-            // is the path an array (but not a string (= char[]))?  In this case,
-            // the path must end with "/position" or "/-", which we already determined before.
-            if (appendList || positionAsInteger > -1)
-            {
-                // what if it's an array but there's no position??
-                if (IsNonStringArray(patchProperty.Property.PropertyType))
-                {
-                    // now, get the generic type of the IList<> from Property type.
-                    var genericTypeOfArray = GetIListType(patchProperty.Property.PropertyType);
-
-                    var conversionResult = ConvertToActualType(genericTypeOfArray, value);
-
-                    if (!CheckIfPropertyCanBeSet(conversionResult, objectToApplyTo, operationToReport, path))
+                    positionAsInteger = checkNumericEndResult.NumericEnd;
+                    if (positionAsInteger > -1)
                     {
-                        return;
-                    }
-
-                    // get value (it can be cast, we just checked that)
-                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
-
-                    if (appendList)
-                    {
-                        array.Add(conversionResult.ConvertedInstance);
+                        actualPathToProperty = path.Substring(0,
+                       path.LastIndexOf('/' + positionAsInteger.ToString()));
                     }
                     else
                     {
-                        // specified index must not be greater than the amount of items in the array
-                        if (positionAsInteger <= array.Count)
+                        // negative position - invalid path
+                        LogError(new JsonPatchError(
+                                    objectToApplyTo,
+                                    operationToReport,
+                                    Resources.FormatPropertyDoesNotExist(path)));
+                    }
+                }
+            }
+
+
+            var result = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
+
+            if (result.UseDynamicLogic)
+            {
+                if (result.IsValidPathForAdd)
+                {
+                    if (result.Container.ContainsCaseInsensitiveKey(result.PropertyPathInParent))
+                    {
+                        // Existing property.  
+                        // If it's not an array, we need to check if the value fits the property type
+                        // 
+                        // If it's an array, we need to check if the value fits in that array type,
+                        // and add it at the correct position (if allowed).
+
+                        if (appendList || positionAsInteger > -1)
                         {
-                            array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
+                            // get the actual type
+
+                            var typeOfPathProperty = result.Container
+                                .GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
+
+                            if (IsNonStringArray(typeOfPathProperty))
+                            {
+                                // now, get the generic type of the enumerable
+                                var genericTypeOfArray = GetIListType(typeOfPathProperty);
+                                var conversionResult = ConvertToActualType(genericTypeOfArray, value);
+
+                                if (!conversionResult.CanBeConverted)
+                                {
+                                    LogError(new JsonPatchError(
+                                        objectToApplyTo,
+                                        operationToReport,
+                                        Resources.FormatInvalidValueForProperty(value, path)));
+                                }
+
+                                // get value (it can be cast, we just checked that) 
+                                var array = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent) as IList;
+
+                                if (appendList)
+                                {
+                                    array.Add(conversionResult.ConvertedInstance);
+                                    result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
+                                }
+                                else
+                                {
+                                    // specified index must not be greater than the amount of items in the
+                                    // array
+                                    if (positionAsInteger <= array.Count)
+                                    {
+                                        array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
+                                        result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
+                                    }
+                                    else
+                                    {                                         
+                                        LogError(new JsonPatchError(
+                                            objectToApplyTo,
+                                            operationToReport,
+                                            Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                                    }
+                                }
+
+
+
+                            }
+                            else
+                            { 
+                                LogError(new JsonPatchError(
+                                    objectToApplyTo,
+                                    operationToReport,
+                                    Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                            }
                         }
                         else
                         {
-                            LogError(new JsonPatchError(
-                                objectToApplyTo,
-                                operationToReport,
-                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                            // get the actual type
+                            var typeOfPathProperty = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
 
-                            return;
+                            // can the value be converted to the actual type?
+                            var conversionResultTuple =
+                                ConvertToActualType(typeOfPathProperty, value);
+
+                            // conversion successful
+                            if (conversionResultTuple.CanBeConverted)
+                            {
+                                result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent,
+                                    conversionResultTuple.ConvertedInstance);
+                            }
+                            else
+                            {
+                                LogError(new JsonPatchError(
+                                   objectToApplyTo,
+                                   operationToReport,
+                                   Resources.FormatInvalidValueForProperty(conversionResultTuple.ConvertedInstance, path)));
+                            }
                         }
+                    }
+                    else
+                    {
+                        // New property - add it.  
+                        result.Container.Add(result.PropertyPathInParent, value);
                     }
                 }
                 else
                 {
                     LogError(new JsonPatchError(
-                        objectToApplyTo,
-                        operationToReport,
-                        Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                                  objectToApplyTo,
+                                  operationToReport,
+                                    string.Format("Patch failed: cannot add to the parent of the property at location path: {0}.  To be able to dynamically add properties, the parent must be an ExpandoObject.", path)));
 
-                    return;
                 }
             }
             else
             {
-                var conversionResultTuple = ConvertToActualType(
+                if (!result.IsValidPathForAdd)
+                {
+                    LogError(new JsonPatchError(
+                                     objectToApplyTo,
+                                     operationToReport,
+                                     Resources.FormatPropertyDoesNotExist(path)));
+                                  
+
+                }
+
+                // If it' an array, add to that array.  If it's not, we replace.
+
+                // is the path an array (but not a string (= char[]))?  In this case,
+                // the path must end with "/position" or "/-", which we already determined before.
+
+                var patchProperty = result.JsonPatchProperty;
+
+                if (appendList || positionAsInteger > -1)
+                {
+                    if (IsNonStringArray(patchProperty.Property.PropertyType))
+                    {
+                        // now, get the generic type of the IList<> from Property type.
+                        var genericTypeOfArray = GetIListType(patchProperty.Property.PropertyType);
+
+                        var conversionResult = ConvertToActualType(genericTypeOfArray, value);
+
+                        if (!conversionResult.CanBeConverted)
+                        {
+                            LogError(new JsonPatchError(
+                                  objectToApplyTo,
+                                  operationToReport,
+                                  Resources.FormatInvalidValueForProperty(conversionResult.ConvertedInstance, path)));
+
+                        }
+
+                        if (patchProperty.Property.Readable)
+                        {
+                            var array = (IList)patchProperty.Property.ValueProvider
+                                .GetValue(patchProperty.Parent);
+
+                            if (appendList)
+                            {
+                                array.Add(conversionResult.ConvertedInstance);
+                            }
+                            else
+                            {
+                                // specified index must not be greater than the amount of items in the
+                                // array
+                                if (positionAsInteger <= array.Count)
+                                {
+                                    array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
+                                }
+                                else
+                                {
+
+                                    LogError(new JsonPatchError(
+                                        objectToApplyTo,
+                                        operationToReport,
+                                        Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            // cannot read the property
+                            LogError(new JsonPatchError(
+                                 objectToApplyTo,
+                                 operationToReport,
+                                 string.Format("Patch failed: cannot get property value at path {0}.  Possible cause: the property doesn't have an accessible getter.",
+                                  path)));
+
+                        }
+
+                    }
+                    else
+                    {
+
+                        LogError(new JsonPatchError(
+                            objectToApplyTo,
+                            operationToReport,
+                            Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                    }
+
+                }
+                else
+                {
+                    var conversionResultTuple = ConvertToActualType(
                     patchProperty.Property.PropertyType,
                     value);
 
-                // Is conversion successful
-                if (!CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operationToReport, path))
-                {
-                    return;
-                }
+                    if (conversionResultTuple.CanBeConverted)
+                    {
+                        if (patchProperty.Property.Writable)
+                        {
+                            patchProperty.Property.ValueProvider.SetValue(
+                            patchProperty.Parent,
+                            conversionResultTuple.ConvertedInstance);
 
-                patchProperty.Property.ValueProvider.SetValue(
-                        patchProperty.Parent,
-                        conversionResultTuple.ConvertedInstance);
+                        }
+                        else
+                        {
+                            LogError(new JsonPatchError(
+                                   objectToApplyTo,
+                                   operationToReport,
+                                   Resources.FormatCannotUpdateProperty(path)
+                                 ));
+                        }
+                    }
+                    else
+                    {
+                        LogError(new JsonPatchError(
+                                    objectToApplyTo,
+                                    operationToReport,
+                                    Resources.FormatInvalidValueForProperty(value, path)));
+
+                    }
+
+                }
             }
         }
+
+
+        //private void Add(string path, object value, object objectToApplyTo, Operation operationToReport)
+        //{
+        //    // add, in this implementation, does not just "add" properties - that's
+        //    // technically impossible;  It can however be used to add items to arrays,
+        //    // or to replace values.
+
+        //    // first up: if the path ends in a numeric value, we're inserting in a list and
+        //    // that value represents the position; if the path ends in "-", we're appending
+        //    // to the list.
+        //    var appendList = false;
+        //    var positionAsInteger = -1;
+        //    var actualPathToProperty = path;
+
+        //    if (path.EndsWith("/-"))
+        //    {
+        //        appendList = true;
+        //        actualPathToProperty = path.Substring(0, path.Length - 2);
+        //    }
+        //    else
+        //    {
+        //        positionAsInteger = GetNumericEnd2(path);
+
+        //        if (positionAsInteger > -1)
+        //        {
+        //            actualPathToProperty = path.Substring(0,
+        //                path.LastIndexOf('/' + positionAsInteger.ToString()));
+        //        }
+        //    }
+
+        //    var patchProperty = FindPropertyAndParent(objectToApplyTo, actualPathToProperty);
+
+        //    // does property at path exist?
+        //    if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operationToReport, path))
+        //    {
+        //        return;
+        //    }
+
+        //    // it exists.  If it' an array, add to that array.  If it's not, we replace.
+        //    // is the path an array (but not a string (= char[]))?  In this case,
+        //    // the path must end with "/position" or "/-", which we already determined before.
+        //    if (appendList || positionAsInteger > -1)
+        //    {
+        //        // what if it's an array but there's no position??
+        //        if (IsNonStringArray(patchProperty.Property.PropertyType))
+        //        {
+        //            // now, get the generic type of the IList<> from Property type.
+        //            var genericTypeOfArray = GetIListType(patchProperty.Property.PropertyType);
+
+        //            var conversionResult = ConvertToActualType(genericTypeOfArray, value);
+
+        //            if (!CheckIfPropertyCanBeSet(conversionResult, objectToApplyTo, operationToReport, path))
+        //            {
+        //                return;
+        //            }
+
+        //            // get value (it can be cast, we just checked that)
+        //            var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
+
+        //            if (appendList)
+        //            {
+        //                array.Add(conversionResult.ConvertedInstance);
+        //            }
+        //            else
+        //            {
+        //                // specified index must not be greater than the amount of items in the array
+        //                if (positionAsInteger <= array.Count)
+        //                {
+        //                    array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
+        //                }
+        //                else
+        //                {
+        //                    LogError(new JsonPatchError(
+        //                        objectToApplyTo,
+        //                        operationToReport,
+        //                        Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+
+        //                    return;
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            LogError(new JsonPatchError(
+        //                objectToApplyTo,
+        //                operationToReport,
+        //                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+
+        //            return;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var conversionResultTuple = ConvertToActualType(
+        //            patchProperty.Property.PropertyType,
+        //            value);
+
+        //        // Is conversion successful
+        //        if (!CheckIfPropertyCanBeSet(conversionResultTuple, objectToApplyTo, operationToReport, path))
+        //        {
+        //            return;
+        //        }
+
+        //        patchProperty.Property.ValueProvider.SetValue(
+        //                patchProperty.Parent,
+        //                conversionResultTuple.ConvertedInstance);
+        //    }
+        //}
 
         /// <summary>
         /// The "move" operation removes the value at a specified location and
@@ -246,13 +522,36 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             var positionAsInteger = -1;
             var actualFromProperty = operation.from;
 
-            positionAsInteger = GetNumericEnd(operation.from);
+            //positionAsInteger = GetNumericEnd(operation.from);
 
-            if (positionAsInteger > -1)
+            //if (positionAsInteger > -1)
+            //{
+            //    actualFromProperty = operation.from.Substring(0,
+            //        operation.from.IndexOf('/' + positionAsInteger.ToString()));
+            //}
+
+
+            var checkNumericEndResult = GetNumericEnd(actualFromProperty);
+
+            if (checkNumericEndResult.HasNumericEnd)
             {
-                actualFromProperty = operation.from.Substring(0,
+                positionAsInteger = checkNumericEndResult.NumericEnd;
+                if (positionAsInteger > -1)
+                {
+                    actualFromProperty = operation.from.Substring(0,
                     operation.from.IndexOf('/' + positionAsInteger.ToString()));
+                }
+                else
+                {
+                    // negative position - invalid path
+                    LogError(new JsonPatchError(
+                           objectToApplyTo,
+                           operation,
+                           Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
+                }
             }
+
+
 
             var patchProperty = FindPropertyAndParent(objectToApplyTo, actualFromProperty);
 
@@ -346,13 +645,27 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
             else
             {
-                positionAsInteger = GetNumericEnd(path);
+                var checkNumericEndResult = GetNumericEnd(actualPathToProperty);
 
-                if (positionAsInteger > -1)
+                if (checkNumericEndResult.HasNumericEnd)
                 {
-                    actualPathToProperty = path.Substring(0,
-                        path.IndexOf('/' + positionAsInteger.ToString()));
+                    positionAsInteger = checkNumericEndResult.NumericEnd;
+                    if (positionAsInteger > -1)
+                    {
+                        actualPathToProperty = path.Substring(0,
+                     path.IndexOf('/' + positionAsInteger.ToString()));
+                    }
+                    else
+                    {
+                        // negative position - invalid path
+                        LogError(new JsonPatchError(
+                               objectToApplyTo,
+                               operationToReport,
+                               Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, operationToReport.path)));
+                    }
                 }
+
+                 
             }
 
             var patchProperty = FindPropertyAndParent(objectToApplyTo, actualPathToProperty);
@@ -479,13 +792,27 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             var positionAsInteger = -1;
             var actualFromProperty = operation.from;
 
-            positionAsInteger = GetNumericEnd(operation.from);
 
-            if (positionAsInteger > -1)
+            var checkNumericEndResult = GetNumericEnd(actualFromProperty);
+
+            if (checkNumericEndResult.HasNumericEnd)
             {
-                actualFromProperty = operation.from.Substring(0,
-                    operation.from.IndexOf('/' + positionAsInteger.ToString()));
+                positionAsInteger = checkNumericEndResult.NumericEnd;
+                if (positionAsInteger > -1)
+                {
+                    actualFromProperty = operation.from.Substring(0,
+                 operation.from.IndexOf('/' + positionAsInteger.ToString()));
+                }
+                else
+                {
+                    // negative position - invalid path
+                    LogError(new JsonPatchError(
+                           objectToApplyTo,
+                           operation,
+                           Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
+                }
             }
+             
 
             var patchProperty = FindPropertyAndParent(objectToApplyTo, actualFromProperty);
 
@@ -704,11 +1031,12 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return false;
         }
 
-        private int GetNumericEnd(string path)
+
+
+        internal static int GetNumericEnd2(string path)
         {
             var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
-            var castedIndex = -1;
-
+            int castedIndex = -1;
             if (int.TryParse(possibleIndex, out castedIndex))
             {
                 return castedIndex;
@@ -716,5 +1044,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
             return -1;
         }
+
+        internal static CheckNumericEndResult GetNumericEnd(string path)
+        {
+            var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
+            int castedIndex = -1;
+            if (int.TryParse(possibleIndex, out castedIndex))
+            {
+                return new CheckNumericEndResult(true, castedIndex);
+            }
+
+            return new CheckNumericEndResult(false, null);
+        }
+
     }
 }

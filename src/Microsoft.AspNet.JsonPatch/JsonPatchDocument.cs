@@ -155,20 +155,18 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
 
-        public void ApplyTo<TModel>(TModel objectToApplyTo) 
-            where TModel : class
+        public void ApplyTo(dynamic objectToApplyTo)           
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction: null));
+            ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction: null));
         }
 
-        public void ApplyTo<TModel>(TModel objectToApplyTo, Action<JsonPatchError> logErrorAction)
-            where TModel : class
+        public void ApplyTo(dynamic objectToApplyTo, Action<JsonPatchError> logErrorAction)
+          
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction));
+            ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction));
         }
 
-        public void ApplyTo<TModel>(TModel objectToApplyTo, IObjectAdapter adapter)
-              where TModel : class
+        public void ApplyTo(dynamic objectToApplyTo, IObjectAdapter adapter)            
         {
             // apply each operation in order
             foreach (var op in Operations)

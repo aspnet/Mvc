@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         }
 
-        internal void Apply([NotNull] dynamic objectToApplyTo, [NotNull] IObjectAdapter adapter)
+        public void Apply([NotNull] dynamic objectToApplyTo, [NotNull] IObjectAdapter adapter)
         {
             switch (OperationType)
             {

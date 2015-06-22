@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 
+using Microsoft.AspNet.JsonPatch.Exceptions;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -10,57 +11,57 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
     public class JsonPatchDocumentTests
     {
 
-        //[Fact]
-        //public void InvalidPathAtBeginningShouldThrowException()
-        //{
+        [Fact]
+        public void InvalidPathAtBeginningShouldThrowException()
+        {
 
-        //    JsonPatchDocument patchDoc = new JsonPatchDocument();
-        //    Assert.Throws<JsonPatchException>(() => { patchDoc.Add("//NewInt", 1); });
+            JsonPatchDocument patchDoc = new JsonPatchDocument();
+            Assert.Throws<JsonPatchException>(() => { patchDoc.Add("//NewInt", 1); });
 
-        //}
-
-
-        //[Fact]
-        //public void InvalidPathAtEndShouldThrowException()
-        //{
-
-        //    JsonPatchDocument patchDoc = new JsonPatchDocument();
-        //    Assert.Throws<JsonPatchException>(() => { patchDoc.Add("NewInt//", 1); });
-
-        //}
+        }
 
 
-        //[Fact]
-        //public void InvalidPathWithDotShouldThrowException()
-        //{
+        [Fact]
+        public void InvalidPathAtEndShouldThrowException()
+        {
 
-        //    JsonPatchDocument patchDoc = new JsonPatchDocument();
-        //    Assert.Throws<JsonPatchException>(() => { patchDoc.Add("NewInt.Test", 1); });
+            JsonPatchDocument patchDoc = new JsonPatchDocument();
+            Assert.Throws<JsonPatchException>(() => { patchDoc.Add("NewInt//", 1); });
 
-        //}
+        }
+
+
+        [Fact]
+        public void InvalidPathWithDotShouldThrowException()
+        {
+
+            JsonPatchDocument patchDoc = new JsonPatchDocument();
+            Assert.Throws<JsonPatchException>(() => { patchDoc.Add("NewInt.Test", 1); });
+
+        }
 
 
 
-        //[Fact]
-        //public void NonGenericPatchDocToGenericMustSerialize()
-        //{
-        //    var doc = new SimpleDTO()
-        //    {
-        //        StringProperty = "A",
-        //        AnotherStringProperty = "B"
-        //    };
+        [Fact]
+        public void NonGenericPatchDocToGenericMustSerialize()
+        {
+            var doc = new SimpleDTO()
+            {
+                StringProperty = "A",
+                AnotherStringProperty = "B"
+            };
 
-        //    JsonPatchDocument patchDoc = new JsonPatchDocument();
-        //    patchDoc.Copy("StringProperty", "AnotherStringProperty");
+            JsonPatchDocument patchDoc = new JsonPatchDocument();
+            patchDoc.Copy("StringProperty", "AnotherStringProperty");
 
-        //    var serialized = JsonConvert.SerializeObject(patchDoc);
-        //    var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTO>>(serialized);
+            var serialized = JsonConvert.SerializeObject(patchDoc);
+            var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument<SimpleDTO>>(serialized);
 
-        //    deserialized.ApplyTo(doc);
+            deserialized.ApplyTo(doc);
 
-        //    Assert.Equal("A", doc.AnotherStringProperty);
+            Assert.Equal("A", doc.AnotherStringProperty);
 
-        //}
+        }
 
 
         [Fact]
