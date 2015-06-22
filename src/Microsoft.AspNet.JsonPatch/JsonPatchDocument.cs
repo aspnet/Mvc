@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.JsonPatch.Adapters;
 using Microsoft.AspNet.JsonPatch.Converters;
+using Microsoft.AspNet.JsonPatch.Exceptions;
+using Microsoft.AspNet.JsonPatch.Helpers;
 using Microsoft.AspNet.JsonPatch.Operations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -34,6 +36,96 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
 
+        public JsonPatchDocument Add(string path, object value)
+        {
+            var checkPathResult = PathHelpers.CheckPath(path);
+            if (!checkPathResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          path), null);
+            }
+
+            Operations.Add(new Operation("add", checkPathResult.AdjustedPath, null, value));
+            return this;
+        }
+
+        public JsonPatchDocument Remove(string path)
+        {
+            var checkPathResult = PathHelpers.CheckPath(path);
+            if (!checkPathResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          path), null);
+            }
+
+            Operations.Add(new Operation("remove", checkPathResult.AdjustedPath, null, null));
+            return this;
+        }
+
+        public JsonPatchDocument Replace(string path, object value)
+        {
+            var checkPathResult = PathHelpers.CheckPath(path);
+            if (!checkPathResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          path), null);
+            }
+
+            Operations.Add(new Operation("replace", checkPathResult.AdjustedPath, null, value));
+            return this;
+        }
+
+        public JsonPatchDocument Move(string from, string path)
+        {
+            var checkPathResult = PathHelpers.CheckPath(path);
+            var checkFromResult = PathHelpers.CheckPath(from);
+
+            if (!checkPathResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          path), null);
+            }
+
+            if (!checkFromResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          from), null);
+            }
+
+
+            Operations.Add(new Operation("move", checkPathResult.AdjustedPath, checkFromResult.AdjustedPath));
+            return this;
+        }
+
+        public JsonPatchDocument Copy(string from, string path)
+        {
+            var checkPathResult = PathHelpers.CheckPath(path);
+            var checkFromResult = PathHelpers.CheckPath(from);
+
+            if (!checkPathResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          path), null);
+            }
+
+            if (!checkFromResult.IsCorrectlyFormedPath)
+            {
+                throw new JsonPatchException(
+                   string.Format("Provided string is not a valid path: {0}",
+                          from), null);
+            }
+
+            Operations.Add(new Operation("copy", checkPathResult.AdjustedPath, checkFromResult.AdjustedPath));
+            return this;
+        }
+
+
         public void ApplyTo<TModel>(TModel objectToApplyTo) 
             where TModel : class
         {
@@ -52,7 +144,7 @@ namespace Microsoft.AspNet.JsonPatch
             // apply each operation in order
             foreach (var op in Operations)
             {
-               // op.Apply(objectToApplyTo, adapter);
+              //  op.Apply(objectToApplyTo, adapter);
             }
         }
 
