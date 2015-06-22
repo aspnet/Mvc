@@ -144,7 +144,7 @@ namespace Microsoft.AspNet.JsonPatch
             // apply each operation in order
             foreach (var op in Operations)
             {
-              //  op.Apply(objectToApplyTo, adapter);
+                op.Apply(objectToApplyTo, adapter);
             }
         }
 

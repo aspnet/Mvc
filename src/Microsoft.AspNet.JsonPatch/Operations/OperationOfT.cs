@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.JsonPatch.Adapters;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.JsonPatch.Operations
 {
@@ -25,7 +26,7 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         }
 
-        internal void Apply(TModel objectToApplyTo, IObjectAdapter adapter)
+        internal void Apply([NotNull] TModel objectToApplyTo, [NotNull] IObjectAdapter adapter)
         {
             switch (OperationType)
             {
@@ -53,7 +54,7 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         public bool ShouldSerializevalue()
         {
-            return (OperationType == Operations.OperationType.Add
+            return (OperationType == OperationType.Add
                 || OperationType == OperationType.Replace
                 || OperationType == OperationType.Test);
         }
