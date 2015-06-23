@@ -59,8 +59,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                    null,
                    null,
-                    string.Format("Provided string is not a valid path: {0}",
-                          path)));           
+                   Resources.FormatInvalidValueForPath(path)));           
             }
 
             Operations.Add(new Operation("add", checkPathResult.AdjustedPath, null, value));
@@ -75,8 +74,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                   null,
                   null,
-                   string.Format("Provided string is not a valid path: {0}",
-                         path)));
+                  Resources.FormatInvalidValueForPath(path)));
             }
 
             Operations.Add(new Operation("remove", checkPathResult.AdjustedPath, null, null));
@@ -91,8 +89,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                   null,
                   null,
-                   string.Format("Provided string is not a valid path: {0}",
-                         path)));
+                  Resources.FormatInvalidValueForPath(path)));
             }
 
             Operations.Add(new Operation("replace", checkPathResult.AdjustedPath, null, value));
@@ -109,8 +106,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                    null,
                    null,
-                    string.Format("Provided string is not a valid path: {0}",
-                          path)));
+                   Resources.FormatInvalidValueForPath(path)));
             }
 
             if (!checkFromResult.IsCorrectlyFormedPath)
@@ -118,8 +114,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                   null,
                   null,
-                   string.Format("Provided string is not a valid path: {0}",
-                         from)));
+                  Resources.FormatInvalidValueForPath(from)));
             }
 
 
@@ -137,8 +132,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                   null,
                   null,
-                   string.Format("Provided string is not a valid path: {0}",
-                         path)));
+                  Resources.FormatInvalidValueForPath(path)));
             }
 
             if (!checkFromResult.IsCorrectlyFormedPath)
@@ -146,8 +140,7 @@ namespace Microsoft.AspNet.JsonPatch
                 LogError(new JsonPatchError(
                   null,
                   null,
-                   string.Format("Provided string is not a valid path: {0}",
-                         from)));
+                  Resources.FormatInvalidValueForPath(from)));
             }
 
             Operations.Add(new Operation("copy", checkPathResult.AdjustedPath, checkFromResult.AdjustedPath));
@@ -184,10 +177,9 @@ namespace Microsoft.AspNet.JsonPatch
             {
                 LogErrorAction(jsonPatchError);
             }
-            else
-            {
-                throw new JsonPatchException(jsonPatchError);
-            }
+ 
+            // should throw error, even when logging, according to spec.
+            throw new JsonPatchException(jsonPatchError);
         }
 
 
