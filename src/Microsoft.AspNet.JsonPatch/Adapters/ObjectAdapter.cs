@@ -383,8 +383,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
         }
 
-
-      
+   
 
         /// <summary>
         /// The "move" operation removes the value at a specified location and
@@ -738,85 +737,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
         public void Copy(Operation operation, dynamic objectToApplyTo)
         {
-            // get value at from location
-            object valueAtFromLocation = null;
-            var positionAsInteger = -1;
-            var actualFromProperty = operation.from;
-
-
-            var checkNumericEndResult = GetNumericEnd(actualFromProperty);
-
-            if (checkNumericEndResult.HasNumericEnd)
-            {
-                positionAsInteger = checkNumericEndResult.NumericEnd;
-                if (positionAsInteger > -1)
-                {
-                    actualFromProperty = operation.from.Substring(0,
-                 operation.from.IndexOf('/' + positionAsInteger.ToString()));
-                }
-                else
-                {
-                    // negative position - invalid path
-                    LogError(new JsonPatchError(
-                           objectToApplyTo,
-                           operation,
-                           Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
-                }
-            }
-             
-
-            var patchProperty = FindPropertyAndParent(objectToApplyTo, actualFromProperty);
-
-            // does property at from exist?
-            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from))
-            {
-                return;
-            }
-
-            // get the property path
-            // is the path an array (but not a string (= char[]))?  In this case,
-            // the path must end with "/position" or "/-", which we already determined before.
-            if (positionAsInteger > -1)
-            {
-                if (IsNonStringArray(patchProperty.Property.PropertyType))
-                {
-                    // now, get the generic type of the IList<> from Property type.
-                    var genericTypeOfArray = GetIListType(patchProperty.Property.PropertyType);
-
-                    // get value (it can be cast, we just checked that)
-                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
-
-                    if (array.Count <= positionAsInteger)
-                    {
-                        LogError(new JsonPatchError(
-                            objectToApplyTo,
-                            operation,
-                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
-
-                        return;
-                    }
-
-                    valueAtFromLocation = array[positionAsInteger];
-                }
-                else
-                {
-                    LogError(new JsonPatchError(
-                        objectToApplyTo,
-                        operation,
-                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from)));
-
-                    return;
-                }
-            }
-            else
-            {
-                // no list, just get the value
-                // set the new value
-                valueAtFromLocation = patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
-            }
-
-            // add operation to target location with that value.
-            Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
+            // get value at from location and add that value to the path location
+            Add(operation.path, GetValueAtLocation(operation.from, objectToApplyTo, operation)
+                , objectToApplyTo, operation);
         }
 
 
