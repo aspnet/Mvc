@@ -15,7 +15,7 @@ using Newtonsoft.Json.Serialization;
 namespace Microsoft.AspNet.JsonPatch.Adapters
 {
     /// <inheritdoc />
-    internal class ObjectAdapter : IObjectAdapter  
+    internal class ObjectAdapter : IObjectAdapter
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectAdapter"/>.
@@ -201,19 +201,16 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                         result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
                                     }
                                     else
-                                    {                                         
+                                    {
                                         LogError(new JsonPatchError(
                                             objectToApplyTo,
                                             operationToReport,
                                             Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
                                     }
                                 }
-
-
-
                             }
                             else
-                            { 
+                            {
                                 LogError(new JsonPatchError(
                                     objectToApplyTo,
                                     operationToReport,
@@ -223,7 +220,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         else
                         {
                             // get the actual type
-                            var typeOfPathProperty = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
+                            var typeOfPathProperty = result.Container
+                                .GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
 
                             // can the value be converted to the actual type?
                             var conversionResultTuple =
@@ -255,7 +253,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     LogError(new JsonPatchError(
                                   objectToApplyTo,
                                   operationToReport,
-                                    string.Format("Patch failed: cannot add to the parent of the property at location path: {0}.  To be able to dynamically add properties, the parent must be an ExpandoObject.", path)));
+                                  Resources.FormatPropertyCannotBeAdded(path)));
 
                 }
             }
@@ -267,8 +265,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                      objectToApplyTo,
                                      operationToReport,
                                      Resources.FormatPropertyDoesNotExist(path)));
-                                  
-
                 }
 
                 // If it' an array, add to that array.  If it's not, we replace.
@@ -328,17 +324,14 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         {
                             // cannot read the property
                             LogError(new JsonPatchError(
-                                 objectToApplyTo,
-                                 operationToReport,
-                                 string.Format("Patch failed: cannot get property value at path {0}.  Possible cause: the property doesn't have an accessible getter.",
-                                  path)));
-
+                                     objectToApplyTo,
+                                     operationToReport,
+                                     Resources.FormatCannotReadProperty(path)));
                         }
 
                     }
                     else
                     {
-
                         LogError(new JsonPatchError(
                             objectToApplyTo,
                             operationToReport,
@@ -359,7 +352,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             patchProperty.Property.ValueProvider.SetValue(
                             patchProperty.Parent,
                             conversionResultTuple.ConvertedInstance);
-
                         }
                         else
                         {
@@ -378,12 +370,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                     Resources.FormatInvalidValueForProperty(value, path)));
 
                     }
-
                 }
             }
         }
 
-   
+
 
         /// <summary>
         /// The "move" operation removes the value at a specified location and
@@ -477,7 +468,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                       operationToReport,
                                       Resources.FormatPropertyDoesNotExist(path)));
                     }
-                } 
+                }
             }
 
             var result = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
@@ -508,7 +499,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                     LogError(new JsonPatchError(
                                      objectToApplyTo,
                                      operationToReport,
-                                     Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path))); 
+                                     Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
                                 }
 
                                 array.RemoveAt(array.Count - 1);
@@ -532,7 +523,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                     LogError(new JsonPatchError(
                                      objectToApplyTo,
                                      operationToReport,
-                                     Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path))); 
+                                     Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
                                 }
                             }
                         }
@@ -541,7 +532,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             LogError(new JsonPatchError(
                                     objectToApplyTo,
                                     operationToReport,
-                                    Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path))); 
+                                    Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path)));
                         }
                     }
                     else
@@ -554,7 +545,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         result.Container.RemoveValueForCaseInsensitiveKey(result.PropertyPathInParent);
 
                         // set type to return 
-                        typeToReturn = actualType; 
+                        typeToReturn = actualType;
                     }
                 }
                 else
@@ -562,8 +553,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     LogError(new JsonPatchError(
                                     objectToApplyTo,
                                     operationToReport,
-                                     string.Format("Patch failed: cannot remove property at location path: {0}.  To be able to dynamically remove properties, the parent must be an ExpandoObject.", path)));
-                     
+                                    Resources.FormatPropertyCannotBeRemoved(path)));
                 }
             }
             else
@@ -575,7 +565,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                     objectToApplyTo,
                                     operationToReport,
                                     Resources.FormatPropertyDoesNotExist(path)));
- 
+
                 }
 
                 var patchProperty = result.JsonPatchProperty;
@@ -599,8 +589,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                     LogError(new JsonPatchError(
                                  objectToApplyTo,
                                  operationToReport,
-                                 Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path))); 
- 
+                                 Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+
                                 }
 
                                 array.RemoveAt(array.Count - 1);
@@ -629,18 +619,17 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         else
                         {
                             LogError(new JsonPatchError(
-                                 objectToApplyTo,
-                                 operationToReport,
-                                   string.Format("Patch failed: cannot get property value at path {0}.  Possible cause: the property doesn't have an accessible getter.",
-                             path))); 
-                        } 
+                             objectToApplyTo,
+                             operationToReport,
+                             Resources.FormatCannotReadProperty(path)));
+                        }
                     }
                     else
                     {
                         LogError(new JsonPatchError(
                                  objectToApplyTo,
                                  operationToReport,
-                                 Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path))); 
+                                 Resources.FormatInvalidPathForArrayProperty(operationToReport.op, path)));
                     }
                 }
                 else
@@ -661,15 +650,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         patchProperty.Property.ValueProvider.SetValue(patchProperty.Parent, value);
 
                         // set type to return 
-                        typeToReturn = patchProperty.Property.PropertyType; 
- 
+                        typeToReturn = patchProperty.Property.PropertyType;
+
                     }
                     else
                     {
                         LogError(new JsonPatchError(
                                  objectToApplyTo,
                                  operationToReport,
-                                 Resources.FormatCannotUpdateProperty(path))); 
+                                 Resources.FormatCannotUpdateProperty(path)));
                     }
                 }
             }
@@ -709,7 +698,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 LogError(new JsonPatchError(
                        objectToApplyTo,
                        operation,
-                       Resources.FormatInvalidValueForProperty(operation.op, operation.path))); 
+                       Resources.FormatInvalidValueForProperty(operation.op, operation.path)));
             }
         }
 
@@ -803,7 +792,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 LogError(new JsonPatchError(
                              objectToGetValueFrom,
                              operationToReport,
-                             Resources.FormatPropertyDoesNotExist(location))); 
+                             Resources.FormatPropertyDoesNotExist(location)));
                             }
 
                         }
@@ -858,7 +847,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                              objectToGetValueFrom,
                              operationToReport,
                              Resources.FormatPropertyDoesNotExist(location)));
-                             }
+                            }
                         }
                         else
                         {
@@ -867,8 +856,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                                          operationToReport,
                                                          Resources.FormatPropertyDoesNotExist(location)));
                         }
-
-
                     }
                     else
                     {
@@ -877,7 +864,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                                      operationToReport,
                                                      Resources.FormatInvalidPathForArrayProperty(operationToReport, location)));
                     }
-
                 }
                 else
                 {
@@ -891,8 +877,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         LogError(new JsonPatchError(
                              objectToGetValueFrom,
                              operationToReport,
-                             Resources.FormatPropertyDoesNotExist(
-                                   string.Format("Patch failed: property at location from: {0} does not exist or cannot be accessed.", location))));
+                             Resources.FormatCannotReadProperty(location)));
 
                     }
                 }
@@ -942,24 +927,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return (!(type == typeof(string)) && typeof(IList).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
         }
 
-        private bool CheckIfPropertyCanBeSet(
-            ConversionResult result,
-            object objectToApplyTo,
-            Operation operation,
-            string path)
-        {
-            if (!result.CanBeConverted)
-            {
-                LogError(new JsonPatchError(
-                    objectToApplyTo,
-                    operation,
-                    Resources.FormatInvalidValueForProperty(result.ConvertedInstance, path)));
-
-                return false;
-            }
-
-            return true;
-        }
 
         private void LogError(JsonPatchError jsonPatchError)
         {
@@ -967,60 +934,13 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             {
                 LogErrorAction(jsonPatchError);
             }
-       
-                throw new JsonPatchException(jsonPatchError);
-      
+
+            // even when the error is logged, the exception should
+            // still be thrown according to spec.
+            throw new JsonPatchException(jsonPatchError);
+
         }
 
-        private JsonPatchProperty FindPropertyAndParent(
-            object targetObject,
-            string propertyPath)
-        {
-            try
-            {
-                var splitPath = propertyPath.Split('/');
-
-                // skip the first one if it's empty
-                var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
-
-                for (int i = startIndex; i < splitPath.Length; i++)
-                {
-                    var jsonContract = (JsonObjectContract)ContractResolver.ResolveContract(targetObject.GetType());
-
-                    foreach (var property in jsonContract.Properties)
-                    {
-                        if (string.Equals(property.PropertyName, splitPath[i], StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (i == (splitPath.Length - 1))
-                            {
-                                return new JsonPatchProperty(property, targetObject);
-                            }
-                            else
-                            {
-                                targetObject = property.ValueProvider.GetValue(targetObject);
-
-                                // if property is of IList type then get the array index from splitPath and get the
-                                // object at the indexed position from the list.
-                               if (GetIListType(property.PropertyType) != null)
-                                {
-                                    var index = int.Parse(splitPath[++i]);
-                                    targetObject = ((IList)targetObject)[index];
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-
-                return null;
-            }
-            catch (Exception)
-            {
-                // will result in JsonPatchException in calling class, as expected
-                return null;
-            }
-        }
 
         private ConversionResult ConvertToActualType(Type propertyType, object value)
         {
@@ -1035,6 +955,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 return new ConversionResult(false, null);
             }
         }
+
 
         private Type GetIListType([NotNull] Type type)
         {
@@ -1065,7 +986,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return false;
         }
 
-         
+
 
         internal static CheckNumericEndResult GetNumericEnd(string path)
         {
