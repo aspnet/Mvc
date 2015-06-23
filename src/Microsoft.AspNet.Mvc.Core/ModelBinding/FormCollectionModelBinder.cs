@@ -36,8 +36,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
                 else
                 {
-                    var formValuesLookup = form.ToDictionary(p => p.Key,
-                                                             p => p.Value);
+                    var formValuesLookup = form.ToDictionary(p => p.Key, p => p.Value);
                     model = new FormCollection(formValuesLookup, form.Files);
                 }
             }
