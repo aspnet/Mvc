@@ -148,13 +148,13 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
 
 
-            var result = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
+            var treeAnalysisResult = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
 
-            if (result.UseDynamicLogic)
+            if (treeAnalysisResult.UseDynamicLogic)
             {
-                if (result.IsValidPathForAdd)
+                if (treeAnalysisResult.IsValidPathForAdd)
                 {
-                    if (result.Container.ContainsCaseInsensitiveKey(result.PropertyPathInParent))
+                    if (treeAnalysisResult.Container.ContainsCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent))
                     {
                         // Existing property.  
                         // If it's not an array, we need to check if the value fits the property type
@@ -166,8 +166,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         {
                             // get the actual type
 
-                            var typeOfPathProperty = result.Container
-                                .GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
+                            var typeOfPathProperty = treeAnalysisResult.Container
+                                .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent).GetType();
 
                             if (IsNonStringArray(typeOfPathProperty))
                             {
@@ -184,12 +184,12 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 }
 
                                 // get value (it can be cast, we just checked that) 
-                                var array = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent) as IList;
+                                var array = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent) as IList;
 
                                 if (appendList)
                                 {
                                     array.Add(conversionResult.ConvertedInstance);
-                                    result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
+                                    treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent, array);
                                 }
                                 else
                                 {
@@ -198,7 +198,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                     if (positionAsInteger <= array.Count)
                                     {
                                         array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
-                                        result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
+                                        treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent, array);
                                     }
                                     else
                                     {
@@ -220,8 +220,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         else
                         {
                             // get the actual type
-                            var typeOfPathProperty = result.Container
-                                .GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
+                            var typeOfPathProperty = treeAnalysisResult.Container
+                                .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent).GetType();
 
                             // can the value be converted to the actual type?
                             var conversionResultTuple =
@@ -230,7 +230,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             // conversion successful
                             if (conversionResultTuple.CanBeConverted)
                             {
-                                result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent,
+                                treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent,
                                     conversionResultTuple.ConvertedInstance);
                             }
                             else
@@ -245,7 +245,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     else
                     {
                         // New property - add it.  
-                        result.Container.Add(result.PropertyPathInParent, value);
+                        treeAnalysisResult.Container.Add(treeAnalysisResult.PropertyPathInParent, value);
                     }
                 }
                 else
@@ -259,7 +259,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
             else
             {
-                if (!result.IsValidPathForAdd)
+                if (!treeAnalysisResult.IsValidPathForAdd)
                 {
                     LogError(new JsonPatchError(
                                      objectToApplyTo,
@@ -272,7 +272,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 // is the path an array (but not a string (= char[]))?  In this case,
                 // the path must end with "/position" or "/-", which we already determined before.
 
-                var patchProperty = result.JsonPatchProperty;
+                var patchProperty = treeAnalysisResult.JsonPatchProperty;
 
                 if (appendList || positionAsInteger > -1)
                 {
@@ -458,7 +458,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     if (positionAsInteger > -1)
                     {
                         actualPathToProperty = path.Substring(0,
-                     path.IndexOf('/' + positionAsInteger.ToString()));
+                     path.LastIndexOf('/' + positionAsInteger.ToString()));
                     }
                     else
                     {
@@ -471,26 +471,26 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 }
             }
 
-            var result = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
+            var treeAnalysisResult = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
 
-            if (result.UseDynamicLogic)
+            if (treeAnalysisResult.UseDynamicLogic)
             {
-                if (result.IsValidPathForRemove)
+                if (treeAnalysisResult.IsValidPathForRemove)
                 {
                     // if it's not an array, we can remove the property from
                     // the dictionary.  If it's an array, we need to check the position first.
                     if (removeFromList || positionAsInteger > -1)
                     {
 
-                        var typeOfPathProperty = result.Container
-                                .GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
+                        var typeOfPathProperty = treeAnalysisResult.Container
+                                .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent).GetType();
 
                         if (IsNonStringArray(typeOfPathProperty))
                         {
                             // now, get the generic type of the enumerable
                             var genericTypeOfArray = GetIListType(typeOfPathProperty);
 
-                            var array = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent) as IList;
+                            var array = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent) as IList;
 
                             if (removeFromList)
                             {
@@ -503,7 +503,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 }
 
                                 array.RemoveAt(array.Count - 1);
-                                result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
+                                treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent, array);
 
                                 // set type to return 
                                 typeToReturn = genericTypeOfArray;
@@ -513,7 +513,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 if (positionAsInteger < array.Count)
                                 {
                                     array.RemoveAt(positionAsInteger);
-                                    result.Container.SetValueForCaseInsensitiveKey(result.PropertyPathInParent, array);
+                                    treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent, array);
 
                                     // set type to return 
                                     typeToReturn = genericTypeOfArray;
@@ -538,11 +538,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     else
                     {
                         // get the property
-                        var getResult = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent);
+                        var getResult = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent);
                         var actualType = getResult.GetType();
 
                         // remove the property
-                        result.Container.RemoveValueForCaseInsensitiveKey(result.PropertyPathInParent);
+                        treeAnalysisResult.Container.RemoveValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent);
 
                         // set type to return 
                         typeToReturn = actualType;
@@ -559,7 +559,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             else
             {
                 // not dynamic 
-                if (!result.IsValidPathForRemove)
+                if (!treeAnalysisResult.IsValidPathForRemove)
                 {
                     LogError(new JsonPatchError(
                                     objectToApplyTo,
@@ -568,7 +568,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                 }
 
-                var patchProperty = result.JsonPatchProperty;
+                var patchProperty = treeAnalysisResult.JsonPatchProperty;
 
                 if (removeFromList || positionAsInteger > -1)
                 {
@@ -698,7 +698,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 LogError(new JsonPatchError(
                        objectToApplyTo,
                        operation,
-                       Resources.FormatInvalidValueForProperty(operation.op, operation.path)));
+                       Resources.FormatPropertyDoesNotExist(operation.path)));
             }
         }
 
@@ -762,18 +762,18 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
 
             // first, analyze the tree. 
-            var result = new ObjectTreeAnalysisResult(objectToGetValueFrom, actualFromProperty, ContractResolver);
+            var treeAnalysisResult = new ObjectTreeAnalysisResult(objectToGetValueFrom, actualFromProperty, ContractResolver);
 
-            if (result.UseDynamicLogic)
+            if (treeAnalysisResult.UseDynamicLogic)
             {
                 // find the property
-                if (result.Container.ContainsCaseInsensitiveKey(result.PropertyPathInParent))
+                if (treeAnalysisResult.Container.ContainsCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent))
                 {
                     if (positionAsInteger > -1)
                     {
                         // get the actual type
-                        var typeOfPathProperty = result.Container
-                            .GetValueForCaseInsensitiveKey(result.PropertyPathInParent).GetType();
+                        var typeOfPathProperty = treeAnalysisResult.Container
+                            .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent).GetType();
 
                         if (IsNonStringArray(typeOfPathProperty))
                         {
@@ -781,7 +781,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             var genericTypeOfArray = GetIListType(typeOfPathProperty);
 
                             // get value
-                            var array = result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent) as IList;
+                            var array = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent) as IList;
 
                             if (positionAsInteger < array.Count)
                             {
@@ -808,7 +808,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     {
                         // get the value
                         valueAtLocation =
-                            result.Container.GetValueForCaseInsensitiveKey(result.PropertyPathInParent);
+                            treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent);
                     }
                 }
                 else
@@ -823,7 +823,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             {
 
                 // not dynamic.
-                var patchProperty = result.JsonPatchProperty;
+                var patchProperty = treeAnalysisResult.JsonPatchProperty;
 
                 // is the path an array (but not a string (= char[]))?  In this case,
                 // the path must end with "/position" or "/-", which we already determined before. 

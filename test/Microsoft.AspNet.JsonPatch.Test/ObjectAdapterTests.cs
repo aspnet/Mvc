@@ -201,8 +201,12 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             var logger = new TestErrorLogger<SimpleDTO>();
 
-            // Act
-            patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+
+            // Act - should log BUT should also still throw an exception.
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+            });
 
             // Assert
             Assert.Equal(
@@ -351,8 +355,14 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             var logger = new TestErrorLogger<SimpleDTO>();
 
-            // Act
-            patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+
+            // Act - should log BUT should also still throw an exception.
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+            });
+
 
             // Assert
             Assert.Equal("Property does not exist at path '/integerlist/-1'.", logger.ErrorMessage);
@@ -547,8 +557,13 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             var logger = new TestErrorLogger<SimpleDTO>();
 
-            // Act
-            patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+            // Act - should log BUT should also still throw an exception.
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+            });
+
 
             // Assert
             Assert.Equal(
@@ -611,8 +626,14 @@ namespace Microsoft.AspNet.JsonPatch.Test
 
             var logger = new TestErrorLogger<SimpleDTO>();
 
-            // Act
-            patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+
+            // Act - should log BUT should also still throw an exception.
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.ApplyTo(doc, logger.LogErrorMessage);
+            });
+
 
             // Assert
             Assert.Equal("Property does not exist at path '/integerlist/-1'.", logger.ErrorMessage);

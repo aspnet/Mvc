@@ -162,25 +162,26 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 
                 if (leftOverPath.Count == 1)
                 {
-                    var jsonContract = (JsonObjectContract)contractResolver
-                        .ResolveContract(targetObject.GetType());
+                
+                        var jsonContract = (JsonObjectContract)contractResolver
+                 .ResolveContract(targetObject.GetType());
+                        var attemptedProperty = jsonContract.Properties.FirstOrDefault
+                      (p => string.Equals(p.PropertyName, leftOverPath.Last()
+                          , StringComparison.OrdinalIgnoreCase));
+                    
 
-                    var attemptedProperty = jsonContract.Properties.FirstOrDefault
-                            (p => string.Equals(p.PropertyName, leftOverPath.Last()
-                                , StringComparison.OrdinalIgnoreCase));
-
-                    if (attemptedProperty == null)
-                    {
-                        IsValidPathForAdd = false;
-                        IsValidPathForRemove = false;
-                    }
-                    else
-                    {
-                        IsValidPathForAdd = true;
-                        IsValidPathForRemove = true;
-                        JsonPatchProperty = new JsonPatchProperty(attemptedProperty, targetObject);
-                        PropertyPathInParent = leftOverPath.Last();
-                    }
+                        if (attemptedProperty == null)
+                        {
+                            IsValidPathForAdd = false;
+                            IsValidPathForRemove = false;
+                        }
+                        else
+                        {
+                            IsValidPathForAdd = true;
+                            IsValidPathForRemove = true;
+                            JsonPatchProperty = new JsonPatchProperty(attemptedProperty, targetObject);
+                            PropertyPathInParent = leftOverPath.Last();
+                        }
                 }
                 else
                 {
