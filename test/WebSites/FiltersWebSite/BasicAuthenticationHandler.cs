@@ -24,7 +24,8 @@ namespace FiltersWebSite
                     new Claim(ClaimTypes.NameIdentifier, "John")
                 },
                 Options.AuthenticationScheme));
-            return Task.FromResult(new AuthenticationTicket(principal, new AuthenticationProperties(), Options.AuthenticationScheme));
+            return Task.FromResult(new AuthenticationTicket(principal, 
+                new AuthenticationProperties(), Options.AuthenticationScheme));
         }
     }
 }
