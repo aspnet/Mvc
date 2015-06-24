@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object routeValues,
             object htmlAttributes);
 
-        TagBuilder GenerateAntiForgery([NotNull] ViewContext viewContext);
+        HtmlString GenerateAntiforgery([NotNull] ViewContext viewContext);
 
         /// <summary>
         /// Generate a &lt;input type="checkbox".../&gt; element. 

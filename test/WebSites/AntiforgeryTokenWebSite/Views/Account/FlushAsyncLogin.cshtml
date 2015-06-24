@@ -1,4 +1,4 @@
-﻿@model AntiForgeryWebSite.LoginViewModel
+﻿@model AntiforgeryTokenWebSite.LoginViewModel
 
 @{
     ViewBag.Title = "Log in";
@@ -13,7 +13,7 @@
         <section id="loginForm">
             @using (Html.BeginForm("FlushAsyncLogin", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
             {
-                @Html.AntiForgeryToken()
+                @Html.AntiforgeryToken()
                 <h4>Use a local account to log in.</h4>
                 <hr />
                 @Html.ValidationSummary(true)

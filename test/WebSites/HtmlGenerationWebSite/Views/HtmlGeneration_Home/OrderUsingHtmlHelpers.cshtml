@@ -75,7 +75,7 @@ Html.BeginForm(actionName: "Submit", controllerName: "HtmlGeneration_Order"))
         </text>@Html.ValidationSummary(message: null, htmlAttributes: new { @class = "order" })<text>
         </text>@Html.HiddenFor(m => m.Customer.Key)<text></text>
         <input type="submit"/><text>
-    </text>@Html.AntiForgeryToken();
+    </text>@Html.AntiforgeryToken();
     }@**@
 </body>
 </html>

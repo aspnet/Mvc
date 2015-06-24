@@ -1,4 +1,4 @@
-﻿@model AntiForgeryWebSite.LoginViewModel
+﻿@model AntiforgeryTokenWebSite.LoginViewModel
 
 @{
     ViewBag.Title = "Log in";
@@ -10,7 +10,7 @@
         <section id="loginForm">
             @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
             {
-                @Html.AntiForgeryToken()
+                @Html.AntiforgeryToken()
                 <h4>Use a local account to log in.</h4>
                 <hr />
                 @Html.ValidationSummary(true)
@@ -39,7 +39,7 @@
 
 @using (Html.BeginForm("UseFacebookLogin", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
 {
-    @Html.AntiForgeryToken()
+    @Html.AntiforgeryToken()
     <h4>Use Facebook login.</h4>
     <hr />
     @Html.ValidationSummary()

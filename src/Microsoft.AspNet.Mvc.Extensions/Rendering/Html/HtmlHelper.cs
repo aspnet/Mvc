@@ -219,15 +219,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString AntiForgeryToken()
+        public HtmlString AntiforgeryToken()
         {
-            var tagBuilder = _htmlGenerator.GenerateAntiForgery(ViewContext);
-            if (tagBuilder == null)
-            {
-                return HtmlString.Empty;
-            }
-
-            return tagBuilder.ToHtmlString(TagRenderMode.SelfClosing);
+            var html = _htmlGenerator.GenerateAntiforgery(ViewContext);
+            return html ?? HtmlString.Empty;
         }
 
         /// <inheritdoc />

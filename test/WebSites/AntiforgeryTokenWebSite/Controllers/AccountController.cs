@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace AntiForgeryWebSite
+namespace AntiforgeryTokenWebSite
 {
     // This controller is reachable via traditional routing.
     public class AccountController : Controller
@@ -26,7 +26,7 @@ namespace AntiForgeryWebSite
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [ValidateAntiforgeryToken]
         public string Login(LoginViewModel model)
         {
             return "OK";
@@ -44,7 +44,7 @@ namespace AntiForgeryWebSite
         // POST: /Account/FlushAsyncLogin
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [ValidateAntiforgeryToken]
         public string FlushAsyncLogin(LoginViewModel model)
         {
             return "OK";

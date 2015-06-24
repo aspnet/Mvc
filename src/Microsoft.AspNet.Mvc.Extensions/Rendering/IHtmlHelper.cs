@@ -103,7 +103,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// &lt;form&gt; is submitted.
         /// </summary>
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;hidden&gt; element.</returns>
-        HtmlString AntiForgeryToken();
+        HtmlString AntiforgeryToken();
 
         /// <summary>
         /// Renders a &lt;form&gt; start tag to the response. When the user submits the form, the action with name
