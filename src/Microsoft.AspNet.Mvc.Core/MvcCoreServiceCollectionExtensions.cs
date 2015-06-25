@@ -78,24 +78,28 @@ namespace Microsoft.Framework.DependencyInjection
                 services,
                 ServiceDescriptor.Transient<IActionConstraintProvider, DefaultActionConstraintProvider>());
 
-            // Action Invoker
+            // Controller Factory
             //
             // This has a cache, so it needs to be a singleton
             services.TryAdd(ServiceDescriptor.Singleton<IControllerFactory, DefaultControllerFactory>());
+            // These will be cached by the controller factory
             services.TryAdd(ServiceDescriptor.Transient<IControllerActivator, DefaultControllerActivator>());
-            // This accesses per-request services
-            services.TryAdd(ServiceDescriptor.Transient<IActionInvokerFactory, ActionInvokerFactory>());
-            services.TryAdd(ServiceDescriptor
-                .Transient<IControllerActionArgumentBinder, DefaultControllerActionArgumentBinder>());
-            TryAddMultiRegistrationService(
-                services,
-                ServiceDescriptor.Transient<IActionInvokerProvider, ControllerActionInvokerProvider>());
-            TryAddMultiRegistrationService(
-                services,
-                ServiceDescriptor.Transient<IFilterProvider, DefaultFilterProvider>());
             TryAddMultiRegistrationService(
                 services,
                 ServiceDescriptor.Transient<IControllerPropertyActivator, DefaultControllerPropertyActivator>());
+
+            // Action Invoker
+            //
+            // These two access per-request services
+            services.TryAdd(ServiceDescriptor.Transient<IActionInvokerFactory, ActionInvokerFactory>());
+            TryAddMultiRegistrationService(
+                services,
+                ServiceDescriptor.Transient<IActionInvokerProvider, ControllerActionInvokerProvider>());
+            // Stateless
+            services.TryAddSingleton<IControllerActionArgumentBinder, DefaultControllerActionArgumentBinder>();
+            TryAddMultiRegistrationService(
+                services,
+                ServiceDescriptor.Singleton<IFilterProvider, DefaultFilterProvider>());
 
             // ModelBinding, Validation and Formatting
             //
@@ -106,7 +110,7 @@ namespace Microsoft.Framework.DependencyInjection
                 var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Options;
                 return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataDetailsProviders);
             }));
-            services.TryAdd(ServiceDescriptor.Transient<IObjectModelValidator>(serviceProvider =>
+            services.TryAdd(ServiceDescriptor.Singleton<IObjectModelValidator>(serviceProvider =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Options;
                 var modelMetadataProvider = serviceProvider.GetRequiredService<IModelMetadataProvider>();
@@ -121,7 +125,7 @@ namespace Microsoft.Framework.DependencyInjection
 
             // Random Infrastructure
             //
-            services.TryAdd(ServiceDescriptor.Transient<MvcMarkerService, MvcMarkerService>());
+            services.TryAdd(ServiceDescriptor.Singleton<MvcMarkerService, MvcMarkerService>());
             services.TryAdd((ServiceDescriptor.Singleton<ITypeActivatorCache, DefaultTypeActivatorCache>()));
             services.TryAdd(ServiceDescriptor.Scoped(typeof(IScopedInstance<>), typeof(ScopedInstance<>)));
             services.TryAdd(ServiceDescriptor.Scoped<IUrlHelper, UrlHelper>());

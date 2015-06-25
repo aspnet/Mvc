@@ -230,7 +230,7 @@ namespace Microsoft.Framework.DependencyInjection
             // View and rendering helpers
             services.TryAdd(ServiceDescriptor.Transient<IHtmlHelper, HtmlHelper>());
             services.TryAdd(ServiceDescriptor.Transient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>)));
-            services.TryAdd(ServiceDescriptor.Transient<IJsonHelper, JsonHelper>());
+            services.TryAdd(ServiceDescriptor.Singleton<IJsonHelper, JsonHelper>());
 
             // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
             services.TryAdd(ServiceDescriptor.Singleton<ITagHelperActivator, DefaultTagHelperActivator>());
@@ -238,9 +238,9 @@ namespace Microsoft.Framework.DependencyInjection
             // Consumed by the Cache tag helper to cache results across the lifetime of the application.
             services.TryAdd(ServiceDescriptor.Singleton<IMemoryCache, MemoryCache>());
 
-            // DefaultHtmlGenerator is pretty much stateless but depends on Scoped services such as IUrlHelper and
-            // IActionBindingContextProvider. Therefore it too is scoped.
-            services.TryAdd(ServiceDescriptor.Transient<IHtmlGenerator, DefaultHtmlGenerator>());
+            // DefaultHtmlGenerator is pretty much stateless but depends on IUrlHelper, which is scoped.
+            // Therefore it too is scoped.
+            services.TryAdd(ServiceDescriptor.Scoped<IHtmlGenerator, DefaultHtmlGenerator>());
 
             // These do caching so they should stay singleton
             services.TryAdd(ServiceDescriptor.Singleton<IViewComponentSelector, DefaultViewComponentSelector>());
@@ -252,7 +252,7 @@ namespace Microsoft.Framework.DependencyInjection
             services.TryAdd(ServiceDescriptor
                 .Transient<IViewComponentDescriptorProvider, DefaultViewComponentDescriptorProvider>());
             services.TryAdd(ServiceDescriptor
-                .Transient<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>());
+                .Singleton<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>());
             services.TryAdd(ServiceDescriptor.Transient<IViewComponentHelper, DefaultViewComponentHelper>());
 
             // Security and Authorization
@@ -261,7 +261,7 @@ namespace Microsoft.Framework.DependencyInjection
             services.TryAdd(ServiceDescriptor
                 .Singleton<IAntiForgeryAdditionalDataProvider, DefaultAntiForgeryAdditionalDataProvider>());
 
-            // Api Description
+            // Api Description 
             services.TryAdd(ServiceDescriptor
                 .Singleton<IApiDescriptionGroupCollectionProvider, ApiDescriptionGroupCollectionProvider>());
             TryAddMultiRegistrationService(
