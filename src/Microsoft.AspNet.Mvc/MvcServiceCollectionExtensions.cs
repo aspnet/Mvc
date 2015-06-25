@@ -108,7 +108,7 @@ namespace Microsoft.Framework.DependencyInjection
             var controllerTypeProvider = new FixedSetControllerTypeProvider();
             foreach (var type in controllerTypes)
             {
-                services.TryAdd(ServiceDescriptor.Transient(type, type));
+                services.TryAddTransient(type, type);
                 controllerTypeProvider.ControllerTypes.Add(type.GetTypeInfo());
             }
 
@@ -145,43 +145,35 @@ namespace Microsoft.Framework.DependencyInjection
         internal static void AddMvcServices(IServiceCollection services)
         {
             // Options - all of these are multi-registration
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcOptionsSetup>());
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, JsonMvcOptionsSetup>());
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor
                 .Transient<IConfigureOptions<MvcFormatterMappingOptions>, JsonMvcFormatterMappingOptionsSetup>());
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcViewOptions>, MvcViewOptionsSetup>());
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor
                 .Transient<IConfigureOptions<RazorViewEngineOptions>, RazorViewEngineOptionsSetup>());
 
             // Cors
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, CorsApplicationModelProvider>());
-            services.TryAdd(ServiceDescriptor.Transient<CorsAuthorizationFilter, CorsAuthorizationFilter>());
+            services.TryAddTransient<CorsAuthorizationFilter, CorsAuthorizationFilter>();
 
             // Auth
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, AuthorizationApplicationModelProvider>());
 
             // Support for activating ViewDataDictionary
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddEnumerable(
                 ServiceDescriptor
                     .Transient<IControllerPropertyActivator, ViewDataDictionaryControllerPropertyActivator>());
 
             // Formatter Mappings
-            services.TryAdd(ServiceDescriptor.Transient<FormatFilter, FormatFilter>());
+            services.TryAddTransient<FormatFilter, FormatFilter>();
 
             // JsonOutputFormatter should use the SerializerSettings on MvcOptions
             services.TryAdd(ServiceDescriptor.Singleton<JsonOutputFormatter>(serviceProvider =>
@@ -194,10 +186,10 @@ namespace Microsoft.Framework.DependencyInjection
 
             // The provider is inexpensive to initialize and provides ViewEngines that may require request
             // specific services.
-            services.TryAdd(ServiceDescriptor.Scoped<ICompositeViewEngine, CompositeViewEngine>());
+            services.TryAddScoped<ICompositeViewEngine, CompositeViewEngine>();
 
             // Caches view locations that are valid for the lifetime of the application.
-            services.TryAdd(ServiceDescriptor.Singleton<IViewLocationCache, DefaultViewLocationCache>());
+            services.TryAddSingleton<IViewLocationCache, DefaultViewLocationCache>();
             services.TryAdd(ServiceDescriptor.Singleton<IChunkTreeCache>(serviceProvider =>
             {
                 var cachedFileProvider = serviceProvider.GetRequiredService<IOptions<RazorViewEngineOptions>>();
@@ -205,67 +197,62 @@ namespace Microsoft.Framework.DependencyInjection
             }));
 
             // The host is designed to be discarded after consumption and is very inexpensive to initialize.
-            services.TryAdd(ServiceDescriptor.Transient<IMvcRazorHost, MvcRazorHost>());
+            services.TryAddTransient<IMvcRazorHost, MvcRazorHost>();
 
             // Caches compilation artifacts across the lifetime of the application.
-            services.TryAdd(ServiceDescriptor.Singleton<ICompilerCache, CompilerCache>());
+            services.TryAddSingleton<ICompilerCache, CompilerCache>();
 
             // This caches compilation related details that are valid across the lifetime of the application
             // and is required to be a singleton.
-            services.TryAdd(ServiceDescriptor.Singleton<ICompilationService, RoslynCompilationService>());
+            services.TryAddSingleton<ICompilationService, RoslynCompilationService>();
 
             // Both the compiler cache and roslyn compilation service hold on the compilation related
             // caches. RazorCompilation service is just an adapter service, and it is transient to ensure
             // the IMvcRazorHost dependency does not maintain state.
-            services.TryAdd(ServiceDescriptor.Transient<IRazorCompilationService, RazorCompilationService>());
+            services.TryAddTransient<IRazorCompilationService, RazorCompilationService>();
 
             // The ViewStartProvider needs to be able to consume scoped instances of IRazorPageFactory
-            services.TryAdd(ServiceDescriptor.Scoped<IViewStartProvider, ViewStartProvider>());
-            services.TryAdd(ServiceDescriptor.Transient<IRazorViewFactory, RazorViewFactory>());
-            services.TryAdd(ServiceDescriptor.Singleton<IRazorPageActivator, RazorPageActivator>());
+            services.TryAddScoped<IViewStartProvider, ViewStartProvider>();
+            services.TryAddTransient<IRazorViewFactory, RazorViewFactory>();
+            services.TryAddSingleton<IRazorPageActivator, RazorPageActivator>();
 
             // Virtual path view factory needs to stay scoped so views can get get scoped services.
-            services.TryAdd(ServiceDescriptor.Scoped<IRazorPageFactory, VirtualPathRazorPageFactory>());
+            services.TryAddScoped<IRazorPageFactory, VirtualPathRazorPageFactory>();
 
             // View and rendering helpers
-            services.TryAdd(ServiceDescriptor.Transient<IHtmlHelper, HtmlHelper>());
-            services.TryAdd(ServiceDescriptor.Transient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>)));
-            services.TryAdd(ServiceDescriptor.Transient<IJsonHelper, JsonHelper>());
+            services.TryAddTransient<IHtmlHelper, HtmlHelper>();
+            services.TryAddTransient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>));
+            services.TryAddTransient<IJsonHelper, JsonHelper>();
 
             // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
-            services.TryAdd(ServiceDescriptor.Singleton<ITagHelperActivator, DefaultTagHelperActivator>());
+            services.TryAddSingleton<ITagHelperActivator, DefaultTagHelperActivator>();
 
             // Consumed by the Cache tag helper to cache results across the lifetime of the application.
-            services.TryAdd(ServiceDescriptor.Singleton<IMemoryCache, MemoryCache>());
+            services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
             // DefaultHtmlGenerator is pretty much stateless but depends on Scoped services such as IUrlHelper and
             // IActionBindingContextProvider. Therefore it too is scoped.
-            services.TryAdd(ServiceDescriptor.Transient<IHtmlGenerator, DefaultHtmlGenerator>());
+            services.TryAddTransient<IHtmlGenerator, DefaultHtmlGenerator>();
 
             // These do caching so they should stay singleton
-            services.TryAdd(ServiceDescriptor.Singleton<IViewComponentSelector, DefaultViewComponentSelector>());
-            services.TryAdd(ServiceDescriptor.Singleton<IViewComponentActivator, DefaultViewComponentActivator>());
-            services.TryAdd(ServiceDescriptor.Singleton<
-                IViewComponentDescriptorCollectionProvider,
-                DefaultViewComponentDescriptorCollectionProvider>());
+            services.TryAddSingleton<IViewComponentSelector, DefaultViewComponentSelector>();
+            services.TryAddSingleton<IViewComponentActivator, DefaultViewComponentActivator>();
+            services.TryAddSingleton<
+                IViewComponentDescriptorCollectionProvider, 
+                DefaultViewComponentDescriptorCollectionProvider>();
 
-            services.TryAdd(ServiceDescriptor
-                .Transient<IViewComponentDescriptorProvider, DefaultViewComponentDescriptorProvider>());
-            services.TryAdd(ServiceDescriptor
-                .Transient<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>());
-            services.TryAdd(ServiceDescriptor.Transient<IViewComponentHelper, DefaultViewComponentHelper>());
+            services.TryAddTransient<IViewComponentDescriptorProvider, DefaultViewComponentDescriptorProvider>();
+            services.TryAddTransient<IViewComponentInvokerFactory, DefaultViewComponentInvokerFactory>();
+            services.TryAddTransient<IViewComponentHelper, DefaultViewComponentHelper>();
 
             // Security and Authorization
-            services.TryAdd(ServiceDescriptor.Singleton<IClaimUidExtractor, DefaultClaimUidExtractor>());
-            services.TryAdd(ServiceDescriptor.Singleton<AntiForgery, AntiForgery>());
-            services.TryAdd(ServiceDescriptor
-                .Singleton<IAntiForgeryAdditionalDataProvider, DefaultAntiForgeryAdditionalDataProvider>());
+            services.TryAddSingleton<IClaimUidExtractor, DefaultClaimUidExtractor>();
+            services.TryAddSingleton<AntiForgery, AntiForgery>();
+            services.TryAddSingleton<IAntiForgeryAdditionalDataProvider, DefaultAntiForgeryAdditionalDataProvider>();
 
             // Api Description
-            services.TryAdd(ServiceDescriptor
-                .Singleton<IApiDescriptionGroupCollectionProvider, ApiDescriptionGroupCollectionProvider>());
-            TryAddMultiRegistrationService(
-                services,
+            services.TryAddSingleton<IApiDescriptionGroupCollectionProvider, ApiDescriptionGroupCollectionProvider>();
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApiDescriptionProvider, DefaultApiDescriptionProvider>());
         }
 
@@ -295,27 +282,6 @@ namespace Microsoft.Framework.DependencyInjection
             });
 
             return services;
-        }
-
-        // Adds a service if the service type and implementation type hasn't been added yet. This is needed for
-        // services like IConfigureOptions<MvcOptions> or IApplicationModelProvider where you need the ability
-        // to register multiple implementation types for the same service type.
-        private static bool TryAddMultiRegistrationService(IServiceCollection services, ServiceDescriptor descriptor)
-        {
-            // This can't work when registering a factory or instance, you have to register a type.
-            // Additionally, if any existing registrations use a factory or instance, we can't check those, but we don't
-            // assert that because it might be added by user-code.
-            Debug.Assert(descriptor.ImplementationType != null);
-
-            if (services.Any(d =>
-                d.ServiceType == descriptor.ServiceType &&
-                d.ImplementationType == descriptor.ImplementationType))
-            {
-                return false;
-            }
-
-            services.Add(descriptor);
-            return true;
         }
 
         private static void ConfigureDefaultServices(IServiceCollection services)
