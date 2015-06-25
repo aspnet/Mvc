@@ -8,7 +8,7 @@ using Microsoft.Framework.DependencyInjection;
 namespace Microsoft.AspNet.Mvc
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class ValidateAntiforgeryTokenAttribute : Attribute, IFilterFactory, IOrderedFilter
+    public class ValidateAntiForgeryTokenAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
         public int Order { get; set; }
 

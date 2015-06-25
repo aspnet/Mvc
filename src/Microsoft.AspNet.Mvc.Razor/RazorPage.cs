@@ -783,7 +783,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// section. However the value does not represent the rendered content.
         /// This method also writes out headers, so any modifications to headers must be done before
         /// <see cref="FlushAsync"/> is called. For example, call <see cref="SetAntiforgeryCookieAndHeader"/> to send
-        /// anti-forgery cookie token and X-Frame-Options header to client before this method flushes headers out.
+        /// antiforgery cookie token and X-Frame-Options header to client before this method flushes headers out.
         /// </remarks>
         public async Task<HtmlString> FlushAsync()
         {
@@ -844,10 +844,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Sets anti-forgery cookie and X-Frame-Options header on the response.
+        /// Sets antiforgery cookie and X-Frame-Options header on the response.
         /// </summary>
         /// <returns>A <see cref="HtmlString"/> that returns a <see cref="HtmlString.Empty"/>.</returns>
-        /// <remarks> Call this method to send anti-forgery cookie token and X-Frame-Options header to client
+        /// <remarks> Call this method to send antiforgery cookie token and X-Frame-Options header to client
         /// before <see cref="FlushAsync"/> flushes the headers. </remarks>
         public virtual HtmlString SetAntiforgeryCookieAndHeader()
         {

@@ -99,11 +99,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object htmlAttributes);
 
         /// <summary>
-        /// Returns a &lt;hidden&gt; element (anti-forgery token) that will be validated when the containing
+        /// Returns a &lt;hidden&gt; element (antiforgery token) that will be validated when the containing
         /// &lt;form&gt; is submitted.
         /// </summary>
         /// <returns>A new <see cref="HtmlString"/> containing the &lt;hidden&gt; element.</returns>
-        HtmlString AntiforgeryToken();
+        HtmlString AntiForgeryToken();
 
         /// <summary>
         /// Renders a &lt;form&gt; start tag to the response. When the user submits the form, the action with name

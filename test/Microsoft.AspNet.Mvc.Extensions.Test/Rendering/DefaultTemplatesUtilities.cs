@@ -237,7 +237,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             if (htmlGenerator == null)
             {
                 htmlGenerator = new DefaultHtmlGenerator(
-                    GetAntiforgeryInstance(),
+                    Mock.Of<IAntiforgery>(),
                     optionsAccessor.Object,
                     provider,
                     urlHelper,
@@ -306,11 +306,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 .Returns(ViewEngineResult.Found("MyView", view.Object));
 
             return viewEngine.Object;
-        }
-
-        private static IAntiforgery GetAntiforgeryInstance()
-        {
-            return Mock.Of<IAntiforgery>();
         }
 
         private static string FormatOutput(ModelExplorer modelExplorer)

@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "asp-action", "index" },
                     { "asp-controller", "home" },
                     { "method", "post" },
-                    { "asp-anti-forgery", true }
+                    { "asp-antiforgery", true }
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",

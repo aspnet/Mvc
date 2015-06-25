@@ -11,7 +11,7 @@
     <OutputPath Condition="'$(OutputPath)'=='' ">..\..\..\artifacts\bin\$(MSBuildProjectName)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <RootNamespace>AntiforgeryWebSite</RootNamespace>
+    <RootNamespace>AntiforgeryTokenWebSite</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>

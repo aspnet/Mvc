@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     public class FormTagHelper : TagHelper
     {
         private const string ActionAttributeName = "asp-action";
-        private const string AntiforgeryAttributeName = "asp-anti-forgery";
+        private const string AntiforgeryAttributeName = "asp-antiforgery";
         private const string ControllerAttributeName = "asp-controller";
         private const string RouteAttributeName = "asp-route";
         private const string RouteValuesDictionaryName = "asp-all-route-data";
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public string Controller { get; set; }
 
         /// <summary>
-        /// Whether the anti-forgery token should be generated.
+        /// Whether the antiforgery token should be generated.
         /// </summary>
         /// <value>Defaults to <c>false</c> if user provides an <c>action</c> attribute; <c>true</c> otherwise.</value>
         [HtmlAttributeName(AntiforgeryAttributeName)]
@@ -107,8 +107,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                             RouteValuesPrefix));
                 }
 
-                // User is using the FormTagHelper like a normal <form> tag. Anti-forgery default should be false to
-                // not force the anti-forgery token on the user.
+                // User is using the FormTagHelper like a normal <form> tag. Antiforgery default should be false to
+                // not force the antiforgery token on the user.
                 antiforgeryDefault = false;
             }
             else

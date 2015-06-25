@@ -219,7 +219,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString AntiforgeryToken()
+        public HtmlString AntiForgeryToken()
         {
             var html = _htmlGenerator.GenerateAntiforgery(ViewContext);
             return html ?? HtmlString.Empty;

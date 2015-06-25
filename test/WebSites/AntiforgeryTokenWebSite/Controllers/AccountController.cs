@@ -26,7 +26,7 @@ namespace AntiforgeryTokenWebSite
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiforgeryToken]
+        [ValidateAntiForgeryToken]
         public string Login(LoginViewModel model)
         {
             return "OK";
@@ -44,7 +44,7 @@ namespace AntiforgeryTokenWebSite
         // POST: /Account/FlushAsyncLogin
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiforgeryToken]
+        [ValidateAntiForgeryToken]
         public string FlushAsyncLogin(LoginViewModel model)
         {
             return "OK";

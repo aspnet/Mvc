@@ -13,7 +13,7 @@
         <section id="loginForm">
             @using (Html.BeginForm("FlushAsyncLogin", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
             {
-                @Html.AntiforgeryToken()
+                @Html.AntiForgeryToken()
                 <h4>Use a local account to log in.</h4>
                 <hr />
                 @Html.ValidationSummary(true)

@@ -946,7 +946,7 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
-            public HtmlString AntiforgeryToken()
+            public HtmlString AntiForgeryToken()
             {
                 throw new NotImplementedException();
             }

@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             IOptions<MvcViewOptions> options,
             IUrlHelper urlHelper,
             IDictionary<string, object> validationAttributes)
-            : base(GetAntiforgery(), options, metadataProvider, urlHelper, new CommonTestEncoder())
+            : base(Mock.Of<IAntiforgery>(), options, metadataProvider, urlHelper, new CommonTestEncoder())
         {
             _validationAttributes = validationAttributes;
         }
@@ -101,10 +101,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(new MvcViewOptions());
 
             return mockOptions.Object;
-        }
-        private static IAntiforgery GetAntiforgery()
-        {
-            return Mock.Of<IAntiforgery>();
         }
     }
 }
