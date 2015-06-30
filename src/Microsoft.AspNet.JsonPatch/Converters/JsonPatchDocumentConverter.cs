@@ -1,7 +1,8 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNet.JsonPatch.Exceptions;
 using Microsoft.AspNet.JsonPatch.Operations;
 using Newtonsoft.Json;
@@ -20,10 +21,8 @@ namespace Microsoft.AspNet.JsonPatch.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, 
             JsonSerializer serializer)
         {
-
             try
             {
-
                 if (reader.TokenType == JsonToken.Null)
                     return null;
 
@@ -49,7 +48,6 @@ namespace Microsoft.AspNet.JsonPatch.Converters
                 var container = Activator.CreateInstance(objectType, targetOperations, new DefaultContractResolver());
 
                 return container;
-
             }
             catch (Exception ex)
             {
@@ -67,7 +65,6 @@ namespace Microsoft.AspNet.JsonPatch.Converters
 
                 // write out the operations, no envelope
                 serializer.Serialize(writer, lst);
-
             }
         }
     }

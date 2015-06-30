@@ -10,10 +10,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
     /// </summary>  
     public interface IObjectAdapter    
     {
-        void Add(Operation operation, dynamic objectToApplyTo);
-        void Copy(Operation operation, dynamic objectToApplyTo);
-        void Move(Operation operation, dynamic objectToApplyTo);
-        void Remove(Operation operation, dynamic objectToApplyTo);
-        void Replace(Operation operation, dynamic objectToApplyTo);
+        void Add(Operation operation, object objectToApplyTo);
+        void Copy(Operation operation, object objectToApplyTo);
+        void Move(Operation operation, object objectToApplyTo);
+        void Remove(Operation operation, object objectToApplyTo);
+        void Replace(Operation operation, object objectToApplyTo);
     }
 }

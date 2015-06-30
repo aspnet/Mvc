@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The add operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Add(Operation operation, dynamic objectToApplyTo)
+        public void Add(Operation operation, object objectToApplyTo)
         {
             Add(operation.path, operation.value, objectToApplyTo, operation);
         }
@@ -399,7 +399,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The move operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Move(Operation operation, dynamic objectToApplyTo)
+        public void Move(Operation operation, object objectToApplyTo)
         {
             var valueAtFromLocation = GetValueAtLocation(operation.from, objectToApplyTo, operation);
 
@@ -424,7 +424,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The remove operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Remove(Operation operation, dynamic objectToApplyTo)
+        public void Remove(Operation operation, object objectToApplyTo)
         {
             Remove(operation.path, objectToApplyTo, operation);
         }
@@ -683,7 +683,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The replace operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Replace(Operation operation, dynamic objectToApplyTo)
+        public void Replace(Operation operation, object objectToApplyTo)
         {
             var typeOfRemovedProperty = Remove(operation.path, objectToApplyTo, operation);
 
@@ -724,7 +724,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The copy operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Copy(Operation operation, dynamic objectToApplyTo)
+        public void Copy(Operation operation, object objectToApplyTo)
         {
             // get value at from location and add that value to the path location
             Add(operation.path, GetValueAtLocation(operation.from, objectToApplyTo, operation)
@@ -733,7 +733,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
 
 
-        private object GetValueAtLocation(string location, dynamic objectToGetValueFrom, Operation operationToReport)
+        private object GetValueAtLocation(string location, object objectToGetValueFrom, Operation operationToReport)
         {
             // get value from "objectToGetValueFrom" at location "location"
             object valueAtLocation = null;
