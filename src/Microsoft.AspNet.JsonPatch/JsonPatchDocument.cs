@@ -148,18 +148,18 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
 
-        public void ApplyTo(dynamic objectToApplyTo)           
+        public void ApplyTo(object objectToApplyTo)           
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction: null));
         }
 
-        public void ApplyTo(dynamic objectToApplyTo, Action<JsonPatchError> logErrorAction)
+        public void ApplyTo(object objectToApplyTo, Action<JsonPatchError> logErrorAction)
           
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction));
         }
 
-        public void ApplyTo(dynamic objectToApplyTo, IObjectAdapter adapter)            
+        public void ApplyTo(object objectToApplyTo, IObjectAdapter adapter)            
         {
             // apply each operation in order
             foreach (var op in Operations)
