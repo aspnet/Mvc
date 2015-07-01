@@ -8,6 +8,7 @@ using Microsoft.AspNet.JsonPatch.Adapters;
 using Microsoft.AspNet.JsonPatch.Converters;
 using Microsoft.AspNet.JsonPatch.Helpers;
 using Microsoft.AspNet.JsonPatch.Operations;
+using Microsoft.Framework.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -32,7 +33,9 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         // Create from list of operations
-        public JsonPatchDocument(List<Operation<TModel>> operations, IContractResolver contractResolver)
+        public JsonPatchDocument(
+            [NotNull] List<Operation<TModel>> operations,
+            [NotNull] IContractResolver contractResolver)
         {
             Operations = operations;
             ContractResolver = contractResolver;
@@ -46,7 +49,7 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path">path</param>
         /// <param name="value">value</param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Add<TProp>(Expression<Func<TModel, TProp>> path, TProp value)
+        public JsonPatchDocument<TModel> Add<TProp>([NotNull] Expression<Func<TModel, TProp>> path, TProp value)
         {
             Operations.Add(new Operation<TModel>(
                 "add",
@@ -66,8 +69,7 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="position">position</param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Add<TProp>(
-            Expression<Func<TModel,
-            IList<TProp>>> path,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
             TProp value,
             int position)
         {
@@ -87,7 +89,7 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path">path</param>
         /// <param name="value">value</param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Add<TProp>(Expression<Func<TModel, IList<TProp>>> path, TProp value)
+        public JsonPatchDocument<TModel> Add<TProp>([NotNull] Expression<Func<TModel, IList<TProp>>> path, TProp value)
         {
             Operations.Add(new Operation<TModel>(
                 "add",
@@ -105,9 +107,10 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="remove"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Remove<TProp>(Expression<Func<TModel, TProp>> path)
+        public JsonPatchDocument<TModel> Remove<TProp>([NotNull] Expression<Func<TModel, TProp>> path)
         {
-            Operations.Add(new Operation<TModel>("remove", ExpressionHelpers.GetPath(path).ToLowerInvariant(), from: null));
+            Operations.Add(
+                new Operation<TModel>("remove", ExpressionHelpers.GetPath(path).ToLowerInvariant(), from: null));
 
             return this;
         }
@@ -119,7 +122,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path">target location</param>
         /// <param name="position">position</param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Remove<TProp>(Expression<Func<TModel, IList<TProp>>> path, int position)
+        public JsonPatchDocument<TModel> Remove<TProp>(
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
+            int position)
         {
             Operations.Add(new Operation<TModel>(
                 "remove",
@@ -135,7 +140,7 @@ namespace Microsoft.AspNet.JsonPatch
         /// <typeparam name="TProp">value type</typeparam>
         /// <param name="path">target location</param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Remove<TProp>(Expression<Func<TModel, IList<TProp>>> path)
+        public JsonPatchDocument<TModel> Remove<TProp>([NotNull] Expression<Func<TModel, IList<TProp>>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "remove",
@@ -152,7 +157,7 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Replace<TProp>(Expression<Func<TModel, TProp>> path, TProp value)
+        public JsonPatchDocument<TModel> Replace<TProp>([NotNull] Expression<Func<TModel, TProp>> path, TProp value)
         {
             Operations.Add(new Operation<TModel>(
                 "replace",
@@ -171,8 +176,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="position">position</param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Replace<TProp>(
-            Expression<Func<TModel, IList<TProp>>> path,
-            TProp value, int position)
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
+            TProp value,
+            int position)
         {
             Operations.Add(new Operation<TModel>(
                 "replace",
@@ -189,7 +195,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <typeparam name="TProp">value type</typeparam>
         /// <param name="path">target location</param>
         /// <returns></returns>
-        public JsonPatchDocument<TModel> Replace<TProp>(Expression<Func<TModel, IList<TProp>>> path, TProp value)
+        public JsonPatchDocument<TModel> Replace<TProp>(
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
+            TProp value)
         {
             Operations.Add(new Operation<TModel>(
                 "replace",
@@ -208,8 +216,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Move<TProp>(
-            Expression<Func<TModel, TProp>> from,
-            Expression<Func<TModel, TProp>> path)
+            [NotNull] Expression<Func<TModel, TProp>> from,
+            [NotNull] Expression<Func<TModel, TProp>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "move",
@@ -228,9 +236,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Move<TProp>(
-            Expression<Func<TModel, IList<TProp>>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> from,
             int positionFrom,
-            Expression<Func<TModel, TProp>> path)
+            [NotNull] Expression<Func<TModel, TProp>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "move",
@@ -249,8 +257,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Move<TProp>(
-            Expression<Func<TModel, TProp>> from,
-            Expression<Func<TModel, IList<TProp>>> path,
+            [NotNull] Expression<Func<TModel, TProp>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
             int positionTo)
         {
             Operations.Add(new Operation<TModel>(
@@ -270,9 +278,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Move<TProp>(
-            Expression<Func<TModel, IList<TProp>>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> from,
             int positionFrom,
-            Expression<Func<TModel, IList<TProp>>> path,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
             int positionTo)
         {
             Operations.Add(new Operation<TModel>(
@@ -292,9 +300,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Move<TProp>(
-            Expression<Func<TModel, IList<TProp>>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> from,
             int positionFrom,
-            Expression<Func<TModel, IList<TProp>>> path)
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "move",
@@ -313,8 +321,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Move<TProp>(
-            Expression<Func<TModel, TProp>> from,
-            Expression<Func<TModel, IList<TProp>>> path)
+            [NotNull] Expression<Func<TModel, TProp>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "move",
@@ -332,8 +340,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Copy<TProp>(
-            Expression<Func<TModel, TProp>> from,
-            Expression<Func<TModel, TProp>> path)
+            [NotNull] Expression<Func<TModel, TProp>> from,
+            [NotNull] Expression<Func<TModel, TProp>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "copy",
@@ -352,9 +360,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Copy<TProp>(
-            Expression<Func<TModel, IList<TProp>>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> from,
             int positionFrom,
-            Expression<Func<TModel, TProp>> path)
+            [NotNull] Expression<Func<TModel, TProp>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "copy",
@@ -373,8 +381,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Copy<TProp>(
-            Expression<Func<TModel, TProp>> from,
-            Expression<Func<TModel, IList<TProp>>> path,
+            [NotNull] Expression<Func<TModel, TProp>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
             int positionTo)
         {
             Operations.Add(new Operation<TModel>(
@@ -394,9 +402,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Copy<TProp>(
-            Expression<Func<TModel, IList<TProp>>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> from,
             int positionFrom,
-            Expression<Func<TModel, IList<TProp>>> path,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path,
             int positionTo)
         {
             Operations.Add(new Operation<TModel>(
@@ -416,10 +424,9 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Copy<TProp>(
-            Expression<Func<TModel,
-            IList<TProp>>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> from,
             int positionFrom,
-            Expression<Func<TModel, IList<TProp>>> path)
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "copy",
@@ -438,8 +445,8 @@ namespace Microsoft.AspNet.JsonPatch
         /// <param name="path"></param>
         /// <returns></returns>
         public JsonPatchDocument<TModel> Copy<TProp>(
-            Expression<Func<TModel, TProp>> from,
-            Expression<Func<TModel, IList<TProp>>> path)
+            [NotNull] Expression<Func<TModel, TProp>> from,
+            [NotNull] Expression<Func<TModel, IList<TProp>>> path)
         {
             Operations.Add(new Operation<TModel>(
                 "copy",
@@ -449,17 +456,17 @@ namespace Microsoft.AspNet.JsonPatch
             return this;
         }
 
-        public void ApplyTo(TModel objectToApplyTo)
+        public void ApplyTo([NotNull] TModel objectToApplyTo)
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction: null));
         }
 
-        public void ApplyTo(TModel objectToApplyTo, Action<JsonPatchError<TModel>> logErrorAction)
+        public void ApplyTo([NotNull] TModel objectToApplyTo, Action<JsonPatchError<TModel>> logErrorAction)
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction));
         }
 
-        public void ApplyTo(TModel objectToApplyTo, IObjectAdapter<TModel> adapter)
+        public void ApplyTo([NotNull] TModel objectToApplyTo, [NotNull] IObjectAdapter<TModel> adapter)
         {
             // apply each operation in order
             foreach (var op in Operations)

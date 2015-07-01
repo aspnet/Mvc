@@ -22,7 +22,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="contractResolver">The <see cref="IContractResolver"/>.</param>
         /// <param name="logErrorAction">The <see cref="Action"/> for logging <see cref="JsonPatchError{TModel}"/>.</param>
-        public ObjectAdapter(IContractResolver contractResolver, Action<JsonPatchError<TModel>> logErrorAction)
+        public ObjectAdapter(
+            [NotNull] IContractResolver contractResolver,
+            Action<JsonPatchError<TModel>> logErrorAction)
         {
             ContractResolver = contractResolver;
             LogErrorAction = logErrorAction;
@@ -98,7 +100,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The add operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Add(Operation<TModel> operation, TModel objectToApplyTo)
+        public void Add([NotNull] Operation<TModel> operation, [NotNull] TModel objectToApplyTo)
         {
             Add(operation.path, operation.value, objectToApplyTo, operation);
         }
@@ -107,7 +109,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Add is used by various operations (eg: add, copy, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
-        private void Add(string path, object value, TModel objectToApplyTo, Operation<TModel> operationToReport)
+        private void Add(
+            [NotNull] string path,
+            object value,
+            [NotNull] TModel objectToApplyTo,
+            [NotNull] Operation<TModel> operationToReport)
         {
             // add, in this implementation, does not just "add" properties - that's
             // technically impossible;  It can however be used to add items to arrays,
@@ -238,7 +244,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The move operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Move(Operation<TModel> operation, TModel objectToApplyTo)
+        public void Move([NotNull] Operation<TModel> operation, [NotNull] TModel objectToApplyTo)
         {
             // get value at from location
             object valueAtFromLocation = null;
@@ -323,7 +329,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The remove operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Remove(Operation<TModel> operation, TModel objectToApplyTo)
+        public void Remove([NotNull] Operation<TModel> operation, [NotNull] TModel objectToApplyTo)
         {
             Remove(operation.path, objectToApplyTo, operation);
         }
@@ -332,7 +338,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Remove is used by various operations (eg: remove, move, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
-        private void Remove(string path, TModel objectToApplyTo, Operation<TModel> operationToReport)
+        private void Remove(
+            [NotNull] string path,
+            [NotNull] TModel objectToApplyTo,
+            [NotNull] Operation<TModel> operationToReport)
         {
             var removeFromList = false;
             var positionAsInteger = -1;
@@ -443,7 +452,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The replace operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Replace(Operation<TModel> operation, TModel objectToApplyTo)
+        public void Replace([NotNull] Operation<TModel> operation, [NotNull] TModel objectToApplyTo)
         {
             Remove(operation.path, objectToApplyTo, operation);
             Add(operation.path, operation.value, objectToApplyTo, operation);
@@ -471,7 +480,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// </summary>
         /// <param name="operation">The copy operation.</param>
         /// <param name="objectApplyTo">Object to apply the operation to.</param>
-        public void Copy(Operation<TModel> operation, TModel objectToApplyTo)
+        public void Copy([NotNull] Operation<TModel> operation, [NotNull] TModel objectToApplyTo)
         {
             // get value at from location
             object valueAtFromLocation = null;
@@ -542,9 +551,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
         private bool CheckIfPropertyExists(
             JsonPatchProperty patchProperty,
-            TModel objectToApplyTo,
-            Operation<TModel> operation,
-            string propertyPath)
+            [NotNull] TModel objectToApplyTo,
+            [NotNull] Operation<TModel> operation,
+            [NotNull] string propertyPath)
         {
             if (patchProperty == null)
             {
@@ -569,7 +578,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return true;
         }
 
-        private bool IsNonStringArray(Type type)
+        private bool IsNonStringArray([NotNull] Type type)
         {
             if (GetIListType(type) != null)
             {
@@ -580,10 +589,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         }
 
         private bool CheckIfPropertyCanBeSet(
-            ConversionResult result,
-            TModel objectToApplyTo,
-            Operation<TModel> operation,
-            string path)
+            [NotNull] ConversionResult result,
+            [NotNull] TModel objectToApplyTo,
+            [NotNull] Operation<TModel> operation,
+            [NotNull] string path)
         {
             if (!result.CanBeConverted)
             {
@@ -611,8 +620,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         }
 
         private JsonPatchProperty FindPropertyAndParent(
-            object targetObject,
-            string propertyPath)
+            [NotNull] object targetObject,
+            [NotNull] string propertyPath)
         {
             try
             {
@@ -660,7 +669,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             }
         }
 
-        private ConversionResult ConvertToActualType(Type propertyType, object value)
+        private ConversionResult ConvertToActualType([NotNull] Type propertyType, object value)
         {
             try
             {
@@ -703,7 +712,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return false;
         }
 
-        private int GetNumericEnd(string path)
+        private int GetNumericEnd([NotNull] string path)
         {
             var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
             var castedIndex = -1;
