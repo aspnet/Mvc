@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.JsonPatch.Operations
 
         public bool ShouldSerializefrom()
         {
-            return (OperationType == Operations.OperationType.Move
+            return (OperationType == OperationType.Move
                 || OperationType == OperationType.Copy);
         }
     }

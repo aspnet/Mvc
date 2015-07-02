@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.AspNet.JsonPatch.Exceptions
 {
-    public class JsonPatchException : Exception
+    public abstract class JsonPatchExceptionBase : Exception
     {
         public new Exception InnerException { get; internal set; }
 
@@ -21,11 +21,11 @@ namespace Microsoft.AspNet.JsonPatch.Exceptions
             }
         }
 
-        public JsonPatchException()
+        public JsonPatchExceptionBase()
         {
         }
 
-        public JsonPatchException(string message, Exception innerException)
+        public JsonPatchExceptionBase(string message, Exception innerException)
         {
             _message = message;
             InnerException = innerException;

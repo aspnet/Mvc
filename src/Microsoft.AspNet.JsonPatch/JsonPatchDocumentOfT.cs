@@ -449,17 +449,17 @@ namespace Microsoft.AspNet.JsonPatch
             return this;
         }
 
-        public void ApplyTo(TModel objectToApplyTo)
+        public void ApplyTo(TModel objectToApplyTo)        
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction: null));
+            ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction: null));
         }
 
-        public void ApplyTo(TModel objectToApplyTo, Action<JsonPatchError<TModel>> logErrorAction)
+        public void ApplyTo(TModel objectToApplyTo, Action<JsonPatchError> logErrorAction)
         {
-            ApplyTo(objectToApplyTo, new ObjectAdapter<TModel>(ContractResolver, logErrorAction));
+            ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction));
         }
 
-        public void ApplyTo(TModel objectToApplyTo, IObjectAdapter<TModel> adapter)
+        public void ApplyTo(TModel objectToApplyTo, IObjectAdapter adapter)
         {
             // apply each operation in order
             foreach (var op in Operations)
