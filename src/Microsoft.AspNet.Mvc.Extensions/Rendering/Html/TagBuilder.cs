@@ -78,10 +78,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             // If there are no invalid characters in the string, then we don't have to create the buffer.
-            var i = 0;
-            for (i = 1; i < name.Length; i++)
+            var firstIndexOfInvalidCharacter = 1;
+            for (; firstIndexOfInvalidCharacter < name.Length; firstIndexOfInvalidCharacter++)
             {
-                if (!Html401IdUtil.IsValidIdCharacter(name[i]))
+                if (!Html401IdUtil.IsValidIdCharacter(name[firstIndexOfInvalidCharacter]))
                 {
                     break;
                 }
@@ -95,28 +95,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 firstChar = 'z';
             }
 
-            if (i == name.Length)
+            if (firstIndexOfInvalidCharacter == name.Length && startsWithAsciiLetter)
             {
-                if (startsWithAsciiLetter)
-                {
-                    return name;
-                }
-                else
-                {
-                    return firstChar + name.Substring(1);
-                }
+                return name;
             }
 
             var stringBuffer = new StringBuilder(name.Length);
             stringBuffer.Append(firstChar);
 
-            // Characters until 'i' have already been checked for validity. Hence just copying them.
-            for (var index = 1; index < i; index ++)
+            // Characters until 'firstIndexOfInvalidCharacter' have already been checked for validity.
+            // So just copying them. This avoids running them through Html401IdUtil.IsValidIdCharacter again.
+            for (var index = 1; index < firstIndexOfInvalidCharacter; index ++)
             {
                 stringBuffer.Append(name[index]);
             }
 
-            for (var index = i; index < name.Length; index++)
+            for (var index = firstIndexOfInvalidCharacter; index < name.Length; index++)
             {
                 var thisChar = name[index];
                 if (Html401IdUtil.IsValidIdCharacter(thisChar))
