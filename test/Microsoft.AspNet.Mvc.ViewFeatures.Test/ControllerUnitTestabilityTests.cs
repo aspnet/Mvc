@@ -161,17 +161,17 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             Assert.NotNull(result);
 
-            var fileStreamResult = Assert.IsType<FileStreamResult>(result);
-            Assert.Equal(contentType, fileStreamResult.ContentType.ToString());
-            Assert.Equal(fileName ?? string.Empty, fileStreamResult.FileDownloadName);
+            var streamResult = Assert.IsType<StreamResult>(result);
+            Assert.Equal(contentType, streamResult.ContentType.ToString());
+            Assert.Equal(fileName ?? string.Empty, streamResult.FileDownloadName);
 
             if (content == null)
             {
-                Assert.Null(fileStreamResult.FileStream);
+                Assert.Null(streamResult.Stream);
             }
             else
             {
-                using (var stream = new StreamReader(fileStreamResult.FileStream, Encoding.UTF8))
+                using (var stream = new StreamReader(streamResult.Stream, Encoding.UTF8))
                 {
                     Assert.Equal(content, stream.ReadToEnd());
                 }

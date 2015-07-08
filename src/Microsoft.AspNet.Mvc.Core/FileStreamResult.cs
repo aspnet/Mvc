@@ -13,48 +13,48 @@ namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
     /// Represents an <see cref="ActionResult"/> that when executed will
-    /// write a file from a stream to the response.
+    /// write a stream to the response.
     /// </summary>
-    public class FileStreamResult : FileResult
+    public class StreamResult : FileResult
     {
         // default buffer size as defined in BufferedStream type
         private const int BufferSize = 0x1000;
 
-        private Stream _fileStream;
+        private Stream _stream;
 
         /// <summary>
-        /// Creates a new <see cref="FileStreamResult"/> instance with
+        /// Creates a new <see cref="StreamResult"/> instance with
         /// the provided <paramref name="fileStream"/> and the
         /// provided <paramref name="contentType"/>.
         /// </summary>
-        /// <param name="fileStream">The stream with the file.</param>
+        /// <param name="stream">The stream with the content.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public FileStreamResult([NotNull] Stream fileStream, [NotNull] string contentType)
-            : this(fileStream, new MediaTypeHeaderValue(contentType))
+        public StreamResult([NotNull] Stream stream, [NotNull] string contentType)
+            : this(stream, new MediaTypeHeaderValue(contentType))
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="FileStreamResult"/> instance with
+        /// Creates a new <see cref="StreamResult"/> instance with
         /// the provided <paramref name="fileStream"/> and the
         /// provided <paramref name="contentType"/>.
         /// </summary>
-        /// <param name="fileStream">The stream with the file.</param>
+        /// <param name="stream">The stream with the content.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public FileStreamResult([NotNull] Stream fileStream, [NotNull] MediaTypeHeaderValue contentType)
+        public StreamResult([NotNull] Stream stream, [NotNull] MediaTypeHeaderValue contentType)
             : base(contentType)
         {
-            FileStream = fileStream;
+            Stream = stream;
         }
 
         /// <summary>
-        /// Gets or sets the stream with the file that will be sent back as the response.
+        /// Gets or sets the stream that will be sent back as the response.
         /// </summary>
-        public Stream FileStream
+        public Stream Stream
         {
             get
             {
-                return _fileStream;
+                return _stream;
             }
             set
             {
@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                _fileStream = value;
+                _stream = value;
             }
         }
 
@@ -72,9 +72,9 @@ namespace Microsoft.AspNet.Mvc
         {
             var outputStream = response.Body;
 
-            using (FileStream)
+            using (Stream)
             {
-                await FileStream.CopyToAsync(outputStream, BufferSize, cancellation);
+                await Stream.CopyToAsync(outputStream, BufferSize, cancellation);
             }
         }
     }
