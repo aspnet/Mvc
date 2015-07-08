@@ -15,7 +15,7 @@ using Newtonsoft.Json.Serialization;
 namespace Microsoft.AspNet.JsonPatch.Adapters
 {
     /// <inheritdoc />
-    internal class ObjectAdapter : IObjectAdapter
+    public class ObjectAdapter : IObjectAdapter
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectAdapter"/>.
