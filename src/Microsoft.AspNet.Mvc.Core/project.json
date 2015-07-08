@@ -9,7 +9,6 @@
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Microsoft.AspNet.Authentication": "1.0.0-*",
         "Microsoft.AspNet.Authorization": "1.0.0-*",
         "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-*",
         "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
