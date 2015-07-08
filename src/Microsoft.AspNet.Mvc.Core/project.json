@@ -20,6 +20,7 @@
         "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Framework.PropertyActivator.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.SecurityHelper.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
         "Newtonsoft.Json": "6.0.6"
     },
