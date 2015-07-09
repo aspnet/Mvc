@@ -15,5 +15,8 @@
                 "System.IO": "4.0.10-beta-*"
             }
         }
+    },
+    "dependencies": {
+        "Microsoft.Framework.WebEncoders.Core": "1.0.0-*"
     }
 }

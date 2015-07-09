@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Antiforgery;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -125,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public Action<TextWriter> RenderBodyDelegate { get; set; }
+        public Action<TextWriter, IHtmlEncoder> RenderBodyDelegate { get; set; }
 
         /// <inheritdoc />
         public bool IsLayoutBeingRendered { get; set; }
@@ -268,14 +269,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorWriter = writer as RazorTextWriter;
             if (razorWriter != null)
             {
-                razorWriter.CopyTo(tagHelperContentWrapperTextWriter);
+                razorWriter.CopyTo(tagHelperContentWrapperTextWriter, HtmlEncoder);
             }
             else
             {
                 var stringCollectionTextWriter = writer as StringCollectionTextWriter;
                 if (stringCollectionTextWriter != null)
                 {
-                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter);
+                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter, HtmlEncoder);
                 }
                 else
                 {
@@ -395,7 +396,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="value">The <see cref="object"/> to write.</param>
         /// <remarks>
         /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter)"/> is invoked for <see cref="HelperResult"/> types.
+        /// <see cref="HelperResult.WriteTo(TextWriter, IHtmlEncoder)"/> is invoked for
+        /// <see cref="HelperResult"/> types.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
@@ -416,7 +418,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </param>
         /// <remarks>
         /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter)"/> is invoked for <see cref="HelperResult"/> types.
+        /// <see cref="HelperResult.WriteTo(TextWriter, IHtmlEncoder)"/> is invoked for
+        /// <see cref="HelperResult"/> types.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
@@ -431,15 +434,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return;
             }
 
-            var helperResult = value as HelperResult;
-            if (helperResult != null)
-            {
-                helperResult.WriteTo(writer);
-                return;
-            }
-
-            var htmlString = value as HtmlString;
-            if (htmlString != null)
+            var htmlContent = value as IHtmlContent;
+            if (htmlContent != null)
             {
                 if (escapeQuotes)
                 {
@@ -449,7 +445,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     //
                     // Do not combine following condition with check of escapeQuotes; htmlString.ToString() can be
                     // expensive when the HtmlString is created with a StringCollectionTextWriter.
-                    var stringValue = htmlString.ToString();
+                    var stringValue = htmlContent.ToString();
                     if (stringValue.Contains("\""))
                     {
                         writer.Write(stringValue.Replace("\"", "&quot;"));
@@ -457,7 +453,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     }
                 }
 
-                htmlString.WriteTo(writer);
+                htmlContent.WriteTo(writer, encoder);
                 return;
             }
 

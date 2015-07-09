@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.Framework.Internal;
+using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -205,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (bodyWriter.IsBuffering)
             {
                 // Only copy buffered content to the Output if we're currently buffering.
-                await bodyWriter.CopyToAsync(context.Writer);
+                await bodyWriter.CopyToAsync(context.Writer, new HtmlEncoder());
             }
         }
 

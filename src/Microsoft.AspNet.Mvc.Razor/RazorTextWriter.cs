@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.Internal;
+using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -51,6 +52,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private TextWriter TargetWriter { get; set; }
 
+        private IHtmlEncoder HtmlEncoder { get; set; } = new HtmlEncoder();
+
         /// <inheritdoc />
         public override void Write(char value)
         {
@@ -63,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var htmlString = value as HtmlString;
             if (htmlString != null)
             {
-                htmlString.WriteTo(TargetWriter);
+                htmlString.WriteTo(TargetWriter, HtmlEncoder);
                 return;
             }
 
@@ -168,7 +171,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 IsBuffering = false;
                 TargetWriter = UnbufferedWriter;
-                CopyTo(UnbufferedWriter);
+                CopyTo(UnbufferedWriter, HtmlEncoder);
             }
 
             UnbufferedWriter.Flush();
@@ -186,24 +189,24 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 IsBuffering = false;
                 TargetWriter = UnbufferedWriter;
-                await CopyToAsync(UnbufferedWriter);
+                await CopyToAsync(UnbufferedWriter, HtmlEncoder);
             }
 
             await UnbufferedWriter.FlushAsync();
         }
 
         /// <inheritdoc />
-        public void CopyTo(TextWriter writer)
+        public void CopyTo(TextWriter writer, IHtmlEncoder encoder)
         {
             writer = UnWrapRazorTextWriter(writer);
-            BufferedWriter.CopyTo(writer);
+            BufferedWriter.CopyTo(writer, encoder);
         }
 
         /// <inheritdoc />
-        public Task CopyToAsync(TextWriter writer)
+        public Task CopyToAsync(TextWriter writer, IHtmlEncoder encoder)
         {
             writer = UnWrapRazorTextWriter(writer);
-            return BufferedWriter.CopyToAsync(writer);
+            return BufferedWriter.CopyToAsync(writer, encoder);
         }
 
         private static TextWriter UnWrapRazorTextWriter(TextWriter writer)

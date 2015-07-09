@@ -12,6 +12,7 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.WebEncoders;
 using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -723,7 +724,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(p =>
             {
                 p.Write(new HtmlString("Hello world"));
-                p.Write(new HtmlString(stringCollectionWriter));
+                p.Write(stringCollectionWriter.Content);
             });
             page.ViewContext.Writer = writer;
 
@@ -731,11 +732,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            var buffer = writer.BufferedWriter.Buffer;
-            Assert.Equal(3, buffer.BufferEntries.Count);
-            Assert.Equal("Hello world", buffer.BufferEntries[0]);
-            Assert.Equal("text1", buffer.BufferEntries[1]);
-            Assert.Equal("text2", buffer.BufferEntries[2]);
+            var buffer = writer.BufferedWriter.Content.Entries;
+            Assert.Equal(3, buffer.Count);
+            Assert.Equal("Hello world", buffer[0]);
+            Assert.Equal("text1", buffer[1]);
+            Assert.Equal("text2", buffer[2]);
         }
 
         public static TheoryData<TagHelperOutput, string> WriteTagHelper_InputData
@@ -1387,9 +1388,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 new HtmlHelperOptions());
         }
 
-        private static Action<TextWriter> CreateBodyAction(string value)
+        private static Action<TextWriter, IHtmlEncoder> CreateBodyAction(string value)
         {
-            return writer => writer.Write(value);
+            return (writer, encoder) => writer.Write(value);
         }
 
         public abstract class TestableRazorPage : RazorPage
