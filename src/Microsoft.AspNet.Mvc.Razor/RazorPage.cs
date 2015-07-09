@@ -126,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public Action<TextWriter, IHtmlEncoder> RenderBodyDelegate { get; set; }
+        public Action<TextWriter> RenderBodyDelegate { get; set; }
 
         /// <inheritdoc />
         public bool IsLayoutBeingRendered { get; set; }
@@ -269,7 +269,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorWriter = writer as RazorTextWriter;
             if (razorWriter != null)
             {
-                razorWriter.CopyTo(tagHelperContentWrapperTextWriter, HtmlEncoder);
+                razorWriter.CopyTo(tagHelperContentWrapperTextWriter);
             }
             else
             {

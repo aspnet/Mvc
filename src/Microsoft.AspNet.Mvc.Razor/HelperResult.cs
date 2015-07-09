@@ -14,14 +14,14 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class HelperResult : IHtmlContent
     {
-        private readonly Action<TextWriter, IHtmlEncoder> _action;
+        private readonly Action<TextWriter> _action;
 
         /// <summary>
         /// Creates a new instance of <see cref="HelperResult"/>.
         /// </summary>
         /// <param name="action">The delegate to invoke when
         /// <see cref="WriteTo(TextWriter, IHtmlEncoder)"/> is called.</param>
-        public HelperResult([NotNull] Action<TextWriter, IHtmlEncoder> action)
+        public HelperResult([NotNull] Action<TextWriter> action)
         {
             _action = action;
         }
@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets the delegate to invoke when <see cref="WriteTo(TextWriter, IHtmlEncoder)"/> is called.
         /// </summary>
-        public Action<TextWriter, IHtmlEncoder> WriteAction
+        public Action<TextWriter> WriteAction
         {
             get { return _action; }
         }
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="encoder">The <see cref="IHtmlEncoder"/> to encode the content.</param>
         public virtual void WriteTo([NotNull] TextWriter writer, [NotNull] IHtmlEncoder encoder)
         {
-            _action(writer, encoder);
+            _action(writer);
         }
     }
 }

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Testing;
@@ -89,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             await writer.WriteLineAsync();
 
             // Assert
-            var actual = writer.Content;
+            var actual = writer.Content.Entries;
             Assert.Equal<object>(new[] { newLine, newLine }, actual);
         }
 
@@ -131,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Make sure content was written to the source.
             Assert.Equal(2, source.Content.Entries.Count);
             Assert.Equal(1, target.Content.Entries.Count);
-            var result = Assert.Single(target.Content);
+            var result = Assert.Single(target.Content.Entries);
             var bufferedHtmlContent = Assert.IsType<BufferedHtmlContent>(result);
             Assert.Same(source.Content.Entries, bufferedHtmlContent.Entries);
         }

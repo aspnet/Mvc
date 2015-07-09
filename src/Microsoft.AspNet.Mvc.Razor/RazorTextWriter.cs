@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.WebEncoders;
@@ -52,7 +53,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private TextWriter TargetWriter { get; set; }
 
-        private IHtmlEncoder HtmlEncoder { get; set; } = new HtmlEncoder();
+        [RazorInject]
+        private IHtmlEncoder HtmlEncoder { get; set; }
 
         /// <inheritdoc />
         public override void Write(char value)
@@ -171,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 IsBuffering = false;
                 TargetWriter = UnbufferedWriter;
-                CopyTo(UnbufferedWriter, HtmlEncoder);
+                CopyTo(UnbufferedWriter);
             }
 
             UnbufferedWriter.Flush();
@@ -189,24 +191,24 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 IsBuffering = false;
                 TargetWriter = UnbufferedWriter;
-                await CopyToAsync(UnbufferedWriter, HtmlEncoder);
+                await CopyToAsync(UnbufferedWriter);
             }
 
             await UnbufferedWriter.FlushAsync();
         }
 
         /// <inheritdoc />
-        public void CopyTo(TextWriter writer, IHtmlEncoder encoder)
+        public void CopyTo(TextWriter writer)
         {
             writer = UnWrapRazorTextWriter(writer);
-            BufferedWriter.CopyTo(writer, encoder);
+            BufferedWriter.CopyTo(writer, HtmlEncoder);
         }
 
         /// <inheritdoc />
-        public Task CopyToAsync(TextWriter writer, IHtmlEncoder encoder)
+        public Task CopyToAsync(TextWriter writer)
         {
             writer = UnWrapRazorTextWriter(writer);
-            return BufferedWriter.CopyToAsync(writer, encoder);
+            return BufferedWriter.CopyToAsync(writer, HtmlEncoder);
         }
 
         private static TextWriter UnWrapRazorTextWriter(TextWriter writer)

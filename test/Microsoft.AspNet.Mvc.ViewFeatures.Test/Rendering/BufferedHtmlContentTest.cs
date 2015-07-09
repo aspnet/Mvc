@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.Append("Hello");
 
             // Assert
-            var result = Assert.Single(content);
+            var result = Assert.Single(content.Entries);
             Assert.IsType(typeof(string), result);
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.Append(new char[] { 'h', 'e', 'l', 'l', 'o' }, 0, 5);
 
             // Assert
-            var result = Assert.Single(content);
+            var result = Assert.Single(content.Entries);
             Assert.IsType(typeof(string), result);
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.Append(new TestHtmlContent("Hello"));
 
             // Assert
-            var result = Assert.Single(content);
+            var result = Assert.Single(content.Entries);
             var testHtmlContent = Assert.IsType<TestHtmlContent>(result);
             testHtmlContent.WriteTo(writer, new CommonTestEncoder());
             Assert.Equal("Written from TestHtmlContent: Hello", writer.ToString());
@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.Append("Test");
 
             // Assert
-            Assert.Equal(2, content.Count());
+            Assert.Equal(2, content.Entries.Count());
             content.WriteTo(writer, new CommonTestEncoder());
             Assert.Equal("Written from TestHtmlContent: helloTest", writer.ToString());
         }
@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.Clear();
 
             // Assert
-            Assert.Equal(0, content.Count());
+            Assert.Equal(0, content.Entries.Count());
         }
 
         [Fact]
@@ -105,26 +105,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.WriteTo(writer, new CommonTestEncoder());
 
             // Assert
-            Assert.Equal(2, content.Count());
+            Assert.Equal(2, content.Entries.Count());
             Assert.Equal("Written from TestHtmlContent: HelloTest", writer.ToString());
-        }
-
-        [Fact]
-        public void CanIterateThroughItems()
-        {
-            // Arrange
-            var content = new BufferedHtmlContent();
-            var writer = new StringWriter();
-            content.Append(new TestHtmlContent("Hello"));
-            content.Append("Test");
-
-            // Act & Assert
-            foreach (var item in content)
-            {
-                Assert.True(
-                    typeof(IHtmlContent).IsAssignableFrom(item.GetType()) ||
-                    typeof(string).IsAssignableFrom(item.GetType()));
-            }
         }
 
         private class TestHtmlContent : IHtmlContent

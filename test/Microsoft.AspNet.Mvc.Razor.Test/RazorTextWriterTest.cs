@@ -227,13 +227,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             // Act
             source.Write("Hello world");
             source.Write(new char[1], 0, 1);
-            source.CopyTo(target, new HtmlEncoder());
+            source.CopyTo(target);
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.BufferedWriter.Content.Count());
-            Assert.Equal(1, target.BufferedWriter.Content.Count());
-            Assert.Same(source.BufferedWriter.Content, Assert.Single(target.BufferedWriter.Content));
+            Assert.Equal(2, source.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(1, target.BufferedWriter.Content.Entries.Count());
+            Assert.Same(source.BufferedWriter.Content, Assert.Single(target.BufferedWriter.Content.Entries));
         }
 
         [Fact]
@@ -248,11 +248,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             target.Flush();
             source.Write("Hello world");
             source.Write(new[] { 'a', 'b', 'c', 'd' }, 1, 2);
-            source.CopyTo(target, new HtmlEncoder());
+            source.CopyTo(target);
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.BufferedWriter.Content.Count());
+            Assert.Equal(2, source.BufferedWriter.Content.Entries.Count());
             Assert.Empty(target.BufferedWriter.Content.ToString());
             unbufferedWriter.Verify(v => v.Write("Hello world"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("bc"), Times.Once());
@@ -270,7 +270,7 @@ abc";
             // Act
             source.WriteLine("Hello world");
             source.Write(new[] { 'x', 'a', 'b', 'c' }, 1, 3);
-            source.CopyTo(target, new HtmlEncoder());
+            source.CopyTo(target);
 
             // Assert
             Assert.Equal(expected, target.ToString());
@@ -286,12 +286,12 @@ abc";
             // Act
             source.WriteLine("Hello world");
             source.Write(new[] { 'x', 'a', 'b', 'c' }, 1, 3);
-            await source.CopyToAsync(target, new HtmlEncoder());
+            await source.CopyToAsync(target);
 
             // Assert
-            Assert.Equal(3, source.BufferedWriter.Content.Count());
-            Assert.Equal(1, target.BufferedWriter.Content.Count());
-            Assert.Equal(source.BufferedWriter.Content, Assert.Single(target.BufferedWriter.Content));
+            Assert.Equal(3, source.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(1, target.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(source.BufferedWriter.Content, Assert.Single(target.BufferedWriter.Content.Entries));
         }
 
         //[Fact]
@@ -307,11 +307,11 @@ abc";
             await target.FlushAsync();
             source.WriteLine("Hello from Asp.Net");
             await source.WriteAsync(new[] { 'x', 'y', 'z', 'u' }, 0, 3);
-            await source.CopyToAsync(target, new HtmlEncoder());
+            await source.CopyToAsync(target);
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(3, source.BufferedWriter.Content.Count());
+            Assert.Equal(3, source.BufferedWriter.Content.Entries.Count());
             Assert.Empty(target.BufferedWriter.Content.ToString());
             unbufferedWriter.Verify(v => v.WriteAsync("Hello from Asp.Net"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteAsync(Environment.NewLine), Times.Once());
@@ -330,7 +330,7 @@ abc";
             // Act
             source.Write("Hello ");
             await source.WriteLineAsync(new[] { 'w', 'o', 'r', 'l', 'd' });
-            await source.CopyToAsync(target, new HtmlEncoder());
+            await source.CopyToAsync(target);
 
             // Assert
             Assert.Equal(expected, target.ToString());

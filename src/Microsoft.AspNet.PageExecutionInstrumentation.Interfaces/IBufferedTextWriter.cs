@@ -3,7 +3,6 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -21,15 +20,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Copies the buffered content to the <paramref name="writer"/>.
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/> to copy the contents to.</param>
-        /// <param name="encoder">The <see cref="IHtmlEncoder"/> which encodes the content to be written.</param>
-        void CopyTo(TextWriter writer, IHtmlEncoder encoder);
+        void CopyTo(TextWriter writer);
 
         /// <summary>
         /// Asynchronously copies the buffered content to the <paramref name="writer"/>.
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/> to copy the contents to.</param>
-        /// <param name="encoder">The <see cref="IHtmlEncoder"/> which encodes the content to be written.</param>
         /// <returns>A <see cref="Task"/> representing the copy operation.</returns>
-        Task CopyToAsync(TextWriter writer, IHtmlEncoder encoder);
+        Task CopyToAsync(TextWriter writer);
     }
 }

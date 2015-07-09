@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// <summary>
     /// Enumerable object collection which knows how to write itself.
     /// </summary>
-    public class BufferedHtmlContent : IHtmlContent, IEnumerable<object>
+    public class BufferedHtmlContent : IHtmlContent
     {
         private const int MaxCharToStringLength = 1024;
         // This is not List<IHtmlContent> because that would lead to boxing all strings to IHtmlContent
@@ -91,17 +91,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var entryAsString = entry as string;
                 if (entryAsString != null)
                 {
-                    // encoder.HtmlEncode(entryAsString, writer);
                     writer.Write(entryAsString);
                 }
                 else
                 {
                     // Only string, IHtmlContent values can be added to the buffer.
-                    var entryAsIHtmlContent = (IHtmlContent)entry;
-                    if (entryAsIHtmlContent != null)
-                    {
-                        entryAsIHtmlContent.WriteTo(writer, encoder);
-                    }
+                    ((IHtmlContent)entry).WriteTo(writer, encoder);
                 }
             }
         }
@@ -114,18 +109,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 WriteTo(writer, new HtmlEncoder());
                 return writer.ToString();
             }
-        }
-
-        /// <inheritdoc />
-        public IEnumerator<object> GetEnumerator()
-        {
-            return Entries.GetEnumerator();
-        }
-
-        /// <inheritdoc />
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

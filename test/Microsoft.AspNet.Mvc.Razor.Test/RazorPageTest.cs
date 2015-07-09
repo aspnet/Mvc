@@ -12,7 +12,6 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.WebEncoders;
 using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -1388,9 +1387,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 new HtmlHelperOptions());
         }
 
-        private static Action<TextWriter, IHtmlEncoder> CreateBodyAction(string value)
+        private static Action<TextWriter> CreateBodyAction(string value)
         {
-            return (writer, encoder) => writer.Write(value);
+            return (writer) => writer.Write(value);
         }
 
         public abstract class TestableRazorPage : RazorPage
