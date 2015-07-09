@@ -77,8 +77,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsType(typeof(FormCollection), result.Model);
-            Assert.Empty((FormCollection)result.Model);
+            Assert.IsType(typeof(IFormCollection), result.Model);
+            Assert.Empty((IFormCollection)result.Model);
         }
 
         [Fact]
