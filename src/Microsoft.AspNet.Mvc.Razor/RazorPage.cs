@@ -316,7 +316,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var tagHelperOutput = tagHelperExecutionContext.Output;
             var isTagNameNullOrWhitespace = string.IsNullOrWhiteSpace(tagHelperOutput.TagName);
 
-            WriteTagHelperContentTo(writer, tagHelperOutput.PreElement);
+            WriteTo(writer, tagHelperOutput.PreElement);
 
             if (!isTagNameNullOrWhitespace)
             {
@@ -346,22 +346,22 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             if (isTagNameNullOrWhitespace || !tagHelperOutput.SelfClosing)
             {
-                WriteTagHelperContentTo(writer, tagHelperOutput.PreContent);
+                WriteTo(writer, tagHelperOutput.PreContent);
                 if (tagHelperOutput.IsContentModified)
                 {
-                    WriteTagHelperContentTo(writer, tagHelperOutput.Content);
+                    WriteTo(writer, tagHelperOutput.Content);
                 }
                 else if (tagHelperExecutionContext.ChildContentRetrieved)
                 {
                     var childContent = await tagHelperExecutionContext.GetChildContentAsync();
-                    WriteTagHelperContentTo(writer, childContent);
+                    WriteTo(writer, childContent);
                 }
                 else
                 {
                     await tagHelperExecutionContext.ExecuteChildContentAsync();
                 }
 
-                WriteTagHelperContentTo(writer, tagHelperOutput.PostContent);
+                WriteTo(writer, tagHelperOutput.PostContent);
             }
 
             if (!isTagNameNullOrWhitespace && !tagHelperOutput.SelfClosing)
@@ -369,15 +369,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 writer.Write(string.Format(CultureInfo.InvariantCulture, "</{0}>", tagHelperOutput.TagName));
             }
 
-            WriteTagHelperContentTo(writer, tagHelperOutput.PostElement);
-        }
-
-        private void WriteTagHelperContentTo(TextWriter writer, TagHelperContent content)
-        {
-            foreach (var entry in content)
-            {
-                writer.Write(entry);
-            }
+            WriteTo(writer, tagHelperOutput.PostElement);
         }
 
         /// <summary>
