@@ -4,12 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.WebEncoders;
 using Moq;
 using Xunit;
 
@@ -231,8 +228,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.BufferedWriter.Content.Entries.Count());
-            Assert.Equal(1, target.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(2, source.BufferedWriter.Content.Entries.Count);
+            Assert.Equal(1, target.BufferedWriter.Content.Entries.Count);
             Assert.Same(source.BufferedWriter.Content, Assert.Single(target.BufferedWriter.Content.Entries));
         }
 
@@ -252,7 +249,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(2, source.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(2, source.BufferedWriter.Content.Entries.Count);
             Assert.Empty(target.BufferedWriter.Content.ToString());
             unbufferedWriter.Verify(v => v.Write("Hello world"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("bc"), Times.Once());
@@ -289,8 +286,8 @@ abc";
             await source.CopyToAsync(target);
 
             // Assert
-            Assert.Equal(3, source.BufferedWriter.Content.Entries.Count());
-            Assert.Equal(1, target.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(3, source.BufferedWriter.Content.Entries.Count);
+            Assert.Equal(1, target.BufferedWriter.Content.Entries.Count);
             Assert.Equal(source.BufferedWriter.Content, Assert.Single(target.BufferedWriter.Content.Entries));
         }
 
@@ -311,7 +308,7 @@ abc";
 
             // Assert
             // Make sure content was written to the source.
-            Assert.Equal(3, source.BufferedWriter.Content.Entries.Count());
+            Assert.Equal(3, source.BufferedWriter.Content.Entries.Count);
             Assert.Empty(target.BufferedWriter.Content.ToString());
             unbufferedWriter.Verify(v => v.WriteAsync("Hello from Asp.Net"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteAsync(Environment.NewLine), Times.Once());

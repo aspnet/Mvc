@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.WebEncoders;
+using Microsoft.Framework.WebEncoders.Testing;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Rendering
@@ -124,7 +124,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Act
             source.Write("Hello world");
             source.Write(new char[1], 0, 1);
-            source.CopyTo(target, new HtmlEncoder());
+            source.CopyTo(target, new CommonTestEncoder());
 
             // Assert
             // Make sure content was written to the source.
@@ -146,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Act
             source.WriteLine("Hello world");
             source.Write(new[] { 'x', 'a', 'b', 'c' }, 1, 3);
-            source.CopyTo(target, new HtmlEncoder());
+            source.CopyTo(target, new CommonTestEncoder());
 
             // Assert
             Assert.Equal(expected, target.ToString());

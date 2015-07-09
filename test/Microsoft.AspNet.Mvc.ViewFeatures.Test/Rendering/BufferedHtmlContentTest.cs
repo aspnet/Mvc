@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
-using System.Linq;
 using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.Framework.WebEncoders;
 using Microsoft.Framework.WebEncoders.Testing;
@@ -17,7 +16,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var content = new BufferedHtmlContent();
-            var writer = new StringWriter();
 
             // Act
             content.Append("Hello");
@@ -32,7 +30,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var content = new BufferedHtmlContent();
-            var writer = new StringWriter();
 
             // Act
             content.Append(new char[] { 'h', 'e', 'l', 'l', 'o' }, 0, 5);
@@ -57,7 +54,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var testHtmlContent = Assert.IsType<TestHtmlContent>(result);
             testHtmlContent.WriteTo(writer, new CommonTestEncoder());
             Assert.Equal("Written from TestHtmlContent: Hello", writer.ToString());
-            writer.Dispose();
         }
 
         [Fact]
@@ -65,16 +61,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             // Arrange
             var content = new BufferedHtmlContent();
-            var writer = new StringWriter();
 
             // Act
             content.Append(new TestHtmlContent("hello"));
             content.Append("Test");
 
             // Assert
-            Assert.Equal(2, content.Entries.Count());
-            content.WriteTo(writer, new CommonTestEncoder());
-            Assert.Equal("Written from TestHtmlContent: helloTest", writer.ToString());
+            Assert.Equal(2, content.Entries.Count);
+            Assert.Equal("Written from TestHtmlContent: hello", content.Entries[0].ToString());
+            Assert.Equal("Test", content.Entries[1]);
         }
 
         [Fact]
@@ -89,7 +84,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.Clear();
 
             // Assert
-            Assert.Equal(0, content.Entries.Count());
+            Assert.Equal(0, content.Entries.Count);
         }
 
         [Fact]
@@ -105,7 +100,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             content.WriteTo(writer, new CommonTestEncoder());
 
             // Assert
-            Assert.Equal(2, content.Entries.Count());
+            Assert.Equal(2, content.Entries.Count);
             Assert.Equal("Written from TestHtmlContent: HelloTest", writer.ToString());
         }
 
@@ -120,7 +115,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             public void WriteTo(TextWriter writer, IHtmlEncoder encoder)
             {
-                writer.Write("Written from TestHtmlContent: " + _content);
+                writer.Write(ToString());
+            }
+
+            public override string ToString()
+            {
+                return "Written from TestHtmlContent: " + _content;
             }
         }
     }

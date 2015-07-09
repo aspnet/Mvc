@@ -43,15 +43,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="encoder">The <see cref="IHtmlEncoder"/> with which the output must be encoded.</param>
         public void WriteTo(TextWriter writer, IHtmlEncoder encoder)
         {
-            var writerAsStringCollectionTextWriter = writer as StringCollectionTextWriter;
-            if (writerAsStringCollectionTextWriter != null)
-            {
-                writerAsStringCollectionTextWriter.Content.Append(_input);
-            }
-            else
-            {
-                writer.Write(_input);
-            }
+            writer.Write(_input);
         }
 
         /// <inheritdoc />

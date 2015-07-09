@@ -387,9 +387,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="object"/> to write.</param>
         /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter, IHtmlEncoder)"/> is invoked for
-        /// <see cref="HelperResult"/> types.
+        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using 
+        /// <see cref="IHtmlContent.WriteTo(TextWriter, IHtmlEncoder)"/>.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
@@ -409,9 +408,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Otherwise writes <see cref="HtmlString"/> values as-is.
         /// </param>
         /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter, IHtmlEncoder)"/> is invoked for
-        /// <see cref="HelperResult"/> types.
+        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using 
+        /// <see cref="IHtmlContent.WriteTo(TextWriter, IHtmlEncoder)"/>.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
@@ -435,8 +433,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // an attribute value that may have been quoted with single quotes, must handle any double quotes
                     // in the value. Writing the value out surrounded by double quotes.
                     //
-                    // Do not combine following condition with check of escapeQuotes; htmlString.ToString() can be
-                    // expensive when the HtmlString is created with a StringCollectionTextWriter.
+                    // Do not combine following condition with check of escapeQuotes; htmlContent.ToString() can be
+                    // expensive when the IHtmlContent is created with a BufferedHtmlContent.
                     var stringValue = htmlContent.ToString();
                     if (stringValue.Contains("\""))
                     {
