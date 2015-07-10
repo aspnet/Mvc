@@ -3,13 +3,13 @@
         "warningsAsErrors": "true"
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.CopyOnWriteDictionary.Sources": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" },
-        "xunit.runner.aspnet": "2.0.0-aspnet-*",
-        "Microsoft.Framework.DependencyInjection": "1.0.0-*"
+        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-beta5", "type": "build" },
+        "Microsoft.AspNet.Testing": "1.0.0-beta5",
+        "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-beta5", "type": "build" },
+        "Microsoft.Framework.CopyOnWriteDictionary.Sources": { "version": "1.0.0-beta5", "type": "build" },
+        "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-beta5", "type": "build" },
+        "xunit.runner.aspnet": "2.0.0-aspnet-beta5",
+        "Microsoft.Framework.DependencyInjection": "1.0.0-beta5"
     },
     "commands": {
         "test": "xunit.runner.aspnet"
@@ -22,9 +22,9 @@
         },
         "dnxcore50": { 
             "dependencies": {
-                "System.ComponentModel.TypeConverter": "4.0.0-beta-*",
-                "System.Reflection.Extensions": "4.0.0-beta-*",
-                "System.Text.Encoding.Extensions": "4.0.10-beta-*"
+                "System.ComponentModel.TypeConverter": "4.0.0-beta-23019",
+                "System.Reflection.Extensions": "4.0.0-beta-23019",
+                "System.Text.Encoding.Extensions": "4.0.10-beta-23019"
             }
         }
     }

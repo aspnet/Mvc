@@ -1,6 +1,6 @@
 {
     "description": "Abstractions for page instrumentation.",
-    "version": "1.0.0-*",
+    "version": "1.0.0-beta5",
     "compilationOptions": {
         "warningsAsErrors": true
     },
@@ -8,7 +8,7 @@
         "dnx451": { },
         "dnxcore50": {
             "dependencies": {
-                "System.IO": "4.0.10-beta-*"
+                "System.IO": "4.0.10-beta-23019"
             }
         }
     }

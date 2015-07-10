@@ -1,30 +1,30 @@
 {
   "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
-  "version": "6.0.0-*",
+  "version": "6.0.0-beta5",
   "compilationOptions": {
     "warningsAsErrors": true
   },
   "dependencies": {
-    "Microsoft.AspNet.FileProviders.Physical": "1.0.0-*",
-    "Microsoft.AspNet.Razor.Runtime": "4.0.0-*",
-    "Microsoft.Framework.Caching.Memory": "1.0.0-*",
-    "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" }
+    "Microsoft.AspNet.FileProviders.Physical": "1.0.0-beta5",
+    "Microsoft.AspNet.Razor.Runtime": "4.0.0-beta5",
+    "Microsoft.Framework.Caching.Memory": "1.0.0-beta5",
+    "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-beta5", "type": "build" },
+    "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-beta5", "type": "build" }
   },
   "frameworks": {
     "net45": { },
     "dnx451": {
       "dependencies": {
-        "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*"
+        "Microsoft.Framework.Runtime.Abstractions": "1.0.0-beta5"
       }
     },
     "dnxcore50": {
       "dependencies": {
-        "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
-        "System.Collections.Concurrent": "4.0.10-beta-*",
-        "System.ComponentModel.TypeConverter": "4.0.0-beta-*",
-        "System.Reflection.Extensions": "4.0.0-beta-*",
-        "System.Text.Encoding.Extensions": "4.0.10-beta-*"
+        "Microsoft.Framework.Runtime.Abstractions": "1.0.0-beta5",
+        "System.Collections.Concurrent": "4.0.10-beta-23019",
+        "System.ComponentModel.TypeConverter": "4.0.0-beta-23019",
+        "System.Reflection.Extensions": "4.0.0-beta-23019",
+        "System.Text.Encoding.Extensions": "4.0.10-beta-23019"
       }
     }
   },

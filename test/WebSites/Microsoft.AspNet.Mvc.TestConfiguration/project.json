@@ -1,10 +1,10 @@
 {
     "dependencies": {
-        "Microsoft.AspNet.Http": "1.0.0-*",
-        "Microsoft.AspNet.Http.Extensions": "1.0.0-*",
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Framework.Configuration": "1.0.0-*",
-        "Microsoft.Framework.DependencyInjection": "1.0.0-*"
+        "Microsoft.AspNet.Http": "1.0.0-beta5",
+        "Microsoft.AspNet.Http.Extensions": "1.0.0-beta5",
+        "Microsoft.AspNet.Testing": "1.0.0-beta5",
+        "Microsoft.Framework.Configuration": "1.0.0-beta5",
+        "Microsoft.Framework.DependencyInjection": "1.0.0-beta5"
     },
     "frameworks": {
         "dnx451": { },

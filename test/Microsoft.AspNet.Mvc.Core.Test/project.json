@@ -3,15 +3,15 @@
     "warningsAsErrors": "true"
   },
   "dependencies": {
-    "Microsoft.AspNet.Mvc" : "6.0.0-*",
-    "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-*", "type": "build" },
-    "Microsoft.AspNet.Mvc.Xml": "6.0.0-*",
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Microsoft.Framework.DependencyInjection": "1.0.0-*",
-    "Microsoft.Framework.Logging.Testing": "1.0.0-*",
-    "Microsoft.Framework.WebEncoders.Testing": "1.0.0-*",
+    "Microsoft.AspNet.Mvc" : "6.0.0-beta5",
+    "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-beta5", "type": "build" },
+    "Microsoft.AspNet.Mvc.Xml": "6.0.0-beta5",
+    "Microsoft.AspNet.Testing": "1.0.0-beta5",
+    "Microsoft.Framework.DependencyInjection": "1.0.0-beta5",
+    "Microsoft.Framework.Logging.Testing": "1.0.0-beta5",
+    "Microsoft.Framework.WebEncoders.Testing": "1.0.0-beta5",
     "Moq": "4.2.1312.1622",
-    "xunit.runner.aspnet": "2.0.0-aspnet-*"
+    "xunit.runner.aspnet": "2.0.0-aspnet-beta5"
   },
   "commands": {
     "test": "xunit.runner.aspnet"

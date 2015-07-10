@@ -1,11 +1,11 @@
 {
   "resource": "TestFiles/**",
   "dependencies": {
-    "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-*", "type": "build" },
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "xunit.runner.aspnet": "2.0.0-aspnet-*"
+    "Microsoft.AspNet.Mvc.Core": "6.0.0-beta5",
+    "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-beta5",
+    "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-beta5", "type": "build" },
+    "Microsoft.AspNet.Testing": "1.0.0-beta5",
+    "xunit.runner.aspnet": "2.0.0-aspnet-beta5"
   },
   "commands": {
     "test": "xunit.runner.aspnet"

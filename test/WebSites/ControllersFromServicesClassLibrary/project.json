@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "Microsoft.AspNet.Mvc": "6.0.0-*"
+        "Microsoft.AspNet.Mvc": "6.0.0-beta5"
     },
     "frameworks": {
         "dnx451": { },
