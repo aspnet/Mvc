@@ -14,152 +14,117 @@ using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AspNet.JsonPatch
 {
+    // Implementation details: the purpose of this type of patch document is to allow creation of such
+    // documents for cases where there's no class/DTO to work on. Typical use case: backend not built in 
+    // .NET or architecture doesn't contain a shared DTO layer.
     [JsonConverter(typeof(JsonPatchDocumentConverter))]
     public class JsonPatchDocument : IJsonPatchDocument
     {
-
         public List<Operation> Operations { get; private set; }
 
         [JsonIgnore]
         public IContractResolver ContractResolver { get; set; }
-
-        /// <summary>
-        /// Action for logging <see cref="JsonPatchError"/>.
-        /// </summary>
-        public Action<JsonPatchError> LogErrorAction { get; }
-
-
+      
         public JsonPatchDocument()
         {
             Operations = new List<Operation>();
             ContractResolver = new DefaultContractResolver();             
         }
 
-
-        public JsonPatchDocument(Action<JsonPatchError> logErrorAction)
-            : this()
-        {
-            LogErrorAction = LogErrorAction;
-        }
-
-        // Create from list of operations - logErrorAction isn't required in this case, as
-        // logging errors through that specific logErrorAction happens when the PatchDocument
-        // is created, not after deserialization.
-        public JsonPatchDocument([NotNull] List<Operation> operations, [NotNull]  IContractResolver contractResolver)
+        public JsonPatchDocument([NotNull] List<Operation> operations, [NotNull] IContractResolver contractResolver)
         {
             Operations = operations;
             ContractResolver = contractResolver;
         }
 
-
+        /// <summary>
+        /// Add operation.  Will result in, for example,
+        /// { "op": "add", "path": "/a/b/c", "value": [ "foo", "bar" ] }
+        /// </summary>
+        /// <param name="path">target location</param>
+        /// <param name="value">value</param>
+        /// <returns></returns>
         public JsonPatchDocument Add([NotNull] string path, object value)
         {
-            var checkPathResult = PathHelpers.CheckPath(path);
-            if (!checkPathResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                   null,
-                   null,
-                   Resources.FormatInvalidValueForPath(path)));           
-            }
-
-            Operations.Add(new Operation("add", checkPathResult.AdjustedPath, null, value));
+            Operations.Add(new Operation("add", PathHelpers.NormalizePath(path), null, value));
             return this;
         }
 
+        /// <summary>
+        /// Remove value at target location.  Will result in, for example,
+        /// { "op": "remove", "path": "/a/b/c" }
+        /// </summary>
+        /// <param name="path">target location</param>
+        /// <returns></returns>
         public JsonPatchDocument Remove([NotNull] string path)
         {
-            var checkPathResult = PathHelpers.CheckPath(path);
-            if (!checkPathResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                  null,
-                  null,
-                  Resources.FormatInvalidValueForPath(path)));
-            }
-
-            Operations.Add(new Operation("remove", checkPathResult.AdjustedPath, null, null));
+            Operations.Add(new Operation("remove", PathHelpers.NormalizePath(path), null, null));
             return this;
         }
 
+        /// <summary>
+        /// Replace value.  Will result in, for example,
+        /// { "op": "replace", "path": "/a/b/c", "value": 42 }
+        /// </summary>
+        /// <param name="path">target location</param>
+        /// <param name="value">value</param>
+        /// <returns></returns>
         public JsonPatchDocument Replace([NotNull] string path, object value)
         {
-            var checkPathResult = PathHelpers.CheckPath(path);
-            if (!checkPathResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                  null,
-                  null,
-                  Resources.FormatInvalidValueForPath(path)));
-            }
-
-            Operations.Add(new Operation("replace", checkPathResult.AdjustedPath, null, value));
+            Operations.Add(new Operation("replace", PathHelpers.NormalizePath(path), null, value));
             return this;
         }
 
+        /// <summary>
+        /// Removes value at specified location and add it to the target location.  Will result in, for example:
+        /// { "op": "move", "from": "/a/b/c", "path": "/a/b/d" }
+        /// </summary>
+        /// <param name="from">source location</param>
+        /// <param name="path">target location</param>
+        /// <returns></returns>
         public JsonPatchDocument Move([NotNull] string from, [NotNull] string path)
         {
-            var checkPathResult = PathHelpers.CheckPath(path);
-            var checkFromResult = PathHelpers.CheckPath(from);
-
-            if (!checkPathResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                   null,
-                   null,
-                   Resources.FormatInvalidValueForPath(path)));
-            }
-
-            if (!checkFromResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                  null,
-                  null,
-                  Resources.FormatInvalidValueForPath(from)));
-            }
-
-
-            Operations.Add(new Operation("move", checkPathResult.AdjustedPath, checkFromResult.AdjustedPath));
+            Operations.Add(new Operation("move", PathHelpers.NormalizePath(path), PathHelpers.NormalizePath(from)));
             return this;
         }
 
+        /// <summary>
+        /// Copy the value at specified location to the target location.  Willr esult in, for example:
+        /// { "op": "copy", "from": "/a/b/c", "path": "/a/b/e" }
+        /// </summary>
+        /// <param name="from">source location</param>
+        /// <param name="path">target location</param>
+        /// <returns></returns>
         public JsonPatchDocument Copy([NotNull] string from, [NotNull] string path)
         {
-            var checkPathResult = PathHelpers.CheckPath(path);
-            var checkFromResult = PathHelpers.CheckPath(from);
-
-            if (!checkPathResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                  null,
-                  null,
-                  Resources.FormatInvalidValueForPath(path)));
-            }
-
-            if (!checkFromResult.IsCorrectlyFormedPath)
-            {
-                LogError(new JsonPatchError(
-                  null,
-                  null,
-                  Resources.FormatInvalidValueForPath(from)));
-            }
-
-            Operations.Add(new Operation("copy", checkPathResult.AdjustedPath, checkFromResult.AdjustedPath));
+            Operations.Add(new Operation("copy", PathHelpers.NormalizePath(path), PathHelpers.NormalizePath(from)));
             return this;
         }
 
-
+        /// <summary>
+        /// Apply this JsonPatchDocument 
+        /// </summary>
+        /// <param name="objectToApplyTo">Object to apply the JsonPatchDocument to</param>
         public void ApplyTo([NotNull] object objectToApplyTo)           
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction: null));
         }
 
-        public void ApplyTo([NotNull] object objectToApplyTo, Action<JsonPatchError> logErrorAction)
-          
+        /// <summary>
+        /// Apply this JsonPatchDocument 
+        /// </summary>
+        /// <param name="objectToApplyTo">Object to apply the JsonPatchDocument to</param>
+        /// <param name="logErrorAction">Action to log errors</param>
+        public void ApplyTo([NotNull] object objectToApplyTo, Action<JsonPatchError> logErrorAction)          
         {
             ApplyTo(objectToApplyTo, new ObjectAdapter(ContractResolver, logErrorAction));
         }
 
+        /// <summary>
+        /// Apply this JsonPatchDocument  
+        /// </summary>
+        /// <param name="objectToApplyTo">Object to apply the JsonPatchDocument to</param>
+        /// <param name="adapter">IObjectAdapter instance to use when applying</param>
         public void ApplyTo([NotNull] object objectToApplyTo, [NotNull] IObjectAdapter adapter)            
         {
             // apply each operation in order
@@ -168,23 +133,7 @@ namespace Microsoft.AspNet.JsonPatch
                 op.Apply(objectToApplyTo, adapter);
             }
         }
-
-        // LogError method is required on untyped JsonPatchDocument, as errors may 
-        // be thrown in case of invalid paths.
-
-        private void LogError([NotNull] JsonPatchError jsonPatchError)
-        {
-            if (LogErrorAction != null)
-            {
-                LogErrorAction(jsonPatchError);
-            }
- 
-            // should throw error, even when logging, according to spec.
-            throw new JsonPatchException(jsonPatchError);
-        }
-
-
-
+              
         List<Operation> IJsonPatchDocument.GetOperations()
         {
             var allOps = new List<Operation>();

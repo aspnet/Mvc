@@ -1,31 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.JsonPatch.Exceptions;
+
 namespace Microsoft.AspNet.JsonPatch.Helpers
 {
     internal static class PathHelpers
     {
-        internal static CheckPathResult CheckPath(string pathToCheck)
+        internal static string NormalizePath(string path)
         {
-            string adjustedPath = pathToCheck;
-
             // check for most common path errors on create.  This is not
             // absolutely necessary, but it allows us to already catch mistakes
             // on creation of the patch document rather than on execute.
 
-            if (pathToCheck.Contains(".") || pathToCheck.Contains("//")
-                || pathToCheck.Contains(" ") || pathToCheck.Contains("\\")
-              )
+            if (path.Contains(".") || path.Contains("//") || path.Contains(" ") || path.Contains("\\"))
             {
-                return new CheckPathResult(false, adjustedPath);
+                throw new JsonPatchException(Resources.FormatInvalidValueForPath(path), null); 
             }
 
-            if (!(pathToCheck.StartsWith("/")))
+            if (!(path.StartsWith("/")))
             {
-                adjustedPath = "/" + adjustedPath;
+                return "/" + path;
             }
-
-            return new CheckPathResult(true, adjustedPath);
+            else
+            {
+                return path;
+            }
         }
     }
 }
