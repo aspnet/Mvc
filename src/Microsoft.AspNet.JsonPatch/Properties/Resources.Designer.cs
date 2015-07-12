@@ -122,6 +122,22 @@ namespace Microsoft.AspNet.JsonPatch
             return GetString("TestOperationNotSupported");
         }
 
+        /// <summary>
+        /// objectType must be of type JsonPatchDocument.
+        /// </summary>
+        internal static string ObjectTypeMustBeJsonPatchDocument
+        {
+            get { return GetString("ObjectTypeMustBeJsonPatchDocument"); }
+        }
+
+        /// <summary>
+        /// objectType must be of type JsonPatchDocument.
+        /// </summary>
+        internal static string FormatObjectTypeMustBeJsonPatchDocument()
+        {
+            return GetString("ObjectTypeMustBeJsonPatchDocument");
+        }
+        
 
         /// <summary>
         /// The property at '{0}' could not be read.

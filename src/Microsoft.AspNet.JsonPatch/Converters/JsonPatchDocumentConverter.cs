@@ -24,14 +24,20 @@ namespace Microsoft.AspNet.JsonPatch.Converters
             try
             {
                 if (reader.TokenType == JsonToken.Null)
+                {
                     return null;
+                }
+
+                if (objectType != typeof(JsonPatchDocument))
+                {
+                    throw new ArgumentException(Resources.ObjectTypeMustBeJsonPatchDocument, "objectType");
+                }
 
                 // load jObject
                 var jObject = JArray.Load(reader);
 
                 // Create target object for Json => list of operations
-                var concreteList = typeof(List<Operation>);
-                var targetOperations = Activator.CreateInstance(concreteList);
+                var targetOperations = new List<Operation>();
 
                 // Create a new reader for this jObject, and set all properties 
                 // to match the original reader.
@@ -45,7 +51,7 @@ namespace Microsoft.AspNet.JsonPatch.Converters
                 serializer.Populate(jObjectReader, targetOperations);
 
                 // container target: the JsonPatchDocument. 
-                var container = Activator.CreateInstance(objectType, targetOperations, new DefaultContractResolver());
+                var container = new JsonPatchDocument(targetOperations, new DefaultContractResolver());
 
                 return container;
             }
@@ -53,7 +59,6 @@ namespace Microsoft.AspNet.JsonPatch.Converters
             {
                 throw new JsonPatchException(Resources.FormatInvalidJsonPatchDocument(objectType.Name), ex);
             }
-
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
