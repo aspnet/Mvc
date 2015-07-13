@@ -378,7 +378,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public static string NumberInputTemplate(IHtmlHelper htmlHelper)
         {
-            return GenerateTextBox(htmlHelper, inputType: "number");
+            var htmlAttributes =
+                CreateHtmlAttributes(htmlHelper, className: "text-box single-line", inputType: "number");
+            htmlAttributes["step"] = "any";
+
+            return GenerateTextBox(htmlHelper, htmlHelper.ViewData.TemplateInfo.FormattedModelValue, htmlAttributes);
         }
 
         public static string FileInputTemplate([NotNull] IHtmlHelper htmlHelper)
