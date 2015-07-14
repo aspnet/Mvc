@@ -403,10 +403,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 { "class", "some-class"}
             };
+            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+                "Microsoft.AspNet.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNet.Mvc.Rendering." +
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
+                "\r\nParameter name: expression";
 
             // Act and Assert
-            ExceptionAssert.ThrowsArgumentNullOrEmpty(() => helper.Hidden(string.Empty, string.Empty, attributes),
-                                                      "expression");
+            ExceptionAssert.Throws<ArgumentException>(
+                () => helper.Hidden(string.Empty, string.Empty, attributes), expected);
         }
 
         [Fact]
