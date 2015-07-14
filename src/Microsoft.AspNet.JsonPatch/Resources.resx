@@ -138,8 +138,8 @@
   <data name="InvalidValueForProperty" xml:space="preserve">
     <value>The value '{0}' is invalid for property at path '{1}'.</value>
   </data>
-  <data name="ObjectTypeMustBeJsonPatchDocument" xml:space="preserve">
-    <value>objectType must be of type JsonPatchDocument.</value>
+  <data name="ParameterMustMatchType" xml:space="preserve">
+    <value>'{0}' must be of type '{1}'.</value>
   </data>
   <data name="PropertyCannotBeAdded" xml:space="preserve">
     <value>The property at path '{0}' could not be added.</value>

@@ -21,18 +21,18 @@ namespace Microsoft.AspNet.JsonPatch.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, 
             JsonSerializer serializer)
         {
+            if (objectType != typeof(JsonPatchDocument))
+            {
+                throw new ArgumentException(Resources.FormatParameterMustMatchType("objectType", "JsonPatchDocument"), "objectType");
+            }
+
             try
             {
                 if (reader.TokenType == JsonToken.Null)
                 {
                     return null;
                 }
-
-                if (objectType != typeof(JsonPatchDocument))
-                {
-                    throw new ArgumentException(Resources.ObjectTypeMustBeJsonPatchDocument, "objectType");
-                }
-
+                
                 // load jObject
                 var jObject = JArray.Load(reader);
 

@@ -125,19 +125,18 @@ namespace Microsoft.AspNet.JsonPatch
         /// <summary>
         /// objectType must be of type JsonPatchDocument.
         /// </summary>
-        internal static string ObjectTypeMustBeJsonPatchDocument
+        internal static string ParameterMustMatchType
         {
-            get { return GetString("ObjectTypeMustBeJsonPatchDocument"); }
+            get { return GetString("ParameterMustMatchType"); }
         }
 
         /// <summary>
         /// objectType must be of type JsonPatchDocument.
         /// </summary>
-        internal static string FormatObjectTypeMustBeJsonPatchDocument()
+        internal static string FormatParameterMustMatchType(object p0, object p1)
         {
-            return GetString("ObjectTypeMustBeJsonPatchDocument");
-        }
-        
+            return string.Format(CultureInfo.CurrentCulture, GetString("ParameterMustMatchType"), p0, p1);
+        }        
 
         /// <summary>
         /// The property at '{0}' could not be read.

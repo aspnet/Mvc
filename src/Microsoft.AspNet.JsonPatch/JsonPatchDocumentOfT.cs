@@ -481,7 +481,7 @@ namespace Microsoft.AspNet.JsonPatch
             }
         }
 
-        List<Operation> IJsonPatchDocument.GetOperations()
+        IList<Operation> IJsonPatchDocument.GetOperations()
         {
             var allOps = new List<Operation>();
 
