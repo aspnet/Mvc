@@ -128,10 +128,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             var name = string.Empty;
             var value = string.Empty;
+            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+                "Microsoft.AspNet.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNet.Mvc.Rendering." +
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
+                "\r\nParameter name: expression";
 
             // Act and Assert
-            ExceptionAssert.ThrowsArgumentNullOrEmpty(() => helper.Password(name, value, htmlAttributes: null),
-                                                      "expression");
+            ExceptionAssert.Throws<ArgumentException>(
+                () => helper.Password(name, value, htmlAttributes: null),
+                expected);
         }
 
         [Fact]
