@@ -26,8 +26,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return result;
             }
 
-            var model = result.Model as Dictionary<TKey, TValue>;
-            Debug.Assert(model != null);
+            Debug.Assert(result.Model != null);
+            var model = (Dictionary<TKey, TValue>)result.Model;
             if (model.Count != 0)
             {
                 // ICollection<KeyValuePair<TKey, TValue>> approach was successful.
@@ -37,7 +37,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var enumerableValueProvider = bindingContext.ValueProvider as IEnumerableValueProvider;
             if (enumerableValueProvider == null)
             {
-                // No IEnumerableValueProvider available for the fallback approach.
+                // No IEnumerableValueProvider available for the fallback approach. For example the user may have
+                // replaced the ValueProvider with something other than a CompositeValueProvider.
                 return result;
             }
 
