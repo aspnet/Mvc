@@ -13,19 +13,19 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class FileStreamResultTest
+    public class StreamResultTest
     {
         [Fact]
-        public void Constructor_SetsFileName()
+        public void Constructor_SetsStream()
         {
             // Arrange
             var stream = Stream.Null;
 
             // Act
-            var result = new FileStreamResult(stream, "text/plain");
+            var result = new StreamResult(stream, "text/plain");
 
             // Assert
-            Assert.Equal(stream, result.FileStream);
+            Assert.Equal(stream, result.Stream);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc
                 .Setup(s => s.WriteAsync(It.IsAny<byte[]>(), 0, 0x500, CancellationToken.None))
                 .Returns(Task.FromResult(0));
 
-            var result = new FileStreamResult(mockReadStream.Object, "text/plain");
+            var result = new StreamResult(mockReadStream.Object, "text/plain");
 
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = mockBodyStream.Object;
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
-            var result = new FileStreamResult(originalStream, "text/plain");
+            var result = new StreamResult(originalStream, "text/plain");
 
             // Act
             await result.ExecuteResultAsync(actionContext);
@@ -107,7 +107,7 @@ namespace Microsoft.AspNet.Mvc
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
-            var result = new FileStreamResult(originalStream, MediaTypeHeaderValue.Parse(expectedContentType));
+            var result = new StreamResult(originalStream, MediaTypeHeaderValue.Parse(expectedContentType));
 
             // Act
             await result.ExecuteResultAsync(actionContext);

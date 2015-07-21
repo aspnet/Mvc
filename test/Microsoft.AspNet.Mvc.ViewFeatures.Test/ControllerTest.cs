@@ -705,7 +705,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.NotNull(result);
-            Assert.Same(fileStream, result.FileStream);
+            Assert.Same(fileStream, result.Stream);
             Assert.Equal("application/pdf", result.ContentType.ToString());
             Assert.Equal(string.Empty, result.FileDownloadName);
         }
@@ -728,7 +728,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.NotNull(result);
-            Assert.Same(fileStream, result.FileStream);
+            Assert.Same(fileStream, result.Stream);
             Assert.Equal("application/pdf", result.ContentType.ToString());
             Assert.Equal("someDownloadName", result.FileDownloadName);
             mockHttpContext.Verify(
@@ -739,7 +739,7 @@ namespace Microsoft.AspNet.Mvc.Test
         [Fact]
         public void HttpUnauthorized_SetsStatusCode()
         {
-            // Arrange 
+            // Arrange
             var controller = new TestableController();
 
             // Act

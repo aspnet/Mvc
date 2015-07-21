@@ -684,9 +684,9 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="fileStream">The <see cref="Stream"/> with the contents of the file.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
-        /// <returns>The created <see cref="FileStreamResult"/> for the response.</returns>
+        /// <returns>The created <see cref="StreamResult"/> for the response.</returns>
         [NonAction]
-        public virtual FileStreamResult File(Stream fileStream, string contentType)
+        public virtual StreamResult File(Stream fileStream, string contentType)
         {
             return File(fileStream, contentType, fileDownloadName: null);
         }
@@ -699,16 +699,16 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="fileStream">The <see cref="Stream"/> with the contents of the file.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
         /// <param name="fileDownloadName">The suggested file name.</param>
-        /// <returns>The created <see cref="FileStreamResult"/> for the response.</returns>
+        /// <returns>The created <see cref="StreamResult"/> for the response.</returns>
         [NonAction]
-        public virtual FileStreamResult File(Stream fileStream, string contentType, string fileDownloadName)
+        public virtual StreamResult File(Stream fileStream, string contentType, string fileDownloadName)
         {
             if (fileStream != null)
             {
                 Response.RegisterForDispose(fileStream);
             }
 
-            return new FileStreamResult(fileStream, contentType) { FileDownloadName = fileDownloadName };
+            return new StreamResult(fileStream, contentType) { FileDownloadName = fileDownloadName };
         }
 
         /// <summary>
