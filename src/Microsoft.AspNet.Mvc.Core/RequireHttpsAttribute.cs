@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
         protected virtual void HandleNonHttpsRequest(AuthorizationContext filterContext)
         {
             // only redirect for GET requests, otherwise the browser might not propagate the verb and request
-            // body correctly.
+            // body correctly. 
             if (!string.Equals(filterContext.HttpContext.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
                 filterContext.Result = new HttpStatusCodeResult(StatusCodes.Status405MethodNotAllowed);
