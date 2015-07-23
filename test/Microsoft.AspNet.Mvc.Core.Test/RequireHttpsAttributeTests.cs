@@ -120,7 +120,7 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             Assert.NotNull(authContext.Result);
             var result = Assert.IsType<HttpStatusCodeResult>(authContext.Result);
-            Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+            Assert.Equal(StatusCodes.Status405MethodNotAllowed, result.StatusCode);
         }
 
         [Fact]
