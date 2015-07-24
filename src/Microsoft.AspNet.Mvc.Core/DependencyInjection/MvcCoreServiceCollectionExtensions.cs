@@ -103,8 +103,8 @@ namespace Microsoft.Framework.DependencyInjection
             //
             // Action Invoker
             //
-            // These two access per-request services
-            services.TryAddTransient<IActionInvokerFactory, ActionInvokerFactory>();
+            // The IActionInvokerFactory is cachable
+            services.TryAddSingleton<IActionInvokerFactory, ActionInvokerFactory>();
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IActionInvokerProvider, ControllerActionInvokerProvider>());
 
@@ -135,8 +135,9 @@ namespace Microsoft.Framework.DependencyInjection
             //
             services.TryAddSingleton<MvcMarkerService, MvcMarkerService>();
             services.TryAddSingleton<ITypeActivatorCache, DefaultTypeActivatorCache>();
-            services.TryAddScoped(typeof(IScopedInstance<>), typeof(ScopedInstance<>));
-            services.TryAddScoped<IUrlHelper, UrlHelper>();
+            services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.TryAddSingleton<IActionBindingContextAccessor, ActionBindingContextAccessor>();
+            services.TryAddSingleton<IUrlHelper, UrlHelper>();
         }
 
         private static void ConfigureDefaultServices(IServiceCollection services)
