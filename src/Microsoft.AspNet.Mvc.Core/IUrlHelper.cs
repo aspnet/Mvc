@@ -58,15 +58,47 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The fully qualified or absolute URL.</returns>
         string RouteUrl([NotNull] UrlRouteContext routeContext);
 
+        /// <inheritdoc />
         /// <summary>
-        /// Generates an absolute URL using the specified route name and values.
+        /// Generates a fully qualified URL to an action method by using the specified action name, controller name and 
+        /// route values.
         /// </summary>
-        /// <param name="routeName">The name of the route that is used to generate the URL.</param>
-        /// <param name="values">An object that contains the route values.</param>
-        /// <returns>The generated absolute URL.</returns>
-        /// <remarks>
-        /// The protocol and host is obtained from the current request.
-        /// </remarks>
-        string Link(string routeName, object values);
+        /// <param name="url">The URL helper.</param>
+        /// <param name="actionName">The name of the action method.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The route values.</param>
+        /// <returns>The absolute URL.</returns>
+        string AbsoluteAction(
+            string actionName,
+            string controllerName,
+            object routeValues = null);
+
+        /// <summary>
+        /// Generates a fully qualified URL to the specified content by using the specified content path. Converts a 
+        /// virtual (relative) path to an application absolute path.
+        /// </summary>
+        /// <param name="url">The URL helper.</param>
+        /// <param name="contentPath">The content path.</param>
+        /// <returns>The absolute URL.</returns>
+        string AbsoluteContent(string contentPath);
+
+        /// <summary>
+        /// Generates a fully qualified URL to the specified content by using the specified content path and host. 
+        /// Converts a virtual (relative) path to an application absolute path.
+        /// </summary>
+        /// <param name="url">The URL helper.</param>
+        /// <param name="contentPath">The content path.</param>
+        /// <param name="host">The host name.</param>
+        /// <returns>The absolute URL.</returns>
+        string AbsoluteContent(string contentPath, string host);
+
+        /// <summary>
+        /// Generates a fully qualified URL to the specified route by using the route name and route values.
+        /// </summary>
+        /// <param name="url">The URL helper.</param>
+        /// <param name="routeName">Name of the route.</param>
+        /// <param name="routeValues">The route values.</param>
+        /// <returns>The absolute URL.</returns>
+        string AbsoluteRouteUrl(string routeName, object routeValues = null);
     }
 }
