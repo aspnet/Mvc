@@ -187,6 +187,23 @@ namespace Microsoft.AspNet.JsonPatch
         }
 
         /// <summary>
+        /// The key '{0}' was not found.
+        /// </summary>
+        internal static string DictionaryKeyNotFound
+        {
+            get { return GetString("DictionaryKeyNotFound"); }
+        }
+
+        /// <summary>
+        /// The key '{0}' was not found.
+        /// </summary>
+        internal static string FormatDictionaryKeyNotFound(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("DictionaryKeyNotFound"), p0);
+        }
+
+
+        /// <summary>
         /// The test operation is not supported.
         /// </summary>
         internal static string TestOperationNotSupported
