@@ -5,16 +5,16 @@
     },
     "dependencies": {
         "Autofac": "3.3.0",
-        "Kestrel": "1.0.0-*",
-        "Microsoft.Framework.DependencyInjection.Autofac": "1.0.0-*",
-        "Microsoft.AspNet.Mvc": "6.0.0-*",
+        "Kestrel": "1.0.0-beta6",
+        "Microsoft.Framework.DependencyInjection.Autofac": "1.0.0-beta6",
+        "Microsoft.AspNet.Mvc": "6.0.0-beta6",
         "Microsoft.AspNet.Mvc.TestConfiguration": "1.0.0",
-        "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-        "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-        "Microsoft.AspNet.StaticFiles": "1.0.0-*"
+        "Microsoft.AspNet.Server.IIS": "1.0.0-beta6",
+        "Microsoft.AspNet.Server.WebListener": "1.0.0-beta6",
+        "Microsoft.AspNet.StaticFiles": "1.0.0-beta6"
     },
     "frameworks": {
-        "dnx451": { }
+        "dnx451": {}
     },
     "webroot": "wwwroot"
 }

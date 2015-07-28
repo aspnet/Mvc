@@ -4,21 +4,21 @@
         "kestrel": "Microsoft.AspNet.Hosting --server Kestrel --server.urls http://localhost:5000"
     },
     "dependencies": {
-        "ControllersFromServicesClassLibrary":  "1.0.0",
-        "Kestrel": "1.0.0-*",
-        "Microsoft.AspNet.Mvc": "6.0.0-*",
+        "ControllersFromServicesClassLibrary": "1.0.0",
+        "Kestrel": "1.0.0-beta6",
+        "Microsoft.AspNet.Mvc": "6.0.0-beta6",
         "Microsoft.AspNet.Mvc.TestConfiguration": "1.0.0",
-        "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-        "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-        "Microsoft.AspNet.StaticFiles": "1.0.0-*"
+        "Microsoft.AspNet.Server.IIS": "1.0.0-beta6",
+        "Microsoft.AspNet.Server.WebListener": "1.0.0-beta6",
+        "Microsoft.AspNet.StaticFiles": "1.0.0-beta6"
     },
     "frameworks": {
         "dnx451": {
             "dependencies": {
-                "Microsoft.Framework.DependencyInjection.Autofac": "1.0.0-*"
+                "Microsoft.Framework.DependencyInjection.Autofac": "1.0.0-beta6"
             }
         },
-        "dnxcore50": { }
+        "dnxcore50": {}
     },
     "webroot": "wwwroot"
 }
