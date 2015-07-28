@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Add is used by various operations (eg: add, copy, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
-        private void Add(string path, object value, [NotNull] object objectToApplyTo, [NotNull] Operation operationToReport)
+        private void Add([NotNull] string path, object value, [NotNull] object objectToApplyTo, [NotNull] Operation operationToReport)
         {
             // first up: if the path ends in a numeric value, we're inserting in a list and
             // that value represents the position; if the path ends in "-", we're appending
