@@ -141,6 +141,9 @@
   <data name="InvalidValueForProperty" xml:space="preserve">
     <value>The value '{0}' is invalid for property at path '{1}'.</value>
   </data>
+  <data name="NegativeIndexForArrayProperty" xml:space="preserve">
+    <value>For operation '{0}' on array property at path '{1}', the index is negative.</value>
+  </data>
   <data name="ParameterMustMatchType" xml:space="preserve">
     <value>'{0}' must be of type '{1}'.</value>
   </data>

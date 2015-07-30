@@ -33,16 +33,11 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 
             // split the propertypath, and if necessary, remove the first 
             // empty item (that's the case when it starts with a "/")
-
-            var propertyPathTree = propertyPath.Split('/').ToList();
+            var propertyPathTree = propertyPath.Split(
+                new char[] { '/' }, 
+                StringSplitOptions.RemoveEmptyEntries).ToList();
             object targetObject = objectToSearch;
-
-            if (string.IsNullOrWhiteSpace(propertyPathTree[0]))
-            {
-                // remove it
-                propertyPathTree.RemoveAt(0);
-            }
-
+             
             // we've now got a split up property tree "base/property/otherproperty/..."
             int lastPosition = 0;
             for (int i = 0; i < propertyPathTree.Count; i++)
@@ -53,7 +48,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
                 if (targetObject is IDictionary<string, object>)
                 {
                     // find the value in the dictionary                   
-                    if ((targetObject as IDictionary<string, object>)
+                    if ((targetObject as IDictionary<string, object>)                  
                         .ContainsCaseInsensitiveKey(propertyPathTree[i]))
                     {
                         var possibleNewTargetObject = (targetObject as IDictionary<string, object>)
@@ -61,7 +56,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
 
                         // unless we're at the last item, we should set the targetobject
                         // to the new object.  If we're at the last item, we need to stop
-                        if (!(i == propertyPathTree.Count - 1))
+                        if (i != propertyPathTree.Count - 1)
                         {
                             targetObject = possibleNewTargetObject;
                         }

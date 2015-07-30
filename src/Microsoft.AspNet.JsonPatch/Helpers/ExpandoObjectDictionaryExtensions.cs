@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
         internal static void RemoveValueForCaseInsensitiveKey(this IDictionary<string, object> propertyDictionary,
         string key)
         {
-            string realKey = "";
+            string realKey = null;
             foreach (KeyValuePair<string, object> kvp in propertyDictionary)
             {
                 if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
                 }
             }
 
-            if (realKey != "")
+            if (realKey != null)
             {
                 propertyDictionary.Remove(realKey);
             }

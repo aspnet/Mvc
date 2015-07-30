@@ -109,51 +109,37 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// Add is used by various operations (eg: add, copy, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error
         /// </summary>
-        private void Add([NotNull] string path, object value, [NotNull] object objectToApplyTo, [NotNull] Operation operationToReport)
+        private void Add(
+            [NotNull] string path, 
+            object value, 
+            [NotNull] object objectToApplyTo, 
+            [NotNull] Operation operationToReport)
         {
             // first up: if the path ends in a numeric value, we're inserting in a list and
             // that value represents the position; if the path ends in "-", we're appending
             // to the list.
 
-            var appendList = false;
-            var positionAsInteger = -1;
-            var actualPathToProperty = path;
+            // get path result
+            var pathResult = GetActualPath(
+                                path,
+                                objectToApplyTo,
+                                operationToReport);
 
-            if (path.EndsWith("/-"))
-            {
-                appendList = true;
-                actualPathToProperty = path.Substring(0, path.Length - 2);
-            }
-            else
-            {
-                var checkNumericEndResult = GetNumericEndResult(path);
-
-                if (checkNumericEndResult.HasNumericEnd)
-                {
-                    positionAsInteger = checkNumericEndResult.NumericEnd;
-                    if (positionAsInteger > -1)
-                    {
-                        actualPathToProperty = path.Substring(0,
-                       path.LastIndexOf('/' + positionAsInteger.ToString()));
-                    }
-                    else
-                    {
-                        // negative position - invalid path
-                        LogError(new JsonPatchError(
-                                    objectToApplyTo,
-                                    operationToReport,
-                                    Resources.FormatPropertyDoesNotExist(path)));
-                    }
-                }
-            }
-
-            var treeAnalysisResult = new ObjectTreeAnalysisResult(objectToApplyTo, actualPathToProperty, ContractResolver);
+            var appendList = pathResult.AppendToList;
+            var positionAsInteger = pathResult.NumericEnd;
+            var actualPathToProperty = pathResult.PathToProperty;
+            
+            var treeAnalysisResult = new ObjectTreeAnalysisResult(
+                objectToApplyTo, 
+                actualPathToProperty, 
+                ContractResolver);
 
             if (treeAnalysisResult.UseDynamicLogic)
             {
                 if (treeAnalysisResult.IsValidPathForAdd)
                 {
-                    if (treeAnalysisResult.Container.ContainsCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent))
+                    if (treeAnalysisResult.Container
+                        .ContainsCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent))
                     {
                         // Existing property.  
                         // If it's not an array, we need to check if the value fits the property type
@@ -165,7 +151,8 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         {
                             // get the actual type
                             var typeOfPathProperty = treeAnalysisResult.Container
-                                .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent).GetType();
+                                .GetValueForCaseInsensitiveKey(
+                                treeAnalysisResult.PropertyPathInParent).GetType();
 
                             if (IsNonStringArray(typeOfPathProperty))
                             {
@@ -182,29 +169,33 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 }
 
                                 // get value (it can be cast, we just checked that) 
-                                var array = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent) as IList;
+                                var array = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(
+                                    treeAnalysisResult.PropertyPathInParent) as IList;
 
                                 if (appendList)
                                 {
                                     array.Add(conversionResult.ConvertedInstance);
-                                    treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent, array);
+                                    treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(
+                                        treeAnalysisResult.PropertyPathInParent, array);
                                 }
                                 else
                                 {
-                                    // specified index must not be greater than the amount of items in the
-                                    // array
-                                    if (positionAsInteger <= array.Count)
-                                    {
-                                        array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
-                                        treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent, array);
-                                    }
-                                    else
+                                    // specified index must not be greater than 
+                                    // the amount of items in the array
+                                    if (positionAsInteger > array.Count)
                                     {
                                         LogError(new JsonPatchError(
                                             objectToApplyTo,
                                             operationToReport,
-                                            Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
+                                            Resources.FormatInvalidIndexForArrayProperty(
+                                                operationToReport.op,
+                                                path)));
+                                        return;
                                     }
+
+                                    array.Insert(positionAsInteger, conversionResult.ConvertedInstance);
+                                    treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(
+                                        treeAnalysisResult.PropertyPathInParent, array);
                                 }
                             }
                             else
@@ -228,8 +219,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             // conversion successful
                             if (conversionResultTuple.CanBeConverted)
                             {
-                                treeAnalysisResult.Container.SetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent,
-                                    conversionResultTuple.ConvertedInstance);
+                                treeAnalysisResult.Container
+                                    .SetValueForCaseInsensitiveKey(
+                                        treeAnalysisResult.PropertyPathInParent,
+                                        conversionResultTuple.ConvertedInstance);
                             }
                             else
                             {
@@ -259,9 +252,9 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 if (!treeAnalysisResult.IsValidPathForAdd)
                 {
                     LogError(new JsonPatchError(
-                                     objectToApplyTo,
-                                     operationToReport,
-                                     Resources.FormatPropertyDoesNotExist(path)));
+                                  objectToApplyTo,
+                                  operationToReport,
+                                  Resources.FormatPropertyDoesNotExist(path)));
                 }
 
                 // If it' an array, add to that array.  If it's not, we replace.
@@ -867,16 +860,42 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return -1;
         }
 
-        private CheckNumericEndResult GetNumericEndResult(string path)
-        {
-            var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
-            int castedIndex = -1;
-            if (int.TryParse(possibleIndex, out castedIndex))
-            {
-                return new CheckNumericEndResult(true, castedIndex);
-            }
 
-            return new CheckNumericEndResult(false, null);
-        }
+        private ActualPathResult GetActualPath(
+            [NotNull] string path,
+            [NotNull] object objectToApplyTo,
+            [NotNull]  Operation operationToReport)
+        {
+            if (path.EndsWith("/-"))
+            {
+                return new ActualPathResult(-1, path.Substring(0, path.Length - 2), true);
+            }
+            else
+            {
+                var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
+                int castedIndex = -1;
+                if (int.TryParse(possibleIndex, out castedIndex))
+                {
+                    // has numeric end.  
+                    if (castedIndex > -1)
+                    {
+                        var pathToProperty = path.Substring(
+                           0,
+                           path.LastIndexOf('/' + castedIndex.ToString()));
+
+                        return new ActualPathResult(castedIndex, pathToProperty, false);
+                    }
+                    else
+                    {
+                        // negative position - invalid path
+                        LogError(new JsonPatchError(
+                                    objectToApplyTo,
+                                    operationToReport,
+                                    Resources.FormatNegativeIndexForArrayProperty(operationToReport.op, path)));
+                    }
+                }
+                return new ActualPathResult(-1, path, false);
+            }
+        } 
     }
 }
