@@ -533,15 +533,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     var attrVal = values[i];
                     var val = attrVal.Value;
-                    var next = i == values.Length - 1 ?
-                        suffix : // End of the list, grab the suffix
-                        values[i + 1].Prefix; // Still in the list, grab the next prefix
-
-                    if (val.Value == null)
-                    {
-                        // Nothing to write
-                        continue;
-                    }
 
                     // The special cases here are that the value we're writing might already be a string, or that the
                     // value might be a bool. If the value is the bool 'true' we want to write the attribute name
@@ -549,23 +540,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // Otherwise the value is another object (perhaps an HtmlString) and we'll ask it to format itself.
                     string stringValue;
 
-                    // Intentionally using is+cast here for performance reasons. This is more performant than as+bool?
-                    // because of boxing.
-                    if (val.Value is bool)
+                    if (!ShouldRenderAttributeValue(val))
                     {
-                        if ((bool)val.Value)
-                        {
-                            stringValue = name;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        continue;
                     }
-                    else
-                    {
-                        stringValue = val.Value as string;
-                    }
+
+                    stringValue = GetStringAttributeValue(name, val);
 
                     if (first)
                     {
@@ -578,29 +558,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                         WritePositionTaggedLiteral(writer, attrVal.Prefix);
                     }
 
+                    var next = i == values.Length - 1 ?
+                        suffix : // End of the list, grab the suffix
+                        values[i + 1].Prefix; // Still in the list, grab the next prefix
+
                     // Calculate length of the source span by the position of the next value (or suffix)
                     var sourceLength = next.Position - attrVal.Value.Position;
 
                     BeginContext(attrVal.Value.Position, sourceLength, isLiteral: attrVal.Literal);
-                    // The extra branching here is to ensure that we call the Write*To(string) overload where
-                    // possible.
-                    if (attrVal.Literal && stringValue != null)
-                    {
-                        WriteLiteralTo(writer, stringValue);
-                    }
-                    else if (attrVal.Literal)
-                    {
-                        WriteLiteralTo(writer, val.Value);
-                    }
-                    else if (stringValue != null)
-                    {
-                        WriteTo(writer, stringValue);
-                    }
-                    else
-                    {
-                        WriteTo(writer, val.Value);
-                    }
-
+                    WriteUnprefixedAttributeValueTo(writer, stringValue, val.Value, attrVal.Literal);
                     EndContext();
                     wroteSomething = true;
                 }
@@ -608,6 +574,32 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     WritePositionTaggedLiteral(writer, suffix);
                 }
+            }
+        }
+
+        public void WriteUnprefixedAttributeValueTo(
+            TextWriter writer,
+            string stringValue,
+            object rawValue,
+            bool literal)
+        {
+            // The extra branching here is to ensure that we call the Write*To(string) overload where
+            // possible.
+            if (literal && stringValue != null)
+            {
+                WriteLiteralTo(writer, stringValue);
+            }
+            else if (literal)
+            {
+                WriteLiteralTo(writer, rawValue);
+            }
+            else if (stringValue != null)
+            {
+                WriteTo(writer, stringValue);
+            }
+            else
+            {
+                WriteTo(writer, rawValue);
             }
         }
 
@@ -841,6 +833,34 @@ namespace Microsoft.AspNet.Mvc.Razor
             antiforgery.SetCookieTokenAndHeader(Context);
 
             return HtmlString.Empty;
+        }
+
+        public static bool ShouldRenderAttributeValue(object rawAttributeValue)
+        {
+            if (rawAttributeValue == null)
+            {
+                // Nothing to write
+                return false;
+            }
+
+            // Intentionally using is+cast here for performance reasons. This is more performant than as+bool?
+            // because of boxing.
+            if (rawAttributeValue is bool && !(bool)rawAttributeValue)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static string GetStringAttributeValue(string attributeName, object rawAttributeValue)
+        {
+            if (rawAttributeValue is bool && (bool)rawAttributeValue)
+            {
+                return attributeName;
+            }
+
+            return rawAttributeValue as string;
         }
 
         private void EnsureMethodCanBeInvoked(string methodName)
