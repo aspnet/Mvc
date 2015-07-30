@@ -7,16 +7,16 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
     {
         public int NumericEnd { get; private set; }
         public string PathToProperty { get; set; }
-        public bool AppendToList { get; set; }
+        public bool ExecuteAtEnd { get; set; }
 
         public ActualPathResult(
             int numericEnd,
             string pathToProperty,
-            bool appendToList)
+            bool executeAtEnd)
         {         
             NumericEnd = numericEnd;
             PathToProperty = pathToProperty;
-            AppendToList = appendToList;
+            ExecuteAtEnd = executeAtEnd;
         }
     }
 }

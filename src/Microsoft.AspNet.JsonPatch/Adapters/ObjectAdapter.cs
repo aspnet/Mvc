@@ -125,7 +125,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 objectToApplyTo,
                                 operationToReport);
 
-            var appendList = pathResult.AppendToList;
+            var appendList = pathResult.ExecuteAtEnd;
             var positionAsInteger = pathResult.NumericEnd;
             var actualPathToProperty = pathResult.PathToProperty;
             
