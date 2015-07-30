@@ -3,13 +3,13 @@
 
 namespace Microsoft.AspNet.JsonPatch.Helpers
 {
-    internal class ActualPathResult
+    internal class ActualPropertyPathResult
     {
         public int NumericEnd { get; private set; }
         public string PathToProperty { get; set; }
         public bool ExecuteAtEnd { get; set; }
 
-        public ActualPathResult(
+        public ActualPropertyPathResult(
             int numericEnd,
             string pathToProperty,
             bool executeAtEnd)

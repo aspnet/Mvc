@@ -120,7 +120,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             // to the list.
 
             // get path result
-            var pathResult = GetActualPath(
+            var pathResult = GetActualPropertyPath(
                                 path,
                                 objectToApplyTo,
                                 operationToReport);
@@ -861,29 +861,29 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         }
 
 
-        private ActualPathResult GetActualPath(
-            [NotNull] string path,
+        private ActualPropertyPathResult GetActualPropertyPath(
+            [NotNull] string propertyPath,
             [NotNull] object objectToApplyTo,
             [NotNull]  Operation operationToReport)
         {
-            if (path.EndsWith("/-"))
+            if (propertyPath.EndsWith("/-"))
             {
-                return new ActualPathResult(-1, path.Substring(0, path.Length - 2), true);
+                return new ActualPropertyPathResult(-1, propertyPath.Substring(0, propertyPath.Length - 2), true);
             }
             else
             {
-                var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
+                var possibleIndex = propertyPath.Substring(propertyPath.LastIndexOf("/") + 1);
                 int castedIndex = -1;
                 if (int.TryParse(possibleIndex, out castedIndex))
                 {
                     // has numeric end.  
                     if (castedIndex > -1)
                     {
-                        var pathToProperty = path.Substring(
+                        var pathToProperty = propertyPath.Substring(
                            0,
-                           path.LastIndexOf('/' + castedIndex.ToString()));
+                           propertyPath.LastIndexOf('/' + castedIndex.ToString()));
 
-                        return new ActualPathResult(castedIndex, pathToProperty, false);
+                        return new ActualPropertyPathResult(castedIndex, pathToProperty, false);
                     }
                     else
                     {
@@ -891,10 +891,10 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         LogError(new JsonPatchError(
                                     objectToApplyTo,
                                     operationToReport,
-                                    Resources.FormatNegativeIndexForArrayProperty(operationToReport.op, path)));
+                                    Resources.FormatNegativeIndexForArrayProperty(operationToReport.op, propertyPath)));
                     }
                 }
-                return new ActualPathResult(-1, path, false);
+                return new ActualPropertyPathResult(-1, propertyPath, false);
             }
         } 
     }
