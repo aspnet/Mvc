@@ -88,8 +88,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the anchor element.</returns>
-        HtmlString ActionLink(
+        /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
+        IHtmlContent ActionLink(
             [NotNull] string linkText,
             string actionName,
             string controllerName,
@@ -174,7 +174,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the checkbox element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; elements.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; elements.</returns>
         /// <remarks>
         /// <para>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set checkbox
@@ -206,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// value "checked" if the <see cref="bool"/> values is <c>true</c>; does not include the attribute otherwise.
         /// </para>
         /// </remarks>
-        HtmlString CheckBox(string expression, bool? isChecked, object htmlAttributes);
+        IHtmlContent CheckBox(string expression, bool? isChecked, object htmlAttributes);
 
         /// <summary>
         /// Returns HTML markup for the <paramref name="expression"/>, using a display template, specified HTML field
@@ -227,7 +227,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/> instance created for the
         /// template.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the created HTML.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the created HTML.</returns>
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> display template includes markup for each property in the
@@ -238,7 +238,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
         /// </remarks>
-        HtmlString Display(
+        IHtmlContent Display(
             string expression,
             string templateName,
             string htmlFieldName,
@@ -277,13 +277,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the &lt;select&gt; element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;select&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;select&gt; element.</returns>
         /// <remarks>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set
         /// &lt;select&gt; element's "name" attribute. Sanitizes <paramref name="expression"/> to set element's "id"
         /// attribute.
         /// </remarks>
-        HtmlString DropDownList(
+        IHtmlContent DropDownList(
             string expression,
             IEnumerable<SelectListItem> selectList,
             string optionLabel,
@@ -308,7 +308,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/> instance created for the
         /// template.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element(s).</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
         /// <para>
         /// For example the default <see cref="object"/> editor template includes &lt;label&gt; and &lt;input&gt;
@@ -319,7 +319,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>"prop"</c> which identifies the current model's "prop" property.
         /// </para>
         /// </remarks>
-        HtmlString Editor(string expression, string templateName, string htmlFieldName, object additionalViewData);
+        IHtmlContent Editor(string expression, string templateName, string htmlFieldName, object additionalViewData);
 
         /// <summary>
         /// Converts the <paramref name="value"/> to an HTML-encoded <see cref="string"/>.
@@ -417,7 +417,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element.</returns>
         /// <remarks>
         /// <para>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set
@@ -445,7 +445,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <item>Otherwise, <c>string.Empty</c>.</item>
         /// </list>
         /// </remarks>
-        HtmlString Hidden(string expression, object value, object htmlAttributes);
+        IHtmlContent Hidden(string expression, object value, object htmlAttributes);
 
         /// <summary>
         /// Returns the HTML element Id for the specified <paramref name="expression"/>.
@@ -463,8 +463,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;label&gt; element.</returns>
-        HtmlString Label(string expression, string labelText, object htmlAttributes);
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;label&gt; element.</returns>
+        IHtmlContent Label(string expression, string labelText, object htmlAttributes);
 
         /// <summary>
         /// Returns a multi-selection &lt;select&gt; element for the <paramref name="expression"/>, using the
@@ -479,13 +479,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the &lt;select&gt; element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;select&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;select&gt; element.</returns>
         /// <remarks>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set
         /// &lt;select&gt; element's "name" attribute. Sanitizes <paramref name="expression"/> to set element's "id"
         /// attribute.
         /// </remarks>
-        HtmlString ListBox(string expression, IEnumerable<SelectListItem> selectList, object htmlAttributes);
+        IHtmlContent ListBox(string expression, IEnumerable<SelectListItem> selectList, object htmlAttributes);
 
         /// <summary>
         /// Returns the full HTML element name for the specified <paramref name="expression"/>.
@@ -517,7 +517,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element.</returns>
         /// <remarks>
         /// <para>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set
@@ -531,7 +531,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <item>Otherwise, <c>string.Empty</c>.</item>
         /// </list>
         /// </remarks>
-        HtmlString Password(string expression, object value, object htmlAttributes);
+        IHtmlContent Password(string expression, object value, object htmlAttributes);
 
         /// <summary>
         /// Returns an &lt;input&gt; element of type "radio" for the specified <paramref name="expression"/>.
@@ -551,7 +551,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element.</returns>
         /// <remarks>
         /// <para>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set
@@ -591,7 +591,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// the attribute otherwise.
         /// </para>
         /// </remarks>
-        HtmlString RadioButton(string expression, object value, bool? isChecked, object htmlAttributes);
+        IHtmlContent RadioButton(string expression, object value, bool? isChecked, object htmlAttributes);
 
         /// <summary>
         /// Wraps HTML markup in an <see cref="HtmlString"/>, without HTML-encoding the specified
@@ -641,8 +641,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the anchor element.</returns>
-        HtmlString RouteLink(
+        /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
+        IHtmlContent RouteLink(
             [NotNull] string linkText,
             string routeName,
             string protocol,
@@ -662,7 +662,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;textarea&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;textarea&gt; element.</returns>
         /// <remarks>
         /// <para>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="expression"/> to set
@@ -689,7 +689,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <item>Otherwise, <c>string.Empty</c>.</item>
         /// </list>
         /// </remarks>
-        HtmlString TextArea(string expression, string value, int rows, int columns, object htmlAttributes);
+        IHtmlContent TextArea(string expression, string value, int rows, int columns, object htmlAttributes);
 
         /// <summary>
         /// Returns an &lt;input&gt; element of type "text" for the specified <paramref name="current"/>.
@@ -703,7 +703,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;input&gt; element.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element.</returns>
         /// <remarks>
         /// <para>
         /// Combines <see cref="TemplateInfo.HtmlFieldPrefix"/> and <paramref name="current"/> to set
@@ -737,7 +737,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <item>Otherwise, <c>string.Empty</c>.</item>
         /// </list>
         /// </remarks>
-        HtmlString TextBox(string current, object value, string format, object htmlAttributes);
+        IHtmlContent TextBox(string current, object value, string format, object htmlAttributes);
 
         /// <summary>
         /// Returns the validation message if an error exists in the <see cref="ModelStateDictionary"/> object
@@ -758,10 +758,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <see cref="ViewContext.ValidationMessageElement"/>.
         /// </param>
         /// <returns>
-        /// A new <see cref="HtmlString"/> containing a <paramref name="tag"/> element. <c>null</c> if the
+        /// A new <see cref="IHtmlContent"/> containing a <paramref name="tag"/> element. <c>null</c> if the
         /// <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
-        HtmlString ValidationMessage(string expression, string message, object htmlAttributes, string tag);
+        IHtmlContent ValidationMessage(string expression, string message, object htmlAttributes, string tag);
 
         /// <summary>
         /// Returns an unordered list (&lt;ul&gt; element) of validation messages that are in the
@@ -780,11 +780,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <see cref="ViewContext.ValidationSummaryMessageElement" />.
         /// </param>
         /// <returns>
-        /// New <see cref="HtmlString"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
+        /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
         /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
         /// validation is disabled).
         /// </returns>
-        HtmlString ValidationSummary(
+        IHtmlContent ValidationSummary(
             bool excludePropertyErrors,
             string message,
             object htmlAttributes,
