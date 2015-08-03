@@ -11,14 +11,9 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// An <see cref="IValueProvider"/> for data stored in an <see cref="IDictionary{string, string[]}"/> and
+    /// An <see cref="IValueProvider"/> for form data stored in an <see cref="IDictionary{string, string[]}"/> and
     /// generally accessed asynchronously.
     /// </summary>
-    /// <remarks>
-    /// Combines features of <see cref="DictionaryBasedValueProvider"/> and
-    /// <see cref="ReadableStringCollectionValueProvider"/>. In particular this class is backed by an
-    /// <see cref="IDictionary{string, string[]}"/> store but operations are fully asynchronous.
-    /// </remarks>
     public class JQueryFormValueProvider : BindingSourceValueProvider, IEnumerableValueProvider
     {
         private readonly Func<Task<IDictionary<string, string[]>>> _valuesFactory;

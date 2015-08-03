@@ -56,28 +56,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return string.Empty;
             }
 
-            StringBuilder builder = null;
+            var indexOpen = key.IndexOf('[');
+            if (indexOpen == -1)
+            {
+
+                // Fast path, no normalization needed.
+                // This skips string conversion and allocating the string builder.
+                return key;
+            }
+
+            var builder = new StringBuilder();
             var position = 0;
             while (position < key.Length)
             {
-                var indexOpen = key.IndexOf('[', position);
                 if (indexOpen == -1)
                 {
-                    if (position == 0)
-                    {
-                        // Fast path, no normalization needed.
-                        // This skips string conversion and allocating the string builder.
-                        return key;
-                    }
-
                     // No more brackets.
-                    builder = builder ?? new StringBuilder();
                     builder.Append(key, position, key.Length - position);
-
                     break;
                 }
 
-                builder = builder ?? new StringBuilder();
                 builder.Append(key, position, indexOpen - position); // everything up to "["
 
                 // Find closing bracket.
@@ -106,6 +104,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
 
                 position = indexClose + 1;
+                indexOpen = key.IndexOf('[', position);
             }
 
             return builder.ToString();
