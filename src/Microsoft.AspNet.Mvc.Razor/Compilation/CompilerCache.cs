@@ -21,7 +21,24 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// Initializes a new instance of <see cref="CompilerCache"/>.
         /// </summary>
         /// <param name="fileProvider"><see cref="IFileProvider"/> used to locate Razor views.</param>
-        public CompilerCache([NotNull] IFileProvider fileProvider)
+        /// <param name="razorFileInfoCollections">The sequence of <see cref="RazorFileInfoCollection"/> that provides
+        /// information for precompiled view discovery.</param>
+        /// <param name="loaderContextAccessor">The <see cref="IAssemblyLoadContextAccessor"/>.</param>
+        /// <param name="optionsAccessor">An accessor to the <see cref="RazorViewEngineOptions"/>.</param>
+        public CompilerCache(
+            IEnumerable<RazorFileInfoCollection> razorFileInfoCollections,
+            IAssemblyLoadContextAccessor loadContextAccessor,
+            IOptions<RazorViewEngineOptions> optionsAccessor)
+            : this(razorFileInfoCollections,
+                  loadContextAccessor.GetLoadContext(RazorHostAssembly),
+                  optionsAccessor.Value.FileProvider)
+        {
+        }
+
+        internal CompilerCache(
+            IEnumerable<RazorFileInfoCollection> razorFileInfoCollections,
+            IAssemblyLoadContext loadContext,
+            IFileProvider fileProvider)
         {
             _fileProvider = fileProvider;
             _cache = new MemoryCache(new MemoryCacheOptions { CompactOnMemoryPressure = false });
