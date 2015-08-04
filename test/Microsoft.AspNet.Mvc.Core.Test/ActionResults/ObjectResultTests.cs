@@ -899,10 +899,10 @@ namespace Microsoft.AspNet.Mvc.ActionResults
             var optionsAccessor = new TestOptionsManager<MvcOptions>();
             foreach (var formatter in outputFormatters)
             {
-                optionsAccessor.Options.OutputFormatters.Add(formatter);
+                optionsAccessor.Value.OutputFormatters.Add(formatter);
             }
 
-            optionsAccessor.Options.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
+            optionsAccessor.Value.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
             httpContext.Setup(o => o.RequestServices.GetService(typeof(ILogger<ObjectResult>)))
