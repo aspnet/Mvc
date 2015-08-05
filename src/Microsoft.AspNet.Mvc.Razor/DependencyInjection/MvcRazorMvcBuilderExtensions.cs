@@ -2,10 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Mvc.Razor.Compilation;
 using Microsoft.AspNet.Mvc.Razor.Directives;
+using Microsoft.AspNet.Mvc.Razor.Precompilation;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
@@ -32,6 +36,18 @@ namespace Microsoft.Framework.DependencyInjection
             {
                 builder.Services.Configure(setupAction);
             }
+
+            return builder;
+        }
+
+        public static IMvcBuilder AddPrecompiledRazorViews(
+            [NotNull] this IMvcBuilder builder,
+            [NotNull] params Assembly[] assemblies)
+        {
+            AddRazorViewEngine(builder);
+
+            var razorFileInfos = GetFileInfos(assemblies);
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Instance(razorFileInfos));
 
             return builder;
         }
@@ -90,6 +106,28 @@ namespace Microsoft.Framework.DependencyInjection
 
             // Consumed by the Cache tag helper to cache results across the lifetime of the application.
             services.TryAddSingleton<IMemoryCache, MemoryCache>();
+        }
+
+        private static IEnumerable<RazorFileInfoCollection> GetFileInfos(IEnumerable<Assembly> assemblies) =>
+            assemblies
+                .SelectMany(assembly => assembly.ExportedTypes)
+                .Where(IsValidRazorFileInfoCollection)
+                .Select(Activator.CreateInstance)
+                .Cast<RazorFileInfoCollection>();
+
+        internal static bool IsValidRazorFileInfoCollection(Type type)
+        {
+            var inAssemblyType = typeof(RazorFileInfoCollection);
+            if (inAssemblyType.IsAssignableFrom(type))
+            {
+                var hasParameterlessConstructor = type.GetConstructor(Type.EmptyTypes) != null;
+
+                return hasParameterlessConstructor
+                    && !type.GetTypeInfo().IsAbstract
+                    && !type.GetTypeInfo().ContainsGenericParameters;
+            }
+
+            return false;
         }
     }
 }
