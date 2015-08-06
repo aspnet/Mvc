@@ -277,7 +277,7 @@ namespace System.Web.Http
             var result = controller.NotFound();
 
             // Assert
-            Assert.Equal(404, Assert.IsType<HttpNotFoundResult>(result).StatusCode);
+            Assert.Equal(StatusCodes.Status404NotFound, Assert.IsType<HttpNotFoundResult>(result).StatusCode);
         }
 
         [Fact]
@@ -290,7 +290,7 @@ namespace System.Web.Http
             var result = controller.Ok();
 
             // Assert
-            Assert.Equal(200, Assert.IsType<HttpOkResult>(result).StatusCode);
+            Assert.Equal(StatusCodes.Status200OK, Assert.IsType<HttpOkResult>(result).StatusCode);
         }
 
 
