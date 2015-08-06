@@ -14,7 +14,7 @@ namespace PrecompilationWebSite
         {
             // Add MVC services to the services container
             services
-                .AddMvcCore()
+                .AddMvc()
                 .AddPrecompiledRazorViews(GetType().GetTypeInfo().Assembly);
         }
 

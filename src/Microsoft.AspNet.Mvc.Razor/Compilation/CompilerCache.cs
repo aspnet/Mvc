@@ -18,6 +18,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
     /// </summary>
     public class CompilerCache : ICompilerCache
     {
+        private static readonly Assembly RazorHostAssembly = typeof(CompilerCache).GetTypeInfo().Assembly;
         private readonly IFileProvider _fileProvider;
         private readonly IMemoryCache _cache;
 
@@ -34,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             IAssemblyLoadContextAccessor loadContextAccessor,
             IOptions<RazorViewEngineOptions> optionsAccessor)
             : this(razorFileInfoCollections,
-                  loadContextAccessor.GetLoadContext(typeof(CompilerCache).GetTypeInfo().Assembly),
+                  loadContextAccessor.GetLoadContext(RazorHostAssembly),
                   optionsAccessor.Options.FileProvider)
         {
         }
@@ -86,8 +87,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                     var compilationResult = compile(relativeFileInfo).EnsureSuccessful();
                     cacheEntryOptions = GetMemoryCacheEntryOptions(relativePath);
 
-                    // Don't cache compilationResult since it could be UncachedCompilationResult
-                    // which has the generated view content as a string.
+                    // By default the CompilationResult returned by IRoslynCompiler is an instance of
+                    // UncachedCompilationResult. This type has the generated code as a string property and do not want
+                    // to cache it. We'll instead cache the unwrapped result.
                     cacheResultToCache = new CompilerCacheResult(
                         CompilationResult.Successful(compilationResult.CompiledType));
                     cacheResult = new CompilerCacheResult(compilationResult);

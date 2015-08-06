@@ -46,10 +46,20 @@ namespace Microsoft.Framework.DependencyInjection
         {
             AddRazorViewEngine(builder);
 
-            var razorFileInfos = GetFileInfos(assemblies);
+            var razorFileInfos = GetFileInfoCollections(assemblies);
             builder.Services.TryAddEnumerable(ServiceDescriptor.Instance(razorFileInfos));
 
             return builder;
+        }
+
+        public static IServiceCollection AddPrecompiledRazorViews(
+            [NotNull] this IServiceCollection collection,
+            [NotNull] params Assembly[] assemblies)
+        {
+            var razorFileInfos = GetFileInfoCollections(assemblies);
+            collection.TryAddEnumerable(ServiceDescriptor.Instance(razorFileInfos));
+
+            return collection;
         }
 
         public static IMvcBuilder ConfigureRazorViewEngine(
@@ -108,7 +118,7 @@ namespace Microsoft.Framework.DependencyInjection
             services.TryAddSingleton<IMemoryCache, MemoryCache>();
         }
 
-        private static IEnumerable<RazorFileInfoCollection> GetFileInfos(IEnumerable<Assembly> assemblies) =>
+        private static IEnumerable<RazorFileInfoCollection> GetFileInfoCollections(IEnumerable<Assembly> assemblies) =>
             assemblies
                 .SelectMany(assembly => assembly.ExportedTypes)
                 .Where(IsValidRazorFileInfoCollection)
