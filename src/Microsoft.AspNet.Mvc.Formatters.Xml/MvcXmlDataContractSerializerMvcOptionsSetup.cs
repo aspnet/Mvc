@@ -7,14 +7,25 @@ using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc
 {
+    /// <summary>
+    /// A <see cref="ConfigureOptions{TOptions}"/> implementation which will add the
+    /// data contract serializer formatters to <see cref="MvcOptions"/>.
+    /// </summary>
     public class MvcXmlDataContractSerializerMvcOptionsSetup : ConfigureOptions<MvcOptions>
     {
+        /// <summary>
+        /// Creates a new instance of <see cref="MvcXmlDataContractSerializerMvcOptionsSetup"/>.
+        /// </summary>
         public MvcXmlDataContractSerializerMvcOptionsSetup()
             : base(ConfigureMvc)
         {
             Order = DefaultOrder.DefaultFrameworkSortOrder + 10;
         }
 
+        /// <summary>
+        /// Adds the data contract serializer formatters to <see cref="MvcOptions"/>.
+        /// </summary>
+        /// <param name="options">The <see cref="MvcOptions"/>.</param>
         public static void ConfigureMvc(MvcOptions options)
         {
             options.ModelMetadataDetailsProviders.Add(new DataMemberRequiredBindingMetadataProvider());

@@ -19,7 +19,7 @@ namespace Microsoft.Framework.DependencyInjection
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcBuilder AddXmlDataContractSerializerFormatters([NotNull] this IMvcBuilder builder)
         {
-            AddAddXmlDataContractSerializerFormatterServices(builder.Services);
+            AddXmlDataContractSerializerFormatterServices(builder.Services);
             return builder;
         }
 
@@ -30,19 +30,19 @@ namespace Microsoft.Framework.DependencyInjection
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcBuilder AddXmlSerializerFormatters([NotNull] this IMvcBuilder builder)
         {
-            AddAddXmlSerializerFormatterServices(builder.Services);
+            AddXmlSerializerFormatterServices(builder.Services);
             return builder;
         }
 
         // Internal for testing.
-        internal static void AddAddXmlDataContractSerializerFormatterServices(IServiceCollection services)
+        internal static void AddXmlDataContractSerializerFormatterServices(IServiceCollection services)
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcXmlDataContractSerializerMvcOptionsSetup>());
         }
 
         // Internal for testing.
-        internal static void AddAddXmlSerializerFormatterServices(IServiceCollection services)
+        internal static void AddXmlSerializerFormatterServices(IServiceCollection services)
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcXmlSerializerMvcOptionsSetup>());
