@@ -10,17 +10,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
     public class StringHtmlContentTest
     {
         [Fact]
-        public void CreateStringHtmlContent()
-        {
-            // Arrange & Act
-            var content = new StringHtmlContent("Hello World");
-
-            // Assert
-            var result = Assert.IsType<StringHtmlContent>(content);
-            Assert.Equal("Hello World", result.ToString());
-        }
-
-        [Fact]
         public void ToString_ReturnsAString()
         {
             // Arrange & Act
@@ -38,20 +27,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             // Assert
             Assert.Null(content.ToString());
-        }
-
-        [Fact]
-        public void CreateStringHtmlContent_InternalConstructor_WritesWithoutEncoding()
-        {
-            // Arrange & Act
-            var content = new StringHtmlContent("Hello World", encodeOnWrite: false);
-
-            // Assert
-            using (var writer = new StringWriter())
-            {
-                content.WriteTo(writer, new CommonTestEncoder());
-                Assert.Equal("Hello World", writer.ToString());
-            }
         }
 
         [Fact]

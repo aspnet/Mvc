@@ -374,7 +374,7 @@ Environment.NewLine;
                 additionalViewData: null);
 
             // Assert
-            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -403,7 +403,7 @@ Environment.NewLine;
                 additionalViewData: null);
 
             // Assert
-            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -442,7 +442,7 @@ Environment.NewLine;
                 additionalViewData: null);
 
             // Assert
-            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -480,7 +480,7 @@ Environment.NewLine;
                 additionalViewData: null);
 
             // Assert
-            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -519,7 +519,7 @@ Environment.NewLine;
                 additionalViewData: null);
 
             // Assert
-            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -557,7 +557,7 @@ Environment.NewLine;
                 additionalViewData: null);
 
             // Assert
-            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Fact]
@@ -632,7 +632,7 @@ Environment.NewLine;
             var result = helper.Editor("");
 
             // Assert
-            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -687,7 +687,7 @@ Environment.NewLine;
             var result = helper.Editor("");
 
             // Assert
-            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -747,7 +747,7 @@ Environment.NewLine;
             var result = helper.Editor("");
 
             // Assert
-            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Fact]
@@ -951,7 +951,7 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
-            public HtmlString AntiForgeryToken()
+            public IHtmlContent AntiForgeryToken()
             {
                 throw new NotImplementedException();
             }
@@ -1102,12 +1102,12 @@ Environment.NewLine;
                 return HelperName("__RadioButton__", htmlAttributes);
             }
 
-            public HtmlString Raw(object value)
+            public IHtmlContent Raw(object value)
             {
                 throw new NotImplementedException();
             }
 
-            public HtmlString Raw(string value)
+            public IHtmlContent Raw(string value)
             {
                 throw new NotImplementedException();
             }

@@ -103,8 +103,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Returns a &lt;hidden&gt; element (antiforgery token) that will be validated when the containing
         /// &lt;form&gt; is submitted.
         /// </summary>
-        /// <returns>A new <see cref="HtmlString"/> containing the &lt;hidden&gt; element.</returns>
-        HtmlString AntiForgeryToken();
+        /// <returns><see cref="IHtmlContent"/> containing the &lt;hidden&gt; element.</returns>
+        IHtmlContent AntiForgeryToken();
 
         /// <summary>
         /// Renders a &lt;form&gt; start tag to the response. When the user submits the form, the action with name
@@ -598,16 +598,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <paramref name="value"/>.
         /// </summary>
         /// <param name="value">HTML markup <see cref="string"/>.</param>
-        /// <returns>A new <see cref="HtmlString"/> containing the wrapped <see cref="string"/>.</returns>
-        HtmlString Raw(string value);
+        /// <returns>A new <see cref="IHtmlContent"/> containing the wrapped <see cref="string"/>.</returns>
+        IHtmlContent Raw(string value);
 
         /// <summary>
         /// Wraps HTML markup from the string representation of an <see cref="object"/> in an
         /// <see cref="HtmlString"/>, without HTML-encoding the string representation.
         /// </summary>
         /// <param name="value">The <see cref="object"/> to wrap.</param>
-        /// <returns>A new <see cref="HtmlString"/> containing the wrapped string representation.</returns>
-        HtmlString Raw(object value);
+        /// <returns><see cref="IHtmlContent"/> containing the wrapped string representation.</returns>
+        IHtmlContent Raw(object value);
 
         /// <summary>
         /// Renders HTML markup for the specified partial view.

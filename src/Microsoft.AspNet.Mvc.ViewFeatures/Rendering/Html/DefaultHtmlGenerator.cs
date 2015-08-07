@@ -97,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public virtual HtmlString GenerateAntiforgery([NotNull] ViewContext viewContext)
+        public virtual IHtmlContent GenerateAntiforgery([NotNull] ViewContext viewContext)
         {
             var tag = _antiforgery.GetHtml(viewContext.HttpContext);
             return new HtmlString(tag);
@@ -673,8 +673,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 }
                 var messageTag = new TagBuilder(headerTag);
                 messageTag.SetInnerText(message);
-                wrappedMessage.Append(messageTag.ToHtmlContent(TagRenderMode.Normal));
-                wrappedMessage.Append(Environment.NewLine);
+                wrappedMessage.AppendLine(messageTag.ToHtmlContent(TagRenderMode.Normal));
             }
             else
             {
@@ -684,6 +683,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // If excludePropertyErrors is true, describe any validation issue with the current model in a single item.
             // Otherwise, list individual property errors.
             var htmlSummary = new BufferedHtmlContent();
+            var isHtmlSummaryModified = false;
             var modelStates = ValidationHelpers.GetModelStateList(viewContext.ViewData, excludePropertyErrors);
 
             foreach (var modelState in modelStates)
@@ -696,16 +696,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     {
                         var listItem = new TagBuilder("li");
                         listItem.SetInnerText(errorText);
-                        htmlSummary.Append(listItem.ToHtmlContent(TagRenderMode.Normal));
-                        htmlSummary.Append(Environment.NewLine);
+                        htmlSummary.AppendLine(listItem.ToHtmlContent(TagRenderMode.Normal));
+                        isHtmlSummaryModified = true;
                     }
                 }
             }
 
-            if (htmlSummary.ToString().Length == 0)
+            if (!isHtmlSummaryModified)
             {
-                htmlSummary.Append(HiddenListItem);
-                htmlSummary.Append(Environment.NewLine);
+                htmlSummary.AppendLine(HiddenListItem);
             }
 
             var unorderedList = new TagBuilder("ul")
@@ -908,11 +907,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// Not used directly in HtmlHelper. Exposed for use in DefaultDisplayTemplates.
         /// </remarks>
-        internal static TagBuilder GenerateOption(SelectListItem item, IHtmlContent encodedContent)
+        internal static TagBuilder GenerateOption(SelectListItem item, IHtmlContent content)
         {
             var tagBuilder = new TagBuilder("option")
             {
-                InnerHtml = encodedContent,
+                InnerHtml = content,
             };
 
             if (item.Value != null)
@@ -1323,20 +1322,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         groupBuilder.MergeAttribute("disabled", "disabled");
                     }
 
-                    listItemBuilder.Append(groupBuilder.ToHtmlContent(TagRenderMode.StartTag));
-                    listItemBuilder.Append(Environment.NewLine);
+                    listItemBuilder.AppendLine(groupBuilder.ToHtmlContent(TagRenderMode.StartTag));
                 }
 
                 foreach (var item in group)
                 {
-                    listItemBuilder.Append(GenerateOption(item));
-                    listItemBuilder.Append(Environment.NewLine);
+                    listItemBuilder.AppendLine(GenerateOption(item));
                 }
 
                 if (optGroup != null)
                 {
-                    listItemBuilder.Append(groupBuilder.ToHtmlContent(TagRenderMode.EndTag));
-                    listItemBuilder.Append(Environment.NewLine);
+                    listItemBuilder.AppendLine(groupBuilder.ToHtmlContent(TagRenderMode.EndTag));
                 }
             }
 

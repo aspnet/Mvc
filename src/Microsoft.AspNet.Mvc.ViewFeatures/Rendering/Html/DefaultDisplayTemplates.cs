@@ -246,8 +246,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     {
                         divTag.SetInnerText(label);
                         divTag.AddCssClass("display-label");
-                        content.Append(divTag.ToHtmlContent(TagRenderMode.Normal));
-                        content.Append(Environment.NewLine);
+                        content.AppendLine(divTag.ToHtmlContent(TagRenderMode.Normal));
 
                         // Reset divTag for reuse.
                         divTag.Attributes.Clear();
@@ -271,8 +270,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
-                    content.Append(divTag.ToHtmlContent(TagRenderMode.EndTag));
-                    content.Append(Environment.NewLine);
+                    content.AppendLine(divTag.ToHtmlContent(TagRenderMode.EndTag));
                 }
             }
 

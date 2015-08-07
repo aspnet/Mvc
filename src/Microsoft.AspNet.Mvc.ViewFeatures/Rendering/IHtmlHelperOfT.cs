@@ -341,10 +341,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             object htmlAttributes);
 
         /// <inheritdoc cref="IHtmlHelper.Raw(object)"/>
-        new HtmlString Raw(object value);
+        new IHtmlContent Raw(object value);
 
         /// <inheritdoc cref="IHtmlHelper.Raw(string)"/>
-        new HtmlString Raw(string value);
+        new IHtmlContent Raw(string value);
 
         /// <summary>
         /// Returns a &lt;textarea&gt; element for the specified <paramref name="expression"/>.

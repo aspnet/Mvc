@@ -260,7 +260,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="htmlHelper">The <see cref="IHtmlHelper"/> instance this method extends.</param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the &lt;ul&gt; element.
-        /// <see cref="IHtmlContent.Empty"/> if the current model is valid and client-side validation is disabled).
+        /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper)
         {
@@ -281,7 +281,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the &lt;ul&gt; element.
-        /// <see cref="IHtmlContent.Empty"/> if the current model is valid and client-side validation is disabled).
+        /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper, bool excludePropertyErrors)
         {
@@ -301,7 +301,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which wraps the
-        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model
+        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper, string message)
@@ -325,7 +325,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
-        /// and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model is valid and client-side
+        /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
         /// validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper, string message, string tag)
@@ -349,7 +349,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which, in turn, wraps the
-        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model
+        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
@@ -378,7 +378,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which wraps the
-        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model
+        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
@@ -410,7 +410,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
-        /// and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model is valid and client-side
+        /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
         /// validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
@@ -441,7 +441,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
-        /// and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model is valid and client-side
+        /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
         /// validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
@@ -474,7 +474,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which wraps the
-        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="IHtmlContent.Empty"/> if the current model
+        /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(

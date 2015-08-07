@@ -220,7 +220,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString AntiForgeryToken()
+        public IHtmlContent AntiForgeryToken()
         {
             var html = _htmlGenerator.GenerateAntiforgery(ViewContext);
             return html ?? HtmlString.Empty;
@@ -510,13 +510,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public HtmlString Raw(string value)
+        public IHtmlContent Raw(string value)
         {
             return new HtmlString(value);
         }
 
         /// <inheritdoc />
-        public HtmlString Raw(object value)
+        public IHtmlContent Raw(object value)
         {
             return new HtmlString(value == null ? null : value.ToString());
         }

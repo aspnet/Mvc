@@ -14,8 +14,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
 {
     public class TagBuilder
     {
-        public TagBuilder([NotNull] string tagName)
+        public TagBuilder(string tagName)
         {
+            if (string.IsNullOrEmpty(tagName))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(tagName));
+            }
+
             TagName = tagName;
             Attributes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
@@ -180,6 +185,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
             InnerHtml = new StringHtmlContent(innerText);
         }
 
+        /// <summary>
+        /// Converts the <see cref="TagBuilder"/> to <see cref="IHtmlContent"/> with the specified
+        /// <see cref="TagRenderMode"/>.
+        /// </summary>
+        /// <param name="renderMode"><see cref="TagRenderMode"/> with which the <see cref="TagBuilder"/>
+        /// should be written.</param>
+        /// <returns><see cref="IHtmlContent"/> containing the contents of the <see cref="TagBuilder"/>.</returns>
         public IHtmlContent ToHtmlContent(TagRenderMode renderMode)
         {
             var content = new BufferedHtmlContent();

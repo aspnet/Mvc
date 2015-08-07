@@ -9,54 +9,31 @@ using Microsoft.Framework.WebEncoders;
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
-    /// String content which gets enoded when written.
+    /// String content which gets encoded when written.
     /// </summary>
     public class StringHtmlContent : IHtmlContent
     {
-        private bool _encodeOnWrite;
         private string _text;
 
         /// <summary>
         /// Creates a new instance of <see cref="StringHtmlContent"/>
         /// </summary>
-        /// <param name="text"><c>string</c>to initialize <see cref="StringHtmlContent"/>.</param>
+        /// <param name="text"><see cref="string"/> to be HTML encoded when <see cref="WriteTo"/> is called.</param>
         public StringHtmlContent(string text)
-            : this(text, encodeOnWrite: true)
-        {
-        }
-
-        internal StringHtmlContent(string text, bool encodeOnWrite)
         {
             _text = text;
-            _encodeOnWrite = encodeOnWrite;
         }
 
         /// <inheritdoc />
         public void WriteTo([NotNull] TextWriter writer, [NotNull] IHtmlEncoder encoder)
         {
-            if (_encodeOnWrite)
-            {
-                encoder.HtmlEncode(_text, writer);
-            }
-            else
-            {
-                writer.Write(_text);
-            }
+            encoder.HtmlEncode(_text, writer);
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            if (_text == null)
-            {
-                return null;
-            }
-
-            using (var writer = new StringWriter())
-            {
-                WriteTo(writer, new HtmlEncoder());
-                return writer.ToString();
-            }
+            return _text;
         }
     }
 }

@@ -269,7 +269,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = helper.Display("Property1");
 
             // Assert
-            Assert.Equal("HtmlEncode[[ViewData string]]", HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal("HtmlEncode[[ViewData string]]", HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Fact]
@@ -288,7 +288,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = helper.DisplayFor(m => m.Property1);
 
             // Assert
-            Assert.Equal("HtmlEncode[[Model string]]", HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal("HtmlEncode[[Model string]]", HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Fact]
@@ -306,7 +306,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = helper.Display("Property1");
 
             // Assert
-            Assert.Equal("HtmlEncode[[Model string]]", HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal("HtmlEncode[[Model string]]", HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Theory]
@@ -327,7 +327,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var result = helper.DisplayFor(m => m.Property1);
 
             // Assert
-            Assert.Equal(string.Empty, HtmlContentUtilities.HtmlContentToString(result).ToString());
+            Assert.Equal(string.Empty, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         [Fact]

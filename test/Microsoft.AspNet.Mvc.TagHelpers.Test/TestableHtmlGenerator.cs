@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             return viewContext;
         }
 
-        public override HtmlString GenerateAntiforgery(ViewContext viewContext)
+        public override IHtmlContent GenerateAntiforgery(ViewContext viewContext)
         {
             var tagBuilder = new TagBuilder("input")
             {
@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
             };
 
-            return new HtmlString(tagBuilder.ToHtmlContent(TagRenderMode.SelfClosing).ToString());
+            return tagBuilder.ToHtmlContent(TagRenderMode.SelfClosing);
         }
 
         protected override IDictionary<string, object> GetValidationAttributes(

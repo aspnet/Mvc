@@ -142,11 +142,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var model = viewData.Model;
 
             var result = new BufferedHtmlContent();
-            if (viewData.ModelMetadata.HideSurroundingHtml)
-            {
-                result.Append(HtmlString.Empty);
-            }
-            else
+            if (!viewData.ModelMetadata.HideSurroundingHtml)
             {
                 result.Append(DefaultDisplayTemplates.StringTemplate(htmlHelper));
             }
@@ -231,7 +227,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var viewData = htmlHelper.ViewData;
             var templateInfo = viewData.TemplateInfo;
             var modelExplorer = viewData.ModelExplorer;
-            var content = new BufferedHtmlContent();
 
             if (templateInfo.TemplateDepth > 1)
             {
@@ -252,6 +247,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var serviceProvider = htmlHelper.ViewContext.HttpContext.RequestServices;
             var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
 
+            var content = new BufferedHtmlContent();
             foreach (var propertyExplorer in modelExplorer.Properties)
             {
                 var propertyMetadata = propertyExplorer.Metadata;
@@ -272,8 +268,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     {
                         divTag.AddCssClass("editor-label");
                         divTag.InnerHtml = label; // already escaped
-                        content.Append(divTag.ToHtmlContent(TagRenderMode.Normal));
-                        content.Append(Environment.NewLine);
+                        content.AppendLine(divTag.ToHtmlContent(TagRenderMode.Normal));
 
                         // Reset divTag for reuse.
                         divTag.Attributes.Clear();
@@ -304,8 +299,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         htmlAttributes: null,
                         tag: null));
 
-                    content.Append(divTag.ToHtmlContent(TagRenderMode.EndTag));
-                    content.Append(Environment.NewLine);
+                    content.AppendLine(divTag.ToHtmlContent(TagRenderMode.EndTag));
                 }
             }
 

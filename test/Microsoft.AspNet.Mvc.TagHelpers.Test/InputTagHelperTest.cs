@@ -823,9 +823,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             Assert.True(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Empty(output.PreContent.ToString());
-            Assert.Equal(string.Empty, output.Content.ToString());
-            Assert.Empty(output.PostContent.ToString());
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.Equal(string.Empty, output.Content.GetContent());
+            Assert.Empty(output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -898,9 +898,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             Assert.True(output.SelfClosing);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Empty(output.PreContent.ToString());
-            Assert.Equal(string.Empty, output.Content.ToString());
-            Assert.Empty(output.PostContent.ToString());
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.Equal(string.Empty, output.Content.GetContent());
+            Assert.Empty(output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
