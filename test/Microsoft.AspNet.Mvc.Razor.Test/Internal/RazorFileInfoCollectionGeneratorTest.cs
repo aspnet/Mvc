@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Internal
         public void GenerateCollection_ProducesExpectedCode(RazorFileInfoCollection collection, string expected)
         {
             // Act
-            var actual = RazorFileInfoCollectionGenerator.GenerateCollection(collection);
+            var actual = RazorFileInfoCollectionGenerator.GenerateCode(collection);
 
             // Assert
             Assert.Equal(expected, actual);

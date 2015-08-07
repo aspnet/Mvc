@@ -64,9 +64,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
             var result = CreateFileInfoCollection();
             if (result != null)
             {
-                var collectionGenerator = RazorFileInfoCollectionGenerator.GenerateCollection(result);
+                var generatedCode = RazorFileInfoCollectionGenerator.GenerateCode(result);
                 var syntaxTree = CSharpSyntaxTree.ParseText(
-                    collectionGenerator,
+                    generatedCode,
                     SyntaxTreeGenerator.GetParseOptions(CompilationSettings));
                 CompileContext.Compilation = CompileContext.Compilation.AddSyntaxTrees(syntaxTree);
             }

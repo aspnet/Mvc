@@ -9,9 +9,17 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Internal
 {
+    /// <summary>
+    /// Utility type to code generate <see cref="RazorFileInfoCollection"/> types.
+    /// </summary>
     public static class RazorFileInfoCollectionGenerator
     {
-        public static string GenerateCollection([NotNull] RazorFileInfoCollection fileInfoCollection)
+        /// <summary>
+        /// Generates CSharp code for the specified <paramref name="fileInfoCollection"/>.
+        /// </summary>
+        /// <param name="fileInfoCollection">The <see cref="RazorFileInfoCollection"/>.</param>
+        /// <returns></returns>
+        public static string GenerateCode([NotNull] RazorFileInfoCollection fileInfoCollection)
         {
             var builder = new StringBuilder();
 
