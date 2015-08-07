@@ -163,6 +163,57 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 File.WriteAllText(Path.Combine(viewsDirectory, "_ViewImports.cshtml"), globalContent.TrimEnd(' '));
             }
         }
+        
+        [Fact]
+        public async Task PrecompiledView_RendersWithoutSourceFile()
+        {
+            // Arrange
+            IServiceCollection serviceCollection = null;
+            var server = TestHelper.CreateServer(_app, SiteName, services =>
+            {
+                _configureServices(services);
+                serviceCollection = services;
+            });
+            var client = server.CreateClient();
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var applicationEnvironment = serviceProvider.GetRequiredService<IApplicationEnvironment>();
+
+            var viewsDirectory = Path.Combine(applicationEnvironment.ApplicationBasePath, "Views", "Home");
+            var layoutContent = File.ReadAllText(Path.Combine(viewsDirectory, "Layout.cshtml"));
+            var indexContent = File.ReadAllText(Path.Combine(viewsDirectory, "Index.cshtml"));
+            var viewstartContent = File.ReadAllText(Path.Combine(viewsDirectory, "_ViewStart.cshtml"));
+            var globalContent = File.ReadAllText(Path.Combine(viewsDirectory, "_GlobalImport.cshtml"));
+            
+            // We will render a view that writes the fully qualified name of the Assembly containing the type of
+            // the view. If the view is precompiled, this assembly will be PrecompilationWebsite.
+            var assemblyNamePrefix = GetAssemblyNamePrefix();
+            
+            try
+            {
+                // Act
+                await DeleteFile(viewsDirectory, "_ViewStart.cshtml");
+                await DeleteFile(viewsDirectory, "_Layout.cshtml");
+                await DeleteFile(viewsDirectory, "Index.cshtml");
+            
+                var response = await client.GetAsync("http://localhost/Home/Index");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var parsedResponse1 = new ParsedResponse(responseContent);
+                Assert.StartsWith(assemblyNamePrefix, parsedResponse1.ViewStart);
+                Assert.StartsWith(assemblyNamePrefix, parsedResponse1.Layout);
+                Assert.StartsWith(assemblyNamePrefix, parsedResponse1.Index);
+            }
+            finally
+            {
+                File.WriteAllText(Path.Combine(viewsDirectory, "Layout.cshtml"), layoutContent.TrimEnd(' '));
+                File.WriteAllText(Path.Combine(viewsDirectory, "Index.cshtml"), indexContent.TrimEnd(' '));
+                File.WriteAllText(Path.Combine(viewsDirectory, "_ViewStart.cshtml"), viewstartContent.TrimEnd(' '));
+                File.WriteAllText(Path.Combine(viewsDirectory, "_GlobalImport.cshtml"), globalContent.TrimEnd(' '));
+            }
+        }
 
         [Fact]
         public async Task PrecompiledView_UsesCompilationOptionsFromApplication()
@@ -288,6 +339,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Delay to allow the file system watcher to catch up.
             await Task.Delay(_cacheDelayInterval);
 
+            return path;
+        }
+        
+        private static async Task<string> DeleteFile(string viewsDir, string file)
+        {
+            var path = Path.Combine(viewsDir, file);
+            File.Delete(path);
+            
+            // Delay to allow the file system watcher to catch up.
+            await Task.Delay(_cacheDelayInterval);
+            
             return path;
         }
 

@@ -294,7 +294,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         }
 
         [Fact]
-        public void GetOrAdd_ReturnsFileNotFoundResult_IfPrecompiledViewWasRemovedFromFileSystem()
+        public void GetOrAdd_ReturnsPrecompiledView_IfPrecompiledViewWasRemovedFromFileSystem()
         {
             // Arrange
             var precompiledViews = new ViewCollection();
@@ -306,8 +306,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                                         compile: _ => { throw new Exception("shouldn't be invoked"); });
 
             // Assert
-            Assert.Same(CompilerCacheResult.FileNotFound, result);
-            Assert.Null(result.CompilationResult);
+            Assert.NotSame(CompilerCacheResult.FileNotFound, result);
+            Assert.NotNull(result.CompilationResult);
         }
 
         [Fact]

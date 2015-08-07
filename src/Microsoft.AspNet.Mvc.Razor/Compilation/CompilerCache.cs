@@ -124,7 +124,14 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 var fileInfo = _fileProvider.GetFileInfo(relativePath);
                 if (!fileInfo.Exists)
                 {
-                    return null;
+                    // Assigning to IsValidatedPreCompiled is an atomic operation and will result in a safe race
+                    // if it is being concurrently updated and read.
+                    cacheEntry.IsValidatedPreCompiled = true;
+                    return new GetOrAddResult
+                    {
+                        CompilationResult = CompilationResult.Successful(cacheEntry.CompiledType),
+                        CompilerCacheEntry = cacheEntry
+                    };
                 }
 
                 var relativeFileInfo = new RelativeFileInfo(fileInfo, relativePath);
