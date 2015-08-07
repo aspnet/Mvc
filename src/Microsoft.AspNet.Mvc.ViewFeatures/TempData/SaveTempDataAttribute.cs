@@ -9,7 +9,7 @@ namespace Microsoft.AspNet.Mvc
     /// <summary>
     /// Adds a filter which will save the <see cref="ITempDataDictionary"/> for a request.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class SaveTempDataAttribute : Attribute, IFilterFactory
     {
         /// <inheritdoc />

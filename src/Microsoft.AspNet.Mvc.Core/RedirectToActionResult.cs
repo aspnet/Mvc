@@ -9,7 +9,7 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class RedirectToActionResult : ActionResult, IRedirectResult
+    public class RedirectToActionResult : ActionResult, IKeepTempDataResult
     {
         public RedirectToActionResult(
             string actionName,

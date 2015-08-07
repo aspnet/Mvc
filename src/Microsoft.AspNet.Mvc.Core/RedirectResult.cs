@@ -8,7 +8,7 @@ using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class RedirectResult : ActionResult, IRedirectResult
+    public class RedirectResult : ActionResult, IKeepTempDataResult
     {
         private string _url;
 

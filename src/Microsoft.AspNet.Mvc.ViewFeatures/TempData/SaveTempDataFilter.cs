@@ -1,12 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An filter which saves temp data.
+    /// A filter which saves temp data.
     /// </summary>
     public class SaveTempDataFilter : IResourceFilter, IResultFilter
     {
@@ -40,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public void OnResultExecuted(ResultExecutedContext context)
         {
-            if (context.Result is IRedirectResult)
+            if (context.Result is IKeepTempDataResult)
             {
                 _tempData.Keep();
             }

@@ -4,10 +4,9 @@
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// A marker interface for <see cref="IActionResult"/> types which will perform
-    /// a redirect, and need to have temp data saved.
+    /// A marker interface for <see cref="IActionResult"/> types which need to have temp data saved.
     /// </summary>
-    public interface IRedirectResult : IActionResult
+    public interface IKeepTempDataResult : IActionResult
     {
     }
 }
