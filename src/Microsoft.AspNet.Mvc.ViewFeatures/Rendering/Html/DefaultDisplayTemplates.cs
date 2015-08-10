@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             foreach (var item in TriStateValues(value))
             {
                 content.Append(
-                    DefaultHtmlGenerator.GenerateOption(item, new StringHtmlContent(item.Text))
+                    DefaultHtmlGenerator.GenerateOption(item, item.Text)
                         .ToHtmlContent(TagRenderMode.Normal));
             }
 
@@ -288,7 +288,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         public static IHtmlContent StringTemplate(IHtmlHelper htmlHelper)
         {
             var value = htmlHelper.ViewData.TemplateInfo.FormattedModelValue;
-            return new StringHtmlContent(value == null ? string.Empty : value.ToString());
+            if (value == null)
+            {
+                return HtmlString.Empty;
+            }
+
+            return new StringHtmlContent(value.ToString());
         }
 
         public static IHtmlContent UrlTemplate(IHtmlHelper htmlHelper)

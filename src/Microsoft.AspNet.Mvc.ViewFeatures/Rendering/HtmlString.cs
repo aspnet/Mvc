@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// </summary>
     public class HtmlString : IHtmlContent
     {
-        private string _text;
+        private readonly string _input;
 
         /// <summary>
         /// Returns an <see cref="HtmlString"/> with empty content.
@@ -26,19 +26,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="input"><c>string</c>to initialize <see cref="HtmlString"/>.</param>
         public HtmlString(string input)
         {
-            _text = input;
+            _input = input;
         }
 
         /// <inheritdoc />
         public void WriteTo([NotNull] TextWriter writer, [NotNull] IHtmlEncoder encoder)
         {
-            writer.Write(_text);
+            writer.Write(_input);
         }
         
         /// <inheritdoc />
         public override string ToString()
         {
-            return _text;
+            return _input;
         }
     }
 }

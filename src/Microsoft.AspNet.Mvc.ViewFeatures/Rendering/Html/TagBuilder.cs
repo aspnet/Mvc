@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         public IDictionary<string, string> Attributes { get; private set; }
 
-        public IHtmlContent InnerHtml { get; set; } = HtmlString.Empty;
+        public IHtmlContent InnerHtml { get; [param: NotNull] set; } = HtmlString.Empty;
 
         public string TagName { get; private set; }
 

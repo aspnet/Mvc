@@ -13,27 +13,27 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// </summary>
     public class StringHtmlContent : IHtmlContent
     {
-        private string _text;
+        private readonly string _input;
 
         /// <summary>
         /// Creates a new instance of <see cref="StringHtmlContent"/>
         /// </summary>
-        /// <param name="text"><see cref="string"/> to be HTML encoded when <see cref="WriteTo"/> is called.</param>
-        public StringHtmlContent(string text)
+        /// <param name="input"><see cref="string"/> to be HTML encoded when <see cref="WriteTo"/> is called.</param>
+        public StringHtmlContent(string input)
         {
-            _text = text;
+            _input = input;
         }
 
         /// <inheritdoc />
         public void WriteTo([NotNull] TextWriter writer, [NotNull] IHtmlEncoder encoder)
         {
-            encoder.HtmlEncode(_text, writer);
+            encoder.HtmlEncode(_input, writer);
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return _text;
+            return _input;
         }
     }
 }

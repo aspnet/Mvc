@@ -907,12 +907,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// Not used directly in HtmlHelper. Exposed for use in DefaultDisplayTemplates.
         /// </remarks>
-        internal static TagBuilder GenerateOption(SelectListItem item, IHtmlContent content)
+        internal static TagBuilder GenerateOption(SelectListItem item, string text)
         {
-            var tagBuilder = new TagBuilder("option")
-            {
-                InnerHtml = content,
-            };
+            var tagBuilder = new TagBuilder("option");
+            tagBuilder.SetInnerText(text);
 
             if (item.Value != null)
             {
@@ -1288,14 +1286,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Make optionLabel the first item that gets rendered.
             if (optionLabel != null)
             {
-                listItemBuilder.Append(GenerateOption(new SelectListItem()
+                listItemBuilder.AppendLine(GenerateOption(new SelectListItem()
                 {
                     Text = optionLabel,
                     Value = string.Empty,
                     Selected = false,
                 }));
-
-                listItemBuilder.Append(Environment.NewLine);
             }
 
             // Group items in the SelectList if requested.
@@ -1341,7 +1337,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private IHtmlContent GenerateOption(SelectListItem item)
         {
-            var tagBuilder = GenerateOption(item, new StringHtmlContent(item.Text));
+            var tagBuilder = GenerateOption(item, item.Text);
             return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
         }
     }
