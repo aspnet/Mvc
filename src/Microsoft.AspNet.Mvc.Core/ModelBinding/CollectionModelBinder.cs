@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Framework.Internal;
 
@@ -16,22 +18,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// <see cref="IModelBinder"/> implementation for binding collection values.
     /// </summary>
     /// <typeparam name="TElement">Type of elements in the collection.</typeparam>
-    public class CollectionModelBinder<TElement> : IModelBinder
+    public class CollectionModelBinder<TElement> : ICollectionModelBinder
     {
         /// <inheritdoc />
         public virtual async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
             ModelBindingHelper.ValidateBindingContext(bindingContext);
 
-            object model;
-
+            var model = bindingContext.Model;
             if (!await bindingContext.ValueProvider.ContainsPrefixAsync(bindingContext.ModelName))
             {
                 // If this is the fallback case and we failed to find data for a top-level model, then generate a
-                // default 'empty' model and return it.
+                // default 'empty' model (or use existing Model) and return it.
                 if (!bindingContext.IsFirstChanceBinding && bindingContext.IsTopLevelObject)
                 {
-                    model = CreateEmptyCollection();
+                    if (model == null)
+                    {
+                        model = CreateEmptyCollection(bindingContext.ModelType);
+                    }
 
                     var validationNode = new ModelValidationNode(
                         bindingContext.ModelName,
@@ -50,12 +54,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
 
-            IEnumerable<TElement> boundCollection;
             CollectionResult result;
             if (valueProviderResult == null)
             {
                 result = await BindComplexCollection(bindingContext);
-                boundCollection = result.Model;
             }
             else
             {
@@ -63,13 +65,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     bindingContext,
                     valueProviderResult.RawValue,
                     valueProviderResult.Culture);
-                boundCollection = result.Model;
             }
 
-            model = bindingContext.Model;
+            var boundCollection = result.Model;
             if (model == null)
             {
-                model = GetModel(boundCollection);
+                model = GetModel(bindingContext.ModelType, boundCollection);
             }
             else
             {
@@ -84,14 +85,61 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 validationNode: result?.ValidationNode);
         }
 
-        // Called when we're creating a default 'empty' model for a top level bind.
-        protected virtual object CreateEmptyCollection()
+        /// <inheritdoc />
+        /// <remarks>Called when we're creating a default 'empty' model for a top level bind.</remarks>
+        public virtual object CreateEmptyCollection(Type targetType)
         {
-            return new List<TElement>();
+            if (targetType.IsAssignableFrom(typeof(List<TElement>)))
+            {
+                // Simple case such as ICollection<TElement>, IEnumerable<TElement> and IList<TElement>.
+                return new List<TElement>();
+            }
+
+            return CreateInstance(targetType);
+        }
+
+        /// <summary>
+        /// Create an instance of <paramref name="targetType"/>.
+        /// </summary>
+        /// <param name="targetType"><see cref="Type"/> of the model.</param>
+        /// <returns>An instance of <paramref name="targetType"/>.</returns>
+        protected object CreateInstance(Type targetType)
+        {
+            try
+            {
+                return Activator.CreateInstance(targetType);
+            }
+            catch (COMException)
+            {
+                // COM oddity part 1.
+            }
+            catch (InvalidComObjectException)
+            {
+                // COM oddity part 2.
+            }
+            catch (MemberAccessException)
+            {
+                // Type is abstract, has no empty constructor, or constructor is not accessible.
+            }
+            catch (NotSupportedException)
+            {
+                // Activator does not support given type.
+            }
+            catch (TargetInvocationException)
+            {
+                // Constructor threw an Exception.
+            }
+            catch (TypeLoadException)
+            {
+                // Invalid type.
+            }
+
+            return null;
         }
 
         // Used when the ValueProvider contains the collection to be bound as a single element, e.g. the raw value
         // is [ "1", "2" ] and needs to be converted to an int[].
+        // Internal for testing.
         internal async Task<CollectionResult> BindSimpleCollection(
             ModelBindingContext bindingContext,
             object rawValue,
@@ -156,6 +204,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return await BindComplexCollectionFromIndexes(bindingContext, indexNames);
         }
 
+        // Internal for testing.
         internal async Task<CollectionResult> BindComplexCollectionFromIndexes(
             ModelBindingContext bindingContext,
             IEnumerable<string> indexNames)
@@ -219,6 +268,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
         }
 
+        // Internal for testing.
         internal class CollectionResult
         {
             public ModelValidationNode ValidationNode { get; set; }
@@ -227,23 +277,36 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets an <see cref="object"/> assignable to the collection property.
+        /// Gets an <see cref="object"/> assignable to <paramref name="targetType"/>.
         /// </summary>
-        /// <param name="newCollection">
+        /// <param name="targetType"><see cref="Type"/> of the model.</param>
+        /// <param name="collection">
         /// Collection of values retrieved from value providers. Or <c>null</c> if nothing was bound.
         /// </param>
         /// <returns>
-        /// <see cref="object"/> assignable to the collection property. Or <c>null</c> if nothing was bound.
+        /// An <see cref="object"/> assignable to <paramref name="targetType"/>. Or <c>null</c> if nothing was bound.
         /// </returns>
         /// <remarks>
         /// Extensibility point that allows the bound collection to be manipulated or transformed before being
         /// returned from the binder.
         /// </remarks>
-        protected virtual object GetModel(IEnumerable<TElement> newCollection)
+        protected virtual object GetModel(Type targetType, IEnumerable<TElement> collection)
         {
-            // Depends on fact BindSimpleCollection() and BindComplexCollection() always return a List<TElement>
-            // instance or null. In addition GenericModelBinder confirms a List<TElement> is assignable to the
-            // property prior to instantiating this binder and subclass binders do not call this method.
+            if (collection == null)
+            {
+                return null;
+            }
+
+            if (targetType.IsAssignableFrom(typeof(List<TElement>)))
+            {
+                // Depends on fact BindSimpleCollection() and BindComplexCollection() always return a List<TElement>
+                // instance or null.
+                return collection;
+            }
+
+            var newCollection = CreateInstance(targetType);
+            CopyToModel(newCollection, collection);
+
             return newCollection;
         }
 
@@ -254,11 +317,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="sourceCollection">
         /// Collection of values retrieved from value providers. Or <c>null</c> if nothing was bound.
         /// </param>
-        /// <remarks>Called only in TryUpdateModelAsync(collection, ...) scenarios.</remarks>
         protected virtual void CopyToModel([NotNull] object target, IEnumerable<TElement> sourceCollection)
         {
             var targetCollection = target as ICollection<TElement>;
-            Debug.Assert(targetCollection != null); // This binder is instantiated only for ICollection model types.
+            Debug.Assert(targetCollection != null, "This binder is instantiated only for ICollection<T> model types.");
 
             if (sourceCollection != null && targetCollection != null && !targetCollection.IsReadOnly)
             {
@@ -270,7 +332,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
         }
 
-        internal static object[] RawValueToObjectArray(object rawValue)
+        private static object[] RawValueToObjectArray(object rawValue)
         {
             // precondition: rawValue is not null
 

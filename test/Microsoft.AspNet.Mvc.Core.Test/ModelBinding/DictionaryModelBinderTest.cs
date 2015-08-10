@@ -112,8 +112,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var metadataProvider = context.OperationBindingContext.MetadataProvider;
             context.ModelMetadata = metadataProvider.GetMetadataForProperty(
-                typeof(ModelWithDictionaryProperty),
-                nameof(ModelWithDictionaryProperty.DictionaryProperty));
+                typeof(ModelWithDictionaryProperties),
+                nameof(ModelWithDictionaryProperties.DictionaryProperty));
 
             // Act
             var result = await binder.BindModelAsync(context);
@@ -150,8 +150,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var metadataProvider = context.OperationBindingContext.MetadataProvider;
             context.ModelMetadata = metadataProvider.GetMetadataForProperty(
-                typeof(ModelWithDictionaryProperty),
-                nameof(ModelWithDictionaryProperty.DictionaryProperty));
+                typeof(ModelWithDictionaryProperties),
+                nameof(ModelWithDictionaryProperties.DictionaryProperty));
 
             // Act
             var result = await binder.BindModelAsync(context);
@@ -202,8 +202,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var metadataProvider = context.OperationBindingContext.MetadataProvider;
             context.ModelMetadata = metadataProvider.GetMetadataForProperty(
-                typeof(ModelWithDictionaryProperty),
-                nameof(ModelWithDictionaryProperty.DictionaryProperty));
+                typeof(ModelWithDictionaryProperties),
+                nameof(ModelWithDictionaryProperties.DictionaryWithValueTypesProperty));
 
             // Act
             var result = await binder.BindModelAsync(context);
@@ -244,8 +244,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var metadataProvider = context.OperationBindingContext.MetadataProvider;
             context.ModelMetadata = metadataProvider.GetMetadataForProperty(
-                typeof(ModelWithDictionaryProperty),
-                nameof(ModelWithDictionaryProperty.DictionaryProperty));
+                typeof(ModelWithDictionaryProperties),
+                nameof(ModelWithDictionaryProperties.DictionaryWithComplexValuesProperty));
 
             // Act
             var result = await binder.BindModelAsync(context);
@@ -259,6 +259,41 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var resultDictionary = Assert.IsAssignableFrom<IDictionary<int, ModelWithProperties>>(result.Model);
             Assert.Equal(dictionary, resultDictionary);
+        }
+
+        [Theory]
+        [MemberData(nameof(StringToStringData))]
+        public async Task BindModel_FallsBackToBindingValues_WithCustomDictionary(
+            string modelName,
+            string keyFormat,
+            IDictionary<string, string> dictionary)
+        {
+            // Arrange
+            var expectedDictionary = new SortedDictionary<string, string>(dictionary);
+            var binder = new DictionaryModelBinder<string, string>();
+            var context = CreateContext();
+            context.ModelName = modelName;
+            context.OperationBindingContext.ModelBinder = CreateCompositeBinder();
+            context.OperationBindingContext.ValueProvider = CreateEnumerableValueProvider(keyFormat, dictionary);
+            context.ValueProvider = context.OperationBindingContext.ValueProvider;
+
+            var metadataProvider = context.OperationBindingContext.MetadataProvider;
+            context.ModelMetadata = metadataProvider.GetMetadataForProperty(
+                typeof(ModelWithDictionaryProperties),
+                nameof(ModelWithDictionaryProperties.CustomDictionaryProperty));
+
+            // Act
+            var result = await binder.BindModelAsync(context);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.IsFatalError);
+            Assert.True(result.IsModelSet);
+            Assert.Equal(modelName, result.Key);
+            Assert.NotNull(result.ValidationNode);
+
+            var resultDictionary = Assert.IsAssignableFrom<SortedDictionary<string, string>>(result.Model);
+            Assert.Equal(expectedDictionary, resultDictionary);
         }
 
         [Fact]
@@ -332,8 +367,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var metadataProvider = context.OperationBindingContext.MetadataProvider;
             context.ModelMetadata = metadataProvider.GetMetadataForProperty(
-                typeof(ModelWithDictionaryProperty),
-                nameof(ModelWithDictionaryProperty.DictionaryProperty));
+                typeof(ModelWithDictionaryProperties),
+                nameof(ModelWithDictionaryProperties.DictionaryProperty));
 
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
@@ -342,6 +377,39 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.Null(result);
+        }
+
+        // Model type -> expected instance type.
+        public static TheoryData<Type, Type> CreateEmptyCollectionData
+        {
+            get
+            {
+                return new TheoryData<Type, Type>
+                {
+                    { typeof(IEnumerable<KeyValuePair<int, int>>), typeof(Dictionary<int, int>) },
+                    { typeof(ICollection<KeyValuePair<int, int>>), typeof(Dictionary<int, int>) },
+                    { typeof(IDictionary<int, int>), typeof(Dictionary<int, int>) },
+                    { typeof(Dictionary<int, int>), typeof(Dictionary<int, int>) },
+                    { typeof(SortedDictionary<int, int>), typeof(SortedDictionary<int, int>) },
+                    { typeof(IList<KeyValuePair<int, int>>), null },
+                    { typeof(DictionaryWithInternalConstructor<int, int>), null },
+                    { typeof(DictionaryWithThrowingConstructor<int, int>), null },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(CreateEmptyCollectionData))]
+        public void CreateEmptyCollection_ReturnsExpectedInstanceType(Type modelType, Type expectedInstanceType)
+        {
+            // Arrange
+            var binder = new DictionaryModelBinder<int, int>();
+
+            // Act
+            var result = binder.CreateEmptyCollection(modelType);
+
+            // Assert
+            Assert.Same(expectedInstanceType, result?.GetType());
         }
 
         private static ModelBindingContext CreateContext()
@@ -401,7 +469,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         private static ModelBindingContext GetModelBindingContext(bool isReadOnly)
         {
             var metadataProvider = new TestModelMetadataProvider();
-            metadataProvider.ForType<List<int>>().BindingDetails(bd => bd.IsReadOnly = isReadOnly);
+            metadataProvider.ForType<IDictionary<int, string>>().BindingDetails(bd => bd.IsReadOnly = isReadOnly);
             var valueProvider = new SimpleHttpValueProvider
             {
                 { "someName[0]", new KeyValuePair<int, string>(42, "forty-two") },
@@ -441,9 +509,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             return mockKvpBinder.Object;
         }
 
-        private class ModelWithDictionaryProperty
+        private class ModelWithDictionaryProperties
         {
+            // A Dictionary<string, string> instance cannot be assigned to this property.
+            public SortedDictionary<string, string> CustomDictionaryProperty { get; set; }
+
             public Dictionary<string, string> DictionaryProperty { get; set; }
+
+            public Dictionary<int, ModelWithProperties> DictionaryWithComplexValuesProperty { get; set; }
+
+            public Dictionary<long, int> DictionaryWithValueTypesProperty { get; set; }
         }
 
         private class ModelWithProperties
@@ -469,6 +544,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             public override string ToString()
             {
                 return $"{{{ Id }, '{ Name }'}}";
+            }
+        }
+
+        private class DictionaryWithInternalConstructor<TKey, TValue> : Dictionary<TKey, TValue>
+        {
+            internal DictionaryWithInternalConstructor()
+                : base()
+            {
+            }
+        }
+
+        private class DictionaryWithThrowingConstructor<TKey, TValue> : Dictionary<TKey, TValue>
+        {
+            public DictionaryWithThrowingConstructor()
+                : base()
+            {
+                throw new ApplicationException("No, don't do this.");
             }
         }
     }

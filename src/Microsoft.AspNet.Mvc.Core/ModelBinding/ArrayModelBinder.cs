@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,15 +26,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return base.BindModelAsync(bindingContext);
         }
 
-        protected override object CreateEmptyCollection()
+        /// <inheritdoc />
+        public override object CreateEmptyCollection(Type targetType)
         {
             return new TElement[0];
         }
 
         /// <inheritdoc />
-        protected override object GetModel(IEnumerable<TElement> newCollection)
+        protected override object GetModel(Type targetType, IEnumerable<TElement> collection)
         {
-            return newCollection?.ToArray();
+            return collection?.ToArray();
         }
 
         /// <inheritdoc />
