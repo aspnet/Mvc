@@ -11,10 +11,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public interface ICollectionModelBinder : IModelBinder
     {
         /// <summary>
-        /// Create an <see cref="object"/> assignable to <paramref name="targetType"/>.
+        /// Gets an indication whether or not this <see cref="ICollectionModelBinder"/> implementation can create
+        /// an <see cref="object"/> assignable to <paramref name="targetType"/>.
         /// </summary>
         /// <param name="targetType"><see cref="Type"/> of the model.</param>
-        /// <returns>An <see cref="object"/> assignable to <paramref name="targetType"/>.</returns>
-        object CreateEmptyCollection(Type targetType);
+        /// <returns>
+        /// <c>true</c> if this <see cref="ICollectionModelBinder"/> implementation can create an <see cref="object"/>
+        /// assignable to <paramref name="targetType"/>; <c>false</c> otherwise.
+        /// </returns>
+        /// <remarks>
+        /// A <c>true</c> return value is necessary for successful model binding if model is initially <c>null</c>.
+        /// </remarks>
+        bool CanCreateInstance(Type targetType);
     }
 }

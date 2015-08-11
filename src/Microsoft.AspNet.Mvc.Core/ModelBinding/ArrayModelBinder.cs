@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Framework.Internal;
@@ -27,14 +28,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        public override object CreateEmptyCollection(Type targetType)
+        public override bool CanCreateInstance(Type targetType)
         {
+            Debug.Assert(targetType == typeof(TElement[]), "GenericModelBinder only creates this binder for arrays.");
+
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override object CreateEmptyCollection(Type targetType)
+        {
+            Debug.Assert(targetType == typeof(TElement[]), "GenericModelBinder only creates this binder for arrays.");
+
             return new TElement[0];
         }
 
         /// <inheritdoc />
-        protected override object GetModel(Type targetType, IEnumerable<TElement> collection)
+        protected override object ConvertToCollectionType(Type targetType, IEnumerable<TElement> collection)
         {
+            Debug.Assert(targetType == typeof(TElement[]), "GenericModelBinder only creates this binder for arrays.");
+
+            // If non-null, collection is a List<TElement>, never already a TElement[].
             return collection?.ToArray();
         }
 

@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+#if DNXCORE50
 using System.Reflection;
-using System.Runtime.InteropServices;
+#endif
 using System.Threading.Tasks;
 using Microsoft.Framework.Internal;
 
@@ -70,7 +71,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var boundCollection = result.Model;
             if (model == null)
             {
-                model = GetModel(bindingContext.ModelType, boundCollection);
+                model = ConvertToCollectionType(bindingContext.ModelType, boundCollection);
             }
             else
             {
@@ -86,8 +87,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        /// <remarks>Called when we're creating a default 'empty' model for a top level bind.</remarks>
-        public virtual object CreateEmptyCollection(Type targetType)
+        public virtual bool CanCreateInstance(Type targetType)
+        {
+            return CreateEmptyCollection(targetType) != null;
+        }
+
+        /// <summary>
+        /// Create an <see cref="object"/> assignable to <paramref name="targetType"/>.
+        /// </summary>
+        /// <param name="targetType"><see cref="Type"/> of the model.</param>
+        /// <returns>An <see cref="object"/> assignable to <paramref name="targetType"/>.</returns>
+        /// <remarks>Called when creating a default 'empty' model for a top level bind.</remarks>
+        protected virtual object CreateEmptyCollection(Type targetType)
         {
             if (targetType.IsAssignableFrom(typeof(List<TElement>)))
             {
@@ -109,32 +120,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 return Activator.CreateInstance(targetType);
             }
-            catch (COMException)
+            catch (Exception)
             {
-                // COM oddity part 1.
+                // Details of exception are not important.
+                return null;
             }
-            catch (InvalidComObjectException)
-            {
-                // COM oddity part 2.
-            }
-            catch (MemberAccessException)
-            {
-                // Type is abstract, has no empty constructor, or constructor is not accessible.
-            }
-            catch (NotSupportedException)
-            {
-                // Activator does not support given type.
-            }
-            catch (TargetInvocationException)
-            {
-                // Constructor threw an Exception.
-            }
-            catch (TypeLoadException)
-            {
-                // Invalid type.
-            }
-
-            return null;
         }
 
         // Used when the ValueProvider contains the collection to be bound as a single element, e.g. the raw value
@@ -277,7 +267,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets an <see cref="object"/> assignable to <paramref name="targetType"/>.
+        /// Gets an <see cref="object"/> assignable to <paramref name="targetType"/> that contains members from
+        /// <paramref name="collection"/>.
         /// </summary>
         /// <param name="targetType"><see cref="Type"/> of the model.</param>
         /// <param name="collection">
@@ -290,7 +281,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Extensibility point that allows the bound collection to be manipulated or transformed before being
         /// returned from the binder.
         /// </remarks>
-        protected virtual object GetModel(Type targetType, IEnumerable<TElement> collection)
+        protected virtual object ConvertToCollectionType(Type targetType, IEnumerable<TElement> collection)
         {
             if (collection == null)
             {

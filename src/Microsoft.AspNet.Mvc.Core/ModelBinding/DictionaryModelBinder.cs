@@ -84,7 +84,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        protected override object GetModel(Type targetType, IEnumerable<KeyValuePair<TKey, TValue>> collection)
+        protected override object ConvertToCollectionType(
+            Type targetType,
+            IEnumerable<KeyValuePair<TKey, TValue>> collection)
         {
             if (collection == null)
             {
@@ -93,6 +95,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             if (targetType.IsAssignableFrom(typeof(Dictionary<TKey, TValue>)))
             {
+                // Collection is a List<KeyValuePair<TKey, TValue>>, never already a Dictionary<TKey, TValue>.
                 return collection.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             }
 
@@ -103,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        public override object CreateEmptyCollection(Type targetType)
+        protected override object CreateEmptyCollection(Type targetType)
         {
             if (targetType.IsAssignableFrom(typeof(Dictionary<TKey, TValue>)))
             {

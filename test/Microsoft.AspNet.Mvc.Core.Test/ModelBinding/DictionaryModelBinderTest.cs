@@ -379,37 +379,37 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Null(result);
         }
 
-        // Model type -> expected instance type.
-        public static TheoryData<Type, Type> CreateEmptyCollectionData
+        // Model type -> can create instance.
+        public static TheoryData<Type, bool> CanCreateInstanceData
         {
             get
             {
-                return new TheoryData<Type, Type>
+                return new TheoryData<Type, bool>
                 {
-                    { typeof(IEnumerable<KeyValuePair<int, int>>), typeof(Dictionary<int, int>) },
-                    { typeof(ICollection<KeyValuePair<int, int>>), typeof(Dictionary<int, int>) },
-                    { typeof(IDictionary<int, int>), typeof(Dictionary<int, int>) },
-                    { typeof(Dictionary<int, int>), typeof(Dictionary<int, int>) },
-                    { typeof(SortedDictionary<int, int>), typeof(SortedDictionary<int, int>) },
-                    { typeof(IList<KeyValuePair<int, int>>), null },
-                    { typeof(DictionaryWithInternalConstructor<int, int>), null },
-                    { typeof(DictionaryWithThrowingConstructor<int, int>), null },
+                    { typeof(IEnumerable<KeyValuePair<int, int>>), true },
+                    { typeof(ICollection<KeyValuePair<int, int>>), true },
+                    { typeof(IDictionary<int, int>), true },
+                    { typeof(Dictionary<int, int>), true },
+                    { typeof(SortedDictionary<int, int>), true },
+                    { typeof(IList<KeyValuePair<int, int>>), false },
+                    { typeof(DictionaryWithInternalConstructor<int, int>), false },
+                    { typeof(DictionaryWithThrowingConstructor<int, int>), false },
                 };
             }
         }
 
         [Theory]
-        [MemberData(nameof(CreateEmptyCollectionData))]
-        public void CreateEmptyCollection_ReturnsExpectedInstanceType(Type modelType, Type expectedInstanceType)
+        [MemberData(nameof(CanCreateInstanceData))]
+        public void CanCreateInstance_ReturnsExpectedValue(Type modelType, bool expectedResult)
         {
             // Arrange
             var binder = new DictionaryModelBinder<int, int>();
 
             // Act
-            var result = binder.CreateEmptyCollection(modelType);
+            var result = binder.CanCreateInstance(modelType);
 
             // Assert
-            Assert.Same(expectedInstanceType, result?.GetType());
+            Assert.Equal(expectedResult, result);
         }
 
         private static ModelBindingContext CreateContext()

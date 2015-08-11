@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var collectionBinder = binder as ICollectionModelBinder;
                 if (collectionBinder != null &&
                     bindingContext.Model == null &&
-                    collectionBinder.CreateEmptyCollection(bindingContext.ModelType) == null)
+                    !collectionBinder.CanCreateInstance(bindingContext.ModelType))
                 {
                     // Able to resolve a binder type but need a new model instance and that binder cannot create it.
                     return null;

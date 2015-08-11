@@ -339,37 +339,37 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Null(result);
         }
 
-        // Model type -> expected instance type.
-        public static TheoryData<Type, Type> CreateEmptyCollectionData
+        // Model type -> can create instance.
+        public static TheoryData<Type, bool> CanCreateInstanceData
         {
             get
             {
-                return new TheoryData<Type, Type>
+                return new TheoryData<Type, bool>
                 {
-                    { typeof(IEnumerable<int>), typeof(List<int>) },
-                    { typeof(ICollection<int>), typeof(List<int>) },
-                    { typeof(IList<int>), typeof(List<int>) },
-                    { typeof(List<int>), typeof(List<int>) },
-                    { typeof(LinkedList<int>), typeof(LinkedList<int>) },
-                    { typeof(ISet<int>), null },
-                    { typeof(ListWithInternalConstructor<int>), null },
-                    { typeof(ListWithThrowingConstructor<int>), null },
+                    { typeof(IEnumerable<int>), true },
+                    { typeof(ICollection<int>), true },
+                    { typeof(IList<int>), true },
+                    { typeof(List<int>), true },
+                    { typeof(LinkedList<int>), true },
+                    { typeof(ISet<int>), false },
+                    { typeof(ListWithInternalConstructor<int>), false },
+                    { typeof(ListWithThrowingConstructor<int>), false },
                 };
             }
         }
 
         [Theory]
-        [MemberData(nameof(CreateEmptyCollectionData))]
-        public void CreateEmptyCollection_ReturnsExpectedInstanceType(Type modelType, Type expectedInstanceType)
+        [MemberData(nameof(CanCreateInstanceData))]
+        public void CanCreateInstance_ReturnsExpectedValue(Type modelType, bool expectedResult)
         {
             // Arrange
             var binder = new CollectionModelBinder<int>();
 
             // Act
-            var result = binder.CreateEmptyCollection(modelType);
+            var result = binder.CanCreateInstance(modelType);
 
             // Assert
-            Assert.Same(expectedInstanceType, result?.GetType());
+            Assert.Equal(expectedResult, result);
         }
 
 #if DNX451
