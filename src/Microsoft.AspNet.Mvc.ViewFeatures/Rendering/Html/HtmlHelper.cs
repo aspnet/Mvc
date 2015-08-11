@@ -643,13 +643,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            var elements = new BufferedHtmlContent();
-            checkbox.TagRenderMode = TagRenderMode.SelfClosing;
-            elements.Append(checkbox);
-            hidden.TagRenderMode = TagRenderMode.SelfClosing;
-            elements.Append(hidden);
-
-            return elements;
+            return new BufferedHtmlContent().Append(checkbox).Append(hidden);
         }
 
         protected virtual string GenerateDisplayName([NotNull] ModelExplorer modelExplorer, string expression)
@@ -823,7 +817,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
             return tagBuilder;
         }
 
@@ -900,7 +893,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
             return tagBuilder;
         }
 
@@ -923,7 +915,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
             return tagBuilder;
         }
 
@@ -968,7 +959,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
             return tagBuilder;
         }
 

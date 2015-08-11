@@ -248,14 +248,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // <input type="hidden"/> into the output's Content.
                 output.Attributes.Clear();
                 output.TagName = null;
-
-                checkBoxTag.TagRenderMode = TagRenderMode.SelfClosing;
                 output.Content.Append(checkBoxTag);
 
                 var hiddenForCheckboxTag = Generator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, For.Name);
                 if (hiddenForCheckboxTag != null)
                 {
-                    hiddenForCheckboxTag.TagRenderMode = TagRenderMode.SelfClosing;
                     output.Content.Append(hiddenForCheckboxTag);
                 }
             }

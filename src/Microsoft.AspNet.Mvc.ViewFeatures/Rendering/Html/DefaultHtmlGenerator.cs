@@ -157,6 +157,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var tagBuilder = new TagBuilder("input");
             tagBuilder.MergeAttribute("type", GetInputTypeString(InputType.Hidden));
             tagBuilder.MergeAttribute("value", "false");
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
 
             var fullName = GetFullHtmlFieldName(viewContext, expression);
             tagBuilder.MergeAttribute("name", fullName);
@@ -1015,6 +1016,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var tagBuilder = new TagBuilder("input");
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
             tagBuilder.MergeAttributes(htmlAttributes);
             tagBuilder.MergeAttribute("type", GetInputTypeString(inputType));
             tagBuilder.MergeAttribute("name", fullName, replaceExisting: true);
@@ -1302,25 +1304,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             foreach (var group in groupedSelectList)
             {
                 var optGroup = group.First().Group;
-                BufferedHtmlContent optGroupContent;
-
                 if (optGroup != null)
                 {
-                    optGroupContent = new BufferedHtmlContent();
+                    var optGroupContent = new BufferedHtmlContent();
                     optGroupContent.Append(Environment.NewLine);
-                }
-                else
-                {
-                    optGroupContent = listItemBuilder;
-                }
 
-                foreach (var item in group)
-                {
-                    optGroupContent.AppendLine(GenerateOption(item));
-                }
+                    foreach (var item in group)
+                    {
+                        optGroupContent.AppendLine(GenerateOption(item));
+                    }
 
-                if (optGroup != null)
-                {
                     var groupBuilder = new TagBuilder("optgroup");
                     if (optGroup.Name != null)
                     {
@@ -1334,6 +1327,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
                     groupBuilder.InnerHtml = optGroupContent;
                     listItemBuilder.AppendLine(groupBuilder);
+                }
+                else
+                {
+                    foreach (var item in group)
+                    {
+                        listItemBuilder.AppendLine(GenerateOption(item));
+                    }
                 }
             }
 

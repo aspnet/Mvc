@@ -256,21 +256,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     continue;
                 }
 
-                if (!propertyMetadata.HideSurroundingHtml)
-                {
-                    var label = htmlHelper.Label(
-                        propertyMetadata.PropertyName,
-                        labelText: null,
-                        htmlAttributes: null);
-                    if (!string.IsNullOrEmpty(label.ToString()))
-                    {
-                        var labelTag = new TagBuilder("div");
-                        labelTag.AddCssClass("editor-label");
-                        labelTag.InnerHtml = label;
-                        content.AppendLine(labelTag);
-                    }
-                }
-
                 var templateBuilder = new TemplateBuilder(
                     viewEngine,
                     htmlHelper.ViewContext,
@@ -284,6 +269,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var templateBuilderResult = templateBuilder.Build();
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
+                    var label = htmlHelper.Label(propertyMetadata.PropertyName, labelText: null, htmlAttributes: null);
+                    if (!string.IsNullOrEmpty(label.ToString()))
+                    {
+                        var labelTag = new TagBuilder("div");
+                        labelTag.AddCssClass("editor-label");
+                        labelTag.InnerHtml = label;
+                        content.AppendLine(labelTag);
+                    }
+
                     var valueDivTag = new TagBuilder("div");
                     valueDivTag.AddCssClass("editor-field");
 

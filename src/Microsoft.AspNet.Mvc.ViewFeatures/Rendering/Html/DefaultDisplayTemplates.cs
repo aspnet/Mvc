@@ -234,18 +234,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     continue;
                 }
 
-                if (!propertyMetadata.HideSurroundingHtml)
-                {
-                    var label = propertyMetadata.GetDisplayName();
-                    if (!string.IsNullOrEmpty(label))
-                    {
-                        var labelTag = new TagBuilder("div");
-                        labelTag.SetInnerText(label);
-                        labelTag.AddCssClass("display-label");
-                        content.AppendLine(labelTag);
-                    } 
-                }
-
                 var templateBuilder = new TemplateBuilder(
                     viewEngine,
                     htmlHelper.ViewContext,
@@ -259,6 +247,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 var templateBuilderResult = templateBuilder.Build();
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
+                    var label = propertyMetadata.GetDisplayName();
+                    if (!string.IsNullOrEmpty(label))
+                    {
+                        var labelTag = new TagBuilder("div");
+                        labelTag.SetInnerText(label);
+                        labelTag.AddCssClass("display-label");
+                        content.AppendLine(labelTag);
+                    }
+
                     var valueDivTag = new TagBuilder("div");
                     valueDivTag.AddCssClass("display-field");
                     valueDivTag.InnerHtml = templateBuilderResult;
