@@ -256,16 +256,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     readOnly: true,
                     additionalViewData: null);
 
+                var templateBuilderResult = templateBuilder.Build();
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
-                    var containerDivTag = new TagBuilder("div");
-                    containerDivTag.AddCssClass("display-field");
-                    containerDivTag.InnerHtml = templateBuilder.Build();
-                    content.AppendLine(containerDivTag);
+                    var valueDivTag = new TagBuilder("div");
+                    valueDivTag.AddCssClass("display-field");
+                    valueDivTag.InnerHtml = templateBuilderResult;
+                    content.AppendLine(valueDivTag);
                 }
                 else
                 {
-                    content.Append(templateBuilder.Build());
+                    content.Append(templateBuilderResult);
                 }
             }
 

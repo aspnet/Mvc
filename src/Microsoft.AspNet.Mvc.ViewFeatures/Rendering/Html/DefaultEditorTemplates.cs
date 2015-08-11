@@ -264,10 +264,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         htmlAttributes: null);
                     if (!string.IsNullOrEmpty(label.ToString()))
                     {
-                        var labelDivTag = new TagBuilder("div");
-                        labelDivTag.AddCssClass("editor-label");
-                        labelDivTag.InnerHtml = label; // already escaped
-                        content.AppendLine(labelDivTag);
+                        var labelTag = new TagBuilder("div");
+                        labelTag.AddCssClass("editor-label");
+                        labelTag.InnerHtml = label;
+                        content.AppendLine(labelTag);
                     }
                 }
 
@@ -281,26 +281,27 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     readOnly: false,
                     additionalViewData: null);
 
+                var templateBuilderResult = templateBuilder.Build();
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
-                    var divTag = new TagBuilder("div");
-                    divTag.AddCssClass("editor-field");
+                    var valueDivTag = new TagBuilder("div");
+                    valueDivTag.AddCssClass("editor-field");
 
                     var innerContent = new BufferedHtmlContent();
-                    innerContent.Append(templateBuilder.Build());
+                    innerContent.Append(templateBuilderResult);
                     innerContent.Append(" ");
                     innerContent.Append(htmlHelper.ValidationMessage(
                         propertyMetadata.PropertyName,
                         message: null,
                         htmlAttributes: null,
                         tag: null));
-                    divTag.InnerHtml = innerContent;
+                    valueDivTag.InnerHtml = innerContent;
 
-                    content.AppendLine(divTag);
+                    content.AppendLine(valueDivTag);
                 }
                 else
                 {
-                    content.Append(templateBuilder.Build());
+                    content.Append(templateBuilderResult);
                 }
             }
 
