@@ -38,14 +38,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             Assert.False(metadata.HasNonDefaultEditFormat);
             Assert.False(metadata.HideSurroundingHtml);
             Assert.True(metadata.HtmlEncode);
-            Assert.False(metadata.IsBindingRequired);
+            Assert.False(metadata.IsBindingRequired); // Defaults to false for reference types
             Assert.False(metadata.IsComplexType);
             Assert.False(metadata.IsCollectionType);
             Assert.False(metadata.IsEnum);
             Assert.False(metadata.IsFlagsEnum);
             Assert.False(metadata.IsNullableValueType);
             Assert.False(metadata.IsReadOnly);
-            Assert.False(metadata.IsRequired);
+            Assert.False(metadata.IsRequired); // Defaults to false for reference types
             Assert.True(metadata.ShowForDisplay);
             Assert.True(metadata.ShowForEdit);
 
@@ -171,6 +171,71 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private class DerivedDictionary : Dictionary<string, int>
         {
         }
+
+        [Theory]
+        [InlineData(typeof(string))]
+        [InlineData(typeof(int))]
+        public void IsBindingRequired_ReturnsFalse_ForTypes(Type modelType)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
+
+            var key = ModelMetadataIdentity.ForType(modelType);
+            var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
+
+            var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
+
+            // Act
+            var isBindingRequired = metadata.IsBindingRequired;
+            
+            // Assert
+            Assert.False(isBindingRequired);
+        }
+
+        [Theory]
+        [InlineData(typeof(string))]
+        [InlineData(typeof(IDisposable))]
+        [InlineData(typeof(Nullable<int>))]
+        public void IsBindingRequired_ReturnsFalse_ForNullablePropertyTypes(Type modelType)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
+
+            var key = ModelMetadataIdentity.ForProperty(modelType, "Test", typeof(string));
+            var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
+
+            var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
+
+            // Act
+            var isBindingRequired = metadata.IsBindingRequired;
+
+            // Assert
+            Assert.False(isBindingRequired);
+        }
+
+        [Theory]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(DayOfWeek))]
+        public void IsBindingRequired_ReturnsTrue_ForNonNullablePropertyTypes(Type modelType)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
+
+            var key = ModelMetadataIdentity.ForProperty(modelType, "Test", typeof(string));
+            var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
+
+            var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
+
+            // Act
+            var isBindingRequired = metadata.IsBindingRequired;
+
+            // Assert
+            Assert.True(isBindingRequired);
+        }
+
 
         [Theory]
         [InlineData(typeof(string))]
