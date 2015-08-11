@@ -256,8 +256,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     continue;
                 }
 
-                var divTag = new TagBuilder("div");
-
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
                     var label = htmlHelper.Label(
@@ -266,16 +264,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         htmlAttributes: null);
                     if (!string.IsNullOrEmpty(label.ToString()))
                     {
-                        divTag.AddCssClass("editor-label");
-                        divTag.InnerHtml = label; // already escaped
-                        content.AppendLine(divTag.ToHtmlContent(TagRenderMode.Normal));
-
-                        // Reset divTag for reuse.
-                        divTag.Attributes.Clear();
+                        var labelDivTag = new TagBuilder("div");
+                        labelDivTag.AddCssClass("editor-label");
+                        labelDivTag.InnerHtml = label; // already escaped
+                        content.AppendLine(labelDivTag);
                     }
-
-                    divTag.AddCssClass("editor-field");
-                    content.Append(divTag.ToHtmlContent(TagRenderMode.StartTag));
                 }
 
                 var templateBuilder = new TemplateBuilder(
@@ -288,18 +281,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     readOnly: false,
                     additionalViewData: null);
 
-                content.Append(templateBuilder.Build());
-
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
-                    content.Append(" ");
-                    content.Append(htmlHelper.ValidationMessage(
+                    var divTag = new TagBuilder("div");
+                    divTag.AddCssClass("editor-field");
+
+                    var innerContent = new BufferedHtmlContent();
+                    innerContent.Append(templateBuilder.Build());
+                    innerContent.Append(" ");
+                    innerContent.Append(htmlHelper.ValidationMessage(
                         propertyMetadata.PropertyName,
                         message: null,
                         htmlAttributes: null,
                         tag: null));
+                    divTag.InnerHtml = innerContent;
 
-                    content.AppendLine(divTag.ToHtmlContent(TagRenderMode.EndTag));
+                    content.AppendLine(divTag);
+                }
+                else
+                {
+                    content.Append(templateBuilder.Build());
                 }
             }
 

@@ -673,7 +673,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 }
                 var messageTag = new TagBuilder(headerTag);
                 messageTag.SetInnerText(message);
-                wrappedMessage.AppendLine(messageTag.ToHtmlContent(TagRenderMode.Normal));
+                wrappedMessage.AppendLine(messageTag);
             }
             else
             {
@@ -696,7 +696,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     {
                         var listItem = new TagBuilder("li");
                         listItem.SetInnerText(errorText);
-                        htmlSummary.AppendLine(listItem.ToHtmlContent(TagRenderMode.Normal));
+                        htmlSummary.AppendLine(listItem);
                         isHtmlSummaryModified = true;
                     }
                 }
@@ -726,7 +726,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             var innerContent = new BufferedHtmlContent();
             innerContent.Append(wrappedMessage);
-            innerContent.Append(unorderedList.ToHtmlContent(TagRenderMode.Normal));
+            innerContent.Append(unorderedList);
             tagBuilder.InnerHtml = innerContent;
 
             if (formContext != null && !excludePropertyErrors)
@@ -1302,12 +1302,26 @@ namespace Microsoft.AspNet.Mvc.Rendering
             foreach (var group in groupedSelectList)
             {
                 var optGroup = group.First().Group;
+                BufferedHtmlContent optGroupContent;
 
-                // Wrap if requested.
-                TagBuilder groupBuilder = null;
                 if (optGroup != null)
                 {
-                    groupBuilder = new TagBuilder("optgroup");
+                    optGroupContent = new BufferedHtmlContent();
+                    optGroupContent.Append(Environment.NewLine);
+                }
+                else
+                {
+                    optGroupContent = listItemBuilder;
+                }
+
+                foreach (var item in group)
+                {
+                    optGroupContent.AppendLine(GenerateOption(item));
+                }
+
+                if (optGroup != null)
+                {
+                    var groupBuilder = new TagBuilder("optgroup");
                     if (optGroup.Name != null)
                     {
                         groupBuilder.MergeAttribute("label", optGroup.Name);
@@ -1318,17 +1332,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                         groupBuilder.MergeAttribute("disabled", "disabled");
                     }
 
-                    listItemBuilder.AppendLine(groupBuilder.ToHtmlContent(TagRenderMode.StartTag));
-                }
-
-                foreach (var item in group)
-                {
-                    listItemBuilder.AppendLine(GenerateOption(item));
-                }
-
-                if (optGroup != null)
-                {
-                    listItemBuilder.AppendLine(groupBuilder.ToHtmlContent(TagRenderMode.EndTag));
+                    groupBuilder.InnerHtml = optGroupContent;
+                    listItemBuilder.AppendLine(groupBuilder);
                 }
             }
 
@@ -1338,7 +1343,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private IHtmlContent GenerateOption(SelectListItem item)
         {
             var tagBuilder = GenerateOption(item, item.Text);
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
     }
 }

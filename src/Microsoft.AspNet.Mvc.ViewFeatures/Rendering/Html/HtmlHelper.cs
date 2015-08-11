@@ -214,7 +214,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         /// <inheritdoc />
@@ -542,7 +542,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         /// <inheritdoc />
@@ -644,8 +644,10 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             var elements = new BufferedHtmlContent();
-            elements.Append(checkbox.ToHtmlContent(TagRenderMode.SelfClosing));
-            elements.Append(hidden.ToHtmlContent(TagRenderMode.SelfClosing));
+            checkbox.TagRenderMode = TagRenderMode.SelfClosing;
+            elements.Append(checkbox);
+            hidden.TagRenderMode = TagRenderMode.SelfClosing;
+            elements.Append(hidden);
 
             return elements;
         }
@@ -690,7 +692,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         protected virtual IHtmlContent GenerateEditor(
@@ -751,7 +753,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes);
             if (tagBuilder != null)
             {
-                tagBuilder.ToHtmlContent(TagRenderMode.StartTag).WriteTo(ViewContext.Writer, _htmlEncoder);
+                tagBuilder.TagRenderMode = TagRenderMode.StartTag;
+                tagBuilder.WriteTo(ViewContext.Writer, _htmlEncoder);
             }
 
             return CreateForm();
@@ -793,7 +796,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlAttributes);
             if (tagBuilder != null)
             {
-                tagBuilder.ToHtmlContent(TagRenderMode.StartTag).WriteTo(ViewContext.Writer, _htmlEncoder);
+                tagBuilder.TagRenderMode = TagRenderMode.StartTag;
+                tagBuilder.WriteTo(ViewContext.Writer, _htmlEncoder);
             }
 
             return CreateForm();
@@ -819,7 +823,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.SelfClosing);
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
+            return tagBuilder;
         }
 
         protected virtual string GenerateId(string expression)
@@ -847,7 +852,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         protected IHtmlContent GenerateListBox(
@@ -869,7 +874,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         protected virtual string GenerateName(string expression)
@@ -895,7 +900,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.SelfClosing);
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
+            return tagBuilder;
         }
 
         protected virtual IHtmlContent GenerateRadioButton(
@@ -917,7 +923,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.SelfClosing);
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
+            return tagBuilder;
         }
 
         protected virtual IHtmlContent GenerateTextArea(
@@ -939,7 +946,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         protected virtual IHtmlContent GenerateTextBox(
@@ -961,7 +968,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.SelfClosing);
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
+            return tagBuilder;
         }
 
         protected virtual IHtmlContent GenerateValidationMessage(
@@ -981,7 +989,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         protected virtual IHtmlContent GenerateValidationSummary(
@@ -1001,7 +1009,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 return HtmlString.Empty;
             }
 
-            return tagBuilder.ToHtmlContent(TagRenderMode.Normal);
+            return tagBuilder;
         }
 
         protected virtual string GenerateValue(string expression, object value, string format, bool useViewData)
