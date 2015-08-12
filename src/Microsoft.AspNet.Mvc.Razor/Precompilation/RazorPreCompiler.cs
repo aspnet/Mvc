@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Mvc.Internal;
@@ -41,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
                 LanguageVersion = compileContext.Compilation.LanguageVersion
             };
             PreCompilationCache = precompilationCache;
-            TagHelperTypeResolver = new PrecompilationTagHelperTypeResolver(CompileContext, LoadContext);
+            TagHelperTypeResolver = new PrecompilationTagHelperTypeResolver(compileContext.Compilation);
         }
 
         /// <summary>

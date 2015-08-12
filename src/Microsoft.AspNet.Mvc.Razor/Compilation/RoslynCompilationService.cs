@@ -157,7 +157,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                     sourceFileContent = ReadFileContentsSafely(_fileProvider, sourceFilePath);
                 }
 
-                var compilationFailure = new CompilationFailure(sourceFilePath, sourceFileContent, compilationContent, group.Select(d => d.ToDiagnosticMessage(_environment.RuntimeFramework)));
+                var compilationFailure = new CompilationFailure(
+                    sourceFilePath,
+                    sourceFileContent,
+                    compilationContent,
+                    group.Select(d => d.ToDiagnosticMessage(_environment.RuntimeFramework)));
 
                 failures.Add(compilationFailure);
             }
@@ -177,12 +181,24 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
 
         private List<MetadataReference> GetApplicationReferences()
         {
+            return GetApplicationReferences(
+                _metadataFileCache,
+                _libraryExporter,
+                _environment.ApplicationName);
+        }
+
+        // Internal for unit testing
+        internal static List<MetadataReference> GetApplicationReferences(
+            ConcurrentDictionary<string, AssemblyMetadata> metadataFileCache,
+            ILibraryExporter libraryExporter,
+            string applicationName)
+        {
             var references = new List<MetadataReference>();
 
             // Get the MetadataReference for the executing application. If it's a Roslyn reference,
             // we can copy the references created when compiling the application to the Razor page being compiled.
             // This avoids performing expensive calls to MetadataReference.CreateFromImage.
-            var libraryExport = _libraryExporter.GetExport(_environment.ApplicationName);
+            var libraryExport = libraryExporter.GetExport(applicationName);
             if (libraryExport?.MetadataReferences != null && libraryExport.MetadataReferences.Count > 0)
             {
                 Debug.Assert(libraryExport.MetadataReferences.Count == 1,
@@ -197,20 +213,22 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 }
             }
 
-            var export = _libraryExporter.GetAllExports(_environment.ApplicationName);
+            var export = libraryExporter.GetAllExports(applicationName);
             foreach (var metadataReference in export.MetadataReferences)
             {
                 // Taken from https://github.com/aspnet/KRuntime/blob/757ba9bfdf80bd6277e715d6375969a7f44370ee/src/...
                 // Microsoft.Framework.Runtime.Roslyn/RoslynCompiler.cs#L164
                 // We don't want to take a dependency on the Roslyn bit directly since it pulls in more dependencies
                 // than the view engine needs (Microsoft.Framework.Runtime) for example
-                references.Add(ConvertMetadataReference(metadataReference));
+                references.Add(ConvertMetadataReference(metadataFileCache, metadataReference));
             }
 
             return references;
         }
 
-        private MetadataReference ConvertMetadataReference(IMetadataReference metadataReference)
+        private static MetadataReference ConvertMetadataReference(
+            ConcurrentDictionary<string, AssemblyMetadata> metadataFileCache,
+            IMetadataReference metadataReference)
         {
             var roslynReference = metadataReference as IRoslynMetadataReference;
 
@@ -230,7 +248,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
 
             if (fileMetadataReference != null)
             {
-                return CreateMetadataFileReference(fileMetadataReference.Path);
+                return CreateMetadataFileReference(metadataFileCache, fileMetadataReference.Path);
             }
 
             var projectReference = metadataReference as IMetadataProjectReference;
@@ -247,9 +265,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             throw new NotSupportedException();
         }
 
-        private MetadataReference CreateMetadataFileReference(string path)
+        private static MetadataReference CreateMetadataFileReference(
+            ConcurrentDictionary<string, AssemblyMetadata> metadataFileCache,
+            string path)
         {
-            var metadata = _metadataFileCache.GetOrAdd(path, _ =>
+            var metadata = metadataFileCache.GetOrAdd(path, _ =>
             {
                 using (var stream = File.OpenRead(path))
                 {

@@ -24,6 +24,7 @@
         "System.Collections": "",
         "System.IO": "",
         "System.Runtime": "",
+        "System.Reflection.Primitives": "4.0.0.0",
         "System.Text.Encoding": "",
         "System.Threading.Tasks": ""
       }

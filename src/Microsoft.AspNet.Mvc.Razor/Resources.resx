@@ -200,4 +200,13 @@
 
 @{3} "{4}, {5}"</value>
   </data>
+  <data name="CodeAnalysisConstructorNotFound" xml:space="preserve">
+    <value>Unable to find a suitable constructor for type'{0}'.</value>
+  </data>
+  <data name="CodeAnalysis_PropertyNotFound" xml:space="preserve">
+    <value>Unable to find property {0} on type {1}.</value>
+  </data>
+  <data name="CodeAnalysis_TypeConstantKindNotSupported" xml:space="preserve">
+    <value>The type constant kind '{0}' is not supported.</value>
+  </data>
 </root>
