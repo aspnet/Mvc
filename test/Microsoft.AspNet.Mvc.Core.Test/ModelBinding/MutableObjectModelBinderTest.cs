@@ -947,7 +947,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var model = new BindingOptionalProperty();
             var containerMetadata = GetMetadataForType(model.GetType());
             var bindingContext = CreateContext(containerMetadata, model);
-            
+
             var dto = new ComplexModelDto(containerMetadata, containerMetadata.Properties);
             var testableBinder = new TestableMutableObjectModelBinder();
             var modelValidationNode = new ModelValidationNode(string.Empty, containerMetadata, model);

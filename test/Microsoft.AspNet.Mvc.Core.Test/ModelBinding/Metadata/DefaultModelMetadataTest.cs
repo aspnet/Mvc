@@ -175,6 +175,31 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         [Theory]
         [InlineData(typeof(string))]
         [InlineData(typeof(int))]
+        public void IsBindingRequired_ReturnsTrue_ForTypes(Type modelType)
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
+
+            var key = ModelMetadataIdentity.ForType(modelType);
+            var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
+            cache.BindingMetadata = new BindingMetadata()
+            {
+                IsBindingAllowed = false, // Will be ignored.
+            };
+
+            var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
+
+            // Act
+            var isBindingRequired = metadata.IsBindingAllowed;
+
+            // Assert
+            Assert.True(isBindingRequired);
+        }
+
+        [Theory]
+        [InlineData(typeof(string))]
+        [InlineData(typeof(int))]
         public void IsBindingRequired_ReturnsFalse_ForTypes(Type modelType)
         {
             // Arrange
@@ -183,6 +208,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             var key = ModelMetadataIdentity.ForType(modelType);
             var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
+            cache.BindingMetadata = new BindingMetadata()
+            {
+                IsBindingRequired = true, // Will be ignored.
+            };
 
             var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
 
@@ -235,7 +264,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             // Assert
             Assert.True(isBindingRequired);
         }
-
 
         [Theory]
         [InlineData(typeof(string))]
@@ -551,6 +579,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             var key = ModelMetadataIdentity.ForType(typeof(int[]));
             var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
+            cache.BindingMetadata = new BindingMetadata()
+            {
+                IsReadOnly = true, // Will be ignored.
+            };
 
             var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
 

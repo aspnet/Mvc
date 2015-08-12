@@ -381,13 +381,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 if (!_isReadOnly.HasValue)
                 {
-                    if (BindingMetadata.IsReadOnly.HasValue)
-                    {
-                        _isReadOnly = BindingMetadata.IsReadOnly;
-                    }
-                    else if (MetadataKind == ModelMetadataKind.Type)
+                    if (MetadataKind == ModelMetadataKind.Type)
                     {
                         _isReadOnly = false;
+                    }
+                    else if (BindingMetadata.IsReadOnly.HasValue)
+                    {
+                        _isReadOnly = BindingMetadata.IsReadOnly;
                     }
                     else
                     {
