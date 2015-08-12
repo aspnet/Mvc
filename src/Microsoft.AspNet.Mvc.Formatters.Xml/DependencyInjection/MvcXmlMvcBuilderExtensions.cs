@@ -5,6 +5,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.DependencyInjection.Extensions;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.Framework.DependencyInjection.Extensions;
 
 namespace Microsoft.Framework.DependencyInjection
 {
