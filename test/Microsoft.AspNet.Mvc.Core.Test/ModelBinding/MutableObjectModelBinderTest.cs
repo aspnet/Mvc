@@ -73,8 +73,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var canCreate = await mutableBinder.CanCreateModel(bindingContext);
@@ -166,8 +166,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                                                                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -232,8 +232,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                                                                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var canCreate = await mutableBinder.CanCreateModel(bindingContext);
@@ -256,8 +256,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                                                                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -299,8 +299,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                                                                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -359,8 +359,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                                                                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -374,7 +374,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), true)]
         [InlineData(typeof(TypeWithNoBinderMetadata), false)]
         [InlineData(typeof(TypeWithNoBinderMetadata), true)]
-        public async Task CanCreateModel_UnmarkedProperties_UsesCurrentValueProvider(Type modelType, bool valueProviderProvidesValue)
+        public async Task CanCreateModel_UnmarkedProperties_UsesCurrentValueProvider(
+            Type modelType,
+            bool valueProviderProvidesValue)
         {
             var mockValueProvider = new Mock<IValueProvider>();
             mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
@@ -402,8 +404,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             var mutableBinder = new TestableMutableObjectModelBinder();
-            bindingContext.PropertyMetadata = mutableBinder.GetMetadataForProperties(
-                                                                bindingContext.ModelBindingContext).ToArray();
+            bindingContext.PropertyMetadata =
+                mutableBinder.GetMetadataForProperties(bindingContext.ModelBindingContext).ToArray();
 
             // Act
             var retModel = await mutableBinder.CanCreateModel(bindingContext);
@@ -417,8 +419,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Arrange
             var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
-                             .Returns(Task.FromResult(true));
+            mockValueProvider
+                .Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(true));
 
             // Mock binder fails to bind all properties.
             var mockBinder = new Mock<IModelBinder>();
@@ -466,8 +469,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             // Arrange
             var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider.Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
-                             .Returns(Task.FromResult(false));
+            mockValueProvider
+                .Setup(o => o.ContainsPrefixAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(false));
 
             // Mock binder fails to bind all properties.
             var mockBinder = new Mock<IModelBinder>();
@@ -479,7 +483,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 IsTopLevelObject = true,
                 ModelMetadata = GetMetadataForType(typeof(Person)),
-                ModelName = "",
+                ModelName = string.Empty,
                 ValueProvider = mockValueProvider.Object,
                 OperationBindingContext = new OperationBindingContext
                 {
@@ -1319,7 +1323,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["PropertyWithDefaultValue"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.PropertyWithDefaultValue)];
 
             var result = new ModelBindingResult(model: null, isModelSet: false, key: "foo");
             var testableBinder = new TestableMutableObjectModelBinder();
@@ -1342,7 +1346,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["PropertyWithInitializedValue"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.PropertyWithInitializedValue)];
 
             // This value won't be used because IsModelBound = false.
             var result = new ModelBindingResult(model: "bad-value", isModelSet: false, key: "foo");
@@ -1367,7 +1371,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["PropertyWithInitializedValueAndDefault"];
+            var propertyMetadata =
+                bindingContext.ModelMetadata.Properties[nameof(model.PropertyWithInitializedValueAndDefault)];
 
             // This value won't be used because IsModelBound = false.
             var result = new ModelBindingResult(model: "bad-value", isModelSet: false, key: "foo");
@@ -1392,7 +1397,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["NonUpdateableProperty"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.NonUpdateableProperty)];
 
             var result = new ModelBindingResult(model: null, isModelSet: false, key: "foo");
             var testableBinder = new TestableMutableObjectModelBinder();
@@ -1538,7 +1543,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["DateOfBirth"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.DateOfBirth)];
 
             var result = new ModelBindingResult(new DateTime(2001, 1, 1), key: "foo", isModelSet: true);
             var testableBinder = new TestableMutableObjectModelBinder();
@@ -1565,7 +1570,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["DateOfDeath"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.DateOfDeath)];
 
             var result = new ModelBindingResult(new DateTime(1800, 1, 1), isModelSet: true, key: "foo");
             var testableBinder = new TestableMutableObjectModelBinder();
@@ -1590,7 +1595,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(Person), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["DateOfBirth"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.DateOfBirth)];
 
             var result = new ModelBindingResult(model: null, isModelSet: true, key: "foo.DateOfBirth");
             var testableBinder = new TestableMutableObjectModelBinder();
@@ -1618,7 +1623,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(ModelWhosePropertySetterThrows), model);
-            var propertyMetadata = bindingContext.ModelMetadata.Properties["NameNoAttribute"];
+            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.NameNoAttribute)];
 
             var result = new ModelBindingResult(model: null, isModelSet: true, key: "foo.NameNoAttribute");
             var testableBinder = new TestableMutableObjectModelBinder();
