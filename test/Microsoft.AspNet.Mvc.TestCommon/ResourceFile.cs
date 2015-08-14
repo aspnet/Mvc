@@ -67,13 +67,12 @@ namespace Microsoft.AspNet.Mvc
             if (sourceFile)
             {
                 // Normalize line endings to '\r\n' (CRLF). This removes core.autocrlf, core.eol, core.safecrlf, and
-                // .gitattributes from the equation and treats "\r\n", "\r", and "\n" as equivalent. Does not handle
-                // some obscure line endings (e.g. "\n\r") but otherwise ensures checksums and line mappings are
-                // consistent.
+                // .gitattributes from the equation and treats "\r\n" and "\n" as equivalent. Does not handle
+                // some line endings like "\r" but otherwise ensures checksums and line mappings are consistent.
                 string text;
                 using (var streamReader = new StreamReader(stream))
                 {
-                    text = streamReader.ReadToEnd().Replace(Environment.NewLine, "\r\n");
+                    text = streamReader.ReadToEnd().Replace("\r", "").Replace("\n", "\r\n");
                 }
 
                 var bytes = Encoding.UTF8.GetBytes(text);
@@ -186,8 +185,8 @@ namespace Microsoft.AspNet.Mvc
         {
             // Normalize line endings to '\r\n' for comparison. This removes Environment.NewLine from the equation. Not
             // worth updating files just because we generate baselines on a different system.
-            var normalizedPreviousContent = previousContent?.Replace(Environment.NewLine, "\r\n");
-            var normalizedContent = content.Replace(Environment.NewLine, "\r\n");
+            var normalizedPreviousContent = previousContent?.Replace("\r", "").Replace("\n", "\r\n");
+            var normalizedContent = content.Replace("\r", "").Replace("\n", "\r\n");
 
             if (!string.Equals(normalizedPreviousContent, normalizedContent, StringComparison.Ordinal))
             {
