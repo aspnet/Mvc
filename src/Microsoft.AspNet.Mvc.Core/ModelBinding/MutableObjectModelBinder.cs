@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             EnsureModel(bindingContext);
-            var result = await CreateAndPopulateDto(bindingContext, mutableObjectBinderContext.PropertyMetadata);
+            var results = await BindPropertiesAsync(bindingContext, mutableObjectBinderContext.PropertyMetadata);
 
             var validationNode = new ModelValidationNode(
                 bindingContext.ModelName,
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 bindingContext.Model);
 
             // post-processing, e.g. property setters and hooking up validation
-            ProcessDto(bindingContext, (ComplexModelDto)result.Model, validationNode);
+            ProcessResults(bindingContext, results, validationNode);
             return new ModelBindingResult(
                 bindingContext.Model,
                 bindingContext.ModelName,
@@ -192,7 +192,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var bindingSource = bindingContext.BindingSource;
             if (bindingSource != null && !bindingSource.IsGreedy)
             {
-                var rootValueProvider = bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
+                var rootValueProvider =
+                    bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
                 if (rootValueProvider != null)
                 {
                     valueProvider = rootValueProvider.Filter(bindingSource);
@@ -222,12 +223,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             if (modelMetadata.IsCollectionType)
             {
-                return false;
-            }
-
-            if (modelMetadata.ModelType == typeof(ComplexModelDto))
-            {
-                // forbidden type - will cause a stack overflow if we try binding this type
                 return false;
             }
 
@@ -265,24 +260,35 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return true;
         }
 
-        private async Task<ModelBindingResult> CreateAndPopulateDto(
+        // Returned dictionary contains entries corresponding to properties against which binding was attempted. If
+        // binding failed, the entry's value will be null. If binding was never attempted, the dictionary will not
+        // contain a corresponding entry.
+        private async Task<IDictionary<ModelMetadata, ModelBindingResult>> BindPropertiesAsync(
             ModelBindingContext bindingContext,
             IEnumerable<ModelMetadata> propertyMetadatas)
         {
-            // create a DTO and call into the DTO binder
-            var dto = new ComplexModelDto(bindingContext.ModelMetadata, propertyMetadatas);
+            var results = new Dictionary<ModelMetadata, ModelBindingResult>();
+            foreach (var propertyMetadata in propertyMetadatas)
+            {
+                var propertyModelName = ModelNames.CreatePropertyModelName(
+                    bindingContext.ModelName,
+                    propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName);
+                var childContext = ModelBindingContext.GetChildModelBindingContext(
+                    bindingContext,
+                    propertyModelName,
+                    propertyMetadata);
 
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var dtoMetadata = metadataProvider.GetMetadataForType(typeof(ComplexModelDto));
+                var result = await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childContext);
+                if (result == null)
+                {
+                    // Could not bind. Let ProcessResult() know explicitly.
+                    result = new ModelBindingResult(model: null, key: propertyModelName, isModelSet: false);
+                }
 
-            var childContext = ModelBindingContext.GetChildModelBindingContext(
-                bindingContext,
-                bindingContext.ModelName,
-                dtoMetadata);
+                results[propertyMetadata] = result;
+            }
 
-            childContext.Model = dto;
-
-            return await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childContext);
+            return results;
         }
 
         /// <summary>
@@ -365,17 +371,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         // Internal for testing.
-        internal ModelValidationNode ProcessDto(
+        internal ModelValidationNode ProcessResults(
             ModelBindingContext bindingContext,
-            ComplexModelDto dto,
+            IDictionary<ModelMetadata, ModelBindingResult> results,
             ModelValidationNode validationNode)
         {
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var modelExplorer = metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
+            var modelExplorer =
+                metadataProvider.GetModelExplorerForType(bindingContext.ModelType, bindingContext.Model);
             var validationInfo = GetPropertyValidationInfo(bindingContext);
 
             // Eliminate provided properties from RequiredProperties; leaving just *missing* required properties.
-            var boundProperties = dto.Results.Where(p => p.Value.IsModelSet).Select(p => p.Key.PropertyName);
+            var boundProperties = results.Where(p => p.Value.IsModelSet).Select(p => p.Key.PropertyName);
             validationInfo.RequiredProperties.ExceptWith(boundProperties);
 
             foreach (var missingRequiredProperty in validationInfo.RequiredProperties)
@@ -389,25 +396,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     Resources.FormatModelBinding_MissingBindRequiredMember(propertyName));
             }
 
-            // For each property that ComplexModelDtoModelBinder attempted to bind, call the setter, recording
+            // For each property that BindPropertiesAsync() attempted to bind, call the setter, recording
             // exceptions as necessary.
-            foreach (var entry in dto.Results)
+            foreach (var entry in results)
             {
-                var dtoResult = entry.Value;
-                if (dtoResult != null)
+                var result = entry.Value;
+                if (result != null)
                 {
                     var propertyMetadata = entry.Key;
-                    SetProperty(bindingContext, modelExplorer, propertyMetadata, dtoResult);
+                    SetProperty(bindingContext, modelExplorer, propertyMetadata, result);
 
-                    var dtoValidationNode = dtoResult.ValidationNode;
-                    if (dtoValidationNode == null)
+                    var propertyValidationNode = result.ValidationNode;
+                    if (propertyValidationNode == null)
                     {
                         // Make sure that irrespective of if the properties of the model were bound with a value,
                         // create a validation node so that these get validated.
-                        dtoValidationNode = new ModelValidationNode(dtoResult.Key, entry.Key, dtoResult.Model);
+                        propertyValidationNode = new ModelValidationNode(result.Key, entry.Key, result.Model);
                     }
 
-                    validationNode.ChildNodes.Add(dtoValidationNode);
+                    validationNode.ChildNodes.Add(propertyValidationNode);
                 }
             }
 
@@ -422,13 +429,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// The <see cref="ModelExplorer"/> for the model containing property to set.
         /// </param>
         /// <param name="propertyMetadata">The <see cref="ModelMetadata"/> for the property to set.</param>
-        /// <param name="dtoResult">The <see cref="ModelBindingResult"/> for the property's new value.</param>
+        /// <param name="result">The <see cref="ModelBindingResult"/> for the property's new value.</param>
         /// <remarks>Should succeed in all cases that <see cref="CanUpdateProperty"/> returns <c>true</c>.</remarks>
         protected virtual void SetProperty(
             [NotNull] ModelBindingContext bindingContext,
             [NotNull] ModelExplorer modelExplorer,
             [NotNull] ModelMetadata propertyMetadata,
-            [NotNull] ModelBindingResult dtoResult)
+            [NotNull] ModelBindingResult result)
         {
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase;
             var property = bindingContext.ModelType.GetProperty(
@@ -444,17 +451,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (!property.CanWrite)
             {
                 // Try to handle as a collection if property exists but is not settable.
-                AddToProperty(bindingContext, modelExplorer, property, dtoResult);
+                AddToProperty(bindingContext, modelExplorer, property, result);
                 return;
             }
 
             object value = null;
-            if (dtoResult.IsModelSet)
+            if (result.IsModelSet)
             {
-                value = dtoResult.Model;
+                value = result.Model;
             }
 
-            if (!dtoResult.IsModelSet)
+            if (!result.IsModelSet)
             {
                 // If we don't have a value, don't set it on the model and trounce a pre-initialized
                 // value.
@@ -467,7 +474,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
             catch (Exception exception)
             {
-                AddModelError(exception, bindingContext, dtoResult);
+                AddModelError(exception, bindingContext, result);
             }
         }
 
@@ -475,13 +482,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ModelBindingContext bindingContext,
             ModelExplorer modelExplorer,
             PropertyInfo property,
-            ModelBindingResult dtoResult)
+            ModelBindingResult result)
         {
             var propertyExplorer = modelExplorer.GetExplorerForProperty(property.Name);
 
             var target = propertyExplorer.Model;
-            var source = dtoResult.Model;
-            if (!dtoResult.IsModelSet || target == null || source == null)
+            var source = result.Model;
+            if (!result.IsModelSet || target == null || source == null)
             {
                 // Cannot copy to or from a null collection.
                 return;
@@ -507,7 +514,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
             catch (Exception exception)
             {
-                AddModelError(exception, bindingContext, dtoResult);
+                AddModelError(exception, bindingContext, result);
             }
         }
 
@@ -529,7 +536,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private static void AddModelError(
             Exception exception,
             ModelBindingContext bindingContext,
-            ModelBindingResult dtoResult)
+            ModelBindingResult result)
         {
             var targetInvocationException = exception as TargetInvocationException;
             if (targetInvocationException != null && targetInvocationException.InnerException != null)
@@ -539,7 +546,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Do not add an error message if a binding error has already occurred for this property.
             var modelState = bindingContext.ModelState;
-            var modelStateKey = dtoResult.Key;
+            var modelStateKey = result.Key;
             var validationState = modelState.GetFieldValidationState(modelStateKey);
             if (validationState == ModelValidationState.Unvalidated)
             {
