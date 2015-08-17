@@ -40,18 +40,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return null;
             }
 
-            EnsureModel(bindingContext);
+            // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
+            var model = GetModel(bindingContext);
+
             var results = await BindPropertiesAsync(bindingContext, mutableObjectBinderContext.PropertyMetadata);
 
             var validationNode = new ModelValidationNode(
                 bindingContext.ModelName,
                 bindingContext.ModelMetadata,
-                bindingContext.Model);
+                model);
 
-            // post-processing, e.g. property setters and hooking up validation
+            // Post-processing e.g. property setters and hooking up validation.
+            bindingContext.Model = model;
             ProcessResults(bindingContext, results, validationNode);
+
             return new ModelBindingResult(
-                bindingContext.Model,
+                model,
                 bindingContext.ModelName,
                 isModelSet: true,
                 validationNode: validationNode);
@@ -261,8 +265,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         // Returned dictionary contains entries corresponding to properties against which binding was attempted. If
-        // binding failed, the entry's value will be null. If binding was never attempted, the dictionary will not
-        // contain a corresponding entry.
+        // binding failed, the entry's value will have IsModelSet == false. Binding is attempted for all elements of
+        // propertyMetadatas.
         private async Task<IDictionary<ModelMetadata, ModelBindingResult>> BindPropertiesAsync(
             ModelBindingContext bindingContext,
             IEnumerable<ModelMetadata> propertyMetadatas)
@@ -277,6 +281,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     bindingContext,
                     propertyModelName,
                     propertyMetadata);
+
+                // ModelBindingContext.Model property values may be non-null when invoked via TryUpdateModel(). Pass
+                // complex (including collection) values down so that binding system does not unnecessarily recreate
+                // instances or overwrite inner properties that are not bound. No need for this with simple values
+                // because they will be overwritten if binding succeeds. Arrays are never reused because they cannot
+                // be resized.
+                //
+                // ModelMetadata.PropertyGetter is not null safe; use it only if Model is non-null.
+                if (bindingContext.Model != null &&
+                    propertyMetadata.PropertyGetter != null &&
+                    propertyMetadata.IsComplexType &&
+                    !propertyMetadata.ModelType.IsArray)
+                {
+                    childContext.Model = propertyMetadata.PropertyGetter(bindingContext.Model);
+                }
 
                 var result = await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childContext);
                 if (result == null)
@@ -304,16 +323,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Ensures <see cref="ModelBindingContext.Model"/> is not <c>null</c> in given
-        /// <paramref name="bindingContext"/>.
+        /// Get <see cref="ModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
+        /// new instance of <see cref="ModelBindingContext.ModelType"/>.
         /// </summary>
         /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        protected virtual void EnsureModel([NotNull] ModelBindingContext bindingContext)
+        protected virtual object GetModel([NotNull] ModelBindingContext bindingContext)
         {
-            if (bindingContext.Model == null)
+            if (bindingContext.Model != null)
             {
-                bindingContext.Model = CreateModel(bindingContext);
+                return bindingContext.Model;
             }
+
+            return CreateModel(bindingContext);
         }
 
         /// <summary>
@@ -409,7 +430,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     var propertyValidationNode = result.ValidationNode;
                     if (propertyValidationNode == null)
                     {
-                        // Make sure that irrespective of if the properties of the model were bound with a value,
+                        // Make sure that irrespective of whether the properties of the model were bound with a value,
                         // create a validation node so that these get validated.
                         propertyValidationNode = new ModelValidationNode(result.Key, entry.Key, result.Model);
                     }
@@ -438,13 +459,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             [NotNull] ModelBindingResult result)
         {
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase;
-            var property = bindingContext.ModelType.GetProperty(
-                propertyMetadata.PropertyName,
-                bindingFlags);
+            var property = bindingContext.ModelType.GetProperty(propertyMetadata.PropertyName, bindingFlags);
 
             if (property == null)
             {
                 // Nothing to do if property does not exist.
+                return;
+            }
+
+            if (!result.IsModelSet)
+            {
+                // If we don't have a value, don't set it on the model and trounce a pre-initialized value.
                 return;
             }
 
@@ -455,19 +480,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return;
             }
 
-            object value = null;
-            if (result.IsModelSet)
-            {
-                value = result.Model;
-            }
-
-            if (!result.IsModelSet)
-            {
-                // If we don't have a value, don't set it on the model and trounce a pre-initialized
-                // value.
-                return;
-            }
-
+            var value = result.Model;
             try
             {
                 propertyMetadata.PropertySetter(bindingContext.Model, value);
@@ -488,9 +501,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var target = propertyExplorer.Model;
             var source = result.Model;
-            if (!result.IsModelSet || target == null || source == null)
+            if (target == null || source == null)
             {
                 // Cannot copy to or from a null collection.
+                return;
+            }
+
+            if (target == source)
+            {
+                // Added to the target collection in BindPropertiesAsync().
                 return;
             }
 

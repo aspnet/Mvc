@@ -446,8 +446,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder
-                .Setup(o => o.EnsureModelPublic(bindingContext))
-                .Callback<ModelBindingContext>(c => c.Model = model)
+                .Setup(o => o.GetModelPublic(bindingContext))
+                .Returns(model)
                 .Verifiable();
             testableBinder
                 .Setup(o => o.GetMetadataForProperties(bindingContext))
@@ -497,8 +497,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder
-                .Setup(o => o.EnsureModelPublic(bindingContext))
-                .Callback<ModelBindingContext>(c => c.Model = model)
+                .Setup(o => o.GetModelPublic(bindingContext))
+                .Returns(model)
                 .Verifiable();
 
             testableBinder
@@ -574,7 +574,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void EnsureModel_ModelIsNotNull_DoesNothing()
+        public void GetModel_ModelIsNotNull_DoesNothing()
         {
             // Arrange
             var bindingContext = new ModelBindingContext
@@ -583,19 +583,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelMetadata = GetMetadataForType(typeof(Person))
             };
 
+            var originalModel = bindingContext.Model;
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
 
             // Act
-            var originalModel = bindingContext.Model;
-            testableBinder.Object.EnsureModelPublic(bindingContext);
+            var newModel = testableBinder.Object.GetModelPublic(bindingContext);
 
             // Assert
             Assert.Same(originalModel, bindingContext.Model);
+            Assert.Same(originalModel, newModel);
             testableBinder.Verify(o => o.CreateModelPublic(bindingContext), Times.Never());
         }
 
         [Fact]
-        public void EnsureModel_ModelIsNull_CallsCreateModel()
+        public void GetModel_ModelIsNull_CallsCreateModel()
         {
             // Arrange
             var bindingContext = new ModelBindingContext
@@ -603,17 +604,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ModelMetadata = GetMetadataForType(typeof(Person))
             };
 
+            var originalModel = bindingContext.Model;
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder.Setup(o => o.CreateModelPublic(bindingContext))
                           .Returns(new Person()).Verifiable();
 
             // Act
-            var originalModel = bindingContext.Model;
-            testableBinder.Object.EnsureModelPublic(bindingContext);
-            var newModel = bindingContext.Model;
+            var newModel = testableBinder.Object.GetModelPublic(bindingContext);
+
 
             // Assert
             Assert.Null(originalModel);
+            Assert.Null(bindingContext.Model);
             Assert.IsType<Person>(newModel);
             testableBinder.Verify();
         }
@@ -943,6 +945,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var results = containerMetadata.Properties.ToDictionary(
                 property => property,
                 property => new ModelBindingResult(model: null, key: property.PropertyName, isModelSet: false));
+
             var testableBinder = new TestableMutableObjectModelBinder();
             var modelValidationNode = new ModelValidationNode(string.Empty, containerMetadata, model);
 
@@ -1964,14 +1967,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return CreateModelPublic(bindingContext);
             }
 
-            public virtual void EnsureModelPublic(ModelBindingContext bindingContext)
+            public virtual object GetModelPublic(ModelBindingContext bindingContext)
             {
-                base.EnsureModel(bindingContext);
+                return base.GetModel(bindingContext);
             }
 
-            protected override void EnsureModel(ModelBindingContext bindingContext)
+            protected override object GetModel(ModelBindingContext bindingContext)
             {
-                EnsureModelPublic(bindingContext);
+                return GetModelPublic(bindingContext);
             }
 
             public virtual new IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
