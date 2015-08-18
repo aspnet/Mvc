@@ -102,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
             var entry = Assert.Single(modelState);
             Assert.Empty(entry.Key);
-            Assert.Null(entry.Value.Value.RawValue);
+            Assert.Null(entry.Value.RawValue);
         }
 
         private class Person4

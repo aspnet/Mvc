@@ -531,10 +531,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             var binders = new IModelBinder[]
             {
-                new TypeMatchModelBinder(),
                 new ByteArrayModelBinder(),
                 new GenericModelBinder(),
-                new TypeConverterModelBinder(),
+                new SimpleTypeModelBinder(),
                 new MutableObjectModelBinder()
             };
 

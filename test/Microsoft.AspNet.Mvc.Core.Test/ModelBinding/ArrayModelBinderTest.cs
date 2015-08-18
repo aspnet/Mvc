@@ -196,7 +196,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 .Returns(async (ModelBindingContext mbc) =>
                 {
                     var value = await mbc.ValueProvider.GetValueAsync(mbc.ModelName);
-                    if (value != null)
+                    if (value != ValueProviderResult.None)
                     {
                         var model = value.ConvertTo(mbc.ModelType);
                         return new ModelBindingResult(model, key: null, isModelSet: true);

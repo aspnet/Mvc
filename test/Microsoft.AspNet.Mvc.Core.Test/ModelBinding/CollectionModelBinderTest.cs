@@ -149,8 +149,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var list = Assert.IsAssignableFrom<IList<int>>(result.Model);
             Assert.Equal(new[] { 42, 100, 200 }, list.ToArray());
-
-            Assert.True(modelState.IsValid);
         }
 
         [Theory]
@@ -178,8 +176,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             Assert.Same(list, result.Model);
             Assert.Equal(new[] { 42, 100, 200 }, list.ToArray());
-
-            Assert.True(modelState.IsValid);
         }
 
         [Fact]
@@ -205,8 +201,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             var model = Assert.IsType<List<int>>(result.Model);
             Assert.Empty(model);
-
-            Assert.True(modelState.IsValid);
         }
 #endif
 
@@ -225,7 +219,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             };
 
             // Act
-            var boundCollection = await binder.BindSimpleCollection(context, rawValue: new object[0], culture: null);
+            var boundCollection = await binder.BindSimpleCollection(context, new ValueProviderResult(new string[0]));
 
             // Assert
             Assert.NotNull(boundCollection.Model);
@@ -405,7 +399,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var modelBinder = new CollectionModelBinder<int>();
 
             // Act
-            var boundCollection = await modelBinder.BindSimpleCollection(bindingContext, new int[1], culture);
+            var boundCollection = await modelBinder.BindSimpleCollection(
+                bindingContext,
+                new ValueProviderResult(new string[] { "0" }));
 
             // Assert
             Assert.Equal(new[] { 42 }, boundCollection.Model.ToArray());
@@ -442,11 +438,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 .Returns(async (ModelBindingContext mbc) =>
                 {
                     var value = await mbc.ValueProvider.GetValueAsync(mbc.ModelName);
-                    if (value != null)
+                    if (value != ValueProviderResult.None)
                     {
                         var model = value.ConvertTo(mbc.ModelType);
                         var modelValidationNode = new ModelValidationNode(mbc.ModelName, mbc.ModelMetadata, model);
-                        return new ModelBindingResult(model, mbc.ModelName, true, modelValidationNode);
+                        return new ModelBindingResult(model, mbc.ModelName, model != null, modelValidationNode);
                     }
 
                     return null;
