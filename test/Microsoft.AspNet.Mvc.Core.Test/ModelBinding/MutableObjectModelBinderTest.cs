@@ -427,7 +427,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var mockBinder = new Mock<IModelBinder>();
             mockBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns((ModelBindingContext mbc) => Task.FromResult<ModelBindingResult>(null));
+                .Returns(Task.FromResult<ModelBindingResult>(null));
 
             var bindingContext = new ModelBindingContext
             {
@@ -477,7 +477,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var mockBinder = new Mock<IModelBinder>();
             mockBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns((ModelBindingContext mbc) => Task.FromResult<ModelBindingResult>(null));
+                .Returns(Task.FromResult<ModelBindingResult>(null));
 
             var bindingContext = new ModelBindingContext
             {
