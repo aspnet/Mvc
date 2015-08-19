@@ -10,19 +10,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class SimpleTypeModelBinder : IModelBinder
     {
-        public async Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext.ModelMetadata.IsComplexType)
             {
                 // this type cannot be converted
-                return null;
+                return Task.FromResult<ModelBindingResult>(null);
             }
 
-            var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
+            var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
             if (valueProviderResult == ValueProviderResult.None)
             {
                 // no entry
-                return null;
+                return Task.FromResult<ModelBindingResult>(null);
             }
 
             bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
@@ -60,7 +60,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model) :
                     null;
 
-                return new ModelBindingResult(model, bindingContext.ModelName, isModelSet, validationNode);
+                return Task.FromResult(new ModelBindingResult(
+                    model, 
+                    bindingContext.ModelName, 
+                    isModelSet, 
+                    validationNode));
             }
             catch (Exception ex)
             {
@@ -69,7 +73,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Were able to find a converter for the type but conversion failed.
             // Tell the model binding system to skip other model binders i.e. return non-null.
-            return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+            return Task.FromResult(new ModelBindingResult(
+                model: null, 
+                key: bindingContext.ModelName, 
+                isModelSet: false));
         }
 
         private static bool AllowsNullValue(Type type)

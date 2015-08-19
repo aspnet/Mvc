@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("MyProperty", "MyProperty")]
         [InlineData("MyProperty.SubProperty", "MyProperty")]
         [InlineData("MyProperty[0]", "MyProperty")]
-        public async Task ContainsPrefixAsync_ReturnsTrue_IfElementNameStartsWithPrefix(string elementName, 
+        public void ContainsPrefix_ReturnsTrue_IfElementNameStartsWithPrefix(string elementName, 
                                                                                         string prefix)
         {
             // Arrange
@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 culture);
 
             // Act
-            var containsPrefix = await elementalValueProvider.ContainsPrefixAsync(prefix);
+            var containsPrefix = elementalValueProvider.ContainsPrefix(prefix);
 
             // Assert
             Assert.True(containsPrefix);
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("MyProperty", "MyProperty1")]
         [InlineData("MyPropertyTest", "MyProperty")]
         [InlineData("Random", "MyProperty")]
-        public async Task ContainsPrefixAsync_ReturnsFalse_IfElementCannotSpecifyValuesForPrefix(string elementName, 
+        public void ContainsPrefix_ReturnsFalse_IfElementCannotSpecifyValuesForPrefix(string elementName, 
                                                                                                  string prefix)
         {
             // Arrange
@@ -46,21 +46,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 culture);
 
             // Act
-            var containsPrefix = await elementalValueProvider.ContainsPrefixAsync(prefix);
+            var containsPrefix = elementalValueProvider.ContainsPrefix(prefix);
 
             // Assert
             Assert.False(containsPrefix);
         }
 
         [Fact]
-        public async Task GetValueAsync_NameDoesNotMatch_ReturnsEmptyResult()
+        public void GetValue_NameDoesNotMatch_ReturnsEmptyResult()
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
             var valueProvider = new ElementalValueProvider("foo", "hi", culture);
 
             // Act
-            var result = await valueProvider.GetValueAsync("bar");
+            var result = valueProvider.GetValue("bar");
 
             // Assert
             Assert.Equal(ValueProviderResult.None, result);
@@ -70,14 +70,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("foo")]
         [InlineData("FOO")]
         [InlineData("FoO")]
-        public async Task GetValueAsync_NameMatches_ReturnsValueProviderResult(string name)
+        public void GetValue_NameMatches_ReturnsValueProviderResult(string name)
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
             var valueProvider = new ElementalValueProvider("foo", "hi", culture);
 
             // Act
-            var result = await valueProvider.GetValueAsync(name);
+            var result =  valueProvider.GetValue(name);
 
             // Assert
             Assert.NotNull(result);

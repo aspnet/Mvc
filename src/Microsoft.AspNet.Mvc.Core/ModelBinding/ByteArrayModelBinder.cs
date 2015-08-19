@@ -13,19 +13,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class ByteArrayModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
             // Check if this binder applies.
             if (bindingContext.ModelType != typeof(byte[]))
             {
-                return null;
+                return Task.FromResult<ModelBindingResult>(null);
             }
 
             // Check for missing data case 1: There was no <input ... /> element containing this data.
-            var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
+            var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
             if (valueProviderResult == ValueProviderResult.None)
             {
-                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                return Task.FromResult(new ModelBindingResult(
+                    model: null,
+                    key: bindingContext.ModelName,
+                    isModelSet: false));
             }
 
             bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
@@ -34,7 +37,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var value = valueProviderResult.FirstValue;
             if (string.IsNullOrEmpty(value))
             {
-                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                return Task.FromResult(new ModelBindingResult(
+                    model: null,
+                    key: bindingContext.ModelName,
+                    isModelSet: false));
             }
 
             try
@@ -45,11 +51,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     bindingContext.ModelMetadata,
                     model);
 
-                return new ModelBindingResult(
+                return Task.FromResult(new ModelBindingResult(
                     model,
                     bindingContext.ModelName,
                     isModelSet: true,
-                    validationNode: validationNode);
+                    validationNode: validationNode));
             }
             catch (Exception ex)
             {
@@ -58,7 +64,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Matched the type (byte[]) only this binder supports. As in missing data cases, always tell the model
             // binding system to skip other model binders i.e. return non-null.
-            return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+            return Task.FromResult(new ModelBindingResult(
+                model: null,
+                key: bindingContext.ModelName,
+                isModelSet: false));
         }
     }
 }
