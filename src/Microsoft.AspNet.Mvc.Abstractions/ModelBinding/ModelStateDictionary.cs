@@ -368,7 +368,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="attemptedValue">
         /// The values of <param name="rawValue"/> in a comma-separated <see cref="string"/>.
         /// </param>
-        public void SetModelValue([NotNull] string key, [NotNull] string[] rawValue, string attemptedValue)
+        public void SetModelValue([NotNull] string key, string[] rawValue, string attemptedValue)
         {
             var modelState = GetModelStateForKey(key);
             modelState.RawValue = rawValue;

@@ -163,7 +163,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             get
             {
-                return Values?.Length ?? (Value != null ? 1 : 0);
+                if (Values != null)
+                {
+                    return Values.Length;
+                }
+                else if (Value != null)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
 
@@ -199,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return ((string)this).GetHashCode();
+            return ((string)this)?.GetHashCode() ?? 0;
         }
 
         /// <inheritdoc />

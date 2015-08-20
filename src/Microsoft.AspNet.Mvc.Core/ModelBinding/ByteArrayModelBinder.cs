@@ -34,7 +34,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var value = valueProviderResult.FirstValue;
             if (string.IsNullOrEmpty(value))
             {
-                
                 return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
             }
 

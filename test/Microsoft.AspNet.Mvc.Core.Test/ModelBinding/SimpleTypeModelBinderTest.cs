@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(destinationType);
-            bindingContext.ValueProvider = new SimpleHttpValueProvider
+            bindingContext.ValueProvider = new SimpleValueProvider
             {
                 { "theModelName", "some-value" }
             };
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Arrange
             var bindingContext = GetBindingContext(destinationType);
-            bindingContext.ValueProvider = new SimpleHttpValueProvider
+            bindingContext.ValueProvider = new SimpleValueProvider
             {
                 { "theModelName", "some-value" }
             };
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(destinationType);
-            bindingContext.ValueProvider = new SimpleHttpValueProvider
+            bindingContext.ValueProvider = new SimpleValueProvider
             {
                 { "theModelName", string.Empty }
             };
@@ -104,7 +104,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var message = "The value 'not an integer' is not valid for theModelName.";
             var bindingContext = GetBindingContext(typeof(int));
-            bindingContext.ValueProvider = new SimpleHttpValueProvider
+            bindingContext.ValueProvider = new SimpleValueProvider
             {
                 { "theModelName", "not an integer" }
             };
@@ -142,7 +142,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(string));
-            bindingContext.ValueProvider = new SimpleHttpValueProvider
+            bindingContext.ValueProvider = new SimpleValueProvider
             {
                 { "theModelName", string.Empty }
             };
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(int));
-            bindingContext.ValueProvider = new SimpleHttpValueProvider
+            bindingContext.ValueProvider = new SimpleValueProvider
             {
                 { "theModelName", "42" }
             };
@@ -185,7 +185,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(modelType),
                 ModelName = "theModelName",
-                ValueProvider = new SimpleHttpValueProvider() // empty
+                ValueProvider = new SimpleValueProvider() // empty
             };
         }
 

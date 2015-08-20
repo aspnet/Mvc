@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
-    public sealed class SimpleHttpValueProvider : Dictionary<string, object>, IValueProvider
+    public sealed class SimpleValueProvider : Dictionary<string, object>, IValueProvider
     {
         private readonly CultureInfo _culture;
 
-        public SimpleHttpValueProvider()
+        public SimpleValueProvider()
             : this(null)
         {
         }
 
-        public SimpleHttpValueProvider(CultureInfo culture)
+        public SimpleValueProvider(CultureInfo culture)
             : base(StringComparer.OrdinalIgnoreCase)
         {
             _culture = culture ?? CultureInfo.InvariantCulture;

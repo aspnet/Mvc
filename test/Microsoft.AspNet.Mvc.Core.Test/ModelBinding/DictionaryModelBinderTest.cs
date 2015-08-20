@@ -499,7 +499,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     }
                 });
 
-            var valueProvider = new SimpleHttpValueProvider();
+            var valueProvider = new SimpleValueProvider();
             foreach (var kvp in values)
             {
                 valueProvider.Add(kvp.Key, string.Empty);

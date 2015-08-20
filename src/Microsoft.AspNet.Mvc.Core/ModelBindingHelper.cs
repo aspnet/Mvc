@@ -689,21 +689,18 @@ namespace Microsoft.AspNet.Mvc
                            ? converter.ConvertFrom(null, culture, value)
                            : converter.ConvertTo(null, culture, value, destinationType);
             }
+            catch (FormatException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
-                if (ex is FormatException)
-                {
-                    throw ex;
-                }
-                else
-                {
-                    // TypeConverter throws System.Exception wrapping the FormatException,
-                    // so we throw the inner exception.
-                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                // TypeConverter throws System.Exception wrapping the FormatException,
+                // so we throw the inner exception.
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
 
-                    // this code is never reached because the previous line is throwing;
-                    throw;
-                }
+                // this code is never reached because the previous line is throwing;
+                throw;
             }
         }
 

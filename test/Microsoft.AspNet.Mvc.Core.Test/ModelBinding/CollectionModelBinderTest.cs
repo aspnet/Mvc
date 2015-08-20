@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindComplexCollectionFromIndexes_FiniteIndexes()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[foo]", "42" },
                 { "someName[baz]", "200" }
@@ -45,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindComplexCollectionFromIndexes_InfiniteIndexes()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[0]", "42" },
                 { "someName[1]", "100" },
@@ -70,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_ComplexCollection_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName.index", new[] { "foo", "bar", "baz" } },
                 { "someName[foo]", "42" },
@@ -100,7 +100,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_ComplexCollection_BindingContextModelNonNull_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName.index", new[] { "foo", "bar", "baz" } },
                 { "someName[foo]", "42" },
@@ -132,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_SimpleCollection_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName", new[] { "42", "100", "200" } }
             };
@@ -157,7 +157,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_SimpleCollection_BindingContextModelNonNull_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName", new[] { "42", "100", "200" } }
             };
@@ -183,7 +183,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var binder = new CollectionModelBinder<int>();
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName", null },
             };
@@ -386,7 +386,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var bindingContext = GetModelBindingContext(new SimpleHttpValueProvider());
+            var bindingContext = GetModelBindingContext(new SimpleValueProvider());
             ModelValidationNode childValidationNode = null;
             Mock.Get<IModelBinder>(bindingContext.OperationBindingContext.ModelBinder)
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
