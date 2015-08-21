@@ -9,10 +9,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public interface IValueProviderFactory
     {
         /// <summary>
-        /// Get a value provider with values from the given <paramref name="requestContext"/>.
+        /// Gets a <see cref="IValueProvider"/> with values from the current request.
         /// </summary>
-        /// <param name="context">ValueProviderFactoryContext that value provider will populate from</param>
-        /// <returns>a value provider instance or null</returns>
+        /// <param name="context">The <see cref="ValueProviderFactoryContext"/>.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that when completed will yield a <see cref="IValueProvider"/> instance or <c>null</c>.
+        /// </returns>
         Task<IValueProvider> GetValueProviderAsync([NotNull] ValueProviderFactoryContext context);
     }
 }

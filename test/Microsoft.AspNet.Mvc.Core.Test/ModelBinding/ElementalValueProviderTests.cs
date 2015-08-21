@@ -14,8 +14,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("MyProperty", "MyProperty")]
         [InlineData("MyProperty.SubProperty", "MyProperty")]
         [InlineData("MyProperty[0]", "MyProperty")]
-        public void ContainsPrefix_ReturnsTrue_IfElementNameStartsWithPrefix(string elementName, 
-                                                                                        string prefix)
+        public void ContainsPrefix_ReturnsTrue_IfElementNameStartsWithPrefix(
+            string elementName, 
+            string prefix)
         {
             // Arrange
             var culture = new CultureInfo("en-US");
@@ -35,8 +36,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("MyProperty", "MyProperty1")]
         [InlineData("MyPropertyTest", "MyProperty")]
         [InlineData("Random", "MyProperty")]
-        public void ContainsPrefix_ReturnsFalse_IfElementCannotSpecifyValuesForPrefix(string elementName, 
-                                                                                                 string prefix)
+        public void ContainsPrefix_ReturnsFalse_IfElementCannotSpecifyValuesForPrefix(
+            string elementName, 
+            string prefix)
         {
             // Arrange
             var culture = new CultureInfo("en-US");
