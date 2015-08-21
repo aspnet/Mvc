@@ -686,8 +686,8 @@ namespace Microsoft.AspNet.Mvc
             try
             {
                 return canConvertFrom
-                           ? converter.ConvertFrom(null, culture, value)
-                           : converter.ConvertTo(null, culture, value, destinationType);
+                    ? converter.ConvertFrom(null, culture, value)
+                    : converter.ConvertTo(null, culture, value, destinationType);
             }
             catch (FormatException)
             {
@@ -695,12 +695,19 @@ namespace Microsoft.AspNet.Mvc
             }
             catch (Exception ex)
             {
-                // TypeConverter throws System.Exception wrapping the FormatException,
-                // so we throw the inner exception.
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                if (ex.InnerException == null)
+                {
+                    throw;
+                }
+                else
+                {
+                    // TypeConverter throws System.Exception wrapping the FormatException,
+                    // so we throw the inner exception.
+                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
 
-                // this code is never reached because the previous line is throwing;
-                throw;
+                    // This code is never reached because the previous line will always throw.
+                    throw;
+                }
             }
         }
 
