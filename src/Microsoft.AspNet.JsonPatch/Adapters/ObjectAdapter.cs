@@ -451,10 +451,11 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <summary>
         /// Remove is used by various operations (eg: remove, move, ...), yet through different operations;
         /// This method allows code reuse yet reporting the correct operation on error.  The return value
-        /// contains the type of the item that has been removed - this can be used by other methods, like 
-        /// replace, to ensure that we can pass in the correctly typed value to whatever method follows.
+        /// contains the type of the item that has been removed (and a bool possibly signifying an error)
+        /// This can be used by other methods, like replace, to ensure that we can pass in the correctly 
+        /// typed value to whatever method follows.
         /// </summary>
-        private Type Remove(string path, object objectToApplyTo, Operation operationToReport)
+        private RemovedPropertyTypeResult Remove(string path, object objectToApplyTo, Operation operationToReport)
         {
             // get path result
             var pathResult = GetActualPropertyPath(
@@ -464,7 +465,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
             if (pathResult == null)
             {
-                return null;
+                return new RemovedPropertyTypeResult(null, true);
             }
 
             var removeFromList = pathResult.ExecuteAtEnd;
@@ -482,7 +483,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     objectToApplyTo,
                     operationToReport,
                     Resources.FormatPropertyCannotBeRemoved(path)));
-                return null;
+                return new RemovedPropertyTypeResult(null, true);
             }
 
             if (treeAnalysisResult.UseDynamicLogic)
@@ -493,8 +494,19 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                 {
                     var propertyValue = treeAnalysisResult.Container
                         .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent);
-                    var typeOfPathProperty = treeAnalysisResult.Container
-                            .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent).GetType();
+
+                    // we cannot continue when the value is null, because to be able to
+                    // continue we need to be able to check if the array is a non-string array
+                    if (propertyValue == null)
+                    {
+                        LogError(new JsonPatchError(
+                           objectToApplyTo,
+                           operationToReport,
+                           Resources.FormatCannotDeterminePropertyType(path)));
+                        return new RemovedPropertyTypeResult(null, true);
+                    }
+
+                    var typeOfPathProperty = propertyValue.GetType();
 
                     if (!IsNonStringArray(typeOfPathProperty))
                     {
@@ -502,15 +514,15 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             objectToApplyTo,
                             operationToReport,
                             Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
-                        return null;
+                        return new RemovedPropertyTypeResult(null, true);
                     }
 
                     // now, get the generic type of the enumerable (we'll return this type)
                     var genericTypeOfArray = GetIListType(typeOfPathProperty);
 
                     // get the array
-                    var array = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(
-                        treeAnalysisResult.PropertyPathInParent) as IList;
+                    var array = (IList)treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(
+                        treeAnalysisResult.PropertyPathInParent);
 
                     if (array.Count == 0)
                     {
@@ -521,7 +533,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                              Resources.FormatInvalidIndexForArrayProperty(
                                  operationToReport.op,
                                  path)));
-                        return null;
+                        return new RemovedPropertyTypeResult(null, true);
                     }
 
                     if (removeFromList)
@@ -531,7 +543,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             treeAnalysisResult.PropertyPathInParent, array);
 
                         // return the type of the value that has been removed.
-                        return genericTypeOfArray;
+                        return new RemovedPropertyTypeResult(genericTypeOfArray, false);
                     }
                     else
                     {
@@ -543,7 +555,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 Resources.FormatInvalidIndexForArrayProperty(
                                     operationToReport.op,
                                     path)));
-                            return null;
+                            return new RemovedPropertyTypeResult(null, true);
                         }
 
                         array.RemoveAt(positionAsInteger);
@@ -551,7 +563,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             treeAnalysisResult.PropertyPathInParent, array);
 
                         // return the type of the value that has been removed.
-                        return genericTypeOfArray;
+                        return new RemovedPropertyTypeResult(genericTypeOfArray, false);
                     }
                 }
                 else
@@ -559,12 +571,21 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     // get the property
                     var getResult = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(
                         treeAnalysisResult.PropertyPathInParent);
-                    var actualType = getResult.GetType();
 
                     // remove the property
                     treeAnalysisResult.Container.RemoveValueForCaseInsensitiveKey(
                         treeAnalysisResult.PropertyPathInParent);
-                    return actualType;
+
+                    // value is not null, we can determine the type
+                    if (getResult != null)
+                    {
+                        var actualType = getResult.GetType();
+                        return new RemovedPropertyTypeResult(actualType, false);
+                    }
+                    else
+                    {
+                        return new RemovedPropertyTypeResult(null, false);
+                    }
                 }
             }
             else
@@ -580,7 +601,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                objectToApplyTo,
                                operationToReport,
                                Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, path)));
-                        return null;
+                        return new RemovedPropertyTypeResult(null, true);
                     }
 
                     // now, get the generic type of the IList<> from Property type.
@@ -592,7 +613,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             objectToApplyTo,
                             operationToReport,
                             Resources.FormatCannotReadProperty(path)));
-                        return null;
+                        return new RemovedPropertyTypeResult(null, true);
                     }
 
                     var array = (IList)patchProperty.Property.ValueProvider
@@ -607,7 +628,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             Resources.FormatInvalidIndexForArrayProperty(
                                 operationToReport.op,
                                 path)));
-                        return null;
+                        return new RemovedPropertyTypeResult(null, true);
                     }
 
                     if (removeFromList)
@@ -615,7 +636,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         array.RemoveAt(array.Count - 1);
 
                         // return the type of the value that has been removed
-                        return genericTypeOfArray;
+                        return new RemovedPropertyTypeResult(genericTypeOfArray, false);
                     }
                     else
                     {
@@ -633,7 +654,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                         array.RemoveAt(positionAsInteger);
 
                         // return the type of the value that has been removed
-                        return genericTypeOfArray;
+                        return new RemovedPropertyTypeResult(genericTypeOfArray, false);
                     }
                 }
                 else
@@ -644,7 +665,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                             objectToApplyTo,
                             operationToReport,
                             Resources.FormatCannotUpdateProperty(path)));
-                        return null;
+                        return new RemovedPropertyTypeResult(null, true);
                     }
 
                     // setting the value to "null" will use the default value in case of value types, and
@@ -658,7 +679,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                     }
 
                     patchProperty.Property.ValueProvider.SetValue(patchProperty.Parent, value);
-                    return patchProperty.Property.PropertyType;
+                    return new RemovedPropertyTypeResult(patchProperty.Property.PropertyType, false);
                 }
             }
         }
