@@ -20,13 +20,13 @@ namespace FilesWebSite
         public IActionResult DowloadFromDisk()
         {
             var path = Path.Combine(_appEnvironment.ApplicationBasePath, "sample.txt");
-            return File(path, "text/plain");
+            return new PhysicalFilePathResult(path, "text/plain");
         }
 
         public IActionResult DowloadFromDiskWithFileName()
         {
             var path = Path.Combine(_appEnvironment.ApplicationBasePath, "sample.txt");
-            return File(path, "text/plain", "downloadName.txt");
+            return new PhysicalFilePathResult(path, "text/plain") { FileDownloadName = "downloadName.txt" };
         }
 
         public IActionResult DowloadFromStream()

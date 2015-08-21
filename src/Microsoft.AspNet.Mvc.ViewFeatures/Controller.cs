@@ -784,9 +784,9 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="fileName">The <see cref="Stream"/> with the contents of the file.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
-        /// <returns>The created <see cref="FilePathResult"/> for the response.</returns>
+        /// <returns>The created <see cref="VirtualFilePathResult"/> for the response.</returns>
         [NonAction]
-        public virtual FilePathResult File(string fileName, string contentType)
+        public virtual VirtualFilePathResult File(string fileName, string contentType)
         {
             return File(fileName, contentType, fileDownloadName: null);
         }
@@ -801,9 +801,9 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="fileDownloadName">The suggested file name.</param>
         /// <returns>The created <see cref="FilePathResult"/> for the response.</returns>
         [NonAction]
-        public virtual FilePathResult File(string fileName, string contentType, string fileDownloadName)
+        public virtual VirtualFilePathResult File(string fileName, string contentType, string fileDownloadName)
         {
-            return new FilePathResult(fileName, contentType) { FileDownloadName = fileDownloadName };
+            return new VirtualFilePathResult(fileName, contentType) { FileDownloadName = fileDownloadName };
         }
 
         /// <summary>
