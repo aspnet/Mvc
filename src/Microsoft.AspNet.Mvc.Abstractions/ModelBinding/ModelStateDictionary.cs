@@ -361,10 +361,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Sets the value for the <see cref="ModelState"/> with the specified <paramref name="key"/>.
+        /// Sets the of <see cref="ModelState.RawValue"/> and <see cref="ModelState.AttemptedValue"/> for 
+        /// the <see cref="ModelState"/> with the specified <paramref name="key"/>.
         /// </summary>
         /// <param name="key">The key for the <see cref="ModelState"/> entry.</param>
-        /// <param name="value">The raw values for the <see cref="ModelState"/> entry.</param>
+        /// <param name="rawvalue">The raw values for the <see cref="ModelState"/> entry.</param>
         /// <param name="attemptedValue">
         /// The values of <param name="rawValue"/> in a comma-separated <see cref="string"/>.
         /// </param>

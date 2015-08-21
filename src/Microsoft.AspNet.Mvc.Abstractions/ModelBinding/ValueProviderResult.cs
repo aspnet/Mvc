@@ -40,27 +40,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="value">The submitted value.</param>
         public ValueProviderResult(string value)
+            : this(value, _invariantCulture)
         {
-            if (value == null)
-            {
-                Value = null;
-                Values = None.Values;
-            }
-            else
-            {
-                Value = value;
-                Values = null;
-            }
-
-            Culture = _invariantCulture;
         }
 
         /// <summary>
-        /// Creates a new <see cref="ValueProviderResult"/>..
+        /// Creates a new <see cref="ValueProviderResult"/>.
         /// </summary>
         /// <param name="value">The submitted value.</param>
         /// <param name="culture">The <see cref="CultureInfo"/> associated with this value.</param>
-        public ValueProviderResult(string value, [NotNull] CultureInfo culture)
+        public ValueProviderResult(string value, CultureInfo culture)
         {
             if (value == null)
             {
@@ -73,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 Values = null;
             }
 
-            Culture = culture;
+            Culture = culture ?? _invariantCulture;
         }
 
         /// <summary>
@@ -81,27 +70,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         /// <param name="values">The submitted values.</param>
         public ValueProviderResult(string[] values)
+            : this(values, _invariantCulture)
         {
-            if (values == null)
-            {
-                Value = null;
-                Values = None.Values;
-            }
-            else
-            {
-                Value = null;
-                Values = values;
-            }
-            
-            Culture = _invariantCulture;
         }
 
         /// <summary>
-        /// Creates a new <see cref="ValueProviderResult"/>..
+        /// Creates a new <see cref="ValueProviderResult"/>.
         /// </summary>
         /// <param name="values">The submitted values.</param>
         /// <param name="culture">The <see cref="CultureInfo"/> associated with these values.</param>
-        public ValueProviderResult(string[] values, [NotNull] CultureInfo culture)
+        public ValueProviderResult(string[] values, CultureInfo culture)
         {
             if (values == null)
             {
@@ -134,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         /// <summary>
         /// Gets the first value based on the order values were provided in the request. Use <see cref="FirstValue"/>
-        /// to get a single value for processing regarless of whehter a single or multiple values were provided
+        /// to get a single value for processing regarless of whether a single or multiple values were provided
         /// in the request.
         /// </summary>
         public string FirstValue
@@ -219,7 +197,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return (string)this;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets an <see cref="Enumerator"/> for this <see cref="ValueProviderResult"/>.
+        /// </summary>
+        /// <returns>An <see cref="Enumerator"/>.</returns>
         public Enumerator GetEnumerator()
         {
             return new Enumerator(this);
@@ -242,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// submitted values.
         /// </summary>
         /// <param name="result">The <see cref="ValueProviderResult"/>.</param>
-        public static implicit operator string(ValueProviderResult result)
+        public static explicit operator string(ValueProviderResult result)
         {
             if (result.Values == null)
             {
@@ -267,7 +248,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// all submitted values.
         /// </summary>
         /// <param name="result">The <see cref="ValueProviderResult"/>.</param>
-        public static implicit operator string[](ValueProviderResult result)
+        public static explicit operator string[](ValueProviderResult result)
         {
             if (result.Values != null)
             {
