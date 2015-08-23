@@ -65,7 +65,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+               "For operation 'remove' on array property at path '/IntegerList/3', the index is larger than the array size.",
+                exception.Message);
         }
  
         [Fact]
@@ -83,7 +89,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+               "For operation 'remove' on array property at path '/IntegerList/-1', the index is negative.",
+                exception.Message);
         }
 
         [Fact]
@@ -170,7 +182,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+               "For operation 'remove' on array property at path '/SimpleDTO/IntegerList/3', the index is larger than the array size.",
+                exception.Message);
         }
  
         [Fact]
@@ -190,8 +208,14 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
 
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
-            
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+               "For operation 'remove' on array property at path '/SimpleDTO/IntegerList/-1', the index is negative.",
+                exception.Message);
         }         
 
         [Fact]

@@ -13,21 +13,39 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
         public void InvalidPathAtBeginningShouldThrowException()
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument();
-            Assert.Throws<JsonPatchException>(() => { patchDoc.Add("//NewInt", 1); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.Add("//NewInt", 1);
+            });
+            Assert.Equal(
+               "The provided string '//NewInt' is an invalid path.",
+                exception.Message);
         } 
 
         [Fact]
         public void InvalidPathAtEndShouldThrowException()
         {        
-            JsonPatchDocument patchDoc = new JsonPatchDocument();            
-            Assert.Throws<JsonPatchException>(() => { patchDoc.Add("NewInt//", 1); });
+            JsonPatchDocument patchDoc = new JsonPatchDocument();
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.Add("NewInt//", 1);
+            });
+            Assert.Equal(
+               "The provided string 'NewInt//' is an invalid path.",
+                exception.Message);
         } 
 
         [Fact]
         public void InvalidPathWithDotShouldThrowException()
         {         
             JsonPatchDocument patchDoc = new JsonPatchDocument();
-            Assert.Throws<JsonPatchException>(() => { patchDoc.Add("NewInt.Test", 1); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                patchDoc.Add("NewInt.Test", 1);
+            });
+            Assert.Equal(
+               "The provided string 'NewInt.Test' is an invalid path.",
+                exception.Message);
         }
 
         [Fact]

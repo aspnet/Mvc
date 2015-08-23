@@ -27,7 +27,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); }); 
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/NewInt' could not be added.",
+                exception.Message); 
         }
 
         [Fact]
@@ -65,7 +71,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/Nested/NewInt' could not be added.",
+                exception.Message);
         }
 
         [Fact]
@@ -84,7 +96,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/Nested/NewInt' could not be added.",
+                exception.Message);
         }
         
         [Fact]
@@ -190,8 +208,14 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
 
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
-             
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/ComplexProperty' could not be added.",
+                exception.Message);
         }
 
         [Fact]
@@ -209,7 +233,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });    
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/StringProperty' could not be updated.",
+                exception.Message);
         }
 
         [Fact]
@@ -301,7 +331,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/DynamicProperty/OtherProperty/IntProperty' could not be added.",
+                exception.Message);
         }
 
         [Fact]
@@ -333,7 +369,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/baz/bat' could not be added.",
+                exception.Message);
         }
 
         [Fact]
@@ -386,8 +428,14 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
 
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
-                         
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "For operation 'add' on array property at path '/IntegerList/-1', the index is negative.",
+                exception.Message);
         }
 
         [Fact]
@@ -425,7 +473,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "For operation 'add' on array property at path '/IntegerList/4', the index is larger than the array size.",
+                exception.Message);
         }
 
         [Fact]
@@ -483,7 +537,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "For operation 'add' on array property at path '/IntegerList/-1', the index is negative.",
+                exception.Message);
         }
 
         [Fact]

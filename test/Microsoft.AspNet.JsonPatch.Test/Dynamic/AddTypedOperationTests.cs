@@ -24,8 +24,14 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
-             
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+               "For operation 'add' on array property at path '/IntegerList/-1', the index is negative.",
+                exception.Message);
         }
 
         [Fact]
@@ -73,7 +79,14 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
 
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/ListOfSimpleDTO/-1/IntegerList/0' could not be added.",
+                exception.Message);
         }
 
         [Fact]
@@ -96,7 +109,13 @@ namespace Microsoft.AspNet.JsonPatch.Test.Dynamic
             var serialized = JsonConvert.SerializeObject(patchDoc);
             var deserialized = JsonConvert.DeserializeObject<JsonPatchDocument>(serialized);
 
-            Assert.Throws<JsonPatchException>(() => { deserialized.ApplyTo(doc); });
+            var exception = Assert.Throws<JsonPatchException>(() =>
+            {
+                deserialized.ApplyTo(doc);
+            });
+            Assert.Equal(
+                "The property at path '/ListOfSimpleDTO/20/IntegerList/0' could not be added.",
+                exception.Message);
         }
     }
 }
