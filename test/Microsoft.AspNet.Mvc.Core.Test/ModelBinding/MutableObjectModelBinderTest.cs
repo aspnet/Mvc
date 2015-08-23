@@ -275,7 +275,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), false)]
         [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), true)]
         public void CanCreateModel_CreatesModelForValueProviderBasedBinderMetadatas_IfAValueProviderProvidesValue(
-            Type modelType, 
+            Type modelType,
             bool valueProviderProvidesValue)
         {
             var mockValueProvider = new Mock<IValueProvider>();
@@ -655,13 +655,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 nameof(Person.DateOfBirth),
                 nameof(Person.DateOfDeath),
-                nameof(Person.ValueTypeRequired),
-                nameof(Person.ValueTypeRequiredWithDefaultValue),
                 nameof(Person.FirstName),
                 nameof(Person.LastName),
                 nameof(Person.PropertyWithDefaultValue),
                 nameof(Person.PropertyWithInitializedValue),
                 nameof(Person.PropertyWithInitializedValueAndDefault),
+                nameof(Person.ValueTypeRequired),
+                nameof(Person.ValueTypeRequiredWithDefaultValue),
             };
             var bindingContext = new ModelBindingContext
             {

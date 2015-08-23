@@ -218,7 +218,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             // Act
             var isBindingRequired = metadata.IsBindingRequired;
-            
+
             // Assert
             Assert.False(isBindingRequired);
         }
@@ -316,7 +316,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         {
             get
             {
-                // ModelMetadata does not reorder properties the provider returns without an Order override.
+                // ModelMetadata reorders properties the provider returns (without an Order override) by PropertyName.
                 return new TheoryData<IEnumerable<string>, IEnumerable<string>>
                 {
                     {
@@ -325,15 +325,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                     },
                     {
                         new List<string> { "Property4", "Property3", "Property2", "Property1", },
-                        new List<string> { "Property4", "Property3", "Property2", "Property1", }
+                        new List<string> { "Property1", "Property2", "Property3", "Property4", }
                     },
                     {
                         new List<string> { "Delta", "Bravo", "Charlie", "Alpha", },
-                        new List<string> { "Delta", "Bravo", "Charlie", "Alpha", }
+                        new List<string> { "Alpha", "Bravo", "Charlie", "Delta", }
                     },
                     {
                         new List<string> { "John", "Jonathan", "Jon", "Joan", },
-                        new List<string> { "John", "Jonathan", "Jon", "Joan", }
+                        new List<string> { "Joan", "John", "Jon", "Jonathan", }
                     },
                 };
             }
@@ -341,7 +341,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
         [Theory]
         [MemberData(nameof(PropertyNamesTheoryData))]
-        public void PropertiesProperty_WithDefaultOrder_OrdersPropertyNamesAsProvided(
+        public void PropertiesProperty_WithDefaultOrder_OrdersPropertyNamesAlphbetically(
             IEnumerable<string> originalNames,
             IEnumerable<string> expectedNames)
         {
@@ -395,7 +395,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                         },
                         new List<string> { "Property1", "Property2", "Property3", "Property4", }
                     },
-                    // Same order if already ordered using Order.
+                    // Same order if all ordered using Order.
                     {
                         new List<KeyValuePair<string, int>>
                         {
@@ -405,6 +405,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                             new KeyValuePair<string, int>("Property1", 26),
                         },
                         new List<string> { "Property4", "Property3", "Property2", "Property1", }
+                    },
+                    // Alphabetic order if all have same Order.
+                    {
+                        new List<KeyValuePair<string, int>>
+                        {
+                            new KeyValuePair<string, int>("Property4", 23),
+                            new KeyValuePair<string, int>("Property3", 23),
+                            new KeyValuePair<string, int>("Property2", 23),
+                            new KeyValuePair<string, int>("Property1", 23),
+                        },
+                        new List<string> { "Property1", "Property2", "Property3", "Property4", }
                     },
                     // Rest of the orderings get updated within ModelMetadata.
                     {
@@ -427,7 +438,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                         },
                         new List<string> { "Charlie", "Bravo", "Delta", "Alpha", }
                     },
-                    // Jonathan and Jon will not be reordered.
                     {
                         new List<KeyValuePair<string, int>>
                         {
@@ -436,7 +446,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                             new KeyValuePair<string, int>("Jon", 0),
                             new KeyValuePair<string, int>("John", -1),
                         },
-                        new List<string> { "John", "Jonathan", "Jon", "Joan", }
+                        new List<string> { "John", "Jon", "Jonathan", "Joan", }
                     },
                 };
             }
@@ -444,7 +454,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
         [Theory]
         [MemberData(nameof(PropertyNamesAndOrdersTheoryData))]
-        public void PropertiesProperty_OrdersPropertyNamesUsingOrder_ThenAsProvided(
+        public void PropertiesProperty_OrdersPropertyNamesUsingOrder_ThenByName(
             IEnumerable<KeyValuePair<string, int>> originalNamesAndOrders,
             IEnumerable<string> expectedNames)
         {
