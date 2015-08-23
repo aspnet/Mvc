@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -94,6 +96,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         [Theory]
         [InlineData("?prefix[key0]=10")]
         [InlineData("?prefix[0].Key=key0&prefix[0].Value=10")]
+        [InlineData("?prefix.index=low&prefix[low].Key=key0&prefix[low].Value=10")]
         public async Task DictionaryModelBinder_BindsDictionaryOfSimpleType_WithExplicitPrefix_Success(
             string queryString)
         {
@@ -134,6 +137,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         [Theory]
         [InlineData("?[key0]=10")]
         [InlineData("?[0].Key=key0&[0].Value=10")]
+        [InlineData("?index=low&[low].Key=key0&[low].Value=10")]
         public async Task DictionaryModelBinder_BindsDictionaryOfSimpleType_EmptyPrefix_Success(string queryString)
         {
             // Arrange
@@ -362,6 +366,340 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Empty(modelState);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
+        }
+
+        // parameter type, query string, expected type
+        public static TheoryData<Type, string, Type> DictionaryTypeData
+        {
+            get
+            {
+                return new TheoryData<Type, string, Type>
+                {
+                    {
+                        typeof(IDictionary<string, string>),
+                        "?[key0]=hello&[key1]=world",
+                        typeof(Dictionary<string, string>)
+                    },
+                    {
+                        typeof(Dictionary<string, string>),
+                        "?[key0]=hello&[key1]=world",
+                        typeof(Dictionary<string, string>)
+                    },
+                    {
+                        typeof(ClosedGenericDictionary),
+                        "?[key0]=hello&[key1]=world",
+                        typeof(ClosedGenericDictionary)
+                    },
+                    {
+                        typeof(ClosedGenericKeyDictionary<string>),
+                        "?[key0]=hello&[key1]=world",
+                        typeof(ClosedGenericKeyDictionary<string>)
+                    },
+                    {
+                        typeof(ExplicitClosedGenericDictionary),
+                        "?[key0]=hello&[key1]=world",
+                        typeof(ExplicitClosedGenericDictionary)
+                    },
+                    {
+                        typeof(ExplicitDictionary<string, string>),
+                        "?[key0]=hello&[key1]=world",
+                        typeof(ExplicitDictionary<string, string>)
+                    },
+                    {
+                        typeof(IDictionary<string, string>),
+                        "?index=low&index=high&[low].Key=key0&[low].Value=hello&[high].Key=key1&[high].Value=world",
+                        typeof(Dictionary<string, string>)
+                    },
+                    {
+                        typeof(Dictionary<string, string>),
+                        "?[0].Key=key0&[0].Value=hello&[1].Key=key1&[1].Value=world",
+                        typeof(Dictionary<string, string>)
+                    },
+                    {
+                        typeof(ClosedGenericDictionary),
+                        "?index=low&index=high&[low].Key=key0&[low].Value=hello&[high].Key=key1&[high].Value=world",
+                        typeof(ClosedGenericDictionary)
+                    },
+                    {
+                        typeof(ClosedGenericKeyDictionary<string>),
+                        "?[0].Key=key0&[0].Value=hello&[1].Key=key1&[1].Value=world",
+                        typeof(ClosedGenericKeyDictionary<string>)
+                    },
+                    {
+                        typeof(ExplicitClosedGenericDictionary),
+                        "?index=low&index=high&[low].Key=key0&[low].Value=hello&[high].Key=key1&[high].Value=world",
+                        typeof(ExplicitClosedGenericDictionary)
+                    },
+                    {
+                        typeof(ExplicitDictionary<string, string>),
+                        "?[0].Key=key0&[0].Value=hello&[1].Key=key1&[1].Value=world",
+                        typeof(ExplicitDictionary<string, string>)
+                    },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(DictionaryTypeData))]
+        public async Task DictionaryModelBinder_BindsParameterToExpectedType(
+            Type parameterType,
+            string queryString,
+            Type expectedType)
+        {
+            // Arrange
+            var expectedDictionary = new Dictionary<string, string>
+            {
+                { "key0", "hello" },
+                { "key1", "world" },
+            };
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter",
+                ParameterType = parameterType,
+            };
+
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var modelState = new ModelStateDictionary();
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
+            {
+                request.QueryString = new QueryString(queryString);
+            });
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            Assert.NotNull(modelBindingResult);
+            Assert.True(modelBindingResult.IsModelSet);
+
+            Assert.IsType(expectedType, modelBindingResult.Model);
+
+            var model = modelBindingResult.Model as IDictionary<string, string>;
+            Assert.NotNull(model); // Guard
+            Assert.Equal(expectedDictionary.Keys, model.Keys);
+            Assert.Equal(expectedDictionary.Values, model.Values);
+
+            Assert.True(modelState.IsValid);
+            Assert.NotEmpty(modelState);
+            Assert.Equal(0, modelState.ErrorCount);
+        }
+
+        private class ClosedGenericDictionary : Dictionary<string, string>
+        {
+        }
+
+        private class ClosedGenericKeyDictionary<TValue> : Dictionary<string, TValue>
+        {
+        }
+
+        private class ExplicitClosedGenericDictionary : IDictionary<string, string>
+        {
+            private IDictionary<string, string> _data = new Dictionary<string, string>();
+
+            string IDictionary<string, string>.this[string key]
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+
+                set
+                {
+                    _data[key] = value;
+                }
+            }
+
+            int ICollection<KeyValuePair<string, string>>.Count
+            {
+                get
+                {
+                    return _data.Count;
+                }
+            }
+
+            bool ICollection<KeyValuePair<string, string>>.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            ICollection<string> IDictionary<string, string>.Keys
+            {
+                get
+                {
+                    return _data.Keys;
+                }
+            }
+
+            ICollection<string> IDictionary<string, string>.Values
+            {
+                get
+                {
+                    return _data.Values;
+                }
+            }
+
+            void ICollection<KeyValuePair<string, string>>.Add(KeyValuePair<string, string> item)
+            {
+                _data.Add(item);
+            }
+
+            void IDictionary<string, string>.Add(string key, string value)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<KeyValuePair<string, string>>.Clear()
+            {
+                _data.Clear();
+            }
+
+            bool ICollection<KeyValuePair<string, string>>.Contains(KeyValuePair<string, string> item)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool IDictionary<string, string>.ContainsKey(string key)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<KeyValuePair<string, string>>.CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            bool ICollection<KeyValuePair<string, string>>.Remove(KeyValuePair<string, string> item)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool IDictionary<string, string>.Remove(string key)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool IDictionary<string, string>.TryGetValue(string key, out string value)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ExplicitDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+        {
+            private IDictionary<TKey, TValue> _data = new Dictionary<TKey, TValue>();
+
+            TValue IDictionary<TKey, TValue>.this[TKey key]
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+
+                set
+                {
+                    _data[key] = value;
+                }
+            }
+
+            int ICollection<KeyValuePair<TKey, TValue>>.Count
+            {
+                get
+                {
+                    return _data.Count;
+                }
+            }
+
+            bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            ICollection<TKey> IDictionary<TKey, TValue>.Keys
+            {
+                get
+                {
+                    return _data.Keys;
+                }
+            }
+
+            ICollection<TValue> IDictionary<TKey, TValue>.Values
+            {
+                get
+                {
+                    return _data.Values;
+                }
+            }
+
+            void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
+            {
+                _data.Add(item);
+            }
+
+            void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<KeyValuePair<TKey, TValue>>.Clear()
+            {
+                _data.Clear();
+            }
+
+            bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool IDictionary<TKey, TValue>.ContainsKey(TKey key)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool IDictionary<TKey, TValue>.Remove(TKey key)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool IDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

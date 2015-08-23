@@ -1,10 +1,11 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
@@ -656,6 +657,520 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var entry = Assert.Single(modelState, kvp => kvp.Key == "Addresses[Key1].Street").Value;
             var error = Assert.Single(entry.Errors);
             Assert.Equal("The field Street must be a string with a maximum length of 3.", error.ErrorMessage);
+        }
+
+        // parameter type, form content, expected type
+        public static TheoryData<Type, IDictionary<string, string[]>, Type> CollectionTypeData
+        {
+            get
+            {
+                return new TheoryData<Type, IDictionary<string, string[]>, Type>
+                {
+                    {
+                        typeof(IEnumerable<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[0]", new[] { "hello" } },
+                            { "[1]", new[] { "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(ICollection<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "index", new[] { "low", "high" } },
+                            { "[low]", new[] { "hello" } },
+                            { "[high]", new[] { "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(IList<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[0]", new[] { "hello" } },
+                            { "[1]", new[] { "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(List<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "index", new[] { "low", "high" } },
+                            { "[low]", new[] { "hello" } },
+                            { "[high]", new[] { "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(ClosedGenericCollection),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[0]", new[] { "hello" } },
+                            { "[1]", new[] { "world" } },
+                        },
+                        typeof(ClosedGenericCollection)
+                    },
+                    {
+                        typeof(ClosedGenericList),
+                        new Dictionary<string, string[]>
+                        {
+                            { "index", new[] { "low", "high" } },
+                            { "[low]", new[] { "hello" } },
+                            { "[high]", new[] { "world" } },
+                        },
+                        typeof(ClosedGenericList)
+                    },
+                    {
+                        typeof(ExplicitClosedGenericCollection),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[0]", new[] { "hello" } },
+                            { "[1]", new[] { "world" } },
+                        },
+                        typeof(ExplicitClosedGenericCollection)
+                    },
+                    {
+                        typeof(ExplicitClosedGenericList),
+                        new Dictionary<string, string[]>
+                        {
+                            { "index", new[] { "low", "high" } },
+                            { "[low]", new[] { "hello" } },
+                            { "[high]", new[] { "world" } },
+                        },
+                        typeof(ExplicitClosedGenericList)
+                    },
+                    {
+                        typeof(ExplicitCollection<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[0]", new[] { "hello" } },
+                            { "[1]", new[] { "world" } },
+                        },
+                        typeof(ExplicitCollection<string>)
+                    },
+                    {
+                        typeof(ExplicitList<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "index", new[] { "low", "high" } },
+                            { "[low]", new[] { "hello" } },
+                            { "[high]", new[] { "world" } },
+                        },
+                        typeof(ExplicitList<string>)
+                    },
+                    {
+                        typeof(IEnumerable<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { string.Empty, new[] { "hello", "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(ICollection<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[]", new[] { "hello", "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(IList<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { string.Empty, new[] { "hello", "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(List<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[]", new[] { "hello", "world" } },
+                        },
+                        typeof(List<string>)
+                    },
+                    {
+                        typeof(ClosedGenericCollection),
+                        new Dictionary<string, string[]>
+                        {
+                            { string.Empty, new[] { "hello", "world" } },
+                        },
+                        typeof(ClosedGenericCollection)
+                    },
+                    {
+                        typeof(ClosedGenericList),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[]", new[] { "hello", "world" } },
+                        },
+                        typeof(ClosedGenericList)
+                    },
+                    {
+                        typeof(ExplicitClosedGenericCollection),
+                        new Dictionary<string, string[]>
+                        {
+                            { string.Empty, new[] { "hello", "world" } },
+                        },
+                        typeof(ExplicitClosedGenericCollection)
+                    },
+                    {
+                        typeof(ExplicitClosedGenericList),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[]", new[] { "hello", "world" } },
+                        },
+                        typeof(ExplicitClosedGenericList)
+                    },
+                    {
+                        typeof(ExplicitCollection<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { string.Empty, new[] { "hello", "world" } },
+                        },
+                        typeof(ExplicitCollection<string>)
+                    },
+                    {
+                        typeof(ExplicitList<string>),
+                        new Dictionary<string, string[]>
+                        {
+                            { "[]", new[] { "hello", "world" } },
+                        },
+                        typeof(ExplicitList<string>)
+                    },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(CollectionTypeData))]
+        public async Task CollectionModelBinder_BindsParameterToExpectedType(
+            Type parameterType,
+            IDictionary<string, string[]> formContent,
+            Type expectedType)
+        {
+            // Arrange
+            var expectedCollection = new List<string> { "hello", "world" };
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter",
+                ParameterType = parameterType,
+            };
+
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var modelState = new ModelStateDictionary();
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
+            {
+                request.Form = new FormCollection(formContent);
+            });
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            Assert.NotNull(modelBindingResult);
+            Assert.True(modelBindingResult.IsModelSet);
+
+            Assert.IsType(expectedType, modelBindingResult.Model);
+
+            var model = modelBindingResult.Model as IEnumerable<string>;
+            Assert.NotNull(model); // Guard
+            Assert.Equal(expectedCollection, model);
+
+            Assert.True(modelState.IsValid);
+            Assert.NotEmpty(modelState);
+            Assert.Equal(0, modelState.ErrorCount);
+        }
+
+        private class ClosedGenericCollection : Collection<string>
+        {
+        }
+
+        private class ClosedGenericList : List<string>
+        {
+        }
+
+        private class ExplicitClosedGenericCollection : ICollection<string>
+        {
+            private List<string> _data = new List<string>();
+
+            int ICollection<string>.Count
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            bool ICollection<string>.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            void ICollection<string>.Add(string item)
+            {
+                _data.Add(item);
+            }
+
+            void ICollection<string>.Clear()
+            {
+                _data.Clear();
+            }
+
+            bool ICollection<string>.Contains(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<string>.CopyTo(string[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_data).GetEnumerator();
+            }
+
+            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            {
+                return _data.GetEnumerator();
+            }
+
+            bool ICollection<string>.Remove(string item)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ExplicitClosedGenericList : IList<string>
+        {
+            private List<string> _data = new List<string>();
+
+            string IList<string>.this[int index]
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+
+                set
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            int ICollection<string>.Count
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            bool ICollection<string>.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            void ICollection<string>.Add(string item)
+            {
+                _data.Add(item);
+            }
+
+            void ICollection<string>.Clear()
+            {
+                _data.Clear();
+            }
+
+            bool ICollection<string>.Contains(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<string>.CopyTo(string[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_data).GetEnumerator();
+            }
+
+            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            {
+                return _data.GetEnumerator();
+            }
+
+            int IList<string>.IndexOf(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void IList<string>.Insert(int index, string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool ICollection<string>.Remove(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void IList<string>.RemoveAt(int index)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ExplicitCollection<T> : ICollection<T>
+        {
+            private List<T> _data = new List<T>();
+
+            int ICollection<T>.Count
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            bool ICollection<T>.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            void ICollection<T>.Add(T item)
+            {
+                _data.Add(item);
+            }
+
+            void ICollection<T>.Clear()
+            {
+                _data.Clear();
+            }
+
+            bool ICollection<T>.Contains(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<T>.CopyTo(T[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_data).GetEnumerator();
+            }
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return _data.GetEnumerator();
+            }
+
+            bool ICollection<T>.Remove(T item)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ExplicitList<T> : IList<T>
+        {
+            private List<T> _data = new List<T>();
+
+            T IList<T>.this[int index]
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+
+                set
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            int ICollection<T>.Count
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            bool ICollection<T>.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            void ICollection<T>.Add(T item)
+            {
+                _data.Add(item);
+            }
+
+            void ICollection<T>.Clear()
+            {
+                _data.Clear();
+            }
+
+            bool ICollection<T>.Contains(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void ICollection<T>.CopyTo(T[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_data).GetEnumerator();
+            }
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return _data.GetEnumerator();
+            }
+
+            int IList<T>.IndexOf(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void IList<T>.Insert(int index, T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            bool ICollection<T>.Remove(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            void IList<T>.RemoveAt(int index)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
