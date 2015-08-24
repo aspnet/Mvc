@@ -219,6 +219,21 @@ namespace Microsoft.AspNet.JsonPatch
             return string.Format(CultureInfo.CurrentCulture, GetString("DictionaryKeyNotFound"), p0);
         }
 
+        /// <summary>
+        /// The type of the property at path '{0}' could not be determined.
+        /// </summary>
+        internal static string CannotDeterminePropertyType
+        {
+            get { return GetString("CannotDeterminePropertyType"); }
+        }
+
+        /// <summary>
+        /// The type of the property at path '{0}' could not be determined.
+        /// </summary>
+        internal static string FormatCannotDeterminePropertyType(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CannotDeterminePropertyType"), p0);
+        }        
 
         /// <summary>
         /// The test operation is not supported.
