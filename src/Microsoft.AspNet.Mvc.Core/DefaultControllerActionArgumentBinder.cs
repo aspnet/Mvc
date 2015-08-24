@@ -124,11 +124,13 @@ namespace Microsoft.AspNet.Mvc
                 var propertyHelper = propertyHelpers.First(helper =>
                     string.Equals(helper.Name, property.Key, StringComparison.Ordinal));
                 var propertyType = propertyHelper.Property.PropertyType;
-                var metadata = _modelMetadataProvider.GetMetadataForType(propertyType);
                 var source = property.Value;
                 if (propertyHelper.Property.CanWrite && propertyHelper.Property.SetMethod?.IsPublic == true)
                 {
-                    // Handle settable property. Do not set the property to null if the type is a non-nullable type.
+                    // Handle settable property.
+                    var metadata = _modelMetadataProvider.GetMetadataForType(propertyType);
+
+                    // Do not set the property to null if the type is a non-nullable type.
                     if (source != null || metadata.IsReferenceOrNullableType)
                     {
                         propertyHelper.SetValue(controller, source);
