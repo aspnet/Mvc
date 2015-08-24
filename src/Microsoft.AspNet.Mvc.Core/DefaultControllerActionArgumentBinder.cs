@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
@@ -117,18 +118,20 @@ namespace Microsoft.AspNet.Mvc
 
         private void ActivateProperties(object controller, Type containerType, Dictionary<string, object> properties)
         {
-            var controllerMetadata = _modelMetadataProvider.GetMetadataForType(containerType);
+            var propertyHelpers = PropertyHelper.GetProperties(controller);
             foreach (var property in properties)
             {
-                var metadata = controllerMetadata.Properties[property.Key];
-                var propertyType = metadata.ModelType;
+                var propertyHelper = propertyHelpers.First(helper =>
+                    string.Equals(helper.Name, property.Key, StringComparison.Ordinal));
+                var propertyType = propertyHelper.Property.PropertyType;
+                var metadata = _modelMetadataProvider.GetMetadataForType(propertyType);
                 var source = property.Value;
-                if (metadata.PropertySetter != null)
+                if (propertyHelper.Property.CanWrite && propertyHelper.Property.SetMethod?.IsPublic == true)
                 {
-                    // Handle settable property. Do not set the property if the type is a non-nullable type.
+                    // Handle settable property. Do not set the property to null if the type is a non-nullable type.
                     if (source != null || metadata.IsReferenceOrNullableType)
                     {
-                        metadata.PropertySetter(controller, source);
+                        propertyHelper.SetValue(controller, source);
                     }
 
                     continue;
@@ -141,7 +144,7 @@ namespace Microsoft.AspNet.Mvc
                     continue;
                 }
 
-                var target = metadata.PropertyGetter(controller);
+                var target = propertyHelper.GetValue(controller);
                 if (source == null || target == null)
                 {
                     // Nothing to do when source or target is null.
