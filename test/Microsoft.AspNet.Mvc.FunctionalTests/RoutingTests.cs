@@ -134,6 +134,27 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [Theory]
+        [InlineData("", "/Home/OptionalPath/default")]
+        [InlineData("CustomPath", "/Home/OptionalPath/CustomPath")]
+        public async Task ConventionRoutedController_WithOptionalSegment(string optionalSegment, string expected)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/OptionalPath/" + optionalSegment);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Single(result.ExpectedUrls, expected);
+        }
+
         [Fact]
         public async Task AttributeRoutedAction_IsReachable()
         {
@@ -719,6 +740,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.NotNull(response);
             Assert.Equal("/Teams/AllOrganizations", response);
+        }
+
+        [Theory]
+        [InlineData("", "/TeamName/DefaultName")]
+        [InlineData("CustomName", "/TeamName/CustomName")]
+        public async Task AttributeRoutedAction_PreservesDefaultValue_IfRouteValueIsNull(string teamName, string expected)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var body = await client.GetStringAsync("http://localhost/TeamName/" + teamName);
+
+            // Assert
+            Assert.NotNull(body);
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+            Assert.Single(result.ExpectedUrls, expected);
         }
 
         [Fact]
