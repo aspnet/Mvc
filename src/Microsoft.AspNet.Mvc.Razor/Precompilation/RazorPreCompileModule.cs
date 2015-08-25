@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.Versioning;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.Dnx.Compilation.CSharp;
 using Microsoft.Dnx.Runtime;
@@ -16,7 +18,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
     public abstract class RazorPreCompileModule : ICompileModule
     {
         private readonly IAssemblyLoadContext _loadContext;
-        private readonly IMemoryCache _memoryCache;
+        private readonly object _memoryCacheLookupLock = new object();
+        private readonly Dictionary<PrecompilationCacheKey, MemoryCache> _memoryCacheLookup =
+            new Dictionary<PrecompilationCacheKey, MemoryCache>();
 
         /// <summary>
         /// Instantiates a new <see cref="RazorPreCompileModule"/> instance.
@@ -25,11 +29,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
         public RazorPreCompileModule(IServiceProvider services)
         {
             _loadContext = services.GetRequiredService<IAssemblyLoadContext>();
-
-            // When CompactOnMemoryPressure is true, the MemoryCache evicts items at every gen2 collection.
-            // In DTH, gen2 happens frequently enough to make it undesirable for caching precompilation results. We'll
-            // disable listening for memory pressure for the MemoryCache instance used by precompilation.
-            _memoryCache = new MemoryCache(new MemoryCacheOptions { CompactOnMemoryPressure = false });
         }
 
         /// <summary>
@@ -43,11 +42,31 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
         {
             var fileProvider = new PhysicalFileProvider(context.ProjectContext.ProjectDirectory);
 
+            MemoryCache memoryCache;
+            lock (_memoryCacheLookupLock)
+            {
+                var cacheKey = new PrecompilationCacheKey
+                {
+                    Configuration = context.ProjectContext.Configuration,
+                    TargetFramework = context.ProjectContext.TargetFramework
+                };
+
+                if (!_memoryCacheLookup.TryGetValue(cacheKey, out memoryCache))
+                {
+                    // When CompactOnMemoryPressure is true, the MemoryCache evicts items at every gen2 collection.
+                    // In DTH, gen2 happens frequently enough to make it undesirable for caching precompilation results. We'll
+                    // disable listening for memory pressure for the MemoryCache instance used by precompilation.
+                    memoryCache = new MemoryCache(new MemoryCacheOptions { CompactOnMemoryPressure = false });
+
+                    _memoryCacheLookup[cacheKey] = memoryCache;
+                }
+            }
+
             var viewCompiler = new RazorPreCompiler(
                 context,
                 _loadContext,
                 fileProvider,
-                _memoryCache)
+                memoryCache)
             {
                 GenerateSymbols = GenerateSymbols
             };
@@ -58,6 +77,25 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
         /// <inheritdoc />
         public void AfterCompile(AfterCompileContext context)
         {
+        }
+
+        private class PrecompilationCacheKey : IEquatable<PrecompilationCacheKey>
+        {
+            public string Configuration { get; set; }
+
+            public FrameworkName TargetFramework { get; set; }
+
+            public bool Equals(PrecompilationCacheKey other)
+            {
+                return
+                    other.TargetFramework == TargetFramework &&
+                    string.Equals(other.Configuration, Configuration, StringComparison.Ordinal);
+            }
+
+            public override int GetHashCode()
+            {
+                return 13 * Configuration.GetHashCode() + TargetFramework.GetHashCode();
+            }
         }
     }
 }
