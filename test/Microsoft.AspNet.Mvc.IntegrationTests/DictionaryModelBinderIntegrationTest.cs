@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -91,6 +92,53 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var entry = kvp.Value;
             Assert.Equal("10", entry.AttemptedValue);
             Assert.Equal("10", entry.RawValue);
+        }
+
+        [Fact]
+        public async Task DictionaryModelBinder_BindsDictionaryOfSimpleType_WithIndex_Success()
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "parameter",
+                ParameterType = typeof(Dictionary<string, int>)
+            };
+
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
+            {
+                request.QueryString =
+                    new QueryString("?parameter.index=low&parameter[low].Key=key0&parameter[low].Value=10");
+            });
+
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            Assert.NotNull(modelBindingResult);
+            Assert.True(modelBindingResult.IsModelSet);
+
+            var model = Assert.IsType<Dictionary<string, int>>(modelBindingResult.Model);
+            Assert.Equal(new Dictionary<string, int>() { { "key0", 10 } }, model);
+
+            // "index" is not stored in ModelState.
+            Assert.Equal(2, modelState.Count);
+            Assert.Equal(0, modelState.ErrorCount);
+            Assert.True(modelState.IsValid);
+
+            var entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[low].Key").Value;
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
+
+            // Key and Value are skipped if they have simple types.
+            Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
+
+            entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[low].Value").Value;
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
+            Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
         }
 
         [Theory]
@@ -205,6 +253,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         private class Person
         {
+            [Range(minimum: 0, maximum: 15, ErrorMessage = "You're out of range.")]
             public int Id { get; set; }
 
             public override bool Equals(object obj)
@@ -226,9 +275,13 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         }
 
         [Theory]
+        [InlineData("?[key0].Id=10")]
+        [InlineData("?[0].Key=key0&[0].Value.Id=10")]
+        [InlineData("?index=low&[low].Key=key0&[low].Value.Id=10")]
         [InlineData("?parameter[key0].Id=10")]
         [InlineData("?parameter[0].Key=key0&parameter[0].Value.Id=10")]
-        public async Task DictionaryModelBinder_BindsDictionaryOfComplexType_WithPrefix_Success(string queryString)
+        [InlineData("?parameter.index=low&parameter[low].Key=key0&parameter[low].Value.Id=10")]
+        public async Task DictionaryModelBinder_BindsDictionaryOfComplexType_ImpliedPrefix_Success(string queryString)
         {
             // Arrange
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
@@ -263,7 +316,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         [Theory]
         [InlineData("?prefix[key0].Id=10")]
         [InlineData("?prefix[0].Key=key0&prefix[0].Value.Id=10")]
-        public async Task DictionaryModelBinder_BindsDictionaryOfComplexType_WithExplicitPrefix_Success(
+        [InlineData("?prefix.index=low&prefix[low].Key=key0&prefix[low].Value.Id=10")]
+        public async Task DictionaryModelBinder_BindsDictionaryOfComplexType_ExplicitPrefix_Success(
             string queryString)
         {
             // Arrange
@@ -301,9 +355,14 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         }
 
         [Theory]
-        [InlineData("?[key0].Id=10")]
-        [InlineData("?[0].Key=key0&[0].Value.Id=10")]
-        public async Task DictionaryModelBinder_BindsDictionaryOfComplexType_EmptyPrefix_Success(string queryString)
+        [InlineData("?[key0].Id=100")]
+        [InlineData("?[0].Key=key0&[0].Value.Id=100")]
+        [InlineData("?index=low&[low].Key=key0&[low].Value.Id=100")]
+        [InlineData("?parameter[key0].Id=100")]
+        [InlineData("?parameter[0].Key=key0&parameter[0].Value.Id=100")]
+        [InlineData("?parameter.index=low&parameter[low].Key=key0&parameter[low].Value.Id=100")]
+        public async Task DictionaryModelBinder_BindsDictionaryOfComplexType_ImpliedPrefix_FindsValidationErrors(
+            string queryString)
         {
             // Arrange
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
@@ -328,11 +387,19 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, Person>>(modelBindingResult.Model);
-            Assert.Equal(new Dictionary<string, Person> { { "key0", new Person { Id = 10 } }, }, model);
+            Assert.Equal(new Dictionary<string, Person> { { "key0", new Person { Id = 100 } }, }, model);
 
             Assert.NotEmpty(modelState);
-            Assert.Equal(0, modelState.ErrorCount);
-            Assert.True(modelState.IsValid);
+            Assert.False(modelState.IsValid);
+            Assert.All(modelState, kvp =>
+            {
+                Assert.NotEqual(ModelValidationState.Unvalidated, kvp.Value.ValidationState);
+                Assert.NotEqual(ModelValidationState.Skipped, kvp.Value.ValidationState);
+            });
+
+            var entry = Assert.Single(modelState, kvp => kvp.Value.ValidationState == ModelValidationState.Invalid);
+            var error = Assert.Single(entry.Value.Errors);
+            Assert.Equal("You're out of range.", error.ErrorMessage);
         }
 
         [Fact]
