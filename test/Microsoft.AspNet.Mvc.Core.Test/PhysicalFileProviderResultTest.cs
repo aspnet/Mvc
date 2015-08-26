@@ -93,14 +93,11 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedContentType, httpContext.Response.ContentType);
         }
 
-        [Theory]
-        [InlineData('/', '\\')]
-        [InlineData('\\', '/')]
-        public async Task ExecuteResultAsync_WorksWithAbsolutePaths_UsingDifferentSlashes(char oldChar, char newChar)
+        [Fact]
+        public async Task ExecuteResultAsync_WorksWithAbsolutePaths()
         {
             // Arrange
             var path = Path.GetFullPath(Path.Combine(".", "TestFiles", "FilePathResultTestFile.txt"));
-            path = path.Replace(oldChar, newChar);
             var result = new TestPhysicalFilePathResult(path, "text/plain");
 
             var httpContext = new DefaultHttpContext();
