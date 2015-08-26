@@ -15,16 +15,18 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class PhysicalPhysicalFilePathResultTest
+    public class PhysicalFilePathResultTest
     {
         [Fact]
         public void Constructor_SetsFileName()
         {
-            // Arrange & Act
+            // Arrange
             var path = Path.GetFullPath("helllo.txt");
+
+            // Act
             var result = new PhysicalFilePathResult(path, "text/plain");
 
-            // Act & Assert
+            // Assert
             Assert.Equal(path, result.FileName);
         }
 
@@ -33,7 +35,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var path = Path.GetFullPath(Path.Combine("TestFiles", "FilePathResultTestFile.txt"));
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new TestPhysicalFilePathResult(path, "text/plain");
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
             var context = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
@@ -76,8 +78,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var expectedContentType = "text/foo; charset=us-ascii";
             var path = Path.GetFullPath(Path.Combine(".", "TestFiles", "FilePathResultTestFile_ASCII.txt"));
-            var result = new PhysicalFilePathResult(path, MediaTypeHeaderValue.Parse(expectedContentType));
-
+            var result = new TestPhysicalFilePathResult(path, MediaTypeHeaderValue.Parse(expectedContentType)) { IsAscii = true };
             var httpContext = new DefaultHttpContext();
             var memoryStream = new MemoryStream();
             httpContext.Response.Body = memoryStream;
@@ -100,7 +101,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var path = Path.GetFullPath(Path.Combine(".", "TestFiles", "FilePathResultTestFile.txt"));
             path = path.Replace(oldChar, newChar);
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new TestPhysicalFilePathResult(path, "text/plain");
 
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
@@ -179,21 +180,31 @@ namespace Microsoft.AspNet.Mvc
             Assert.ThrowsAsync<FileNotFoundException>(() => result.ExecuteResultAsync(context));
         }
 
-        [Theory]
-        [InlineData("/hello/world.txt", "/hello/world.txt")]
-        [InlineData("/hello\\world.txt", "/hello/world.txt")]
-        [InlineData("\\hello\\world.txt", "/hello/world.txt")]
-        [InlineData("\\hello/world.txt", "/hello/world.txt")]
-        public void NormalizePath_HandlesSlashes(string input, string expected)
+        private class TestPhysicalFilePathResult : PhysicalFilePathResult
         {
-            // Arrange
-            var result = new PhysicalFilePathResult("test", "text/plain");
+            public TestPhysicalFilePathResult(string filePath, string contentType)
+                : base(filePath, contentType)
+            {
+            }
 
-            // Act
-            var normalizedPath = result.NormalizePath(Path.GetFullPath(input));
+            public TestPhysicalFilePathResult(string filePath, MediaTypeHeaderValue contentType)
+                : base(filePath, contentType)
+            {
+            }
 
-            // Assert
-            Assert.Equal(Path.GetFullPath(expected).Replace('\\', '/'), normalizedPath);
+            public bool IsAscii { get; set; } = false;
+
+            protected override Stream GetFileStream(string path)
+            {
+                if (IsAscii)
+                {
+                    return new MemoryStream(Encoding.ASCII.GetBytes("FilePathResultTestFile contents ASCII encoded"));
+                }
+                else
+                {
+                    return new MemoryStream(Encoding.UTF8.GetBytes("FilePathResultTestFile contents"));
+                }
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ using Microsoft.Net.Http.Headers;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An <see cref="ActionResult"/> that when executed will write a file from disk to the response
+    /// A <see cref="FileResult"/> on execution will write a file from disk to the response
     /// using mechanisms provided by the host.
     /// </summary>
     public class PhysicalFilePathResult : FileResult
@@ -62,67 +62,51 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
+        protected override async Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
         {
-            var pathWithReplacedSlashes = NormalizePath(FileName);
-            if (!Path.IsPathRooted(pathWithReplacedSlashes))
+            if (!Path.IsPathRooted(FileName))
             {
                 throw new FileNotFoundException(Resources.FormatFileResult_InvalidPath(FileName), FileName);
             }
 
-            return CopyPhysicalFileToResponseAsync(response, pathWithReplacedSlashes, cancellation);
-        }
-
-        /// <summary>
-        /// Creates a normalized representation of the given <paramref name="path"/>. The default
-        /// implementation doesn't support files with '\' in the file name and treats the '\' as
-        /// a directory separator. The default implementation will convert all the '\' into '/'.
-        /// </summary>
-        /// <param name="path">The path to normalize.</param>
-        /// <returns>The normalized path.</returns>
-        // internal for testing.
-        protected internal string NormalizePath(string path)
-        {
-            return path.Replace('\\', '/');
-        }
-
-        private Task CopyPhysicalFileToResponseAsync(
-            HttpResponse response,
-            string physicalFilePath,
-            CancellationToken cancellationToken)
-        {
             var sendFile = response.HttpContext.GetFeature<IHttpSendFileFeature>();
             if (sendFile != null)
             {
-                return sendFile.SendFileAsync(
-                    physicalFilePath,
+                await sendFile.SendFileAsync(
+                    FileName,
                     offset: 0,
                     length: null,
-                    cancellation: cancellationToken);
+                    cancellation: cancellation);
+
+                return;
             }
             else
             {
-                var fileStream = new FileStream(
-                    physicalFilePath,
+                var fileStream = GetFileStream(FileName);
+
+                using (fileStream)
+                {
+                    await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
+                }
+
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Returns <see cref="FileStream"/> for the specified <paramref name="path"/>.
+        /// </summary>
+        /// <param name="path">The path for which the <see cref="FileStream"/> is needed.</param>
+        /// <returns><see cref="FileStream"/> for the specified <paramref name="path"/>.</returns>
+        protected virtual Stream GetFileStream(string path)
+        {
+            return new FileStream(
+                    path,
                     FileMode.Open,
                     FileAccess.Read,
                     FileShare.ReadWrite,
                     DefaultBufferSize,
                     FileOptions.Asynchronous | FileOptions.SequentialScan);
-
-                return CopyStreamToResponseAsync(fileStream, response, cancellationToken);
-            }
-        }
-
-        private static async Task CopyStreamToResponseAsync(
-            Stream sourceStream,
-            HttpResponse response,
-            CancellationToken cancellation)
-        {
-            using (sourceStream)
-            {
-                await sourceStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
-            }
         }
     }
 }

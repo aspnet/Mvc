@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
@@ -16,8 +17,8 @@ using Microsoft.Net.Http.Headers;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An <see cref="ActionResult"/> that when executed will write a virtual file (eg. embedded resource)
-    /// to the response using mechanisms provided by the host.
+    /// A <see cref="FileResult" /> that on execution writes the file specified using a virtual path to the response
+    /// using mechanisms provided by the host.
     /// </summary>
     public class VirtualFilePathResult : FileResult
     {
@@ -71,16 +72,41 @@ namespace Microsoft.AspNet.Mvc
         public IFileProvider FileProvider { get; set; }
 
         /// <inheritdoc />
-        protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
+        protected override async Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
         {
             var fileProvider = GetFileProvider(response.HttpContext.RequestServices);
-            var normalizedPath = NormalizePath(FileName);
-            var fileInfo = fileProvider.GetFileInfo(normalizedPath);
 
+            var normalizedPath = FileName;
+            if (normalizedPath.StartsWith("~"))
+            {
+                normalizedPath = normalizedPath.Substring(1);
+            }
+
+            var fileInfo = fileProvider.GetFileInfo(normalizedPath);
             if (fileInfo.Exists)
             {
-                var sourceStream = fileInfo.CreateReadStream();
-                return CopyStreamToResponseAsync(sourceStream, response, cancellation);
+                var physicalPath = fileInfo.PhysicalPath;
+                var sendFile = response.HttpContext.GetFeature<IHttpSendFileFeature>();
+                if (sendFile != null && !string.IsNullOrEmpty(physicalPath))
+                {
+                    await sendFile.SendFileAsync(
+                        physicalPath,
+                        offset: 0,
+                        length: null,
+                        cancellation: cancellation);
+
+                    return;
+                }
+                else
+                {
+                    var fileStream = GetFileStream(fileInfo);
+                    using (fileStream)
+                    {
+                        await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
+                    }
+
+                    return;
+                }
             }
 
             throw new FileNotFoundException(
@@ -88,23 +114,13 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Creates a normalized representation of the given <paramref name="path"/>. The default
-        /// implementation doesn't support files with '\' in the file name and treats the '\' as
-        /// a directory separator. The default implementation will convert all the '\' into '/'
-        /// and will remove leading '~' characters.
+        /// Returns <see cref="Stream"/> for the specified <paramref name="fileInfo"/>.
         /// </summary>
-        /// <param name="path">The path to normalize.</param>
-        /// <returns>The normalized path.</returns>
-        // internal for testing.
-        protected internal string NormalizePath(string path)
+        /// <param name="fileInfo">The <see cref="IFileInfo"/> for which the stream is needed.</param>
+        /// <returns><see cref="Stream"/> for the specified <paramref name="fileInfo"/>.</returns>
+        protected virtual Stream GetFileStream(IFileInfo fileInfo)
         {
-            // This currently does not go to the approot. We leave it to the file provider to handle it.
-            if (path.StartsWith("~"))
-            {
-                return path.Substring(1).Replace('\\', '/');
-            }
-
-            return path.Replace('\\', '/');
+            return fileInfo.CreateReadStream();
         }
 
         private IFileProvider GetFileProvider(IServiceProvider requestServices)
@@ -118,17 +134,6 @@ namespace Microsoft.AspNet.Mvc
             FileProvider = hostingEnvironment.WebRootFileProvider;
 
             return FileProvider;
-        }
-
-        private static async Task CopyStreamToResponseAsync(
-            Stream sourceStream,
-            HttpResponse response,
-            CancellationToken cancellation)
-        {
-            using (sourceStream)
-            {
-                await sourceStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
-            }
         }
     }
 }

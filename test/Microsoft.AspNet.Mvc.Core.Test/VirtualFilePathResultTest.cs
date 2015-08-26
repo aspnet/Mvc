@@ -3,9 +3,11 @@
 
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
@@ -20,11 +22,13 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void Constructor_SetsFileName()
         {
-            // Arrange & Act
+            // Arrange
             var path = Path.GetFullPath("helllo.txt");
+
+            // Act
             var result = new VirtualFilePathResult(path, "text/plain");
 
-            // Act & Assert
+            // Assert
             Assert.Equal(path, result.FileName);
         }
 
@@ -33,11 +37,11 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var path = Path.Combine("TestFiles", "FilePathResultTestFile.txt");
-            var result = new VirtualFilePathResult(path, "text/plain");
+            var result = new TestVirtualFilePathResult(path, "text/plain");
 
             var appEnvironment = new Mock<IHostingEnvironment>();
             appEnvironment.Setup(app => app.WebRootFileProvider)
-                .Returns(new PhysicalFileProvider(Directory.GetCurrentDirectory()));
+                .Returns(GetFileProvider(path));
 
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
@@ -57,13 +61,65 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
+        public async Task ExecuteResultAsync_FallsbackToStreamCopy_IfNoIHttpSendFilePresent()
+        {
+            // Arrange
+            var path = Path.Combine("TestFiles", "FilePathResultTestFile.txt");
+            var result = new TestVirtualFilePathResult(path, "text/plain")
+            {
+                FileProvider = GetFileProvider(path),
+            };
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Response.Body = new MemoryStream();
+            var context = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+
+            // Act
+            await result.ExecuteResultAsync(context);
+            httpContext.Response.Body.Position = 0;
+
+            // Assert
+            Assert.NotNull(httpContext.Response.Body);
+            var contents = await new StreamReader(httpContext.Response.Body).ReadToEndAsync();
+            Assert.Equal("FilePathResultTestFile contents", contents);
+        }
+
+        [Fact]
+        public async Task ExecuteResultAsync_CallsSendFileAsync_IfIHttpSendFilePresent()
+        {
+            // Arrange
+            var path = Path.Combine("TestFiles", "FilePathResultTestFile.txt");
+            var result = new TestVirtualFilePathResult(path, "text/plain")
+            {
+                FileProvider = GetFileProvider(path),
+            };
+
+            var sendFileMock = new Mock<IHttpSendFileFeature>();
+            sendFileMock
+                .Setup(s => s.SendFileAsync(path, 0, null, CancellationToken.None))
+                .Returns(Task.FromResult<int>(0));
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.SetFeature(sendFileMock.Object);
+            var context = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+
+            // Act
+            await result.ExecuteResultAsync(context);
+
+            // Assert
+            sendFileMock.Verify();
+        }
+
+        [Fact]
         public async Task ExecuteResultAsync_SetsSuppliedContentTypeAndEncoding()
         {
             // Arrange
             var expectedContentType = "text/foo; charset=us-ascii";
-            var result = new VirtualFilePathResult("FilePathResultTestFile_ASCII.txt", MediaTypeHeaderValue.Parse(expectedContentType))
+            var result = new TestVirtualFilePathResult(
+                "FilePathResultTestFile_ASCII.txt", MediaTypeHeaderValue.Parse(expectedContentType))
             {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath("TestFiles")),
+                FileProvider = GetFileProvider("FilePathResultTestFile_ASCII.txt"),
+                IsAscii = true,
             };
 
             var httpContext = new DefaultHttpContext();
@@ -85,9 +141,9 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var path = Path.Combine("TestFiles", "FilePathResultTestFile.txt");
-            var result = new VirtualFilePathResult(path, "text/plain")
+            var result = new TestVirtualFilePathResult(path, "text/plain")
             {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(".")),
+                FileProvider = GetFileProvider(path),
             };
 
             var httpContext = new DefaultHttpContext();
@@ -105,19 +161,18 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Theory]
-        [InlineData("FilePathResultTestFile.txt", "TestFiles")]
-        [InlineData("TestFiles/FilePathResultTestFile.txt", ".")]
-        [InlineData("TestFiles\\FilePathResultTestFile.txt", ".")]
-        [InlineData("~/FilePathResultTestFile.txt", "TestFiles")]
-        [InlineData("~/TestFiles/FilePathResultTestFile.txt", ".")]
-        [InlineData("~/TestFiles\\FilePathResultTestFile.txt", ".")]
-        [InlineData("~\\TestFiles\\FilePathResultTestFile.txt", ".")]
-        public async Task ExecuteResultAsync_ReturnsFiles_ForDifferentPaths(string path, string fileProviderRoot)
+        [InlineData("FilePathResultTestFile.txt")]
+        [InlineData("TestFiles/FilePathResultTestFile.txt")]
+        [InlineData("TestFiles\\FilePathResultTestFile.txt")]
+        [InlineData("~/FilePathResultTestFile.txt")]
+        [InlineData("~/TestFiles/FilePathResultTestFile.txt")]
+        [InlineData("~/TestFiles\\FilePathResultTestFile.txt")]
+        public async Task ExecuteResultAsync_ReturnsFiles_ForDifferentPaths(string path)
         {
             // Arrange
-            var result = new VirtualFilePathResult(path, "text/plain")
+            var result = new TestVirtualFilePathResult(path, "text/plain")
             {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileProviderRoot)),
+                FileProvider = GetFileProvider(path),
             };
             var httpContext = new DefaultHttpContext();
             var memoryStream = new MemoryStream();
@@ -170,18 +225,9 @@ namespace Microsoft.AspNet.Mvc
         [InlineData("FilePathResultTestFile.txt")]
         [InlineData("/FilePathResultTestFile.txt")]
         [InlineData("\\FilePathResultTestFile.txt")]
-        // Paths with subfolders and mixed slash kinds
-        [InlineData("/SubFolder/SubFolderTestFile.txt")]
-        [InlineData("\\SubFolder\\SubFolderTestFile.txt")]
-        [InlineData("/SubFolder\\SubFolderTestFile.txt")]
-        [InlineData("\\SubFolder/SubFolderTestFile.txt")]
         // '.' has no special meaning
         [InlineData("./FilePathResultTestFile.txt")]
         [InlineData(".\\FilePathResultTestFile.txt")]
-        [InlineData("./SubFolder/SubFolderTestFile.txt")]
-        [InlineData(".\\SubFolder\\SubFolderTestFile.txt")]
-        [InlineData("./SubFolder\\SubFolderTestFile.txt")]
-        [InlineData(".\\SubFolder/SubFolderTestFile.txt")]
         // Traverse to the parent directory and back to the file system directory
         [InlineData("..\\TestFiles/FilePathResultTestFile.txt")]
         [InlineData("..\\TestFiles\\FilePathResultTestFile.txt")]
@@ -189,11 +235,9 @@ namespace Microsoft.AspNet.Mvc
         [InlineData("..\\TestFiles\\SubFolder\\SubFolderTestFile.txt")]
         [InlineData("..\\TestFiles/SubFolder\\SubFolderTestFile.txt")]
         [InlineData("..\\TestFiles\\SubFolder/SubFolderTestFile.txt")]
-        // '~/' and '~\' mean the application root folder
         [InlineData("~/FilePathResultTestFile.txt")]
-        [InlineData("~/SubFolder/SubFolderTestFile.txt")]
-        [InlineData("~/SubFolder\\SubFolderTestFile.txt")]
-        public async Task GetFilePath_ThrowsFileNotFound_IfFileProviderCanNotFindTheFile(string path)
+        [InlineData("~\\TestFiles\\FilePathResultTestFile.txt")]
+        public async Task ExecuteResultAsync_ThrowsFileNotFound_IfFileProviderCanNotFindTheFile(string path)
         {
             // Arrange
             // Point the IFileProvider root to a different subfolder
@@ -215,20 +259,68 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Theory]
-        [InlineData("~/hello/world.txt", "/hello/world.txt")]
-        [InlineData("~\\hello/world.txt", "/hello/world.txt")]
-        [InlineData("~\\hello\\world.txt", "/hello/world.txt")]
-        [InlineData("\\hello\\world.txt", "/hello/world.txt")]
-        public void NormalizePath_HandlesSlashesAndTilde(string input, string expected)
+        [InlineData("/SubFolder/SubFolderTestFile.txt")]
+        [InlineData("\\SubFolder\\SubFolderTestFile.txt")]
+        [InlineData("/SubFolder\\SubFolderTestFile.txt")]
+        [InlineData("\\SubFolder/SubFolderTestFile.txt")]
+        [InlineData("./SubFolder/SubFolderTestFile.txt")]
+        [InlineData(".\\SubFolder\\SubFolderTestFile.txt")]
+        [InlineData("./SubFolder\\SubFolderTestFile.txt")]
+        [InlineData(".\\SubFolder/SubFolderTestFile.txt")]
+        [InlineData("~/SubFolder/SubFolderTestFile.txt")]
+        [InlineData("~/SubFolder\\SubFolderTestFile.txt")]
+        public void ExecuteResultAsync_ThrowsDirectoryNotFound_IfFileProviderCanNotFindTheDirectory(string path)
         {
             // Arrange
-            var result = new VirtualFilePathResult(input, "text/plain");
+            // Point the IFileProvider root to a different subfolder
+            var fileProvider = new PhysicalFileProvider(Path.GetFullPath("./Properties"));
+            var filePathResult = new VirtualFilePathResult(path, "text/plain")
+            {
+                FileProvider = fileProvider,
+            };
 
-            // Act
-            var normalizedPath = result.NormalizePath(input);
+            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
 
-            // Assert
-            Assert.Equal(expected, normalizedPath);
+            // Act & Assert
+            Assert.ThrowsAsync<DirectoryNotFoundException>(() => filePathResult.ExecuteResultAsync(context));
+        }
+
+        private IFileProvider GetFileProvider(string path)
+        {
+            var fileInfo = new Mock<IFileInfo>();
+            fileInfo.SetupGet(fi => fi.Exists).Returns(true);
+            fileInfo.SetupGet(fi => fi.PhysicalPath).Returns(() => path);
+            var fileProvider = new Mock<IFileProvider>();
+            fileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>())).Returns(fileInfo.Object);
+
+            return fileProvider.Object;
+        }
+
+        private class TestVirtualFilePathResult : VirtualFilePathResult
+        {
+            public TestVirtualFilePathResult(string filePath, string contentType)
+                : base(filePath, contentType)
+            {
+            }
+
+            public TestVirtualFilePathResult(string filePath, MediaTypeHeaderValue contentType)
+                : base(filePath, contentType)
+            {
+            }
+
+            public bool IsAscii { get; set; } = false;
+
+            protected override Stream GetFileStream(IFileInfo fileInfo)
+            {
+                if (IsAscii)
+                {
+                    return new MemoryStream(Encoding.ASCII.GetBytes("FilePathResultTestFile contents ASCII encoded"));
+                }
+                else
+                {
+                    return new MemoryStream(Encoding.UTF8.GetBytes("FilePathResultTestFile contents"));
+                }
+            }
         }
     }
 }
