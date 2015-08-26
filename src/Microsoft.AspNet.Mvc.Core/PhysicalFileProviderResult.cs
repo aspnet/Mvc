@@ -16,29 +16,29 @@ namespace Microsoft.AspNet.Mvc
     /// A <see cref="FileResult"/> on execution will write a file from disk to the response
     /// using mechanisms provided by the host.
     /// </summary>
-    public class PhysicalFilePathResult : FileResult
+    public class PhysicalFileProviderResult : FileResult
     {
         private const int DefaultBufferSize = 0x1000;
         private string _fileName;
 
         /// <summary>
-        /// Creates a new <see cref="PhysicalFilePathResult"/> instance with
+        /// Creates a new <see cref="PhysicalFileProviderResult"/> instance with
         /// the provided <paramref name="fileName"/> and the provided <paramref name="contentType"/>.
         /// </summary>
         /// <param name="fileName">The path to the file. The path must be an absolute path.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public PhysicalFilePathResult([NotNull] string fileName, [NotNull] string contentType)
+        public PhysicalFileProviderResult([NotNull] string fileName, [NotNull] string contentType)
             : this(fileName, new MediaTypeHeaderValue(contentType))
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="PhysicalFilePathResult"/> instance with
+        /// Creates a new <see cref="PhysicalFileProviderResult"/> instance with
         /// the provided <paramref name="fileName"/> and the provided <paramref name="contentType"/>.
         /// </summary>
         /// <param name="fileName">The path to the file. The path must be an absolute path.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public PhysicalFilePathResult([NotNull] string fileName, [NotNull] MediaTypeHeaderValue contentType)
+        public PhysicalFileProviderResult([NotNull] string fileName, [NotNull] MediaTypeHeaderValue contentType)
             : base(contentType)
         {
             FileName = fileName;

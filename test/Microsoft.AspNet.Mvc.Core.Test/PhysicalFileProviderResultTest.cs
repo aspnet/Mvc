@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class PhysicalFilePathResultTest
+    public class PhysicalFileProviderResultTest
     {
         [Fact]
         public void Constructor_SetsFileName()
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc
             var path = Path.GetFullPath("helllo.txt");
 
             // Act
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new PhysicalFileProviderResult(path, "text/plain");
 
             // Assert
             Assert.Equal(path, result.FileName);
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var path = Path.GetFullPath(Path.Combine("TestFiles", "FilePathResultTestFile.txt"));
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new PhysicalFileProviderResult(path, "text/plain");
             var sendFileMock = new Mock<IHttpSendFileFeature>();
             sendFileMock
                 .Setup(s => s.SendFileAsync(path, 0, null, CancellationToken.None))
@@ -136,7 +136,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             // Point the IFileProvider root to a different subfolder
             var fileProvider = new PhysicalFileProvider(Path.GetFullPath("./Properties"));
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new PhysicalFileProviderResult(path, "text/plain");
             var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
             var expectedMessage = "Could not find file: " + path;
 
@@ -160,7 +160,7 @@ namespace Microsoft.AspNet.Mvc
         public void ExecuteAsync_ThrowsDirectoryNotFound_IfItCanNotFindTheDirectory_ForRootPaths(string path)
         {
             // Arrange
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new PhysicalFileProviderResult(path, "text/plain");
             var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
 
             // Act & Assert
@@ -173,14 +173,14 @@ namespace Microsoft.AspNet.Mvc
         public void ExecuteAsync_ThrowsFileNotFound_WhenFileDoesNotExist_ForRootPaths(string path)
         {
             // Arrange
-            var result = new PhysicalFilePathResult(path, "text/plain");
+            var result = new PhysicalFileProviderResult(path, "text/plain");
             var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
 
             // Act & Assert
             Assert.ThrowsAsync<FileNotFoundException>(() => result.ExecuteResultAsync(context));
         }
 
-        private class TestPhysicalFilePathResult : PhysicalFilePathResult
+        private class TestPhysicalFilePathResult : PhysicalFileProviderResult
         {
             public TestPhysicalFilePathResult(string filePath, string contentType)
                 : base(filePath, contentType)

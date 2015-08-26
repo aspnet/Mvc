@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class VirtualFilePathResultTest
+    public class VirtualFileProviderResultTest
     {
         [Fact]
         public void Constructor_SetsFileName()
@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc
             var path = Path.GetFullPath("helllo.txt");
 
             // Act
-            var result = new VirtualFilePathResult(path, "text/plain");
+            var result = new VirtualFileProviderResult(path, "text/plain");
 
             // Assert
             Assert.Equal(path, result.FileName);
@@ -206,7 +206,7 @@ namespace Microsoft.AspNet.Mvc
             var nonDiskFileProvider = new Mock<IFileProvider>();
             nonDiskFileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>())).Returns(nonDiskFileInfo.Object);
 
-            var filePathResult = new VirtualFilePathResult("/SampleEmbeddedFile.txt", "text/plain")
+            var filePathResult = new VirtualFileProviderResult("/SampleEmbeddedFile.txt", "text/plain")
             {
                 FileProvider = nonDiskFileProvider.Object
             };
@@ -242,7 +242,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             // Point the IFileProvider root to a different subfolder
             var fileProvider = new PhysicalFileProvider(Path.GetFullPath("./Properties"));
-            var filePathResult = new VirtualFilePathResult(path, "text/plain")
+            var filePathResult = new VirtualFileProviderResult(path, "text/plain")
             {
                 FileProvider = fileProvider,
             };
@@ -274,7 +274,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             // Point the IFileProvider root to a different subfolder
             var fileProvider = new PhysicalFileProvider(Path.GetFullPath("./Properties"));
-            var filePathResult = new VirtualFilePathResult(path, "text/plain")
+            var filePathResult = new VirtualFileProviderResult(path, "text/plain")
             {
                 FileProvider = fileProvider,
             };
@@ -296,7 +296,7 @@ namespace Microsoft.AspNet.Mvc
             return fileProvider.Object;
         }
 
-        private class TestVirtualFilePathResult : VirtualFilePathResult
+        private class TestVirtualFilePathResult : VirtualFileProviderResult
         {
             public TestVirtualFilePathResult(string filePath, string contentType)
                 : base(filePath, contentType)

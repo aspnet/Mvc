@@ -20,30 +20,30 @@ namespace Microsoft.AspNet.Mvc
     /// A <see cref="FileResult" /> that on execution writes the file specified using a virtual path to the response
     /// using mechanisms provided by the host.
     /// </summary>
-    public class VirtualFilePathResult : FileResult
+    public class VirtualFileProviderResult : FileResult
     {
         private const int DefaultBufferSize = 0x1000;
         private string _fileName;
 
         /// <summary>
-        /// Creates a new <see cref="VirtualFilePathResult"/> instance with the provided <paramref name="fileName"/>
+        /// Creates a new <see cref="VirtualFileProviderResult"/> instance with the provided <paramref name="fileName"/>
         /// and the provided <paramref name="contentType"/>.
         /// </summary>
         /// <param name="fileName">The path to the file. The path must be relative/virtual.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public VirtualFilePathResult([NotNull] string fileName, [NotNull] string contentType)
+        public VirtualFileProviderResult([NotNull] string fileName, [NotNull] string contentType)
             : this(fileName, new MediaTypeHeaderValue(contentType))
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="VirtualFilePathResult"/> instance with
+        /// Creates a new <see cref="VirtualFileProviderResult"/> instance with
         /// the provided <paramref name="fileName"/> and the
         /// provided <paramref name="contentType"/>.
         /// </summary>
         /// <param name="fileName">The path to the file. The path must be relative/virtual.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public VirtualFilePathResult([NotNull] string fileName, [NotNull] MediaTypeHeaderValue contentType)
+        public VirtualFileProviderResult([NotNull] string fileName, [NotNull] MediaTypeHeaderValue contentType)
             : base(contentType)
         {
             FileName = fileName;
