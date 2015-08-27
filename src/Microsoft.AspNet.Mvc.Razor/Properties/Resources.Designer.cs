@@ -446,6 +446,54 @@ namespace Microsoft.AspNet.Mvc.Razor
             return string.Format(CultureInfo.CurrentCulture, GetString("CouldNotResolveApplicationRelativeUrl_TagHelper"), p0, p1, p2, p3, p4, p5);
         }
 
+        /// <summary>
+        /// Unable to find a suitable constructor for type'{0}'.
+        /// </summary>
+        internal static string CodeAnalysisConstructorNotFound
+        {
+            get { return GetString("CodeAnalysisConstructorNotFound"); }
+        }
+
+        /// <summary>
+        /// Unable to find a suitable constructor for type'{0}'.
+        /// </summary>
+        internal static string FormatCodeAnalysisConstructorNotFound(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CodeAnalysisConstructorNotFound"), p0);
+        }
+
+        /// <summary>
+        /// Unable to find property {0} on type {1}.
+        /// </summary>
+        internal static string CodeAnalysis_PropertyNotFound
+        {
+            get { return GetString("CodeAnalysis_PropertyNotFound"); }
+        }
+
+        /// <summary>
+        /// Unable to find property {0} on type {1}.
+        /// </summary>
+        internal static string FormatCodeAnalysis_PropertyNotFound(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CodeAnalysis_PropertyNotFound"), p0, p1);
+        }
+
+        /// <summary>
+        /// The type constant kind '{0}' is not supported.
+        /// </summary>
+        internal static string CodeAnalysis_TypeConstantKindNotSupported
+        {
+            get { return GetString("CodeAnalysis_TypeConstantKindNotSupported"); }
+        }
+
+        /// <summary>
+        /// The type constant kind '{0}' is not supported.
+        /// </summary>
+        internal static string FormatCodeAnalysis_TypeConstantKindNotSupported(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CodeAnalysis_TypeConstantKindNotSupported"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

@@ -4,11 +4,16 @@
     "../Microsoft.AspNet.Mvc.Razor.Host.Test/TestFileInfo.cs",
     "../Microsoft.AspNet.Mvc.Razor.Host.Test/TestFileTrigger.cs"
   ],
+    "resource": [
+        "Precompilation/Files/*.cs",
+        "Precompilation/BadFiles/*.cs"
+    ],
   "dependencies": {
     "Microsoft.AspNet.Http": "1.0.0-*",
     "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-*",
     "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
     "Microsoft.AspNet.Mvc.Razor": "6.0.0-*",
+    "Microsoft.AspNet.Mvc.Razor.Precompilation.Files": "1.0.0-*",
     "Microsoft.AspNet.Mvc.TestCommon": {
       "version": "6.0.0-*",
       "type": "build"
@@ -26,7 +31,12 @@
         "dnx451": {
             "dependencies": {
                 "Moq": "4.2.1312.1622"
+            },
+            "compilationOptions": {
+                "define": [ "MOQ" ]
             }
+        },
+        "dnxcore50": {
         }
     },
     "exclude": [
