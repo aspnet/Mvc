@@ -72,8 +72,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // Partials don't execute _ViewStart pages, but may execute Layout pages if the Layout property
             // is explicitly specified in the page.
-            var bodyWriter = await RenderPageAsync(RazorPage, context, executeViewStart: !IsPartial);
-            await RenderLayoutAsync(context, bodyWriter);
+            var bodyWriter = await RenderPageAsync(RazorPage, context, executeViewStart: !IsPartial).ConfigureAwait(false);
+            await RenderLayoutAsync(context, bodyWriter).ConfigureAwait(false);
         }
 
         private async Task<IBufferedTextWriter> RenderPageAsync(IRazorPage page,
@@ -110,10 +110,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (executeViewStart)
                 {
                     // Execute view starts using the same context + writer as the page to render.
-                    await RenderViewStartAsync(context);
+                    await RenderViewStartAsync(context).ConfigureAwait(false);
                 }
 
-                await RenderPageCoreAsync(page, context);
+                await RenderPageCoreAsync(page, context).ConfigureAwait(false);
                 return bufferedWriter;
             }
             finally
@@ -124,7 +124,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
+        private Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
         {
             page.IsPartial = IsPartial;
             page.ViewContext = context;
@@ -134,7 +134,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             _pageActivator.Activate(page, context);
-            await page.ExecuteAsync();
+            return page.ExecuteAsync();
         }
 
         private async Task RenderViewStartAsync(ViewContext context)
@@ -190,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
                 layoutPage.RenderBodyDelegateAsync = bodyWriter.CopyToAsync;
-                bodyWriter = await RenderPageAsync(layoutPage, context, executeViewStart: false);
+                bodyWriter = await RenderPageAsync(layoutPage, context, executeViewStart: false).ConfigureAwait(false);
 
                 renderedLayouts.Add(layoutPage);
                 previousPage = layoutPage;
@@ -205,7 +205,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (bodyWriter.IsBuffering)
             {
                 // Only copy buffered content to the Output if we're currently buffering.
-                await bodyWriter.CopyToAsync(context.Writer);
+                await bodyWriter.CopyToAsync(context.Writer).ConfigureAwait(false);
             }
         }
 
