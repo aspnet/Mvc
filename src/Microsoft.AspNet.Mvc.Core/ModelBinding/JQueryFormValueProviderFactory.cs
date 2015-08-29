@@ -21,10 +21,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             if (request.HasFormContentType)
             {
+                var culture = CultureInfo.CurrentCulture;
+
                 return new JQueryFormValueProvider(
                     BindingSource.Form,
-                    await GetValueCollectionAsync(request),
-                    CultureInfo.CurrentCulture);
+                    await GetValueCollectionAsync(request).ConfigureAwait(false),
+                    culture);
             }
 
             return null;
@@ -32,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private static async Task<IDictionary<string, StringValues>> GetValueCollectionAsync(HttpRequest request)
         {
-            var formCollection = await request.ReadFormAsync();
+            var formCollection = await request.ReadFormAsync().ConfigureAwait(false);
 
             var dictionary = new Dictionary<string, StringValues>(StringComparer.OrdinalIgnoreCase);
             foreach (var entry in formCollection)

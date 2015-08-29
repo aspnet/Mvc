@@ -25,12 +25,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             object value;
             if (bindingContext.ModelType == typeof(IFormFile))
             {
-                var postedFiles = await GetFormFilesAsync(bindingContext);
+                var postedFiles = await GetFormFilesAsync(bindingContext).ConfigureAwait(false);
                 value = postedFiles.FirstOrDefault();
             }
             else if (typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
             {
-                var postedFiles = await GetFormFilesAsync(bindingContext);
+                var postedFiles = await GetFormFilesAsync(bindingContext).ConfigureAwait(false);
                 value = ModelBindingHelper.ConvertValuesToCollectionType(bindingContext.ModelType, postedFiles);
             }
             else
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var postedFiles = new List<IFormFile>();
             if (request.HasFormContentType)
             {
-                var form = await request.ReadFormAsync();
+                var form = await request.ReadFormAsync().ConfigureAwait(false);
 
                 foreach (var file in form.Files)
                 {

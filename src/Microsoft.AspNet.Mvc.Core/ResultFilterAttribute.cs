@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
             OnResultExecuting(context);
             if (!context.Cancel)
             {
-                OnResultExecuted(await next());
+                OnResultExecuted(await next().ConfigureAwait(false));
             }
         }
     }

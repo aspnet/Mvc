@@ -68,13 +68,13 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        protected async override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
+        protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
         {
             var outputStream = response.Body;
 
             using (FileStream)
             {
-                await FileStream.CopyToAsync(outputStream, BufferSize, cancellation);
+                return FileStream.CopyToAsync(outputStream, BufferSize, cancellation);
             }
         }
     }

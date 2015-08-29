@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var composite = new CompositeValueProvider();
             foreach (var valueProvidersFactory in factories)
             {
-                var valueProvider = await valueProvidersFactory.GetValueProviderAsync(context);
+                var valueProvider = await valueProvidersFactory.GetValueProviderAsync(context).ConfigureAwait(false);
                 if (valueProvider != null)
                 {
                     composite.Add(valueProvider);

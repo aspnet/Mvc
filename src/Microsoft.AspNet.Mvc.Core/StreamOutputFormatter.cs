@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public async Task WriteAsync([NotNull] OutputFormatterContext context)
+        public Task WriteAsync([NotNull] OutputFormatterContext context)
         {
             using (var valueAsStream = ((Stream)context.Object))
             {
@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc
                     response.ContentType = context.SelectedContentType.ToString();
                 }
 
-                await valueAsStream.CopyToAsync(response.Body);
+                return valueAsStream.CopyToAsync(response.Body);
             }
         }
     }

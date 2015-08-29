@@ -34,19 +34,19 @@ namespace Microsoft.AspNet.Mvc.Filters
             IResultFilter resultFilter;
             if ((asyncResultFilter = controller as IAsyncResultFilter) != null)
             {
-                await asyncResultFilter.OnResultExecutionAsync(context, next);
+                await asyncResultFilter.OnResultExecutionAsync(context, next).ConfigureAwait(false);
             }
             else if ((resultFilter = controller as IResultFilter) != null)
             {
                 resultFilter.OnResultExecuting(context);
                 if (!context.Cancel)
                 {
-                    resultFilter.OnResultExecuted(await next());
+                    resultFilter.OnResultExecuted(await next().ConfigureAwait(false));
                 }
             }
             else
             {
-                await next();
+                await next().ConfigureAwait(false);
             }
         }
     }

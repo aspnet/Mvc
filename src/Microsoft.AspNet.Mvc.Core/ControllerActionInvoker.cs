@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
                 actionMethodInfo,
                 actionExecutingContext.Controller,
-                actionExecutingContext.ActionArguments);
+                actionExecutingContext.ActionArguments).ConfigureAwait(false);
 
             var actionResult = CreateActionResult(
                 actionMethodInfo.ReturnType,

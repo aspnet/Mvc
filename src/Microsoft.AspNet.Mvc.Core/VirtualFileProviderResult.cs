@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc
         public IFileProvider FileProvider { get; set; }
 
         /// <inheritdoc />
-        protected override async Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
+        protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
         {
             var fileProvider = GetFileProvider(response.HttpContext.RequestServices);
 
@@ -89,23 +89,19 @@ namespace Microsoft.AspNet.Mvc
                 var sendFile = response.HttpContext.GetFeature<IHttpSendFileFeature>();
                 if (sendFile != null && !string.IsNullOrEmpty(physicalPath))
                 {
-                    await sendFile.SendFileAsync(
+                    return sendFile.SendFileAsync(
                         physicalPath,
                         offset: 0,
                         length: null,
                         cancellation: cancellation);
-
-                    return;
                 }
                 else
                 {
                     var fileStream = GetFileStream(fileInfo);
                     using (fileStream)
                     {
-                        await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
+                        return fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
                     }
-
-                    return;
                 }
             }
 

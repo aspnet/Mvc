@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
             var model = GetModel(bindingContext);
 
-            var results = await BindPropertiesAsync(bindingContext, mutableObjectBinderContext.PropertyMetadata);
+            var results = await BindPropertiesAsync(bindingContext, mutableObjectBinderContext.PropertyMetadata).ConfigureAwait(false);
 
             var validationNode = new ModelValidationNode(
                 bindingContext.ModelName,
@@ -294,7 +294,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     childContext.Model = propertyMetadata.PropertyGetter(bindingContext.Model);
                 }
 
-                var result = await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childContext);
+                var result = await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childContext).ConfigureAwait(false);
                 if (result == null)
                 {
                     // Could not bind. Let ProcessResult() know explicitly.

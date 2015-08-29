@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             if (request.HasFormContentType)
             {
-                var form = await request.ReadFormAsync();
+                var form = await request.ReadFormAsync().ConfigureAwait(false);
                 model = form;
             }
             else

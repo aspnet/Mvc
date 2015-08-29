@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 return new ReadableStringCollectionValueProvider(
                     BindingSource.Form,
-                    await request.ReadFormAsync(),
+                    await request.ReadFormAsync().ConfigureAwait(false),
                     culture);
             }
 

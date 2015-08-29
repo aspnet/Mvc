@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc
         {
             if (_charBufferCount == _charBufferSize)
             {
-                await FlushInternalAsync();
+                await FlushInternalAsync().ConfigureAwait(false);
             }
 
             _charBuffer[_charBufferCount] = value;
@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (_charBufferCount == _charBufferSize)
                 {
-                    await FlushInternalAsync();
+                    await FlushInternalAsync().ConfigureAwait(false);
                 }
 
                 CopyToCharBuffer(values, ref index, ref count);
@@ -131,7 +131,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (_charBufferCount == _charBufferSize)
                 {
-                    await FlushInternalAsync();
+                    await FlushInternalAsync().ConfigureAwait(false);
                 }
 
                 CopyToCharBuffer(value, ref index, ref count);
@@ -146,9 +146,9 @@ namespace Microsoft.AspNet.Mvc
             FlushInternal(true, true);
         }
 
-        public override async Task FlushAsync()
+        public override Task FlushAsync()
         {
-            await FlushInternalAsync(true, true);
+            return FlushInternalAsync(true, true);
         }
 
         // Do not flush the stream on Dispose, as this will cause response to be
@@ -189,14 +189,14 @@ namespace Microsoft.AspNet.Mvc
             var count = _encoder.GetBytes(_charBuffer, 0, _charBufferCount, _byteBuffer, 0, flushEncoder);
             if (count > 0)
             {
-                await _stream.WriteAsync(_byteBuffer, 0, count);
+                await _stream.WriteAsync(_byteBuffer, 0, count).ConfigureAwait(false);
             }
 
             _charBufferCount = 0;
 
             if (flushStream)
             {
-                await _stream.FlushAsync();
+                await _stream.FlushAsync().ConfigureAwait(false);
             }
         }
 

@@ -16,8 +16,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                                                       allowNullModel: true);
 
             var childNodes = new List<ModelValidationNode>();
-            var keyResult = await TryBindStrongModel<TKey>(bindingContext, "Key", childNodes);
-            var valueResult = await TryBindStrongModel<TValue>(bindingContext, "Value", childNodes);
+            var keyResult = await TryBindStrongModel<TKey>(bindingContext, "Key", childNodes).ConfigureAwait(false);
+            var valueResult = await TryBindStrongModel<TValue>(bindingContext, "Value", childNodes).ConfigureAwait(false);
 
             if (keyResult.IsModelSet && valueResult.IsModelSet)
             {
@@ -100,7 +100,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             propertyBindingContext.BinderModelName = propertyModelMetadata.BinderModelName;
 
             var modelBindingResult = await propertyBindingContext.OperationBindingContext.ModelBinder.BindModelAsync(
-                propertyBindingContext);
+                propertyBindingContext).ConfigureAwait(false);
             if (modelBindingResult != null)
             {
                 if (modelBindingResult.ValidationNode != null)

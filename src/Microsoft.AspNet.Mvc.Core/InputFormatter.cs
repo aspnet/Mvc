@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc
                 return GetDefaultValueForType(context.ModelType);
             }
 
-            return await ReadRequestBodyAsync(context);
+            return await ReadRequestBodyAsync(context).ConfigureAwait(false);
         }
 
         /// <summary>
