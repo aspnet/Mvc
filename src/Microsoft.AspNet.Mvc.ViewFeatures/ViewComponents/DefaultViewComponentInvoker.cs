@@ -66,10 +66,10 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
             else
             {
-                result = await InvokeAsyncCore(asyncMethod, context);
+                result = await InvokeAsyncCore(asyncMethod, context).ConfigureAwait(false);
             }
 
-            await result.ExecuteAsync(context);
+            await result.ExecuteAsync(context).ConfigureAwait(false);
         }
 
         private object CreateComponent([NotNull] ViewComponentContext context)
@@ -88,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         {
             var component = CreateComponent(context);
 
-            var result = await ControllerActionExecutor.ExecuteAsync(method, component, context.Arguments);
+            var result = await ControllerActionExecutor.ExecuteAsync(method, component, context.Arguments).ConfigureAwait(false);
 
             return CoerceToViewComponentResult(result);
         }
