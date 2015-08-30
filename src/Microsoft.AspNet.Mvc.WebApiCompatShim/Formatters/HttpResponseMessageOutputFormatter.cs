@@ -73,6 +73,8 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
                     return responseMessage.Content.CopyToAsync(response.Body);
                 }
+                // return framework cached Task
+                return Task.FromResult(true);
             }
         }
     }
