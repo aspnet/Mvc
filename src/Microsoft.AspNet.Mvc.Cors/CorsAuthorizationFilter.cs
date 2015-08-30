@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc
             var request = httpContext.Request;
             if (request.Headers.ContainsKey(CorsConstants.Origin))
             {
-                var policy = await _corsPolicyProvider.GetPolicyAsync(httpContext, PolicyName);
+                var policy = await _corsPolicyProvider.GetPolicyAsync(httpContext, PolicyName).ConfigureAwait(false);
                 var result = _corsService.EvaluatePolicy(context.HttpContext, policy);
                 _corsService.ApplyResult(result, context.HttpContext.Response);
 
@@ -74,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
                     // If this was a preflight, there is no need to run anything else.
                     // Also the response is always 200 so that anyone after mvc can handle the pre flight request.
                     context.Result = new HttpStatusCodeResult(StatusCodes.Status200OK);
-                    await Task.FromResult(true);
+                    await Task.FromResult(true).ConfigureAwait(false);
                 }
 
                 // Continue with other filters and action.
