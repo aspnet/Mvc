@@ -185,16 +185,16 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// to the unbuffered writer.
         /// </summary>
         /// <returns>A <see cref="Task"/> that represents the asynchronous copy and flush operations.</returns>
-        public override async Task FlushAsync()
+        public override Task FlushAsync()
         {
             if (IsBuffering)
             {
                 IsBuffering = false;
                 TargetWriter = UnbufferedWriter;
-                await CopyToAsync(UnbufferedWriter);
+                return CopyToAsync(UnbufferedWriter);
             }
 
-            await UnbufferedWriter.FlushAsync();
+            return UnbufferedWriter.FlushAsync();
         }
 
         /// <inheritdoc />

@@ -294,9 +294,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <returns>
         /// A <see cref="Task"/> that on completion writes the <paramref name="tagHelperExecutionContext"/> content.
         /// </returns>
-        public async Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
+        public Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
         {
-            await WriteTagHelperToAsync(Output, tagHelperExecutionContext);
+            return WriteTagHelperToAsync(Output, tagHelperExecutionContext);
         }
 
         /// <summary>
@@ -353,12 +353,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
                 else if (tagHelperExecutionContext.ChildContentRetrieved)
                 {
-                    var childContent = await tagHelperExecutionContext.GetChildContentAsync(useCachedResult: true);
+                    var childContent = await tagHelperExecutionContext.GetChildContentAsync(useCachedResult: true).ConfigureAwait(false);
                     WriteTo(writer, childContent);
                 }
                 else
                 {
-                    await tagHelperExecutionContext.ExecuteChildContentAsync();
+                    await tagHelperExecutionContext.ExecuteChildContentAsync().ConfigureAwait(false);
                 }
 
                 WriteTo(writer, tagHelperOutput.PostContent);
@@ -773,10 +773,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// value does not represent the rendered content.</remarks>
         /// <exception cref="InvalidOperationException">if <paramref name="required"/> is <c>true</c> and the section
         /// was not registered using the <c>@section</c> in the Razor page.</exception>
-        public async Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
+        public Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
         {
             EnsureMethodCanBeInvoked(nameof(RenderSectionAsync));
-            return await RenderSectionAsyncCore(name, required);
+            return RenderSectionAsyncCore(name, required);
         }
 
         private async Task<HtmlString> RenderSectionAsyncCore(string sectionName, bool required)
@@ -791,7 +791,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (PreviousSectionWriters.TryGetValue(sectionName, out renderDelegate))
             {
                 _renderedSections.Add(sectionName);
-                await renderDelegate(Output);
+                await renderDelegate(Output).ConfigureAwait(false);
 
                 // Return a token value that allows the Write call that wraps the RenderSection \ RenderSectionAsync
                 // to succeed.
@@ -839,7 +839,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(message);
             }
 
-            await Output.FlushAsync();
+            await Output.FlushAsync().ConfigureAwait(false);
             return HtmlString.Empty;
         }
 
