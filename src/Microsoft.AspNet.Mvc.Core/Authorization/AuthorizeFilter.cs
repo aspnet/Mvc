@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc
                 ClaimsPrincipal newPrincipal = null;
                 foreach (var scheme in Policy.ActiveAuthenticationSchemes)
                 {
-                    var result = await context.HttpContext.Authentication.AuthenticateAsync(scheme);
+                    var result = await context.HttpContext.Authentication.AuthenticateAsync(scheme).ConfigureAwait(false);
                     if (result != null)
                     {
                         newPrincipal = SecurityHelper.MergeUserPrincipal(newPrincipal, result);
@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc
             // Note: Default Anonymous User is new ClaimsPrincipal(new ClaimsIdentity())
             if (httpContext.User == null ||
                 !httpContext.User.Identities.Any(i => i.IsAuthenticated) ||
-                !await authService.AuthorizeAsync(httpContext.User, context, Policy))
+                !await authService.AuthorizeAsync(httpContext.User, context, Policy).ConfigureAwait(false))
             {
                 context.Result = new ChallengeResult(Policy.ActiveAuthenticationSchemes.ToArray());
             }

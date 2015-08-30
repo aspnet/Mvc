@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     return null;
                 }
 
-                var result = await binder.BindModelAsync(bindingContext);
+                var result = await binder.BindModelAsync(bindingContext).ConfigureAwait(false);
                 var modelBindingResult = result != null ?
                     result :
                     new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);

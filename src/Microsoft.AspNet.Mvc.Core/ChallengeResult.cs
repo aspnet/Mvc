@@ -52,12 +52,12 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var scheme in AuthenticationSchemes)
                 {
-                    await auth.ChallengeAsync(scheme, Properties);
+                    await auth.ChallengeAsync(scheme, Properties).ConfigureAwait(false);
                 }
             }
             else
             {
-                await auth.ChallengeAsync(Properties);
+                await auth.ChallengeAsync(Properties).ConfigureAwait(false);
             }
         }
     }

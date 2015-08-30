@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             newBindingContext.IsFirstChanceBinding = isFirstChanceBinding;
-            var modelBindingResult = await TryBind(newBindingContext);
+            var modelBindingResult = await TryBind(newBindingContext).ConfigureAwait(false);
 
             if (modelBindingResult == null && isFirstChanceBinding)
             {
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 newBindingContext = CreateNewBindingContext(bindingContext, modelName: string.Empty);
                 Debug.Assert(newBindingContext != null, "Should have failed on first attempt.");
 
-                modelBindingResult = await TryBind(newBindingContext);
+                modelBindingResult = await TryBind(newBindingContext).ConfigureAwait(false);
             }
 
             if (modelBindingResult == null)
@@ -108,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             foreach (var binder in ModelBinders)
             {
-                var result = await binder.BindModelAsync(bindingContext);
+                var result = await binder.BindModelAsync(bindingContext).ConfigureAwait(false);
                 if (result != null)
                 {
                     // Use returned ModelBindingResult if it indicates the model was set, indicates the binder

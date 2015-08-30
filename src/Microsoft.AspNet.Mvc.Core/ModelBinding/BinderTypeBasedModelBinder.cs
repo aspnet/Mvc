@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         typeof(IModelBinder).FullName));
             }
 
-            var result = await modelBinder.BindModelAsync(bindingContext);
+            var result = await modelBinder.BindModelAsync(bindingContext).ConfigureAwait(false);
 
             var modelBindingResult = result != null ?
                 result :

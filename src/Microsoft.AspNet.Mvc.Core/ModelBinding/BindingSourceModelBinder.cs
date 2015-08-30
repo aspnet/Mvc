@@ -77,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return null;
             }
 
-            var result = await BindModelCoreAsync(context);
+            var result = await BindModelCoreAsync(context).ConfigureAwait(false);
 
             var modelBindingResult = result != null ?
                 result :

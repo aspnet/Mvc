@@ -125,20 +125,20 @@ namespace Microsoft.AspNet.Mvc.Core
 
             ActionContext.ModelState.MaxAllowedErrors = _maxModelValidationErrors;
 
-            await InvokeAllAuthorizationFiltersAsync();
+            await InvokeAllAuthorizationFiltersAsync().ConfigureAwait(false);
 
             // If Authorization Filters return a result, it's a short circuit because
             // authorization failed. We don't execute Result Filters around the result.
             Debug.Assert(_authorizationContext != null);
             if (_authorizationContext.Result != null)
             {
-                await InvokeResultAsync(_authorizationContext.Result);
+                await InvokeResultAsync(_authorizationContext.Result).ConfigureAwait(false);
                 return;
             }
 
             try
             {
-                await InvokeAllResourceFiltersAsync();
+                await InvokeAllResourceFiltersAsync().ConfigureAwait(false);
             }
             finally
             {
@@ -186,12 +186,12 @@ namespace Microsoft.AspNet.Mvc.Core
             return context.Results.Select(item => item.Filter).Where(filter => filter != null).ToArray();
         }
 
-        private async Task InvokeAllAuthorizationFiltersAsync()
+        private Task InvokeAllAuthorizationFiltersAsync()
         {
             _cursor.SetStage(FilterStage.AuthorizationFilters);
 
             _authorizationContext = new AuthorizationContext(ActionContext, _filters);
-            await InvokeAuthorizationFilterAsync();
+            return InvokeAuthorizationFilterAsync();
         }
 
         private async Task InvokeAuthorizationFilterAsync()
@@ -203,12 +203,12 @@ namespace Microsoft.AspNet.Mvc.Core
             var current = _cursor.GetNextFilter<IAuthorizationFilter, IAsyncAuthorizationFilter>();
             if (current.FilterAsync != null)
             {
-                await current.FilterAsync.OnAuthorizationAsync(_authorizationContext);
+                await current.FilterAsync.OnAuthorizationAsync(_authorizationContext).ConfigureAwait(false);
 
                 if (_authorizationContext.Result == null)
                 {
                     // Only keep going if we don't have a result
-                    await InvokeAuthorizationFilterAsync();
+                    await InvokeAuthorizationFilterAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -222,7 +222,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 if (_authorizationContext.Result == null)
                 {
                     // Only keep going if we don't have a result
-                    await InvokeAuthorizationFilterAsync();
+                    await InvokeAuthorizationFilterAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -236,7 +236,7 @@ namespace Microsoft.AspNet.Mvc.Core
             }
         }
 
-        private async Task InvokeAllResourceFiltersAsync()
+        private Task InvokeAllResourceFiltersAsync()
         {
             _cursor.SetStage(FilterStage.ResourceFilters);
 
@@ -249,7 +249,7 @@ namespace Microsoft.AspNet.Mvc.Core
             context.ValueProviderFactories = new CopyOnWriteList<IValueProviderFactory>(_valueProviderFactories);
 
             _resourceExecutingContext = context;
-            await InvokeResourceFilterAsync();
+            return InvokeResourceFilterAsync();
         }
 
         private async Task<ResourceExecutedContext> InvokeResourceFilterAsync()
@@ -275,7 +275,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 {
                     await item.FilterAsync.OnResourceExecutionAsync(
                         _resourceExecutingContext,
-                        InvokeResourceFilterAsync);
+                        InvokeResourceFilterAsync).ConfigureAwait(false);
 
                     if (_resourceExecutedContext == null)
                     {
@@ -286,7 +286,7 @@ namespace Microsoft.AspNet.Mvc.Core
                                 ResourceFilterShortCircuitLogMessage,
                                 item.FilterAsync.GetType().FullName);
 
-                            await InvokeResultAsync(_resourceExecutingContext.Result);
+                            await InvokeResultAsync(_resourceExecutingContext.Result).ConfigureAwait(false);
                         }
 
                         _resourceExecutedContext = new ResourceExecutedContext(_resourceExecutingContext, _filters)
@@ -306,7 +306,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
                         _logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
 
-                        await InvokeResultAsync(_resourceExecutingContext.Result);
+                        await InvokeResultAsync(_resourceExecutingContext.Result).ConfigureAwait(false);
 
                         _resourceExecutedContext = new ResourceExecutedContext(_resourceExecutingContext, _filters)
                         {
@@ -316,7 +316,7 @@ namespace Microsoft.AspNet.Mvc.Core
                     }
                     else
                     {
-                        item.Filter.OnResourceExecuted(await InvokeResourceFilterAsync());
+                        item.Filter.OnResourceExecuted(await InvokeResourceFilterAsync().ConfigureAwait(false));
                     }
                 }
                 else
@@ -336,10 +336,10 @@ namespace Microsoft.AspNet.Mvc.Core
 
                     ActionBindingContext.ValueProvider = await CompositeValueProvider.CreateAsync(
                         _resourceExecutingContext.ValueProviderFactories,
-                        valueProviderFactoryContext);
+                        valueProviderFactoryContext).ConfigureAwait(false);
 
                     // >> ExceptionFilters >> Model Binding >> ActionFilters >> Action
-                    await InvokeAllExceptionFiltersAsync();
+                    await InvokeAllExceptionFiltersAsync().ConfigureAwait(false);
 
                     // If Exception Filters provide a result, it's a short-circuit due to an exception.
                     // We don't execute Result Filters around the result.
@@ -348,7 +348,7 @@ namespace Microsoft.AspNet.Mvc.Core
                     {
                         // This means that exception filters returned a result to 'handle' an error.
                         // We're not interested in seeing the exception details since it was handled.
-                        await InvokeResultAsync(_exceptionContext.Result);
+                        await InvokeResultAsync(_exceptionContext.Result).ConfigureAwait(false);
 
                         _resourceExecutedContext = new ResourceExecutedContext(_resourceExecutingContext, _filters)
                         {
@@ -376,7 +376,7 @@ namespace Microsoft.AspNet.Mvc.Core
                         var result = _actionExecutedContext.Result;
 
                         // >> ResultFilters >> (Result)
-                        await InvokeAllResultFiltersAsync(result);
+                        await InvokeAllResultFiltersAsync(result).ConfigureAwait(false);
 
                         _resourceExecutedContext = new ResourceExecutedContext(_resourceExecutingContext, _filters)
                         {
@@ -397,11 +397,11 @@ namespace Microsoft.AspNet.Mvc.Core
             return _resourceExecutedContext;
         }
 
-        private async Task InvokeAllExceptionFiltersAsync()
+        private Task InvokeAllExceptionFiltersAsync()
         {
             _cursor.SetStage(FilterStage.ExceptionFilters);
 
-            await InvokeExceptionFilterAsync();
+            return InvokeExceptionFilterAsync();
         }
 
         private async Task InvokeExceptionFilterAsync()
@@ -411,14 +411,14 @@ namespace Microsoft.AspNet.Mvc.Core
             {
                 // Exception filters run "on the way out" - so the filter is run after the rest of the
                 // pipeline.
-                await InvokeExceptionFilterAsync();
+                await InvokeExceptionFilterAsync().ConfigureAwait(false);
 
                 Debug.Assert(_exceptionContext != null);
                 if (_exceptionContext.Exception != null)
                 {
                     // Exception filters only run when there's an exception - unsetting it will short-circuit
                     // other exception filters.
-                    await current.FilterAsync.OnExceptionAsync(_exceptionContext);
+                    await current.FilterAsync.OnExceptionAsync(_exceptionContext).ConfigureAwait(false);
 
                     if (_exceptionContext.Exception == null)
                     {
@@ -432,7 +432,7 @@ namespace Microsoft.AspNet.Mvc.Core
             {
                 // Exception filters run "on the way out" - so the filter is run after the rest of the
                 // pipeline.
-                await InvokeExceptionFilterAsync();
+                await InvokeExceptionFilterAsync().ConfigureAwait(false);
 
                 Debug.Assert(_exceptionContext != null);
                 if (_exceptionContext.Exception != null)
@@ -461,7 +461,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
                 try
                 {
-                    await InvokeAllActionFiltersAsync();
+                    await InvokeAllActionFiltersAsync().ConfigureAwait(false);
 
                     // Action filters might 'return' an unhandled exception instead of throwing
                     Debug.Assert(_actionExecutedContext != null);
@@ -487,7 +487,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             Instance = CreateInstance();
 
-            var arguments = await BindActionArgumentsAsync(ActionContext, ActionBindingContext);
+            var arguments = await BindActionArgumentsAsync(ActionContext, ActionBindingContext).ConfigureAwait(false);
 
             _actionExecutingContext = new ActionExecutingContext(
                 ActionContext,
@@ -495,7 +495,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 arguments,
                 Instance);
 
-            await InvokeActionFilterAsync();
+            await InvokeActionFilterAsync().ConfigureAwait(false);
         }
 
         private async Task<ActionExecutedContext> InvokeActionFilterAsync()
@@ -518,7 +518,7 @@ namespace Microsoft.AspNet.Mvc.Core
             {
                 if (item.FilterAsync != null)
                 {
-                    await item.FilterAsync.OnActionExecutionAsync(_actionExecutingContext, InvokeActionFilterAsync);
+                    await item.FilterAsync.OnActionExecutionAsync(_actionExecutingContext, InvokeActionFilterAsync).ConfigureAwait(false);
 
                     if (_actionExecutedContext == null)
                     {
@@ -557,7 +557,7 @@ namespace Microsoft.AspNet.Mvc.Core
                     }
                     else
                     {
-                        item.Filter.OnActionExecuted(await InvokeActionFilterAsync());
+                        item.Filter.OnActionExecuted(await InvokeActionFilterAsync().ConfigureAwait(false));
                     }
                 }
                 else
@@ -574,7 +574,7 @@ namespace Microsoft.AspNet.Mvc.Core
                                 new { actionContext = ActionContext, arguments = _actionExecutingContext.ActionArguments });
                         }
 
-                        result = await InvokeActionAsync(_actionExecutingContext);
+                        result = await InvokeActionAsync(_actionExecutingContext).ConfigureAwait(false);
                     }
                     finally
                     {
@@ -614,7 +614,7 @@ namespace Microsoft.AspNet.Mvc.Core
             _cursor.SetStage(FilterStage.ResultFilters);
 
             _resultExecutingContext = new ResultExecutingContext(ActionContext, _filters, result, Instance);
-            await InvokeResultFilterAsync();
+            await InvokeResultFilterAsync().ConfigureAwait(false);
 
             Debug.Assert(_resultExecutingContext != null);
             if (_resultExecutedContext.Exception != null && !_resultExecutedContext.ExceptionHandled)
@@ -652,7 +652,7 @@ namespace Microsoft.AspNet.Mvc.Core
                 var item = _cursor.GetNextFilter<IResultFilter, IAsyncResultFilter>();
                 if (item.FilterAsync != null)
                 {
-                    await item.FilterAsync.OnResultExecutionAsync(_resultExecutingContext, InvokeResultFilterAsync);
+                    await item.FilterAsync.OnResultExecutionAsync(_resultExecutingContext, InvokeResultFilterAsync).ConfigureAwait(false);
 
                     if (_resultExecutedContext == null)
                     {
@@ -706,7 +706,7 @@ namespace Microsoft.AspNet.Mvc.Core
                     }
                     else
                     {
-                        item.Filter.OnResultExecuted(await InvokeResultFilterAsync());
+                        item.Filter.OnResultExecuted(await InvokeResultFilterAsync().ConfigureAwait(false));
                     }
                 }
                 else
@@ -719,7 +719,7 @@ namespace Microsoft.AspNet.Mvc.Core
                         _resultExecutingContext.Result = new EmptyResult();
                     }
 
-                    await InvokeResultAsync(_resultExecutingContext.Result);
+                    await InvokeResultAsync(_resultExecutingContext.Result).ConfigureAwait(false);
 
                     Debug.Assert(_resultExecutedContext == null);
                     _resultExecutedContext = new ResultExecutedContext(
@@ -755,7 +755,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             try
             {
-                await result.ExecuteResultAsync(ActionContext);
+                await result.ExecuteResultAsync(ActionContext).ConfigureAwait(false);
             }
             finally
             {

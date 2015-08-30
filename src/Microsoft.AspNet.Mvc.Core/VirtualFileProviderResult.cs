@@ -93,8 +93,7 @@ namespace Microsoft.AspNet.Mvc
                         physicalPath,
                         offset: 0,
                         length: null,
-                        cancellation: cancellation);
-
+                        cancellation: cancellation).ConfigureAwait(false);
                     return;
                 }
                 else
@@ -102,9 +101,8 @@ namespace Microsoft.AspNet.Mvc
                     var fileStream = GetFileStream(fileInfo);
                     using (fileStream)
                     {
-                        await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
+                        await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation).ConfigureAwait(false);
                     }
-
                     return;
                 }
             }

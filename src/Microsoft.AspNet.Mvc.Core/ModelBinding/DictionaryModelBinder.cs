@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public override async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
-            var result = await base.BindModelAsync(bindingContext);
+            var result = await base.BindModelAsync(bindingContext).ConfigureAwait(false);
             if (result == null || !result.IsModelSet)
             {
                 // No match for the prefix at all.
@@ -73,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 valueBindingContext.ModelName = kvp.Value;
 
-                var valueResult = await modelBinder.BindModelAsync(valueBindingContext);
+                var valueResult = await modelBinder.BindModelAsync(valueBindingContext).ConfigureAwait(false);
 
                 // Always add an entry to the dictionary but validate only if binding was successful.
                 model[convertedKey] = ModelBindingHelper.CastOrDefault<TValue>(valueResult?.Model);

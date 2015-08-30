@@ -37,17 +37,18 @@ namespace Microsoft.AspNet.Mvc
             return false;
         }
 
-        public override async Task WriteResponseBodyAsync(OutputFormatterContext context)
+        public override Task WriteResponseBodyAsync(OutputFormatterContext context)
         {
             var valueAsString = (string)context.Object;
             if (string.IsNullOrEmpty(valueAsString))
             {
-                return;
+                // return cached framework task
+                return Task.FromResult<bool>(true);
             }
 
             var response = context.HttpContext.Response;
 
-            await response.WriteAsync(valueAsString, context.SelectedEncoding);
+            return response.WriteAsync(valueAsString, context.SelectedEncoding);
         }
     }
 }

@@ -58,11 +58,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             CollectionResult result;
             if (valueProviderResult == ValueProviderResult.None)
             {
-                result = await BindComplexCollection(bindingContext);
+                result = await BindComplexCollection(bindingContext).ConfigureAwait(false);
             }
             else
             {
-                result = await BindSimpleCollection(bindingContext, valueProviderResult);
+                result = await BindSimpleCollection(bindingContext, valueProviderResult).ConfigureAwait(false);
             }
 
             var boundCollection = result.Model;
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 object boundValue = null;
                 var result =
-                    await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(innerBindingContext);
+                    await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(innerBindingContext).ConfigureAwait(false);
                 if (result != null && result.IsModelSet)
                 {
                     boundValue = result.Model;
@@ -185,13 +185,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         // Used when the ValueProvider contains the collection to be bound as multiple elements, e.g. foo[0], foo[1].
-        private async Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
+        private Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
         {
             var indexPropertyName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, "index");
             var valueProviderResultIndex = bindingContext.ValueProvider.GetValue(indexPropertyName);
             var indexNames = GetIndexNamesFromValueProviderResult(valueProviderResultIndex);
 
-            return await BindComplexCollectionFromIndexes(bindingContext, indexNames);
+            return BindComplexCollectionFromIndexes(bindingContext, indexNames);
         }
 
         // Internal for testing.
@@ -231,7 +231,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 object boundValue = null;
 
                 var result =
-                    await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childBindingContext);
+                    await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(childBindingContext).ConfigureAwait(false);
                 if (result != null && result.IsModelSet)
                 {
                     didBind = true;

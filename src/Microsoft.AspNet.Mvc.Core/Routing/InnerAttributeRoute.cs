@@ -142,7 +142,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     context.RouteData = newRouteData;
 
-                    await matchingEntry.Target.RouteAsync(context);
+                    await matchingEntry.Target.RouteAsync(context).ConfigureAwait(false);
                 }
                 finally
                 {

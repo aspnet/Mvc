@@ -309,7 +309,7 @@ namespace Microsoft.AspNet.Mvc
                 PropertyFilter = predicate,
             };
 
-            var modelBindingResult = await modelBinder.BindModelAsync(modelBindingContext);
+            var modelBindingResult = await modelBinder.BindModelAsync(modelBindingContext).ConfigureAwait(false);
             if (modelBindingResult != null && modelBindingResult.IsModelSet)
             {
                 var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, modelBindingResult.Model);

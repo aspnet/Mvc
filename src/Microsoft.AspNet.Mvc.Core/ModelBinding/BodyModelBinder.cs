@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             try
             {
                 var previousCount = bindingContext.ModelState.ErrorCount;
-                var model = await formatter.ReadAsync(formatterContext);
+                var model = await formatter.ReadAsync(formatterContext).ConfigureAwait(false);
                 
                 bindingContext.ModelState.SetModelValue(modelBindingKey, rawValue: model, attemptedValue: null);
 

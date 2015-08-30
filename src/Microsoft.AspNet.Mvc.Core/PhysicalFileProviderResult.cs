@@ -76,9 +76,7 @@ namespace Microsoft.AspNet.Mvc
                     FileName,
                     offset: 0,
                     length: null,
-                    cancellation: cancellation);
-
-                return;
+                    cancellation: cancellation).ConfigureAwait(false);
             }
             else
             {
@@ -86,10 +84,9 @@ namespace Microsoft.AspNet.Mvc
 
                 using (fileStream)
                 {
-                    await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
+                    await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation).ConfigureAwait(false);
                 }
 
-                return;
             }
         }
 

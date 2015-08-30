@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
                 operationBindingContext,
                 actionContext.ModelState,
                 controllerProperties,
-                actionDescriptor.BoundProperties);
+                actionDescriptor.BoundProperties).ConfigureAwait(false);
             var controllerType = actionDescriptor.ControllerTypeInfo.AsType();
             ActivateProperties(controller, controllerType, controllerProperties);
 
@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
                 operationBindingContext,
                 actionContext.ModelState,
                 actionArguments,
-                actionDescriptor.Parameters);
+                actionDescriptor.Parameters).ConfigureAwait(false);
             return actionArguments;
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc
                 modelState,
                 operationContext);
 
-            var modelBindingResult = await operationContext.ModelBinder.BindModelAsync(modelBindingContext);
+            var modelBindingResult = await operationContext.ModelBinder.BindModelAsync(modelBindingContext).ConfigureAwait(false);
             if (modelBindingResult != null &&
                 modelBindingResult.IsModelSet &&
                 modelBindingResult.ValidationNode != null)
@@ -179,7 +179,7 @@ namespace Microsoft.AspNet.Mvc
         {
             foreach (var parameter in parameterMetadata)
             {
-                var modelBindingResult = await BindModelAsync(parameter, modelState, operationContext);
+                var modelBindingResult = await BindModelAsync(parameter, modelState, operationContext).ConfigureAwait(false);
                 if (modelBindingResult != null && modelBindingResult.IsModelSet)
                 {
                     arguments[parameter.Name] = modelBindingResult.Model;
