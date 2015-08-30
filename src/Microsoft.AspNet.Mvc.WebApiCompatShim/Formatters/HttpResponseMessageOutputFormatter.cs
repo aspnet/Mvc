@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             return context.Object is HttpResponseMessage;
         }
 
-        public async Task WriteAsync(OutputFormatterContext context)
+        public Task WriteAsync(OutputFormatterContext context)
         {
             var response = context.HttpContext.Response;
 
@@ -71,8 +71,10 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
                         response.Headers.Append(header.Key, header.Value.ToArray());
                     }
 
-                    await responseMessage.Content.CopyToAsync(response.Body);
+                    return responseMessage.Content.CopyToAsync(response.Body);
                 }
+                // return framework cached Task
+                return Task.FromResult(true);
             }
         }
     }

@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="context">The <see cref="ViewComponentContext"/> for the current component execution.</param>
         /// <returns>A <see cref="Task"/> which will complete when view rendering is completed.</returns>
-        public async Task ExecuteAsync([NotNull] ViewComponentContext context)
+        public Task ExecuteAsync([NotNull] ViewComponentContext context)
         {
             var viewEngine = ViewEngine ?? ResolveViewEngine(context);
             var viewData = ViewData ?? context.ViewData;
@@ -104,7 +104,7 @@ namespace Microsoft.AspNet.Mvc
 
             using (view as IDisposable)
             {
-                await view.RenderAsync(childViewContext);
+                return view.RenderAsync(childViewContext);
             }
         }
 

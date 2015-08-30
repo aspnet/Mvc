@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
         public IViewEngine ViewEngine { get; set; }
 
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync(ActionContext context)
+        public override Task ExecuteResultAsync(ActionContext context)
         {
             var response = context.HttpContext.Response;
             var services = context.HttpContext.RequestServices;
@@ -113,11 +113,11 @@ namespace Microsoft.AspNet.Mvc
                 }
                 else if (ViewComponentType == null)
                 {
-                    await viewComponentHelper.RenderInvokeAsync(ViewComponentName, Arguments);
+                    return viewComponentHelper.RenderInvokeAsync(ViewComponentName, Arguments);
                 }
                 else
                 {
-                    await viewComponentHelper.RenderInvokeAsync(ViewComponentType, Arguments);
+                    return viewComponentHelper.RenderInvokeAsync(ViewComponentType, Arguments);
                 }
             }
         }

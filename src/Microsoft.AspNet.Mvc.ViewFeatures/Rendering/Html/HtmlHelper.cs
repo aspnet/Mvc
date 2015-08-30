@@ -426,7 +426,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             using (var writer = new StringCollectionTextWriter(Encoding.UTF8))
             {
-                await RenderPartialCoreAsync(partialViewName, model, viewData, writer);
+                await RenderPartialCoreAsync(partialViewName, model, viewData, writer).ConfigureAwait(false);
                 return writer.Content;
             }
         }
@@ -454,7 +454,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return templateBuilder.Build();
         }
 
-        protected virtual async Task RenderPartialCoreAsync([NotNull] string partialViewName,
+        protected virtual Task RenderPartialCoreAsync([NotNull] string partialViewName,
                                                             object model,
                                                             ViewDataDictionary viewData,
                                                             TextWriter writer)
@@ -482,7 +482,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             using (view as IDisposable)
             {
                 var viewContext = new ViewContext(ViewContext, view, newViewData, writer);
-                await viewEngineResult.View.RenderAsync(viewContext);
+                return viewEngineResult.View.RenderAsync(viewContext);
             }
         }
 

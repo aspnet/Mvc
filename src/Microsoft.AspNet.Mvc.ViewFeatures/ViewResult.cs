@@ -54,7 +54,7 @@ namespace Microsoft.AspNet.Mvc
         public MediaTypeHeaderValue ContentType { get; set; }
 
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync([NotNull] ActionContext context)
+        public override Task ExecuteResultAsync([NotNull] ActionContext context)
         {
             var services = context.HttpContext.RequestServices;
             var viewEngine = ViewEngine ?? services.GetRequiredService<ICompositeViewEngine>();
@@ -104,7 +104,7 @@ namespace Microsoft.AspNet.Mvc
 
             using (view as IDisposable)
             {
-                await ViewExecutor.ExecuteAsync(
+                return ViewExecutor.ExecuteAsync(
                     view,
                     context,
                     ViewData,
