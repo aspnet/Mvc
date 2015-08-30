@@ -744,7 +744,7 @@ namespace Microsoft.AspNet.Mvc.Core
             return _resultExecutedContext;
         }
 
-        private Task InvokeResultAsync(IActionResult result)
+        private async Task InvokeResultAsync(IActionResult result)
         {
             if (_notifier.ShouldNotify("Microsoft.AspNet.Mvc.BeforeActionResult"))
             {
@@ -755,7 +755,7 @@ namespace Microsoft.AspNet.Mvc.Core
 
             try
             {
-                return result.ExecuteResultAsync(ActionContext);
+                await result.ExecuteResultAsync(ActionContext).ConfigureAwait(false);
             }
             finally
             {

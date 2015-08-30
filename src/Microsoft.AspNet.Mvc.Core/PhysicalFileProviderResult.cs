@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        protected override Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
+        protected override async Task WriteFileAsync(HttpResponse response, CancellationToken cancellation)
         {
             if (!Path.IsPathRooted(FileName))
             {
@@ -72,11 +72,11 @@ namespace Microsoft.AspNet.Mvc
             var sendFile = response.HttpContext.GetFeature<IHttpSendFileFeature>();
             if (sendFile != null)
             {
-                return sendFile.SendFileAsync(
+                await sendFile.SendFileAsync(
                     FileName,
                     offset: 0,
                     length: null,
-                    cancellation: cancellation);
+                    cancellation: cancellation).ConfigureAwait(false);
             }
             else
             {
@@ -84,7 +84,7 @@ namespace Microsoft.AspNet.Mvc
 
                 using (fileStream)
                 {
-                    return fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation);
+                    await fileStream.CopyToAsync(response.Body, DefaultBufferSize, cancellation).ConfigureAwait(false);
                 }
 
             }
