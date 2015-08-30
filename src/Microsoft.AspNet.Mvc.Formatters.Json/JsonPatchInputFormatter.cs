@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         public async override Task<object> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
         {
-            var jsonPatchDocument = (IJsonPatchDocument)(await base.ReadRequestBodyAsync(context));
+            var jsonPatchDocument = (IJsonPatchDocument)(await base.ReadRequestBodyAsync(context).ConfigureAwait(false));
             if (jsonPatchDocument != null && SerializerSettings.ContractResolver != null)
             {
                 jsonPatchDocument.ContractResolver = SerializerSettings.ContractResolver;
