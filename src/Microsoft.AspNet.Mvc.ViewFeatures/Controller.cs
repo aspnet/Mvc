@@ -1099,7 +1099,7 @@ namespace Microsoft.AspNet.Mvc
         /// </param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public virtual async Task<bool> TryUpdateModelAsync<TModel>([NotNull] TModel model,
+        public virtual Task<bool> TryUpdateModelAsync<TModel>([NotNull] TModel model,
                                                                     [NotNull] string prefix)
             where TModel : class
         {
@@ -1111,7 +1111,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await TryUpdateModelAsync(model, prefix, BindingContext.ValueProvider);
+            return TryUpdateModelAsync(model, prefix, BindingContext.ValueProvider);
         }
 
         /// <summary>
@@ -1125,7 +1125,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="valueProvider">The <see cref="IValueProvider"/> used for looking up values.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public virtual async Task<bool> TryUpdateModelAsync<TModel>([NotNull] TModel model,
+        public virtual Task<bool> TryUpdateModelAsync<TModel>([NotNull] TModel model,
                                                                     [NotNull] string prefix,
                                                                     [NotNull] IValueProvider valueProvider)
             where TModel : class
@@ -1138,7 +1138,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ActionContext.HttpContext,
@@ -1163,7 +1163,7 @@ namespace Microsoft.AspNet.Mvc
         /// which need to be included for the current model.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public async Task<bool> TryUpdateModelAsync<TModel>(
+        public Task<bool> TryUpdateModelAsync<TModel>(
             [NotNull] TModel model,
             string prefix,
             [NotNull] params Expression<Func<TModel, object>>[] includeExpressions)
@@ -1177,7 +1177,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ActionContext.HttpContext,
@@ -1202,7 +1202,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public async Task<bool> TryUpdateModelAsync<TModel>(
+        public Task<bool> TryUpdateModelAsync<TModel>(
             [NotNull] TModel model,
             string prefix,
             [NotNull] Func<ModelBindingContext, string, bool> predicate)
@@ -1216,7 +1216,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ActionContext.HttpContext,
@@ -1243,7 +1243,7 @@ namespace Microsoft.AspNet.Mvc
         /// which need to be included for the current model.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public async Task<bool> TryUpdateModelAsync<TModel>(
+        public Task<bool> TryUpdateModelAsync<TModel>(
             [NotNull] TModel model,
             string prefix,
             [NotNull] IValueProvider valueProvider,
@@ -1258,7 +1258,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ActionContext.HttpContext,
@@ -1284,7 +1284,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public async Task<bool> TryUpdateModelAsync<TModel>(
+        public Task<bool> TryUpdateModelAsync<TModel>(
             [NotNull] TModel model,
             string prefix,
             [NotNull] IValueProvider valueProvider,
@@ -1299,7 +1299,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ActionContext.HttpContext,
@@ -1323,7 +1323,7 @@ namespace Microsoft.AspNet.Mvc
         /// </param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public virtual async Task<bool> TryUpdateModelAsync([NotNull] object model,
+        public virtual Task<bool> TryUpdateModelAsync([NotNull] object model,
                                                             [NotNull] Type modelType,
                                                             string prefix)
         {
@@ -1335,7 +1335,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 modelType,
                 prefix,
@@ -1361,7 +1361,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public async Task<bool> TryUpdateModelAsync(
+        public Task<bool> TryUpdateModelAsync(
             [NotNull] object model,
             [NotNull] Type modelType,
             string prefix,
@@ -1376,7 +1376,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(message);
             }
 
-            return await ModelBindingHelper.TryUpdateModelAsync(
+            return ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 modelType,
                 prefix,
