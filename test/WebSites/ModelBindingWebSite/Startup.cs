@@ -39,8 +39,6 @@ namespace ModelBindingWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseErrorReporter();
-
             // Add MVC to the request pipeline
             app.UseMvcWithDefaultRoute();
         }
