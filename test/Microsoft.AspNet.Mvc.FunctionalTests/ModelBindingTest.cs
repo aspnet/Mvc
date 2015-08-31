@@ -158,24 +158,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task MultipleParametersMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParametersThrows");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
         public async Task ControllerPropertyAndAnActionWithoutFromBody_InvokesWithoutErrors()
         {
             // Arrange
@@ -187,114 +169,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task ControllerPropertyAndAnActionParameterWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/AddUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task ControllerPropertyAndAModelPropertyWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/AddUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleControllerPropertiesMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/MultiplePropertiesFromBody/GetUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParameterAndPropertiesMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParameterAndPropertyThrows");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParametersMarkedWith_FromFormAndFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_AsParameters_Throws");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParameterAndPropertiesMarkedWith_FromFormAndFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_Throws");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
         }
 
         [Fact]
@@ -860,10 +734,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             Assert.Equal(3, json.Count);
+
+            // The model prefix 'model' is used in the modelstate keys because the key 'model' is present in the 
+            // query string. This causes modelbinding to commit to using the prefix.
+            //
             // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field1 field is required."), json["Field1"]);
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field2 field is required."), json["Field2"]);
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field3 field is required."), json["Field3"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field1 field is required."), json["model.Field1"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field2 field is required."), json["model.Field2"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field3 field is required."), json["model.Field3"]);
         }
 
         [Fact]
