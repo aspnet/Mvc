@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc
                 var completedTask = s_completedTask;
                 if (completedTask == null)
                 {
-                    completedTask = new Task(() => { }, default(CancellationToken), (TaskCreationOptions)0x4000 /*DoNotDispose*/); // benign initialization race condition
+                    completedTask = new Task(() => { }, default(CancellationToken)); // benign initialization race condition
                     completedTask.Start();
                     s_completedTask = completedTask;
                 }
