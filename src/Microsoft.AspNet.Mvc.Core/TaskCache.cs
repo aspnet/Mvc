@@ -8,7 +8,7 @@ namespace Microsoft.AspNet.Mvc
     public static class TaskCache
     {
 #if DNX451
-        static Task _completedTask = Task.FromResult(0);
+        static readonly Task _completedTask = Task.FromResult(0);
 #endif
 
         /// <summary>Gets a task that's already been completed successfully.</summary>
