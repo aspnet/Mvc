@@ -175,12 +175,13 @@ namespace Microsoft.AspNet.Mvc.Core
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
             var expectedProperties = new List<string>
             {
-                "OrderedProperty3",
-                "OrderedProperty2",
                 "OrderedProperty1",
-                "Property3",
+                "OrderedProperty2",
+                "OrderedProperty3",
+                // Next three properties come between explicitly ordered ones because DefaultOrder is 10000.
                 "Property1",
                 "Property2",
+                "Property3",
                 "LastProperty",
             };
 
@@ -362,7 +363,7 @@ namespace Microsoft.AspNet.Mvc.Core
             var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
 
             viewEngine
-                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(), 
+                .Setup(v => v.FindPartialView(It.IsAny<ActionContext>(),
                                               It.Is<string>(view => view.Equals("DisplayTemplates/String"))))
                 .Returns(ViewEngineResult.Found(string.Empty, new Mock<IView>().Object))
                 .Verifiable();

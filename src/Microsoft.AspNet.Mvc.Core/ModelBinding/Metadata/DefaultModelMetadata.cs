@@ -444,7 +444,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 if (_properties == null)
                 {
                     var properties = _provider.GetMetadataForProperties(ModelType);
-                    properties = properties.OrderBy(p => p.Order);
+                    properties = properties.OrderBy(p => p.Order).ThenBy(p => p.PropertyName);
                     _properties = new ModelPropertyCollection(properties);
                 }
 
