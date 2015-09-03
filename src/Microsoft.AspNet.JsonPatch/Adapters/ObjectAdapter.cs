@@ -801,6 +801,170 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
         }
 
+        /// <summary>
+        /// Method is used by Copy and Move to avoid duplicate code
+        /// </summary>
+        /// <param name="location">Location where value should be</param>
+        /// <param name="objectToGetValueFrom">Object to inspect for the desired value</param>
+        /// <param name="operationToReport">Operation to report in case of an error</param>
+        /// <returns>GetValueResult containing value and a bool signifying a possible error</returns>
+        private GetValueResult GetValueAtLocation(
+            [NotNull] string location, 
+            [NotNull] object objectToGetValueFrom, 
+            [NotNull] Operation operationToReport)
+        {
+            // get path result
+            var pathResult = GetActualPropertyPath(
+                location,
+                objectToGetValueFrom,
+                operationToReport);
+
+            if (pathResult == null)
+            {
+                return new GetValueResult(null, true);
+            }
+
+            var getAtEndOfList = pathResult.ExecuteAtEnd;
+            var positionAsInteger = pathResult.NumericEnd;
+            var actualPathToProperty = pathResult.PathToProperty;
+
+            var treeAnalysisResult = new ObjectTreeAnalysisResult(
+               objectToGetValueFrom,
+               actualPathToProperty,
+               ContractResolver);
+
+            if (treeAnalysisResult.UseDynamicLogic)
+            {
+                // if it's not an array, we can remove the property from
+                // the dictionary.  If it's an array, we need to check the position first.
+                if (getAtEndOfList || positionAsInteger > -1)
+                {
+                    var propertyValue = treeAnalysisResult.Container
+                        .GetValueForCaseInsensitiveKey(treeAnalysisResult.PropertyPathInParent);
+
+                    // we cannot continue when the value is null, because to be able to
+                    // continue we need to be able to check if the array is a non-string array
+                    if (propertyValue == null)
+                    {
+                        LogError(new JsonPatchError(
+                           objectToGetValueFrom,
+                           operationToReport,
+                           Resources.FormatCannotDeterminePropertyType(location)));
+                        return new GetValueResult(null, true);
+                    }
+
+                    var typeOfPathProperty = propertyValue.GetType();
+
+                    if (!IsNonStringArray(typeOfPathProperty))
+                    {
+                        LogError(new JsonPatchError(
+                            objectToGetValueFrom,
+                            operationToReport,
+                            Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, location)));
+                        return new GetValueResult(null, true);
+                    }
+
+                    // get the array
+                    var array = (IList)treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(
+                        treeAnalysisResult.PropertyPathInParent);
+                    
+                    if (positionAsInteger >= array.Count)
+                    {
+                        LogError(new JsonPatchError(
+                            objectToGetValueFrom,
+                            operationToReport,
+                            Resources.FormatInvalidIndexForArrayProperty(
+                                operationToReport.op,
+                                location)));
+                        return new GetValueResult(null, true);
+                    }
+
+                    if (getAtEndOfList)
+                    {
+                        return new GetValueResult(array[array.Count-1], false);
+                    }
+                    else
+                    {
+                        return new GetValueResult(array[positionAsInteger], false);
+                    }                   
+                }
+                else
+                {
+                    // get the property
+                    var propertyValueAtLocation = treeAnalysisResult.Container.GetValueForCaseInsensitiveKey(
+                        treeAnalysisResult.PropertyPathInParent);
+
+                    return new GetValueResult(propertyValueAtLocation, false);
+                } 
+            }
+            else
+            {
+                // not dynamic                  
+                var patchProperty = treeAnalysisResult.JsonPatchProperty;
+
+                if (getAtEndOfList || positionAsInteger > -1)
+                {
+                    if (!IsNonStringArray(patchProperty.Property.PropertyType))
+                    {
+                        LogError(new JsonPatchError(
+                               objectToGetValueFrom,
+                               operationToReport,
+                               Resources.FormatInvalidIndexForArrayProperty(operationToReport.op, location)));
+                        return new GetValueResult(null, true);
+                    }
+ 
+                    if (!patchProperty.Property.Readable)
+                    {
+                        LogError(new JsonPatchError(
+                            objectToGetValueFrom,
+                            operationToReport,
+                            Resources.FormatCannotReadProperty(location)));
+                        return new GetValueResult(null, true);
+                    }
+
+                    var array = (IList)patchProperty.Property.ValueProvider
+                           .GetValue(patchProperty.Parent);
+
+                    if (positionAsInteger >= array.Count)
+                    {
+                        LogError(new JsonPatchError(
+                            objectToGetValueFrom,
+                            operationToReport,
+                            Resources.FormatInvalidIndexForArrayProperty(
+                                operationToReport.op,
+                                location)));
+                        return new GetValueResult(null, true);
+                    }
+
+                    if (getAtEndOfList)
+                    {
+                        return new GetValueResult(array[array.Count - 1], false);
+                    }
+                    else
+                    {
+                        return new GetValueResult(array[positionAsInteger], false);
+                    }                   
+                }
+                else
+                {
+                    if (!patchProperty.Property.Readable)
+                    {
+                        LogError(new JsonPatchError(
+                            objectToGetValueFrom,
+                            operationToReport,
+                            Resources.FormatCannotReadProperty(                                
+                                location)));
+                        return new GetValueResult(null, true); 
+                    }
+
+                    var propertyValueAtLocation = patchProperty.Property.ValueProvider
+                                 .GetValue(patchProperty.Parent);
+
+                    return new GetValueResult(propertyValueAtLocation, false);
+                }
+            } 
+        }
+
         private bool CheckIfPropertyExists(
             JsonPatchProperty patchProperty,
             object objectToApplyTo,
