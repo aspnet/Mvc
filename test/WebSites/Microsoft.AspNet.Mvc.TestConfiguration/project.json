@@ -1,13 +1,13 @@
 {
     "dependencies": {
-        "Microsoft.AspNet.Http": "1.0.0-*",
-        "Microsoft.AspNet.Http.Extensions": "1.0.0-*",
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Framework.Configuration": "1.0.0-*",
-        "Microsoft.Framework.DependencyInjection": "1.0.0-*"
+        "Microsoft.AspNet.Http": "1.0.0-beta7",
+        "Microsoft.AspNet.Http.Extensions": "1.0.0-beta7",
+        "Microsoft.AspNet.Testing": "1.0.0-beta7",
+        "Microsoft.Framework.Configuration": "1.0.0-beta7",
+        "Microsoft.Framework.DependencyInjection": "1.0.0-beta7"
     },
     "frameworks": {
-        "dnx451": { },
-        "dnxcore50": { }
+        "dnx451": {},
+        "dnxcore50": {}
     }
 }

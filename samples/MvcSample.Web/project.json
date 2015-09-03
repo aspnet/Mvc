@@ -8,29 +8,29 @@
     },
     "dependencies": {
         "Autofac.Framework.DependencyInjection": "4.0.0-beta6-110",
-        "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
-        "Microsoft.AspNet.Diagnostics": "1.0.0-*",
-        "Microsoft.AspNet.Localization": "1.0.0-*",
-        "Microsoft.AspNet.Mvc": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-*",
-        "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-        "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-        "Microsoft.AspNet.Session": "1.0.0-*",
-        "Microsoft.AspNet.StaticFiles": "1.0.0-*",
-        "Microsoft.Framework.Configuration.Json": "1.0.0-*",
+        "Microsoft.AspNet.Server.Kestrel": "1.0.0-beta7",
+        "Microsoft.AspNet.Diagnostics": "1.0.0-beta7",
+        "Microsoft.AspNet.Localization": "1.0.0-beta7",
+        "Microsoft.AspNet.Mvc": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-beta7",
+        "Microsoft.AspNet.Server.IIS": "1.0.0-beta7",
+        "Microsoft.AspNet.Server.WebListener": "1.0.0-beta7",
+        "Microsoft.AspNet.Session": "1.0.0-beta7",
+        "Microsoft.AspNet.StaticFiles": "1.0.0-beta7",
+        "Microsoft.Framework.Configuration.Json": "1.0.0-beta7",
         "Microsoft.Framework.PropertyHelper.Sources": {
-            "version": "1.0.0-*",
+            "version": "1.0.0-beta7",
             "type": "build"
         },
         "Microsoft.Framework.NotNullAttribute.Sources": {
             "type": "build",
-            "version": "1.0.0-*"
+            "version": "1.0.0-beta7"
         }
     },
     "frameworks": {
-        "dnx451": { },
-        "dnxcore50": { }
+        "dnx451": {},
+        "dnxcore50": {}
     },
     "exclude": [
         "wwwroot",

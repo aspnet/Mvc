@@ -1,32 +1,37 @@
 {
-  "resource": "TestFiles/**",
-  "dependencies": {
-    "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-*", "type": "build" },
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Microsoft.Framework.WebEncoders.Testing": "1.0.0-*",
-    "xunit.runner.aspnet": "2.0.0-aspnet-*"
-  },
-  "commands": {
-    "test": "xunit.runner.aspnet"
-  },
-  "compilationOptions": {
-    "define": [ "__RemoveThisBitTo__GENERATE_BASELINES" ]
-  },
-  "frameworks": {
-    "dnx451": {
-      "dependencies": {
-        "Moq": "4.2.1312.1622"
-      }
-    }
-  },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+    "resource": "TestFiles/**",
+    "dependencies": {
+        "Microsoft.AspNet.Mvc.Core": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.TestCommon": {
+            "version": "6.0.0-*",
+            "type": "build"
+        },
+        "Microsoft.AspNet.Testing": "1.0.0-beta7",
+        "Microsoft.Framework.WebEncoders.Testing": "1.0.0-beta7",
+        "xunit.runner.aspnet": "2.0.0-aspnet-beta7"
+    },
+    "commands": {
+        "test": "xunit.runner.aspnet"
+    },
+    "compilationOptions": {
+        "define": [
+            "__RemoveThisBitTo__GENERATE_BASELINES"
+        ]
+    },
+    "frameworks": {
+        "dnx451": {
+            "dependencies": {
+                "Moq": "4.2.1312.1622"
+            }
+        }
+    },
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "bower_components"
+    ]
 }

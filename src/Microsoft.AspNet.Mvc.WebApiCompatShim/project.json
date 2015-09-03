@@ -1,6 +1,6 @@
 {
     "description": "Provides compatibility in ASP.NET MVC with ASP.NET Web API 2 to simplify migration of existing Web API implementations.",
-    "version": "6.0.0-*",
+    "version": "6.0.0-beta7",
     "repository": {
         "type": "git",
         "url": "git://github.com/aspnet/mvc"
@@ -9,11 +9,17 @@
         "warningsAsErrors": false
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.Formatters.Json": "6.0.0-*",
+        "Microsoft.AspNet.Mvc.Core": "6.0.0-beta7",
+        "Microsoft.AspNet.Mvc.Formatters.Json": "6.0.0-beta7",
         "Microsoft.AspNet.WebApi.Client": "5.2.2",
-        "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" }
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta7",
+            "type": "build"
+        },
+        "Microsoft.Framework.NotNullAttribute.Sources": {
+            "version": "1.0.0-beta7",
+            "type": "build"
+        }
     },
     "frameworks": {
         "dnx451": {
@@ -25,9 +31,9 @@
         },
         "dnxcore50": {
             "dependencies": {
-                "System.Net.Http": "4.0.1-beta-*",
-                "System.Xml.XmlSerializer": "4.0.11-beta-*",
-                "System.Runtime.Serialization.Xml": "4.0.11-beta-*"
+                "System.Net.Http": "4.0.1-beta-23225",
+                "System.Xml.XmlSerializer": "4.0.11-beta-23225",
+                "System.Runtime.Serialization.Xml": "4.0.11-beta-23225"
             }
         }
     }

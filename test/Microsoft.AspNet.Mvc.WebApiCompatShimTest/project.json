@@ -3,10 +3,10 @@
         "warningsAsErrors": "false"
     },
     "dependencies": {
-        "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-*",
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Framework.Logging.Testing": "1.0.0-*",
-        "xunit.runner.aspnet": "2.0.0-aspnet-*"
+        "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-beta7",
+        "Microsoft.AspNet.Testing": "1.0.0-beta7",
+        "Microsoft.Framework.Logging.Testing": "1.0.0-beta7",
+        "xunit.runner.aspnet": "2.0.0-aspnet-beta7"
     },
     "commands": {
         "test": "xunit.runner.aspnet"
@@ -17,6 +17,6 @@
                 "Moq": "4.2.1312.1622"
             }
         },
-        "dnxcore50": { }
+        "dnxcore50": {}
     }
 }
