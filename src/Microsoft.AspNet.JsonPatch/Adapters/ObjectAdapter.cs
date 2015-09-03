@@ -706,8 +706,37 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <param name="objectToApplyTo">Object to apply the operation to.</param>
         public void Replace([NotNull] Operation operation, [NotNull] object objectToApplyTo)
         {
-            Remove(operation.path, objectToApplyTo, operation);
-            Add(operation.path, operation.value, objectToApplyTo, operation);
+            var removeResult = Remove(operation.path, objectToApplyTo, operation);
+
+            if (removeResult.HasError)
+            {
+                // return => error has already been logged in remove method
+                return;
+            }
+
+            if (!removeResult.HasError && removeResult.ActualType == null)
+            {                
+                // the remove operation completed succesfully, but we could not determine the type.
+                LogError(new JsonPatchError(
+                                objectToApplyTo,
+                                operation,
+                                Resources.FormatCannotDeterminePropertyType(operation.from)));
+                return;
+            }
+
+            var conversionResult = ConvertToActualType(removeResult.ActualType, operation.value);
+
+            if (!conversionResult.CanBeConverted)
+            {
+                // invalid value for path
+                LogError(new JsonPatchError(
+                                objectToApplyTo,
+                                operation,
+                                Resources.FormatInvalidValueForProperty(operation.value, operation.path)));
+                return;
+            }
+
+            Add(operation.path, conversionResult.ConvertedInstance, objectToApplyTo, operation);
         }
 
         /// <summary>
