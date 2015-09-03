@@ -359,73 +359,30 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
         /// <param name="objectToApplyTo">Object to apply the operation to.</param>
         public void Move([NotNull] Operation operation, [NotNull] object objectToApplyTo)
         {
-            // get value at from location
-            object valueAtFromLocation = null;
-            var positionAsInteger = -1;
-            var actualFromProperty = operation.from;
+            var valueAtFromLocationResult = GetValueAtLocation(operation.from, objectToApplyTo, operation);
 
-            positionAsInteger = GetNumericEnd(operation.from);
-
-            if (positionAsInteger > -1)
+            if (valueAtFromLocationResult.HasError)
             {
-                actualFromProperty = operation.from.Substring(0,
-                    operation.from.IndexOf('/' + positionAsInteger.ToString()));
-            }
-
-            var patchProperty = FindPropertyAndParent(objectToApplyTo, actualFromProperty);
-
-            // does property at from exist?
-            if (!CheckIfPropertyExists(patchProperty, objectToApplyTo, operation, operation.from))
-            {
+                // Error has already been logged in GetValueAtLocation.  We
+                // must return, because remove / add should not be allowed to continue
                 return;
             }
 
-            // is the path an array (but not a string (= char[]))?  In this case,
-            // the path must end with "/position" or "/-", which we already determined before.
-            if (positionAsInteger > -1)
-            {
-                if (IsNonStringArray(patchProperty.Property.PropertyType))
-                {
-                    // now, get the generic type of the IList<> from Property type.
-                    var genericTypeOfArray = GetIListType(patchProperty.Property.PropertyType);
-
-                    // get value (it can be cast, we just checked that)
-                    var array = (IList)patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
-
-                    if (array.Count <= positionAsInteger)
-                    {
-                        LogError(new JsonPatchError(
-                            objectToApplyTo,
-                            operation,
-                            Resources.FormatInvalidIndexForArrayProperty(operation.op, operation.from)));
-
-                        return;
-                    }
-
-                    valueAtFromLocation = array[positionAsInteger];
-                }
-                else
-                {
-                    LogError(new JsonPatchError(
-                        objectToApplyTo,
-                        operation,
-                        Resources.FormatInvalidPathForArrayProperty(operation.op, operation.from)));
-
-                    return;
-                }
-            }
-            else
-            {
-                // no list, just get the value
-                // set the new value
-                valueAtFromLocation = patchProperty.Property.ValueProvider.GetValue(patchProperty.Parent);
-            }
-
             // remove that value
-            Remove(operation.from, objectToApplyTo, operation);
+            var removeResult = Remove(operation.from, objectToApplyTo, operation);
+
+            if (removeResult.HasError)
+            {
+                // Return => error has already been logged in remove method.  We must
+                // return, because add should not be allowed to continue
+                return;
+            }
 
             // add that value to the path location
-            Add(operation.path, valueAtFromLocation, objectToApplyTo, operation);
+            Add(operation.path,
+                valueAtFromLocationResult.PropertyValue,
+                objectToApplyTo,
+                operation);
         }
 
         /// <summary>
