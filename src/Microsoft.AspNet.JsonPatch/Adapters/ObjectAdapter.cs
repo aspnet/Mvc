@@ -896,36 +896,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
                     return new GetValueResult(propertyValueAtLocation, false);
                 }
-            } 
-        }
-
-        private bool CheckIfPropertyExists(
-            JsonPatchProperty patchProperty,
-            object objectToApplyTo,
-            Operation operation,
-            string propertyPath)
-        {
-            if (patchProperty == null)
-            {
-                LogError(new JsonPatchError(
-                    objectToApplyTo,
-                    operation,
-                    Resources.FormatPropertyDoesNotExist(propertyPath)));
-
-                return false;
             }
-
-            if (patchProperty.Property.Ignored)
-            {
-                LogError(new JsonPatchError(
-                    objectToApplyTo,
-                    operation,
-                    Resources.FormatCannotUpdateProperty(propertyPath)));
-
-                return false;
-            }
-
-            return true;
         }
 
         private bool IsNonStringArray(Type type)
@@ -938,25 +909,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             return (!(type == typeof(string)) && typeof(IList).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
         }
 
-        private bool CheckIfPropertyCanBeSet(
-            ConversionResult result,
-            object objectToApplyTo,
-            Operation operation,
-            string path)
-        {
-            if (!result.CanBeConverted)
-            {
-                LogError(new JsonPatchError(
-                    objectToApplyTo,
-                    operation,
-                    Resources.FormatInvalidValueForProperty(result.ConvertedInstance, path)));
-
-                return false;
-            }
-
-            return true;
-        }
-
         private void LogError(JsonPatchError jsonPatchError)
         {
             if (LogErrorAction != null)
@@ -966,54 +918,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
             else
             {
                 throw new JsonPatchException(jsonPatchError);
-            }
-        }
-
-        private JsonPatchProperty FindPropertyAndParent(object targetObject, string propertyPath)
-        {
-            try
-            {
-                var splitPath = propertyPath.Split('/');
-
-                // skip the first one if it's empty
-                var startIndex = (string.IsNullOrWhiteSpace(splitPath[0]) ? 1 : 0);
-
-                for (int i = startIndex; i < splitPath.Length; i++)
-                {
-                    var jsonContract = (JsonObjectContract)ContractResolver.ResolveContract(targetObject.GetType());
-
-                    foreach (var property in jsonContract.Properties)
-                    {
-                        if (string.Equals(property.PropertyName, splitPath[i], StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (i == (splitPath.Length - 1))
-                            {
-                                return new JsonPatchProperty(property, targetObject);
-                            }
-                            else
-                            {
-                                targetObject = property.ValueProvider.GetValue(targetObject);
-
-                                // if property is of IList type then get the array index from splitPath and get the
-                                // object at the indexed position from the list.
-                                if (GetIListType(property.PropertyType) != null)
-                                {
-                                    var index = int.Parse(splitPath[++i]);
-                                    targetObject = ((IList)targetObject)[index];
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-
-                return null;
-            }
-            catch (Exception)
-            {
-                // will result in JsonPatchException in calling class, as expected
-                return null;
             }
         }
 
@@ -1059,20 +963,6 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
 
             return false;
         }
-
-        private int GetNumericEnd(string path)
-        {
-            var possibleIndex = path.Substring(path.LastIndexOf("/") + 1);
-            var castedIndex = -1;
-
-            if (int.TryParse(possibleIndex, out castedIndex))
-            {
-                return castedIndex;
-            }
-
-            return -1;
-        }
-
 
         private ActualPropertyPathResult GetActualPropertyPath(
             [NotNull] string propertyPath,
