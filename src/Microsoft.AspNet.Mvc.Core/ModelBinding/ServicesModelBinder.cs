@@ -3,7 +3,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -11,19 +10,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// An <see cref="IModelBinder"/> which binds models from the request services when a model 
     /// has the binding source <see cref="BindingSource.Services"/>/
     /// </summary>
-    public class ServicesModelBinder : BindingSourceModelBinder
+    public class ServicesModelBinder : IModelBinder
     {
-        /// <summary>
-        /// Creates a new <see cref="ServicesModelBinder"/>.
-        /// </summary>
-        public ServicesModelBinder()
-            : base(BindingSource.Services)
-        {
-        }
-
         /// <inheritdoc />
-        protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            var allowedBindingSource = bindingContext.BindingSource;
+            if (allowedBindingSource == null ||
+                !allowedBindingSource.CanAcceptDataFrom(BindingSource.Services))
+            {
+                // Services are opt-in. This model either didn't specify [FromService] or specified something
+                // incompatible so let other binders run.
+                return ModelBindingResult.NoResultAsync;
+            }
+
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
             var model = requestServices.GetRequiredService(bindingContext.ModelType);
             var validationNode =

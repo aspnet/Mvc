@@ -7,7 +7,6 @@ using System.Reflection;
 #endif
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -15,19 +14,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// An <see cref="IModelBinder"/> which binds models from the request headers when a model
     /// has the binding source <see cref="BindingSource.Header"/>/
     /// </summary>
-    public class HeaderModelBinder : BindingSourceModelBinder
+    public class HeaderModelBinder : IModelBinder
     {
-        /// <summary>
-        /// Creates a new <see cref="HeaderModelBinder"/>.
-        /// </summary>
-        public HeaderModelBinder()
-            : base(BindingSource.Header)
-        {
-        }
-
         /// <inheritdoc />
-        protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            var allowedBindingSource = bindingContext.BindingSource;
+            if (allowedBindingSource == null ||
+                !allowedBindingSource.CanAcceptDataFrom(BindingSource.Header))
+            {
+                // Headers are opt-in. This model either didn't specify [FromHeader] or specified something
+                // incompatible so let other binders run.
+                return ModelBindingResult.NoResultAsync;
+            }
+
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             var modelMetadata = bindingContext.ModelMetadata;
 

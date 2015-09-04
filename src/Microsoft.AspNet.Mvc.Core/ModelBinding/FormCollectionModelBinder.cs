@@ -18,7 +18,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class FormCollectionModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
+        {
+            if (bindingContext.ModelType != typeof(IFormCollection))
+            {
+                return ModelBindingResult.NoResultAsync;
+            }
+
+            return BindModelCoreAsync(bindingContext);
+        }
+
+        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext.ModelType != typeof(IFormCollection))
             {

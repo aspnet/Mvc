@@ -14,9 +14,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     public class GenericModelBinder : IModelBinder
     {
-        public async Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
             var binderType = ResolveBinderType(bindingContext);
+            if (binderType == null)
+            {
+                return ModelBindingResult.NoResultAsync;
+            }
+
+            return BindModelCoreAsync(bindingContext, binderType);
+        }
+
+        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext, Type binderType)
+        {
+            binderType = ResolveBinderType(bindingContext);
             if (binderType != null)
             {
                 var binder = (IModelBinder)Activator.CreateInstance(binderType);
