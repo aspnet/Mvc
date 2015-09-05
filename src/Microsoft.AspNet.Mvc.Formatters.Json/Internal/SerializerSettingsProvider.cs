@@ -28,7 +28,11 @@ namespace Microsoft.AspNet.Mvc.Internal
 
                 // Do not change this setting
                 // Setting this to None prevents Json.NET from loading malicious, unsafe, or security-sensitive types
-                TypeNameHandling = TypeNameHandling.None
+                TypeNameHandling = TypeNameHandling.None,
+
+                // Prevent Self referencing loop Error
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                
             };
         }
     }
