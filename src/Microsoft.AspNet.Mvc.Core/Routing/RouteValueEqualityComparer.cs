@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,10 +12,10 @@ namespace Microsoft.AspNet.Mvc.Routing
     /// they were route value strings.
     /// </summary>
     /// <remarks>
-    /// Values that are are not strings are converted to strings using 
+    /// Values that are are not strings are converted to strings using
     /// <c>Convert.ToString(x, CultureInfo.InvariantCulture)</c>. <c>null</c> values are converted
     /// to the empty string.
-    /// 
+    ///
     /// strings are compared using <see cref="StringComparison.OrdinalIgnoreCase"/>.
     /// </remarks>
     public class RouteValueEqualityComparer : IEqualityComparer<object>

@@ -1,10 +1,13 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNet.PipelineCore;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class HttpStatusCodeResultTests
     {
@@ -12,7 +15,7 @@ namespace Microsoft.AspNet.Mvc
         public void HttpStatusCodeResult_ExecuteResultSetsResponseStatusCode()
         {
             // Arrange
-            var result = new HttpStatusCodeResult(404);
+            var result = new HttpStatusCodeResult(StatusCodes.Status404NotFound);
 
             var httpContext = new DefaultHttpContext();
             var routeData = new RouteData();
@@ -24,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
             result.ExecuteResult(context);
 
             // Assert
-            Assert.Equal(404, httpContext.Response.StatusCode);
+            Assert.Equal(StatusCodes.Status404NotFound, httpContext.Response.StatusCode);
         }
     }
 }

@@ -1,18 +1,18 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Test
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     public class OutputFormatterTests
     {
@@ -49,11 +49,11 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.SetupGet(o => o.Request.AcceptCharset)
-                           .Returns(acceptCharsetHeaders);
-            mockHttpContext.SetupGet(o => o.Request.ContentType)
-                           .Returns("application/acceptCharset;charset=" + requestEncoding);
-            var actionContext = new ActionContext(mockHttpContext.Object, new RouteData(), new ActionDescriptor());
+            var httpRequest = new DefaultHttpContext().Request;
+            httpRequest.Headers["Accept-Charset"] = acceptCharsetHeaders;
+            httpRequest.ContentType = "application/acceptCharset;charset=" + requestEncoding;
+            mockHttpContext.SetupGet(o => o.Request).Returns(httpRequest);
+
             var formatter = new TestOutputFormatter();
             foreach (string supportedEncoding in supportedEncodings)
             {
@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Test
             var formatterContext = new OutputFormatterContext()
             {
                 Object = "someValue",
-                ActionContext = actionContext,
+                HttpContext = mockHttpContext.Object,
                 DeclaredType = typeof(string)
             };
 
@@ -75,25 +75,31 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void WriteResponseContentHeaders_FormatterWithNoEncoding_Throws()
+        public void WriteResponseContentHeaders_NoSupportedEncodings_NoEncodingIsSet()
         {
             // Arrange
-            var testFormatter = new TestOutputFormatter();
-            var testContentType = MediaTypeHeaderValue.Parse("text/invalid");
-            var formatterContext = new OutputFormatterContext();
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.SetupGet(o => o.Request.AcceptCharset)
-                           .Returns(string.Empty);
-            var actionContext = new ActionContext(mockHttpContext.Object, new RouteData(), new ActionDescriptor());
-            formatterContext.ActionContext = actionContext;
+            var formatter = new TestOutputFormatter();
 
-            // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                        () => testFormatter.WriteResponseHeaders(formatterContext));
-            Assert.Equal("No encoding found for output formatter " +
-                         "'Microsoft.AspNet.Mvc.Test.OutputFormatterTests+TestOutputFormatter'." +
-                         " There must be at least one supported encoding registered in order for the" +
-                         " output formatter to write content.", ex.Message);
+            var testContentType = MediaTypeHeaderValue.Parse("text/json");
+
+            formatter.SupportedEncodings.Clear();
+            formatter.SupportedMediaTypes.Clear();
+            formatter.SupportedMediaTypes.Add(testContentType);
+
+            var formatterContext = new OutputFormatterContext()
+            {
+                HttpContext = new DefaultHttpContext(),
+            };
+
+            // Act
+            formatter.WriteResponseHeaders(formatterContext);
+
+            // Assert
+            Assert.Null(formatterContext.SelectedEncoding);
+            Assert.Equal(testContentType, formatterContext.SelectedContentType);
+
+            // If we had set an encoding, it would be part of the content type header
+            Assert.Equal(testContentType, formatterContext.HttpContext.Response.GetTypedHeaders().ContentType);
         }
 
         [Fact]
@@ -104,20 +110,39 @@ namespace Microsoft.AspNet.Mvc.Test
             var testContentType = MediaTypeHeaderValue.Parse("application/doesNotSetContext");
             var formatterContext = new OutputFormatterContext();
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.SetupGet(o => o.Request.AcceptCharset)
-                           .Returns(string.Empty);
+            var httpRequest = new DefaultHttpContext().Request;
+            mockHttpContext.SetupGet(o => o.Request).Returns(httpRequest);
             mockHttpContext.SetupProperty(o => o.Response.ContentType);
-            var actionContext = new ActionContext(mockHttpContext.Object, new RouteData(), new ActionDescriptor());
-            formatterContext.ActionContext = actionContext;
+            formatterContext.HttpContext = mockHttpContext.Object;
 
             // Act
             testFormatter.WriteResponseHeaders(formatterContext);
 
             // Assert
-            Assert.Equal(Encodings.UTF16EncodingLittleEndian.WebName, formatterContext.SelectedEncoding.WebName);
-            Assert.Equal(Encodings.UTF16EncodingLittleEndian, formatterContext.SelectedEncoding);
-            Assert.Equal("application/doesNotSetContext;charset=" + Encodings.UTF16EncodingLittleEndian.WebName,
-                         formatterContext.SelectedContentType.RawValue);
+            Assert.Equal(Encoding.Unicode.WebName, formatterContext.SelectedEncoding.WebName);
+            Assert.Equal(Encoding.Unicode, formatterContext.SelectedEncoding);
+            Assert.Equal("application/doesNotSetContext; charset=" + Encoding.Unicode.WebName,
+                         formatterContext.SelectedContentType.ToString());
+        }
+
+        [Fact]
+        public async Task WriteResponseHeaders_ClonesMediaType()
+        {
+            // Arrange
+            var formatter = new PngImageFormatter();
+            formatter.SupportedMediaTypes.Clear();
+            var mediaType = new MediaTypeHeaderValue("image/png");
+            formatter.SupportedMediaTypes.Add(mediaType);
+            var formatterContext = new OutputFormatterContext();
+            formatterContext.HttpContext = new DefaultHttpContext();
+
+            // Act
+            await formatter.WriteAsync(formatterContext);
+
+            // Assert
+            Assert.NotSame(mediaType, formatterContext.SelectedContentType);
+            Assert.Null(mediaType.Charset);
+            Assert.Equal("image/png; charset=utf-8", formatterContext.SelectedContentType.ToString());
         }
 
         [Fact]
@@ -132,7 +157,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.True(result);
-            Assert.Equal(formatter.SupportedMediaTypes[0].RawValue, context.SelectedContentType.RawValue);
+            Assert.Equal(formatter.SupportedMediaTypes[0].ToString(), context.SelectedContentType.ToString());
         }
 
         [Fact]
@@ -147,8 +172,8 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Act
             var contentTypes = formatter.GetSupportedContentTypes(
-                declaredType: typeof(string), 
-                runtimeType: typeof(string), 
+                declaredType: typeof(string),
+                runtimeType: typeof(string),
                 contentType: null);
 
             // Assert
@@ -191,8 +216,8 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Assert
             Assert.Equal(2, contentTypes.Count);
-            Assert.Single(contentTypes, ct => ct.RawValue == "application/json");
-            Assert.Single(contentTypes, ct => ct.RawValue == "application/xml");
+            Assert.Single(contentTypes, ct => ct.ToString() == "application/json");
+            Assert.Single(contentTypes, ct => ct.ToString() == "application/xml");
         }
 
         [Fact]
@@ -207,13 +232,13 @@ namespace Microsoft.AspNet.Mvc.Test
 
             // Act
             var contentTypes = formatter.GetSupportedContentTypes(
-                typeof(int), 
-                typeof(int), 
+                typeof(int),
+                typeof(int),
                 contentType: MediaTypeHeaderValue.Parse("application/*"));
 
             // Assert
             var contentType = Assert.Single(contentTypes);
-            Assert.Equal("application/json", contentType.RawValue);
+            Assert.Equal("application/json", contentType.ToString());
         }
 
         [Fact]
@@ -288,17 +313,31 @@ namespace Microsoft.AspNet.Mvc.Test
             public DoesNotSetContext()
             {
                 SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/doesNotSetContext"));
-                SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
+                SupportedEncodings.Add(Encoding.Unicode);
             }
 
             public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
             {
                 // Do not set the selected media Type.
-                // The WriteResponseContentHeader should do it for you. 
+                // The WriteResponseHeaders should do it for you.
                 return true;
             }
 
             public override Task WriteResponseBodyAsync(OutputFormatterContext context)
+            {
+                return Task.FromResult(true);
+            }
+        }
+
+        private class PngImageFormatter : OutputFormatter
+        {
+            public PngImageFormatter()
+            {
+                SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("image/png"));
+                SupportedEncodings.Add(Encoding.UTF8);
+            }
+
+            public override Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context)
             {
                 return Task.FromResult(true);
             }

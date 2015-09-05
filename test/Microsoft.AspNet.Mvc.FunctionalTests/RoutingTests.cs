@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -17,14 +17,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RoutingTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("RoutingWebSite");
+        private const string SiteName = nameof(RoutingWebSite);
         private readonly Action<IApplicationBuilder> _app = new RoutingWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new RoutingWebSite.Startup().ConfigureServices;
 
         [Fact]
-        public async Task ConventionRoutedController_ActionIsReachable()
+        public async Task ConventionalRoutedController_ActionIsReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -49,10 +50,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ConventionRoutedController_ActionIsReachable_WithDefaults()
+        public async Task ConventionalRoutedController_ActionIsReachable_WithDefaults()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -77,10 +78,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ConventionRoutedController_NonActionIsNotReachable()
+        public async Task ConventionalRoutedController_NonActionIsNotReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -91,10 +92,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ConventionRoutedController_InArea_ActionIsReachable()
+        public async Task ConventionalRoutedController_InArea_ActionIsReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -120,10 +121,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ConventionRoutedController_InArea_ActionBlockedByHttpMethod()
+        public async Task ConventionalRoutedController_InArea_ActionBlockedByHttpMethod()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -133,11 +134,32 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [Theory]
+        [InlineData("", "/Home/OptionalPath/default")]
+        [InlineData("CustomPath", "/Home/OptionalPath/CustomPath")]
+        public async Task ConventionalRoutedController_WithOptionalSegment(string optionalSegment, string expected)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/OptionalPath/" + optionalSegment);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Single(result.ExpectedUrls, expected);
+        }
+
         [Fact]
         public async Task AttributeRoutedAction_IsReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -168,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_MultipleRouteAttributes_WorksWithNameAndOrder(string url)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -197,7 +219,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var url = "http://localhost/api/v2/Maps";
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -225,7 +247,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var url = "http://localhost/api/v1/Maps";
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -245,7 +267,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             string method)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -274,7 +296,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_MultipleHttpAttributesAndTokenReplacement(string url)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var expectedUrl = new Uri(url).AbsolutePath;
 
@@ -308,7 +330,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             string method)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var expectedUrl = new Uri(url).AbsolutePath;
 
@@ -324,7 +346,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_IsNotReachableWithTraditionalRoute()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -337,10 +359,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // There's two actions at this URL - but attribute routes go in the route table
         // first.
         [Fact]
-        public async Task AttributeRoutedAction_TriedBeforeConventionRouting()
+        public async Task AttributeRoutedAction_TriedBeforeConventionalRouting()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -361,7 +383,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ControllerLevelRoute_WithActionParameter_IsReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -395,7 +417,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ControllerLevelRoute_IsReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -424,7 +446,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_RouteAttributeOnAction_IsReachable(string method)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var message = new HttpRequestMessage(new HttpMethod(method), "http://localhost/Store/Shop/Orders");
 
@@ -451,7 +473,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_RouteAttributeOnActionAndController_IsReachable(string method)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var message = new HttpRequestMessage(new HttpMethod(method), "http://localhost/api/Employee/5/Salary");
 
@@ -473,7 +495,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_RouteAttributeOnActionAndHttpGetOnDifferentAction_ReachesHttpGetAction()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var message = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Store/Shop/Orders");
 
@@ -498,7 +520,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ControllerLevelRoute_WithAcceptVerbs_IsReachable(string verb)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -522,7 +544,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ControllerLevelRoute_WithAcceptVerbsAndRouteTemplate_IsReachable(string verb)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -548,7 +570,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_AcceptVerbsAndRouteTemplate_IsReachable(string verb, string path)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var expectedUrl = "/Bank";
 
@@ -571,7 +593,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_WithCustomHttpAttributes_IsReachable()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -597,7 +619,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ControllerLevelRoute_CombinedWithActionRoute_IsReachable(string verb, string action)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -623,7 +645,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ActionLevelRouteWithTildeSlash_OverridesControllerLevelRoute()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -648,7 +670,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_OverrideActionOverridesOrderOnController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -673,7 +695,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_OrderOnActionOverridesOrderOnController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -694,7 +716,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkGeneration_OverrideActionOverridesOrderOnController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -709,7 +731,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkGeneration_OrderOnActionOverridesOrderOnController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -720,11 +742,29 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("/Teams/AllOrganizations", response);
         }
 
+        [Theory]
+        [InlineData("", "/TeamName/DefaultName")]
+        [InlineData("CustomName", "/TeamName/CustomName")]
+        public async Task AttributeRoutedAction_PreservesDefaultValue_IfRouteValueIsNull(string teamName, string expected)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var body = await client.GetStringAsync("http://localhost/TeamName/" + teamName);
+
+            // Assert
+            Assert.NotNull(body);
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+            Assert.Single(result.ExpectedUrls, expected);
+        }
+
         [Fact]
         public async Task AttributeRoutedAction_LinkToSelf()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -747,7 +787,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkWithAmbientController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -770,7 +810,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkToAttributeRoutedController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -794,7 +834,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkToConventionalController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -819,7 +859,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkWithName_WithNameInheritedFromControllerRoute(string method, string actionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -843,7 +883,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkWithName_WithNameOverrridenFromController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -866,7 +906,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_Link_WithNonEmptyActionRouteTemplateAndNoActionRouteName()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = LinkFrom("http://localhost")
@@ -892,7 +932,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkWithName_WithNonEmptyActionRouteTemplateAndActionRouteName()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -919,24 +959,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_ThowsIfConventionalRouteWithTheSameName(string url)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var expectedMessage = "The supplied route name 'DuplicateRoute' is ambiguous and matched more than one route.";
 
             // Act
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await client.GetAsync(url));
+            var response = await client.GetAsync(url);
 
             // Assert
-            Assert.Equal(expectedMessage, ex.Message);
+            var exception = response.GetServerException();
+            Assert.Equal(expectedMessage, exception.ExceptionMessage);
         }
 
         [Fact]
         public async Task ConventionalRoutedAction_LinkToArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -960,7 +1000,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ConventionalRoutedAction_InArea_ImplicitLinkToArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -983,7 +1023,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ConventionalRoutedAction_InArea_ExplicitLeaveArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1006,7 +1046,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ConventionalRoutedAction_InArea_ImplicitLeaveArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1029,7 +1069,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_LinkToArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1053,7 +1093,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_InArea_ImplicitLinkToArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1076,7 +1116,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_InArea_ExplicitLeaveArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1100,7 +1140,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_InArea_ImplicitLeaveArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1124,7 +1164,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_InArea_LinkToConventionalRoutedActionInArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1149,7 +1189,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ConventionalRoutedAction_InArea_LinkToAttributeRoutedActionInArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1174,7 +1214,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ConventionalRoutedAction_InArea_LinkToAnotherArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1199,7 +1239,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AttributeRoutedAction_InArea_LinkToAnotherArea()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1224,7 +1264,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerWithCatchAll_CanReachSpecificCountry()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1254,7 +1294,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerWithCatchAll_CannotReachWithoutCountry()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1268,7 +1308,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerWithCatchAll_GenerateLinkForSpecificCountry()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1288,7 +1328,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerWithCatchAll_GenerateLinkForFallback()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1308,7 +1348,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ControllerWithCatchAll_GenerateLink_FailsWithoutCountry()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -1322,6 +1362,81 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Null(result.Link);
+        }
+
+        [Theory]
+        [InlineData("/Bank/Deposit", "PUT", "Deposit")]
+        [InlineData("/Bank/Deposit", "POST", "Deposit")]
+        [InlineData("/Bank/Deposit/5", "PUT", "Deposit")]
+        [InlineData("/Bank/Deposit/5", "POST", "Deposit")]
+        [InlineData("/Bank/Withdraw/5", "POST", "Withdraw")]
+        public async Task AttributeRouting_MixedAcceptVerbsAndRoute_Reachable(string path, string verb, string actionName)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(new HttpMethod(verb), "http://localhost" + path);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Contains(path, result.ExpectedUrls);
+            Assert.Equal("Banks", result.Controller);
+            Assert.Equal(actionName, result.Action);
+        }
+
+        // These verbs don't match
+        [Theory]
+        [InlineData("/Bank/Deposit", "GET")]
+        [InlineData("/Bank/Deposit/5", "DELETE")]
+        [InlineData("/Bank/Withdraw/5", "GET")]
+        public async Task AttributeRouting_MixedAcceptVerbsAndRoute_Unreachable(string path, string verb)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(new HttpMethod(verb), "http://localhost" + path);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("/Order/Add/1", "GET", "Add")]
+        [InlineData("/Order/Add", "POST", "Add")]
+        [InlineData("/Order/Edit/1", "PUT", "Edit")]
+        [InlineData("/Order/GetOrder", "GET", "GetOrder")]
+        public async Task AttributeRouting_RouteNameTokenReplace_Reachable(string path, string verb, string actionName)
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(new HttpMethod(verb), "http://localhost" + path);
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Contains(path, result.ExpectedUrls);
+            Assert.Equal("Order", result.Controller);
+            Assert.Equal(actionName, result.Action);
         }
 
         private static LinkBuilder LinkFrom(string url)
@@ -1374,7 +1489,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             public override string ToString()
             {
-                return Url + '?' + string.Join("&", Values.Select(kvp => kvp.Key + '=' + kvp.Value));
+                return Url + "?" + string.Join("&", Values.Select(kvp => kvp.Key + "=" + kvp.Value));
             }
 
             public static implicit operator string (LinkBuilder builder)

@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class EmptyResultTests
     {
@@ -22,8 +23,8 @@ namespace Microsoft.AspNet.Mvc
 
             var context = new ActionContext(httpContext.Object, routeData, actionDescriptor);
 
-            // Act & Assert
-            Assert.DoesNotThrow(() => emptyResult.ExecuteResult(context));
+            // Act & Assert (does not throw)
+            emptyResult.ExecuteResult(context);
         }
     }
 }

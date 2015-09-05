@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Razor;
+using Microsoft.AspNet.Razor.Chunks.Generators;
+using Microsoft.AspNet.Razor.CodeGenerators;
 using Microsoft.AspNet.Razor.Generator;
-using Microsoft.AspNet.Razor.Generator.Compiler;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
 using Microsoft.AspNet.Razor.Text;
@@ -45,7 +47,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("   Foo")
-                    .As(new ModelCodeGenerator("RazorView", "Foo"))
+                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             // Act
@@ -74,10 +78,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code(modelName + "\r\n")
-                    .As(new ModelCodeGenerator("RazorView", expectedModel)),
+                factory.Code(modelName + Environment.NewLine)
+                    .As(new ModelChunkGenerator("RazorView", expectedModel))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
-                    .With(new MarkupCodeGenerator())
+                    .With(new MarkupChunkGenerator())
             };
 
             // Act
@@ -106,12 +111,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("  ")
-                    .As(new ModelCodeGenerator("RazorView", string.Empty)),
+                    .As(new ModelChunkGenerator("RazorView", string.Empty))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
             };
             var expectedErrors = new[]
             {
                 new RazorError("The 'model' keyword must be followed by a type name on the same line.",
-                               new SourceLocation(9, 0, 9), 1)
+                               new SourceLocation(1, 0, 1), 5)
             };
             Assert.Equal(expectedSpans, spans);
             Assert.Equal(expectedErrors, errors);
@@ -134,20 +141,26 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("Foo\r\n")
-                    .As(new ModelCodeGenerator("RazorView", "Foo")),
+                factory.Code("Foo" + Environment.NewLine)
+                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar")
-                    .As(new ModelCodeGenerator("RazorView", "Bar"))
+                    .As(new ModelChunkGenerator("RazorView", "Bar"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("Only one 'model' statement is allowed in a file.",
-                                new SourceLocation(18, 1, 6), 1)
+                new RazorError(
+                    "Only one 'model' statement is allowed in a file.",
+                    PlatformNormalizer.NormalizedSourceLocation(13, 1, 1),
+                    5)
             };
 
             // Act
@@ -175,20 +188,26 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("Foo\r\n")
-                    .As(new ModelCodeGenerator("RazorView", "Foo")),
+                factory.Code("Foo" + Environment.NewLine)
+                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("inherits ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar")
-                    .As(new SetBaseTypeCodeGenerator("Bar"))
+                    .As(new SetBaseTypeChunkGenerator("Bar"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("The 'inherits' keyword is not allowed when a 'model' keyword is used.",
-                               new SourceLocation(21, 1, 9), 1)
+                new RazorError(
+                    "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
+                    PlatformNormalizer.NormalizedSourceLocation(21, 1, 9),
+                    length: 8)
             };
 
             // Act
@@ -217,19 +236,25 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("inherits ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar" + Environment.NewLine)
-                    .As(new SetBaseTypeCodeGenerator("Bar")),
+                    .As(new SetBaseTypeChunkGenerator("Bar"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo")
-                    .As(new ModelCodeGenerator("RazorView", "Foo"))
+                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("The 'inherits' keyword is not allowed when a 'model' keyword is used.",
-                               new SourceLocation(9, 0, 9), 1)
+                new RazorError(
+                    "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
+                    new SourceLocation(9, 0, 9),
+                    length: 8)
             };
 
             // Act
@@ -262,6 +287,54 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.Code(injectStatement)
                     .As(new InjectParameterGenerator(expectedService, expectedPropertyName))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
+            };
+
+            // Act
+            var spans = ParseDocument(documentContent, errors);
+
+            // Assert
+            Assert.Equal(expectedSpans, spans);
+            Assert.Empty(errors);
+        }
+
+        [Theory]
+        [InlineData("IMyService Service;", "IMyService", "Service")]
+        [InlineData("IMyService Service;;", "IMyService", "Service")]
+        [InlineData("  Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>  MyHelper;  ",
+                    "Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>", "MyHelper")]
+        [InlineData("  Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>  MyHelper;  ;  ",
+                    "Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>", "MyHelper")]
+        [InlineData("    TestService    @class; ; ", "TestService", "@class")]
+        [InlineData("IMyService Service  ;", "IMyService", "Service")]
+        [InlineData("IMyService Service  ;  ;", "IMyService", "Service")]
+        [InlineData("  Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>  MyHelper  ;  ",
+                    "Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>", "MyHelper")]
+        [InlineData("  Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>  MyHelper  ;  ;  ",
+                    "Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>", "MyHelper")]
+        [InlineData("    TestService    @class  ; ", "TestService", "@class")]
+        [InlineData("    TestService    @class  ; ; ", "TestService", "@class")]
+        public void ParseInjectKeyword_AllowsOptionalTrailingSemicolon(
+            string injectStatement,
+            string expectedService,
+            string expectedPropertyName)
+        {
+            // Arrange
+            var documentContent = "@inject " + injectStatement;
+            var factory = SpanFactory.CreateCsHtml();
+            var errors = new List<RazorError>();
+            var expectedSpans = new Span[]
+            {
+                factory.EmptyHtml(),
+                factory.CodeTransition(SyntaxConstants.TransitionString)
+                    .Accepts(AcceptedCharacters.None),
+                factory.MetaCode("inject ")
+                    .Accepts(AcceptedCharacters.None),
+                factory.Code(injectStatement)
+                    .As(new InjectParameterGenerator(expectedService, expectedPropertyName))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             // Act
@@ -290,10 +363,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("inject ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code(injectStatement + "\r\n")
-                    .As(new InjectParameterGenerator(expectedService, expectedPropertyName)),
+                factory.Code(injectStatement + Environment.NewLine)
+                    .As(new InjectParameterGenerator(expectedService, expectedPropertyName))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
-                    .With(new MarkupCodeGenerator())
+                    .With(new MarkupChunkGenerator())
             };
 
             // Act
@@ -309,7 +383,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var errors = new List<RazorError>();
-            var documentContent = "@inject    " + Environment.NewLine + "Bar";
+            var documentContent = $"@inject    {Environment.NewLine}Bar";
             var factory = SpanFactory.CreateCsHtml();
             var expectedSpans = new Span[]
             {
@@ -318,15 +392,16 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("inject ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("   \r\n")
-                    .As(new InjectParameterGenerator(string.Empty, string.Empty)),
+                factory.Code("   " + Environment.NewLine)
+                    .As(new InjectParameterGenerator(string.Empty, string.Empty))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
-                    .With(new MarkupCodeGenerator())
+                    .With(new MarkupChunkGenerator())
             };
             var expectedErrors = new[]
             {
                 new RazorError("The 'inject' keyword must be followed by a type name on the same line.",
-                                new SourceLocation(11, 0, 11), 1)
+                                new SourceLocation(1, 0, 1), 6)
             };
 
             // Act
@@ -352,12 +427,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("inject ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("   ")
-                    .As(new InjectParameterGenerator(string.Empty, string.Empty)),
+                    .As(new InjectParameterGenerator(string.Empty, string.Empty))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
             var expectedErrors = new[]
             {
                  new RazorError("The 'inject' keyword must be followed by a type name on the same line.",
-                                new SourceLocation(11, 0, 11), 1)
+                                new SourceLocation(1, 0, 1), 6)
             };
 
             // Act
@@ -373,7 +450,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var errors = new List<RazorError>();
-            var documentContent = "@inject   IMyService  \r\nBar";
+            var documentContent = $"@inject   IMyService  {Environment.NewLine}Bar";
             var factory = SpanFactory.CreateCsHtml();
             var expectedSpans = new Span[]
             {
@@ -382,16 +459,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("inject ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("  IMyService  \r\n")
-                    .As(new InjectParameterGenerator("IMyService", string.Empty)),
+                factory.Code("  IMyService  " + Environment.NewLine)
+                    .As(new InjectParameterGenerator("IMyService", string.Empty))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
-                    .With(new MarkupCodeGenerator())
+                    .With(new MarkupChunkGenerator())
             };
             var expectedErrors = new[]
             {
                 new RazorError("A property name must be specified when using the 'inject' statement. " +
                                "Format for a 'inject' statement is '@inject <Type Name> <Property Name>'.",
-                                new SourceLocation(20, 0, 20), 1)
+                                new SourceLocation(1, 0, 1), 21)
             };
 
             // Act
@@ -417,13 +495,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("inject ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("   IMyServi")
-                    .As(new InjectParameterGenerator("IMyServi", string.Empty)),
+                    .As(new InjectParameterGenerator("IMyServi", string.Empty))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
             var expectedErrors = new[]
             {
                 new RazorError("A property name must be specified when using the 'inject' statement. " +
                                "Format for a 'inject' statement is '@inject <Type Name> <Property Name>'.",
-                                new SourceLocation(19, 0, 19), 1)
+                                new SourceLocation(1, 0, 1), 21)
             };
 
             // Act
@@ -442,7 +522,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             var markupParser = new HtmlMarkupParser();
             var codeParser = new TestMvcCSharpRazorCodeParser();
             var reader = new SeekableTextReader(documentContents);
-            var context = new ParserContext(reader, codeParser, markupParser, markupParser);
+            var context = new ParserContext(
+                reader,
+                codeParser,
+                markupParser,
+                markupParser,
+                new ErrorSink());
             codeParser.Context = context;
             markupParser.Context = context;
             markupParser.ParseDocument();

@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNet.Mvc.Description
+﻿@using Microsoft.AspNet.Mvc.ApiExplorer
 @model IReadOnlyList<ApiDescriptionGroup>
 
 @section header
@@ -17,7 +17,7 @@
             {
                 await Html.RenderPartialAsync("_ApiDescription", item);
             }
-            
+
         </div>
     }
 </div>

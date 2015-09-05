@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -14,9 +17,11 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void CopyConstructor_DoesDeepCopyOfOtherModels()
         {
             // Arrange
-            var controller = new ControllerModel(typeof(TestController).GetTypeInfo());
+            var controller = new ControllerModel(typeof(TestController).GetTypeInfo(),
+                                                 new List<object>());
 
-            var action = new ActionModel(typeof(TestController).GetMethod("Edit"));
+            var action = new ActionModel(typeof(TestController).GetMethod("Edit"),
+                                         new List<object>());
             controller.Actions.Add(action);
             action.Controller = controller;
 
@@ -46,14 +51,22 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void CopyConstructor_CopiesAllProperties()
         {
             // Arrange
-            var controller = new ControllerModel(typeof(TestController).GetTypeInfo());
+            var controller = new ControllerModel(
+                typeof(TestController).GetTypeInfo(),
+                new List<object>()
+                {
+                    new HttpGetAttribute(),
+                    new MyFilterAttribute(),
+                });
 
             controller.ActionConstraints.Add(new HttpMethodConstraint(new string[] { "GET" }));
             controller.Application = new ApplicationModel();
-            controller.Attributes.Add(new HttpGetAttribute());
             controller.ControllerName = "cool";
-            controller.Filters.Add(new AuthorizeAttribute());
-            controller.RouteConstraints.Add(new AreaAttribute("Admin"));
+            controller.Filters.Add(new MyFilterAttribute());
+            controller.RouteConstraints.Add(new MyRouteConstraintAttribute());
+            controller.Properties.Add(new KeyValuePair<object, object>("test key", "test value"));
+            controller.ControllerProperties.Add(
+                new PropertyModel(typeof(TestController).GetProperty("TestProperty"), new List<object>()));
 
             // Act
             var controller2 = new ControllerModel(controller);
@@ -61,9 +74,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // Assert
             foreach (var property in typeof(ControllerModel).GetProperties())
             {
-                if (property.Name.Equals("Actions") || 
+                if (property.Name.Equals("Actions") ||
                     property.Name.Equals("AttributeRoutes") ||
-                    property.Name.Equals("ApiExplorer"))
+                    property.Name.Equals("ApiExplorer") ||
+                    property.Name.Equals("ControllerProperties"))
                 {
                     // This test excludes other ApplicationModel objects on purpose because we deep copy them.
                     continue;
@@ -79,7 +93,14 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                     // Ensure non-default value
                     Assert.NotEmpty((IEnumerable<object>)value1);
                 }
-                else if (property.PropertyType.IsValueType || 
+                else if (typeof(IDictionary<object, object>).IsAssignableFrom(property.PropertyType))
+                {
+                    Assert.Equal(value1, value2);
+
+                    // Ensure non-default value
+                    Assert.NotEmpty((IDictionary<object, object>)value1);
+                }
+                else if (property.PropertyType.IsValueType ||
                     Nullable.GetUnderlyingType(property.PropertyType) != null)
                 {
                     Assert.Equal(value1, value2);
@@ -99,9 +120,26 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         private class TestController
         {
+            public string TestProperty { get; set; }
+
             public void Edit()
             {
             }
+        }
+
+        private class MyFilterAttribute : Attribute, IFilterMetadata
+        {
+        }
+
+        private class MyRouteConstraintAttribute : Attribute, IRouteConstraintProvider
+        {
+            public bool BlockNonAttributedActions { get { return true; } }
+
+            public string RouteKey { get; set; }
+
+            public RouteKeyHandling RouteKeyHandling { get { return RouteKeyHandling.RequireKey; } }
+
+            public string RouteValue { get; set; }
         }
     }
 }

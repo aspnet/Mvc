@@ -1,5 +1,10 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.ActionResults;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
 using MvcSample.Web.Models;
 

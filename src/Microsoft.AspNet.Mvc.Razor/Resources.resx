@@ -121,7 +121,7 @@
     <value>Value cannot be null or empty.</value>
   </data>
   <data name="CompilationFailed" xml:space="preserve">
-    <value>Compilation for '{0}' failed:</value>
+    <value>One or more compilation failures occured:</value>
   </data>
   <data name="FlushPointCannotBeInvoked" xml:space="preserve">
     <value>'{0}' cannot be invoked when a Layout page is set to be executed.</value>
@@ -130,10 +130,10 @@
     <value>The {0} returned by '{1}' must be an instance of '{2}'.</value>
   </data>
   <data name="LayoutCannotBeLocated" xml:space="preserve">
-    <value>The layout view '{0}' could not be located.</value>
+    <value>The layout view '{0}' could not be located. The following locations were searched:{1}</value>
   </data>
   <data name="LayoutCannotBeRendered" xml:space="preserve">
-    <value>A layout page cannot be rendered after '{0}' has been invoked.</value>
+    <value>Layout page '{0}' cannot be rendered after '{1}' has been invoked.</value>
   </data>
   <data name="MvcRazorCodeParser_CannotHaveModelAndInheritsKeyword" xml:space="preserve">
     <value>The 'inherits' keyword is not allowed when a '{0}' keyword is used.</value>
@@ -147,29 +147,29 @@
   <data name="RazorPage_ThereIsNoActiveWritingScopeToEnd" xml:space="preserve">
     <value>There is no active writing scope to end.</value>
   </data>
-  <data name="RazorPage_YouCannotFlushWhileInAWritingScope" xml:space="preserve">
-    <value>You cannot flush while inside a writing scope.</value>
+  <data name="RazorPage_CannotFlushWhileInAWritingScope" xml:space="preserve">
+    <value>The {0} operation cannot be performed while inside a writing scope in '{1}'.</value>
   </data>
   <data name="RazorPage_NullModelMetadata" xml:space="preserve">
     <value>The {0} was unable to provide metadata for expression '{1}'.</value>
   </data>
   <data name="RazorPage_MethodCannotBeCalled" xml:space="preserve">
-    <value>{0} can only be called from a layout page.</value>
+    <value>{0} invocation in '{1}' is invalid. {0} can only be called from a layout page.</value>
   </data>
   <data name="RenderBodyNotCalled" xml:space="preserve">
-    <value>{0} must be called from a layout page.</value>
+    <value>{0} has not been called for the page at '{1}'.</value>
   </data>
   <data name="SectionAlreadyDefined" xml:space="preserve">
     <value>Section '{0}' is already defined.</value>
   </data>
   <data name="SectionAlreadyRendered" xml:space="preserve">
-    <value>The section named '{0}' has already been rendered.</value>
+    <value>{0} invocation in '{1}' is invalid. The section '{2}' has already been rendered.</value>
   </data>
   <data name="SectionNotDefined" xml:space="preserve">
-    <value>Section '{0}' is not defined.</value>
+    <value>Section '{0}' is not defined in path '{1}'.</value>
   </data>
   <data name="SectionsNotRendered" xml:space="preserve">
-    <value>The following sections have been defined but have not been rendered: '{0}'.</value>
+    <value>The following sections have been defined but have not been rendered by the page at '{0}': '{1}'.</value>
   </data>
   <data name="ViewCannotBeActivated" xml:space="preserve">
     <value>View of type '{0}' cannot be activated by '{1}'.</value>
@@ -182,5 +182,22 @@
   </data>
   <data name="ViewMustBeContextualized" xml:space="preserve">
     <value>The '{0}' method must be called before '{1}' can be invoked.</value>
+  </data>
+  <data name="RazorHash_UnsupportedHashAlgorithm" xml:space="preserve">
+    <value>Unsupported hash algorithm.</value>
+  </data>
+  <data name="RazorFileInfoCollection_ResourceCouldNotBeFound" xml:space="preserve">
+    <value>The resource '{0}' specified by '{1}' could not be found.</value>
+  </data>
+  <data name="GeneratedCodeFileName" xml:space="preserve">
+    <value>Generated Code</value>
+  </data>
+  <data name="RazorPage_InvalidTagHelperIndexerAssignment" xml:space="preserve">
+    <value>Unable to perform '{0}' assignment. Tag helper property '{1}.{2}' must not be null.</value>
+  </data>
+  <data name="CouldNotResolveApplicationRelativeUrl_TagHelper" xml:space="preserve">
+    <value>Unexpected return value from '{1}.{2}' for URL '{0}'. If the '{1}' service has been overridden, change '{2}' to replace only the '~/' prefix. Otherwise, add the following directive to the Razor page to disable URL resolution relative to the application's 'webroot' setting:
+
+@{3} "{4}, {5}"</value>
   </data>
 </root>

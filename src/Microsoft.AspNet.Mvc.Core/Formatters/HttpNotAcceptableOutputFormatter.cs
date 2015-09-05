@@ -1,38 +1,28 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Http;
+using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
-    /// A formatter which does not have a supported content type and selects itself if no content type is passed to it.
-    /// Sets the status code to 406 if selected.
+    /// A formatter which selects itself when content-negotiation has failed and writes a 406 Not Acceptable response.
     /// </summary>
     public class HttpNotAcceptableOutputFormatter : IOutputFormatter
     {
         /// <inheritdoc />
         public bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
-            return contentType == null;
-        }
-
-        /// <inheritdoc />
-        public IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(Type declaredType,
-                                                                            Type runtimeType,
-                                                                            MediaTypeHeaderValue contentType)
-        {
-            return null;
+            return context.FailedContentNegotiation ?? false;
         }
 
         /// <inheritdoc />
         public Task WriteAsync(OutputFormatterContext context)
         {
-            var response = context.ActionContext.HttpContext.Response;
-            response.StatusCode = 406;
+            var response = context.HttpContext.Response;
+            response.StatusCode = StatusCodes.Status406NotAcceptable;
             return Task.FromResult(true);
         }
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,7 +6,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -14,8 +15,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class WebApiCompatShimActionSelectionTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(WebApiCompatShimWebSite));
+        private const string SiteName = nameof(WebApiCompatShimWebSite);
         private readonly Action<IApplicationBuilder> _app = new WebApiCompatShimWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new WebApiCompatShimWebSite.Startup().ConfigureServices;
 
         [Theory]
         [InlineData("GET", "GetItems")]
@@ -28,18 +30,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_UnnamedAction(string httpMethod, string actionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
-                new HttpMethod(httpMethod), 
+                new HttpMethod(httpMethod),
                 "http://localhost/api/Admin/WebAPIActionConventions");
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -57,18 +59,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_NamedAction(string httpMethod, string actionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
-                new HttpMethod(httpMethod), 
+                new HttpMethod(httpMethod),
                 "http://localhost/api/Blog/WebAPIActionConventions/" + actionName);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,11 +81,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_NamedAction_MismatchedVerb()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
-                new HttpMethod("POST"), 
+                new HttpMethod("POST"),
                 "http://localhost/api/Blog/WebAPIActionConventions/GetItems");
 
             // Act
@@ -97,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_UnnamedAction_DefaultVerbIsPost_Success()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -106,9 +108,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -119,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_NamedAction_DefaultVerbIsPost_Success()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -128,9 +130,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -141,7 +143,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_UnnamedAction_DefaultVerbIsPost_VerbMismatch()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -159,7 +161,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromPrefix_NamedAction_DefaultVerbIsPost_VerbMismatch()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -177,7 +179,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromMethodName_NotActionName_UnnamedAction_Success()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -186,9 +188,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -199,7 +201,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromMethodName_NotActionName_NamedAction_Success()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -208,9 +210,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -221,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromMethodName_NotActionName_UnnamedAction_VerbMismatch()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -239,7 +241,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_TakesHttpMethodFromMethodName_NotActionName_NamedAction_VerbMismatch()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -257,7 +259,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_HttpMethodOverride_UnnamedAction_Success()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -266,9 +268,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -279,7 +281,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_HttpMethodOverride_NamedAction_Success()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -288,9 +290,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -301,7 +303,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_HttpMethodOverride_UnnamedAction_VerbMismatch()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -319,7 +321,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task WebAPIConvention_HttpMethodOverride_NamedAction_VerbMismatch()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(
@@ -368,16 +370,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_OverloadedAction_WithUnnamedAction(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -395,16 +397,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_OverloadedAction_NonIdRouteParameter(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -419,16 +421,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_OverloadedAction_Parameter_Casing(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -446,16 +448,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_RouteWithActionName(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -473,16 +475,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_RouteWithActionName_Casing(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -498,16 +500,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_RouteWithoutActionName(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -526,16 +528,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_ModelBindingParameterAttribute_AreAppliedWhenSelectingActions(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -550,16 +552,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_ActionsThatHaveSubsetOfRouteParameters_AreConsideredForSelection(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -572,13 +574,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_RequestToAmbiguousAction_OnDefaultRoute()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod("POST"), "http://localhost/api/Admin/Test?name=mario");
 
-            // Act & Assert
-            await Assert.ThrowsAsync<AmbiguousActionException>(async () => await client.SendAsync(request));
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(AmbiguousActionException).FullName, exception.ExceptionType);
         }
 
         [Theory]
@@ -589,23 +595,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task LegacyActionSelection_SelectAction_ReturnsActionDescriptor_ForEnumParameterOverloads(string httpMethod, string requestUrl, string expectedActionName)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), "http://localhost/" + requestUrl);
 
             // Act
             var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
 
-            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(body);
+            var data = Assert.Single(response.Headers.GetValues("ActionSelection"));
+            var result = JsonConvert.DeserializeObject<ActionSelectionResult>(data);
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedActionName, result.ActionName);
         }
 
-        // Verify response has all the methods in its Allow header. values are unsorted. 
+        // Verify response has all the methods in its Allow header. values are unsorted.
         private void AssertAllowedHeaders(HttpResponseMessage response, params HttpMethod[] allowedMethods)
         {
             foreach (var method in allowedMethods)

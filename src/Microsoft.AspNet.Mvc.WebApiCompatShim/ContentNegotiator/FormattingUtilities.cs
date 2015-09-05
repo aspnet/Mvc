@@ -1,17 +1,16 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNETCORE50
+#if DNXCORE50
 
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization;
+using System.Reflection;
 using System.Xml;
 using Newtonsoft.Json.Linq;
-using System.Reflection;
 
 namespace System.Net.Http
 {
@@ -21,7 +20,7 @@ namespace System.Net.Http
     internal static class FormattingUtilities
     {
         // Supported date formats for input.
-        private static readonly string[] dateFormats = new string[] 
+        private static readonly string[] dateFormats = new string[]
         {
             // "r", // RFC 1123, required output format but too strict for input
             "ddd, d MMM yyyy H:m:s 'GMT'", // RFC 1123 (r, except it allows both 1 and 01 for date and time)
@@ -129,7 +128,7 @@ namespace System.Net.Http
         }
 
         /// <summary>
-        /// Creates an empty <see cref="HttpContentHeaders"/> instance. The only way is to get it from a dummy 
+        /// Creates an empty <see cref="HttpContentHeaders"/> instance. The only way is to get it from a dummy
         /// <see cref="HttpContent"/> instance.
         /// </summary>
         /// <returns>The created instance.</returns>
@@ -139,7 +138,7 @@ namespace System.Net.Http
             HttpContentHeaders contentHeaders = null;
             try
             {
-                tempContent = new StringContent(String.Empty);
+                tempContent = new StringContent(string.Empty);
                 contentHeaders = tempContent.Headers;
                 contentHeaders.Clear();
             }
@@ -156,21 +155,23 @@ namespace System.Net.Http
         }
 
         /// <summary>
-        /// Create a default reader quotas with a default depth quota of 1K
+        /// Create a default reader quotas with a default depth quota of 1K.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A default <see cref="XmlDictionaryReaderQuotas"/> with a default depth quota of 1K.</returns>
         public static XmlDictionaryReaderQuotas CreateDefaultReaderQuotas()
         {
-#if NETFX_CORE // MaxDepth is a DOS mitigation. We don't support MaxDepth in portable libraries because it is strictly client side.
+            // MaxDepth is a DOS mitigation. We don't support MaxDepth in portable libraries because it is strictly
+            // client side.
+#if NETFX_CORE
             return XmlDictionaryReaderQuotas.Max;
 #else
             return new XmlDictionaryReaderQuotas()
             {
-                MaxArrayLength = Int32.MaxValue,
-                MaxBytesPerRead = Int32.MaxValue,
+                MaxArrayLength = int.MaxValue,
+                MaxBytesPerRead = int.MaxValue,
                 MaxDepth = DefaultMaxDepth,
-                MaxNameTableCharCount = Int32.MaxValue,
-                MaxStringContentLength = Int32.MaxValue
+                MaxNameTableCharCount = int.MaxValue,
+                MaxStringContentLength = int.MaxValue
             };
 #endif
         }
@@ -182,12 +183,14 @@ namespace System.Net.Http
         /// <returns>Unquoted token.</returns>
         public static string UnquoteToken(string token)
         {
-            if (String.IsNullOrWhiteSpace(token))
+            if (string.IsNullOrWhiteSpace(token))
             {
                 return token;
             }
 
-            if (token.StartsWith("\"", StringComparison.Ordinal) && token.EndsWith("\"", StringComparison.Ordinal) && token.Length > 1)
+            if (token.StartsWith("\"", StringComparison.Ordinal) &&
+                token.EndsWith("\"", StringComparison.Ordinal) &&
+                token.Length > 1)
             {
                 return token.Substring(1, token.Length - 2);
             }
@@ -234,7 +237,7 @@ namespace System.Net.Http
         /// <returns>True if value was valid; false otherwise.</returns>
         public static bool TryParseInt32(string value, out int result)
         {
-            return Int32.TryParse(value, NumberStyles.None, NumberFormatInfo.InvariantInfo, out result);
+            return int.TryParse(value, NumberStyles.None, NumberFormatInfo.InvariantInfo, out result);
         }
     }
 }

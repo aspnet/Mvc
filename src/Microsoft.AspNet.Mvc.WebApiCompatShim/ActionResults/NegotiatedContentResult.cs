@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
 
 namespace System.Web.Http
 {
@@ -21,14 +22,9 @@ namespace System.Web.Http
         public NegotiatedContentResult(HttpStatusCode statusCode, T content)
             : base(content)
         {
-            StatusCode = statusCode;
+            StatusCode = (int)statusCode;
             Content = content;
         }
-
-        /// <summary>
-        /// Gets the HTTP status code for the response message.
-        /// </summary>
-        public HttpStatusCode StatusCode { get; private set; }
 
         /// <summary>
         /// Gets the content value to negotiate and format in the entity body.

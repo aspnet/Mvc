@@ -1,57 +1,63 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
-    public class RedirectToRouteResult : ActionResult
+    public class RedirectToRouteResult : ActionResult, IKeepTempDataResult
     {
-        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
-                                     object routeValues)
-            : this(urlHelper, routeName: null, routeValues: routeValues)
+        public RedirectToRouteResult(object routeValues)
+            : this(routeName: null, routeValues: routeValues)
         {
         }
 
-        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
-                                     string routeName,
-                                     object routeValues)
-            : this(urlHelper, routeName, routeValues, permanent: false)
+        public RedirectToRouteResult(
+            string routeName,
+            object routeValues)
+            : this(routeName, routeValues, permanent: false)
         {
         }
 
-        public RedirectToRouteResult([NotNull] IUrlHelper urlHelper,
-                                     string routeName,
-                                     object routeValues,
-                                     bool permanent)
+        public RedirectToRouteResult(
+            string routeName,
+            object routeValues,
+            bool permanent)
         {
-            UrlHelper = urlHelper;
             RouteName = routeName;
-            RouteValues = TypeHelper.ObjectToDictionary(routeValues);
+            RouteValues = PropertyHelper.ObjectToDictionary(routeValues);
             Permanent = permanent;
         }
 
-        public IUrlHelper UrlHelper { get; private set; }
+        public IUrlHelper UrlHelper { get; set; }
 
-        public string RouteName { get; private set; }
+        public string RouteName { get; set; }
 
-        public IDictionary<string, object> RouteValues { get; private set; }
+        public IDictionary<string, object> RouteValues { get; set; }
 
-        public bool Permanent { get; private set; }
+        public bool Permanent { get; set; }
 
         public override void ExecuteResult([NotNull] ActionContext context)
         {
-            var destinationUrl = UrlHelper.RouteUrl(RouteValues);
+            var urlHelper = GetUrlHelper(context);
 
+            var destinationUrl = urlHelper.RouteUrl(RouteName, RouteValues);
             if (string.IsNullOrEmpty(destinationUrl))
             {
                 throw new InvalidOperationException(Resources.NoRoutesMatched);
             }
 
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
+        }
+
+        private IUrlHelper GetUrlHelper(ActionContext context)
+        {
+            return UrlHelper ?? context.HttpContext.RequestServices.GetRequiredService<IUrlHelper>();
         }
     }
 }

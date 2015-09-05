@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.OptionsModel;
 
 namespace UrlHelperWebSite
@@ -17,12 +19,14 @@ namespace UrlHelperWebSite
         private readonly IOptions<AppOptions> _appOptions;
         private readonly HttpContext _httpContext;
 
-        public CustomUrlHelper(IContextAccessor<ActionContext> contextAccessor, IActionSelector actionSelector,
-                                IOptions<AppOptions> appOptions)
+        public CustomUrlHelper(
+            IActionContextAccessor contextAccessor,
+            IActionSelector actionSelector,
+            IOptions<AppOptions> appOptions)
             : base(contextAccessor, actionSelector)
         {
             _appOptions = appOptions;
-            _httpContext = contextAccessor.Value.HttpContext;
+            _httpContext = contextAccessor.ActionContext.HttpContext;
         }
 
         /// <summary>
@@ -33,31 +37,31 @@ namespace UrlHelperWebSite
         /// <returns></returns>
         public override string Content(string contentPath)
         {
-            if (_appOptions.Options.ServeCDNContent
+            if (_appOptions.Value.ServeCDNContent
                 && contentPath.StartsWith("~/", StringComparison.Ordinal))
             {
                 var segment = new PathString(contentPath.Substring(1));
 
-                return ConvertToLowercaseUrl(_appOptions.Options.CDNServerBaseUrl + segment);
+                return ConvertToLowercaseUrl(_appOptions.Value.CDNServerBaseUrl + segment);
             }
 
             return ConvertToLowercaseUrl(base.Content(contentPath));
         }
 
-        public override string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
+        public override string RouteUrl(UrlRouteContext routeContext)
         {
-            return ConvertToLowercaseUrl(base.RouteUrl(routeName, values, protocol, host, fragment));
+            return ConvertToLowercaseUrl(base.RouteUrl(routeContext));
         }
 
-        public override string Action(string action, string controller, object values, string protocol, string host, string fragment)
+        public override string Action(UrlActionContext actionContext)
         {
-            return ConvertToLowercaseUrl(base.Action(action, controller, values, protocol, host, fragment));
+            return ConvertToLowercaseUrl(base.Action(actionContext));
         }
 
         private string ConvertToLowercaseUrl(string url)
         {
             if (!string.IsNullOrEmpty(url)
-                && _appOptions.Options.GenerateLowercaseUrls)
+                && _appOptions.Value.GenerateLowercaseUrls)
             {
                 return url.ToLowerInvariant();
             }

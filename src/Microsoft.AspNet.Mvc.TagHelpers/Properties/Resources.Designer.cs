@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             = new ResourceManager("Microsoft.AspNet.Mvc.TagHelpers.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
-        /// Cannot determine an '{4}' for {0}. An {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.
+        /// Cannot determine an '{4}' attribute for {0}. An {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.
         /// </summary>
         internal static string AnchorTagHelper_CannotDetermineHrefRouteActionOrControllerSpecified
         {
@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Cannot determine an '{4}' for {0}. An {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.
+        /// Cannot determine an '{4}' attribute for {0}. An {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.
         /// </summary>
         internal static string FormatAnchorTagHelper_CannotDetermineHrefRouteActionOrControllerSpecified(object p0, object p1, object p2, object p3, object p4)
         {
@@ -27,19 +27,35 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Cannot determine an '{8}' for {0}. An {0} with a specified '{8}' must not have attributes starting with '{7}' or an '{1}', '{2}', '{3}', '{4}', '{5}', or '{6}' attribute.
+        /// Cannot override the '{8}' attribute for {0}. An {0} with a specified '{8}' must not have attributes starting with '{7}' or an '{1}', '{2}', '{3}', '{4}', '{5}', or '{6}' attribute.
         /// </summary>
-        internal static string AnchorTagHelper_CannotOverrideSpecifiedHref
+        internal static string AnchorTagHelper_CannotOverrideHref
         {
-            get { return GetString("AnchorTagHelper_CannotOverrideSpecifiedHref"); }
+            get { return GetString("AnchorTagHelper_CannotOverrideHref"); }
         }
 
         /// <summary>
-        /// Cannot determine an '{8}' for {0}. An {0} with a specified '{8}' must not have attributes starting with '{7}' or an '{1}', '{2}', '{3}', '{4}', '{5}', or '{6}' attribute.
+        /// Cannot override the '{8}' attribute for {0}. An {0} with a specified '{8}' must not have attributes starting with '{7}' or an '{1}', '{2}', '{3}', '{4}', '{5}', or '{6}' attribute.
         /// </summary>
-        internal static string FormatAnchorTagHelper_CannotOverrideSpecifiedHref(object p0, object p1, object p2, object p3, object p4, object p5, object p6, object p7, object p8)
+        internal static string FormatAnchorTagHelper_CannotOverrideHref(object p0, object p1, object p2, object p3, object p4, object p5, object p6, object p7, object p8)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AnchorTagHelper_CannotOverrideSpecifiedHref"), p0, p1, p2, p3, p4, p5, p6, p7, p8);
+            return string.Format(CultureInfo.CurrentCulture, GetString("AnchorTagHelper_CannotOverrideHref"), p0, p1, p2, p3, p4, p5, p6, p7, p8);
+        }
+
+        /// <summary>
+        /// Cannot override the '{1}' attribute for {0}. A {0} with a specified '{1}' must not have attributes starting with '{5}' or an '{2}' or '{3}' or '{4}' attribute.
+        /// </summary>
+        internal static string FormTagHelper_CannotOverrideAction
+        {
+            get { return GetString("FormTagHelper_CannotOverrideAction"); }
+        }
+
+        /// <summary>
+        /// Cannot override the '{1}' attribute for {0}. A {0} with a specified '{1}' must not have attributes starting with '{5}' or an '{2}' or '{3}' or '{4}' attribute.
+        /// </summary>
+        internal static string FormatFormTagHelper_CannotOverrideAction(object p0, object p1, object p2, object p3, object p4, object p5)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FormTagHelper_CannotOverrideAction"), p0, p1, p2, p3, p4, p5);
         }
 
         /// <summary>
@@ -59,22 +75,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Unable to format without a '{1}' expression for {0}. '{2}' must be null if '{1}' is null.
-        /// </summary>
-        internal static string InputTagHelper_UnableToFormat
-        {
-            get { return GetString("InputTagHelper_UnableToFormat"); }
-        }
-
-        /// <summary>
-        /// Unable to format without a '{1}' expression for {0}. '{2}' must be null if '{1}' is null.
-        /// </summary>
-        internal static string FormatInputTagHelper_UnableToFormat(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("InputTagHelper_UnableToFormat"), p0, p1, p2);
-        }
-
-        /// <summary>
         /// '{1}' must not be null for {0} if '{2}' is '{3}'.
         /// </summary>
         internal static string InputTagHelper_ValueRequired
@@ -91,54 +91,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Cannot determine an '{1}' for {0}. A {0} with a URL-based '{1}' must not have attributes starting with '{3}' or a '{2}' attribute.
-        /// </summary>
-        internal static string FormTagHelper_CannotDetermineAction
-        {
-            get { return GetString("FormTagHelper_CannotDetermineAction"); }
-        }
-
-        /// <summary>
-        /// Cannot determine an '{1}' for {0}. A {0} with a URL-based '{1}' must not have attributes starting with '{3}' or a '{2}' attribute.
-        /// </summary>
-        internal static string FormatFormTagHelper_CannotDetermineAction(object p0, object p1, object p2, object p3)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("FormTagHelper_CannotDetermineAction"), p0, p1, p2, p3);
-        }
-
-        /// <summary>
-        /// Cannot determine body for {0}. '{2}' must be null if '{1}' is null.
-        /// </summary>
-        internal static string SelectTagHelper_CannotDetermineContentWhenOnlyItemsSpecified
-        {
-            get { return GetString("SelectTagHelper_CannotDetermineContentWhenOnlyItemsSpecified"); }
-        }
-
-        /// <summary>
-        /// Cannot determine body for {0}. '{2}' must be null if '{1}' is null.
-        /// </summary>
-        internal static string FormatSelectTagHelper_CannotDetermineContentWhenOnlyItemsSpecified(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("SelectTagHelper_CannotDetermineContentWhenOnlyItemsSpecified"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// Cannot parse '{1}' value '{2}' for {0}. Acceptable values are '{3}', '{4}' and '{5}'.
-        /// </summary>
-        internal static string TagHelpers_InvalidValue_ThreeAcceptableValues
-        {
-            get { return GetString("TagHelpers_InvalidValue_ThreeAcceptableValues"); }
-        }
-
-        /// <summary>
-        /// Cannot parse '{1}' value '{2}' for {0}. Acceptable values are '{3}', '{4}' and '{5}'.
-        /// </summary>
-        internal static string FormatTagHelpers_InvalidValue_ThreeAcceptableValues(object p0, object p1, object p2, object p3, object p4, object p5)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TagHelpers_InvalidValue_ThreeAcceptableValues"), p0, p1, p2, p3, p4, p5);
-        }
-
-        /// <summary>
         /// The {2} was unable to provide metadata about '{1}' expression value '{3}' for {0}.
         /// </summary>
         internal static string TagHelpers_NoProvidedMetadata
@@ -152,6 +104,54 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         internal static string FormatTagHelpers_NoProvidedMetadata(object p0, object p1, object p2, object p3)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("TagHelpers_NoProvidedMetadata"), p0, p1, p2, p3);
+        }
+
+        /// <summary>
+        /// The value of argument '{0}' ({1}) is invalid for Enum type '{2}'.
+        /// </summary>
+        internal static string InvalidEnumArgument
+        {
+            get { return GetString("InvalidEnumArgument"); }
+        }
+
+        /// <summary>
+        /// The value of argument '{0}' ({1}) is invalid for Enum type '{2}'.
+        /// </summary>
+        internal static string FormatInvalidEnumArgument(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("InvalidEnumArgument"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// The attribute '{0}' does not exist in the {1}.
+        /// </summary>
+        internal static string TagHelperOutput_AttributeDoesNotExist
+        {
+            get { return GetString("TagHelperOutput_AttributeDoesNotExist"); }
+        }
+
+        /// <summary>
+        /// The attribute '{0}' does not exist in the {1}.
+        /// </summary>
+        internal static string FormatTagHelperOutput_AttributeDoesNotExist(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("TagHelperOutput_AttributeDoesNotExist"), p0, p1);
+        }
+
+        /// <summary>
+        /// Cannot determine an '{4}' attribute for {0}. A {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.
+        /// </summary>
+        internal static string FormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified
+        {
+            get { return GetString("FormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified"); }
+        }
+
+        /// <summary>
+        /// Cannot determine an '{4}' attribute for {0}. A {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.
+        /// </summary>
+        internal static string FormatFormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified(object p0, object p1, object p2, object p3, object p4)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified"), p0, p1, p2, p3, p4);
         }
 
         private static string GetString(string name, params string[] formatterNames)

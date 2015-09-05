@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -8,8 +8,8 @@ using Microsoft.AspNet.Routing.Template;
 namespace Microsoft.AspNet.Mvc.Routing
 {
     /// <summary>
-    /// Used to build an <see cref="AttributeRoute"/>. Represents an individual URL-generating route that will be
-    /// aggregated into the <see cref="AttributeRoute"/>.
+    /// Used to build an <see cref="InnerAttributeRoute"/>. Represents an individual URL-generating route that will be
+    /// aggregated into the <see cref="InnerAttributeRoute"/>.
     /// </summary>
     public class AttributeRouteLinkGenerationEntry
     {

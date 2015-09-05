@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http.Formatting;
+using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Testing.xunit;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace System.Web.Http.Dispatcher
 {
@@ -108,7 +110,7 @@ namespace System.Web.Http.Dispatcher
             Assert.DoesNotContain("OH NO", modelStateError["[2].Name"] as IEnumerable<string>);
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         [Fact]
         public void HttpError_Roundtrips_WithJsonFormatter()
@@ -131,7 +133,9 @@ namespace System.Web.Http.Dispatcher
             Assert.Contains("c", data);
         }
 
-        [Fact]
+        [ConditionalTheory]
+        // Mono issue - https://github.com/aspnet/External/issues/25
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public void HttpError_Roundtrips_WithXmlFormatter()
         {
             HttpError error = new HttpError("error") { { "ErrorCode", 42 }, { "Data", new[] { "a", "b", "c" } } };

@@ -1,101 +1,92 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.IO;
+using Autofac;
+using Autofac.Framework.DependencyInjection;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
-using Microsoft.AspNet.Routing;
-using Microsoft.Framework.ConfigurationModel;
+using Microsoft.Framework.Configuration;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Dnx.Runtime;
 using MvcSample.Web.Filters;
 using MvcSample.Web.Services;
-
-#if ASPNET50 
-using Autofac;
-using Microsoft.Framework.DependencyInjection.Autofac;
-#endif
 
 namespace MvcSample.Web
 {
     public class Startup
     {
-        public void Configure(IApplicationBuilder app)
-        {
-            app.UseFileServer();
-#if ASPNET50
-            // We use Path.Combine here so that it works on platforms other than Windows as well.
-            var configuration = new Configuration()
-                                        .AddJsonFile(Path.Combine("App_Data", "config.json"))
-                                        .AddEnvironmentVariables();
-            string diSystem;
+        private bool _autoFac;
 
-            if (configuration.TryGet("DependencyInjection", out diSystem) &&
+        public IServiceProvider ConfigureServices(IServiceCollection services)
+        {
+            services.AddCaching();
+            services.AddSession();
+
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(typeof(PassThroughAttribute), order: 17);
+                options.Filters.Add(new FormatFilterAttribute());
+            })
+            .AddXmlDataContractSerializerFormatters()
+            .AddViewLocalization(LanguageViewLocationExpanderFormat.SubFolder);
+
+            services.AddSingleton<PassThroughAttribute>();
+            services.AddSingleton<UserNameService>();
+            services.AddTransient<ITestService, TestService>();
+            
+
+            var applicationEnvironment = services.BuildServiceProvider().GetRequiredService<IApplicationEnvironment>();
+            var configurationPath = Path.Combine(applicationEnvironment.ApplicationBasePath, "config.json");
+
+            // Set up configuration sources.
+            var configBuilder = new ConfigurationBuilder()
+                .AddJsonFile(configurationPath)
+                .AddEnvironmentVariables();
+
+            var configuration = configBuilder.Build();
+
+            var diSystem = configuration["DependencyInjection"];
+            if (!string.IsNullOrEmpty(diSystem) &&
                 diSystem.Equals("AutoFac", StringComparison.OrdinalIgnoreCase))
             {
-                app.UseMiddleware<MonitoringMiddlware>();
+                _autoFac = true;
 
-                app.UseServices(services =>
-                {
-                    services.AddMvc();
-                    services.AddSingleton<PassThroughAttribute>();
-                    services.AddSingleton<UserNameService>();
-                    services.AddTransient<ITestService, TestService>();
+                // Create the autofac container
+                var builder = new ContainerBuilder();
 
-                    // Setup services with a test AssemblyProvider so that only the
-                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
-                    // when the sample is used in the Functional Tests.
-                    services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
-                    services.Configure<MvcOptions>(options =>
-                    {
-                        options.Filters.Add(typeof(PassThroughAttribute), order: 17);
-                    });
-                    services.Configure<RazorViewEngineOptions>(options =>
-                    {
-                        var expander = new LanguageViewLocationExpander(
-                            context => context.HttpContext.Request.Query["language"]);
-                        options.ViewLocationExpanders.Insert(0, expander);
-                    });
+                // Create the container and use the default application services as a fallback
+                builder.Populate(services);
 
-                    // Create the autofac container 
-                    ContainerBuilder builder = new ContainerBuilder();
+                builder.RegisterModule<MonitoringModule>();
 
-                    // Create the container and use the default application services as a fallback 
-                    AutofacRegistration.Populate(
-                        builder,
-                        services,
-                        fallbackServiceProvider: app.ApplicationServices);
+                var container = builder.Build();
 
-                    builder.RegisterModule<MonitoringModule>();
-
-                    IContainer container = builder.Build();
-
-                    return container.Resolve<IServiceProvider>();
-                });
+                return container.Resolve<IServiceProvider>();
             }
             else
-#endif
             {
-                app.UseServices(services =>
-                {
-                    services.AddMvc();
-                    services.AddSingleton<PassThroughAttribute>();
-                    services.AddSingleton<UserNameService>();
-                    services.AddTransient<ITestService, TestService>();
-                    // Setup services with a test AssemblyProvider so that only the
-                    // sample's assemblies are loaded. This prevents loading controllers from other assemblies
-                    // when the sample is used in the Functional Tests.
-                    services.AddTransient<IAssemblyProvider, TestAssemblyProvider<Startup>>();
-
-                    services.Configure<MvcOptions>(options =>
-                    {
-                        options.Filters.Add(typeof(PassThroughAttribute), order: 17);
-                    });
-                });
+                return services.BuildServiceProvider();
             }
+        }
 
+        public void Configure(IApplicationBuilder app)
+        {
+            app.UseStatusCodePages();
+            app.UseFileServer();
+
+            if (_autoFac)
+            {
+                app.UseMiddleware<MonitoringMiddlware>();
+            }
+            app.UseRequestLocalization();
+
+            app.UseSession();
             app.UseMvc(routes =>
             {
                 routes.MapRoute("areaRoute", "{area:exists}/{controller}/{action}");
-
                 routes.MapRoute(
                     "controllerActionRoute",
                     "{controller}/{action}",

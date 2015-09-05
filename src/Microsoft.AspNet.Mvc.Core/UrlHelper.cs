@@ -1,62 +1,79 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
+using System.Diagnostics;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An implementation of <see cref="IUrlHelper"/> that contains methods to 
+    /// An implementation of <see cref="IUrlHelper"/> that contains methods to
     /// build URLs for ASP.NET MVC within an application.
     /// </summary>
     public class UrlHelper : IUrlHelper
     {
-        private readonly HttpContext _httpContext;
-        private readonly IRouter _router;
-        private readonly IDictionary<string, object> _ambientValues;
+        private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IActionSelector _actionSelector;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified action context and action selector.
+        /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified action context and
+        /// action selector.
         /// </summary>
-        /// <param name="contextAccessor">The <see cref="IContextAccessor{TContext}"/> to access the action context
+        /// <param name="actionContextAccessor">The <see cref="IActionContextAccessor"/> to access the action context
         /// of the current request.</param>
         /// <param name="actionSelector">The <see cref="IActionSelector"/> to be used for verifying the correctness of
         /// supplied parameters for a route.
         /// </param>
-        public UrlHelper(IContextAccessor<ActionContext> contextAccessor, IActionSelector actionSelector)
+        public UrlHelper(IActionContextAccessor actionContextAccessor, IActionSelector actionSelector)
         {
-            _httpContext = contextAccessor.Value.HttpContext;
-            _router = contextAccessor.Value.RouteData.Routers[0];
-            _ambientValues = contextAccessor.Value.RouteData.Values;
+            _actionContextAccessor = actionContextAccessor;
             _actionSelector = actionSelector;
         }
 
-        /// <inheritdoc />
-        public virtual string Action(
-            string action,
-            string controller,
-            object values,
-            string protocol,
-            string host,
-            string fragment)
-        {
-            var valuesDictionary = TypeHelper.ObjectToDictionary(values);
+        protected IDictionary<string, object> AmbientValues => ActionContext.RouteData.Values;
 
-            if (action != null)
+        protected ActionContext ActionContext => _actionContextAccessor.ActionContext;
+
+        protected HttpContext HttpContext => ActionContext.HttpContext;
+
+        protected IRouter Router => ActionContext.RouteData.Routers[0];
+
+        /// <inheritdoc />
+        public virtual string Action(UrlActionContext actionContext)
+        {
+            var valuesDictionary = PropertyHelper.ObjectToDictionary(actionContext.Values);
+
+            if (actionContext.Action == null)
             {
-                valuesDictionary["action"] = action;
+                object action;
+                if (!valuesDictionary.ContainsKey("action") && 
+                    AmbientValues.TryGetValue("action", out action))
+                {
+                    valuesDictionary["action"] = action;
+                }
+            }
+            else
+            {
+                valuesDictionary["action"] = actionContext.Action;
             }
 
-            if (controller != null)
+            if (actionContext.Controller == null)
             {
-                valuesDictionary["controller"] = controller;
+                object controller;
+                if (!valuesDictionary.ContainsKey("controller") && 
+                    AmbientValues.TryGetValue("controller", out controller))
+                {
+                    valuesDictionary["controller"] = controller;
+                }
+            }
+            else
+            {
+                valuesDictionary["controller"] = actionContext.Controller;
             }
 
             var path = GeneratePathFromRoute(valuesDictionary);
@@ -65,11 +82,11 @@ namespace Microsoft.AspNet.Mvc
                 return null;
             }
 
-            return GenerateUrl(protocol, host, path, fragment);
+            return GenerateUrl(actionContext.Protocol, actionContext.Host, path, actionContext.Fragment);
         }
 
         /// <inheritdoc />
-        public bool IsLocalUrl(string url)
+        public virtual bool IsLocalUrl(string url)
         {
             return
                 !string.IsNullOrEmpty(url) &&
@@ -82,17 +99,17 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public virtual string RouteUrl(string routeName, object values, string protocol, string host, string fragment)
+        public virtual string RouteUrl(UrlRouteContext routeContext)
         {
-            var valuesDictionary = TypeHelper.ObjectToDictionary(values);
+            var valuesDictionary = PropertyHelper.ObjectToDictionary(routeContext.Values);
 
-            var path = GeneratePathFromRoute(routeName, valuesDictionary);
+            var path = GeneratePathFromRoute(routeContext.RouteName, valuesDictionary);
             if (path == null)
             {
                 return null;
             }
 
-            return GenerateUrl(protocol, host, path, fragment);
+            return GenerateUrl(routeContext.Protocol, routeContext.Host, path, routeContext.Fragment);
         }
 
         private string GeneratePathFromRoute(IDictionary<string, object> values)
@@ -101,7 +118,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Generates the absolute path of the url for the specified route values by 
+        /// Generates the absolute path of the url for the specified route values by
         /// using the specified route name.
         /// </summary>
         /// <param name="routeName">The name of the route that is used to generate the URL.</param>
@@ -109,20 +126,17 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The absolute path of the URL.</returns>
         protected virtual string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
         {
-            var context = new VirtualPathContext(_httpContext, _ambientValues, values, routeName);
-            var path = _router.GetVirtualPath(context);
-            if (path == null)
+            var context = new VirtualPathContext(HttpContext, AmbientValues, values, routeName);
+            var pathData = Router.GetVirtualPath(context);
+            if (pathData == null)
             {
                 return null;
             }
 
-            // See Routing Issue#31
-            if (path.Length > 0 && path[0] != '/')
-            {
-                path = "/" + path;
-            }
+            // VirtualPathData.VirtualPath returns string.Empty for null.
+            Debug.Assert(pathData.VirtualPath != null);
 
-            var fullPath = _httpContext.Request.PathBase.Add(new PathString(path)).Value;
+            var fullPath = HttpContext.Request.PathBase.Add(pathData.VirtualPath).Value;
             if (fullPath.Length == 0)
             {
                 return "/";
@@ -134,26 +148,39 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public virtual string Content([NotNull] string contentPath)
+        public virtual string Content(string contentPath)
         {
-            return GenerateClientUrl(_httpContext.Request.PathBase, contentPath);
-        }
-
-        private static string GenerateClientUrl([NotNull] PathString applicationPath,
-                                                [NotNull] string path)
-        {
-            if (path.StartsWith("~/", StringComparison.Ordinal))
+            if (string.IsNullOrEmpty(contentPath))
             {
-                var segment = new PathString(path.Substring(1));
+                return null;
+            }
+            else if (contentPath[0] == '~')
+            {
+                var segment = new PathString(contentPath.Substring(1));
+                var applicationPath = HttpContext.Request.PathBase;
+
                 return applicationPath.Add(segment).Value;
             }
-            return path;
+
+            return contentPath;
+        }
+
+        /// <inheritdoc />
+        public virtual string Link(string routeName, object values)
+        {
+            return RouteUrl(new UrlRouteContext()
+            {
+                RouteName = routeName,
+                Values = values,
+                Protocol = HttpContext.Request.Scheme,
+                Host = HttpContext.Request.Host.ToUriComponent()
+            });
         }
 
         private string GenerateUrl(string protocol, string host, string path, string fragment)
         {
             // We should have a robust and centrallized version of this code. See HttpAbstractions#28
-            Contract.Assert(path != null);
+            Debug.Assert(path != null);
 
             var url = path;
             if (!string.IsNullOrEmpty(fragment))
@@ -175,7 +202,7 @@ namespace Microsoft.AspNet.Mvc
             else
             {
                 protocol = string.IsNullOrEmpty(protocol) ? "http" : protocol;
-                host = string.IsNullOrEmpty(host) ? _httpContext.Request.Host.Value : host;
+                host = string.IsNullOrEmpty(host) ? HttpContext.Request.Host.Value : host;
 
                 url = protocol + "://" + host + url;
                 return url;

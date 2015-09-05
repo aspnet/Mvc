@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Routing;
@@ -97,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private static ViewContext CreateViewContext(RazorPageCreateModelExpressionModel model)
         {
-            return CreateViewContext(model, new DataAnnotationsModelMetadataProvider());
+            return CreateViewContext(model, new TestModelMetadataProvider());
         }
 
         private static ViewContext CreateViewContext(
@@ -125,7 +126,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 actionContext,
                 view: Mock.Of<IView>(),
                 viewData: viewData,
-                writer: new StringWriter());
+                tempData: Mock.Of<ITempDataDictionary>(),
+                writer: new StringWriter(),
+                htmlHelperOptions: new HtmlHelperOptions());
         }
 
         private class TestRazorPage : RazorPage<RazorPageCreateModelExpressionModel>

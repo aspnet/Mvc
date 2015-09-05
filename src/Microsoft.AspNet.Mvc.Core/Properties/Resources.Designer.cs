@@ -11,163 +11,35 @@ namespace Microsoft.AspNet.Mvc.Core
             = new ResourceManager("Microsoft.AspNet.Mvc.Core.Resources", typeof(Resources).GetTypeInfo().Assembly);
 
         /// <summary>
-        /// More than one parameter is bound to the HTTP request's content.
+        /// The argument '{0}' is invalid. Media types which match all types or match all subtypes are not supported.
         /// </summary>
-        internal static string MultipleBodyParametersAreNotAllowed
+        internal static string MatchAllContentTypeIsNotAllowed
         {
-            get { return GetString("MultipleBodyParametersAreNotAllowed"); }
+            get { return GetString("MatchAllContentTypeIsNotAllowed"); }
         }
 
         /// <summary>
-        /// More than one parameter is bound to the HTTP request's content.
+        /// The argument '{0}' is invalid. Media types which match all types or match all subtypes are not supported.
         /// </summary>
-        internal static string FormatMultipleBodyParametersAreNotAllowed()
+        internal static string FormatMatchAllContentTypeIsNotAllowed(object p0)
         {
-            return GetString("MultipleBodyParametersAreNotAllowed");
+            return string.Format(CultureInfo.CurrentCulture, GetString("MatchAllContentTypeIsNotAllowed"), p0);
         }
 
         /// <summary>
-        /// The provided anti-forgery token failed a custom data check.
+        /// The content-type '{0}' added in the '{1}' property is invalid. Media types which match all types or match all subtypes are not supported.
         /// </summary>
-        internal static string AntiForgeryToken_AdditionalDataCheckFailed
+        internal static string ObjectResult_MatchAllContentType
         {
-            get { return GetString("AntiForgeryToken_AdditionalDataCheckFailed"); }
+            get { return GetString("ObjectResult_MatchAllContentType"); }
         }
 
         /// <summary>
-        /// The provided anti-forgery token failed a custom data check.
+        /// The content-type '{0}' added in the '{1}' property is invalid. Media types which match all types or match all subtypes are not supported.
         /// </summary>
-        internal static string FormatAntiForgeryToken_AdditionalDataCheckFailed()
+        internal static string FormatObjectResult_MatchAllContentType(object p0, object p1)
         {
-            return GetString("AntiForgeryToken_AdditionalDataCheckFailed");
-        }
-
-        /// <summary>
-        /// The provided anti-forgery token was meant for a different claims-based user than the current user.
-        /// </summary>
-        internal static string AntiForgeryToken_ClaimUidMismatch
-        {
-            get { return GetString("AntiForgeryToken_ClaimUidMismatch"); }
-        }
-
-        /// <summary>
-        /// The provided anti-forgery token was meant for a different claims-based user than the current user.
-        /// </summary>
-        internal static string FormatAntiForgeryToken_ClaimUidMismatch()
-        {
-            return GetString("AntiForgeryToken_ClaimUidMismatch");
-        }
-
-        /// <summary>
-        /// The required anti-forgery cookie "{0}" is not present.
-        /// </summary>
-        internal static string AntiForgeryToken_CookieMissing
-        {
-            get { return GetString("AntiForgeryToken_CookieMissing"); }
-        }
-
-        /// <summary>
-        /// The required anti-forgery cookie "{0}" is not present.
-        /// </summary>
-        internal static string FormatAntiForgeryToken_CookieMissing(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AntiForgeryToken_CookieMissing"), p0);
-        }
-
-        /// <summary>
-        /// The anti-forgery token could not be decrypted.
-        /// </summary>
-        internal static string AntiForgeryToken_DeserializationFailed
-        {
-            get { return GetString("AntiForgeryToken_DeserializationFailed"); }
-        }
-
-        /// <summary>
-        /// The anti-forgery token could not be decrypted.
-        /// </summary>
-        internal static string FormatAntiForgeryToken_DeserializationFailed()
-        {
-            return GetString("AntiForgeryToken_DeserializationFailed");
-        }
-
-        /// <summary>
-        /// The required anti-forgery form field "{0}" is not present.
-        /// </summary>
-        internal static string AntiForgeryToken_FormFieldMissing
-        {
-            get { return GetString("AntiForgeryToken_FormFieldMissing"); }
-        }
-
-        /// <summary>
-        /// The required anti-forgery form field "{0}" is not present.
-        /// </summary>
-        internal static string FormatAntiForgeryToken_FormFieldMissing(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AntiForgeryToken_FormFieldMissing"), p0);
-        }
-
-        /// <summary>
-        /// The anti-forgery cookie token and form field token do not match.
-        /// </summary>
-        internal static string AntiForgeryToken_SecurityTokenMismatch
-        {
-            get { return GetString("AntiForgeryToken_SecurityTokenMismatch"); }
-        }
-
-        /// <summary>
-        /// The anti-forgery cookie token and form field token do not match.
-        /// </summary>
-        internal static string FormatAntiForgeryToken_SecurityTokenMismatch()
-        {
-            return GetString("AntiForgeryToken_SecurityTokenMismatch");
-        }
-
-        /// <summary>
-        /// Validation of the provided anti-forgery token failed. The cookie "{0}" and the form field "{1}" were swapped.
-        /// </summary>
-        internal static string AntiForgeryToken_TokensSwapped
-        {
-            get { return GetString("AntiForgeryToken_TokensSwapped"); }
-        }
-
-        /// <summary>
-        /// Validation of the provided anti-forgery token failed. The cookie "{0}" and the form field "{1}" were swapped.
-        /// </summary>
-        internal static string FormatAntiForgeryToken_TokensSwapped(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AntiForgeryToken_TokensSwapped"), p0, p1);
-        }
-
-        /// <summary>
-        /// The provided anti-forgery token was meant for user "{0}", but the current user is "{1}".
-        /// </summary>
-        internal static string AntiForgeryToken_UsernameMismatch
-        {
-            get { return GetString("AntiForgeryToken_UsernameMismatch"); }
-        }
-
-        /// <summary>
-        /// The provided anti-forgery token was meant for user "{0}", but the current user is "{1}".
-        /// </summary>
-        internal static string FormatAntiForgeryToken_UsernameMismatch(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AntiForgeryToken_UsernameMismatch"), p0, p1);
-        }
-
-        /// <summary>
-        /// The anti-forgery system has the configuration value AntiForgeryOptions.RequireSsl = true, but the current request is not an SSL request.
-        /// </summary>
-        internal static string AntiForgeryWorker_RequireSSL
-        {
-            get { return GetString("AntiForgeryWorker_RequireSSL"); }
-        }
-
-        /// <summary>
-        /// The anti-forgery system has the configuration value AntiForgeryOptions.RequireSsl = true, but the current request is not an SSL request.
-        /// </summary>
-        internal static string FormatAntiForgeryWorker_RequireSSL()
-        {
-            return GetString("AntiForgeryWorker_RequireSSL");
+            return string.Format(CultureInfo.CurrentCulture, GetString("ObjectResult_MatchAllContentType"), p0, p1);
         }
 
         /// <summary>
@@ -200,198 +72,6 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatActionExecutor_UnexpectedTaskInstance(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ActionExecutor_UnexpectedTaskInstance"), p0, p1);
-        }
-
-        /// <summary>
-        /// A claim of type '{0}' was not present on the provided ClaimsIdentity.
-        /// </summary>
-        internal static string ClaimUidExtractor_ClaimNotPresent
-        {
-            get { return GetString("ClaimUidExtractor_ClaimNotPresent"); }
-        }
-
-        /// <summary>
-        /// A claim of type '{0}' was not present on the provided ClaimsIdentity.
-        /// </summary>
-        internal static string FormatClaimUidExtractor_ClaimNotPresent(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ClaimUidExtractor_ClaimNotPresent"), p0);
-        }
-
-        /// <summary>
-        /// The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.
-        /// </summary>
-        internal static string TokenValidator_AuthenticatedUserWithoutUsername
-        {
-            get { return GetString("TokenValidator_AuthenticatedUserWithoutUsername"); }
-        }
-
-        /// <summary>
-        /// The provided identity of type '{0}' is marked IsAuthenticated = true but does not have a value for Name. By default, the anti-forgery system requires that all authenticated identities have a unique Name. If it is not possible to provide a unique Name for this identity, consider extending IAdditionalDataProvider by overriding the DefaultAdditionalDataProvider or a custom type that can provide some form of unique identifier for the current user.
-        /// </summary>
-        internal static string FormatTokenValidator_AuthenticatedUserWithoutUsername(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TokenValidator_AuthenticatedUserWithoutUsername"), p0);
-        }
-
-        /// <summary>
-        /// The class ReflectedActionFilterEndPoint only supports ReflectedActionDescriptors.
-        /// </summary>
-        internal static string ReflectedActionFilterEndPoint_UnexpectedActionDescriptor
-        {
-            get { return GetString("ReflectedActionFilterEndPoint_UnexpectedActionDescriptor"); }
-        }
-
-        /// <summary>
-        /// The class ReflectedActionFilterEndPoint only supports ReflectedActionDescriptors.
-        /// </summary>
-        internal static string FormatReflectedActionFilterEndPoint_UnexpectedActionDescriptor()
-        {
-            return GetString("ReflectedActionFilterEndPoint_UnexpectedActionDescriptor");
-        }
-
-        /// <summary>
-        /// The view component name '{0}' matched multiple types:{1}{2}
-        /// </summary>
-        internal static string ViewComponent_AmbiguousTypeMatch
-        {
-            get { return GetString("ViewComponent_AmbiguousTypeMatch"); }
-        }
-
-        /// <summary>
-        /// The view component name '{0}' matched multiple types:{1}{2}
-        /// </summary>
-        internal static string FormatViewComponent_AmbiguousTypeMatch(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AmbiguousTypeMatch"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// The async view component method '{0}' should be declared to return Task&lt;T&gt;.
-        /// </summary>
-        internal static string ViewComponent_AsyncMethod_ShouldReturnTask
-        {
-            get { return GetString("ViewComponent_AsyncMethod_ShouldReturnTask"); }
-        }
-
-        /// <summary>
-        /// The async view component method '{0}' should be declared to return Task&lt;T&gt;.
-        /// </summary>
-        internal static string FormatViewComponent_AsyncMethod_ShouldReturnTask(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AsyncMethod_ShouldReturnTask"), p0);
-        }
-
-        /// <summary>
-        /// A view component must return a non-null value.
-        /// </summary>
-        internal static string ViewComponent_MustReturnValue
-        {
-            get { return GetString("ViewComponent_MustReturnValue"); }
-        }
-
-        /// <summary>
-        /// A view component must return a non-null value.
-        /// </summary>
-        internal static string FormatViewComponent_MustReturnValue()
-        {
-            return GetString("ViewComponent_MustReturnValue");
-        }
-
-        /// <summary>
-        /// The view component method '{0}' should be declared to return a value.
-        /// </summary>
-        internal static string ViewComponent_SyncMethod_ShouldReturnValue
-        {
-            get { return GetString("ViewComponent_SyncMethod_ShouldReturnValue"); }
-        }
-
-        /// <summary>
-        /// The view component method '{0}' should be declared to return a value.
-        /// </summary>
-        internal static string FormatViewComponent_SyncMethod_ShouldReturnValue(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_SyncMethod_ShouldReturnValue"), p0);
-        }
-
-        /// <summary>
-        /// A view component named '{0}' could not be found.
-        /// </summary>
-        internal static string ViewComponent_CannotFindComponent
-        {
-            get { return GetString("ViewComponent_CannotFindComponent"); }
-        }
-
-        /// <summary>
-        /// A view component named '{0}' could not be found.
-        /// </summary>
-        internal static string FormatViewComponent_CannotFindComponent(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_CannotFindComponent"), p0);
-        }
-
-        /// <summary>
-        /// An invoker could not be created for the view component '{0}'.
-        /// </summary>
-        internal static string ViewComponent_IViewComponentFactory_ReturnedNull
-        {
-            get { return GetString("ViewComponent_IViewComponentFactory_ReturnedNull"); }
-        }
-
-        /// <summary>
-        /// An invoker could not be created for the view component '{0}'.
-        /// </summary>
-        internal static string FormatViewComponent_IViewComponentFactory_ReturnedNull(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_IViewComponentFactory_ReturnedNull"), p0);
-        }
-
-        /// <summary>
-        /// Could not find an '{0}' method matching the parameters.
-        /// </summary>
-        internal static string ViewComponent_CannotFindMethod
-        {
-            get { return GetString("ViewComponent_CannotFindMethod"); }
-        }
-
-        /// <summary>
-        /// Could not find an '{0}' method matching the parameters.
-        /// </summary>
-        internal static string FormatViewComponent_CannotFindMethod(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_CannotFindMethod"), p0);
-        }
-
-        /// <summary>
-        /// Could not find an '{0}' or '{1}' method matching the parameters.
-        /// </summary>
-        internal static string ViewComponent_CannotFindMethod_WithFallback
-        {
-            get { return GetString("ViewComponent_CannotFindMethod_WithFallback"); }
-        }
-
-        /// <summary>
-        /// Could not find an '{0}' or '{1}' method matching the parameters.
-        /// </summary>
-        internal static string FormatViewComponent_CannotFindMethod_WithFallback(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_CannotFindMethod_WithFallback"), p0, p1);
-        }
-
-        /// <summary>
-        /// View components only support returning {0}, {1} or {2}.
-        /// </summary>
-        internal static string ViewComponent_InvalidReturnValue
-        {
-            get { return GetString("ViewComponent_InvalidReturnValue"); }
-        }
-
-        /// <summary>
-        /// View components only support returning {0}, {1} or {2}.
-        /// </summary>
-        internal static string FormatViewComponent_InvalidReturnValue(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_InvalidReturnValue"), p0, p1, p2);
         }
 
         /// <summary>
@@ -523,22 +203,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The partial view '{0}' was not found or no view engine supports the searched locations. The following locations were searched:{1}
-        /// </summary>
-        internal static string Common_PartialViewNotFound
-        {
-            get { return GetString("Common_PartialViewNotFound"); }
-        }
-
-        /// <summary>
-        /// The partial view '{0}' was not found or no view engine supports the searched locations. The following locations were searched:{1}
-        /// </summary>
-        internal static string FormatCommon_PartialViewNotFound(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("Common_PartialViewNotFound"), p0, p1);
-        }
-
-        /// <summary>
         /// The value '{0}' is invalid.
         /// </summary>
         internal static string Common_ValueNotValidForProperty
@@ -555,243 +219,19 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// False
+        /// The passed expression of expression node type '{0}' is invalid. Only simple member access expressions for model properties are supported.
         /// </summary>
-        internal static string Common_TriState_False
+        internal static string Invalid_IncludePropertyExpression
         {
-            get { return GetString("Common_TriState_False"); }
+            get { return GetString("Invalid_IncludePropertyExpression"); }
         }
 
         /// <summary>
-        /// False
+        /// The passed expression of expression node type '{0}' is invalid. Only simple member access expressions for model properties are supported.
         /// </summary>
-        internal static string FormatCommon_TriState_False()
+        internal static string FormatInvalid_IncludePropertyExpression(object p0)
         {
-            return GetString("Common_TriState_False");
-        }
-
-        /// <summary>
-        /// Not Set
-        /// </summary>
-        internal static string Common_TriState_NotSet
-        {
-            get { return GetString("Common_TriState_NotSet"); }
-        }
-
-        /// <summary>
-        /// Not Set
-        /// </summary>
-        internal static string FormatCommon_TriState_NotSet()
-        {
-            return GetString("Common_TriState_NotSet");
-        }
-
-        /// <summary>
-        /// True
-        /// </summary>
-        internal static string Common_TriState_True
-        {
-            get { return GetString("Common_TriState_True"); }
-        }
-
-        /// <summary>
-        /// True
-        /// </summary>
-        internal static string FormatCommon_TriState_True()
-        {
-            return GetString("Common_TriState_True");
-        }
-
-        /// <summary>
-        /// ViewData value must not be null.
-        /// </summary>
-        internal static string DynamicViewData_ViewDataNull
-        {
-            get { return GetString("DynamicViewData_ViewDataNull"); }
-        }
-
-        /// <summary>
-        /// ViewData value must not be null.
-        /// </summary>
-        internal static string FormatDynamicViewData_ViewDataNull()
-        {
-            return GetString("DynamicViewData_ViewDataNull");
-        }
-
-        /// <summary>
-        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
-        /// </summary>
-        internal static string ExpressionHelper_InvalidIndexerExpression
-        {
-            get { return GetString("ExpressionHelper_InvalidIndexerExpression"); }
-        }
-
-        /// <summary>
-        /// The expression compiler was unable to evaluate the indexer expression '{0}' because it references the model parameter '{1}' which is unavailable.
-        /// </summary>
-        internal static string FormatExpressionHelper_InvalidIndexerExpression(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ExpressionHelper_InvalidIndexerExpression"), p0, p1);
-        }
-
-        /// <summary>
-        /// The IModelMetadataProvider was unable to provide metadata for expression '{0}'.
-        /// </summary>
-        internal static string HtmlHelper_NullModelMetadata
-        {
-            get { return GetString("HtmlHelper_NullModelMetadata"); }
-        }
-
-        /// <summary>
-        /// The IModelMetadataProvider was unable to provide metadata for expression '{0}'.
-        /// </summary>
-        internal static string FormatHtmlHelper_NullModelMetadata(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_NullModelMetadata"), p0);
-        }
-
-        /// <summary>
-        /// Must call 'Contextualize' method before using this HtmlHelper instance.
-        /// </summary>
-        internal static string HtmlHelper_NotContextualized
-        {
-            get { return GetString("HtmlHelper_NotContextualized"); }
-        }
-
-        /// <summary>
-        /// Must call 'Contextualize' method before using this HtmlHelper instance.
-        /// </summary>
-        internal static string FormatHtmlHelper_NotContextualized()
-        {
-            return GetString("HtmlHelper_NotContextualized");
-        }
-
-        /// <summary>
-        /// There is no ViewData item of type '{0}' that has the key '{1}'.
-        /// </summary>
-        internal static string HtmlHelper_MissingSelectData
-        {
-            get { return GetString("HtmlHelper_MissingSelectData"); }
-        }
-
-        /// <summary>
-        /// There is no ViewData item of type '{0}' that has the key '{1}'.
-        /// </summary>
-        internal static string FormatHtmlHelper_MissingSelectData(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_MissingSelectData"), p0, p1);
-        }
-
-        /// <summary>
-        /// The parameter '{0}' must evaluate to an IEnumerable when multiple selection is allowed.
-        /// </summary>
-        internal static string HtmlHelper_SelectExpressionNotEnumerable
-        {
-            get { return GetString("HtmlHelper_SelectExpressionNotEnumerable"); }
-        }
-
-        /// <summary>
-        /// The parameter '{0}' must evaluate to an IEnumerable when multiple selection is allowed.
-        /// </summary>
-        internal static string FormatHtmlHelper_SelectExpressionNotEnumerable(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_SelectExpressionNotEnumerable"), p0);
-        }
-
-        /// <summary>
-        /// The ViewData item that has the key '{0}' is of type '{1}' but must be of type '{2}'.
-        /// </summary>
-        internal static string HtmlHelper_WrongSelectDataType
-        {
-            get { return GetString("HtmlHelper_WrongSelectDataType"); }
-        }
-
-        /// <summary>
-        /// The ViewData item that has the key '{0}' is of type '{1}' but must be of type '{2}'.
-        /// </summary>
-        internal static string FormatHtmlHelper_WrongSelectDataType(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_WrongSelectDataType"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// The '{0}' template was used with an object of type '{1}', which does not implement '{2}'.
-        /// </summary>
-        internal static string Templates_TypeMustImplementIEnumerable
-        {
-            get { return GetString("Templates_TypeMustImplementIEnumerable"); }
-        }
-
-        /// <summary>
-        /// The '{0}' template was used with an object of type '{1}', which does not implement '{2}'.
-        /// </summary>
-        internal static string FormatTemplates_TypeMustImplementIEnumerable(object p0, object p1, object p2)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("Templates_TypeMustImplementIEnumerable"), p0, p1, p2);
-        }
-
-        /// <summary>
-        /// Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.
-        /// </summary>
-        internal static string TemplateHelpers_TemplateLimitations
-        {
-            get { return GetString("TemplateHelpers_TemplateLimitations"); }
-        }
-
-        /// <summary>
-        /// Templates can be used only with field access, property access, single-dimension array index, or single-parameter custom indexer expressions.
-        /// </summary>
-        internal static string FormatTemplateHelpers_TemplateLimitations()
-        {
-            return GetString("TemplateHelpers_TemplateLimitations");
-        }
-
-        /// <summary>
-        /// Unable to locate an appropriate template for type {0}.
-        /// </summary>
-        internal static string TemplateHelpers_NoTemplate
-        {
-            get { return GetString("TemplateHelpers_NoTemplate"); }
-        }
-
-        /// <summary>
-        /// Unable to locate an appropriate template for type {0}.
-        /// </summary>
-        internal static string FormatTemplateHelpers_NoTemplate(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TemplateHelpers_NoTemplate"), p0);
-        }
-
-        /// <summary>
-        /// The model item passed is null, but this ViewDataDictionary instance requires a non-null model item of type '{0}'.
-        /// </summary>
-        internal static string ViewData_ModelCannotBeNull
-        {
-            get { return GetString("ViewData_ModelCannotBeNull"); }
-        }
-
-        /// <summary>
-        /// The model item passed is null, but this ViewDataDictionary instance requires a non-null model item of type '{0}'.
-        /// </summary>
-        internal static string FormatViewData_ModelCannotBeNull(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewData_ModelCannotBeNull"), p0);
-        }
-
-        /// <summary>
-        /// The model item passed into the ViewDataDictionary is of type '{0}', but this ViewDataDictionary instance requires a model item of type '{1}'.
-        /// </summary>
-        internal static string ViewData_WrongTModelType
-        {
-            get { return GetString("ViewData_WrongTModelType"); }
-        }
-
-        /// <summary>
-        /// The model item passed into the ViewDataDictionary is of type '{0}', but this ViewDataDictionary instance requires a model item of type '{1}'.
-        /// </summary>
-        internal static string FormatViewData_WrongTModelType(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewData_WrongTModelType"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("Invalid_IncludePropertyExpression"), p0);
         }
 
         /// <summary>
@@ -843,38 +283,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The partial view '{0}' was not found. The following locations were searched:{1}
-        /// </summary>
-        internal static string ViewEngine_PartialViewNotFound
-        {
-            get { return GetString("ViewEngine_PartialViewNotFound"); }
-        }
-
-        /// <summary>
-        /// The partial view '{0}' was not found. The following locations were searched:{1}
-        /// </summary>
-        internal static string FormatViewEngine_PartialViewNotFound(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewEngine_PartialViewNotFound"), p0, p1);
-        }
-
-        /// <summary>
-        /// The view '{0}' was not found. The following locations were searched:{1}.
-        /// </summary>
-        internal static string ViewEngine_ViewNotFound
-        {
-            get { return GetString("ViewEngine_ViewNotFound"); }
-        }
-
-        /// <summary>
-        /// The view '{0}' was not found. The following locations were searched:{1}.
-        /// </summary>
-        internal static string FormatViewEngine_ViewNotFound(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewEngine_ViewNotFound"), p0, p1);
-        }
-
-        /// <summary>
         /// Unable to locate an implementation of IAuthorizationService.
         /// </summary>
         internal static string AuthorizeAttribute_AuthorizationServiceMustBeDefined
@@ -907,22 +315,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// The value must be greater than or equal to zero.
-        /// </summary>
-        internal static string HtmlHelper_TextAreaParameterOutOfRange
-        {
-            get { return GetString("HtmlHelper_TextAreaParameterOutOfRange"); }
-        }
-
-        /// <summary>
-        /// The value must be greater than or equal to zero.
-        /// </summary>
-        internal static string FormatHtmlHelper_TextAreaParameterOutOfRange()
-        {
-            return GetString("HtmlHelper_TextAreaParameterOutOfRange");
-        }
-
-        /// <summary>
         /// The type provided to '{0}' must implement '{1}'.
         /// </summary>
         internal static string FilterFactoryAttribute_TypeMustImplementIFilter
@@ -936,86 +328,6 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatFilterFactoryAttribute_TypeMustImplementIFilter(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("FilterFactoryAttribute_TypeMustImplementIFilter"), p0, p1);
-        }
-
-        /// <summary>
-        /// Validation parameter names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
-        /// </summary>
-        internal static string UnobtrusiveJavascript_ValidationParameterCannotBeEmpty
-        {
-            get { return GetString("UnobtrusiveJavascript_ValidationParameterCannotBeEmpty"); }
-        }
-
-        /// <summary>
-        /// Validation parameter names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
-        /// </summary>
-        internal static string FormatUnobtrusiveJavascript_ValidationParameterCannotBeEmpty(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationParameterCannotBeEmpty"), p0);
-        }
-
-        /// <summary>
-        /// Validation parameter names in unobtrusive client validation rules must start with a lowercase letter and consist of only lowercase letters or digits. Validation parameter name: {0}, client rule type: {1}
-        /// </summary>
-        internal static string UnobtrusiveJavascript_ValidationParameterMustBeLegal
-        {
-            get { return GetString("UnobtrusiveJavascript_ValidationParameterMustBeLegal"); }
-        }
-
-        /// <summary>
-        /// Validation parameter names in unobtrusive client validation rules must start with a lowercase letter and consist of only lowercase letters or digits. Validation parameter name: {0}, client rule type: {1}
-        /// </summary>
-        internal static string FormatUnobtrusiveJavascript_ValidationParameterMustBeLegal(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationParameterMustBeLegal"), p0, p1);
-        }
-
-        /// <summary>
-        /// Validation type names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
-        /// </summary>
-        internal static string UnobtrusiveJavascript_ValidationTypeCannotBeEmpty
-        {
-            get { return GetString("UnobtrusiveJavascript_ValidationTypeCannotBeEmpty"); }
-        }
-
-        /// <summary>
-        /// Validation type names in unobtrusive client validation rules cannot be empty. Client rule type: {0}
-        /// </summary>
-        internal static string FormatUnobtrusiveJavascript_ValidationTypeCannotBeEmpty(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationTypeCannotBeEmpty"), p0);
-        }
-
-        /// <summary>
-        /// Validation type names in unobtrusive client validation rules must consist of only lowercase letters. Invalid name: "{0}", client rule type: {1}
-        /// </summary>
-        internal static string UnobtrusiveJavascript_ValidationTypeMustBeLegal
-        {
-            get { return GetString("UnobtrusiveJavascript_ValidationTypeMustBeLegal"); }
-        }
-
-        /// <summary>
-        /// Validation type names in unobtrusive client validation rules must consist of only lowercase letters. Invalid name: "{0}", client rule type: {1}
-        /// </summary>
-        internal static string FormatUnobtrusiveJavascript_ValidationTypeMustBeLegal(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationTypeMustBeLegal"), p0, p1);
-        }
-
-        /// <summary>
-        /// Validation type names in unobtrusive client validation rules must be unique. The following validation type was seen more than once: {0}
-        /// </summary>
-        internal static string UnobtrusiveJavascript_ValidationTypeMustBeUnique
-        {
-            get { return GetString("UnobtrusiveJavascript_ValidationTypeMustBeUnique"); }
-        }
-
-        /// <summary>
-        /// Validation type names in unobtrusive client validation rules must be unique. The following validation type was seen more than once: {0}
-        /// </summary>
-        internal static string FormatUnobtrusiveJavascript_ValidationTypeMustBeUnique(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("UnobtrusiveJavascript_ValidationTypeMustBeUnique"), p0);
         }
 
         /// <summary>
@@ -1035,22 +347,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Value types cannot be activated by '{0}'.
-        /// </summary>
-        internal static string ValueTypesCannotBeActivated
-        {
-            get { return GetString("ValueTypesCannotBeActivated"); }
-        }
-
-        /// <summary>
-        /// Value types cannot be activated by '{0}'.
-        /// </summary>
-        internal static string FormatValueTypesCannotBeActivated(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ValueTypesCannotBeActivated"), p0);
-        }
-
-        /// <summary>
         /// The type '{0}' must derive from '{1}'.
         /// </summary>
         internal static string TypeMustDeriveFromType
@@ -1064,22 +360,6 @@ namespace Microsoft.AspNet.Mvc.Core
         internal static string FormatTypeMustDeriveFromType(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("TypeMustDeriveFromType"), p0, p1);
-        }
-
-        /// <summary>
-        /// No encoding found for output formatter '{0}'. There must be at least one supported encoding registered in order for the output formatter to write content.
-        /// </summary>
-        internal static string OutputFormatterNoEncoding
-        {
-            get { return GetString("OutputFormatterNoEncoding"); }
-        }
-
-        /// <summary>
-        /// No encoding found for output formatter '{0}'. There must be at least one supported encoding registered in order for the output formatter to write content.
-        /// </summary>
-        internal static string FormatOutputFormatterNoEncoding(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("OutputFormatterNoEncoding"), p0);
         }
 
         /// <summary>
@@ -1371,87 +651,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Could not find a replacement for view expansion token '{0}'.
-        /// </summary>
-        internal static string TemplatedViewLocationExpander_NoReplacementToken
-        {
-            get { return GetString("TemplatedViewLocationExpander_NoReplacementToken"); }
-        }
-
-        /// <summary>
-        /// Could not find a replacement for view expansion token '{0}'.
-        /// </summary>
-        internal static string FormatTemplatedViewLocationExpander_NoReplacementToken(object p0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TemplatedViewLocationExpander_NoReplacementToken"), p0);
-        }
-
-        /// <summary>
-        /// {0} must be executed before {1} can be invoked.
-        /// </summary>
-        internal static string TemplatedExpander_PopulateValuesMustBeInvokedFirst
-        {
-            get { return GetString("TemplatedExpander_PopulateValuesMustBeInvokedFirst"); }
-        }
-
-        /// <summary>
-        /// {0} must be executed before {1} can be invoked.
-        /// </summary>
-        internal static string FormatTemplatedExpander_PopulateValuesMustBeInvokedFirst(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TemplatedExpander_PopulateValuesMustBeInvokedFirst"), p0, p1);
-        }
-
-        /// <summary>
-        /// The result of value factory cannot be null.
-        /// </summary>
-        internal static string TemplatedExpander_ValueFactoryCannotReturnNull
-        {
-            get { return GetString("TemplatedExpander_ValueFactoryCannotReturnNull"); }
-        }
-
-        /// <summary>
-        /// The result of value factory cannot be null.
-        /// </summary>
-        internal static string FormatTemplatedExpander_ValueFactoryCannotReturnNull()
-        {
-            return GetString("TemplatedExpander_ValueFactoryCannotReturnNull");
-        }
-
-        /// <summary>
-        /// A method '{0}' that defines attribute routed actions must not have attributes that implement '{1}' and do not implement '{2}':{3}{4}
-        /// </summary>
-        internal static string AttributeRoute_InvalidHttpConstraints
-        {
-            get { return GetString("AttributeRoute_InvalidHttpConstraints"); }
-        }
-
-        /// <summary>
-        /// A method '{0}' that defines attribute routed actions must not have attributes that implement '{1}' and do not implement '{2}':{3}{4}
-        /// </summary>
-        internal static string FormatAttributeRoute_InvalidHttpConstraints(object p0, object p1, object p2, object p3, object p4)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_InvalidHttpConstraints"), p0, p1, p2, p3, p4);
-        }
-
-        /// <summary>
-        /// Action '{0}' with route template '{1}' has '{2}' invalid '{3}' attributes.
-        /// </summary>
-        internal static string AttributeRoute_InvalidHttpConstraints_Item
-        {
-            get { return GetString("AttributeRoute_InvalidHttpConstraints_Item"); }
-        }
-
-        /// <summary>
-        /// Action '{0}' with route template '{1}' has '{2}' invalid '{3}' attributes.
-        /// </summary>
-        internal static string FormatAttributeRoute_InvalidHttpConstraints_Item(object p0, object p1, object p2, object p3)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_InvalidHttpConstraints_Item"), p0, p1, p2, p3);
-        }
-
-        /// <summary>
-        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}
+        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
         /// </summary>
         internal static string AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod
         {
@@ -1459,7 +659,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}
+        /// A method '{0}' must not define attribute routed actions and non attribute routed actions at the same time:{1}{2}{1}{1}Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a route, or set a route template in all attributes that constrain HTTP verbs.
         /// </summary>
         internal static string FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod(object p0, object p1, object p2)
         {
@@ -1467,7 +667,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Action: '{0}' - Template: '{1}'
+        /// Action: '{0}' - Route Template: '{1}' - HTTP Verbs: '{2}'
         /// </summary>
         internal static string AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item
         {
@@ -1475,11 +675,11 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Action: '{0}' - Template: '{1}'
+        /// Action: '{0}' - Route Template: '{1}' - HTTP Verbs: '{2}'
         /// </summary>
-        internal static string FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item(object p0, object p1)
+        internal static string FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item"), p0, p1);
+            return string.Format(CultureInfo.CurrentCulture, GetString("AttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item"), p0, p1, p2);
         }
 
         /// <summary>
@@ -1531,19 +731,467 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// Type: '{0}' - Name: '{1}'
+        /// The input was not valid.
         /// </summary>
-        internal static string ViewComponent_AmbiguousTypeMatch_Item
+        internal static string SerializableError_DefaultError
         {
-            get { return GetString("ViewComponent_AmbiguousTypeMatch_Item"); }
+            get { return GetString("SerializableError_DefaultError"); }
         }
 
         /// <summary>
-        /// Type: '{0}' - Name: '{1}'
+        /// The input was not valid.
         /// </summary>
-        internal static string FormatViewComponent_AmbiguousTypeMatch_Item(object p0, object p1)
+        internal static string FormatSerializableError_DefaultError()
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_AmbiguousTypeMatch_Item"), p0, p1);
+            return GetString("SerializableError_DefaultError");
+        }
+
+        /// <summary>
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
+        /// </summary>
+        internal static string AsyncResourceFilter_InvalidShortCircuit
+        {
+            get { return GetString("AsyncResourceFilter_InvalidShortCircuit"); }
+        }
+
+        /// <summary>
+        /// If an {0} provides a result value by setting the {1} property of {2} to a non-null value, then it cannot call the next filter by invoking {3}.
+        /// </summary>
+        internal static string FormatAsyncResourceFilter_InvalidShortCircuit(object p0, object p1, object p2, object p3)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AsyncResourceFilter_InvalidShortCircuit"), p0, p1, p2, p3);
+        }
+
+        /// <summary>
+        /// If the '{0}' property is not set to true, '{1}' property must be specified.
+        /// </summary>
+        internal static string ResponseCache_SpecifyDuration
+        {
+            get { return GetString("ResponseCache_SpecifyDuration"); }
+        }
+
+        /// <summary>
+        /// If the '{0}' property is not set to true, '{1}' property must be specified.
+        /// </summary>
+        internal static string FormatResponseCache_SpecifyDuration(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ResponseCache_SpecifyDuration"), p0, p1);
+        }
+
+        /// <summary>
+        /// The action '{0}' has ApiExplorer enabled, but is using conventional routing. Only actions which use attribute routing support ApiExplorer.
+        /// </summary>
+        internal static string ApiExplorer_UnsupportedAction
+        {
+            get { return GetString("ApiExplorer_UnsupportedAction"); }
+        }
+
+        /// <summary>
+        /// The action '{0}' has ApiExplorer enabled, but is using conventional routing. Only actions which use attribute routing support ApiExplorer.
+        /// </summary>
+        internal static string FormatApiExplorer_UnsupportedAction(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ApiExplorer_UnsupportedAction"), p0);
+        }
+
+        /// <summary>
+        /// The media type "{0}" is not valid. MediaTypes containing wildcards (*) are not allowed in formatter mappings.
+        /// </summary>
+        internal static string FormatterMappings_NotValidMediaType
+        {
+            get { return GetString("FormatterMappings_NotValidMediaType"); }
+        }
+
+        /// <summary>
+        /// The media type "{0}" is not valid. MediaTypes containing wildcards (*) are not allowed in formatter mappings.
+        /// </summary>
+        internal static string FormatFormatterMappings_NotValidMediaType(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FormatterMappings_NotValidMediaType"), p0);
+        }
+
+        /// <summary>
+        /// The format provided is invalid '{0}'. A format must be a non-empty file-extension, optionally prefixed with a '.' character.
+        /// </summary>
+        internal static string Format_NotValid
+        {
+            get { return GetString("Format_NotValid"); }
+        }
+
+        /// <summary>
+        /// The format provided is invalid '{0}'. A format must be a non-empty file-extension, optionally prefixed with a '.' character.
+        /// </summary>
+        internal static string FormatFormat_NotValid(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Format_NotValid"), p0);
+        }
+
+        /// <summary>
+        /// The property '{0}' on controller '{1}' cannot be activated.
+        /// </summary>
+        internal static string ControllerFactory_PropertyCannotBeActivated
+        {
+            get { return GetString("ControllerFactory_PropertyCannotBeActivated"); }
+        }
+
+        /// <summary>
+        /// The property '{0}' on controller '{1}' cannot be activated.
+        /// </summary>
+        internal static string FormatControllerFactory_PropertyCannotBeActivated(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ControllerFactory_PropertyCannotBeActivated"), p0, p1);
+        }
+
+        /// <summary>
+        /// The '{0}' cache profile is not defined.
+        /// </summary>
+        internal static string CacheProfileNotFound
+        {
+            get { return GetString("CacheProfileNotFound"); }
+        }
+
+        /// <summary>
+        /// The '{0}' cache profile is not defined.
+        /// </summary>
+        internal static string FormatCacheProfileNotFound(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CacheProfileNotFound"), p0);
+        }
+
+        /// <summary>
+        /// The model's runtime type '{0}' is not assignable to the type '{1}'.
+        /// </summary>
+        internal static string ModelType_WrongType
+        {
+            get { return GetString("ModelType_WrongType"); }
+        }
+
+        /// <summary>
+        /// The model's runtime type '{0}' is not assignable to the type '{1}'.
+        /// </summary>
+        internal static string FormatModelType_WrongType(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelType_WrongType"), p0, p1);
+        }
+
+        /// <summary>
+        /// The type '{0}' cannot be activated by '{1}' because it is either a value type, an interface, an abstract class or an open generic type.
+        /// </summary>
+        internal static string ValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated
+        {
+            get { return GetString("ValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated"); }
+        }
+
+        /// <summary>
+        /// The type '{0}' cannot be activated by '{1}' because it is either a value type, an interface, an abstract class or an open generic type.
+        /// </summary>
+        internal static string FormatValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated"), p0, p1);
+        }
+
+        /// <summary>
+        /// The type '{0}' must implement '{1}' to be used as a model binder.
+        /// </summary>
+        internal static string BinderType_MustBeIModelBinder
+        {
+            get { return GetString("BinderType_MustBeIModelBinder"); }
+        }
+
+        /// <summary>
+        /// The type '{0}' must implement '{1}' to be used as a model binder.
+        /// </summary>
+        internal static string FormatBinderType_MustBeIModelBinder(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("BinderType_MustBeIModelBinder"), p0, p1);
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is a composite. '{1}' requires that the source must represent a single type of input.
+        /// </summary>
+        internal static string BindingSource_CannotBeComposite
+        {
+            get { return GetString("BindingSource_CannotBeComposite"); }
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is a composite. '{1}' requires that the source must represent a single type of input.
+        /// </summary>
+        internal static string FormatBindingSource_CannotBeComposite(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_CannotBeComposite"), p0, p1);
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is a greedy data source. '{1}' does not support greedy data sources.
+        /// </summary>
+        internal static string BindingSource_CannotBeGreedy
+        {
+            get { return GetString("BindingSource_CannotBeGreedy"); }
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is a greedy data source. '{1}' does not support greedy data sources.
+        /// </summary>
+        internal static string FormatBindingSource_CannotBeGreedy(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_CannotBeGreedy"), p0, p1);
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is not a request-based binding source. '{1}' requires that the source must represent data from an HTTP request.
+        /// </summary>
+        internal static string BindingSource_MustBeFromRequest
+        {
+            get { return GetString("BindingSource_MustBeFromRequest"); }
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is not a request-based binding source. '{1}' requires that the source must represent data from an HTTP request.
+        /// </summary>
+        internal static string FormatBindingSource_MustBeFromRequest(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeFromRequest"), p0, p1);
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is not a greedy data source. '{1}' only supports greedy data sources.
+        /// </summary>
+        internal static string BindingSource_MustBeGreedy
+        {
+            get { return GetString("BindingSource_MustBeGreedy"); }
+        }
+
+        /// <summary>
+        /// The provided binding source '{0}' is not a greedy data source. '{1}' only supports greedy data sources.
+        /// </summary>
+        internal static string FormatBindingSource_MustBeGreedy(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeGreedy"), p0, p1);
+        }
+
+        /// <summary>
+        /// The property {0}.{1} could not be found.
+        /// </summary>
+        internal static string Common_PropertyNotFound
+        {
+            get { return GetString("Common_PropertyNotFound"); }
+        }
+
+        /// <summary>
+        /// The property {0}.{1} could not be found.
+        /// </summary>
+        internal static string FormatCommon_PropertyNotFound(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Common_PropertyNotFound"), p0, p1);
+        }
+
+        /// <summary>
+        /// The key '{0}' is invalid JQuery syntax because it is missing a closing bracket.
+        /// </summary>
+        internal static string JQueryFormValueProviderFactory_MissingClosingBracket
+        {
+            get { return GetString("JQueryFormValueProviderFactory_MissingClosingBracket"); }
+        }
+
+        /// <summary>
+        /// The key '{0}' is invalid JQuery syntax because it is missing a closing bracket.
+        /// </summary>
+        internal static string FormatJQueryFormValueProviderFactory_MissingClosingBracket(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("JQueryFormValueProviderFactory_MissingClosingBracket"), p0);
+        }
+
+        /// <summary>
+        /// A value is required.
+        /// </summary>
+        internal static string KeyValuePair_BothKeyAndValueMustBePresent
+        {
+            get { return GetString("KeyValuePair_BothKeyAndValueMustBePresent"); }
+        }
+
+        /// <summary>
+        /// A value is required.
+        /// </summary>
+        internal static string FormatKeyValuePair_BothKeyAndValueMustBePresent()
+        {
+            return GetString("KeyValuePair_BothKeyAndValueMustBePresent");
+        }
+
+        /// <summary>
+        /// The binding context has a null Model, but this binder requires a non-null model of type '{0}'.
+        /// </summary>
+        internal static string ModelBinderUtil_ModelCannotBeNull
+        {
+            get { return GetString("ModelBinderUtil_ModelCannotBeNull"); }
+        }
+
+        /// <summary>
+        /// The binding context has a null Model, but this binder requires a non-null model of type '{0}'.
+        /// </summary>
+        internal static string FormatModelBinderUtil_ModelCannotBeNull(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinderUtil_ModelCannotBeNull"), p0);
+        }
+
+        /// <summary>
+        /// The binding context has a Model of type '{0}', but this binder can only operate on models of type '{1}'.
+        /// </summary>
+        internal static string ModelBinderUtil_ModelInstanceIsWrong
+        {
+            get { return GetString("ModelBinderUtil_ModelInstanceIsWrong"); }
+        }
+
+        /// <summary>
+        /// The binding context has a Model of type '{0}', but this binder can only operate on models of type '{1}'.
+        /// </summary>
+        internal static string FormatModelBinderUtil_ModelInstanceIsWrong(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinderUtil_ModelInstanceIsWrong"), p0, p1);
+        }
+
+        /// <summary>
+        /// The binding context cannot have a null ModelMetadata.
+        /// </summary>
+        internal static string ModelBinderUtil_ModelMetadataCannotBeNull
+        {
+            get { return GetString("ModelBinderUtil_ModelMetadataCannotBeNull"); }
+        }
+
+        /// <summary>
+        /// The binding context cannot have a null ModelMetadata.
+        /// </summary>
+        internal static string FormatModelBinderUtil_ModelMetadataCannotBeNull()
+        {
+            return GetString("ModelBinderUtil_ModelMetadataCannotBeNull");
+        }
+
+        /// <summary>
+        /// The binding context has a ModelType of '{0}', but this binder can only operate on models of type '{1}'.
+        /// </summary>
+        internal static string ModelBinderUtil_ModelTypeIsWrong
+        {
+            get { return GetString("ModelBinderUtil_ModelTypeIsWrong"); }
+        }
+
+        /// <summary>
+        /// The binding context has a ModelType of '{0}', but this binder can only operate on models of type '{1}'.
+        /// </summary>
+        internal static string FormatModelBinderUtil_ModelTypeIsWrong(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinderUtil_ModelTypeIsWrong"), p0, p1);
+        }
+
+        /// <summary>
+        /// A value for the '{0}' property was not provided.
+        /// </summary>
+        internal static string ModelBinding_MissingBindRequiredMember
+        {
+            get { return GetString("ModelBinding_MissingBindRequiredMember"); }
+        }
+
+        /// <summary>
+        /// A value for the '{0}' property was not provided.
+        /// </summary>
+        internal static string FormatModelBinding_MissingBindRequiredMember(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinding_MissingBindRequiredMember"), p0);
+        }
+
+        /// <summary>
+        /// A value is required.
+        /// </summary>
+        internal static string ModelBinding_ValueRequired
+        {
+            get { return GetString("ModelBinding_ValueRequired"); }
+        }
+
+        /// <summary>
+        /// A value is required.
+        /// </summary>
+        internal static string FormatModelBinding_ValueRequired()
+        {
+            return GetString("ModelBinding_ValueRequired");
+        }
+
+        /// <summary>
+        /// More than one parameter and/or property is bound to the HTTP request's content.
+        /// </summary>
+        internal static string MultipleBodyParametersOrPropertiesAreNotAllowed
+        {
+            get { return GetString("MultipleBodyParametersOrPropertiesAreNotAllowed"); }
+        }
+
+        /// <summary>
+        /// More than one parameter and/or property is bound to the HTTP request's content.
+        /// </summary>
+        internal static string FormatMultipleBodyParametersOrPropertiesAreNotAllowed()
+        {
+            return GetString("MultipleBodyParametersOrPropertiesAreNotAllowed");
+        }
+
+        /// <summary>
+        /// The type '{0}' does not implement the interface '{1}'.
+        /// </summary>
+        internal static string PropertyBindingPredicateProvider_WrongType
+        {
+            get { return GetString("PropertyBindingPredicateProvider_WrongType"); }
+        }
+
+        /// <summary>
+        /// The type '{0}' does not implement the interface '{1}'.
+        /// </summary>
+        internal static string FormatPropertyBindingPredicateProvider_WrongType(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("PropertyBindingPredicateProvider_WrongType"), p0, p1);
+        }
+
+        /// <summary>
+        /// The model object inside the metadata claimed to be compatible with '{0}', but was actually '{1}'.
+        /// </summary>
+        internal static string ValidatableObjectAdapter_IncompatibleType
+        {
+            get { return GetString("ValidatableObjectAdapter_IncompatibleType"); }
+        }
+
+        /// <summary>
+        /// The model object inside the metadata claimed to be compatible with '{0}', but was actually '{1}'.
+        /// </summary>
+        internal static string FormatValidatableObjectAdapter_IncompatibleType(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ValidatableObjectAdapter_IncompatibleType"), p0, p1);
+        }
+
+        /// <summary>
+        /// Cannot convert value '{0}' to enum type '{1}'.
+        /// </summary>
+        internal static string ValueProviderResult_CannotConvertEnum
+        {
+            get { return GetString("ValueProviderResult_CannotConvertEnum"); }
+        }
+
+        /// <summary>
+        /// Cannot convert value '{0}' to enum type '{1}'.
+        /// </summary>
+        internal static string FormatValueProviderResult_CannotConvertEnum(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ValueProviderResult_CannotConvertEnum"), p0, p1);
+        }
+
+        /// <summary>
+        /// The parameter conversion from type '{0}' to type '{1}' failed because no type converter can convert between these types.
+        /// </summary>
+        internal static string ValueProviderResult_NoConverterExists
+        {
+            get { return GetString("ValueProviderResult_NoConverterExists"); }
+        }
+
+        /// <summary>
+        /// The parameter conversion from type '{0}' to type '{1}' failed because no type converter can convert between these types.
+        /// </summary>
+        internal static string FormatValueProviderResult_NoConverterExists(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ValueProviderResult_NoConverterExists"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

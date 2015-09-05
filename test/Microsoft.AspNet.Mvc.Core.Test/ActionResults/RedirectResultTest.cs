@@ -1,16 +1,15 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.Fallback;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class RedirectResultTest
     {
@@ -110,17 +109,16 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return serviceCollection.BuildServiceProvider();
         }
 
-        private static HttpContext GetHttpContext(string appRoot, 
+        private static HttpContext GetHttpContext(string appRoot,
                                                      string contentPath,
                                                      string expectedPath,
                                                      HttpResponse response)
         {
             var httpContext = new Mock<HttpContext>();
             var actionContext = GetActionContext(httpContext.Object);
-            var mockContentAccessor = new Mock<IContextAccessor<ActionContext>>();
-            mockContentAccessor.SetupGet(o => o.Value).Returns(actionContext);
+            var actionContextAccessor = new ActionContextAccessor() { ActionContext = actionContext };
             var mockActionSelector = new Mock<IActionSelector>();
-            var urlHelper = new UrlHelper(mockContentAccessor.Object, mockActionSelector.Object);
+            var urlHelper = new UrlHelper(actionContextAccessor, mockActionSelector.Object);
             var serviceProvider = GetServiceProvider(urlHelper);
 
             httpContext.Setup(o => o.Response)

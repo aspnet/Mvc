@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionConstraints
 {
     /// <summary>
     /// Base class for attributes which can implement conditional logic to enable or disable an action
@@ -28,7 +29,7 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="routeContext">The route context.</param>
         /// <param name="action">Information about the action.</param>
         /// <returns>
-        /// <see langword="true"/> if the action  selection is valid for the specified context; 
+        /// <see langword="true"/> if the action  selection is valid for the specified context;
         /// otherwise, <see langword="false"/>.
         /// </returns>
         public abstract bool IsValidForRequest(RouteContext routeContext, ActionDescriptor action);

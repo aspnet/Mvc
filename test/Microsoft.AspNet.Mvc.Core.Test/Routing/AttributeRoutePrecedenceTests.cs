@@ -1,12 +1,11 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNET50
+#if DNX451
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
 using Microsoft.Framework.OptionsModel;
 using Moq;
-using System;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Routing
@@ -61,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         private static decimal Compute(string template)
         {
             var options = new Mock<IOptions<RouteOptions>>();
-            options.SetupGet(o => o.Options).Returns(new RouteOptions());
+            options.SetupGet(o => o.Value).Returns(new RouteOptions());
 
             var parsed = TemplateParser.Parse(template);
             return AttributeRoutePrecedence.Compute(parsed);

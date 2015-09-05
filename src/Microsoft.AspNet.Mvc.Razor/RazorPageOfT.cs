@@ -1,12 +1,14 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Rendering.Expressions;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -26,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        [Activate]
+        [RazorInject]
         public ViewDataDictionary<TModel> ViewData { get; set; }
 
         /// <summary>
@@ -47,14 +49,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var name = ExpressionHelper.GetExpressionText(expression);
-            var metadata = ExpressionMetadataProvider.FromLambdaExpression(expression, ViewData, _provider);
-            if (metadata == null)
+            var modelExplorer = ExpressionMetadataProvider.FromLambdaExpression(expression, ViewData, _provider);
+            if (modelExplorer == null)
             {
                 throw new InvalidOperationException(
                     Resources.FormatRazorPage_NullModelMetadata(nameof(IModelMetadataProvider), name));
             }
 
-            return new ModelExpression(name, metadata);
+            return new ModelExpression(name, modelExplorer);
         }
     }
 }

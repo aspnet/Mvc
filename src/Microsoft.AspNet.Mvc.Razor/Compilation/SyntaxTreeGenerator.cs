@@ -1,52 +1,34 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Dnx.Compilation.CSharp;
+using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.Razor
+namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
     public static class SyntaxTreeGenerator
     {
-        private static CSharpParseOptions DefaultOptions
-        {
-            get
-            {
-                return CSharpParseOptions.Default
-                        .WithLanguageVersion(LanguageVersion.CSharp6);
-            }
-        }
-
-        public static SyntaxTree Generate([NotNull] string text, [NotNull] string path)
-        {
-            return GenerateCore(text, path, DefaultOptions);
-        }
-
         public static SyntaxTree Generate([NotNull] string text,
                                           [NotNull] string path,
-                                          [NotNull] CSharpParseOptions options)
-        {
-            return GenerateCore(text, path, options);
-        }
-
-        public static SyntaxTree GenerateCore([NotNull] string text,
-                                              [NotNull] string path,
-                                              [NotNull] CSharpParseOptions options)
+                                          [NotNull] CompilationSettings compilationSettings)
         {
             var sourceText = SourceText.From(text, Encoding.UTF8);
             var syntaxTree = CSharpSyntaxTree.ParseText(sourceText,
                 path: path,
-                options: options);
+                options: GetParseOptions(compilationSettings));
 
             return syntaxTree;
         }
 
-        public static CSharpParseOptions GetParseOptions(CSharpCompilation compilation)
+        public static CSharpParseOptions GetParseOptions(CompilationSettings compilationSettings)
         {
-            return CSharpParseOptions.Default
-                              .WithLanguageVersion(compilation.LanguageVersion);
+            return new CSharpParseOptions(
+               languageVersion: compilationSettings.LanguageVersion,
+               preprocessorSymbols: compilationSettings.Defines);
         }
     }
 }

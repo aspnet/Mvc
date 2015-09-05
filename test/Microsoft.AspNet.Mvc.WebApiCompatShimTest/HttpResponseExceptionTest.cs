@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
@@ -21,8 +21,8 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             // Assert
             Assert.Same(response, exception.Response);
-            Assert.Equal("Processing of the HTTP request resulted in an exception."+
-                         " Please see the HTTP response returned by the 'Response' "+
+            Assert.Equal("Processing of the HTTP request resulted in an exception." +
+                         " Please see the HTTP response returned by the 'Response' " +
                          "property of this exception for details.",
                          exception.Message);
         }
@@ -36,8 +36,8 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             // Assert
             Assert.Equal(HttpStatusCode.BadGateway, exception.Response.StatusCode);
-            Assert.Equal("Processing of the HTTP request resulted in an exception."+
-                         " Please see the HTTP response returned by the 'Response' "+
+            Assert.Equal("Processing of the HTTP request resulted in an exception." +
+                         " Please see the HTTP response returned by the 'Response' " +
                          "property of this exception for details.",
                          exception.Message);
         }

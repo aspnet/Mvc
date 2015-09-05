@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Framework.Runtime;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.HttpFeature;
+using Microsoft.AspNet.Http.Features;
+using Microsoft.Dnx.Runtime;
 
 namespace FilesWebSite
 {
@@ -26,10 +26,10 @@ namespace FilesWebSite
         {
             var environment = (IApplicationEnvironment)context.RequestServices.GetService(typeof(IApplicationEnvironment));
 
-            if (context.GetFeature<IHttpSendFileFeature>() == null)
+            if (context.Features.Get<IHttpSendFileFeature>() == null)
             {
                 var sendFile = new SendFileFallBack(context.Response.Body, environment.ApplicationBasePath);
-                context.SetFeature<IHttpSendFileFeature>(sendFile);
+                context.Features.Set<IHttpSendFileFeature>(sendFile);
             }
 
             await _next(context);

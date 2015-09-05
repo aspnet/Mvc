@@ -1,27 +1,40 @@
 {
-    "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
-    "version": "6.0.0-*",
-    "compilationOptions": {
-        "warningsAsErrors": true
+  "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
+  "version": "6.0.0-*",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet/mvc"
+  },
+  "compilationOptions": {
+    "warningsAsErrors": true
+  },
+  "dependencies": {
+    "Microsoft.AspNet.FileProviders.Physical": "1.0.0-*",
+    "Microsoft.AspNet.Razor.Runtime": "4.0.0-*",
+    "Microsoft.Framework.Caching.Memory": "1.0.0-*",
+    "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
+    "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" }
+  },
+  "frameworks": {
+    "net45": { },
+    "dnx451": {
+      "dependencies": {
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*"
+      }
     },
-    "dependencies": {
-        "Microsoft.AspNet.FileSystems": "1.0.0-*",
-        "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Razor.Runtime": "4.0.0-*"
-    },
-    "frameworks": {
-        "net45": {},
-        "aspnet50": {
-            "dependencies": {
-                "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-*", "type": "build" }
-            }
-        },
-        "aspnetcore50": {
-            "dependencies": {
-                "System.Collections.Concurrent": "4.0.10-beta-*",
-                "System.Diagnostics.Contracts": "4.0.0-beta-*",
-                "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-*", "type": "build" }
-            }
-        }
+    "dnxcore50": {
+      "dependencies": {
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*",
+        "System.Collections.Concurrent": "4.0.11-beta-*",
+        "System.ComponentModel.TypeConverter": "4.0.1-beta-*",
+        "System.Reflection.Extensions": "4.0.1-beta-*",
+        "System.Text.Encoding.Extensions": "4.0.11-beta-*"
+      }
     }
+  },
+  "exclude": [
+    "wwwroot",
+    "node_modules",
+    "bower_components"
+  ]
 }

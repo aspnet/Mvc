@@ -1,37 +1,38 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.Framework.DependencyInjection;
 
-namespace ApiExplorer
+namespace ApiExplorerWebSite
 {
     public class Startup
     {
+        // Set up application services
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddMvc(options =>
+            {
+                options.Filters.AddService(typeof(ApiExplorerDataFilter));
+
+                options.Conventions.Add(new ApiExplorerVisibilityEnabledConvention());
+                options.Conventions.Add(new ApiExplorerVisibilityDisabledConvention(
+                    typeof(ApiExplorerVisbilityDisabledByConventionController)));
+
+                options.OutputFormatters.Clear();
+                options.OutputFormatters.Add(new JsonOutputFormatter());
+                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            });
+
+            services.AddSingleton<ApiExplorerDataFilter>();
+        }
+
+
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
-            app.UseServices(services =>
-            {
-                services.AddMvc(configuration);
-                services.AddSingleton<ApiExplorerDataFilter>();
-
-                services.Configure<MvcOptions>(options =>
-                {
-                    options.Filters.AddService(typeof(ApiExplorerDataFilter));
-
-                    options.ApplicationModelConventions.Add(new ApiExplorerVisibilityEnabledConvention());
-                    options.ApplicationModelConventions.Add(new ApiExplorerVisibilityDisabledConvention(
-                        typeof(ApiExplorerVisbilityDisabledByConventionController)));
-
-                    options.OutputFormatters.Clear();
-                    options.OutputFormatters.Add(new JsonOutputFormatter());
-                    options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-                });
-            });
+            app.UseCultureReplacer();
 
             app.UseMvc(routes =>
             {

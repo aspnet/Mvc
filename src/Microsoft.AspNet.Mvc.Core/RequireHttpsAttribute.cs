@@ -1,20 +1,22 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class RequireHttpsAttribute :
-        Attribute, IAuthorizationFilter, IOrderedFilter
+    public class RequireHttpsAttribute : Attribute, IAuthorizationFilter, IOrderedFilter
     {
         public int Order { get; set; }
 
         public virtual void OnAuthorization([NotNull]AuthorizationContext filterContext)
         {
-            if (!filterContext.HttpContext.Request.IsSecure)
+            if (!filterContext.HttpContext.Request.IsHttps)
             {
                 HandleNonHttpsRequest(filterContext);
             }
@@ -26,7 +28,7 @@ namespace Microsoft.AspNet.Mvc
             // body correctly.
             if (!string.Equals(filterContext.HttpContext.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
-                filterContext.Result = new HttpStatusCodeResult(403);
+                filterContext.Result = new HttpStatusCodeResult(StatusCodes.Status403Forbidden);
             }
             else
             {

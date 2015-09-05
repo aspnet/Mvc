@@ -1,21 +1,18 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewComponents;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace MvcSample.Web.Components
 {
-    [TagName("tag-cloud")]
+    [TargetElement("tag-cloud")]
     [ViewComponent(Name = "Tags")]
-    [ContentBehavior(ContentBehavior.Replace)]
     public class TagCloudViewComponentTagHelper : ITagHelper
     {
         private static readonly string[] Tags =
@@ -28,21 +25,32 @@ namespace MvcSample.Web.Components
 
         public int Count { get; set; }
 
-        [Activate]
+        [HtmlAttributeNotBound]
+        [ViewContext]
         public ViewContext ViewContext { get; set; }
+
+        public int Order { get; } = 0;
 
         public async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             var result = await InvokeAsync(Count);
             var writer = new StringWriter();
 
-            await result.ExecuteAsync(
-                new ViewComponentContext(typeof(TagCloudViewComponentTagHelper).GetTypeInfo(),
-                                         ViewContext,
-                                         writer));
+            var viewComponentDescriptor = new ViewComponentDescriptor()
+            {
+                Type = typeof(TagCloudViewComponentTagHelper),
+                ShortName = "TagCloudViewComponentTagHelper",
+                FullName = "TagCloudViewComponentTagHelper",
+            };
+
+            await result.ExecuteAsync(new ViewComponentContext(
+                viewComponentDescriptor,
+                new object[0],
+                ViewContext,
+                writer));
 
             output.TagName = null;
-            output.Content = writer.ToString();
+            output.Content.SetContent(writer.ToString());
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int count)

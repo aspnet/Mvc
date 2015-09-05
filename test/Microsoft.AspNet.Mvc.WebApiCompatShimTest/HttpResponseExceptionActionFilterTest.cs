@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using Microsoft.AspNet.PipelineCore;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
 using Moq;
 #endif
@@ -27,19 +30,24 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             Assert.Equal(expectedFilterOrder, filter.Order);
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         [Fact]
         public void OnActionExecuting_IsNoOp()
         {
             // Arrange
             var filter = new HttpResponseExceptionActionFilter();
-            var context = new ActionExecutingContext(new ActionContext(
-                            new DefaultHttpContext(),
-                            new RouteData(),
-                            actionDescriptor: Mock.Of<ActionDescriptor>()),
-                            filters: Mock.Of<IList<IFilter>>(),
-                            actionArguments: new Dictionary<string, object>());
+
+            var actionContext = new ActionContext(
+                                new DefaultHttpContext(),
+                                new RouteData(),
+                                Mock.Of<ActionDescriptor>());
+
+            var context = new ActionExecutingContext(
+                actionContext,
+                filters: new List<IFilterMetadata>(),
+                actionArguments: new Dictionary<string, object>(),
+                controller: new object());
 
             // Act
             filter.OnActionExecuting(context);
@@ -51,20 +59,24 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
         [Fact]
         public void OnActionExecuted_HandlesExceptionAndReturnsObjectResult()
         {
-            // Arrange 
+            // Arrange
             var filter = new HttpResponseExceptionActionFilter();
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Method = "GET";
 
+            var actionContext = new ActionContext(
+                                httpContext,
+                                new RouteData(),
+                                Mock.Of<ActionDescriptor>());
+
             var context = new ActionExecutedContext(
-                new ActionContext(
-                            httpContext, 
-                            new RouteData(),
-                            actionDescriptor: Mock.Of<ActionDescriptor>()),
-                filters: null);
+                actionContext,
+                filters: new List<IFilterMetadata>(),
+                controller: new object());
+
             context.Exception = new HttpResponseException(HttpStatusCode.BadRequest);
 
-            // Act 
+            // Act
             filter.OnActionExecuted(context);
 
             // Assert

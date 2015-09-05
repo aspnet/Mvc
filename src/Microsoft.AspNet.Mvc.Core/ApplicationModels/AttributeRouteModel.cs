@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -123,28 +125,28 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 return right;
             }
 
-            if (left.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            if (left.EndsWith("/", StringComparison.Ordinal))
             {
                 return left + right;
             }
 
             // Both templates contain some text.
-            return left + '/' + right;
+            return left + "/" + right;
         }
 
         private static bool IsOverridePattern(string template)
         {
             return template != null &&
-                (template.StartsWith("~/", StringComparison.OrdinalIgnoreCase) ||
-                template.StartsWith("/", StringComparison.OrdinalIgnoreCase));
+                (template.StartsWith("~/", StringComparison.Ordinal) ||
+                template.StartsWith("/", StringComparison.Ordinal));
         }
 
         private static bool IsEmptyLeftSegment(string template)
         {
             return template == null ||
-                template.Equals(string.Empty, StringComparison.OrdinalIgnoreCase) ||
-                template.Equals("~/", StringComparison.OrdinalIgnoreCase) ||
-                template.Equals("/", StringComparison.OrdinalIgnoreCase);
+                template.Equals(string.Empty, StringComparison.Ordinal) ||
+                template.Equals("~/", StringComparison.Ordinal) ||
+                template.Equals("/", StringComparison.Ordinal);
         }
 
         private static string CleanTemplate(string result)
@@ -157,17 +159,17 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // This is an invalid combined template, so we don't want to
             // accidentally clean it and produce a valid template. For that
             // reason we ignore the clean up process for it.
-            if (result.Equals("//", StringComparison.OrdinalIgnoreCase))
+            if (result.Equals("//", StringComparison.Ordinal))
             {
                 return result;
             }
 
             var startIndex = 0;
-            if (result.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+            if (result.StartsWith("/", StringComparison.Ordinal))
             {
                 startIndex = 1;
             }
-            else if (result.StartsWith("~/", StringComparison.OrdinalIgnoreCase))
+            else if (result.StartsWith("~/", StringComparison.Ordinal))
             {
                 startIndex = 2;
             }
@@ -175,11 +177,11 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // We are in the case where the string is "/" or "~/"
             if (startIndex == result.Length)
             {
-                return "";
+                return string.Empty;
             }
 
             var subStringLength = result.Length - startIndex;
-            if (result.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            if (result.EndsWith("/", StringComparison.Ordinal))
             {
                 subStringLength--;
             }
@@ -336,7 +338,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                                 var message = Resources.FormatAttributeRoute_TokenReplacement_ReplacementValueNotFound(
                                     template,
                                     token,
-                                    string.Join(", ", values.Keys));
+                                    string.Join(", ", values.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase)));
                                 throw new InvalidOperationException(message);
                             }
 
@@ -372,7 +374,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         [Flags]
         private enum TemplateParserState : uint
         {
-            // default state - allow non-special characters to pass through to the 
+            // default state - allow non-special characters to pass through to the
             // buffer.
             Plaintext = 0,
 

@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
-using Microsoft.AspNet.PipelineCore;
+using Microsoft.AspNet.Testing;
 using Microsoft.Framework.OptionsModel;
-#if !ASPNETCORE50
+#if !DNXCORE50
 using Moq;
 #endif
 using Xunit;
@@ -25,7 +26,10 @@ namespace System.Net.Http
             var ex = Assert.Throws<FormatException>(
                 () => request.CreateResponse(HttpStatusCode.OK, CreateValue(), "foo/bar; param=value"));
 
-            Assert.Equal("The format of value 'foo/bar; param=value' is invalid.", ex.Message);
+            Assert.Equal(
+                TestPlatformHelper.IsMono ?
+                "Invalid format." :
+                "The format of value 'foo/bar; param=value' is invalid.", ex.Message);
         }
 
         [Fact]
@@ -46,7 +50,7 @@ namespace System.Net.Http
                 ex.Message);
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         [Fact]
         public void CreateResponse_DoingConneg_OnlyContent_RetrievesContentNegotiatorFromServices()
@@ -64,7 +68,7 @@ namespace System.Net.Http
             options.Formatters.AddRange(new MediaTypeFormatterCollection());
 
             var optionsAccessor = new Mock<IOptions<WebApiCompatShimOptions>>();
-            optionsAccessor.SetupGet(o => o.Options).Returns(options);
+            optionsAccessor.SetupGet(o => o.Value).Returns(options);
 
             services
                 .Setup(s => s.GetService(typeof(IOptions<WebApiCompatShimOptions>)))
@@ -97,7 +101,7 @@ namespace System.Net.Http
             options.Formatters.AddRange(new MediaTypeFormatterCollection());
 
             var optionsAccessor = new Mock<IOptions<WebApiCompatShimOptions>>();
-            optionsAccessor.SetupGet(o => o.Options).Returns(options);
+            optionsAccessor.SetupGet(o => o.Value).Returns(options);
 
             services
                 .Setup(s => s.GetService(typeof(IOptions<WebApiCompatShimOptions>)))
@@ -318,7 +322,7 @@ namespace System.Net.Http
             }
 
             var optionsAccessor = new Mock<IOptions<WebApiCompatShimOptions>>();
-            optionsAccessor.SetupGet(o => o.Options).Returns(options);
+            optionsAccessor.SetupGet(o => o.Value).Returns(options);
 
             var services = new Mock<IServiceProvider>(MockBehavior.Strict);
             services

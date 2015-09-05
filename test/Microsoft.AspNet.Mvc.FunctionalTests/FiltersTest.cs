@@ -1,26 +1,64 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.AspNet.Mvc.Formatters.Xml;
+using Microsoft.AspNet.Testing.xunit;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class FiltersTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("FiltersWebSite");
+        private const string SiteName = nameof(FiltersWebSite);
         private readonly Action<IApplicationBuilder> _app = new FiltersWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new FiltersWebSite.Startup().ConfigureServices;
 
+        // A controller can only be an action filter and result filter, so we don't have entries
+        // for the other filter types implemented by the controller.
         [Fact]
         public async Task ListAllFilters()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
+
+            var expected = new string[]
+            {
+                "Global Authorization Filter - OnAuthorization",
+                "On Controller Authorization Filter - OnAuthorization",
+                "Authorize Filter On Action - OnAuthorization",
+                "Global Resource Filter - OnResourceExecuting",
+                "Controller Resource Filter - OnResourceExecuting",
+                "Action Resource Filter - OnResourceExecuting",
+                "Controller Override - OnActionExecuting",
+                "Global Action Filter - OnActionExecuting",
+                "On Controller Action Filter - OnActionExecuting",
+                "On Action Action Filter - OnActionExecuting",
+                "Executing Action",
+                "On Action Action Filter - OnActionExecuted",
+                "On Controller Action Filter - OnActionExecuted",
+                "Global Action Filter - OnActionExecuted",
+                "Controller Override - OnActionExecuted",
+                "Controller Override - OnResultExecuting",
+                "Global Result Filter - OnResultExecuted",
+                "On Controller Result Filter - OnResultExecuting",
+                "On Action Result Filter - OnResultExecuting",
+                "On Action Result Filter - OnResultExecuted",
+                "On Controller Result Filter - OnResultExecuted",
+                "Global Result Filter - OnResultExecuted",
+                "Controller Override - OnResultExecuted",
+                "Action Resource Filter - OnResourceExecuted",
+                "Controller Resource Filter - OnResourceExecuted",
+                "Global Resource Filter - OnResourceExecuted",
+            };
 
             // Act
             var response = await client.GetAsync("http://localhost/Products/GetPrice/5");
@@ -30,37 +68,22 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var body = await response.Content.ReadAsStringAsync();
 
-            var filters = response.Headers.GetValues("filters");
-            Assert.Equal(
-                "Controller Override - OnAuthorization," +
-                "Global Authorization Filter - OnAuthorization," +
-                "On Controller Authorization Filter - OnAuthorization," +
-                "Authorize Filter On Action - OnAuthorization," +
-                "Controller Override - OnActionExecuting," +
-                "Global Action Filter - OnActionExecuting," +
-                "On Controller Action Filter - OnActionExecuting," +
-                "On Action Action Filter - OnActionExecuting," +
-                "Executing Action," +
-                "On Action Action Filter - OnActionExecuted," +
-                "On Controller Action Filter - OnActionExecuted," +
-                "Global Action Filter - OnActionExecuted," +
-                "Controller Override - OnActionExecuted," +
-                "Controller Override - OnResultExecuting," +
-                "Global Result Filter - OnResultExecuted," +
-                "On Controller Result Filter - OnResultExecuting," +
-                "On Action Result Filter - OnResultExecuting," +
-                "On Action Result Filter - OnResultExecuted," +
-                "On Controller Result Filter - OnResultExecuted," +
-                "Global Result Filter - OnResultExecuted," +
-                "Controller Override - OnResultExecuted",
-                (filters as string[])[0]);
+            var filters = response.Headers.GetValues("filters").ToArray();
+
+            var i = 0;
+            foreach (var filter in filters)
+            {
+                Assert.Equal(expected[i++], filter);
+            }
+
+            Assert.Equal(expected.Length, filters.Length);
         }
 
         [Fact]
         public async Task AnonymousUsersAreBlocked()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -74,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task AllowsAnonymousUsersToAccessController()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -85,16 +108,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("4", await response.Content.ReadAsStringAsync());
         }
 
-        [Fact]
-        public async Task CanAuthorizeParticularUsers()
+
+        [Theory]
+        [InlineData("AdminRole")]
+        [InlineData("InteractiveUsers")]
+        [InlineData("ApiManagers")]
+        public async Task CanAuthorize(string testAction)
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
             var response = await client.GetAsync(
-                "http://localhost/AuthorizeUser/ReturnHelloWorldOnlyForAuthorizedUser");
+                "http://localhost/AuthorizeUser/"+testAction);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -102,10 +129,41 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task AllowAnonymousOverridesAuthorize()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync(
+                "http://localhost/AuthorizeUser/AlwaysCanCallAllowAnonymous");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Hello World!", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ImpossiblePolicyFailsAuthorize()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync(
+                "http://localhost/AuthorizeUser/Impossible");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
         public async Task ServiceFilterUsesRegisteredServicesAsFilter()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -120,19 +178,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ServiceFilterThrowsIfServiceIsNotRegistered()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var url = "http://localhost/RandomNumber/GetAuthorizedRandomNumber";
 
-            // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => client.GetAsync(url));
+            // Act
+            var response = await client.GetAsync(url);
+
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
         }
 
         [Fact]
         public async Task TypeFilterInitializesArguments()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var url = "http://localhost/RandomNumber/GetModifiedRandomNumber?randomNumber=10";
 
@@ -148,19 +210,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task TypeFilterThrowsIfServicesAreNotRegistered()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var url = "http://localhost/RandomNumber/GetHalfOfModifiedRandomNumber?randomNumber=3";
 
-            // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => client.GetAsync(url));
+            // Act
+            var response = await client.GetAsync(url);
+
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
         }
 
         [Fact]
         public async Task ActionFilterOverridesActionExecuted()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -168,7 +234,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+            XmlAssert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                 "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>10</SampleInt></DummyClass>",
                 await response.Content.ReadAsStringAsync());
         }
@@ -177,7 +243,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ResultFilterOverridesOnResultExecuting()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -185,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+            XmlAssert.Equal("<DummyClass xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                 "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><SampleInt>120</SampleInt></DummyClass>",
                 await response.Content.ReadAsStringAsync());
         }
@@ -194,7 +260,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ResultFilterOverridesOnResultExecuted()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -211,7 +277,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task OrderOfExecutionOfFilters_WhenOrderAttribute_IsNotMentioned()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -229,7 +295,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ExceptionsHandledInActionFilters_WillNotShortCircuitResultFilters()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -246,7 +312,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ExceptionFilter_OnAction_ShortCircuitsResultFilters()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -265,7 +331,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task GlobalExceptionFilter_HandlesAnException()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -276,13 +342,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("GlobalExceptionFilter.OnException", await response.Content.ReadAsStringAsync());
         }
 
-        // Controller Override, Action, Controller, and a Global Exception filters are present.
+        // Action, Controller, and a Global Exception filters are present.
         // Verifies they are executed in the above mentioned order.
         [Fact]
         public async Task ExceptionFilter_Scope()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -291,7 +357,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(
-                "OnException implemented in Controller, " +
                 "GlobalExceptionFilter.OnException, " +
                 "ControllerExceptionFilter.OnException, " +
                 "Action Exception Filter",
@@ -304,7 +369,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionFilter_Scope()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -331,7 +396,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ResultFilter_Scope()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -354,7 +419,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FiltersWithOrder()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -371,7 +436,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionFiltersWithOrder()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -392,7 +457,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ResultFiltersWithOrder()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -411,7 +476,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionFilterShortCircuitsAction()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -428,7 +493,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ResultFilterShortCircuitsResult()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -445,7 +510,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ExceptionFilterShortCircuitsAnotherExceptionFilter()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -457,45 +522,63 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         // Result Filter throws.
-        // Verifies the Global Exception Filter does not handle it.
+        // Exception Filters don't get a chance to handle this.
         [Fact]
-        public async Task ThrowingResultFilter_NotHandledByGlobalExceptionFilter()
+        public async Task ThrowingFilters_ResultFilter_NotHandledByGlobalExceptionFilter()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidProgramException>(
-                () => client.GetAsync("http://localhost/Home/ThrowingResultFilter"));
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/ThrowingResultFilter");
+
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidProgramException).FullName, exception.ExceptionType);
         }
 
         // Action Filter throws.
         // Verifies the Global Exception Filter handles it.
-        [Theory]
-        [InlineData("http://localhost/Home/ThrowingActionFilter")]
-        [InlineData("http://localhost/Home/ThrowingAuthorizationFilter")]
-        public async Task ThrowingFilters_HandledByGlobalExceptionFilter(string url)
+        [Fact]
+        public async Task ThrowingFilters_ActionFilter_HandledByGlobalExceptionFilter()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await client.GetAsync("http://localhost/Home/ThrowingActionFilter");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("GlobalExceptionFilter.OnException", await response.Content.ReadAsStringAsync());
         }
 
+        // Authorization Filter throws.
+        // Exception Filters don't get a chance to handle this.
+        [Fact]
+        public async Task ThrowingFilters_AuthFilter_NotHandledByGlobalExceptionFilter()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/ThrowingAuthorizationFilter");
+
+            // Assert
+            var exception = response.GetServerException();
+            Assert.Equal(typeof(InvalidProgramException).FullName, exception.ExceptionType);
+        }
+
         // Exception Filter throws.
         // Verifies the thrown exception is ignored.
         [Fact]
-        public async Task ThrowingExceptionFilter_NotHandledByGlobalExceptionFilter()
+        public async Task ThrowingExceptionFilter_ExceptionFilter_NotHandledByGlobalExceptionFilter()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -504,6 +587,116 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Throwing Exception Filter", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ResourceFilter_ShortCircuitsUsingObjectResult_UsesOptions()
+        {
+            // Arrange
+            var input = "{ sampleInt: 10 }";
+
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/ResourceFilter/Post");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            // Uses formatters from options.
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Notice this has been formatted using StringOutputFormatter and not JsonOutputFormatter.
+            Assert.Equal("someValue", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ResourceFilter_ShortCircuitsUsingObjectResult_WithJsonFormatter_ReturnsResponse()
+        {
+            // Arrange
+            var input = "{ sampleInt: 10 }";
+
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/ResourceFilter/Get");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("\"someValue\"", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ResourceFilter_ChangesOutputFormatters_JsonReturned()
+        {
+            // Arrange
+            var input = "{ sampleInt: 10 }";
+
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Json");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("\"10\"", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ResourceFilter_ChangesInputFormatters_JsonAccepted()
+        {
+            // Arrange
+            var input = "{ sampleInt: 10 }";
+
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Json");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("\"10\"", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ResourceFilter_ChangesInputFormatters_XmlDenied()
+        {
+            // Arrange
+            var input =
+                "<DummyClass xmlns=\"http://schemas.datacontract.org/2004/07/FormatterWebSite\">" +
+                "<SampleInt>10</SampleInt>" +
+                "</DummyClass>";
+
+            // There's nothing that can deserialize the body, so the result contains the default
+            // value.
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Json");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/xml");
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("\"0\"", await response.Content.ReadAsStringAsync());
         }
     }
 }

@@ -1,21 +1,15 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Net;
+using Microsoft.AspNet.Http;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
-    public class NoContentResult : ActionResult
+    public class NoContentResult : HttpStatusCodeResult
     {
-        public override void ExecuteResult([NotNull] ActionContext context)
+        public NoContentResult()
+            : base(StatusCodes.Status204NoContent)
         {
-            var response = context.HttpContext.Response;
-
-#if ASPNET50
-            response.StatusCode = (int)HttpStatusCode.NoContent;
-#else
-            response.StatusCode = 204;
-#endif
         }
     }
 }

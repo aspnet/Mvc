@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using WebApiShimResources = Microsoft.AspNet.Mvc.WebApiCompatShim.Resources;
 
 namespace System.Web.Http
 {
@@ -10,12 +11,20 @@ namespace System.Web.Http
     /// An attribute that specifies that the value can be bound from the query string or route data.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-    public class FromUriAttribute : 
-        Attribute, 
-        IQueryValueProviderMetadata, 
-        IRouteDataValueProviderMetadata, 
+    public class FromUriAttribute :
+        Attribute,
+        IOptionalBinderMetadata,
+        IBindingSourceMetadata,
         IModelNameProvider
     {
+        private static readonly BindingSource FromUriSource = CompositeBindingSource.Create(
+            new BindingSource[] { BindingSource.Path, BindingSource.Query },
+            WebApiShimResources.BindingSource_URL);
+
+        public BindingSource BindingSource { get { return FromUriSource; } }
+
+        public bool IsOptional { get; set; }
+
         /// <inheritdoc />
         public string Name { get; set; }
     }

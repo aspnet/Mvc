@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,15 +6,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.ApiExplorer;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
     /// Writes an object to the output stream.
     /// </summary>
-    public abstract class OutputFormatter : IOutputFormatter
+    public abstract class OutputFormatter : IOutputFormatter, IApiResponseFormatMetadataProvider
     {
         // using a field so we can return it as both IList and IReadOnlyList
         private readonly List<MediaTypeHeaderValue> _supportedMediaTypes;
@@ -33,7 +36,7 @@ namespace Microsoft.AspNet.Mvc
         /// this <see cref="OutputFormatter"/>. The encodings are
         /// used when writing the data.
         /// </summary>
-        public IList<Encoding> SupportedEncodings { get; private set; }
+        public IList<Encoding> SupportedEncodings { get; }
 
         /// <summary>
         /// Gets the mutable collection of <see cref="MediaTypeHeaderValue"/> elements supported by
@@ -101,8 +104,8 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The <see cref="Encoding"/> to use when reading the request or writing the response.</returns>
         public virtual Encoding SelectCharacterEncoding([NotNull] OutputFormatterContext context)
         {
-            var request = context.ActionContext.HttpContext.Request;
-            var encoding = MatchAcceptCharacterEncoding(request.AcceptCharset);
+            var request = context.HttpContext.Request;
+            var encoding = MatchAcceptCharacterEncoding(request.GetTypedHeaders().AcceptCharset);
             if (encoding == null)
             {
                 // Match based on request acceptHeader.
@@ -133,8 +136,8 @@ namespace Microsoft.AspNet.Mvc
             MediaTypeHeaderValue mediaType = null;
             if (contentType == null)
             {
-                // If the desired content type is set to null, the current formatter is free to choose the 
-                // response media type. 
+                // If the desired content type is set to null, the current formatter is free to choose the
+                // response media type.
                 mediaType = SupportedMediaTypes.FirstOrDefault();
             }
             else
@@ -155,10 +158,10 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public async Task WriteAsync([NotNull] OutputFormatterContext context)
+        public Task WriteAsync([NotNull] OutputFormatterContext context)
         {
             WriteResponseHeaders(context);
-            await WriteResponseBodyAsync(context);
+            return WriteResponseBodyAsync(context);
         }
 
         /// <summary>
@@ -176,21 +179,31 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.FormatOutputFormatterNoMediaType(GetType().FullName));
             }
 
+            // Copy the media type as we don't want it to affect the next request
+            selectedMediaType = selectedMediaType.Copy();
+
+            // Not text-based media types will use an encoding/charset - binary formats just ignore it. We want to
+            // make this class work with media types that use encodings, and those that don't.
+            //
+            // The default implementation of SelectCharacterEncoding will read from the list of SupportedEncodings
+            // and will always choose a default encoding if any are supported. So, the only cases where the 
+            // selectedEncoding can be null are:
+            //
+            // 1). No supported encodings - we assume this is a non-text format
+            // 2). Custom implementation of SelectCharacterEncoding - trust the user and give them what they want.
             var selectedEncoding = SelectCharacterEncoding(context);
-            if (selectedEncoding == null)
+            if (selectedEncoding != null)
             {
-                // No supported encoding was found so there is no way for us to start writing.
-                throw new InvalidOperationException(Resources.FormatOutputFormatterNoEncoding(GetType().FullName));
+                context.SelectedEncoding = selectedEncoding;
+
+                // Override the content type value even if one already existed.
+                selectedMediaType.Charset = selectedEncoding.WebName;
             }
 
-            context.SelectedEncoding = selectedEncoding;
-
-            // Override the content type value even if one already existed. 
-            selectedMediaType.Charset = selectedEncoding.WebName;
-
             context.SelectedContentType = context.SelectedContentType ?? selectedMediaType;
-            var response = context.ActionContext.HttpContext.Response;
-            response.ContentType = selectedMediaType.RawValue;
+
+            var response = context.HttpContext.Response;
+            response.ContentType = selectedMediaType.ToString();
         }
 
         /// <summary>
@@ -200,16 +213,13 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>A task which can write the response body.</returns>
         public abstract Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context);
 
-        private Encoding MatchAcceptCharacterEncoding(string acceptCharsetHeader)
+        private Encoding MatchAcceptCharacterEncoding(IList<StringWithQualityHeaderValue> acceptCharsetHeaders)
         {
-            var acceptCharsetHeaders = HeaderParsingHelpers
-                                                .GetAcceptCharsetHeaders(acceptCharsetHeader);
-
             if (acceptCharsetHeaders != null && acceptCharsetHeaders.Count > 0)
             {
                 var sortedAcceptCharsetHeaders = acceptCharsetHeaders
                                                     .Where(acceptCharset =>
-                                                                acceptCharset.Quality != HttpHeaderUtilitites.NoMatch)
+                                                                acceptCharset.Quality != HeaderQuality.NoMatch)
                                                     .OrderByDescending(
                                                         m => m, StringWithQualityHeaderValueComparer.QualityComparer);
 
@@ -222,7 +232,7 @@ namespace Microsoft.AspNet.Mvc
                                                         supportedEncoding =>
                                                             charset.Equals(supportedEncoding.WebName,
                                                                            StringComparison.OrdinalIgnoreCase) ||
-                                                            charset.Equals("*", StringComparison.OrdinalIgnoreCase));
+                                                            charset.Equals("*", StringComparison.Ordinal));
                         if (encoding != null)
                         {
                             return encoding;

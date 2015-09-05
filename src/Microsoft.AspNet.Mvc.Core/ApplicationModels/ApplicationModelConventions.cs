@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -17,7 +18,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         /// <param name="applicationModel">The <see cref="ApplicationModel"/>.</param>
         /// <param name="conventions">The set of conventions.</param>
         public static void ApplyConventions(
-            [NotNull] ApplicationModel applicationModel, 
+            [NotNull] ApplicationModel applicationModel,
             [NotNull] IEnumerable<IApplicationModelConvention> conventions)
         {
             // Conventions are applied from the outside-in to allow for scenarios where an action overrides

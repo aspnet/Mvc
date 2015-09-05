@@ -1,4 +1,4 @@
-﻿namespace Asp
+namespace Asp
 {
     using Microsoft.AspNet.Razor.Runtime.TagHelpers;
     using System;
@@ -37,11 +37,13 @@
         {
         }
         #line hidden
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<DateTime> Html { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
+        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
 
         #line hidden
@@ -50,7 +52,17 @@
         public override async Task ExecuteAsync()
         {
             __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper = CreateTagHelper<Microsoft.AspNet.Mvc.Razor.InputTestTagHelper>();
-            __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__model => __model.Now);
+#line 5 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
+__Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__model => __model.Now);
+
+#line default
+#line hidden
+            __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper = CreateTagHelper<Microsoft.AspNet.Mvc.Razor.InputTestTagHelper>();
+#line 6 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
+__Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__model => Model);
+
+#line default
+#line hidden
         }
         #pragma warning restore 1998
     }

@@ -1,19 +1,21 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace TagHelpersWebSite.TagHelpers
 {
-    [ContentBehavior(ContentBehavior.Prepend)]
     public class ATagHelper : TagHelper
     {
-        [Activate]
-        public IUrlHelper UrlHelper { get; set; }
+        public ATagHelper(IUrlHelper urlHelper)
+        {
+            UrlHelper = urlHelper;
+        }
+
+        [HtmlAttributeNotBound]
+        public IUrlHelper UrlHelper { get; }
 
         public string Controller { get; set; }
 
@@ -23,8 +25,8 @@ namespace TagHelpersWebSite.TagHelpers
         {
             if (Controller != null && Action != null)
             {
-                var methodParameters = output.Attributes.ToDictionary(attribute => attribute.Key,
-                                                                      attribute => (object)attribute.Value);
+                var methodParameters = output.Attributes.ToDictionary(attribute => attribute.Name,
+                                                                      attribute => attribute.Value);
 
                 // We remove all attributes from the resulting HTML element because they're supposed to
                 // be parameters to our final href value.
@@ -32,7 +34,7 @@ namespace TagHelpersWebSite.TagHelpers
 
                 output.Attributes["href"] = UrlHelper.Action(Action, Controller, methodParameters);
 
-                output.Content = "My ";
+                output.PreContent.SetContent("My ");
             }
         }
     }

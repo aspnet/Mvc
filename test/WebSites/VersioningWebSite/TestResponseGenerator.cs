@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.DependencyInjection;
 
 namespace VersioningWebSite
@@ -14,9 +16,9 @@ namespace VersioningWebSite
     {
         private readonly ActionContext _actionContext;
 
-        public TestResponseGenerator(IContextAccessor<ActionContext> contextAccessor)
+        public TestResponseGenerator(IActionContextAccessor contextAccessor)
         {
-            _actionContext = contextAccessor.Value;
+            _actionContext = contextAccessor.ActionContext;
             if (_actionContext == null)
             {
                 throw new InvalidOperationException("ActionContext should not be null here.");
@@ -47,7 +49,7 @@ namespace VersioningWebSite
                 routeValues = new Dictionary<string, object>(_actionContext.RouteData.Values),
 
                 action = _actionContext.ActionDescriptor.Name,
-                controller = ((ControllerActionDescriptor)_actionContext.ActionDescriptor).ControllerDescriptor.Name,
+                controller = ((ControllerActionDescriptor)_actionContext.ActionDescriptor).ControllerName,
 
                 link,
             });

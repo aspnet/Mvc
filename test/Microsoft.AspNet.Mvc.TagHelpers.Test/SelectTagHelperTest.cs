@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Moq;
 using Xunit;
@@ -44,21 +45,25 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     modelWithText,
                 };
                 var noneSelected = "<option></option>" + Environment.NewLine +
-                    "<option>outer text</option>" + Environment.NewLine +
-                    "<option>inner text</option>" + Environment.NewLine +
-                    "<option>other text</option>" + Environment.NewLine;
+                    "<option>HtmlEncode[[outer text]]</option>" + Environment.NewLine +
+                    "<option>HtmlEncode[[inner text]]</option>" + Environment.NewLine +
+                    "<option>HtmlEncode[[other text]]</option>" + Environment.NewLine;
                 var innerSelected = "<option></option>" + Environment.NewLine +
-                    "<option>outer text</option>" + Environment.NewLine +
-                    "<option selected=\"selected\">inner text</option>" + Environment.NewLine +
-                    "<option>other text</option>" + Environment.NewLine;
+                    "<option>HtmlEncode[[outer text]]</option>" + Environment.NewLine +
+                    "<option selected=\"HtmlEncode[[selected]]\">HtmlEncode[[inner text]]</option>" + Environment.NewLine +
+                    "<option>HtmlEncode[[other text]]</option>" + Environment.NewLine;
                 var outerSelected = "<option></option>" + Environment.NewLine +
-                    "<option selected=\"selected\">outer text</option>" + Environment.NewLine +
-                    "<option>inner text</option>" + Environment.NewLine +
-                    "<option>other text</option>" + Environment.NewLine;
+                    "<option selected=\"HtmlEncode[[selected]]\">HtmlEncode[[outer text]]</option>" + Environment.NewLine +
+                    "<option>HtmlEncode[[inner text]]</option>" + Environment.NewLine +
+                    "<option>HtmlEncode[[other text]]</option>" + Environment.NewLine;
 
                 return new TheoryData<object, Type, Func<object>, NameAndId, string>
                 {
                     { null, typeof(Model), () => null, new NameAndId("Text", "Text"), noneSelected },
+
+                    // Imitate a temporary variable set from somewhere else in the view model.
+                    { null, typeof(Model), () => modelWithText.NestedModel.Text,
+                        new NameAndId("item.Text", "item_Text"), innerSelected },
 
                     { modelWithNull, typeof(Model), () => modelWithNull.Text,
                         new NameAndId("Text", "Text"), noneSelected },
@@ -70,27 +75,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { modelWithText, typeof(NestedModel), () => modelWithText.NestedModel.Text,
                         new NameAndId("NestedModel.Text", "NestedModel_Text"), innerSelected },
 
-                    // Top-level indexing does not work end-to-end due to code generation issue #1345.
-                    // TODO: Remove above comment when #1345 is fixed.
                     { models, typeof(Model), () => models[0].Text,
                         new NameAndId("[0].Text", "z0__Text"), noneSelected },
                     { models, typeof(NestedModel), () => models[0].NestedModel.Text,
                         new NameAndId("[0].NestedModel.Text", "z0__NestedModel_Text"), noneSelected },
 
-                    // Skip last two test cases because DefaultHtmlGenerator evaluates expression name against
-                    // ViewData, not using ModelMetadata.Model. ViewData.Eval() handles simple property paths and some
-                    // dictionary lookups, but not indexing into an array or list. See #1468...
-                    ////{ models, typeof(Model), () => models[1].Text,
-                    ////    new NameAndId("[1].Text", "z1__Text"), outerSelected },
-                    ////{ models, typeof(NestedModel), () => models[1].NestedModel.Text,
-                    ////    new NameAndId("[1].NestedModel.Text", "z1__NestedModel_Text"), innerSelected },
+                    { models, typeof(Model), () => models[1].Text,
+                        new NameAndId("[1].Text", "z1__Text"), outerSelected },
+                    { models, typeof(NestedModel), () => models[1].NestedModel.Text,
+                        new NameAndId("[1].NestedModel.Text", "z1__NestedModel_Text"), innerSelected },
                 };
             }
         }
 
-        // Items value, Multiple value, expected items value (passed to generator), expected allowMultiple.
-        // Provides cross product of Items and Multiple values. These attribute values should not interact.
-        public static TheoryData<IEnumerable<SelectListItem>, string, IEnumerable<SelectListItem>, bool>
+        // Items property value, attribute name, attribute value, expected items value (passed to generator). Provides
+        // cross product of Items and attributes. These values should not interact.
+        public static TheoryData<IEnumerable<SelectListItem>, string, string, IEnumerable<SelectListItem>>
             ItemsAndMultipleDataSet
         {
             get
@@ -107,24 +107,34 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     new[] { multiItems, multiItems },
                     new[] { selectItems, selectItems },
                 };
-                var mutlipleData = new[]
+                var attributeData = new Dictionary<string, string>(StringComparer.Ordinal)
                 {
-                    new Tuple<string, bool>(null, false), // allowMultiple determined by string datatype.
-                    new Tuple<string, bool>("", false),   // allowMultiple determined by string datatype.
-                    new Tuple<string, bool>("true", true),
-                    new Tuple<string, bool>("false", false),
-                    new Tuple<string, bool>("multiple", true),
-                    new Tuple<string, bool>("Multiple", true),
-                    new Tuple<string, bool>("MULTIPLE", true),
+                    // SelectTagHelper ignores all "multiple" attribute values.
+                    { "multiple", null },
+                    { "mUltiple", string.Empty },
+                    { "muLtiple", "true" },
+                    { "Multiple", "false" },
+                    { "MUltiple", "multiple" },
+                    { "MuLtiple", "Multiple" },
+                    { "mUlTiPlE", "mUlTiPlE" },
+                    { "mULTiPlE", "MULTIPLE" },
+                    { "mUlTIPlE", "Invalid" },
+                    { "MULTiPLE", "0" },
+                    { "MUlTIPLE", "1" },
+                    { "MULTIPLE", "__true" },
+                    // SelectTagHelper also ignores non-"multiple" attributes.
+                    { "multiple_", "multiple" },
+                    { "not-multiple", "multiple" },
+                    { "__multiple", "multiple" },
                 };
 
                 var theoryData =
-                    new TheoryData<IEnumerable<SelectListItem>, string, IEnumerable<SelectListItem>, bool>();
+                    new TheoryData<IEnumerable<SelectListItem>, string, string, IEnumerable<SelectListItem>>();
                 foreach (var items in itemsData)
                 {
-                    foreach (var multiples in mutlipleData)
+                    foreach (var attribute in attributeData)
                     {
-                        theoryData.Add(items[0], multiples.Item1, items[1], multiples.Item2);
+                        theoryData.Add(items[0], attribute.Key, attribute.Value, items[1]);
                     }
                 }
 
@@ -162,33 +172,50 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string ignored)
         {
             // Arrange
-            var originalAttributes = new Dictionary<string, string>
+            var originalAttributes = new TagHelperAttributeList
             {
                 { "class", "form-control" },
             };
-            var originalContent = "original content";
-            var originalTagName = "not-select";
+            var originalPostContent = "original content";
 
-            var expectedAttributes = new Dictionary<string, string>(originalAttributes)
+            var expectedAttributes = new TagHelperAttributeList(originalAttributes)
             {
                 { "id", nameAndId.Id },
                 { "name", nameAndId.Name },
                 { "valid", "from validation attributes" },
             };
-            var expectedContent = originalContent;
-            var expectedTagName = "select";
+            var expectedPreContent = "original pre-content";
+            var expectedContent = "original content";
+            var expectedPostContent = originalPostContent;
+            var expectedTagName = "not-select";
 
-            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var metadataProvider = new TestModelMetadataProvider();
+            var containerMetadata = metadataProvider.GetMetadataForType(containerType);
+            var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, model);
 
-            // Property name is either nameof(Model.Text) or nameof(NestedModel.Text).
-            var metadata = metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName: "Text");
-            var modelExpression = new ModelExpression(nameAndId.Name, metadata);
+            var propertyMetadata = metadataProvider.GetMetadataForProperty(containerType, "Text");
+            var modelExplorer = containerExplorer.GetExplorerForExpression(propertyMetadata, modelAccessor());
 
-            var tagHelperContext = new TagHelperContext(new Dictionary<string, object>());
-            var output = new TagHelperOutput(originalTagName, originalAttributes, expectedContent)
+            var modelExpression = new ModelExpression(nameAndId.Name, modelExplorer);
+
+            var tagHelperContext = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(originalPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -198,10 +225,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
             };
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
-            var tagHelper = new SelectTagHelper
+            var tagHelper = new SelectTagHelper(htmlGenerator)
             {
                 For = modelExpression,
-                Generator = htmlGenerator,
                 ViewContext = viewContext,
             };
 
@@ -209,23 +235,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.NotNull(viewContext.FormContext?.FormData);
-            var keyValuePair = Assert.Single(
+            Assert.Single(
                 viewContext.FormContext.FormData,
                 entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
-            Assert.NotNull(keyValuePair.Value);
-            var selectedValues = Assert.IsAssignableFrom<ICollection<string>>(keyValuePair.Value);
-            Assert.InRange(selectedValues.Count, 0, 1);
         }
 
         [Theory]
         [MemberData(nameof(GeneratesExpectedDataSet))]
-        public async Task ProcessAsync_GeneratesExpectedOutput_WithItems(
+        public async Task ProcessAsync_WithItems_GeneratesExpectedOutput_DoesNotChangeSelectList(
             object model,
             Type containerType,
             Func<object> modelAccessor,
@@ -233,35 +258,52 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             string expectedOptions)
         {
             // Arrange
-            var originalAttributes = new Dictionary<string, string>
+            var originalAttributes = new TagHelperAttributeList
             {
                 { "class", "form-control" },
             };
-            var originalContent = "original content";
-            var originalTagName = "not-select";
+            var originalPostContent = "original content";
 
-            var expectedAttributes = new Dictionary<string, string>(originalAttributes)
+            var expectedAttributes = new TagHelperAttributeList(originalAttributes)
             {
                 { "id", nameAndId.Id },
                 { "name", nameAndId.Name },
                 { "valid", "from validation attributes" },
             };
-            var expectedContent = originalContent + expectedOptions;
+            var expectedPreContent = "original pre-content";
+            var expectedContent = "original content";
+            var expectedPostContent = originalPostContent + expectedOptions;
             var expectedTagName = "select";
 
-            var metadataProvider = new DataAnnotationsModelMetadataProvider();
+            var metadataProvider = new TestModelMetadataProvider();
 
-            // Property name is either nameof(Model.Text) or nameof(NestedModel.Text).
-            var metadata = metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName: "Text");
-            var modelExpression = new ModelExpression(nameAndId.Name, metadata);
+            var containerMetadata = metadataProvider.GetMetadataForType(containerType);
+            var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, model);
 
-            var tagHelperContext = new TagHelperContext(new Dictionary<string, object>());
-            var output = new TagHelperOutput(originalTagName, originalAttributes, originalContent)
+            var propertyMetadata = metadataProvider.GetMetadataForProperty(containerType, "Text");
+            var modelExplorer = containerExplorer.GetExplorerForExpression(propertyMetadata, modelAccessor());
+
+            var modelExpression = new ModelExpression(nameAndId.Name, modelExplorer);
+
+            var tagHelperContext = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(originalPostContent);
 
-            var items = new SelectList(new[] { "", "outer text", "inner text", "other text" });
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
                 ValidationAttributes =
@@ -270,10 +312,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
             };
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
-            var tagHelper = new SelectTagHelper
+
+            var items = new SelectList(new[] { "", "outer text", "inner text", "other text" });
+            var savedDisabled = items.Select(item => item.Disabled).ToList();
+            var savedGroup = items.Select(item => item.Group).ToList();
+            var savedSelected = items.Select(item => item.Selected).ToList();
+            var savedText = items.Select(item => item.Text).ToList();
+            var savedValue = items.Select(item => item.Value).ToList();
+
+            var tagHelper = new SelectTagHelper(htmlGenerator)
             {
                 For = modelExpression,
-                Generator = htmlGenerator,
                 Items = items,
                 ViewContext = viewContext,
             };
@@ -282,72 +331,198 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.NotNull(viewContext.FormContext?.FormData);
-            var keyValuePair = Assert.Single(
+            Assert.Single(
                 viewContext.FormContext.FormData,
                 entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
-            Assert.NotNull(keyValuePair.Value);
-            var selectedValues = Assert.IsAssignableFrom<ICollection<string>>(keyValuePair.Value);
-            Assert.InRange(selectedValues.Count, 0, 1);
+
+            Assert.Equal(savedDisabled, items.Select(item => item.Disabled));
+            Assert.Equal(savedGroup, items.Select(item => item.Group));
+            Assert.Equal(savedSelected, items.Select(item => item.Selected));
+            Assert.Equal(savedText, items.Select(item => item.Text));
+            Assert.Equal(savedValue, items.Select(item => item.Value));
+        }
+
+        [Theory]
+        [MemberData(nameof(GeneratesExpectedDataSet))]
+        public async Task ProcessAsyncInTemplate_WithItems_GeneratesExpectedOutput_DoesNotChangeSelectList(
+            object model,
+            Type containerType,
+            Func<object> modelAccessor,
+            NameAndId nameAndId,
+            string expectedOptions)
+        {
+            // Arrange
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var originalPostContent = "original content";
+
+            var expectedAttributes = new TagHelperAttributeList(originalAttributes)
+            {
+                { "id", nameAndId.Id },
+                { "name", nameAndId.Name },
+                { "valid", "from validation attributes" },
+            };
+            var expectedPreContent = "original pre-content";
+            var expectedContent = "original content";
+            var expectedPostContent = originalPostContent + expectedOptions;
+            var expectedTagName = "select";
+
+            var metadataProvider = new TestModelMetadataProvider();
+
+            var containerMetadata = metadataProvider.GetMetadataForType(containerType);
+            var containerExplorer = metadataProvider.GetModelExplorerForType(containerType, model);
+
+            var propertyMetadata = metadataProvider.GetMetadataForProperty(containerType, "Text");
+            var modelExplorer = containerExplorer.GetExplorerForExpression(propertyMetadata, modelAccessor());
+
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+
+            var tagHelperContext = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+            output.PreContent.SetContent(expectedPreContent);
+            output.Content.SetContent(expectedContent);
+            output.PostContent.SetContent(originalPostContent);
+
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
+            {
+                ValidationAttributes =
+                {
+                    {  "valid", "from validation attributes" },
+                }
+            };
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            viewContext.ViewData.TemplateInfo.HtmlFieldPrefix = nameAndId.Name;
+
+            var items = new SelectList(new[] { "", "outer text", "inner text", "other text" });
+            var savedDisabled = items.Select(item => item.Disabled).ToList();
+            var savedGroup = items.Select(item => item.Group).ToList();
+            var savedSelected = items.Select(item => item.Selected).ToList();
+            var savedText = items.Select(item => item.Text).ToList();
+            var savedValue = items.Select(item => item.Value).ToList();
+
+            var tagHelper = new SelectTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                Items = items,
+                ViewContext = viewContext,
+            };
+
+            // Act
+            await tagHelper.ProcessAsync(tagHelperContext, output);
+
+            // Assert
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
+            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
+            Assert.Equal(expectedTagName, output.TagName);
+
+            Assert.NotNull(viewContext.FormContext?.FormData);
+            Assert.Single(
+                viewContext.FormContext.FormData,
+                entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
+
+            Assert.Equal(savedDisabled, items.Select(item => item.Disabled));
+            Assert.Equal(savedGroup, items.Select(item => item.Group));
+            Assert.Equal(savedSelected, items.Select(item => item.Selected));
+            Assert.Equal(savedText, items.Select(item => item.Text));
+            Assert.Equal(savedValue, items.Select(item => item.Value));
         }
 
         [Theory]
         [MemberData(nameof(ItemsAndMultipleDataSet))]
-        public async Task ProcessAsync_CallsGeneratorWithExpectedValues_ItemsAndMultiple(
+        public async Task ProcessAsync_CallsGeneratorWithExpectedValues_ItemsAndAttribute(
             IEnumerable<SelectListItem> inputItems,
-            string multiple,
-            IEnumerable<SelectListItem> expectedItems,
-            bool expectedAllowMultiple)
+            string attributeName,
+            string attributeValue,
+            IEnumerable<SelectListItem> expectedItems)
         {
             // Arrange
-            var contextAttributes = new Dictionary<string, object>
+            var contextAttributes = new TagHelperAttributeList
             {
-                // Attribute will be restored if value matches "multiple".
-                { "multiple", multiple },
+                // Provided for completeness. Select tag helper does not confirm AllAttributes set is consistent.
+                { attributeName, attributeValue },
             };
-            var originalAttributes = new Dictionary<string, string>();
-            var content = "original content";
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { attributeName, attributeValue },
+            };
             var propertyName = "Property1";
-            var tagName = "not-select";
+            var expectedTagName = "select";
 
-            var tagHelperContext = new TagHelperContext(contextAttributes);
-            var output = new TagHelperOutput(tagName, originalAttributes, content);
+            var tagHelperContext = new TagHelperContext(
+                contextAttributes,
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
 
-            // TODO: In real (model => model) scenario, ModelExpression should have name "" and
-            // TemplateInfo.HtmlFieldPrefix should be "Property1" but empty ModelExpression name is not currently
-            // supported, see #1408.
+            var output = new TagHelperOutput(expectedTagName, originalAttributes);
             var metadataProvider = new EmptyModelMetadataProvider();
             string model = null;
-            var metadata = metadataProvider.GetMetadataForType(() => model, typeof(string));
-            var modelExpression = new ModelExpression(propertyName, metadata);
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator.Object, metadataProvider);
-            ICollection<string> selectedValues = new string[0];
+
+            // Simulate a (model => model) scenario. E.g. the calling helper may appear in a low-level template.
+            var modelExpression = new ModelExpression(string.Empty, modelExplorer);
+            viewContext.ViewData.TemplateInfo.HtmlFieldPrefix = propertyName;
+
+            var currentValues = new string[0];
+            htmlGenerator
+                .Setup(real => real.GetCurrentValues(
+                    viewContext,
+                    modelExplorer,
+                    string.Empty,   // expression
+                    false))         // allowMultiple
+                .Returns(currentValues)
+                .Verifiable();
             htmlGenerator
                 .Setup(real => real.GenerateSelect(
                     viewContext,
-                    metadata,
-                    null,         // optionLabel
-                    propertyName, // name
+                    modelExplorer,
+                    null,           // optionLabel
+                    string.Empty,   // expression
                     expectedItems,
-                    expectedAllowMultiple,
-                    null,         // htmlAttributes
-                    out selectedValues))
+                    currentValues,
+                    false,          // allowMultiple
+                    null))          // htmlAttributes
                 .Returns((TagBuilder)null)
                 .Verifiable();
 
-            var tagHelper = new SelectTagHelper
+            var tagHelper = new SelectTagHelper(htmlGenerator.Object)
             {
                 For = modelExpression,
                 Items = inputItems,
-                Generator = htmlGenerator.Object,
-                Multiple = multiple,
                 ViewContext = viewContext,
             };
 
@@ -361,7 +536,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var keyValuePair = Assert.Single(
                 viewContext.FormContext.FormData,
                 entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
-            Assert.Same(selectedValues, keyValuePair.Value);
+            Assert.Same(currentValues, keyValuePair.Value);
         }
 
         [Theory]
@@ -372,39 +547,54 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             bool allowMultiple)
         {
             // Arrange
-            var contextAttributes = new Dictionary<string, object>();
-            var originalAttributes = new Dictionary<string, string>();
-            var content = "original content";
+            var contextAttributes = new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>());
+            var originalAttributes = new TagHelperAttributeList();
             var propertyName = "Property1";
-            var tagName = "not-select";
+            var tagName = "select";
 
-            var tagHelperContext = new TagHelperContext(contextAttributes);
-            var output = new TagHelperOutput(tagName, originalAttributes, content);
-
+            var tagHelperContext = new TagHelperContext(
+                contextAttributes,
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var output = new TagHelperOutput(tagName, originalAttributes);
             var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForType(() => model, modelType);
-            var modelExpression = new ModelExpression(propertyName, metadata);
+            var modelExplorer = metadataProvider.GetModelExplorerForType(modelType, model);
+            var modelExpression = new ModelExpression(propertyName, modelExplorer);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator.Object, metadataProvider);
-            ICollection<string> selectedValues = new string[0];
+            var currentValues = new string[0];
+            htmlGenerator
+                .Setup(real => real.GetCurrentValues(
+                    viewContext,
+                    modelExplorer,
+                    propertyName,   // expression
+                    allowMultiple))
+                .Returns(currentValues)
+                .Verifiable();
             htmlGenerator
                 .Setup(real => real.GenerateSelect(
                     viewContext,
-                    metadata,
-                    null,         // optionLabel
-                    propertyName, // name
+                    modelExplorer,
+                    null,           // optionLabel
+                    propertyName,   // expression
                     It.IsAny<IEnumerable<SelectListItem>>(),
+                    currentValues,
                     allowMultiple,
-                    null,         // htmlAttributes
-                    out selectedValues))
+                    null))          // htmlAttributes
                 .Returns((TagBuilder)null)
                 .Verifiable();
 
-            var tagHelper = new SelectTagHelper
+            var tagHelper = new SelectTagHelper(htmlGenerator.Object)
             {
                 For = modelExpression,
-                Generator = htmlGenerator.Object,
                 ViewContext = viewContext,
             };
 
@@ -418,110 +608,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var keyValuePair = Assert.Single(
                 viewContext.FormContext.FormData,
                 entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
-            Assert.Same(selectedValues, keyValuePair.Value);
-        }
-
-        [Theory]
-        [InlineData("multiple")]
-        [InlineData("mUlTiPlE")]
-        [InlineData("MULTIPLE")]
-        public async Task ProcessAsync_RestoresMultiple_IfForNotBound(string attributeName)
-        {
-            // Arrange
-            var contextAttributes = new Dictionary<string, object>
-            {
-                { attributeName, "I'm more than one" },
-            };
-            var originalAttributes = new Dictionary<string, string>
-            {
-                { "class", "form-control" },
-                { "size", "2" },
-            };
-            var expectedAttributes = new Dictionary<string, string>(originalAttributes);
-            expectedAttributes[attributeName] = (string)contextAttributes[attributeName];
-            var expectedContent = "original content";
-            var expectedTagName = "not-select";
-
-            var tagHelperContext = new TagHelperContext(contextAttributes);
-            var output = new TagHelperOutput(expectedTagName, originalAttributes, expectedContent)
-            {
-                SelfClosing = true,
-            };
-
-            var tagHelper = new SelectTagHelper
-            {
-                Multiple = "I'm more than one",
-            };
-
-            // Act
-            await tagHelper.ProcessAsync(tagHelperContext, output);
-
-            // Assert
-            Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Equal(expectedContent, output.Content);
-            Assert.True(output.SelfClosing);
-            Assert.Equal(expectedTagName, output.TagName);
-        }
-
-        [Fact]
-        public async Task ProcessAsync_Throws_IfForNotBoundButItemsIs()
-        {
-            // Arrange
-            var contextAttributes = new Dictionary<string, object>();
-            var originalAttributes = new Dictionary<string, string>();
-            var content = "original content";
-            var tagName = "not-select";
-            var expectedMessage = "Cannot determine body for <select>. 'items' must be null if 'for' is null.";
-
-            var tagHelperContext = new TagHelperContext(contextAttributes);
-            var output = new TagHelperOutput(tagName, originalAttributes, content);
-            var tagHelper = new SelectTagHelper
-            {
-                Items = Enumerable.Empty<SelectListItem>(),
-            };
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => tagHelper.ProcessAsync(tagHelperContext, output));
-            Assert.Equal(expectedMessage, exception.Message);
-        }
-
-        [Theory]
-        [InlineData("Invalid")]
-        [InlineData("0")]
-        [InlineData("1")]
-        [InlineData("__true")]
-        [InlineData("false__")]
-        [InlineData("__Multiple")]
-        [InlineData("Multiple__")]
-        public async Task ProcessAsync_Throws_IfMultipleInvalid(string multiple)
-        {
-            // Arrange
-            var contextAttributes = new Dictionary<string, object>();
-            var originalAttributes = new Dictionary<string, string>();
-            var content = "original content";
-            var tagName = "not-select";
-            var expectedMessage = "Cannot parse 'multiple' value '" + multiple +
-                "' for <select>. Acceptable values are 'false', 'true' and 'multiple'.";
-
-            var tagHelperContext = new TagHelperContext(contextAttributes);
-            var output = new TagHelperOutput(tagName, originalAttributes, content);
-
-            var metadataProvider = new EmptyModelMetadataProvider();
-            string model = null;
-            var metadata = metadataProvider.GetMetadataForType(() => model, typeof(string));
-            var modelExpression = new ModelExpression("Property1", metadata);
-
-            var tagHelper = new SelectTagHelper
-            {
-                For = modelExpression,
-                Multiple = multiple,
-            };
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => tagHelper.ProcessAsync(tagHelperContext, output));
-            Assert.Equal(expectedMessage, exception.Message);
+            Assert.Same(currentValues, keyValuePair.Value);
         }
 
         public class NameAndId

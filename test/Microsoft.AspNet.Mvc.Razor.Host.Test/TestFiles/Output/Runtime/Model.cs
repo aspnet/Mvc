@@ -1,4 +1,4 @@
-﻿#pragma checksum "TestFiles/Input/Model.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "2c1e88396568d309c236020e59bf2abacfadd612"
+#pragma checksum "TestFiles/Input/Model.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "31c5b047a450ac9f6dc4116626667d26bfb657ba"
 namespace Asp
 {
     using System;
@@ -21,11 +21,13 @@ namespace Asp
         {
         }
         #line hidden
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<System.Collections.IEnumerable> Html { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
+        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
 
         #line hidden

@@ -1,14 +1,14 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
-using Microsoft.AspNet.Razor.Generator;
+using Microsoft.AspNet.Razor.Chunks.Generators;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
-    public class InjectParameterGenerator : SpanCodeGenerator
+    public class InjectParameterGenerator : SpanChunkGenerator
     {
         public InjectParameterGenerator(string typeName, string propertyName)
         {
@@ -17,13 +17,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         public string TypeName { get; private set; }
-        
+
         public string PropertyName { get; private set; }
 
-        public override void GenerateCode(Span target, CodeGeneratorContext context)
+        public override void GenerateChunk(Span target, ChunkGeneratorContext context)
         {
             var injectChunk = new InjectChunk(TypeName, PropertyName);
-            context.CodeTreeBuilder.AddChunk(injectChunk, target);
+            context.ChunkTreeBuilder.AddChunk(injectChunk, target);
         }
 
         public override string ToString()
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public override int GetHashCode()
         {
-            return TypeName.GetHashCode() + 
+            return TypeName.GetHashCode() +
                    (PropertyName.GetHashCode() * 13);
         }
     }

@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace FiltersWebSite
 {
@@ -10,11 +12,13 @@ namespace FiltersWebSite
     [ControllerResultFilter]
     [ControllerActionFilter]
     [ControllerAuthorizationFilter]
-    public class ProductsController : Controller, IResultFilter, IAuthorizationFilter
+    [TracingResourceFilter("Controller Resource Filter")]
+    public class ProductsController : Controller, IResultFilter
     {
         [PassThroughResultFilter]
         [PassThroughActionFilter]
         [AuthorizeUser]
+        [TracingResourceFilter("Action Resource Filter")]
         public IActionResult GetPrice(int id)
         {
             Response.Headers.Append("filters", "Executing Action");
@@ -41,11 +45,6 @@ namespace FiltersWebSite
         public void OnResultExecuting(ResultExecutingContext context)
         {
             context.HttpContext.Response.Headers.Append("filters", "Controller Override - OnResultExecuting");
-        }
-
-        public void OnAuthorization(AuthorizationContext context)
-        {
-            context.HttpContext.Response.Headers.Append("filters", "Controller Override - OnAuthorization");
         }
     }
 }

@@ -1,19 +1,15 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
-using Microsoft.AspNet.PipelineCore;
-using Microsoft.AspNet.Routing;
-using Moq;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.Net.Http.Headers;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Test
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     public class NoContentFormatterTests
     {
@@ -42,13 +38,13 @@ namespace Microsoft.AspNet.Mvc.Test
                                                                           bool expectedCanwriteResult,
                                                                           bool useNonNullContentType)
         {
-            // Arrange 
+            // Arrange
             var typeToUse = declaredTypeAsString ? typeof(string) : typeof(object);
             var formatterContext = new OutputFormatterContext()
             {
                 Object = value,
                 DeclaredType = typeToUse,
-                ActionContext = null,
+                HttpContext = null,
             };
             var contetType = useNonNullContentType ? MediaTypeHeaderValue.Parse("text/plain") : null;
             var formatter = new HttpNoContentOutputFormatter();
@@ -65,12 +61,12 @@ namespace Microsoft.AspNet.Mvc.Test
         [InlineData(typeof(Task))]
         public void CanWriteResult_ReturnsTrue_IfReturnTypeIsVoidOrTask(Type declaredType)
         {
-            // Arrange 
+            // Arrange
             var formatterContext = new OutputFormatterContext()
             {
                 Object = "Something non null.",
                 DeclaredType = declaredType,
-                ActionContext = null,
+                HttpContext = null,
             };
             var contetType = MediaTypeHeaderValue.Parse("text/plain");
             var formatter = new HttpNoContentOutputFormatter();
@@ -86,17 +82,17 @@ namespace Microsoft.AspNet.Mvc.Test
         [InlineData(null, true, true)]
         [InlineData(null, false, false)]
         [InlineData("some value", true, false)]
-        public void 
+        public void
             CanWriteResult_ReturnsTrue_IfReturnValueIsNullAndTreatNullValueAsNoContentIsNotSet(string value,
                                                                                       bool treatNullValueAsNoContent,
                                                                                       bool expectedCanwriteResult)
         {
-            // Arrange 
+            // Arrange
             var formatterContext = new OutputFormatterContext()
             {
                 Object = value,
                 DeclaredType = typeof(string),
-                ActionContext = null,
+                HttpContext = null,
             };
 
             var contetType = MediaTypeHeaderValue.Parse("text/plain");
@@ -115,12 +111,12 @@ namespace Microsoft.AspNet.Mvc.Test
         [Fact]
         public async Task WriteAsync_WritesTheStatusCode204()
         {
-            // Arrange 
+            // Arrange
             var defaultHttpContext = new DefaultHttpContext();
             var formatterContext = new OutputFormatterContext()
             {
                 Object = null,
-                ActionContext = new ActionContext(defaultHttpContext, new RouteData(), new ActionDescriptor())
+                HttpContext = defaultHttpContext,
             };
 
             var formatter = new HttpNoContentOutputFormatter();
@@ -129,7 +125,28 @@ namespace Microsoft.AspNet.Mvc.Test
             await formatter.WriteAsync(formatterContext);
 
             // Assert
-            Assert.Equal(204, defaultHttpContext.Response.StatusCode);
+            Assert.Equal(StatusCodes.Status204NoContent, defaultHttpContext.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task WriteAsync_ContextStatusCodeSet_WritesSameStatusCode()
+        {
+            // Arrange
+            var defaultHttpContext = new DefaultHttpContext();
+            var formatterContext = new OutputFormatterContext()
+            {
+                Object = null,
+                HttpContext = defaultHttpContext,
+                StatusCode = StatusCodes.Status201Created
+            };
+
+            var formatter = new HttpNoContentOutputFormatter();
+
+            // Act
+            await formatter.WriteAsync(formatterContext);
+
+            // Assert
+            Assert.Equal(StatusCodes.Status201Created, defaultHttpContext.Response.StatusCode);
         }
     }
 }

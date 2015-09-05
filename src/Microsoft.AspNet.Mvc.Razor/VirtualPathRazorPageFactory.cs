@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.PageExecutionInstrumentation;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNet.Mvc.Razor.Compilation;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -14,36 +13,36 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class VirtualPathRazorPageFactory : IRazorPageFactory
     {
-        private readonly ITypeActivator _activator;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IFileInfoCache _fileInfoCache;
-        private readonly ICompilerCache _compilerCache;
-        private IRazorCompilationService _razorcompilationService;
+        /// <remarks>
+        /// This delegate holds on to an instance of <see cref="IRazorCompilationService"/>.
+        /// </remarks>
+        private readonly Func<RelativeFileInfo, CompilationResult> _compileDelegate;
+        private readonly ICompilerCacheProvider _compilerCacheProvider;
+        private ICompilerCache _compilerCache;
 
-        public VirtualPathRazorPageFactory(ITypeActivator typeActivator,
-                                           IServiceProvider serviceProvider,
-                                           ICompilerCache compilerCache,
-                                           IFileInfoCache fileInfoCache)
+        /// <summary>
+        /// Initializes a new instance of <see cref="VirtualPathRazorPageFactory"/>.
+        /// </summary>
+        /// <param name="razorCompilationService">The <see cref="IRazorCompilationService"/>.</param>
+        /// <param name="compilerCacheProvider">The <see cref="ICompilerCacheProvider"/>.</param>
+        public VirtualPathRazorPageFactory(
+            IRazorCompilationService razorCompilationService,
+            ICompilerCacheProvider compilerCacheProvider)
         {
-            _activator = typeActivator;
-            _serviceProvider = serviceProvider;
-            _compilerCache = compilerCache;
-            _fileInfoCache = fileInfoCache;
+            _compileDelegate = razorCompilationService.Compile;
+            _compilerCacheProvider = compilerCacheProvider;
         }
 
-        private IRazorCompilationService RazorCompilationService
+        private ICompilerCache CompilerCache
         {
             get
             {
-                if (_razorcompilationService == null)
+                if (_compilerCache == null)
                 {
-                    // it is ok to use the cached service provider because both this, and the
-                    // resolved service are in a lifetime of Scoped.
-                    // We don't want to get it upgront because it will force Roslyn to load.
-                    _razorcompilationService = _serviceProvider.GetRequiredService<IRazorCompilationService>();
+                    _compilerCache = _compilerCacheProvider.Cache;
                 }
 
-                return _razorcompilationService;
+                return _compilerCache;
             }
         }
 
@@ -52,36 +51,21 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (relativePath.StartsWith("~/", StringComparison.Ordinal))
             {
-                // For tilde slash paths, drop the leading ~ to make it work with the underlying IFileSystem.
+                // For tilde slash paths, drop the leading ~ to make it work with the underlying IFileProvider.
                 relativePath = relativePath.Substring(1);
             }
 
-            var fileInfo = _fileInfoCache.GetFileInfo(relativePath);
+            var result = CompilerCache.GetOrAdd(relativePath, _compileDelegate);
 
-            if (fileInfo != null)
+            if (result == CompilerCacheResult.FileNotFound)
             {
-                var relativeFileInfo = new RelativeFileInfo()
-                {
-                    FileInfo = fileInfo,
-                    RelativePath = relativePath,
-                };
-
-                var result = _compilerCache.GetOrAdd(
-                    relativeFileInfo,
-                    () => RazorCompilationService.Compile(relativeFileInfo));
-
-                var page = (IRazorPage)_activator.CreateInstance(_serviceProvider, result.CompiledType);
-                page.Path = relativePath;
-
-                return page;
+                return null;
             }
 
-            return null;
-        }
+            var page = (IRazorPage)Activator.CreateInstance(result.CompilationResult.CompiledType);
+            page.Path = relativePath;
 
-        private static bool IsInstrumentationEnabled(HttpContext context)
-        {
-            return context.GetFeature<IPageExecutionListenerFeature>() != null;
+            return page;
         }
     }
 }

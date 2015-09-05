@@ -1,16 +1,14 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web.Http;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -18,8 +16,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class WebApiCompatShimParameterBindingTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(WebApiCompatShimWebSite));
+        private const string SiteName = nameof(WebApiCompatShimWebSite);
         private readonly Action<IApplicationBuilder> _app = new WebApiCompatShimWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new WebApiCompatShimWebSite.Startup().ConfigureServices;
 
         [Theory]
         [InlineData("http://localhost/api/Blog/Employees/PostByIdDefault/5")]
@@ -27,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_SimpleParameter_Default_ReadsFromUrl(string url)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -45,7 +44,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_SimpleParameter_Default_DoesNotReadFormData()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/api/Blog/Employees/PostByIdDefault";
@@ -70,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_SimpleParameter_ModelBinder_ReadsFromUrl(string url)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -88,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_SimpleParameter_ModelBinder_ReadsFromFormData()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/api/Blog/Employees/PostByIdModelBinder";
@@ -113,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_SimpleParameter_FromQuery_ReadsFromQueryNotRouteData(string url, string expected)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -131,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_SimpleParameter_FromQuery_DoesNotReadFormData()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/api/Blog/Employees/PostByIdFromQuery";
@@ -154,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_ComplexParameter_Default_ReadsFromBody()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/api/Blog/Employees/PutEmployeeDefault";
@@ -179,7 +178,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_ComplexParameter_ModelBinder_ReadsFormAndUrl()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/api/Blog/Employees/PutEmployeeModelBinder/5";
@@ -203,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ApiController_TwoParameters_DefaultSources()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/api/Blog/Employees/PutEmployeeBothDefault?name=Name_Override";

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,27 +7,29 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.AspNet.Testing.xunit;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class XmlSerializerInputFormatterTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("XmlSerializerWebSite");
-        private readonly Action<IApplicationBuilder> _app = new XmlSerializerWebSite.Startup().Configure;
+        private const string SiteName = nameof(XmlFormattersWebSite);
+        private readonly Action<IApplicationBuilder> _app = new XmlFormattersWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new XmlFormattersWebSite.Startup().ConfigureServices;
 
         [Fact]
         public async Task CheckIfXmlSerializerInputFormatterIsCalled()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var sampleInputInt = 10;
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<DummyClass><SampleInt>"
                 + sampleInputInt.ToString() + "</SampleInt></DummyClass>";
-            var content = new StringContent(input, Encoding.UTF8, "application/xml");
+            var content = new StringContent(input, Encoding.UTF8, "application/xml-xmlser");
 
             // Act
             var response = await client.PostAsync("http://localhost/Home/Index", content);
@@ -37,22 +39,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(sampleInputInt.ToString(), await response.Content.ReadAsStringAsync());
         }
 
-        [Fact]
-        public async Task XmlSerializerFormatter_ThrowsOnIncorrectInputNamespace()
+        [ConditionalTheory]
+        // Mono.Xml2.XmlTextReader.ReadText is unable to read the XML. This is fixed in mono 4.3.0.
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        public async Task ThrowsOnInvalidInput_AndAddsToModelState()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
-            var sampleInputInt = 10;
-            var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<DummyClas xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\" " +
-                "i:type=\"DerivedDummyClass\" xmlns=\"http://schemas.datacontract.org/2004/07/XmlSerializerWebSite\">" +
-                "<SampleInt>" + sampleInputInt.ToString() + "</SampleInt></DummyClass>";
-            var content = new StringContent(input, Encoding.UTF8, "application/xml");
+            var input = "Not a valid xml document";
+            var content = new StringContent(input, Encoding.UTF8, "application/xml-xmlser");
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await client.PostAsync("http://localhost/Home/Index", content));
+            // Act
+            var response = await client.PostAsync("http://localhost/Home/Index", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            var data = await response.Content.ReadAsStringAsync();
+            Assert.Contains(":There is an error in XML document", data);
         }
     }
 }

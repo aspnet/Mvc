@@ -1,5 +1,7 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -26,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         }
 
         /// <summary>
-        /// If <c>true</c>, <see cref="Description.ApiDescription"/> objects will be created for the associated 
+        /// If <c>true</c>, <c>APIExplorer.ApiDescription</c> objects will be created for the associated
         /// controller or action.
         /// </summary>
         /// <remarks>
@@ -35,8 +37,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public bool? IsVisible { get; set; }
 
         /// <summary>
-        /// The value for <see cref="Description.ApiDescription.GroupName"/> of 
-        /// <see cref="Description.ApiDescription"/> objects created for the associated controller or action.
+        /// The value for <c>APIExplorer.ApiDescription.GroupName</c> of
+        /// <c>APIExplorer.ApiDescription</c> objects created for the associated controller or action.
         /// </summary>
         public string GroupName { get; set; }
     }

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Razor.Generator.Compiler;
+using Microsoft.AspNet.Razor.Chunks;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -16,10 +17,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <summary>
         /// Initializes a new instance of <see cref="SetBaseTypeChunkMerger"/>.
         /// </summary>
-        /// <param name="defaultModelType">The type name of the model used by default.</param>
+        /// <param name="modelType">The type name of the model used by default.</param>
         public SetBaseTypeChunkMerger(string modelType)
         {
-            _modelType = '<' + modelType + '>';
+            _modelType = "<" + modelType + ">";
         }
 
         /// <inheritdoc />
@@ -31,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         /// <inheritdoc />
-        public void Merge([NotNull] CodeTree codeTree, [NotNull] Chunk chunk)
+        public void Merge([NotNull] ChunkTree chunkTree, [NotNull] Chunk chunk)
         {
             if (!_isBaseTypeSet)
             {
@@ -40,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
                 // The base type can set exactly once and the first one we encounter wins.
                 _isBaseTypeSet = true;
 
-                codeTree.Chunks.Add(TransformChunk(baseTypeChunk));
+                chunkTree.Chunks.Add(TransformChunk(baseTypeChunk));
             }
         }
 

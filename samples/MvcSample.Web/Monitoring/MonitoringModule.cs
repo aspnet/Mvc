@@ -1,4 +1,6 @@
-#if ASPNET50
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Concurrent;
 using Autofac;
@@ -70,8 +72,7 @@ namespace MvcSample.Web
             _instances.Clear();
             _registrations.Clear();
 
-           // return count;
+            // return count;
         }
     }
 }
-#endif

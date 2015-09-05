@@ -1,16 +1,20 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Description;
+using Microsoft.AspNet.Mvc.ApiExplorer;
 
 namespace MvcSample.Web
 {
     [Route("ApiExplorer")]
     public class ApiExplorerController : Controller
     {
-        [Activate]
-        public IApiDescriptionGroupCollectionProvider Provider { get; set; }
+        public ApiExplorerController(IApiDescriptionGroupCollectionProvider provider)
+        {
+            Provider = provider;
+        }
+
+        public IApiDescriptionGroupCollectionProvider Provider { get; }
 
         [HttpGet]
         public IActionResult All()

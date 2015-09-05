@@ -1,31 +1,40 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
+    [DebuggerDisplay("Name={ActionName}({Methods()}), Type={Controller.ControllerType.Name}," +
+                     " Route: {AttributeRouteModel?.Template}, Filters: {Filters.Count}")]
     public class ActionModel
     {
-        public ActionModel([NotNull] MethodInfo actionMethod)
+        public ActionModel([NotNull] MethodInfo actionMethod,
+                           [NotNull] IReadOnlyList<object> attributes)
         {
             ActionMethod = actionMethod;
 
             ApiExplorer = new ApiExplorerModel();
-            Attributes = new List<object>();
+            Attributes = new List<object>(attributes);
             ActionConstraints = new List<IActionConstraintMetadata>();
-            Filters = new List<IFilter>();
+            Filters = new List<IFilterMetadata>();
             HttpMethods = new List<string>();
             Parameters = new List<ParameterModel>();
+            RouteConstraints = new List<IRouteConstraintProvider>();
+            Properties = new Dictionary<object, object>();
         }
 
         public ActionModel([NotNull] ActionModel other)
         {
             ActionMethod = other.ActionMethod;
             ActionName = other.ActionName;
-            IsActionNameMatchRequired = other.IsActionNameMatchRequired;
 
             // Not making a deep copy of the controller, this action still belongs to the same controller.
             Controller = other.Controller;
@@ -33,21 +42,24 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // These are just metadata, safe to create new collections
             ActionConstraints = new List<IActionConstraintMetadata>(other.ActionConstraints);
             Attributes = new List<object>(other.Attributes);
-            Filters = new List<IFilter>(other.Filters);
+            Filters = new List<IFilterMetadata>(other.Filters);
             HttpMethods = new List<string>(other.HttpMethods);
+            Properties = new Dictionary<object, object>(other.Properties);
 
             // Make a deep copy of other 'model' types.
             ApiExplorer = new ApiExplorerModel(other.ApiExplorer);
             Parameters = new List<ParameterModel>(other.Parameters.Select(p => new ParameterModel(p)));
+            RouteConstraints = new List<IRouteConstraintProvider>(other.RouteConstraints);
 
             if (other.AttributeRouteModel != null)
             {
                 AttributeRouteModel = new AttributeRouteModel(other.AttributeRouteModel);
             }
         }
-        public List<IActionConstraintMetadata> ActionConstraints { get; private set; }
 
-        public MethodInfo ActionMethod { get; private set; }
+        public IList<IActionConstraintMetadata> ActionConstraints { get; private set; }
+
+        public MethodInfo ActionMethod { get; }
 
         public string ActionName { get; set; }
 
@@ -55,23 +67,46 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         /// Gets or sets the <see cref="ApiExplorerModel"/> for this action.
         /// </summary>
         /// <remarks>
-        /// Setting the value of any properties on <see cref="ActionModel.ApiExplorer"/> will override any
-        /// values set on the associated <see cref="ControllerModel.ApiExplorer"/>.
+        /// <see cref="ActionModel.ApiExplorer"/> allows configuration of settings for ApiExplorer
+        /// which apply to the action.
+        /// 
+        /// Settings applied by <see cref="ActionModel.ApiExplorer"/> override settings from
+        /// <see cref="ApplicationModel.ApiExplorer"/> and <see cref="ControllerModel.ApiExplorer"/>.
         /// </remarks>
         public ApiExplorerModel ApiExplorer { get; set; }
 
-        public List<object> Attributes { get; private set; }
+        public AttributeRouteModel AttributeRouteModel { get; set; }
+
+        public IReadOnlyList<object> Attributes { get; }
 
         public ControllerModel Controller { get; set; }
 
-        public List<IFilter> Filters { get; private set; }
+        public IList<IFilterMetadata> Filters { get; private set; }
 
-        public List<string> HttpMethods { get; private set; }
+        public IList<string> HttpMethods { get; private set; }
 
-        public bool IsActionNameMatchRequired { get; set; }
+        public IList<ParameterModel> Parameters { get; private set; }
 
-        public List<ParameterModel> Parameters { get; private set; }
+        public IList<IRouteConstraintProvider> RouteConstraints { get; private set; }
 
-        public AttributeRouteModel AttributeRouteModel { get; set; }
+        /// <summary>
+        /// Gets a set of properties associated with the action.
+        /// These properties will be copied to <see cref="ActionDescriptor.Properties"/>.
+        /// </summary>
+        /// <remarks>
+        /// Entries will take precedence over entries with the same key in
+        /// <see cref="ApplicationModel.Properties"/> and <see cref="ControllerModel.Properties"/>.
+        /// </remarks>
+        public IDictionary<object, object> Properties { get; }
+
+        private string Methods()
+        {
+            if (HttpMethods.Count == 0)
+            {
+                return "All";
+            }
+
+            return string.Join(", ", HttpMethods);
+        }
     }
 }

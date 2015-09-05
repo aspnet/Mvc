@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -13,10 +13,10 @@ namespace FormatterWebSite
         {
             if (!ModelState.IsValid)
             {
-                return Content(ModelState["user.Id"].Errors[0].ErrorMessage + "," +
-                    ModelState["user.Name"].Errors[0].ErrorMessage + "," +
-                    ModelState["user.Alias"].Errors[0].ErrorMessage + "," +
-                    ModelState["user.Designation"].Errors[0].ErrorMessage);
+                return Content(ModelState["Id"].Errors[0].ErrorMessage + "," +
+                    ModelState["Name"].Errors[0].ErrorMessage + "," +
+                    ModelState["Alias"].Errors[0].ErrorMessage + "," +
+                    ModelState["Designation"].Errors[0].ErrorMessage);
             }
 
             return Content("User has been registerd : " + user.Name);
@@ -44,15 +44,28 @@ namespace FormatterWebSite
         [HttpPost]
         public string GetDeveloperAlias(Developer developer)
         {
-            // Since validation exclusion is currently only effective in case of body bound models.
             if (ModelState.IsValid)
             {
                 return developer.Alias;
             }
             else
             {
-               return ModelState["Name"].Errors[0].ErrorMessage;
+                return ModelState["Name"].Errors[0].ErrorMessage;
             }
+        }
+
+        // 'Developer' type is excluded but the shallow validation on the
+        // property Developers should happen
+        [ModelStateValidationFilter]
+        public IActionResult CreateProject([FromBody] Project project)
+        {
+            return Json(project);
+        }
+
+        [ModelStateValidationFilter]
+        public IActionResult CreateSimpleTypePropertiesModel([FromBody] SimpleTypePropertiesModel simpleTypePropertiesModel)
+        {
+            return Json(simpleTypePropertiesModel);
         }
     }
 }

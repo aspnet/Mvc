@@ -1,18 +1,24 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Security.Principal;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Antiforgery;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
+using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -26,6 +32,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private TextWriter _originalWriter;
         private IUrlHelper _urlHelper;
         private ITagHelperActivator _tagHelperActivator;
+        private ITypeActivatorCache _typeActivatorCache;
         private bool _renderedBody;
 
         public RazorPage()
@@ -60,6 +67,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public bool IsPartial { get; set; }
 
+        /// <summary>
+        /// Gets the <see cref="IHtmlEncoder"/> to be used for encoding HTML.
+        /// </summary>
+        [RazorInject]
+        public IHtmlEncoder HtmlEncoder { get; set; }
+
         /// <inheritdoc />
         public IPageExecutionContext PageExecutionContext { get; set; }
 
@@ -80,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        public virtual IPrincipal User
+        public virtual ClaimsPrincipal User
         {
             get
             {
@@ -97,21 +110,33 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             get
             {
-                return (ViewContext == null) ? null : ViewContext.ViewBag;
+                return ViewContext?.ViewBag;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ITempDataDictionary"/> from the <see cref="ViewContext"/>.
+        /// </summary>
+        /// <remarks>Returns null if <see cref="ViewContext"/> is null.</remarks>
+        public ITempDataDictionary TempData
+        {
+            get
+            {
+                return ViewContext?.TempData;
             }
         }
 
         /// <inheritdoc />
-        public Action<TextWriter> RenderBodyDelegate { get; set; }
+        public Func<TextWriter, Task> RenderBodyDelegateAsync { get; set; }
 
         /// <inheritdoc />
         public bool IsLayoutBeingRendered { get; set; }
 
         /// <inheritdoc />
-        public Dictionary<string, RenderAsyncDelegate> PreviousSectionWriters { get; set; }
+        public IDictionary<string, RenderAsyncDelegate> PreviousSectionWriters { get; set; }
 
         /// <inheritdoc />
-        public Dictionary<string, RenderAsyncDelegate> SectionWriters { get; private set; }
+        public IDictionary<string, RenderAsyncDelegate> SectionWriters { get; private set; }
 
         /// <inheritdoc />
         public abstract Task ExecuteAsync();
@@ -122,12 +147,46 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 if (_tagHelperActivator == null)
                 {
-                    _tagHelperActivator = ViewContext.HttpContext.RequestServices.GetRequiredService<ITagHelperActivator>();
+                    var services = ViewContext.HttpContext.RequestServices;
+                    _tagHelperActivator = services.GetRequiredService<ITagHelperActivator>();
                 }
 
                 return _tagHelperActivator;
             }
         }
+
+        private ITypeActivatorCache TypeActivatorCache
+        {
+            get
+            {
+                if (_typeActivatorCache == null)
+                {
+                    var services = ViewContext.HttpContext.RequestServices;
+                    _typeActivatorCache = services.GetRequiredService<ITypeActivatorCache>();
+                }
+
+                return _typeActivatorCache;
+            }
+        }
+
+        /// <summary>
+        /// Format an error message about using an indexer when the tag helper property is <c>null</c>.
+        /// </summary>
+        /// <param name="attributeName">Name of the HTML attribute associated with the indexer.</param>
+        /// <param name="tagHelperTypeName">Full name of the tag helper <see cref="Type"/>.</param>
+        /// <param name="propertyName">Dictionary property in the tag helper.</param>
+        /// <returns>An error message about using an indexer when the tag helper property is <c>null</c>.</returns>
+        public static string InvalidTagHelperIndexerAssignment(
+            string attributeName,
+            string tagHelperTypeName,
+            string propertyName)
+        {
+            return Resources.FormatRazorPage_InvalidTagHelperIndexerAssignment(
+                attributeName,
+                tagHelperTypeName,
+                propertyName);
+        }
+
         /// <summary>
         /// Creates and activates a <see cref="ITagHelper"/>.
         /// </summary>
@@ -136,9 +195,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <remarks>
         /// <typeparamref name="TTagHelper"/> must have a parameterless constructor.
         /// </remarks>
-        public TTagHelper CreateTagHelper<TTagHelper>() where TTagHelper : ITagHelper, new()
+        public TTagHelper CreateTagHelper<TTagHelper>() where TTagHelper : ITagHelper
         {
-            var tagHelper = new TTagHelper();
+            var tagHelper = TypeActivatorCache.CreateInstance<TTagHelper>(
+                ViewContext.HttpContext.RequestServices,
+                typeof(TTagHelper));
 
             TagHelperActivator.Activate(tagHelper, ViewContext);
 
@@ -149,10 +210,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Starts a new writing scope.
         /// </summary>
         /// <remarks>
-        /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will 
-        /// be buffered until <see cref="EndWritingScope"/> is called.
+        /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
+        /// be buffered until <see cref="EndTagHelperWritingScope"/> is called.
         /// </remarks>
-        public void StartWritingScope()
+        public void StartTagHelperWritingScope()
+        {
+            StartTagHelperWritingScope(new StringCollectionTextWriter(Output.Encoding));
+        }
+
+        /// <summary>
+        /// Starts a new writing scope with the given <paramref name="writer"/>.
+        /// </summary>
+        /// <remarks>
+        /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
+        /// be buffered until <see cref="EndTagHelperWritingScope"/> is called.
+        /// </remarks>
+        public void StartTagHelperWritingScope([NotNull] TextWriter writer)
         {
             // If there isn't a base writer take the ViewContext.Writer
             if (_originalWriter == null)
@@ -162,17 +235,17 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // We need to replace the ViewContext's Writer to ensure that all content (including content written
             // from HTML helpers) is redirected.
-            ViewContext.Writer = new StringWriter();
+            ViewContext.Writer = writer;
 
             _writerScopes.Push(ViewContext.Writer);
         }
 
         /// <summary>
-        /// Ends the current writing scope that was started by calling <see cref="StartWritingScope"/>.
+        /// Ends the current writing scope that was started by calling <see cref="StartTagHelperWritingScope"/>.
         /// </summary>
-        /// <returns>The <see cref="TextWriter"/> that contains the content written to the <see cref="Output"/> or 
+        /// <returns>The <see cref="TextWriter"/> that contains the content written to the <see cref="Output"/> or
         /// <see cref="ViewContext.Writer"/> during the writing scope.</returns>
-        public TextWriter EndWritingScope()
+        public TagHelperContent EndTagHelperWritingScope()
         {
             if (_writerScopes.Count == 0)
             {
@@ -193,7 +266,111 @@ namespace Microsoft.AspNet.Mvc.Razor
                 _originalWriter = null;
             }
 
-            return writer;
+            var tagHelperContentWrapperTextWriter = new TagHelperContentWrapperTextWriter(Output.Encoding);
+            var razorWriter = writer as RazorTextWriter;
+            if (razorWriter != null)
+            {
+                razorWriter.CopyTo(tagHelperContentWrapperTextWriter);
+            }
+            else
+            {
+                var stringCollectionTextWriter = writer as StringCollectionTextWriter;
+                if (stringCollectionTextWriter != null)
+                {
+                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter, HtmlEncoder);
+                }
+                else
+                {
+                    tagHelperContentWrapperTextWriter.Write(writer.ToString());
+                }
+            }
+
+            return tagHelperContentWrapperTextWriter.Content;
+        }
+
+        /// <summary>
+        /// Writes the content of a specified <paramref name="tagHelperExecutionContext"/>.
+        /// </summary>
+        /// <param name="tagHelperExecutionContext">The execution context containing the content.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that on completion writes the <paramref name="tagHelperExecutionContext"/> content.
+        /// </returns>
+        public Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
+        {
+            return WriteTagHelperToAsync(Output, tagHelperExecutionContext);
+        }
+
+        /// <summary>
+        /// Writes the content of a specified <paramref name="tagHelperExecutionContext"/> to the specified
+        /// <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="tagHelperExecutionContext">The execution context containing the content.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that on completion writes the <paramref name="tagHelperExecutionContext"/> content
+        /// to the <paramref name="writer"/>.
+        /// </returns>
+        public async Task WriteTagHelperToAsync(
+            [NotNull] TextWriter writer,
+            [NotNull] TagHelperExecutionContext tagHelperExecutionContext)
+        {
+            var tagHelperOutput = tagHelperExecutionContext.Output;
+            var isTagNameNullOrWhitespace = string.IsNullOrWhiteSpace(tagHelperOutput.TagName);
+
+            WriteTo(writer, tagHelperOutput.PreElement);
+
+            if (!isTagNameNullOrWhitespace)
+            {
+                writer.Write('<');
+                writer.Write(tagHelperOutput.TagName);
+
+                foreach (var attribute in tagHelperOutput.Attributes)
+                {
+                    writer.Write(' ');
+                    writer.Write(attribute.Name);
+
+                    if (!attribute.Minimized)
+                    {
+                        writer.Write("=\"");
+                        WriteTo(writer, HtmlEncoder, attribute.Value, escapeQuotes: true);
+                        writer.Write('"');
+                    }
+                }
+
+                if (tagHelperOutput.TagMode == TagMode.SelfClosing)
+                {
+                    writer.Write(" /");
+                }
+
+                writer.Write('>');
+            }
+
+            if (isTagNameNullOrWhitespace || tagHelperOutput.TagMode == TagMode.StartTagAndEndTag)
+            {
+                WriteTo(writer, tagHelperOutput.PreContent);
+                if (tagHelperOutput.IsContentModified)
+                {
+                    WriteTo(writer, tagHelperOutput.Content);
+                }
+                else if (tagHelperExecutionContext.ChildContentRetrieved)
+                {
+                    var childContent = await tagHelperExecutionContext.GetChildContentAsync(useCachedResult: true);
+                    WriteTo(writer, childContent);
+                }
+                else
+                {
+                    await tagHelperExecutionContext.ExecuteChildContentAsync();
+                }
+
+                WriteTo(writer, tagHelperOutput.PostContent);
+            }
+
+            if (!isTagNameNullOrWhitespace && tagHelperOutput.TagMode == TagMode.StartTagAndEndTag)
+            {
+                writer.Write(string.Format(CultureInfo.InvariantCulture, "</{0}>", tagHelperOutput.TagName));
+            }
+
+            WriteTo(writer, tagHelperOutput.PostElement);
         }
 
         /// <summary>
@@ -211,33 +388,67 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="object"/> to write.</param>
         /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter)"/> is invoked for <see cref="HelperResult"/> types.
+        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using
+        /// <see cref="IHtmlContent.WriteTo(TextWriter, IHtmlEncoder)"/>.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
-        public virtual void WriteTo(TextWriter writer, object value)
+        public virtual void WriteTo([NotNull] TextWriter writer, object value)
         {
-            if (value != null && value != HtmlString.Empty)
+            WriteTo(writer, HtmlEncoder, value, escapeQuotes: false);
+        }
+
+        /// <summary>
+        /// Writes the specified <paramref name="value"/> with HTML encoding to given <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="encoder">The <see cref="IHtmlEncoder"/> to use when encoding <paramref name="value"/>.</param>
+        /// <param name="value">The <see cref="object"/> to write.</param>
+        /// <param name="escapeQuotes">
+        /// If <c>true</c> escapes double quotes in a <paramref name="value"/> of type <see cref="HtmlString"/>.
+        /// Otherwise writes <see cref="HtmlString"/> values as-is.
+        /// </param>
+        /// <remarks>
+        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using
+        /// <see cref="IHtmlContent.WriteTo(TextWriter, IHtmlEncoder)"/>.
+        /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
+        /// <paramref name="writer"/>.
+        /// </remarks>
+        public static void WriteTo(
+            [NotNull] TextWriter writer,
+            [NotNull] IHtmlEncoder encoder,
+            object value,
+            bool escapeQuotes)
+        {
+            if (value == null || value == HtmlString.Empty)
             {
-                var helperResult = value as HelperResult;
-                if (helperResult != null)
-                {
-                    helperResult.WriteTo(writer);
-                }
-                else
-                {
-                    var htmlString = value as HtmlString;
-                    if (htmlString != null)
-                    {
-                        writer.Write(htmlString);
-                    }
-                    else
-                    {
-                        WriteTo(writer, value.ToString());
-                    }
-                }
+                return;
             }
+
+            var htmlContent = value as IHtmlContent;
+            if (htmlContent != null)
+            {
+                if (escapeQuotes)
+                {
+                    // In this case the text likely came directly from the Razor source. Since the original string is
+                    // an attribute value that may have been quoted with single quotes, must handle any double quotes
+                    // in the value. Writing the value out surrounded by double quotes.
+                    //
+                    // Do not combine following condition with check of escapeQuotes; htmlContent.ToString() can be
+                    // expensive when the IHtmlContent is created with a BufferedHtmlContent.
+                    var stringValue = htmlContent.ToString();
+                    if (stringValue.Contains("\""))
+                    {
+                        writer.Write(stringValue.Replace("\"", "&quot;"));
+                        return;
+                    }
+                }
+
+                htmlContent.WriteTo(writer, encoder);
+                return;
+            }
+
+            WriteTo(writer, encoder, value.ToString());
         }
 
         /// <summary>
@@ -245,11 +456,16 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="string"/> to write.</param>
-        public virtual void WriteTo(TextWriter writer, string value)
+        public virtual void WriteTo([NotNull] TextWriter writer, string value)
+        {
+            WriteTo(writer, HtmlEncoder, value);
+        }
+
+        private static void WriteTo(TextWriter writer, IHtmlEncoder encoder, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
-                writer.Write(WebUtility.HtmlEncode(value));
+                encoder.HtmlEncode(value, writer);
             }
         }
 
@@ -267,7 +483,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="object"/> to write.</param>
-        public virtual void WriteLiteralTo(TextWriter writer, object value)
+        public virtual void WriteLiteralTo([NotNull] TextWriter writer, object value)
         {
             if (value != null)
             {
@@ -278,8 +494,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Writes the specified <paramref name="value"/> without HTML encoding to <see cref="Output"/>.
         /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="string"/> to write.</param>
-        public virtual void WriteLiteralTo(TextWriter writer, string value)
+        public virtual void WriteLiteralTo([NotNull] TextWriter writer, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
@@ -287,108 +504,123 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        public virtual void WriteAttribute(string name,
-                                           PositionTagged<string> prefix,
-                                           PositionTagged<string> suffix,
-                                           params AttributeValue[] values)
+        public virtual void WriteAttribute(
+            string name,
+            [NotNull] PositionTagged<string> prefix,
+            [NotNull] PositionTagged<string> suffix,
+            params AttributeValue[] values)
         {
             WriteAttributeTo(Output, name, prefix, suffix, values);
         }
 
-        public virtual void WriteAttributeTo(TextWriter writer,
-                                             string name,
-                                             PositionTagged<string> prefix,
-                                             PositionTagged<string> suffix,
-                                             params AttributeValue[] values)
+        public virtual void WriteAttributeTo(
+            [NotNull] TextWriter writer,
+            string name,
+            [NotNull] PositionTagged<string> prefix,
+            [NotNull] PositionTagged<string> suffix,
+            params AttributeValue[] values)
         {
-            var first = true;
-            var wroteSomething = false;
             if (values.Length == 0)
             {
-                // Explicitly empty attribute, so write the prefix and suffix
+                // Explicitly empty attribute, so write the prefix
                 WritePositionTaggedLiteral(writer, prefix);
-                WritePositionTaggedLiteral(writer, suffix);
+            }
+            else if (IsSingleBoolFalseOrNullValue(values))
+            {
+                // Value is either null or the bool 'false' with no prefix; don't render the attribute.
+                return;
+            }
+            else if (UseAttributeNameAsValue(values))
+            {
+                var attributeValue = values[0];
+                var positionTaggedAttributeValue = attributeValue.Value;
+
+                WritePositionTaggedLiteral(writer, prefix);
+
+                var sourceLength = suffix.Position - positionTaggedAttributeValue.Position;
+                var nameAttributeValue = new AttributeValue(
+                    attributeValue.Prefix,
+                    new PositionTagged<object>(name, attributeValue.Value.Position),
+                    literal: attributeValue.Literal);
+
+                // The value is just the bool 'true', write the attribute name instead of the string 'True'.
+                WriteAttributeValue(writer, nameAttributeValue, sourceLength);
             }
             else
             {
+                // This block handles two cases.
+                // 1. Single value with prefix.
+                // 2. Multiple values with or without prefix.
+                WritePositionTaggedLiteral(writer, prefix);
                 for (var i = 0; i < values.Length; i++)
                 {
-                    var attrVal = values[i];
-                    var val = attrVal.Value;
-                    var next = i == values.Length - 1 ?
-                        suffix : // End of the list, grab the suffix
-                        values[i + 1].Prefix; // Still in the list, grab the next prefix
+                    var attributeValue = values[i];
+                    var positionTaggedAttributeValue = attributeValue.Value;
 
-                    if (val.Value == null)
+                    if (positionTaggedAttributeValue.Value == null)
                     {
                         // Nothing to write
                         continue;
                     }
 
-                    // The special cases here are that the value we're writing might already be a string, or that the 
-                    // value might be a bool. If the value is the bool 'true' we want to write the attribute name
-                    // instead of the string 'true'. If the value is the bool 'false' we don't want to write anything.
-                    // Otherwise the value is another object (perhaps an HtmlString) and we'll ask it to format itself.
-                    string stringValue;
-
-                    // Intentionally using is+cast here for performance reasons. This is more performant than as+bool?
-                    // because of boxing.
-                    if (val.Value is bool)
-                    {
-                        if ((bool)val.Value)
-                        {
-                            stringValue = name;
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        stringValue = val.Value as string;
-                    }
-
-                    if (first)
-                    {
-                        WritePositionTaggedLiteral(writer, prefix);
-                        first = false;
-                    }
-                    else
-                    {
-                        WritePositionTaggedLiteral(writer, attrVal.Prefix);
-                    }
+                    var next = i == values.Length - 1 ?
+                        suffix : // End of the list, grab the suffix
+                        values[i + 1].Prefix; // Still in the list, grab the next prefix
 
                     // Calculate length of the source span by the position of the next value (or suffix)
-                    var sourceLength = next.Position - attrVal.Value.Position;
+                    var sourceLength = next.Position - attributeValue.Value.Position;
 
-                    BeginContext(attrVal.Value.Position, sourceLength, isLiteral: attrVal.Literal);
-                    // The extra branching here is to ensure that we call the Write*To(string) overload whe
-                    // possible.
-                    if (attrVal.Literal && stringValue != null)
-                    {
-                        WriteLiteralTo(writer, stringValue);
-                    }
-                    else if (attrVal.Literal)
-                    {
-                        WriteLiteralTo(writer, val.Value);
-                    }
-                    else if (stringValue != null)
-                    {
-                        WriteTo(writer, stringValue);
-                    }
-                    else
-                    {
-                        WriteTo(writer, val.Value);
-                    }
-
-                    EndContext();
-                    wroteSomething = true;
+                    WriteAttributeValue(writer, attributeValue, sourceLength);
                 }
-                if (wroteSomething)
+            }
+
+            WritePositionTaggedLiteral(writer, suffix);
+        }
+
+        public void AddHtmlAttributeValues(
+            string attributeName,
+            TagHelperExecutionContext executionContext,
+            params AttributeValue[] values)
+        {
+            if (IsSingleBoolFalseOrNullValue(values))
+            {
+                // The first value was 'null' or 'false' indicating that we shouldn't render the attribute. The
+                // attribute is treated as a TagHelper attribute so it's only available in
+                // TagHelperContext.AllAttributes for TagHelper authors to see (if they want to see why the attribute
+                // was removed from TagHelperOutput.Attributes).
+                executionContext.AddTagHelperAttribute(
+                    attributeName,
+                    values[0].Value.Value?.ToString() ?? string.Empty);
+
+                return;
+            }
+            else if (UseAttributeNameAsValue(values))
+            {
+                executionContext.AddHtmlAttribute(attributeName, attributeName);
+            }
+            else
+            {
+                var valueBuffer = new StringCollectionTextWriter(Output.Encoding);
+
+                foreach (var value in values)
                 {
-                    WritePositionTaggedLiteral(writer, suffix);
+                    if (value.Value.Value == null)
+                    {
+                        // Skip null values
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(value.Prefix))
+                    {
+                        WriteLiteralTo(valueBuffer, value.Prefix);
+                    }
+
+                    WriteUnprefixedAttributeValueTo(valueBuffer, value);
                 }
+
+                var htmlString = new HtmlString(valueBuffer.ToString());
+
+                executionContext.AddHtmlAttribute(attributeName, htmlString);
             }
         }
 
@@ -400,6 +632,44 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             return _urlHelper.Content(contentPath);
+        }
+
+        private void WriteAttributeValue(TextWriter writer, AttributeValue attributeValue, int sourceLength)
+        {
+            if (!string.IsNullOrEmpty(attributeValue.Prefix))
+            {
+                WritePositionTaggedLiteral(writer, attributeValue.Prefix);
+            }
+
+            BeginContext(attributeValue.Value.Position, sourceLength, isLiteral: attributeValue.Literal);
+
+            WriteUnprefixedAttributeValueTo(writer, attributeValue);
+
+            EndContext();
+        }
+
+        private void WriteUnprefixedAttributeValueTo(TextWriter writer, AttributeValue attributeValue)
+        {
+            var positionTaggedAttributeValue = attributeValue.Value;
+            var stringValue = positionTaggedAttributeValue.Value as string;
+
+            // The extra branching here is to ensure that we call the Write*To(string) overload where possible.
+            if (attributeValue.Literal && stringValue != null)
+            {
+                WriteLiteralTo(writer, stringValue);
+            }
+            else if (attributeValue.Literal)
+            {
+                WriteLiteralTo(writer, positionTaggedAttributeValue.Value);
+            }
+            else if (stringValue != null)
+            {
+                WriteTo(writer, stringValue);
+            }
+            else
+            {
+                WriteTo(writer, positionTaggedAttributeValue.Value);
+            }
         }
 
         private void WritePositionTaggedLiteral(TextWriter writer, string value, int position)
@@ -416,23 +686,23 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected virtual HelperResult RenderBody()
         {
-            if (RenderBodyDelegate == null)
+            if (RenderBodyDelegateAsync == null)
             {
-                var message = Resources.FormatRazorPage_MethodCannotBeCalled(nameof(RenderBody));
+                var message = Resources.FormatRazorPage_MethodCannotBeCalled(nameof(RenderBody), Path);
                 throw new InvalidOperationException(message);
             }
 
             _renderedBody = true;
-            return new HelperResult(RenderBodyDelegate);
+            return new HelperResult(RenderBodyDelegateAsync);
         }
 
         /// <summary>
-        /// Creates a named content section in the page that can be invoked in a Layout page using 
+        /// Creates a named content section in the page that can be invoked in a Layout page using
         /// <see cref="RenderSection(string)"/> or <see cref="RenderSectionAsync(string, bool)"/>.
         /// </summary>
         /// <param name="name">The name of the section to create.</param>
         /// <param name="section">The <see cref="RenderAsyncDelegate"/> to execute when rendering the section.</param>
-        public void DefineSection(string name, RenderAsyncDelegate section)
+        public void DefineSection([NotNull] string name, [NotNull] RenderAsyncDelegate section)
         {
             if (SectionWriters.ContainsKey(name))
             {
@@ -476,7 +746,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             EnsureMethodCanBeInvoked(nameof(RenderSection));
 
             var task = RenderSectionAsyncCore(name, required);
-            return TaskHelper.WaitAndThrowIfFaulted(task);
+            return task.GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -504,17 +774,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// value does not represent the rendered content.</remarks>
         /// <exception cref="InvalidOperationException">if <paramref name="required"/> is <c>true</c> and the section
         /// was not registered using the <c>@section</c> in the Razor page.</exception>
-        public async Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
+        public Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
         {
             EnsureMethodCanBeInvoked(nameof(RenderSectionAsync));
-            return await RenderSectionAsyncCore(name, required);
+            return RenderSectionAsyncCore(name, required);
         }
 
         private async Task<HtmlString> RenderSectionAsyncCore(string sectionName, bool required)
         {
             if (_renderedSections.Contains(sectionName))
             {
-                var message = Resources.FormatSectionAlreadyRendered(sectionName);
+                var message = Resources.FormatSectionAlreadyRendered(nameof(RenderSectionAsync), Path, sectionName);
                 throw new InvalidOperationException(message);
             }
 
@@ -531,7 +801,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             else if (required)
             {
                 // If the section is not found, and it is not optional, throw an error.
-                throw new InvalidOperationException(Resources.FormatSectionNotDefined(sectionName));
+                throw new InvalidOperationException(Resources.FormatSectionNotDefined(sectionName, Path));
             }
             else
             {
@@ -544,47 +814,58 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Invokes <see cref="TextWriter.FlushAsync"/> on <see cref="Output"/> writing out any buffered
         /// content to the <see cref="HttpResponse.Body"/>.
         /// </summary>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous flush operation.</returns>
-        public Task FlushAsync()
+        /// <returns>A <see cref="Task{HtmlString}"/> that represents the asynchronous flush operation and on
+        /// completion returns a <see cref="HtmlString.Empty"/>.</returns>
+        /// <remarks>The value returned is a token value that allows FlushAsync to work directly in an HTML
+        /// section. However the value does not represent the rendered content.
+        /// This method also writes out headers, so any modifications to headers must be done before
+        /// <see cref="FlushAsync"/> is called. For example, call <see cref="SetAntiforgeryCookieAndHeader"/> to send
+        /// antiforgery cookie token and X-Frame-Options header to client before this method flushes headers out.
+        /// </remarks>
+        public async Task<HtmlString> FlushAsync()
         {
             // If there are active writing scopes then we should throw. Cannot flush content that has the potential to
             // change.
             if (_writerScopes.Count > 0)
             {
-                throw new InvalidOperationException(Resources.RazorPage_YouCannotFlushWhileInAWritingScope);
+                throw new InvalidOperationException(
+                    Resources.FormatRazorPage_CannotFlushWhileInAWritingScope(nameof(FlushAsync), Path));
             }
 
             // Calls to Flush are allowed if the page does not specify a Layout or if it is executing a section in the
             // Layout.
             if (!IsLayoutBeingRendered && !string.IsNullOrEmpty(Layout))
             {
-                var message = Resources.FormatLayoutCannotBeRendered(nameof(FlushAsync));
+                var message = Resources.FormatLayoutCannotBeRendered(Path, nameof(FlushAsync));
                 throw new InvalidOperationException(message);
             }
 
-            return Output.FlushAsync();
+            await Output.FlushAsync();
+            return HtmlString.Empty;
         }
 
         /// <inheritdoc />
-        public void EnsureBodyAndSectionsWereRendered()
+        public void EnsureRenderedBodyOrSections()
         {
-            // If PreviousSectionWriters is set, ensure all defined sections were rendered.
-            if (PreviousSectionWriters != null)
+            // a) all sections defined for this page are rendered.
+            // b) if no sections are defined, then the body is rendered if it's available.
+            if (PreviousSectionWriters != null && PreviousSectionWriters.Count > 0)
             {
-                var sectionsNotRendered = PreviousSectionWriters.Keys.Except(_renderedSections,
-                                                                             StringComparer.OrdinalIgnoreCase);
+                var sectionsNotRendered = PreviousSectionWriters.Keys.Except(
+                    _renderedSections,
+                    StringComparer.OrdinalIgnoreCase);
+
                 if (sectionsNotRendered.Any())
                 {
                     var sectionNames = string.Join(", ", sectionsNotRendered);
-                    throw new InvalidOperationException(Resources.FormatSectionsNotRendered(sectionNames));
+                    throw new InvalidOperationException(Resources.FormatSectionsNotRendered(Path, sectionNames));
                 }
             }
-
-            // If BodyContent is set, ensure it was rendered.
-            if (RenderBodyDelegate != null && !_renderedBody)
+            else if (RenderBodyDelegateAsync != null && !_renderedBody)
             {
+                // There are no sections defined, but RenderBody was NOT called.
                 // If a body was defined, then RenderBody should have been called.
-                var message = Resources.FormatRenderBodyNotCalled(nameof(RenderBody));
+                var message = Resources.FormatRenderBodyNotCalled(nameof(RenderBody), Path);
                 throw new InvalidOperationException(message);
             }
         }
@@ -599,11 +880,51 @@ namespace Microsoft.AspNet.Mvc.Razor
             PageExecutionContext?.EndContext();
         }
 
+        /// <summary>
+        /// Sets antiforgery cookie and X-Frame-Options header on the response.
+        /// </summary>
+        /// <returns>A <see cref="HtmlString"/> that returns a <see cref="HtmlString.Empty"/>.</returns>
+        /// <remarks> Call this method to send antiforgery cookie token and X-Frame-Options header to client
+        /// before <see cref="FlushAsync"/> flushes the headers. </remarks>
+        public virtual HtmlString SetAntiforgeryCookieAndHeader()
+        {
+            var antiforgery = Context.RequestServices.GetRequiredService<IAntiforgery>();
+            antiforgery.SetCookieTokenAndHeader(Context);
+
+            return HtmlString.Empty;
+        }
+
+        private bool IsSingleBoolFalseOrNullValue(AttributeValue[] values)
+        {
+            if (values.Length == 1 && string.IsNullOrEmpty(values[0].Prefix) &&
+                (values[0].Value.Value is bool || values[0].Value.Value == null))
+            {
+                var attributeValue = values[0];
+                var positionTaggedAttributeValue = attributeValue.Value;
+
+                if (positionTaggedAttributeValue.Value == null || !(bool)positionTaggedAttributeValue.Value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool UseAttributeNameAsValue(AttributeValue[] values)
+        {
+            // If the value is just the bool 'true', use the attribute name as the value.
+            return values.Length == 1 &&
+                string.IsNullOrEmpty(values[0].Prefix) &&
+                values[0].Value.Value is bool &&
+                (bool)values[0].Value.Value;
+        }
+
         private void EnsureMethodCanBeInvoked(string methodName)
         {
             if (PreviousSectionWriters == null)
             {
-                throw new InvalidOperationException(Resources.FormatRazorPage_MethodCannotBeCalled(methodName));
+                throw new InvalidOperationException(Resources.FormatRazorPage_MethodCannotBeCalled(methodName, Path));
             }
         }
     }

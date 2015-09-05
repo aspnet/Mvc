@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -21,8 +21,8 @@ namespace MvcSample.Web
                 if (action.AttributeRouteModel.Name == null)
                 {
                     action.AttributeRouteModel.Name = string.Format(
-                        "{0}_{1}", 
-                        model.ControllerName, 
+                        "{0}_{1}",
+                        model.ControllerName,
                         action.ActionName);
                 }
             }

@@ -1,22 +1,23 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
 
-namespace ApiExplorer
+namespace ApiExplorerWebSite
 {
     [Route("ApiExplorerResponseTypeWithAttribute/[Action]")]
     public class ApiExplorerResponseTypeWithAttributeController : Controller
     {
         [HttpGet]
-        [ProducesType(typeof(Customer))]
+        [Produces(typeof(Customer))]
         public void GetVoid()
         {
         }
 
         [HttpGet]
-        [Produces("*/*", Type = typeof(Product))]
+        [Produces("application/json", Type = typeof(Product))]
         public object GetObject()
         {
             return null;
@@ -37,7 +38,7 @@ namespace ApiExplorer
         }
 
         [HttpGet]
-        [ProducesType(typeof(Customer))] // It's possible to lie about what type you return
+        [Produces(typeof(Customer))] // It's possible to lie about what type you return
         public Product GetProduct()
         {
             return null;

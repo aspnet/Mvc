@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNet.Http.Security;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class ChallengeResult : ActionResult
     {
@@ -13,13 +16,13 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public ChallengeResult(string authenticationType)
-            : this(new[] { authenticationType })
+        public ChallengeResult(string authenticationScheme)
+            : this(new[] { authenticationScheme })
         {
         }
 
-        public ChallengeResult(IList<string> authenticationTypes)
-            : this(authenticationTypes, properties: null)
+        public ChallengeResult(IList<string> authenticationSchemes)
+            : this(authenticationSchemes, properties: null)
         {
         }
 
@@ -28,25 +31,35 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public ChallengeResult(string authenticationType, AuthenticationProperties properties)
-            : this(new[] { authenticationType }, properties)
+        public ChallengeResult(string authenticationScheme, AuthenticationProperties properties)
+            : this(new[] { authenticationScheme }, properties)
         {
         }
 
-        public ChallengeResult(IList<string> authenticationTypes, AuthenticationProperties properties)
+        public ChallengeResult(IList<string> authenticationSchemes, AuthenticationProperties properties)
         {
-            AuthenticationTypes = authenticationTypes;
+            AuthenticationSchemes = authenticationSchemes;
             Properties = properties;
         }
 
-        public IList<string> AuthenticationTypes { get; set; }
+        public IList<string> AuthenticationSchemes { get; set; }
 
         public AuthenticationProperties Properties { get; set; }
 
-        public override void ExecuteResult([NotNull] ActionContext context)
+        public override async Task ExecuteResultAsync([NotNull] ActionContext context)
         {
-            var response = context.HttpContext.Response;
-            response.Challenge(Properties, AuthenticationTypes);
+            var auth = context.HttpContext.Authentication;
+            if (AuthenticationSchemes.Count > 0)
+            {
+                foreach (var scheme in AuthenticationSchemes)
+                {
+                    await auth.ChallengeAsync(scheme, Properties);
+                }
+            }
+            else
+            {
+                await auth.ChallengeAsync(Properties);
+            }
         }
     }
 }

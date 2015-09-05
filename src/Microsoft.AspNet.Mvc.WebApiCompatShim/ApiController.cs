@@ -1,19 +1,20 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Text;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
-using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using MvcMediaTypeHeaderValue = Microsoft.AspNet.Mvc.HeaderValueAbstractions.MediaTypeHeaderValue;
 
 namespace System.Web.Http
 {
@@ -29,8 +30,15 @@ namespace System.Web.Http
         /// Gets the action context.
         /// </summary>
         /// <remarks>The setter is intended for unit testing purposes only.</remarks>
-        [Activate]
+        [ActionContext]
         public ActionContext ActionContext { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="ActionBindingContext"/>.
+        /// </summary>
+        /// <remarks>The setter is intended for unit testing purposes only.</remarks>
+        [ActionBindingContext]
+        public ActionBindingContext BindingContext { get; set; }
 
         /// <summary>
         /// Gets the http context.
@@ -44,7 +52,19 @@ namespace System.Web.Http
         }
 
         /// <summary>
-        /// Gets model state after the model binding process. This ModelState will be empty before model binding happens.
+        /// Gets the <see cref="IModelMetadataProvider"/>.
+        /// </summary>
+        /// <remarks>The setter is intended for unit testing purposes only.</remarks>
+        [FromServices]
+        public IModelMetadataProvider MetadataProvider { get; set; }
+
+
+        [FromServices]
+        public IObjectModelValidator ObjectValidator { get; set; }
+
+        /// <summary>
+        /// Gets model state after the model binding process. This ModelState will be empty before model binding
+        /// happens.
         /// </summary>
         public ModelStateDictionary ModelState
         {
@@ -79,7 +99,7 @@ namespace System.Web.Http
         /// Gets a factory used to generate URLs to other APIs.
         /// </summary>
         /// <remarks>The setter is intended for unit testing purposes only.</remarks>
-        [Activate]
+        [FromServices]
         public IUrlHelper Url { get; set; }
 
         /// <summary>
@@ -147,54 +167,54 @@ namespace System.Web.Http
         }
 
         /// <summary>
-        /// Creates a <see cref="CreatedNegotiatedContentResult{T}"/> (201 Created) with the specified values.
+        /// Creates a <see cref="CreatedResult"/> (201 Created) with the specified values.
         /// </summary>
-        /// <typeparam name="T">The type of content in the entity body.</typeparam>
         /// <param name="location">
         /// The location at which the content has been created. Must be a relative or absolute URL.
         /// </param>
-        /// <param name="content">The content value to negotiate and format in the entity body.</param>
-        /// <returns>A <see cref="CreatedNegotiatedContentResult{T}"/> with the specified values.</returns>
+        /// <param name="content">The content value to format in the entity body.</param>
+        /// <returns>A <see cref="CreatedResult"/> with the specified values.</returns>
         [NonAction]
-        public virtual CreatedNegotiatedContentResult<T> Created<T>([NotNull] string location, [NotNull] T content)
+        public virtual CreatedResult Created([NotNull] string location, object content)
         {
-            return Created<T>(new Uri(location, UriKind.RelativeOrAbsolute), content);
+            return new CreatedResult(location, content);
         }
 
         /// <summary>
-        /// Creates a <see cref="CreatedNegotiatedContentResult{T}"/> (201 Created) with the specified values.
+        /// Creates a <see cref="CreatedResult"/> (201 Created) with the specified values.
         /// </summary>
-        /// <typeparam name="T">The type of content in the entity body.</typeparam>
-        /// <param name="location">The location at which the content has been created.</param>
-        /// <param name="content">The content value to negotiate and format in the entity body.</param>
-        /// <returns>A <see cref="CreatedNegotiatedContentResult{T}"/> with the specified values.</returns>
+        /// <param name="uri">The location at which the content has been created.</param>
+        /// <param name="content">The content value to format in the entity body.</param>
+        /// <returns>A <see cref="CreatedResult"/> with the specified values.</returns>
         [NonAction]
-        public virtual CreatedNegotiatedContentResult<T> Created<T>([NotNull] Uri location, [NotNull] T content)
+        public virtual CreatedResult Created([NotNull] Uri uri, object content)
         {
-            return new CreatedNegotiatedContentResult<T>(location, content);
+            string location;
+            if (uri.IsAbsoluteUri)
+            {
+                location = uri.AbsoluteUri;
+            }
+            else
+            {
+                location = uri.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped);
+            }
+            return Created(location, content);
         }
 
         /// <summary>
-        /// Creates a <see cref="CreatedAtRouteNegotiatedContentResult{T}"/> (201 Created) with the specified values.
+        /// Creates a <see cref="CreatedAtRouteResult"/> (201 Created) with the specified values.
         /// </summary>
-        /// <typeparam name="T">The type of content in the entity body.</typeparam>
         /// <param name="routeName">The name of the route to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
-        /// <param name="content">The content value to negotiate and format in the entity body.</param>
-        /// <returns>A <see cref="CreatedAtRouteNegotiatedContentResult{T}"/> with the specified values.</returns>
+        /// <param name="content">The content value to format in the entity body.</param>
+        /// <returns>A <see cref="CreatedAtRouteResult"/> with the specified values.</returns>
         [NonAction]
-        public virtual CreatedAtRouteNegotiatedContentResult<T> CreatedAtRoute<T>(
+        public virtual CreatedAtRouteResult CreatedAtRoute(
             [NotNull] string routeName,
-            object routeValues, 
-            [NotNull] T content)
+            object routeValues,
+            object content)
         {
-            var values = routeValues as IDictionary<string, object>;
-            if (values == null)
-            {
-                values = new RouteValueDictionary(routeValues);
-            }
-
-            return new CreatedAtRouteNegotiatedContentResult<T>(routeName, values, content);
+            return new CreatedAtRouteResult(routeName, routeValues, content);
         }
 
         /// <summary
@@ -240,12 +260,7 @@ namespace System.Web.Http
         [NonAction]
         public virtual JsonResult Json<T>([NotNull] T content, [NotNull] JsonSerializerSettings serializerSettings)
         {
-            var formatter = new JsonOutputFormatter()
-            {
-                SerializerSettings = serializerSettings,
-            };
-
-            return new JsonResult(content, formatter);
+            return new JsonResult(content, serializerSettings);
         }
 
         /// <summary>
@@ -262,15 +277,13 @@ namespace System.Web.Http
             [NotNull] JsonSerializerSettings serializerSettings,
             [NotNull] Encoding encoding)
         {
-            var formatter = new JsonOutputFormatter()
+            var result = new JsonResult(content, serializerSettings);
+            result.ContentType = new MediaTypeHeaderValue("application/json")
             {
-                SerializerSettings = serializerSettings,
+                Encoding = encoding
             };
 
-            formatter.SupportedEncodings.Clear();
-            formatter.SupportedEncodings.Add(encoding);
-
-            return new JsonResult(content, formatter);
+            return result;
         }
 
         /// <summary>
@@ -284,25 +297,25 @@ namespace System.Web.Http
         }
 
         /// <summary>
-        /// Creates an <see cref="OkResult"/> (200 OK).
+        /// Creates an <see cref="HttpOkResult"/> (200 OK).
         /// </summary>
-        /// <returns>An <see cref="OkResult"/>.</returns>
+        /// <returns>An <see cref="HttpOkResult"/>.</returns>
         [NonAction]
-        public virtual OkResult Ok()
+        public virtual HttpOkResult Ok()
         {
-            return new OkResult();
+            return new HttpOkResult();
         }
 
         /// <summary>
-        /// Creates an <see cref="OkNegotiatedContentResult{T}"/> (200 OK) with the specified values.
+        /// Creates an <see cref="HttpOkObjectResult"/> (200 OK) with the specified values.
         /// </summary>
         /// <typeparam name="T">The type of content in the entity body.</typeparam>
         /// <param name="content">The content value to negotiate and format in the entity body.</param>
-        /// <returns>An <see cref="OkNegotiatedContentResult{T}"/> with the specified values.</returns>
+        /// <returns>An <see cref="HttpOkObjectResult"/> with the specified values.</returns>
         [NonAction]
-        public virtual OkNegotiatedContentResult<T> Ok<T>([NotNull] T content)
+        public virtual HttpOkObjectResult Ok<T>(T content)
         {
-            return new OkNegotiatedContentResult<T>(content);
+            return new HttpOkObjectResult(content);
         }
 
         /// <summary>
@@ -347,7 +360,10 @@ namespace System.Web.Http
         [NonAction]
         public virtual RedirectToRouteResult RedirectToRoute([NotNull] string routeName, [NotNull] object routeValues)
         {
-            return new RedirectToRouteResult(Url, routeName, routeValues);
+            return new RedirectToRouteResult(routeName, routeValues)
+            {
+                UrlHelper = Url,
+            };
         }
 
         /// <summary>
@@ -395,25 +411,25 @@ namespace System.Web.Http
         /// <typeparam name="TEntity">The type of the entity to be validated.</typeparam>
         /// <param name="entity">The entity being validated.</param>
         /// <param name="keyPrefix">
-        /// The key prefix under which the model state errors would be added in the 
+        /// The key prefix under which the model state errors would be added in the
         /// <see cref="ApiController.ModelState"/>.
         /// </param>
         public void Validate<TEntity>(TEntity entity, string keyPrefix)
         {
-            var bodyValidationExcludeFiltersProvider = Context.RequestServices
-                                                              .GetRequiredService<IValidationExcludeFiltersProvider>();
-            var validator = Context.RequestServices.GetRequiredService<IBodyModelValidator>();
-            var metadataProvider = Context.RequestServices.GetRequiredService<IModelMetadataProvider>();
-            var modelMetadata = metadataProvider.GetMetadataForType(() => entity, typeof(TEntity));
-            var validatorProvider = Context.RequestServices.GetRequiredService<ICompositeModelValidatorProvider>();
+            var modelExplorer = MetadataProvider.GetModelExplorerForType(typeof(TEntity), entity);
+
             var modelValidationContext = new ModelValidationContext(
-                metadataProvider,
-                validatorProvider,
-                ModelState,
-                modelMetadata,
-                containerMetadata: null,
-                excludeFromValidationFilters: bodyValidationExcludeFiltersProvider.ExcludeFilters);
-            validator.Validate(modelValidationContext, keyPrefix);
+                bindingSource: null,
+                validatorProvider: BindingContext.ValidatorProvider,
+                modelState: ModelState,
+                modelExplorer: modelExplorer);
+
+            ObjectValidator.Validate(
+                modelValidationContext,
+                new ModelValidationNode(keyPrefix, modelExplorer.Metadata, entity)
+                {
+                    ValidateAllProperties = true
+                });
         }
 
         protected virtual void Dispose(bool disposing)

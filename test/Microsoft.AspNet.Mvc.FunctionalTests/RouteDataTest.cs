@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -17,14 +18,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class RouteDataTest
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices(nameof(BasicWebSite));
+        private const string SiteName = nameof(BasicWebSite);
         private readonly Action<IApplicationBuilder> _app = new BasicWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new BasicWebSite.Startup().ConfigureServices;
 
         [Fact]
         public async Task RouteData_Routers_ConventionalRoute()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -49,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RouteData_Routers_AttributeRoute()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -65,7 +67,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 {
                     typeof(RouteCollection).FullName,
                     typeof(AttributeRoute).FullName,
-                    typeof(TemplateRoute).FullName,
                     typeof(MvcRouteHandler).FullName,
                 },
                 result.Routers);
@@ -79,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RouteData_DataTokens_FilterCanSetDataTokens()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var response = await client.GetAsync("http://localhost/Routing/DataTokens");

@@ -1,6 +1,11 @@
-﻿using System.Globalization;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNet.Mvc.Actions;
 
 namespace BasicWebSite
 {
@@ -8,9 +13,9 @@ namespace BasicWebSite
     {
         private readonly ActionDescriptorCreationCounter _counterService;
 
-        public MonitorController(INestedProvider<ActionDescriptorProviderContext> counterService)
-	    {
-            _counterService = (ActionDescriptorCreationCounter)counterService;
+        public MonitorController(IEnumerable<IActionDescriptorProvider> providers)
+        {
+            _counterService = providers.OfType<ActionDescriptorCreationCounter>().Single();
         }
 
         public IActionResult CountActionDescriptorInvocations()

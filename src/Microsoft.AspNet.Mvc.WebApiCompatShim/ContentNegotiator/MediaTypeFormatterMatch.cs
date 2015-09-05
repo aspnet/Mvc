@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNETCORE50
+#if DNXCORE50
 
 using System.Net.Http.Headers;
-using System.Web.Http;
 
 namespace System.Net.Http.Formatting
 {
@@ -17,10 +16,19 @@ namespace System.Net.Http.Formatting
         /// Initializes a new instance of the <see cref="MediaTypeFormatterMatch"/> class.
         /// </summary>
         /// <param name="formatter">The matching formatter.</param>
-        /// <param name="mediaType">The media type. Can be <c>null</c> in which case the media type <c>application/octet-stream</c> is used.</param>
-        /// <param name="quality">The quality of the match. Can be <c>null</c> in which case it is considered a full match with a value of 1.0</param>
+        /// <param name="mediaType">
+        /// The media type. Can be <c>null</c> in which case the media type <c>application/octet-stream</c> is used.
+        /// </param>
+        /// <param name="quality">
+        /// The quality of the match. Can be <c>null</c> in which case it is considered a full match with a value of
+        /// 1.0.
+        /// </param>
         /// <param name="ranking">The kind of match.</param>
-        public MediaTypeFormatterMatch(MediaTypeFormatter formatter, MediaTypeHeaderValue mediaType, double? quality, MediaTypeFormatterMatchRanking ranking)
+        public MediaTypeFormatterMatch(
+            MediaTypeFormatter formatter,
+            MediaTypeHeaderValue mediaType,
+            double? quality,
+            MediaTypeFormatterMatchRanking ranking)
         {
             Formatter = formatter;
             MediaType = mediaType != null ? mediaType : MediaTypeConstants.ApplicationOctetStreamMediaType;

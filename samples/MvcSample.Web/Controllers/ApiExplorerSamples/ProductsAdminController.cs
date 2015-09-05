@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNet.Mvc;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc;
 
 namespace MvcSample.Web.ApiExplorerSamples
 {
@@ -9,13 +12,17 @@ namespace MvcSample.Web.ApiExplorerSamples
     public class ProductsAdminController : Controller
     {
         [HttpPut]
-        public void AddProduct([FromBody] Product product)
+        [Produces("application/json", Type = typeof(Product))]
+        public IActionResult AddProduct([FromBody] Product product)
         {
+            return null;
         }
 
-        [HttpPost("{id}")]
-        public void UpdateProduct([FromBody] Product product)
+        [HttpPost("{id?}")]
+        [Produces("application/json", Type = typeof(Product))]
+        public IActionResult UpdateProduct(UpdateProductDTO dto)
         {
+            return null;
         }
 
         [HttpPost("{id}/Stock")]

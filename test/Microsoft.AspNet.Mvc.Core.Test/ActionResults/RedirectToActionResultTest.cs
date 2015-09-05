@@ -1,15 +1,15 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class RedirectToActionResultTest
     {
@@ -26,8 +26,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var actionContext = new ActionContext(httpContext.Object,
                                                   new RouteData(),
                                                   new ActionDescriptor());
-            IUrlHelper urlHelper = GetMockUrlHelper(expectedUrl);
-            RedirectToActionResult result = new RedirectToActionResult(urlHelper, "SampleAction", null, null);
+            var urlHelper = GetMockUrlHelper(expectedUrl);
+            var result = new RedirectToActionResult("SampleAction", null, null)
+            {
+                UrlHelper = urlHelper,
+            };
 
             // Act
             await result.ExecuteResultAsync(actionContext);
@@ -49,8 +52,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                                   new RouteData(),
                                                   new ActionDescriptor());
 
-            IUrlHelper urlHelper = GetMockUrlHelper(returnValue: null);
-            RedirectToActionResult result = new RedirectToActionResult(urlHelper, null, null, null);
+            var urlHelper = GetMockUrlHelper(returnValue: null);
+            var result = new RedirectToActionResult(null, null, null)
+            {
+                UrlHelper = urlHelper,
+            };
 
             // Act & Assert
             ExceptionAssert.ThrowsAsync<InvalidOperationException>(
@@ -64,8 +70,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         private static IUrlHelper GetMockUrlHelper(string returnValue)
         {
             var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(o => o.Action(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>(),
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(returnValue);
+            urlHelper.Setup(o => o.Action(It.IsAny<UrlActionContext>())).Returns(returnValue);
 
             return urlHelper.Object;
         }

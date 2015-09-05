@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
-using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.NestedProviders;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -28,13 +31,13 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.ProductsController).GetTypeInfo();
-            var actions = results.Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType).ToArray();
+            var actions = results.Where(ad => ad.ControllerTypeInfo == controllerType).ToArray();
 
             Assert.NotEmpty(actions);
         }
@@ -47,13 +50,13 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.Blog).GetTypeInfo();
-            var actions = results.Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType).ToArray();
+            var actions = results.Where(ad => ad.ControllerTypeInfo == controllerType).ToArray();
 
             Assert.Empty(actions);
         }
@@ -66,14 +69,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.StoreController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.MethodInfo.Name == "GetAll")
                 .ToArray();
 
@@ -102,14 +105,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.StoreController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.MethodInfo.Name == "Edit")
                 .ToArray();
 
@@ -138,14 +141,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.StoreController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.MethodInfo.Name == "Delete")
                 .ToArray();
 
@@ -175,14 +178,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.StoreController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.MethodInfo.Name == "Options")
                 .ToArray();
 
@@ -211,14 +214,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.StoreController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .ToArray();
 
             Assert.NotEmpty(actions);
@@ -236,14 +239,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.StoreController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .ToArray();
 
             Assert.NotEmpty(actions);
@@ -261,14 +264,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.EmployeesController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.Name == "Get")
                 .ToArray();
 
@@ -276,7 +279,9 @@ namespace System.Web.Http
             foreach (var action in actions)
             {
                 var parameter = Assert.Single(action.Parameters);
-                Assert.IsType<FromUriAttribute>(parameter.BinderMetadata);
+                Assert.Equal((new FromUriAttribute()).BindingSource, parameter.BindingInfo.BindingSource);
+                var optionalParameters = (HashSet<string>)action.Properties["OptionalParameters"];
+                Assert.False(optionalParameters.Contains(parameter.Name));
             }
         }
 
@@ -288,14 +293,14 @@ namespace System.Web.Http
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.EmployeesController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.Name == "Put")
                 .ToArray();
 
@@ -303,26 +308,26 @@ namespace System.Web.Http
             foreach (var action in actions)
             {
                 var parameter = Assert.Single(action.Parameters);
-                Assert.IsType<FromBodyAttribute>(parameter.BinderMetadata);
+                Assert.Equal(BindingSource.Body, parameter.BindingInfo.BindingSource);
             }
         }
 
         [Fact]
-        public void GetActions_Parameters_BinderMetadata()
+        public void GetActions_Parameters_WithBindingSource()
         {
             // Arrange
             var provider = CreateProvider();
 
             // Act
             var context = new ActionDescriptorProviderContext();
-            provider.Invoke(context);
+            Invoke(provider, context);
 
             var results = context.Results.Cast<ControllerActionDescriptor>();
 
             // Assert
             var controllerType = typeof(TestControllers.EmployeesController).GetTypeInfo();
             var actions = results
-                .Where(ad => ad.ControllerDescriptor.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
                 .Where(ad => ad.Name == "Post")
                 .ToArray();
 
@@ -330,21 +335,46 @@ namespace System.Web.Http
             foreach (var action in actions)
             {
                 var parameter = Assert.Single(action.Parameters);
-                Assert.IsType<ModelBinderAttribute>(parameter.BinderMetadata);
+                Assert.Null(parameter.BindingInfo.BindingSource);
             }
         }
 
-        private INestedProviderManager<ActionDescriptorProviderContext> CreateProvider()
+        [Theory]
+        [InlineData(nameof(TestControllers.EventsController.GetWithId))]
+        [InlineData(nameof(TestControllers.EventsController.GetWithEmployee))]
+        public void GetActions_Parameters_ImplicitOptional(string name)
         {
-            var assemblyProvider = new Mock<IAssemblyProvider>();
-            assemblyProvider
-                .SetupGet(ap => ap.CandidateAssemblies)
-                .Returns(new Assembly[] { typeof(ApiControllerActionDiscoveryTest).Assembly });
+            // Arrange
+            var provider = CreateProvider();
 
-            var filterProvider = new Mock<IGlobalFilterProvider>();
-            filterProvider
-                .SetupGet(fp => fp.Filters)
-                .Returns(new List<IFilter>());
+            // Act
+            var context = new ActionDescriptorProviderContext();
+            Invoke(provider, context);
+
+            var results = context.Results.Cast<ControllerActionDescriptor>();
+
+            // Assert
+            var controllerType = typeof(TestControllers.EventsController).GetTypeInfo();
+            var actions = results
+                .Where(ad => ad.ControllerTypeInfo == controllerType)
+                .Where(ad => ad.Name == name)
+                .ToArray();
+
+            Assert.NotEmpty(actions);
+            foreach (var action in actions)
+            {
+                var parameter = Assert.Single(action.Parameters);
+                Assert.Equal((new FromUriAttribute()).BindingSource, parameter.BindingInfo.BindingSource);
+                var optionalParameters = (HashSet<string>)action.Properties["OptionalParameters"];
+                Assert.True(optionalParameters.Contains(parameter.Name));
+            }
+        }
+
+        private ControllerActionDescriptorProvider CreateProvider()
+        {
+            var assemblyProvider = new StaticAssemblyProvider();
+            assemblyProvider.CandidateAssemblies.Add(GetType().GetTypeInfo().Assembly);
+            var controllerTypeProvider = new NamespaceFilteredControllerTypeProvider(assemblyProvider);
 
             var options = new MvcOptions();
 
@@ -353,34 +383,45 @@ namespace System.Web.Http
 
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(options);
 
+            var authorizationOptionsAccessor = new Mock<IOptions<AuthorizationOptions>>();
+            authorizationOptionsAccessor
+                .SetupGet(o => o.Value)
+                .Returns(new AuthorizationOptions());
+
+            var modelProvider = new DefaultApplicationModelProvider(optionsAccessor.Object);
+
             var provider = new ControllerActionDescriptorProvider(
-                assemblyProvider.Object,
-                new NamespaceLimitedActionDiscoveryConventions(),
-                filterProvider.Object,
+                controllerTypeProvider,
+                new[] { modelProvider },
                 optionsAccessor.Object);
 
-            return new NestedProviderManager<ActionDescriptorProviderContext>(
-                new INestedProvider<ActionDescriptorProviderContext>[]
-                {
-                    provider
-                });
+            return provider;
         }
 
-        private class NamespaceLimitedActionDiscoveryConventions : DefaultControllerModelBuilder
+        private void Invoke(ControllerActionDescriptorProvider provider, ActionDescriptorProviderContext context)
         {
-            public NamespaceLimitedActionDiscoveryConventions()
-                : base(new DefaultActionModelBuilder())
+            provider.OnProvidersExecuting(context);
+            provider.OnProvidersExecuted(context);
+        }
+
+        private class NamespaceFilteredControllerTypeProvider : DefaultControllerTypeProvider
+        {
+            public NamespaceFilteredControllerTypeProvider(IAssemblyProvider provider)
+                : base(provider)
             {
+
             }
 
-            protected override bool IsController(TypeInfo typeInfo)
+            public override IEnumerable<TypeInfo> ControllerTypes
             {
-                return
-                    typeInfo.Namespace == "System.Web.Http.TestControllers" &&
-                    base.IsController(typeInfo);
+                get
+                {
+                    return base.ControllerTypes
+                               .Where(typeInfo => typeInfo.Namespace == "System.Web.Http.TestControllers");
+                }
             }
         }
     }
@@ -452,6 +493,19 @@ namespace System.Web.Http.TestControllers
 
     public class Employee
     {
+    }
+
+    public class EventsController : ApiController
+    {
+        public IActionResult GetWithId(int id = 0)
+        {
+            return null;
+        }
+
+        public IActionResult GetWithEmployee([FromUri] Employee e = null)
+        {
+            return null;
+        }
     }
 }
 #endif

@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -13,28 +13,35 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <see cref="ITagHelper"/> implementation targeting &lt;option&gt; elements.
     /// </summary>
     /// <remarks>
-    /// This <see cref="ITagHelper"/> works in conjunction with <see cref="SelectTagHelper"/>. It has
-    /// <see cref="ContentBehavior.Modify"/> in order to read element's content but does not modify that content. The
-    /// only modification it makes is to add a <c>selected</c> attribute in some cases.
+    /// This <see cref="ITagHelper"/> works in conjunction with <see cref="SelectTagHelper"/>. It reads elements
+    /// content but does not modify that content. The only modification it makes is to add a <c>selected</c> attribute
+    /// in some cases.
     /// </remarks>
-    [ContentBehavior(ContentBehavior.Modify)]
     public class OptionTagHelper : TagHelper
     {
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        [Activate]
-        protected internal IHtmlGenerator Generator { get; set; }
-
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        [Activate]
-        protected internal ViewContext ViewContext { get; set; }
-
         /// <summary>
-        /// Specifies that this &lt;option&gt; is pre-selected.
+        /// Creates a new <see cref="OptionTagHelper"/>.
         /// </summary>
-        /// <remarks>
-        /// Passed through to the generated HTML in all cases.
-        /// </remarks>
-        public string Selected { get; set; }
+        /// <param name="generator">The <see cref="IHtmlGenerator"/>.</param>
+        public OptionTagHelper(IHtmlGenerator generator)
+        {
+            Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultFrameworkSortOrder;
+            }
+        }
+
+        protected IHtmlGenerator Generator { get; }
+
+        [HtmlAttributeNotBound]
+        [ViewContext]
+        public ViewContext ViewContext { get; set; }
 
         /// <summary>
         /// Specifies a value for the &lt;option&gt; element.
@@ -51,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <see cref="ICollection{string}"/> instance. Also does nothing if the associated &lt;option&gt; is already
         /// selected.
         /// </remarks>
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             // Pass through attributes that are also well-known HTML attributes.
             if (Value != null)
@@ -59,12 +66,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 output.CopyHtmlAttribute(nameof(Value), context);
             }
 
-            if (Selected != null)
-            {
-                // This <option/> will always be selected.
-                output.CopyHtmlAttribute(nameof(Selected), context);
-            }
-            else
+            // Nothing to do if this <option/> is already selected.
+            if (!output.Attributes.ContainsName("selected"))
             {
                 // Is this <option/> element a child of a <select/> element the SelectTagHelper targeted?
                 object formDataEntry;
@@ -84,10 +87,23 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     }
 
                     // Select this <option/> element if value attribute or content matches a selected value. Callers
-                    // encode values as-needed before setting TagHelperOutput.Content. But TagHelperOutput itself
-                    // encodes attribute values later, when GenerateStartTag() is called.
-                    var text = output.Content;
-                    var selected = (Value != null) ? selectedValues.Contains(Value) : encodedValues.Contains(text);
+                    // encode values as-needed while executing child content. But TagHelperOutput itself
+                    // encodes attribute values later, when start tag is generated.
+                    bool selected;
+                    if (Value != null)
+                    {
+                        selected = selectedValues.Contains(Value);
+                    }
+                    else if (output.IsContentModified)
+                    {
+                        selected = encodedValues.Contains(output.Content.GetContent());
+                    }
+                    else
+                    {
+                        var childContent = await context.GetChildContentAsync();
+                        selected = encodedValues.Contains(childContent.GetContent());
+                    }
+
                     if (selected)
                     {
                         output.Attributes.Add("selected", "selected");

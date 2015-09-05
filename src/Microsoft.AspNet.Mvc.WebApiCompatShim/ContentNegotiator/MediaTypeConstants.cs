@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNETCORE50
+#if DNXCORE50
 
 using System.Net.Http.Headers;
 
@@ -12,13 +12,20 @@ namespace System.Net.Http.Formatting
     /// </summary>
     internal static class MediaTypeConstants
     {
-        private static readonly MediaTypeHeaderValue _defaultApplicationXmlMediaType = new MediaTypeHeaderValue("application/xml");
-        private static readonly MediaTypeHeaderValue _defaultTextXmlMediaType = new MediaTypeHeaderValue("text/xml");
-        private static readonly MediaTypeHeaderValue _defaultApplicationJsonMediaType = new MediaTypeHeaderValue("application/json");
-        private static readonly MediaTypeHeaderValue _defaultTextJsonMediaType = new MediaTypeHeaderValue("text/json");
-        private static readonly MediaTypeHeaderValue _defaultApplicationOctetStreamMediaType = new MediaTypeHeaderValue("application/octet-stream");
-        private static readonly MediaTypeHeaderValue _defaultApplicationFormUrlEncodedMediaType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-        private static readonly MediaTypeHeaderValue _defaultApplicationBsonMediaType = new MediaTypeHeaderValue("application/bson");
+        private static readonly MediaTypeHeaderValue _defaultApplicationXmlMediaType =
+            new MediaTypeHeaderValue("application/xml");
+        private static readonly MediaTypeHeaderValue _defaultTextXmlMediaType =
+            new MediaTypeHeaderValue("text/xml");
+        private static readonly MediaTypeHeaderValue _defaultApplicationJsonMediaType =
+            new MediaTypeHeaderValue("application/json");
+        private static readonly MediaTypeHeaderValue _defaultTextJsonMediaType =
+            new MediaTypeHeaderValue("text/json");
+        private static readonly MediaTypeHeaderValue _defaultApplicationOctetStreamMediaType =
+            new MediaTypeHeaderValue("application/octet-stream");
+        private static readonly MediaTypeHeaderValue _defaultApplicationFormUrlEncodedMediaType =
+            new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+        private static readonly MediaTypeHeaderValue _defaultApplicationBsonMediaType =
+            new MediaTypeHeaderValue("application/bson");
 
         /// <summary>
         /// Gets a <see cref="MediaTypeHeaderValue"/> instance representing <c>application/octet-stream</c>.

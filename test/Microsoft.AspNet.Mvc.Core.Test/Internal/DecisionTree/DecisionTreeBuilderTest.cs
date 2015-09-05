@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc.Routing;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.Routing;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Internal.DecisionTree
@@ -221,7 +221,7 @@ namespace Microsoft.AspNet.Mvc.Internal.DecisionTree
             var checkout = Assert.Single(action.Branches);
             Assert.Equal("Checkout", checkout.Key);
             Assert.Empty(checkout.Value.Criteria);
-            Assert.Same(item3, Assert.Single(checkout.Value.Matches));           
+            Assert.Same(item3, Assert.Single(checkout.Value.Matches));
         }
 
         [Fact]

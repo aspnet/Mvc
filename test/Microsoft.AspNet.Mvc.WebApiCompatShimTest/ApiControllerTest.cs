@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.PipelineCore;
 using Microsoft.AspNet.Routing;
 using Newtonsoft.Json;
 using Xunit;
@@ -26,7 +30,7 @@ namespace System.Web.Http
             httpContext.User = new ClaimsPrincipal();
 
             var routeContext = new RouteContext(httpContext);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             // Act
             controller.ActionContext = actionContext;
@@ -59,7 +63,7 @@ namespace System.Web.Http
             var result = controller.BadRequest();
 
             // Assert
-            Assert.Equal(400, Assert.IsType<BadRequestResult>(result).StatusCode);
+            Assert.Equal(StatusCodes.Status400BadRequest, Assert.IsType<BadRequestResult>(result).StatusCode);
         }
 
         [Fact]
@@ -104,16 +108,16 @@ namespace System.Web.Http
             // Arrange
             var controller = new ConcreteApiController();
 
-            var uri = new Uri("http://contoso.com");
+            var uri = new Uri("http://contoso.com/");
             var product = new Product();
 
             // Act
             var result = controller.Created(uri, product);
 
             // Assert
-            var created = Assert.IsType<CreatedNegotiatedContentResult<Product>>(result);
-            Assert.Same(product, created.Content);
-            Assert.Same(uri, created.Location);
+            var created = Assert.IsType<CreatedResult>(result);
+            Assert.Same(product, created.Value);
+            Assert.Equal(uri.OriginalString, created.Location);
         }
 
         [Theory]
@@ -131,9 +135,9 @@ namespace System.Web.Http
             var result = controller.Created(uri, product);
 
             // Assert
-            var created = Assert.IsType<CreatedNegotiatedContentResult<Product>>(result);
-            Assert.Same(product, created.Content);
-            Assert.Equal(uri, created.Location.OriginalString);
+            var created = Assert.IsType<CreatedResult>(result);
+            Assert.Same(product, created.Value);
+            Assert.Equal(uri, created.Location);
         }
 
         [Fact]
@@ -148,8 +152,8 @@ namespace System.Web.Http
             var result = controller.CreatedAtRoute("api_route", new { controller = "Products" }, product);
 
             // Assert
-            var created = Assert.IsType<CreatedAtRouteNegotiatedContentResult<Product>>(result);
-            Assert.Same(product, created.Content);
+            var created = Assert.IsType<CreatedAtRouteResult>(result);
+            Assert.Same(product, created.Value);
             Assert.Equal("api_route", created.RouteName);
             Assert.Equal("Products", created.RouteValues["controller"]);
         }
@@ -167,11 +171,11 @@ namespace System.Web.Http
             var result = controller.CreatedAtRoute("api_route", values, product);
 
             // Assert
-            var created = Assert.IsType<CreatedAtRouteNegotiatedContentResult<Product>>(result);
-            Assert.Same(product, created.Content);
+            var created = Assert.IsType<CreatedAtRouteResult>(result);
+            Assert.Same(product, created.Value);
             Assert.Equal("api_route", created.RouteName);
             Assert.Equal("Products", created.RouteValues["controller"]);
-            Assert.Same(values, created.RouteValues);
+            Assert.Equal<KeyValuePair<string, object>>(values, created.RouteValues);
         }
 
         [Fact]
@@ -184,7 +188,7 @@ namespace System.Web.Http
             var result = controller.Conflict();
 
             // Assert
-            Assert.Equal(409, Assert.IsType<ConflictResult>(result).StatusCode);
+            Assert.Equal(StatusCodes.Status409Conflict, Assert.IsType<ConflictResult>(result).StatusCode);
         }
 
         [Fact]
@@ -200,7 +204,7 @@ namespace System.Web.Http
 
             // Assert
             var contentResult = Assert.IsType<NegotiatedContentResult<Product>>(result);
-            Assert.Equal(HttpStatusCode.Found, contentResult.StatusCode);
+            Assert.Equal(StatusCodes.Status302Found, contentResult.StatusCode);
             Assert.Equal(content, contentResult.Value);
         }
 
@@ -214,7 +218,7 @@ namespace System.Web.Http
             var result = controller.InternalServerError();
 
             // Assert
-            Assert.Equal(500, Assert.IsType<InternalServerErrorResult>(result).StatusCode);
+            Assert.Equal(StatusCodes.Status500InternalServerError, Assert.IsType<InternalServerErrorResult>(result).StatusCode);
         }
 
         [Fact]
@@ -248,26 +252,7 @@ namespace System.Web.Http
         }
 
         [Fact]
-        public void ApiController_Json_Settings()
-        {
-            // Arrange
-            var controller = new ConcreteApiController();
-            var product = new Product();
-            var settings = new JsonSerializerSettings();
-
-            // Act
-            var result = controller.Json(product, settings);
-
-            // Assert
-            var jsonResult = Assert.IsType<JsonResult>(result);
-            Assert.Same(product, jsonResult.Value);
-
-            var formatter = Assert.IsType<JsonOutputFormatter>(jsonResult.Formatter);
-            Assert.Same(settings, formatter.SerializerSettings);
-        }
-
-        [Fact]
-        public void ApiController_Json_Settings_Encoding()
+        public void ApiController_Json_Encoding()
         {
             // Arrange
             var controller = new ConcreteApiController();
@@ -281,9 +266,7 @@ namespace System.Web.Http
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.Same(product, jsonResult.Value);
 
-            var formatter = Assert.IsType<JsonOutputFormatter>(jsonResult.Formatter);
-            Assert.Same(settings, formatter.SerializerSettings);
-            Assert.Same(Encoding.UTF8, Assert.Single(formatter.SupportedEncodings));
+            Assert.Same(Encoding.UTF8, jsonResult.ContentType.Encoding);
         }
 
         [Fact]
@@ -309,7 +292,7 @@ namespace System.Web.Http
             var result = controller.Ok();
 
             // Assert
-            Assert.Equal(200, Assert.IsType<OkResult>(result).StatusCode);
+            Assert.Equal(200, Assert.IsType<HttpOkResult>(result).StatusCode);
         }
 
 
@@ -324,8 +307,8 @@ namespace System.Web.Http
             var result = controller.Ok(product);
 
             // Assert
-            var okResult = Assert.IsType<OkNegotiatedContentResult<Product>>(result);
-            Assert.Same(product, okResult.Content);
+            var okResult = Assert.IsType<HttpOkObjectResult>(result);
+            Assert.Same(product, okResult.Value);
         }
 
         [Fact]
@@ -418,7 +401,7 @@ namespace System.Web.Http
             var result = controller.StatusCode(HttpStatusCode.ExpectationFailed);
 
             // Assert
-            Assert.Equal(417, Assert.IsType<HttpStatusCodeResult>(result).StatusCode);
+            Assert.Equal(StatusCodes.Status417ExpectationFailed, Assert.IsType<HttpStatusCodeResult>(result).StatusCode);
         }
 
         private class Product

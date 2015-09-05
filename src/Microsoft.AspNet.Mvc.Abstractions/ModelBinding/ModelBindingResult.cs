@@ -1,0 +1,187 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.Framework.Internal;
+
+namespace Microsoft.AspNet.Mvc.ModelBinding
+{
+    /// <summary>
+    /// Contains the result of model binding.
+    /// </summary>
+    public struct ModelBindingResult : IEquatable<ModelBindingResult>
+    {
+        /// <summary>
+        /// A <see cref="ModelBinding"/> representing the lack of a result. The model binding
+        /// system will continue to execute other model binders.
+        /// </summary>
+        public static readonly ModelBindingResult NoResult = new ModelBindingResult();
+
+        /// <summary>
+        /// Returns a completed <see cref="Task{ModelBindingResult}"/> representing the lack of a result. The model
+        /// binding system will continue to execute other model binders.
+        /// </summary>
+        public static readonly Task<ModelBindingResult> NoResultAsync = Task.FromResult(NoResult);
+
+        /// <summary>
+        /// Creates a <see cref="ModelBindingResult"/> representing a failed model binding operation.
+        /// </summary>
+        /// <param name="key">The key of the current model binding operation.</param>
+        /// <returns>A <see cref="ModelBindingResult"/> representing a failed model binding operation.</returns>
+        public static ModelBindingResult Failed([NotNull] string key)
+        {
+            return new ModelBindingResult(key, model: null, isModelSet: false, validationNode: null);
+        }
+
+        /// <summary>
+        /// Creates a completed <see cref="Task{ModelBindingResult}"/> representing a failed model binding operation.
+        /// </summary>
+        /// <param name="key">The key of the current model binding operation.</param>
+        /// <returns>A completed <see cref="Task{ModelBindingResult}"/> representing a failed model binding operation.</returns>
+        public static Task<ModelBindingResult> FailedAsync([NotNull] string key)
+        {
+            return Task.FromResult(Failed(key));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ModelBindingResult"/> representing a successful model binding operation.
+        /// </summary>
+        /// <param name="key">The key of the current model binding operation.</param>
+        /// <param name="model">The model value. May be <c>null.</c></param>
+        /// <param name="validationNode">The <see cref="ModelValidationNode"/>. May be <c>null</c>.</param>
+        /// <returns>A <see cref="ModelBindingResult"/> representing a successful model bind.</returns>
+        public static ModelBindingResult Success(
+            [NotNull] string key,
+            object model,
+            ModelValidationNode validationNode)
+        {
+            return new ModelBindingResult(key, model, isModelSet: true, validationNode: validationNode);
+        }
+
+        /// <summary>
+        /// Creates a completed <see cref="Task{ModelBindingResult}"/> representing a successful model binding
+        /// operation.
+        /// </summary>
+        /// <param name="key">The key of the current model binding operation.</param>
+        /// <param name="model">The model value. May be <c>null.</c></param>
+        /// <param name="validationNode">The <see cref="ModelValidationNode"/>. May be <c>null</c>.</param>
+        /// <returns>A completed <see cref="Task{ModelBindingResult}"/> representing a successful model bind.</returns>
+        public static Task<ModelBindingResult> SuccessAsync(
+            [NotNull] string key,
+            object model,
+            ModelValidationNode validationNode)
+        {
+            return Task.FromResult(Success(key, model, validationNode));
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ModelBindingResult"/> using the provided <paramref name="key"/>.
+        /// </summary>
+        /// <param name="key">The key of the current model binding operation.</param>
+        /// <param name="other">The other <see cref="ModelBindingResult" /> to copy from.</param>
+        public ModelBindingResult([NotNull] string key, ModelBindingResult other)
+        {
+            Key = key;
+
+            Model = other.Model;
+            IsModelSet = other.IsModelSet;
+            ValidationNode = other.ValidationNode;
+        }
+
+        private ModelBindingResult(string key, object model, bool isModelSet, ModelValidationNode validationNode)
+        {
+            Key = key;
+            Model = model;
+            IsModelSet = isModelSet;
+            ValidationNode = validationNode;
+        }
+
+        /// <summary>
+        /// Gets the model associated with this context.
+        /// </summary>
+        public object Model { get; }
+
+        /// <summary>
+        /// <para>
+        /// Gets the model name which was used to bind the model.
+        /// </para>
+        /// <para>
+        /// This property can be used during validation to add model state for a bound model.
+        /// </para>
+        /// </summary>
+        public string Key { get; }
+
+        /// <summary>
+        /// <para>
+        /// Gets a value indicating whether or not the <see cref="Model"/> value has been set.
+        /// </para>
+        /// <para>
+        /// This property can be used to distinguish between a model binder which does not find a value and
+        /// the case where a model binder sets the <c>null</c> value.
+        /// </para>
+        /// </summary>
+        public bool IsModelSet { get; }
+
+        /// <summary>
+        /// A <see cref="ModelValidationNode"/> associated with the current <see cref="ModelBindingResult"/>.
+        /// </summary>
+        public ModelValidationNode ValidationNode { get; }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            var other = obj as ModelBindingResult?;
+            if (other == null)
+            {
+                return false;
+            }
+            else
+            {
+                return Equals(other.Value);
+            }
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            var hash = HashCodeCombiner.Start();
+            hash.Add(Key, StringComparer.OrdinalIgnoreCase);
+            hash.Add(IsModelSet);
+            hash.Add(Model);
+            return hash.CombinedHash;
+        }
+
+        /// <inheritdoc />
+        public bool Equals(ModelBindingResult other)
+        {
+            return
+                string.Equals(Key, other.Key, StringComparison.OrdinalIgnoreCase) &&
+                IsModelSet == other.IsModelSet &&
+                object.Equals(Model, other.Model);
+        }
+
+        /// <summary>
+        /// Compares <see cref="ModelBindingResult"/> objects for equality.
+        /// </summary>
+        /// <param name="x">A <see cref="ModelBindingResult"/>.</param>
+        /// <param name="y">A <see cref="ModelBindingResult"/>.</param>
+        /// <returns><c>true</c> if the objects are equal, otherwise <c>false</c>.</returns>
+        public static bool operator ==(ModelBindingResult x, ModelBindingResult y)
+        {
+            return x.Equals(y);
+        }
+
+        /// <summary>
+        /// Compares <see cref="ModelBindingResult"/> objects for inequality.
+        /// </summary>
+        /// <param name="x">A <see cref="ModelBindingResult"/>.</param>
+        /// <param name="y">A <see cref="ModelBindingResult"/>.</param>
+        /// <returns><c>true</c> if the objects are not equal, otherwise <c>false</c>.</returns>
+        public static bool operator !=(ModelBindingResult x, ModelBindingResult y)
+        {
+            return !x.Equals(y);
+        }
+    }
+}

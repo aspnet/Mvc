@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.Description;
-using Microsoft.AspNet.Mvc.Razor;
-using Microsoft.AspNet.TestHost;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.ApiExplorer;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.OptionsModel;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
@@ -17,21 +17,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     // Tests that various MVC services have the correct order.
     public class DefaultOrderTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(BasicWebSite));
+        private const string SiteName = nameof(BasicWebSite);
         private readonly Action<IApplicationBuilder> _app = new BasicWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new BasicWebSite.Startup().ConfigureServices;
 
         [Theory]
-        [InlineData(typeof(INestedProvider<ActionDescriptorProviderContext>), typeof(ControllerActionDescriptorProvider), -1000)]
-        [InlineData(typeof(INestedProvider<ActionInvokerProviderContext>), (Type)null, -1000)]
-        [InlineData(typeof(INestedProvider<ApiDescriptionProviderContext>), (Type)null, -1000)]
-        [InlineData(typeof(INestedProvider<FilterProviderContext>), (Type)null, -1000)]
-        [InlineData(typeof(INestedProvider<ViewComponentInvokerProviderContext>), (Type)null, -1000)]
-        [InlineData(typeof(IConfigureOptions<RazorViewEngineOptions>), (Type)null, -1000)]
-        [InlineData(typeof(IConfigureOptions<MvcOptions>), (Type)null, -1000)]
+        [InlineData(typeof(IActionDescriptorProvider), typeof(ControllerActionDescriptorProvider), -1000)]
+        [InlineData(typeof(IActionInvokerProvider), null, -1000)]
+        [InlineData(typeof(IApiDescriptionProvider), null, -1000)]
+        [InlineData(typeof(IFilterProvider), null, -1000)]
+        [InlineData(typeof(IActionConstraintProvider), null, -1000)]
         public async Task ServiceOrder_GetOrder(Type serviceType, Type actualType, int order)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/Order/GetServiceOrder?serviceType=" + serviceType.AssemblyQualifiedName;

@@ -1,55 +1,81 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     /// <summary>
-    /// <see cref="ITagHelper"/> implementation targeting &lt;label&gt; elements with <c>for</c> attributes.
+    /// <see cref="ITagHelper"/> implementation targeting &lt;label&gt; elements with an <c>asp-for</c> attribute.
     /// </summary>
-    [ContentBehavior(ContentBehavior.Modify)]
+    [TargetElement("label", Attributes = ForAttributeName)]
     public class LabelTagHelper : TagHelper
     {
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        [Activate]
-        protected internal ViewContext ViewContext { get; set; }
+        private const string ForAttributeName = "asp-for";
 
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        [Activate]
-        protected internal IHtmlGenerator Generator { get; set; }
+        /// <summary>
+        /// Creates a new <see cref="LabelTagHelper"/>.
+        /// </summary>
+        /// <param name="generator">The <see cref="IHtmlGenerator"/>.</param>
+        public LabelTagHelper(IHtmlGenerator generator)
+        {
+            Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultFrameworkSortOrder;
+            }
+        }
+
+        [HtmlAttributeNotBound]
+        [ViewContext]
+        public ViewContext ViewContext { get; set; }
+
+        protected IHtmlGenerator Generator { get; }
 
         /// <summary>
         /// An expression to be evaluated against the current model.
         /// </summary>
+        [HtmlAttributeName(ForAttributeName)]
         public ModelExpression For { get; set; }
 
         /// <inheritdoc />
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        /// <remarks>Does nothing if <see cref="For"/> is <c>null</c>.</remarks>
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            if (For != null)
+            var tagBuilder = Generator.GenerateLabel(
+                ViewContext,
+                For.ModelExplorer,
+                For.Name,
+                labelText: null,
+                htmlAttributes: null);
+
+            if (tagBuilder != null)
             {
-                var tagBuilder = Generator.GenerateLabel(ViewContext,
-                                                         For.Metadata,
-                                                         For.Name,
-                                                         labelText: null,
-                                                         htmlAttributes: null);
+                output.MergeAttributes(tagBuilder);
 
-                if (tagBuilder != null)
+                // We check for whitespace to detect scenarios such as:
+                // <label for="Name">
+                // </label>
+                if (!output.IsContentModified)
                 {
-                    output.MergeAttributes(tagBuilder);
+                    var childContent = await context.GetChildContentAsync();
 
-                    // We check for whitespace to detect scenarios such as:
-                    // <label for="Name">
-                    // </label>
-                    if (string.IsNullOrWhiteSpace(output.Content))
+                    if (childContent.IsWhiteSpace)
                     {
-                        output.Content = tagBuilder.InnerHtml;
+                        // Provide default label text since there was nothing useful in the Razor source.
+                        output.Content.SetContent(tagBuilder.InnerHtml);
                     }
-
-                    output.TagName = tagBuilder.TagName;
+                    else
+                    {
+                        output.Content.SetContent(childContent);
+                    }
                 }
             }
         }

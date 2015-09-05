@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
@@ -29,6 +29,11 @@ namespace RoutingWebSite
         public IActionResult Contact()
         {
             return _generator.Generate("/Home/Contact");
+        }
+
+        public IActionResult OptionalPath(string path = "default")
+        {
+            return _generator.Generate("/Home/OptionalPath/" + path);
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -9,8 +11,8 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     /// <remarks>
     /// To use this interface, create an <see cref="System.Attribute"/> class which implements the interface and
     /// place it on an action method parameter.
-    /// 
-    /// <see cref="IParameterModelConvention"/> customizations run after 
+    ///
+    /// <see cref="IParameterModelConvention"/> customizations run after
     /// <see cref="IActionModelConvention"/> customizations.
     /// </remarks>
     public interface IParameterModelConvention

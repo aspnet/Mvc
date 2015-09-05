@@ -1,15 +1,19 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.Internal;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class RedirectToRouteResultTest
     {
@@ -27,10 +31,12 @@ namespace Microsoft.AspNet.Mvc.Core
             var actionContext = new ActionContext(httpContext.Object,
                                                   new RouteData(),
                                                   new ActionDescriptor());
-            IUrlHelper urlHelper = GetMockUrlHelper(expectedUrl);
-            RedirectToRouteResult result = new RedirectToRouteResult(urlHelper,
-                                                                     null,
-                                                                     TypeHelper.ObjectToDictionary(values));
+
+            var urlHelper = GetMockUrlHelper(expectedUrl);
+            var result = new RedirectToRouteResult(null, PropertyHelper.ObjectToDictionary(values))
+            {
+                UrlHelper = urlHelper,
+            };
 
             // Act
             await result.ExecuteResultAsync(actionContext);
@@ -52,10 +58,11 @@ namespace Microsoft.AspNet.Mvc.Core
                                                   new RouteData(),
                                                   new ActionDescriptor());
 
-            IUrlHelper urlHelper = GetMockUrlHelper(returnValue: null);
-            RedirectToRouteResult result = new RedirectToRouteResult(urlHelper, 
-                                                                     null,
-                                                                     new Dictionary<string, object>());
+            var urlHelper = GetMockUrlHelper(returnValue: null);
+            var result = new RedirectToRouteResult(null, new Dictionary<string, object>())
+            {
+                UrlHelper = urlHelper,
+            };
 
             // Act & Assert
             ExceptionAssert.ThrowsAsync<InvalidOperationException>(
@@ -64,6 +71,35 @@ namespace Microsoft.AspNet.Mvc.Core
                     await result.ExecuteResultAsync(actionContext);
                 },
                 "No route matches the supplied values.");
+        }
+
+        [Fact]
+        public async Task ExecuteResultAsync_UsesRouteName_ToGenerateLocationHeader()
+        {
+            // Arrange
+            var routeName = "orders_api";
+            var locationUrl = "/api/orders/10";
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.Setup(uh => uh.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Returns(locationUrl)
+                .Verifiable();
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(sp => sp.GetService(typeof(IUrlHelper)))
+                .Returns(urlHelper.Object);
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = serviceProvider.Object;
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+            var result = new RedirectToRouteResult(routeName, new { id = 10 });
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            urlHelper.Verify(uh => uh.RouteUrl(
+                It.Is<UrlRouteContext>(routeContext => string.Equals(routeName, routeContext.RouteName))));
+            Assert.True(httpContext.Response.Headers.ContainsKey("Location"), "Location header not found");
+            Assert.Equal(locationUrl, httpContext.Response.Headers["Location"]);
         }
 
         public static IEnumerable<object[]> RedirectToRouteData
@@ -77,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.Core
                     };
                 yield return
                     new object[] {
-                        new RouteValueDictionary(new Dictionary<string, string>() { 
+                        new RouteValueDictionary(new Dictionary<string, string>() {
                                                         { "test", "case" }, { "sample", "route" } })
                     };
             }
@@ -86,8 +122,7 @@ namespace Microsoft.AspNet.Mvc.Core
         private static IUrlHelper GetMockUrlHelper(string returnValue)
         {
             var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(o => o.RouteUrl(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>())).Returns(returnValue);
+            urlHelper.Setup(o => o.RouteUrl(It.IsAny<UrlRouteContext>())).Returns(returnValue);
             return urlHelper.Object;
         }
     }

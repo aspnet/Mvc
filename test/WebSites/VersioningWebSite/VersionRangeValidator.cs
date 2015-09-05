@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Mvc.ActionConstraints;
 
 namespace VersioningWebSite
 {
@@ -22,7 +21,7 @@ namespace VersioningWebSite
 
         public static string GetVersion(HttpRequest request)
         {
-            return request.Query.Get("version");
+            return request.Query["version"];
         }
 
         public bool Accept(ActionConstraintContext context)

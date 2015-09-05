@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Runtime.Versioning;
-using Microsoft.Framework.Runtime;
+using Microsoft.Dnx.Runtime;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -14,21 +14,23 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     {
         private readonly IApplicationEnvironment _originalAppEnvironment;
         private readonly string _applicationBasePath;
+        private readonly string _applicationName;
 
-        public TestApplicationEnvironment(IApplicationEnvironment originalAppEnvironment, string appBasePath)
+        public TestApplicationEnvironment(IApplicationEnvironment originalAppEnvironment, string appBasePath, string appName)
         {
             _originalAppEnvironment = originalAppEnvironment;
             _applicationBasePath = appBasePath;
+            _applicationName = appName;
         }
 
         public string ApplicationName
         {
-            get { return _originalAppEnvironment.ApplicationName; }
+            get { return _applicationName; }
         }
 
-        public string Version
+        public string ApplicationVersion
         {
-            get { return _originalAppEnvironment.Version; }
+            get { return _originalAppEnvironment.ApplicationVersion; }
         }
 
         public string ApplicationBasePath
@@ -47,6 +49,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public FrameworkName RuntimeFramework
         {
             get { return _originalAppEnvironment.RuntimeFramework; }
+        }
+
+        public object GetData(string name)
+        {
+            return _originalAppEnvironment.GetData(name);
+        }
+
+        public void SetData(string name, object value)
+        {
+            _originalAppEnvironment.SetData(name, value);
         }
     }
 }

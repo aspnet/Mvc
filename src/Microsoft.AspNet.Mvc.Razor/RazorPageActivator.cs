@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -14,16 +17,16 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         // Name of the "public TModel Model" property on RazorPage<TModel>
         private const string ModelPropertyName = "Model";
-        private readonly ITypeActivator _typeActivator;
         private readonly ConcurrentDictionary<Type, PageActivationInfo> _activationInfo;
+        private readonly IModelMetadataProvider _metadataProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorPageActivator"/> class.
         /// </summary>
-        public RazorPageActivator(ITypeActivator typeActivator)
+        public RazorPageActivator(IModelMetadataProvider metadataProvider)
         {
-            _typeActivator = typeActivator;
             _activationInfo = new ConcurrentDictionary<Type, PageActivationInfo>();
+            _metadataProvider = metadataProvider;
         }
 
         /// <inheritdoc />
@@ -43,21 +46,22 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private ViewDataDictionary CreateViewDataDictionary(ViewContext context, PageActivationInfo activationInfo)
         {
-            // Create a ViewDataDictionary<TModel> if the ViewContext.ViewData is not set or the type of 
+            // Create a ViewDataDictionary<TModel> if the ViewContext.ViewData is not set or the type of
             // ViewContext.ViewData is an incompatibile type.
             if (context.ViewData == null)
             {
                 // Create ViewDataDictionary<TModel>(IModelMetadataProvider, ModelStateDictionary).
-                return (ViewDataDictionary)_typeActivator.CreateInstance(context.HttpContext.RequestServices,
-                                                                         activationInfo.ViewDataDictionaryType,
-                                                                         context.ModelState);
+                return (ViewDataDictionary)Activator.CreateInstance(
+                    activationInfo.ViewDataDictionaryType,
+                    _metadataProvider,
+                    context.ModelState);
             }
             else if (context.ViewData.GetType() != activationInfo.ViewDataDictionaryType)
             {
                 // Create ViewDataDictionary<TModel>(ViewDataDictionary).
-                return (ViewDataDictionary)_typeActivator.CreateInstance(context.HttpContext.RequestServices,
-                                                                         activationInfo.ViewDataDictionaryType,
-                                                                         context.ViewData);
+                return (ViewDataDictionary)Activator.CreateInstance(
+                    activationInfo.ViewDataDictionaryType,
+                    context.ViewData);
             }
 
             return context.ViewData;
@@ -65,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private PageActivationInfo CreateViewActivationInfo(Type type)
         {
-            // Look for a property named "Model". If it is non-null, we'll assume this is 
+            // Look for a property named "Model". If it is non-null, we'll assume this is
             // the equivalent of TModel Model property on RazorPage<TModel>
             var modelProperty = type.GetRuntimeProperty(ModelPropertyName);
             if (modelProperty == null)
@@ -80,9 +84,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             return new PageActivationInfo
             {
                 ViewDataDictionaryType = viewDataType,
-                PropertyActivators = PropertyActivator<ViewContext>.GetPropertiesToActivate(type,
-                                                                                            typeof(ActivateAttribute),
-                                                                                            CreateActivateInfo)
+                PropertyActivators = PropertyActivator<ViewContext>.GetPropertiesToActivate(
+                    type,
+                    typeof(RazorInjectAttribute),
+                    CreateActivateInfo,
+                    includeNonPublic: true)
             };
         }
 

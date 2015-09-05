@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Compilation for '{0}' failed:
+        /// One or more compilation failures occured:
         /// </summary>
         internal static string CompilationFailed
         {
@@ -35,11 +35,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Compilation for '{0}' failed:
+        /// One or more compilation failures occured:
         /// </summary>
-        internal static string FormatCompilationFailed(object p0)
+        internal static string FormatCompilationFailed()
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("CompilationFailed"), p0);
+            return GetString("CompilationFailed");
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// The layout view '{0}' could not be located.
+        /// The layout view '{0}' could not be located. The following locations were searched:{1}
         /// </summary>
         internal static string LayoutCannotBeLocated
         {
@@ -83,15 +83,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// The layout view '{0}' could not be located.
+        /// The layout view '{0}' could not be located. The following locations were searched:{1}
         /// </summary>
-        internal static string FormatLayoutCannotBeLocated(object p0)
+        internal static string FormatLayoutCannotBeLocated(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("LayoutCannotBeLocated"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("LayoutCannotBeLocated"), p0, p1);
         }
 
         /// <summary>
-        /// A layout page cannot be rendered after '{0}' has been invoked.
+        /// Layout page '{0}' cannot be rendered after '{1}' has been invoked.
         /// </summary>
         internal static string LayoutCannotBeRendered
         {
@@ -99,11 +99,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// A layout page cannot be rendered after '{0}' has been invoked.
+        /// Layout page '{0}' cannot be rendered after '{1}' has been invoked.
         /// </summary>
-        internal static string FormatLayoutCannotBeRendered(object p0)
+        internal static string FormatLayoutCannotBeRendered(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("LayoutCannotBeRendered"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("LayoutCannotBeRendered"), p0, p1);
         }
 
         /// <summary>
@@ -171,19 +171,19 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// You cannot flush while inside a writing scope.
+        /// The {0} operation cannot be performed while inside a writing scope in '{1}'.
         /// </summary>
-        internal static string RazorPage_YouCannotFlushWhileInAWritingScope
+        internal static string RazorPage_CannotFlushWhileInAWritingScope
         {
-            get { return GetString("RazorPage_YouCannotFlushWhileInAWritingScope"); }
+            get { return GetString("RazorPage_CannotFlushWhileInAWritingScope"); }
         }
 
         /// <summary>
-        /// You cannot flush while inside a writing scope.
+        /// The {0} operation cannot be performed while inside a writing scope in '{1}'.
         /// </summary>
-        internal static string FormatRazorPage_YouCannotFlushWhileInAWritingScope()
+        internal static string FormatRazorPage_CannotFlushWhileInAWritingScope(object p0, object p1)
         {
-            return GetString("RazorPage_YouCannotFlushWhileInAWritingScope");
+            return string.Format(CultureInfo.CurrentCulture, GetString("RazorPage_CannotFlushWhileInAWritingScope"), p0, p1);
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// {0} can only be called from a layout page.
+        /// {0} invocation in '{1}' is invalid. {0} can only be called from a layout page.
         /// </summary>
         internal static string RazorPage_MethodCannotBeCalled
         {
@@ -211,15 +211,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// {0} can only be called from a layout page.
+        /// {0} invocation in '{1}' is invalid. {0} can only be called from a layout page.
         /// </summary>
-        internal static string FormatRazorPage_MethodCannotBeCalled(object p0)
+        internal static string FormatRazorPage_MethodCannotBeCalled(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("RazorPage_MethodCannotBeCalled"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("RazorPage_MethodCannotBeCalled"), p0, p1);
         }
 
         /// <summary>
-        /// {0} must be called from a layout page.
+        /// {0} has not been called for the page at '{1}'.
         /// </summary>
         internal static string RenderBodyNotCalled
         {
@@ -227,11 +227,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// {0} must be called from a layout page.
+        /// {0} has not been called for the page at '{1}'.
         /// </summary>
-        internal static string FormatRenderBodyNotCalled(object p0)
+        internal static string FormatRenderBodyNotCalled(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("RenderBodyNotCalled"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("RenderBodyNotCalled"), p0, p1);
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// The section named '{0}' has already been rendered.
+        /// {0} invocation in '{1}' is invalid. The section '{2}' has already been rendered.
         /// </summary>
         internal static string SectionAlreadyRendered
         {
@@ -259,15 +259,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// The section named '{0}' has already been rendered.
+        /// {0} invocation in '{1}' is invalid. The section '{2}' has already been rendered.
         /// </summary>
-        internal static string FormatSectionAlreadyRendered(object p0)
+        internal static string FormatSectionAlreadyRendered(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("SectionAlreadyRendered"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("SectionAlreadyRendered"), p0, p1, p2);
         }
 
         /// <summary>
-        /// Section '{0}' is not defined.
+        /// Section '{0}' is not defined in path '{1}'.
         /// </summary>
         internal static string SectionNotDefined
         {
@@ -275,15 +275,15 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Section '{0}' is not defined.
+        /// Section '{0}' is not defined in path '{1}'.
         /// </summary>
-        internal static string FormatSectionNotDefined(object p0)
+        internal static string FormatSectionNotDefined(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("SectionNotDefined"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("SectionNotDefined"), p0, p1);
         }
 
         /// <summary>
-        /// The following sections have been defined but have not been rendered: '{0}'.
+        /// The following sections have been defined but have not been rendered by the page at '{0}': '{1}'.
         /// </summary>
         internal static string SectionsNotRendered
         {
@@ -291,11 +291,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// The following sections have been defined but have not been rendered: '{0}'.
+        /// The following sections have been defined but have not been rendered by the page at '{0}': '{1}'.
         /// </summary>
-        internal static string FormatSectionsNotRendered(object p0)
+        internal static string FormatSectionsNotRendered(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("SectionsNotRendered"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("SectionsNotRendered"), p0, p1);
         }
 
         /// <summary>
@@ -360,6 +360,90 @@ namespace Microsoft.AspNet.Mvc.Razor
         internal static string FormatViewMustBeContextualized(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("ViewMustBeContextualized"), p0, p1);
+        }
+
+        /// <summary>
+        /// Unsupported hash algorithm.
+        /// </summary>
+        internal static string RazorHash_UnsupportedHashAlgorithm
+        {
+            get { return GetString("RazorHash_UnsupportedHashAlgorithm"); }
+        }
+
+        /// <summary>
+        /// Unsupported hash algorithm.
+        /// </summary>
+        internal static string FormatRazorHash_UnsupportedHashAlgorithm()
+        {
+            return GetString("RazorHash_UnsupportedHashAlgorithm");
+        }
+
+        /// <summary>
+        /// The resource '{0}' specified by '{1}' could not be found.
+        /// </summary>
+        internal static string RazorFileInfoCollection_ResourceCouldNotBeFound
+        {
+            get { return GetString("RazorFileInfoCollection_ResourceCouldNotBeFound"); }
+        }
+
+        /// <summary>
+        /// The resource '{0}' specified by '{1}' could not be found.
+        /// </summary>
+        internal static string FormatRazorFileInfoCollection_ResourceCouldNotBeFound(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("RazorFileInfoCollection_ResourceCouldNotBeFound"), p0, p1);
+        }
+
+        /// <summary>
+        /// Generated Code
+        /// </summary>
+        internal static string GeneratedCodeFileName
+        {
+            get { return GetString("GeneratedCodeFileName"); }
+        }
+
+        /// <summary>
+        /// Generated Code
+        /// </summary>
+        internal static string FormatGeneratedCodeFileName()
+        {
+            return GetString("GeneratedCodeFileName");
+        }
+
+        /// <summary>
+        /// Unable to perform '{0}' assignment. Tag helper property '{1}.{2}' must not be null.
+        /// </summary>
+        internal static string RazorPage_InvalidTagHelperIndexerAssignment
+        {
+            get { return GetString("RazorPage_InvalidTagHelperIndexerAssignment"); }
+        }
+
+        /// <summary>
+        /// Unable to perform '{0}' assignment. Tag helper property '{1}.{2}' must not be null.
+        /// </summary>
+        internal static string FormatRazorPage_InvalidTagHelperIndexerAssignment(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("RazorPage_InvalidTagHelperIndexerAssignment"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// Unexpected return value from '{1}.{2}' for URL '{0}'. If the '{1}' service has been overridden, change '{2}' to replace only the '~/' prefix. Otherwise, add the following directive to the Razor page to disable URL resolution relative to the application's 'webroot' setting:
+        /// 
+        /// @{3} "{4}, {5}"
+        /// </summary>
+        internal static string CouldNotResolveApplicationRelativeUrl_TagHelper
+        {
+            get { return GetString("CouldNotResolveApplicationRelativeUrl_TagHelper"); }
+        }
+
+        /// <summary>
+        /// Unexpected return value from '{1}.{2}' for URL '{0}'. If the '{1}' service has been overridden, change '{2}' to replace only the '~/' prefix. Otherwise, add the following directive to the Razor page to disable URL resolution relative to the application's 'webroot' setting:
+        /// 
+        /// @{3} "{4}, {5}"
+        /// </summary>
+        internal static string FormatCouldNotResolveApplicationRelativeUrl_TagHelper(object p0, object p1, object p2, object p3, object p4, object p5)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CouldNotResolveApplicationRelativeUrl_TagHelper"), p0, p1, p2, p3, p4, p5);
         }
 
         private static string GetString(string name, params string[] formatterNames)

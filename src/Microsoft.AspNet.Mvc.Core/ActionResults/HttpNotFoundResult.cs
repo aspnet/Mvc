@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace Microsoft.AspNet.Mvc
+using Microsoft.AspNet.Http;
+
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     /// <summary>
     /// Represents an <see cref="HttpStatusCodeResult"/> that when
@@ -12,7 +14,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Creates a new <see cref="HttpNotFoundResult"/> instance.
         /// </summary>
-        public HttpNotFoundResult() : base(404)
+        public HttpNotFoundResult() : base(StatusCodes.Status404NotFound)
         {
         }
     }

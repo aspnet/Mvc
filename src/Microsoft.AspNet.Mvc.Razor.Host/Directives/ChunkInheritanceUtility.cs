@@ -1,92 +1,100 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.AspNet.FileSystems;
+using System.Linq;
+using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Razor;
-using Microsoft.AspNet.Razor.Generator.Compiler;
+using Microsoft.AspNet.Razor.Chunks;
 using Microsoft.AspNet.Razor.Parser;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
     /// <summary>
-    /// A utility type for supporting inheritance of tag helpers and chunks into a page from applicable _ViewStart
-    /// pages.
+    /// A utility type for supporting inheritance of directives into a page from applicable <c>_ViewImports</c> pages.
     /// </summary>
     public class ChunkInheritanceUtility
     {
-        private readonly Dictionary<string, CodeTree> _parsedCodeTrees;
         private readonly MvcRazorHost _razorHost;
-        private readonly IFileSystem _fileSystem;
-        private readonly IEnumerable<Chunk> _defaultInheritedChunks;
+        private readonly IReadOnlyList<Chunk> _defaultInheritedChunks;
+        private readonly IChunkTreeCache _chunkTreeCache;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ChunkInheritanceUtility"/>.
         /// </summary>
-        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse _ViewStart pages.</param>
-        /// <param name="fileSystem">The filesystem that represents the application.</param>
+        /// <param name="razorHost">The <see cref="MvcRazorHost"/> used to parse <c>_ViewImports</c> pages.</param>
+        /// <param name="chunkTreeCache"><see cref="IChunkTreeCache"/> that caches <see cref="ChunkTree"/> instances.
+        /// </param>
         /// <param name="defaultInheritedChunks">Sequence of <see cref="Chunk"/>s inherited by default.</param>
-        public ChunkInheritanceUtility([NotNull] MvcRazorHost razorHost,
-                                       [NotNull] IFileSystem fileSystem,
-                                       [NotNull] IEnumerable<Chunk> defaultInheritedChunks)
+        public ChunkInheritanceUtility(
+            [NotNull] MvcRazorHost razorHost,
+            [NotNull] IChunkTreeCache chunkTreeCache,
+            [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks)
         {
             _razorHost = razorHost;
-            _fileSystem = fileSystem;
             _defaultInheritedChunks = defaultInheritedChunks;
-            _parsedCodeTrees = new Dictionary<string, CodeTree>(StringComparer.Ordinal);
+            _chunkTreeCache = chunkTreeCache;
         }
 
         /// <summary>
-        /// Gets a <see cref="IReadOnlyList{T}"/> of <see cref="Chunk"/> containing parsed results of _ViewStart files
-        /// that are used for inheriting tag helpers and chunks to the page located at <paramref name="pagePath"/>.
+        /// Gets an ordered <see cref="IReadOnlyList{ChunkTreeResult}"/> of parsed <see cref="ChunkTree"/>s and
+        /// file paths for each <c>_ViewImports</c> that is applicable to the page located at
+        /// <paramref name="pagePath"/>. The list is ordered so that the <see cref="ChunkTreeResult"/>'s
+        /// <see cref="ChunkTreeResult.ChunkTree"/> for the <c>_ViewImports</c> closest to the
+        /// <paramref name="pagePath"/> in the file system appears first.
         /// </summary>
         /// <param name="pagePath">The path of the page to locate inherited chunks for.</param>
-        /// <returns>A <see cref="IReadOnlyList{T}"/> of <see cref="Chunk"/> from _ViewStart pages.</returns>
-        public IReadOnlyList<Chunk> GetInheritedChunks([NotNull] string pagePath)
+        /// <returns>A <see cref="IReadOnlyList{ChunkTreeResult}"/> of parsed <c>_ViewImports</c>
+        /// <see cref="ChunkTree"/>s and their file paths.</returns>
+        public virtual IReadOnlyList<ChunkTreeResult> GetInheritedChunkTreeResults([NotNull] string pagePath)
         {
-            var inheritedChunks = new List<Chunk>();
-
+            var inheritedChunkTreeResults = new List<ChunkTreeResult>();
             var templateEngine = new RazorTemplateEngine(_razorHost);
-            foreach (var viewStart in ViewStartUtility.GetViewStartLocations(_fileSystem, pagePath))
+            foreach (var viewImportsPath in ViewHierarchyUtility.GetViewImportsLocations(pagePath))
             {
-                CodeTree codeTree;
-                IFileInfo fileInfo;
+                // viewImportsPath contains the app-relative path of the _ViewImports.
+                // Since the parsing of a _ViewImports would cause parent _ViewImports to be parsed
+                // we need to ensure the paths are app-relative to allow the GetGlobalFileLocations
+                // for the current _ViewImports to succeed.
+                var chunkTree = _chunkTreeCache.GetOrAdd(
+                    viewImportsPath,
+                    fileInfo => ParseViewFile(
+                        templateEngine,
+                        fileInfo,
+                        viewImportsPath));
 
-                if (_parsedCodeTrees.TryGetValue(viewStart, out codeTree))
+                if (chunkTree != null)
                 {
-                    inheritedChunks.AddRange(codeTree.Chunks);
-                }
-                else if (_fileSystem.TryGetFileInfo(viewStart, out fileInfo))
-                {
-                    codeTree = ParseViewFile(templateEngine, fileInfo);
-                    _parsedCodeTrees.Add(viewStart, codeTree);
-                    inheritedChunks.AddRange(codeTree.Chunks);
+                    var result = new ChunkTreeResult(chunkTree, viewImportsPath);
+                    inheritedChunkTreeResults.Add(result);
                 }
             }
 
-            inheritedChunks.AddRange(_defaultInheritedChunks);
-
-            return inheritedChunks;
+            return inheritedChunkTreeResults;
         }
 
         /// <summary>
-        /// Merges a list of chunks into the specified <paramref name="codeTree"/>.
+        /// Merges <see cref="Chunk"/> inherited by default and <see cref="ChunkTree"/> instances produced by parsing
+        /// <c>_ViewImports</c> files into the specified <paramref name="chunkTree"/>.
         /// </summary>
-        /// <param name="codeTree">The <see cref="CodeTree"/> to merge.</param>
-        /// <param name="inherited">The <see credit="IReadOnlyList{T}"/> of <see cref="Chunk"/> to merge.</param>
+        /// <param name="chunkTree">The <see cref="ChunkTree"/> to merge in to.</param>
+        /// <param name="inheritedChunkTrees"><see cref="IReadOnlyList{ChunkTree}"/> inherited from <c>_ViewImports</c>
+        /// files.</param>
         /// <param name="defaultModel">The list of chunks to merge.</param>
-        public void MergeInheritedChunks([NotNull] CodeTree codeTree,
-                                         [NotNull] IReadOnlyList<Chunk> inherited,
-                                         string defaultModel)
+        public void MergeInheritedChunkTrees(
+            [NotNull] ChunkTree chunkTree,
+            [NotNull] IReadOnlyList<ChunkTree> inheritedChunkTrees,
+            string defaultModel)
         {
-            var mergerMappings = GetMergerMappings(codeTree, defaultModel);
+            var mergerMappings = GetMergerMappings(chunkTree, defaultModel);
             IChunkMerger merger;
 
-            // We merge chunks into the codeTree in two passes. In the first pass, we traverse the CodeTree visiting
+            // We merge chunks into the ChunkTree in two passes. In the first pass, we traverse the ChunkTree visiting
             // a mapped IChunkMerger for types that are registered.
-            foreach (var chunk in codeTree.Chunks)
+            foreach (var chunk in chunkTree.Chunks)
             {
                 if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
                 {
@@ -95,22 +103,25 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             }
 
             // In the second phase we invoke IChunkMerger.Merge for each chunk that has a mapped merger.
-            // During this phase, the merger can either add to the CodeTree or ignore the chunk based on the merging
+            // During this phase, the merger can either add to the ChunkTree or ignore the chunk based on the merging
             // rules.
-            foreach (var chunk in inherited)
+            // Read the chunks outside in - that is chunks from the _ViewImports closest to the page get merged in first
+            // and the furthest one last. This allows the merger to ignore a directive like @model that was previously
+            // seen.
+            var chunksToMerge = inheritedChunkTrees.SelectMany(tree => tree.Chunks)
+                                                  .Concat(_defaultInheritedChunks);
+            foreach (var chunk in chunksToMerge)
             {
                 if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
                 {
-                    // TODO: When mapping chunks, we should remove mapping information since it would be incorrect
-                    // to generate it in the page that inherits it. Tracked by #945
-                    merger.Merge(codeTree, chunk);
+                    merger.Merge(chunkTree, chunk);
                 }
             }
         }
 
-        private static Dictionary<Type, IChunkMerger> GetMergerMappings(CodeTree codeTree, string defaultModel)
+        private static Dictionary<Type, IChunkMerger> GetMergerMappings(ChunkTree chunkTree, string defaultModel)
         {
-            var modelType = ChunkHelper.GetModelTypeName(codeTree, defaultModel);
+            var modelType = ChunkHelper.GetModelTypeName(chunkTree, defaultModel);
             return new Dictionary<Type, IChunkMerger>
             {
                 { typeof(UsingChunk), new UsingChunkMerger() },
@@ -119,24 +130,37 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
             };
         }
 
-        // TODO: This needs to be cached (#1016)
-        private static CodeTree ParseViewFile(RazorTemplateEngine engine,
-                                              IFileInfo fileInfo)
+        private static ChunkTree ParseViewFile(
+            RazorTemplateEngine engine,
+            IFileInfo fileInfo,
+            string viewImportsPath)
         {
             using (var stream = fileInfo.CreateReadStream())
             {
                 using (var streamReader = new StreamReader(stream))
                 {
-                    var parseResults = engine.ParseTemplate(streamReader, fileInfo.PhysicalPath);
+                    var parseResults = engine.ParseTemplate(streamReader, viewImportsPath);
                     var className = ParserHelpers.SanitizeClassName(fileInfo.Name);
                     var language = engine.Host.CodeLanguage;
-                    var codeGenerator = language.CreateCodeGenerator(className,
-                                                                     engine.Host.DefaultNamespace,
-                                                                     fileInfo.PhysicalPath,
-                                                                     engine.Host);
-                    codeGenerator.Visit(parseResults);
+                    var chunkGenerator = language.CreateChunkGenerator(
+                        className,
+                        engine.Host.DefaultNamespace,
+                        viewImportsPath,
+                        engine.Host);
+                    chunkGenerator.Visit(parseResults);
 
-                    return codeGenerator.Context.CodeTreeBuilder.CodeTree;
+                    // Rewrite the location of inherited chunks so they point to the global import file.
+                    var chunkTree = chunkGenerator.Context.ChunkTreeBuilder.ChunkTree;
+                    foreach (var chunk in chunkTree.Chunks)
+                    {
+                        chunk.Start = new SourceLocation(
+                            viewImportsPath,
+                            chunk.Start.AbsoluteIndex,
+                            chunk.Start.LineIndex,
+                            chunk.Start.CharacterIndex);
+                    }
+
+                    return chunkTree;
                 }
             }
         }

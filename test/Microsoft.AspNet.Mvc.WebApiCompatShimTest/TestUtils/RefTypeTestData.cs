@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -17,7 +17,7 @@ namespace Microsoft.TestCommon
         {
             if (testDataProvider == null)
             {
-                throw new ArgumentNullException("testDataProvider");
+                throw new ArgumentNullException(nameof(testDataProvider));
             }
 
             this.testDataProvider = testDataProvider;

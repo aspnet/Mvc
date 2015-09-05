@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNETCORE50
+#if DNXCORE50
 
 using Microsoft.AspNet.Mvc;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Web.Http;
+using Microsoft.Framework.Internal;
 
 namespace System.Net.Http.Formatting
 {

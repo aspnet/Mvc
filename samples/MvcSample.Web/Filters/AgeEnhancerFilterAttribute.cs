@@ -1,9 +1,13 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace MvcSample.Web.Filters
 {
-    public class AgeEnhancerAttribute : ActionFilterAttribute
+    public class AgeEnhancerFilterAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
@@ -15,12 +19,12 @@ namespace MvcSample.Web.Filters
             {
                 controller.CustomUser.Log += "Age Enhanced!" + Environment.NewLine;
             }
-            
+
             if (context.ActionArguments.TryGetValue("age", out age))
             {
                 if (age is int)
                 {
-                    var intAge = (int) age;
+                    var intAge = (int)age;
 
                     if (intAge < 21)
                     {

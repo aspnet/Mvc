@@ -1,5 +1,10 @@
-﻿using System;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Formatters;
 using Newtonsoft.Json;
 
 namespace FormatterWebSite.Controllers
@@ -31,9 +36,20 @@ namespace FormatterWebSite.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return new HttpStatusCodeResult(400);
+                return new HttpStatusCodeResult(StatusCodes.Status400BadRequest);
             }
             return Content(dummyObject.SampleInt.ToString());
+        }
+
+        [HttpPost]
+        public IActionResult ValueTypeAsBody([FromBody] int value)
+        {
+            if (!ModelState.IsValid)
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+            }
+
+            return Content(value.ToString());
         }
     }
 }

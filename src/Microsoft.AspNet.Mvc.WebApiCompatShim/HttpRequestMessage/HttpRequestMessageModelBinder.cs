@@ -1,23 +1,33 @@
-﻿using Microsoft.AspNet.Mvc.ModelBinding;
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.ModelBinding;
 
 namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 {
+    /// <summary>
+    /// <see cref="IModelBinder"/> implementation to bind models of type <see cref="HttpRequestMessage"/>.
+    /// </summary>
     public class HttpRequestMessageModelBinder : IModelBinder
     {
-        public Task<bool> BindModelAsync(ModelBindingContext bindingContext)
+        /// <inheritdoc />
+        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext.ModelType == typeof(HttpRequestMessage))
             {
-                bindingContext.Model = bindingContext.HttpContext.GetHttpRequestMessage();
-                return Task.FromResult(true);
+                var model = bindingContext.OperationBindingContext.HttpContext.GetHttpRequestMessage();
+                var validationNode =
+                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model)
+                    {
+                        SuppressValidation = true,
+                    };
+
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model, validationNode);
             }
 
-            return Task.FromResult(false);
+            return ModelBindingResult.NoResultAsync;
         }
     }
 }

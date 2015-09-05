@@ -1,11 +1,13 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.AspNet.Mvc.Razor.Host;
+using Microsoft.AspNet.Razor;
+using Microsoft.AspNet.Razor.Chunks.Generators;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
-using Microsoft.AspNet.Razor.Text;
 using Microsoft.AspNet.Razor.Tokenizer.Symbols;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -40,8 +42,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (_modelStatementFound && _endInheritsLocation.HasValue)
             {
-                Context.OnError(_endInheritsLocation.Value,
-                                Resources.FormatMvcRazorCodeParser_CannotHaveModelAndInheritsKeyword(ModelKeyword));
+                Context.OnError(
+                    _endInheritsLocation.Value,
+                    Resources.FormatMvcRazorCodeParser_CannotHaveModelAndInheritsKeyword(ModelKeyword),
+                    SyntaxConstants.CSharp.InheritsKeyword.Length);
             }
         }
 
@@ -49,17 +53,19 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Verify we're on the right keyword and accept
             AssertDirective(ModelKeyword);
+            var startModelLocation = CurrentLocation;
             AcceptAndMoveNext();
 
-            var endModelLocation = CurrentLocation;
 
             BaseTypeDirective(Resources.FormatMvcRazorCodeParser_KeywordMustBeFollowedByTypeName(ModelKeyword),
-                              CreateModelCodeGenerator);
+                              CreateModelChunkGenerator);
 
             if (_modelStatementFound)
             {
-                Context.OnError(endModelLocation,
-                                Resources.FormatMvcRazorCodeParser_OnlyOneModelStatementIsAllowed(ModelKeyword));
+                Context.OnError(
+                    startModelLocation,
+                    Resources.FormatMvcRazorCodeParser_OnlyOneModelStatementIsAllowed(ModelKeyword),
+                    ModelKeyword.Length);
             }
 
             _modelStatementFound = true;
@@ -71,22 +77,25 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // @inject MyApp.MyService MyServicePropertyName
             AssertDirective(InjectKeyword);
+            var startLocation = CurrentLocation;
             AcceptAndMoveNext();
 
             Context.CurrentBlock.Type = BlockType.Directive;
 
             // Accept whitespace
-            var remainingWs = AcceptSingleWhiteSpaceCharacter();
+            var remainingWhitespace = AcceptSingleWhiteSpaceCharacter();
+            var keywordwithSingleWhitespaceLength = Span.GetContent().Value.Length;
             if (Span.Symbols.Count > 1)
             {
                 Span.EditHandler.AcceptedCharacters = AcceptedCharacters.None;
             }
             Output(SpanKind.MetaCode);
 
-            if (remainingWs != null)
+            if (remainingWhitespace != null)
             {
-                Accept(remainingWs);
+                Accept(remainingWhitespace);
             }
+            var remainingWhitespaceLength = Span.GetContent().Value.Length;
 
             // Consume any other whitespace tokens.
             AcceptWhile(IsSpacingToken(includeNewLines: false, includeComments: true));
@@ -94,8 +103,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             var hasTypeError = !At(CSharpSymbolType.Identifier);
             if (hasTypeError)
             {
-                Context.OnError(CurrentLocation,
-                                Resources.FormatMvcRazorCodeParser_KeywordMustBeFollowedByTypeName(InjectKeyword));
+                Context.OnError(
+                    startLocation,
+                    Resources.FormatMvcRazorCodeParser_KeywordMustBeFollowedByTypeName(InjectKeyword),
+                    InjectKeyword.Length);
             }
 
             // Accept 'MyApp.MyService'
@@ -104,14 +115,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             // typeName now contains the token 'MyApp.MyService'
             var typeName = Span.GetContent().Value;
 
-            var propertyStartLocation = CurrentLocation;
             AcceptWhile(IsSpacingToken(includeNewLines: false, includeComments: true));
 
             if (!hasTypeError && (EndOfFile || At(CSharpSymbolType.NewLine)))
             {
                 // Add an error for the property name only if we successfully read the type name
-                Context.OnError(propertyStartLocation,
-                                Resources.FormatMvcRazorCodeParser_InjectDirectivePropertyNameRequired(InjectKeyword));
+                Context.OnError(startLocation,
+                                Resources.FormatMvcRazorCodeParser_InjectDirectivePropertyNameRequired(InjectKeyword),
+                                keywordwithSingleWhitespaceLength + remainingWhitespaceLength + typeName.Length);
             }
 
             // Read until end of line. Span now contains 'MyApp.MyService MyServiceName'.
@@ -127,17 +138,36 @@ namespace Microsoft.AspNet.Mvc.Razor
                                .Value
                                .Substring(typeName.Length);
 
-            Span.CodeGenerator = new InjectParameterGenerator(typeName.Trim(),
-                                                              propertyName.Trim());
+            // ';' is optional
+            propertyName = RemoveWhitespaceAndTrailingSemicolons(propertyName);
+            Span.ChunkGenerator = new InjectParameterGenerator(typeName.Trim(), propertyName);
 
             // Output the span and finish the block
             CompleteBlock();
-            Output(SpanKind.Code);
+            Output(SpanKind.Code, AcceptedCharacters.AnyExceptNewline);
         }
 
-        private SpanCodeGenerator CreateModelCodeGenerator(string model)
+        private SpanChunkGenerator CreateModelChunkGenerator(string model)
         {
-            return new ModelCodeGenerator(_baseType, model);
+            return new ModelChunkGenerator(_baseType, model);
+        }
+
+        // Internal for unit testing
+        internal static string RemoveWhitespaceAndTrailingSemicolons(string value)
+        {
+            Debug.Assert(value != null);
+            value = value.TrimStart();
+
+            for (var index = value.Length - 1; index >= 0; index--)
+            {
+                var currentChar = value[index];
+                if (!char.IsWhiteSpace(currentChar) && currentChar != ';')
+                {
+                    return value.Substring(0, index + 1);
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

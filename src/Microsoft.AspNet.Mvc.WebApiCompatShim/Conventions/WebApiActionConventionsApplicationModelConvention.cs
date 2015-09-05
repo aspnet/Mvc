@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ApplicationModels;
 
 namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 {
-    public class WebApiActionConventionsApplicationModelConvention : IApplicationModelConvention
+    public class WebApiActionConventionsApplicationModelConvention : IControllerModelConvention
     {
         private static readonly string[] SupportedHttpMethodConventions = new string[]
         {
@@ -21,13 +22,31 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             "OPTIONS",
         };
 
-        public void Apply(ApplicationModel application)
+        public void Apply(ControllerModel controller)
         {
-            foreach (var controller in application.Controllers)
+            if (IsConventionApplicable(controller))
             {
-                if (IsConventionApplicable(controller))
+                var newActions = new List<ActionModel>();
+
+                foreach (var action in controller.Actions)
                 {
-                    Apply(controller);
+                    SetHttpMethodFromConvention(action);
+
+                    // Action Name doesn't really come into play with attribute routed actions. However for a
+                    // non-attribute-routed action we need to create a 'named' version and an 'unnamed' version.
+                    if (!IsActionAttributeRouted(action))
+                    {
+                        var namedAction = action;
+
+                        var unnamedAction = new ActionModel(namedAction);
+                        unnamedAction.RouteConstraints.Add(new UnnamedActionRouteConstraint());
+                        newActions.Add(unnamedAction);
+                    }
+                }
+
+                foreach (var action in newActions)
+                {
+                    controller.Actions.Add(action);
                 }
             }
         }
@@ -35,29 +54,6 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
         private bool IsConventionApplicable(ControllerModel controller)
         {
             return controller.Attributes.OfType<IUseWebApiActionConventions>().Any();
-        }
-
-        private void Apply(ControllerModel controller)
-        {
-            var newActions = new List<ActionModel>();
-
-            foreach (var action in controller.Actions)
-            {
-                SetHttpMethodFromConvention(action);
-
-                // Action Name doesn't really come into play with attribute routed actions. However for a
-                // non-attribute-routed action we need to create a 'named' version and an 'unnamed' version.
-                if (!IsActionAttributeRouted(action))
-                {
-                    var namedAction = action;
-
-                    var unnamedAction = new ActionModel(namedAction);
-                    unnamedAction.IsActionNameMatchRequired = false;
-                    newActions.Add(unnamedAction);
-                }
-            }
-
-            controller.Actions.AddRange(newActions);
         }
 
         private bool IsActionAttributeRouted(ActionModel action)
@@ -90,6 +86,24 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             // If no convention matches, then assume POST
             action.HttpMethods.Add("POST");
+        }
+
+        private class UnnamedActionRouteConstraint : IRouteConstraintProvider
+        {
+            public UnnamedActionRouteConstraint()
+            {
+                RouteKey = "action";
+                RouteKeyHandling = RouteKeyHandling.DenyKey;
+                RouteValue = null;
+            }
+
+            public string RouteKey { get; }
+
+            public RouteKeyHandling RouteKeyHandling { get; }
+
+            public string RouteValue { get; }
+
+            public bool BlockNonAttributedActions { get; }
         }
     }
 }

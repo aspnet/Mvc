@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
 
 namespace System.Web.Http
 {
     /// <summary>
-    /// An action result that returns a <see cref="HttpStatusCode.InternalServerError"/> response and
+    /// An action result that returns a <see cref="StatusCodes.Status500InternalServerError"/> response and
     /// performs content negotiation on an <see cref="HttpError"/> based on an <see cref="Exception"/>.
     /// </summary>
     public class ExceptionResult : ObjectResult
@@ -18,9 +19,6 @@ namespace System.Web.Http
         /// <param name="includeErrorDetail">
         /// <see langword="true"/> if the error should include exception messages; otherwise, <see langword="false"/>.
         /// </param>
-        /// <param name="contentNegotiator">The content negotiator to handle content negotiation.</param>
-        /// <param name="request">The request message which led to this result.</param>
-        /// <param name="formatters">The formatters to use to negotiate and format the content.</param>
         public ExceptionResult(Exception exception, bool includeErrorDetail)
             : base(new HttpError(exception, includeErrorDetail))
         {
@@ -41,7 +39,7 @@ namespace System.Web.Http
         /// <inheritdoc />
         public override Task ExecuteResultAsync(ActionContext context)
         {
-            context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             return base.ExecuteResultAsync(context);
         }
     }

@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
-using System.Threading.Tasks;
 
-namespace ApiExplorer
+namespace ApiExplorerWebSite
 {
     [Route("ApiExplorerResponseContentType/[Action]")]
     public class ApiExplorerResponseContentTypeController : Controller
@@ -16,28 +15,14 @@ namespace ApiExplorer
         }
 
         [HttpGet]
-        [Produces("*/*")]
-        public Product AllTypes()
-        {
-            return null;
-        }
-
-        [HttpGet]
-        [Produces("text/*")]
-        public Product Range()
-        {
-            return null;
-        }
-
-        [HttpGet]
-        [Produces("application/json")]
+        [Produces("application/json", "text/json")]
         public Product Specific()
         {
             return null;
         }
 
         [HttpGet]
-        [Produces("application/hal+json")]
+        [Produces("application/hal+json", "text/hal+json")]
         public Product NoMatch()
         {
             return null;

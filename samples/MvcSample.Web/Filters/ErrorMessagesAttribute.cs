@@ -1,5 +1,9 @@
-using Microsoft.AspNet.Mvc;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNet.Mvc.ActionResults;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.Net.Http.Headers;
 
 namespace MvcSample.Web
 {
@@ -13,7 +17,7 @@ namespace MvcSample.Web
 
                 context.Result = new ContentResult
                 {
-                    ContentType = "text/plain",
+                    ContentType = new MediaTypeHeaderValue("text/plain"),
                     Content = "Boom " + context.Exception.Message
                 };
             }

@@ -1,6 +1,8 @@
-﻿using System;
-using Microsoft.AspNet.Mvc;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc;
 
 namespace MvcSample.Web.ApiExplorerSamples
 {
@@ -24,6 +26,13 @@ namespace MvcSample.Web.ApiExplorerSamples
         [Produces("application/json", Type = typeof(ProductOrderConfirmation))]
         [HttpPut("{id:int}/Buy")]
         public IActionResult Buy(int projectId, int quantity = 1)
+        {
+            return null;
+        }
+
+        [Produces("application/json", Type = typeof(ProductOrderConfirmation))]
+        [HttpPut("{order.acountId:int}/PlaceOrder")]
+        public IActionResult PlaceOrder(Order order)
         {
             return null;
         }

@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Razor;
+using Microsoft.AspNet.Razor.Chunks.Generators;
 using Microsoft.AspNet.Razor.Generator;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
@@ -42,7 +43,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("   Foo")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Foo"))
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
             Assert.Equal(expectedSpans, spans.ToArray());
         }
@@ -51,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
         public void ParseModelKeyword_HandlesNullableTypes()
         {
             // Arrange + Act
-            var document = "@model Foo?\r\nBar";
+            var document = $"@model Foo?{Environment.NewLine}Bar";
             var spans = ParseDocument(document);
 
             // Assert
@@ -63,10 +66,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("Foo?\r\n")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Foo?")),
+                factory.Code("Foo?" + Environment.NewLine)
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo?"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
-                    .With(new MarkupCodeGenerator())
+                    .With(new MarkupChunkGenerator())
             };
             Assert.Equal(expectedSpans, spans.ToArray());
         }
@@ -75,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
         public void ParseModelKeyword_HandlesArrays()
         {
             // Arrange + Act
-            var document = "@model Foo[[]][]\r\nBar";
+            var document = $"@model Foo[[]][]{Environment.NewLine}Bar";
             var spans = ParseDocument(document);
 
             // Assert
@@ -87,10 +91,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("Foo[[]][]\r\n")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Foo[[]][]")),
+                factory.Code("Foo[[]][]" + Environment.NewLine)
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo[[]][]"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
-                    .With(new MarkupCodeGenerator())
+                    .With(new MarkupChunkGenerator())
             };
             Assert.Equal(expectedSpans, spans.ToArray());
         }
@@ -112,7 +117,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("$rootnamespace$.MyModel")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "$rootnamespace$.MyModel"))
+                    .As(new ModelChunkGenerator(DefaultBaseType, "$rootnamespace$.MyModel"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
             Assert.Equal(expectedSpans, spans.ToArray());
         }
@@ -135,11 +142,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("  ")
-                    .As(new ModelCodeGenerator(DefaultBaseType, string.Empty)),
+                    .As(new ModelChunkGenerator(DefaultBaseType, string.Empty))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
             var expectedErrors = new[]
             {
-                new RazorError("The 'model' keyword must be followed by a type name on the same line.", new SourceLocation(9, 0, 9), 1)
+                new RazorError("The 'model' keyword must be followed by a type name on the same line.", new SourceLocation(1, 0, 1), 5)
             };
             Assert.Equal(expectedSpans, spans.ToArray());
             Assert.Equal(expectedErrors, errors.ToArray());
@@ -164,19 +173,26 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("Foo\r\n")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Foo")),
+                factory.Code("Foo" + Environment.NewLine)
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Bar"))
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Bar"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("Only one 'model' statement is allowed in a file.", new SourceLocation(18, 1, 6), 1)
+                new RazorError(
+                    "Only one 'model' statement is allowed in a file.",
+                    PlatformNormalizer.NormalizedSourceLocation(13, 1, 1),
+                    5)
             };
             expectedSpans.Zip(spans, (exp, span) => new { expected = exp, span = span }).ToList().ForEach(i => Assert.Equal(i.expected, i.span));
             Assert.Equal(expectedSpans, spans.ToArray());
@@ -202,19 +218,26 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
-                factory.Code("Foo\r\n")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Foo")),
+                factory.Code("Foo" + Environment.NewLine)
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("inherits ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar")
-                    .As(new SetBaseTypeCodeGenerator("Bar"))
+                    .As(new SetBaseTypeChunkGenerator("Bar"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("The 'inherits' keyword is not allowed when a 'model' keyword is used.", new SourceLocation(21, 1, 9), 1)
+                new RazorError(
+                    "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
+                    PlatformNormalizer.NormalizedSourceLocation(21, 1, 9),
+                    length: 8)
             };
             expectedSpans.Zip(spans, (exp, span) => new { expected = exp, span = span }).ToList().ForEach(i => Assert.Equal(i.expected, i.span));
             Assert.Equal(expectedSpans, spans.ToArray());
@@ -241,18 +264,25 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("inherits ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar" + Environment.NewLine)
-                    .As(new SetBaseTypeCodeGenerator("Bar")),
+                    .As(new SetBaseTypeChunkGenerator("Bar"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
                     .Accepts(AcceptedCharacters.None),
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo")
-                    .As(new ModelCodeGenerator(DefaultBaseType, "Foo"))
+                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .Accepts(AcceptedCharacters.AnyExceptNewline),
+                factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("The 'inherits' keyword is not allowed when a 'model' keyword is used.", new SourceLocation(9, 0, 9), 1)
+                new RazorError(
+                    "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
+                    new SourceLocation(9, 0, 9),
+                    length: 8)
             };
             expectedSpans.Zip(spans, (exp, span) => new { expected = exp, span = span }).ToList().ForEach(i => Assert.Equal(i.expected, i.span));
             Assert.Equal(expectedSpans, spans.ToArray());
@@ -264,7 +294,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
             errors = errors ?? new List<RazorError>();
             var markupParser = new HtmlMarkupParser();
             var codeParser = new TestMvcCSharpRazorCodeParser();
-            var context = new ParserContext(new SeekableTextReader(documentContents), codeParser, markupParser, markupParser);
+            var context = new ParserContext(
+                new SeekableTextReader(documentContents),
+                codeParser,
+                markupParser,
+                markupParser,
+                new ErrorSink());
             codeParser.Context = context;
             markupParser.Context = context;
             markupParser.ParseDocument();

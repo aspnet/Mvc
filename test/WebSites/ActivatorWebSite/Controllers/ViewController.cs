@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using ActivatorWebSite.Models;
 using Microsoft.AspNet.Mvc;
 
 namespace ActivatorWebSite
@@ -10,39 +11,38 @@ namespace ActivatorWebSite
     /// </summary>
     public class ViewController : Controller
     {
-        public ViewResult ConsumeDefaultProperties()
+        public IActionResult ConsumeDefaultProperties()
         {
             return View();
         }
 
-        public ViewResult ConsumeInjectedService()
+        public IActionResult ConsumeInjectedService()
         {
             return View();
         }
 
-        public ViewResult ConsumeServicesFromBaseType()
+        public IActionResult ConsumeServicesFromBaseType()
         {
             return View();
         }
 
-        public ViewResult ConsumeViewComponent()
+        public IActionResult ConsumeViewComponent()
         {
             return View();
         }
 
-        public ViewResult ConsumeValueComponent()
+        public IActionResult ConsumeCannotBeActivatedComponent()
         {
             return View();
         }
 
-        public ViewResult ConsumeViewAndValueComponent()
+        public IActionResult UseTagHelper()
         {
-            return View();
-        }
-
-        public ViewResult ConsumeCannotBeActivatedComponent()
-        {
-            return View();
+            var item = new Item
+            {
+                Name = "Fake"
+            };
+            return View(item);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -15,87 +16,88 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     public static class TagHelperOutputExtensions
     {
         /// <summary>
-        /// Copies a user-provided attribute from <paramref name="context"/>'s 
+        /// Copies a user-provided attribute from <paramref name="context"/>'s
         /// <see cref="TagHelperContext.AllAttributes"/> to <paramref name="tagHelperOutput"/>'s
         /// <see cref="TagHelperOutput.Attributes"/>.
         /// </summary>
         /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
         /// <param name="attributeName">The name of the bound attribute.</param>
         /// <param name="context">The <see cref="TagHelperContext"/>.</param>
-        /// <remarks>Only copies the attribute if <paramref name="tagHelperOutput"/>'s 
-        /// <see cref="TagHelperOutput.Attributes"/> does not contain an attribute with the given 
-        /// <paramref name="attributeName"/></remarks>
-        public static void CopyHtmlAttribute(this TagHelperOutput tagHelperOutput,
-                                             string attributeName,
-                                             TagHelperContext context)
+        /// <remarks>
+        /// <para>
+        /// Only copies the attribute if <paramref name="tagHelperOutput"/>'s
+        /// <see cref="TagHelperOutput.Attributes"/> does not contain an attribute with the given
+        /// <paramref name="attributeName"/>.
+        /// </para>
+        /// <para>
+        /// Duplicate attributes same name in <paramref name="context"/>'s <see cref="TagHelperContext.AllAttributes"/>
+        /// or <paramref name="tagHelperOutput"/>'s <see cref="TagHelperOutput.Attributes"/> may result in copied
+        /// attribute order not being maintained.
+        /// </para></remarks>
+        public static void CopyHtmlAttribute(
+            [NotNull] this TagHelperOutput tagHelperOutput,
+            [NotNull] string attributeName,
+            [NotNull] TagHelperContext context)
         {
-            // We look for the original attribute so we can restore the exact attribute name the user typed.
-            var entry = context.AllAttributes.First(attribute =>
-                attribute.Key.Equals(attributeName, StringComparison.OrdinalIgnoreCase));
-
-            if (!tagHelperOutput.Attributes.ContainsKey(entry.Key))
+            if (!tagHelperOutput.Attributes.ContainsName(attributeName))
             {
-                tagHelperOutput.Attributes.Add(entry.Key, entry.Value.ToString());
+                var copiedAttribute = false;
+
+                // We iterate context.AllAttributes backwards since we prioritize TagHelperOutput values occurring
+                // before the current context.AllAttribtes[i].
+                for (var i = context.AllAttributes.Count - 1; i >= 0; i--)
+                {
+                    // We look for the original attribute so we can restore the exact attribute name the user typed in
+                    // approximately the same position where the user wrote it in the Razor source.
+                    if (string.Equals(
+                        attributeName,
+                        context.AllAttributes[i].Name,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        CopyHtmlAttribute(i, tagHelperOutput, context);
+                        copiedAttribute = true;
+                    }
+                }
+
+                if (!copiedAttribute)
+                {
+                    throw new ArgumentException(
+                        Resources.FormatTagHelperOutput_AttributeDoesNotExist(attributeName, nameof(TagHelperContext)),
+                        nameof(attributeName));
+                }
             }
         }
 
         /// <summary>
-        /// Returns all attributes from <paramref name="tagHelperOutput"/>'s 
-        /// <see cref="TagHelperOutput.Attributes"/> that have the given <paramref name="prefix"/>.
-        /// </summary>
-        /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
-        /// <param name="prefix">A prefix to look for.</param>
-        /// <returns><see cref="KeyValuePair{string, string}"/>s with <see cref="KeyValuePair{string, string}.Key"/>
-        /// starting with the given <paramref name="prefix"/>.</returns>
-        public static IEnumerable<KeyValuePair<string, string>> FindPrefixedAttributes(
-            this TagHelperOutput tagHelperOutput, string prefix)
-        {
-            // TODO: We will not need this method once https://github.com/aspnet/Razor/issues/89 is completed.
-
-            // We're only interested in HTML attributes that have the desired prefix.
-            var prefixedAttributes = tagHelperOutput.Attributes
-                .Where(attribute => attribute.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-
-            return prefixedAttributes;
-        }
-
-        /// <summary>
-        /// Merges the given <paramref name="tagBuilder"/> into the <paramref name="tagHelperOutput"/>.
-        /// </summary>
-        /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
-        /// <param name="tagBuilder">The <see cref="TagBuilder"/> to merge.</param>
-        /// <remarks><paramref name="tagHelperOutput"/>'s <see cref="TagHelperOutput.Content"/> has the given
-        /// <paramref name="tagBuilder"/>s <see cref="TagBuilder.InnerHtml"/> appended to it. This is to ensure
-        /// multiple <see cref="ITagHelper"/>s running on the same HTML tag don't overwrite each other; therefore,
-        /// this method may not be appropriate for all <see cref="ITagHelper"/> scenarios.</remarks>
-        public static void Merge(this TagHelperOutput tagHelperOutput, TagBuilder tagBuilder)
-        {
-            tagHelperOutput.TagName = tagBuilder.TagName;
-            tagHelperOutput.Content += tagBuilder.InnerHtml;
-
-            MergeAttributes(tagHelperOutput, tagBuilder);
-        }
-
-        /// <summary>
-        /// Merges the given <paramref name="tagBuilder"/>'s <see cref="TagBuilder.Attributes"/> into the 
+        /// Merges the given <paramref name="tagBuilder"/>'s <see cref="TagBuilder.Attributes"/> into the
         /// <paramref name="tagHelperOutput"/>.
         /// </summary>
         /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
         /// <param name="tagBuilder">The <see cref="TagBuilder"/> to merge attributes from.</param>
         /// <remarks>Existing <see cref="TagHelperOutput.Attributes"/> on the given <paramref name="tagHelperOutput"/>
         /// are not overridden; "class" attributes are merged with spaces.</remarks>
-        public static void MergeAttributes(this TagHelperOutput tagHelperOutput, TagBuilder tagBuilder)
+        public static void MergeAttributes(
+            [NotNull] this TagHelperOutput tagHelperOutput,
+            [NotNull] TagBuilder tagBuilder)
         {
             foreach (var attribute in tagBuilder.Attributes)
             {
-                if (!tagHelperOutput.Attributes.ContainsKey(attribute.Key))
+                if (!tagHelperOutput.Attributes.ContainsName(attribute.Key))
                 {
                     tagHelperOutput.Attributes.Add(attribute.Key, attribute.Value);
                 }
                 else if (attribute.Key.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
-                    tagHelperOutput.Attributes["class"] += " " + attribute.Value;
+                    TagHelperAttribute classAttribute;
+
+                    if (tagHelperOutput.Attributes.TryGetAttribute("class", out classAttribute))
+                    {
+                        tagHelperOutput.Attributes["class"] = classAttribute.Value + " " + attribute.Value;
+                    }
+                    else
+                    {
+                        tagHelperOutput.Attributes.Add("class", attribute.Value);
+                    }
                 }
             }
         }
@@ -107,12 +109,69 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
         /// <param name="attributes">Attributes to remove.</param>
         public static void RemoveRange(
-            this TagHelperOutput tagHelperOutput, IEnumerable<KeyValuePair<string, string>> attributes)
+            [NotNull] this TagHelperOutput tagHelperOutput,
+            [NotNull] IEnumerable<TagHelperAttribute> attributes)
         {
-            foreach (var attribute in attributes)
+            foreach (var attribute in attributes.ToArray())
             {
                 tagHelperOutput.Attributes.Remove(attribute);
             }
+        }
+
+        private static void CopyHtmlAttribute(
+            int allAttributeIndex,
+            TagHelperOutput tagHelperOutput,
+            TagHelperContext context)
+        {
+            var existingAttribute = context.AllAttributes[allAttributeIndex];
+            var copiedAttribute = new TagHelperAttribute
+            {
+                Name = existingAttribute.Name,
+                Value = existingAttribute.Value,
+                Minimized = existingAttribute.Minimized
+            };
+
+            // Move backwards through context.AllAttributes from the provided index until we find a familiar attribute
+            // in tagHelperOutput where we can insert the copied value after the familiar one.
+            for (var i = allAttributeIndex - 1; i >= 0; i--)
+            {
+                var previousName = context.AllAttributes[i].Name;
+                var index = IndexOfFirstMatch(previousName, tagHelperOutput.Attributes);
+                if (index != -1)
+                {
+                    tagHelperOutput.Attributes.Insert(index + 1, copiedAttribute);
+                    return;
+                }
+            }
+
+            // Move forward through context.AllAttributes from the provided index until we find a familiar attribute in
+            // tagHelperOutput where we can insert the copied value.
+            for (var i = allAttributeIndex + 1; i < context.AllAttributes.Count; i++)
+            {
+                var nextName = context.AllAttributes[i].Name;
+                var index = IndexOfFirstMatch(nextName, tagHelperOutput.Attributes);
+                if (index != -1)
+                {
+                    tagHelperOutput.Attributes.Insert(index, copiedAttribute);
+                    return;
+                }
+            }
+
+            // Couldn't determine the attribute's location, add it to the end.
+            tagHelperOutput.Attributes.Add(copiedAttribute);
+        }
+
+        private static int IndexOfFirstMatch(string name, TagHelperAttributeList attributes)
+        {
+            for (var i = 0; i < attributes.Count; i++)
+            {
+                if (string.Equals(name, attributes[i].Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
     }
 }

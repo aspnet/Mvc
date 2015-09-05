@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNet.Mvc;
-using System;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNet.Mvc;
 
 namespace RoutingWebSite
 {
@@ -10,9 +12,9 @@ namespace RoutingWebSite
         private readonly TestResponseGenerator _generator;
 
         public MapsController(TestResponseGenerator generator)
-	    {
+        {
             _generator = generator;
-	    }
+        }
 
         [HttpGet]
         public ActionResult Get()

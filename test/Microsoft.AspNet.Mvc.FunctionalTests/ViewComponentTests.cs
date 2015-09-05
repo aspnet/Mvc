@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using ViewComponentWebSite;
 using Xunit;
 
@@ -13,8 +13,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class ViewComponentTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("ViewComponentWebSite");
+        private const string SiteName = nameof(ViewComponentWebSite);
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
 
         public static IEnumerable<object[]> ViewViewComponents_AreRenderedCorrectlyData
         {
@@ -23,17 +24,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 yield return new[]
                 {
                     "ViewWithAsyncComponents",
-                    string.Join(Environment.NewLine,
-                                       "<test-component>value-from-component value-from-view</test-component>",
-                                        "ViewWithAsyncComponents InvokeAsync: hello from viewdatacomponent")
+                    @"<test-component>value-from-component value-from-view</test-component>
+ViewWithAsyncComponents InvokeAsync: hello from viewdatacomponent"
                 };
 
                 yield return new[]
                 {
                     "ViewWithSyncComponents",
-                    string.Join(Environment.NewLine,
-                                       "<test-component>value-from-component value-from-view</test-component>",
-                                        "ViewWithSyncComponents Invoke: hello from viewdatacomponent")
+                    @"<test-component>value-from-component value-from-view</test-component>
+ViewWithSyncComponents Invoke: hello from viewdatacomponent"
                 };
             }
         }
@@ -42,20 +41,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [MemberData(nameof(ViewViewComponents_AreRenderedCorrectlyData))]
         public async Task ViewViewComponents_AreRenderedCorrectly(string actionName, string expected)
         {
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
             var body = await client.GetStringAsync("http://localhost/Home/" + actionName);
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
         public async Task ViewComponents_SupportsValueType()
         {
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -65,12 +64,48 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("10", body.Trim());
         }
 
+        [Fact]
+        public async Task ViewComponents_InvokeWithViewComponentResult()
+        {
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var body = await client.GetStringAsync("http://localhost/ViewComponentResult/Invoke?number=31");
+
+            // Assert
+            Assert.Equal("31", body.Trim());
+        }
+
+        [Theory]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingWhere", "Where")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingSelect", "Select")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingSelectMany", "SelectMany")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingTake", "Take")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingTakeWhile", "TakeWhile")]
+        [InlineData("http://localhost/Home/ViewComponentWithEnumerableModelUsingUnion", "Union")]
+        public async Task ViewComponents_SupportsEnumerableModel(string url, string linqQueryType)
+        {
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            // https://github.com/aspnet/Mvc/issues/1354
+            // The invoked ViewComponent/View has a model which is an internal type implementing Enumerable.
+            // For ex - TestEnumerableObject.Select(t => t) returns WhereSelectListIterator
+            var body = await client.GetStringAsync(url);
+
+            // Assert
+            Assert.Equal("<p>Hello</p><p>World</p><p>Sample</p><p>Test</p>"
+                + "<p>Hello</p><p>World</p><p>" + linqQueryType + "</p><p>Test</p>", body.Trim());
+        }
+
         [Theory]
         [InlineData("ViewComponentWebSite.Namespace1.SameName")]
         [InlineData("ViewComponentWebSite.Namespace2.SameName")]
         public async Task ViewComponents_FullName(string name)
         {
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -83,7 +118,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ViewComponents_ShortNameUsedForViewLookup()
         {
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var name = "ViewComponentWebSite.Integer";

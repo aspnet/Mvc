@@ -7,6 +7,12 @@ _ReSharper.*/
 packages/
 artifacts/
 PublishProfiles/
+.vs/
+bower_components/
+node_modules/
+**/wwwroot/lib/
+debugSettings.json
+project.lock.json
 *.user
 *.suo
 *.cache
@@ -24,4 +30,7 @@ nuget.exe
 *.ncrunchsolution
 *.*sdf
 *.ipch
+.settings
 *.sln.ide
+node_modules
+**/[Cc]ompiler/[Rr]esources/**/*.js

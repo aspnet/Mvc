@@ -1,12 +1,11 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.HeaderValueAbstractions;
+using Microsoft.AspNet.Http;
+using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
     /// Sets the status code to 204 if the content is null.
@@ -22,9 +21,9 @@ namespace Microsoft.AspNet.Mvc
         public bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
         {
             // ignore the contentType and just look at the content.
-            // This formatter will be selected if the content is null. 
+            // This formatter will be selected if the content is null.
             // We check for Task as a user can directly create an ObjectContentResult with the unwrapped type.
-            if(context.DeclaredType == typeof(void) || context.DeclaredType == typeof(Task))
+            if (context.DeclaredType == typeof(void) || context.DeclaredType == typeof(Task))
             {
                 return true;
             }
@@ -32,23 +31,11 @@ namespace Microsoft.AspNet.Mvc
             return TreatNullValueAsNoContent && context.Object == null;
         }
 
-        public IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(
-            Type declaredType, 
-            Type runtimeType, 
-            MediaTypeHeaderValue contentType)
-        {
-            return null;
-        }
-
         public Task WriteAsync(OutputFormatterContext context)
         {
-            var response = context.ActionContext.HttpContext.Response;
+            var response = context.HttpContext.Response;
             response.ContentLength = 0;
-
-            // Only set the status code if its not already set.
-            // TODO: By default the status code is set to 200. 
-            // https://github.com/aspnet/HttpAbstractions/issues/114
-            response.StatusCode = 204;
+            response.StatusCode = context.StatusCode ?? StatusCodes.Status204NoContent;
             return Task.FromResult(true);
         }
     }

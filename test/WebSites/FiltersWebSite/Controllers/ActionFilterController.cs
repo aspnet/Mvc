@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace FiltersWebSite
 {
@@ -30,8 +32,20 @@ namespace FiltersWebSite
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            (context.ActionArguments["fromGlobalActionFilter"] as List<ContentResult>)
-                .Add(Helpers.GetContentResult(context.Result, "Controller override - OnActionExecuting"));
+            object obj;
+            List<ContentResult> filters;
+
+            if (context.ActionArguments.TryGetValue("fromGlobalActionFilter", out obj))
+            {
+                filters = (List<ContentResult>)obj;
+            }
+            else
+            {
+                filters = new List<ContentResult>();
+                context.ActionArguments.Add("fromGlobalActionFilter", filters);
+            }
+
+            filters.Add(Helpers.GetContentResult(context.Result, "Controller override - OnActionExecuting"));
         }
 
         public override void OnActionExecuted(ActionExecutedContext context)

@@ -1,11 +1,13 @@
 ﻿@using TagHelpersWebSite.Models
+@using Microsoft.AspNet.Mvc.Razor
+
 @model WebsiteContext
 
 @{
     ViewBag.Title = "Home Page";
 }
 
-@addtaghelper "TagHelpersWebSite"
+@addTagHelper "*, TagHelpersWebSite"
 
 @section css {
     <style condition="!Model.Approved">
@@ -16,17 +18,31 @@
     </style>
 }
 
+@functions {
+    public void RenderTemplate(string title, Func<string, HelperResult> template)
+    {
+        Output.WriteLine("<br /><p><em>Rendering Template:</em></p>");
+        var helperResult = template(title);
+        helperResult.WriteTo(Output, HtmlEncoder);
+    }
+}
+
 <div condition="!Model.Approved">
-    <p>This website has <strong>not</strong> been approved yet. Visit www.contoso.com for <strong makePretty="false">more</strong> information.</p>
+    <p>This website has <strong surround="em">not</strong> been approved yet. Visit www.contoso.com for <strong make-pretty="false">more</strong> information.</p>
 </div>
 
 <div>
     <h3>Current Tag Cloud from Tag Helper</h3>
-    <section><tag-cloud count="Model.TagsToShow" /></section>
+    <tag-cloud count="Model.TagsToShow" surround="div" />
     <h3>Current Tag Cloud from ViewComponentHelper:</h3>
-    <section>@await Component.InvokeAsync("Tags", 15)</section>
+    <section bold>@await Component.InvokeAsync("Tags", 15)</section>
+    @{
+        RenderTemplate(
+            "Tag Cloud from Template: ",
+            @<div condition="true"><h3>@item</h3><tag-cloud count="Model.TagsToShow"></tag-cloud></div>);
+    }
 </div>
 
 @section footerContent {
-    <p condition="Model.Approved">&copy; @Model.CopyrightYear - My ASP.NET Application</p>
+    <p condition="Model.Approved" bold surround="section">&copy; @Model.CopyrightYear - My ASP.NET Application</p>
 }

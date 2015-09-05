@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.Framework.Internal;
 
 namespace System.Web.Http
 {
     /// <summary>
-    /// An action result that returns a <see cref="System.Net.HttpStatusCode.BadRequest"/> response and performs
+    /// An action result that returns a <see cref="StatusCodes.Status400BadRequest"/> response and performs
     /// content negotiation on an <see cref="HttpError"/> with a <see cref="HttpError.Message"/>.
     /// </summary>
     public class BadRequestErrorMessageResult : ObjectResult
@@ -27,10 +29,10 @@ namespace System.Web.Http
         public string Message { get; private set; }
 
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync(ActionContext context)
+        public override Task ExecuteResultAsync(ActionContext context)
         {
-            context.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            await base.ExecuteResultAsync(context);
+            context.HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return base.ExecuteResultAsync(context);
         }
     }
 }

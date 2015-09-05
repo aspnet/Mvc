@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.PipelineCore;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Xunit;
 
@@ -15,10 +16,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             get
             {
-                yield return new[] { new ViewLocationExpanderContext(GetActionContext(), "test") };
+                yield return new[] { new ViewLocationExpanderContext(GetActionContext(), "test", isPartial: false) };
+                yield return new[] { new ViewLocationExpanderContext(GetActionContext(), "test", isPartial: true) };
 
                 var areaActionContext = GetActionContext("controller2", "myarea");
-                yield return new[] { new ViewLocationExpanderContext(areaActionContext, "test2") };
+                yield return new[] { new ViewLocationExpanderContext(areaActionContext, "test2", isPartial: false) };
+                yield return new[] { new ViewLocationExpanderContext(areaActionContext, "test2", isPartial: true) };
 
                 var actionContext = GetActionContext("controller3", "area3");
                 var values = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -26,12 +29,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                     { "culture", "fr" },
                     { "theme", "sleek" }
                 };
-                var expanderContext = new ViewLocationExpanderContext(actionContext, "test3")
+                var expanderContext = new ViewLocationExpanderContext(actionContext, "test3", isPartial: false)
                 {
                     Values = values
                 };
+                yield return new[] { expanderContext };
 
-                yield return new [] { expanderContext };
+                expanderContext = new ViewLocationExpanderContext(actionContext, "test3", isPartial: true)
+                {
+                    Values = values
+                };
+                yield return new[] { expanderContext };
             }
         }
 
@@ -46,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var result = cache.Get(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(result, ViewLocationCacheResult.None);
         }
 
         [Theory]
@@ -55,13 +63,25 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var cache = new DefaultViewLocationCache();
-            var value = Guid.NewGuid().ToString();
+            var value = new ViewLocationCacheResult(
+                Guid.NewGuid().ToString(),
+                new[]
+                {
+                    Guid.NewGuid().ToString(),
+                    Guid.NewGuid().ToString()
+                });
 
-            // Act
+            // Act - 1
             cache.Set(context, value);
             var result = cache.Get(context);
 
-            // Assert
+            // Assert - 1
+            Assert.Equal(value, result);
+
+            // Act - 2
+            result = cache.Get(context);
+
+            // Assert - 2
             Assert.Equal(value, result);
         }
 
@@ -71,15 +91,26 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 yield return new object[]
                 {
-                    new ViewLocationExpanderContext(GetActionContext(), "test"),
-                    "test:mycontroller"
+                    new ViewLocationExpanderContext(GetActionContext(), "test", isPartial: false),
+                    "test:0:mycontroller"
+                };
+
+                yield return new object[]
+                {
+                    new ViewLocationExpanderContext(GetActionContext(), "test", isPartial: true),
+                    "test:1:mycontroller"
                 };
 
                 var areaActionContext = GetActionContext("controller2", "myarea");
                 yield return new object[]
                 {
-                    new ViewLocationExpanderContext(areaActionContext, "test2"),
-                    "test2:controller2:myarea"
+                    new ViewLocationExpanderContext(areaActionContext, "test2", isPartial: false),
+                    "test2:0:controller2:myarea"
+                };
+                yield return new object[]
+                {
+                    new ViewLocationExpanderContext(areaActionContext, "test2", isPartial: true),
+                    "test2:1:controller2:myarea"
                 };
 
                 var actionContext = GetActionContext("controller3", "area3");
@@ -88,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     { "culture", "fr" },
                     { "theme", "sleek" }
                 };
-                var expanderContext = new ViewLocationExpanderContext(actionContext, "test3")
+                var expanderContext = new ViewLocationExpanderContext(actionContext, "test3", isPartial: false)
                 {
                     Values = values
                 };
@@ -96,7 +127,70 @@ namespace Microsoft.AspNet.Mvc.Razor
                 yield return new object[]
                 {
                     expanderContext,
-                    "test3:controller3:area3:culture:fr:theme:sleek"
+                    "test3:0:controller3:area3:culture:fr:theme:sleek"
+                };
+
+                expanderContext = new ViewLocationExpanderContext(actionContext, "test3", isPartial: true)
+                {
+                    Values = values
+                };
+                yield return new object[]
+                {
+                    expanderContext,
+                    "test3:1:controller3:area3:culture:fr:theme:sleek"
+                };
+
+                yield return new object[]
+                {
+                    new ViewLocationExpanderContext(
+                        GetActionContextWithActionDescriptor(
+                            new Dictionary<string, object>()
+                            {
+                                {"controller", "MyController" },
+                            },
+                            new Dictionary<string, string>()
+                            {
+                                {"controller", "mycontroller" },
+                            },
+                            isAttributeRouted: true),
+                        "test",
+                        isPartial: false),
+                    "test:0:mycontroller"
+                };
+
+                yield return new object[]
+                {
+                    new ViewLocationExpanderContext(
+                        GetActionContextWithActionDescriptor(
+                            new Dictionary<string, object>()
+                            {
+                                {"controller", "MyController" },
+                            },
+                            new Dictionary<string, string>()
+                            {
+                                {"controller", "mycontroller" },
+                            },
+                            isAttributeRouted: true),
+                        "test",
+                        isPartial: false),
+                    "test:0:mycontroller"
+                };
+
+                yield return new object[]
+                {
+                    new ViewLocationExpanderContext(
+                        GetActionContextWithActionDescriptor(
+                            new Dictionary<string, object>()
+                            {
+                                {"controller", "mycontroller" },
+                            },
+                            new Dictionary<string, string>()
+                            {
+                            },
+                            isAttributeRouted: true),
+                        "test",
+                        isPartial: false),
+                    "test:0:mycontroller"
                 };
             }
         }
@@ -122,7 +216,42 @@ namespace Microsoft.AspNet.Mvc.Razor
                 routeData.Values["area"] = area;
             }
 
-            return new ActionContext(new DefaultHttpContext(), routeData, new ActionDescriptor());
+            var actionDesciptor = new ActionDescriptor();
+            actionDesciptor.RouteConstraints = new List<RouteDataActionConstraint>();
+            return new ActionContext(new DefaultHttpContext(), routeData, actionDesciptor);
+        }
+
+        private static ActionContext GetActionContextWithActionDescriptor(
+            IDictionary<string, object> routeValues,
+            IDictionary<string, string> routesInActionDescriptor,
+            bool isAttributeRouted)
+        {
+            var httpContext = new DefaultHttpContext();
+            var routeData = new RouteData();
+            foreach (var kvp in routeValues)
+            {
+                routeData.Values.Add(kvp.Key, kvp.Value);
+            }
+
+            var actionDescriptor = new ActionDescriptor();
+            if (isAttributeRouted)
+            {
+                actionDescriptor.AttributeRouteInfo = new Routing.AttributeRouteInfo();
+                foreach (var kvp in routesInActionDescriptor)
+                {
+                    actionDescriptor.RouteValueDefaults.Add(kvp.Key, kvp.Value);
+                }
+            }
+            else
+            {
+                actionDescriptor.RouteConstraints = new List<RouteDataActionConstraint>();
+                foreach (var kvp in routesInActionDescriptor)
+                {
+                    actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(kvp.Key, kvp.Value));
+                }
+            }
+
+            return new ActionContext(httpContext, routeData, actionDescriptor);
         }
     }
 }

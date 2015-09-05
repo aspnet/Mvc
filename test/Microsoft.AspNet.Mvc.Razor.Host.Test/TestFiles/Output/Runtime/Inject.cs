@@ -1,4 +1,4 @@
-﻿#pragma checksum "TestFiles/Input/Inject.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "424b7fe9f12352c59210b5fa8c74ca8c9c67de81"
+#pragma checksum "TestFiles/Input/Inject.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "225760ec3beca02a80469066fab66433e90ddc2e"
 namespace Asp
 {
 #line 1 "TestFiles/Input/Inject.cshtml"
@@ -21,13 +21,15 @@ using MyNamespace
         {
         }
         #line hidden
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public MyApp MyPropertyName { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
+        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
-        [Microsoft.AspNet.Mvc.ActivateAttribute]
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
 
         #line hidden

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,10 +6,13 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.WebEncoders;
+using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -21,25 +24,30 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_ActivatesAndContextualizesPropertiesOnViews()
         {
             // Arrange
-            var activator = new RazorPageActivator(Mock.Of<ITypeActivator>());
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var instance = new TestRazorPage();
 
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
+            var htmlEncoder = new CommonTestEncoder();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(MyService)))
                            .Returns(myService);
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
                            .Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlEncoder)))
+                           .Returns(htmlEncoder);
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(serviceProvider.Object);
-            var routeContext = new RouteContext(httpContext.Object);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
             var viewContext = new ViewContext(actionContext,
                                               Mock.Of<IView>(),
                                               new ViewDataDictionary(new EmptyModelMetadataProvider()),
-                                              TextWriter.Null);
+                                              Mock.Of<ITempDataDictionary>(),
+                                              TextWriter.Null,
+                                              new HtmlHelperOptions());
 
             // Act
             activator.Activate(instance, viewContext);
@@ -55,7 +63,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_ThrowsIfTheViewDoesNotDeriveFromRazorViewOfT()
         {
             // Arrange
-            var activator = new RazorPageActivator(Mock.Of<ITypeActivator>());
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var instance = new DoesNotDeriveFromRazorPageOfT();
 
             var myService = new MyService();
@@ -64,12 +72,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(serviceProvider.Object);
-            var routeContext = new RouteContext(httpContext.Object);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
             var viewContext = new ViewContext(actionContext,
                                               Mock.Of<IView>(),
                                               new ViewDataDictionary(new EmptyModelMetadataProvider()),
-                                              TextWriter.Null);
+                                              Mock.Of<ITempDataDictionary>(),
+                                              TextWriter.Null,
+                                              new HtmlHelperOptions());
 
             // Act and Assert
             var ex = Assert.Throws<InvalidOperationException>(() => activator.Activate(instance, viewContext));
@@ -85,30 +95,34 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_InstantiatesNewViewDataDictionaryType_IfTheTypeDoesNotMatch()
         {
             // Arrange
-            var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator);
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var instance = new TestRazorPage();
 
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
+            var htmlEncoder = new CommonTestEncoder();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(MyService)))
                            .Returns(myService);
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
                            .Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlEncoder)))
+                           .Returns(htmlEncoder);
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(serviceProvider.Object);
-            var routeContext = new RouteContext(httpContext.Object);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
-            var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider())
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
+            var viewData = new ViewDataDictionary<object>(new EmptyModelMetadataProvider())
             {
                 Model = new MyModel()
             };
             var viewContext = new ViewContext(actionContext,
                                               Mock.Of<IView>(),
                                               viewData,
-                                              TextWriter.Null);
+                                              Mock.Of<ITempDataDictionary>(),
+                                              TextWriter.Null,
+                                              new HtmlHelperOptions());
 
             // Act
             activator.Activate(instance, viewContext);
@@ -121,21 +135,23 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_UsesPassedInViewDataDictionaryInstance_IfPassedInTypeMatches()
         {
             // Arrange
-            var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator);
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var instance = new TestRazorPage();
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
+            var htmlEncoder = new CommonTestEncoder();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(MyService)))
                            .Returns(myService);
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
                            .Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlEncoder)))
+                           .Returns(htmlEncoder);
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(serviceProvider.Object);
-            var routeContext = new RouteContext(httpContext.Object);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
             var viewData = new ViewDataDictionary<MyModel>(new EmptyModelMetadataProvider())
             {
                 Model = new MyModel()
@@ -143,7 +159,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             var viewContext = new ViewContext(actionContext,
                                               Mock.Of<IView>(),
                                               viewData,
-                                              TextWriter.Null);
+                                              Mock.Of<ITempDataDictionary>(),
+                                              TextWriter.Null,
+                                              new HtmlHelperOptions());
 
             // Act
             activator.Activate(instance, viewContext);
@@ -156,26 +174,30 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Activate_DeterminesModelTypeFromProperty()
         {
             // Arrange
-            var typeActivator = new TypeActivator();
-            var activator = new RazorPageActivator(typeActivator);
+            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
             var instance = new DoesNotDeriveFromRazorPageOfTButHasModelProperty();
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
+            var htmlEncoder = new CommonTestEncoder();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(MyService)))
                            .Returns(myService);
             serviceProvider.Setup(p => p.GetService(typeof(IHtmlHelper<object>)))
                            .Returns(helper);
+            serviceProvider.Setup(p => p.GetService(typeof(IHtmlEncoder)))
+                           .Returns(htmlEncoder);
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(c => c.RequestServices)
                        .Returns(serviceProvider.Object);
-            var routeContext = new RouteContext(httpContext.Object);
-            var actionContext = new ActionContext(routeContext, new ActionDescriptor());
-            var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider());
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
+            var viewData = new ViewDataDictionary<object>(new EmptyModelMetadataProvider());
             var viewContext = new ViewContext(actionContext,
                                               Mock.Of<IView>(),
                                               viewData,
-                                              TextWriter.Null);
+                                              Mock.Of<ITempDataDictionary>(),
+                                              TextWriter.Null,
+                                              new HtmlHelperOptions());
 
             // Act
             activator.Activate(instance, viewContext);
@@ -186,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private abstract class TestPageBase<TModel> : RazorPage<TModel>
         {
-            [Activate]
+            [RazorInject]
             public MyService MyService { get; set; }
 
             public MyService MyService2 { get; set; }
@@ -194,7 +216,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private class TestRazorPage : TestPageBase<MyModel>
         {
-            [Activate]
+            [RazorInject]
             internal IHtmlHelper<object> Html { get; private set; }
 
             public override Task ExecuteAsync()
@@ -234,8 +256,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                 ViewContext = viewContext;
             }
         }
-
-        
 
         private class MyModel
         {

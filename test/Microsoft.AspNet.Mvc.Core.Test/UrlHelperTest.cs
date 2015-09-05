@@ -1,21 +1,28 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Testing;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
-using Microsoft.Framework.Logging;
 
-namespace Microsoft.AspNet.Mvc.Core.Test
+namespace Microsoft.AspNet.Mvc
 {
     public class UrlHelperTest
     {
         [Theory]
+        [InlineData(null, null, null)]
+        [InlineData("/myapproot", null, null)]
         [InlineData("", "/Home/About", "/Home/About")]
         [InlineData("/myapproot", "/test", "/test")]
         public void Content_ReturnsContentPath_WhenItDoesNotStartWithToken(string appRoot,
@@ -23,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
                                                                            string expectedPath)
         {
             // Arrange
-            var context = CreateHttpContext(appRoot);
+            var context = CreateHttpContext(GetServices(), appRoot);
             var contextAccessor = CreateActionContext(context);
             var urlHelper = CreateUrlHelper(contextAccessor);
 
@@ -40,13 +47,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("/", "~/", "/")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
         [InlineData("", "~/Home/About", "/Home/About")]
+        [InlineData("/", "~", "/")]
         [InlineData("/myapproot", "~/Content/bootstrap.css", "/myapproot/Content/bootstrap.css")]
         public void Content_ReturnsAppRelativePath_WhenItStartsWithToken(string appRoot,
                                                                          string contentPath,
                                                                          string expectedPath)
         {
             // Arrange
-            var context = CreateHttpContext(appRoot);
+            var context = CreateHttpContext(GetServices(), appRoot);
             var contextAccessor = CreateActionContext(context);
             var urlHelper = CreateUrlHelper(contextAccessor);
 
@@ -60,6 +68,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        [InlineData(" ")]
         public void IsLocalUrl_ReturnsFalseOnEmpty(string url)
         {
             // Arrange
@@ -255,7 +264,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithDictionary()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(values: new RouteValueDictionary(
@@ -274,7 +284,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithEmptyHostName()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -296,7 +307,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithEmptyProtocol()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -318,7 +330,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithNullProtocol()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -340,7 +353,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithNullProtocolAndNullHostName()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -362,7 +376,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithObjectProperties()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(new { Action = "newaction", Controller = "home2", id = "someid" });
@@ -375,7 +390,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithProtocol()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -395,7 +411,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrl_WithUnicodeHost_DoesNotPunyEncodeTheHost()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -416,7 +433,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithRouteNameAndDefaults()
         {
             // Arrange
-            var routeCollection = GetRouter("MyRouteName", "any/url");
+            var services = GetServices();
+            var routeCollection = GetRouter(services, "MyRouteName", "any/url");
             var urlHelper = CreateUrlHelper("/app", routeCollection);
 
             // Act
@@ -430,7 +448,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithRouteNameAndDictionary()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -450,7 +469,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void RouteUrlWithRouteNameAndObjectProperties()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute",
@@ -466,12 +486,65 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         }
 
         [Fact]
+        public void RouteUrlWithUrlRouteContext_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
+
+            var routeContext = new UrlRouteContext()
+            {
+                RouteName = "namedroute",
+                Values = new
+                {
+                    Action = "newaction",
+                    Controller = "home2",
+                    id = "someid"
+                },
+                Fragment = "somefragment",
+                Host = "remotetown",
+                Protocol = "ftp"
+            };
+
+            // Act
+            var url = urlHelper.RouteUrl(routeContext);
+
+            // Assert
+            Assert.Equal("ftp://remotetown/app/named/home2/newaction/someid#somefragment", url);
+        }
+
+        [Fact]
+        public void RouteUrlWithAllParameters_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
+
+            // Act
+            var url = urlHelper.RouteUrl(
+                routeName: "namedroute",
+                values: new
+                {
+                    Action = "newaction",
+                    Controller = "home2",
+                    id = "someid"
+                },
+                fragment: "somefragment",
+                host: "remotetown",
+                protocol: "https");
+
+            // Assert
+            Assert.Equal("https://remotetown/app/named/home2/newaction/someid#somefragment", url);
+        }
+
+        [Fact]
         public void UrlAction_RouteValuesAsDictionary_CaseSensitive()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
-            // We're using a dictionary with a case-sensitive comparer and loading it with data 
+            // We're using a dictionary with a case-sensitive comparer and loading it with data
             // using casings differently from the route. This should still successfully generate a link.
             var dict = new Dictionary<string, object>();
             var id = "suppliedid";
@@ -496,7 +569,8 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void UrlAction_WithUnicodeHost_DoesNotPunyEncodeTheHost()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
             var url = urlHelper.Action(
@@ -514,22 +588,23 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         public void UrlRouteUrl_RouteValuesAsDictionary_CaseSensitive()
         {
             // Arrange
-            var urlHelper = CreateUrlHelperWithRouteCollection("/app");
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
-            // We're using a dictionary with a case-sensitive comparer and loading it with data 
+            // We're using a dictionary with a case-sensitive comparer and loading it with data
             // using casings differently from the route. This should still successfully generate a link.
             var dict = new Dictionary<string, object>();
             var action = "contact";
             var controller = "home";
             var id = "suppliedid";
-            
+
             dict["ACTION"] = action;
             dict["Controller"] = controller;
             dict["ID"] = id;
-            
+
             // Act
             var url = urlHelper.RouteUrl(routeName: "namedroute", values: dict);
-            
+
             // Assert
             Assert.Equal(3, dict.Count);
             Assert.Same(action, dict["ACTION"]);
@@ -538,59 +613,290 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             Assert.Equal("/app/named/home/contact/suppliedid", url);
         }
 
-        private static HttpContext CreateHttpContext(string appRoot, ILoggerFactory factory = null)
+        [Fact]
+        public void UrlActionWithUrlActionContext_ReturnsExpectedResult()
         {
-            if (factory == null)
+            // Arrange
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
+
+            var actionContext = new UrlActionContext()
             {
-                factory = NullLoggerFactory.Instance;
-            }
+                Action = "contact",
+                Controller = "home3",
+                Values = new { id = "idone" },
+                Protocol = "ftp",
+                Host = "remotelyhost",
+                Fragment = "somefragment"
+            };
 
-            var appRootPath = new PathString(appRoot);
-            var request = new Mock<HttpRequest>();
-            request.SetupGet(r => r.PathBase)
-                   .Returns(appRootPath);
-            request.SetupGet(r => r.Host)
-                   .Returns(new HostString("localhost"));
-            var context = new Mock<HttpContext>();
-            context.Setup(m => m.RequestServices.GetService(typeof(ILoggerFactory)))
-                   .Returns(factory);
-            context.SetupGet(c => c.Request)
-                   .Returns(request.Object);
+            // Act
+            var url = urlHelper.Action(actionContext);
 
-            return context.Object;
+            // Assert
+            Assert.Equal("ftp://remotelyhost/app/home3/contact/idone#somefragment", url);
         }
 
-        private static IContextAccessor<ActionContext> CreateActionContext(HttpContext context)
+        [Fact]
+        public void UrlActionWithAllParameters_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
+
+            // Act
+            var url = urlHelper.Action(
+                controller: "home3",
+                action: "contact",
+                values: null,
+                protocol: "https",
+                host: "remotelyhost",
+                fragment: "somefragment"
+                );
+
+            // Assert
+            Assert.Equal("https://remotelyhost/app/home3/contact#somefragment", url);
+        }
+
+        [Fact]
+        public void LinkWithAllParameters_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
+
+            // Act
+            var url = urlHelper.Link("namedroute",
+                                     new
+                                     {
+                                         Action = "newaction",
+                                         Controller = "home",
+                                         id = "someid"
+                                     });
+
+            // Assert
+            Assert.Equal("http://localhost/app/named/home/newaction/someid", url);
+        }
+
+        [Fact]
+        public void LinkWithNullRouteName_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
+
+            // Act
+            var url = urlHelper.Link(null,
+                                     new
+                                     {
+                                         Action = "newaction",
+                                         Controller = "home",
+                                         id = "someid"
+                                     });
+
+            // Assert
+            Assert.Equal("http://localhost/app/home/newaction/someid", url);
+        }
+
+        [Fact]
+        public void LinkWithDefaultsAndNullRouteValues_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var routeCollection = GetRouter(services, "MyRouteName", "any/url");
+            var urlHelper = CreateUrlHelper("/app", routeCollection);
+
+            // Act
+            var url = urlHelper.Link("MyRouteName", null);
+
+            // Assert
+            Assert.Equal("http://localhost/app/any/url", url);
+        }
+
+        [Fact]
+        public void LinkWithCustomHostAndProtocol_ReturnsExpectedResult()
+        {
+            // Arrange
+            var services = GetServices();
+            var routeCollection = GetRouter(services, "MyRouteName", "any/url");
+            var urlHelper = CreateUrlHelper("myhost", "https", routeCollection);
+
+            // Act
+            var url = urlHelper.Link("namedroute",
+                                     new
+                                     {
+                                         Action = "newaction",
+                                         Controller = "home",
+                                         id = "someid"
+                                     });
+
+            // Assert
+            Assert.Equal("https://myhost/named/home/newaction/someid", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController()
+        {
+            // Arrage
+            var services = GetServices();
+            var routeBuilder = new RouteBuilder()
+            {
+                DefaultHandler = new PassThroughRouter(),
+                ServiceProvider = services,
+            };
+
+            routeBuilder.MapRoute(
+                "default",
+                "{first}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var actionContext = services.GetService<IActionContextAccessor>().ActionContext;
+            actionContext.RouteData.Values.Add("first", "a");
+            actionContext.RouteData.Values.Add("controller", "Store");
+            actionContext.RouteData.Values.Add("action", "Buy");
+            actionContext.RouteData.Routers.Add(routeBuilder.Build());
+
+            var urlHelper = CreateUrlHelper(services);
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            var url = urlHelper.Action("Checkout", new { first = "b" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/Store/Checkout", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_AffectsOtherRouteValues()
+        {
+            // Arrage
+            var services = GetServices();
+            var routeBuilder = new RouteBuilder()
+            {
+                DefaultHandler = new PassThroughRouter(),
+                ServiceProvider = services,
+            };
+
+            routeBuilder.MapRoute(
+                "default",
+                "{first}/{second}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var actionContext = services.GetService<IActionContextAccessor>().ActionContext;
+            actionContext.RouteData.Values.Add("first", "a");
+            actionContext.RouteData.Values.Add("second", "x");
+            actionContext.RouteData.Values.Add("controller", "Store");
+            actionContext.RouteData.Values.Add("action", "Buy");
+            actionContext.RouteData.Routers.Add(routeBuilder.Build());
+
+            var urlHelper = CreateUrlHelper(services);
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            //
+            // 'second' gets no special treatment, and picks up its default value instead.
+            var url = urlHelper.Action("Checkout", new { first = "b" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/default/Store/Checkout", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController_ActionPassedInRouteValues()
+        {
+            // Arrage
+            var services = GetServices();
+            var routeBuilder = new RouteBuilder()
+            {
+                DefaultHandler = new PassThroughRouter(),
+                ServiceProvider = services,
+            };
+
+            routeBuilder.MapRoute(
+                "default",
+                "{first}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var actionContext = services.GetService<IActionContextAccessor>().ActionContext;
+            actionContext.RouteData.Values.Add("first", "a");
+            actionContext.RouteData.Values.Add("controller", "Store");
+            actionContext.RouteData.Values.Add("action", "Buy");
+            actionContext.RouteData.Routers.Add(routeBuilder.Build());
+
+            var urlHelper = CreateUrlHelper(services);
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            var url = urlHelper.Action(action: null, values: new { first = "b", action = "Checkout" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/Store/Checkout", url);
+        }
+
+        private static HttpContext CreateHttpContext(
+            IServiceProvider services,
+            string appRoot)
+        {
+            var context = new DefaultHttpContext();
+            context.RequestServices = services;
+
+            context.Request.PathBase = new PathString(appRoot);
+            context.Request.Host = new HostString("localhost");
+
+            return context;
+        }
+
+        private static IActionContextAccessor CreateActionContext(HttpContext context)
         {
             return CreateActionContext(context, (new Mock<IRouter>()).Object);
         }
 
-        private static IContextAccessor<ActionContext> CreateActionContext(HttpContext context, IRouter router)
+        private static IActionContextAccessor CreateActionContext(HttpContext context, IRouter router)
         {
             var routeData = new RouteData();
             routeData.Routers.Add(router);
 
-            var actionContext = new ActionContext(context,
-                                                  routeData,
-                                                  new ActionDescriptor());
-            var contextAccessor = new Mock<IContextAccessor<ActionContext>>();
-            contextAccessor.SetupGet(c => c.Value)
-                           .Returns(actionContext);
-            return contextAccessor.Object;
+            var actionContext = new ActionContext(context, routeData, new ActionDescriptor());
+            return new ActionContextAccessor() { ActionContext = actionContext };
         }
 
         private static UrlHelper CreateUrlHelper()
         {
-            var context = CreateHttpContext(string.Empty);
+            var services = GetServices();
+            var context = CreateHttpContext(services, string.Empty);
             var actionContext = CreateActionContext(context);
 
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
+        private static UrlHelper CreateUrlHelper(IServiceProvider services)
+        {
+            var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
+            return new UrlHelper(
+                services.GetRequiredService<IActionContextAccessor>(),
+                actionSelector.Object);
+        }
+
         private static UrlHelper CreateUrlHelper(string host)
         {
-            var context = CreateHttpContext(string.Empty);
+            var services = GetServices();
+            var context = CreateHttpContext(services, string.Empty);
             context.Request.Host = new HostString(host);
 
             var actionContext = CreateActionContext(context);
@@ -599,7 +905,20 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        private static UrlHelper CreateUrlHelper(IContextAccessor<ActionContext> contextAccessor)
+        private static UrlHelper CreateUrlHelper(string host, string protocol, IRouter router)
+        {
+            var services = GetServices();
+            var context = CreateHttpContext(services, string.Empty);
+            context.Request.Host = new HostString(host);
+            context.Request.Scheme = protocol;
+
+            var actionContext = CreateActionContext(context, router);
+
+            var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
+            return new UrlHelper(actionContext, actionSelector.Object);
+        }
+
+        private static UrlHelper CreateUrlHelper(IActionContextAccessor contextAccessor)
         {
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(contextAccessor, actionSelector.Object);
@@ -607,60 +926,110 @@ namespace Microsoft.AspNet.Mvc.Core.Test
 
         private static UrlHelper CreateUrlHelper(string appBase, IRouter router)
         {
-            var context = CreateHttpContext(appBase);
+            var services = GetServices();
+            var context = CreateHttpContext(services, appBase);
             var actionContext = CreateActionContext(context, router);
 
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        private static UrlHelper CreateUrlHelperWithRouteCollection(string appPrefix)
+        private static UrlHelper CreateUrlHelperWithRouteCollection(IServiceProvider services, string appPrefix)
         {
-            var routeCollection = GetRouter();
-            return CreateUrlHelper("/app", routeCollection);
+            var routeCollection = GetRouter(services);
+            return CreateUrlHelper(appPrefix, routeCollection);
         }
 
-        private static IRouter GetRouter()
+        private static IRouter GetRouter(IServiceProvider services)
         {
-            return GetRouter("mockRoute", "/mockTemplate");
+            return GetRouter(services, "mockRoute", "/mockTemplate");
         }
 
-        private static IRouter GetRouter(string mockRouteName, string mockTemplateValue)
+        private static IServiceProvider GetServices()
         {
-            var rt = new RouteBuilder();
+            var services = new Mock<IServiceProvider>();
+
+            var optionsAccessor = new Mock<IOptions<RouteOptions>>();
+            optionsAccessor
+                .SetupGet(o => o.Value)
+                .Returns(new RouteOptions());
+            services
+                .Setup(s => s.GetService(typeof(IOptions<RouteOptions>)))
+                .Returns(optionsAccessor.Object);
+
+            services
+                .Setup(s => s.GetService(typeof(IInlineConstraintResolver)))
+                .Returns(new DefaultInlineConstraintResolver(optionsAccessor.Object));
+
+            services
+                .Setup(s => s.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
+
+            services
+                .Setup(s => s.GetService(typeof(IActionContextAccessor)))
+                .Returns(new ActionContextAccessor()
+                {
+                    ActionContext = new ActionContext()
+                    {
+                        HttpContext = new DefaultHttpContext()
+                        {
+                            ApplicationServices = services.Object,
+                            RequestServices = services.Object,
+                        },
+                        RouteData = new RouteData(),
+                    },
+                });
+
+            return services.Object;
+        }
+
+
+        private static IRouter GetRouter(
+            IServiceProvider services,
+            string mockRouteName,
+            string mockTemplateValue)
+        {
+            var routeBuilder = new RouteBuilder();
+            routeBuilder.ServiceProvider = services;
+
             var target = new Mock<IRouter>(MockBehavior.Strict);
             target
-                .Setup(e => e.GetVirtualPath(It.IsAny<VirtualPathContext>()))
-                .Callback<VirtualPathContext>(c =>
-                {
-                    rt.ToString();
-                    c.IsBound = true;
-                })
-                .Returns<VirtualPathContext>(rc => null);
-            rt.DefaultHandler = target.Object;
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            var accessorMock = new Mock<IOptions<RouteOptions>>();
-            accessorMock.SetupGet(o => o.Options).Returns(new RouteOptions());
-            serviceProviderMock.Setup(o => o.GetService(typeof(IInlineConstraintResolver)))
-                               .Returns(new DefaultInlineConstraintResolver(serviceProviderMock.Object,
-                                                                            accessorMock.Object));
+                .Setup(router => router.GetVirtualPath(It.IsAny<VirtualPathContext>()))
+                .Callback<VirtualPathContext>(context => context.IsBound = true)
+                .Returns<VirtualPathContext>(context => null);
+            routeBuilder.DefaultHandler = target.Object;
 
-            rt.ServiceProvider = serviceProviderMock.Object;
-            rt.MapRoute(string.Empty,
+            routeBuilder.MapRoute(string.Empty,
                         "{controller}/{action}/{id}",
                         new RouteValueDictionary(new { id = "defaultid" }));
-            rt.MapRoute("namedroute",
+
+            routeBuilder.MapRoute("namedroute",
                         "named/{controller}/{action}/{id}",
                         new RouteValueDictionary(new { id = "defaultid" }));
 
             var mockHttpRoute = new Mock<IRouter>();
-            mockHttpRoute.Setup(mock =>
-                                    mock.GetVirtualPath(It.Is<VirtualPathContext>(c => string.Equals(c.RouteName,
-                                                                                                  mockRouteName)
-                                                                                  )))
-                         .Returns(mockTemplateValue);
-            rt.Routes.Add(mockHttpRoute.Object);
-            return rt.Build();
+            mockHttpRoute
+                .Setup(mock => mock.GetVirtualPath(It.Is<VirtualPathContext>(c => string.Equals(c.RouteName, mockRouteName))))
+                .Callback<VirtualPathContext>(c => c.IsBound = true)
+                .Returns(new VirtualPathData(mockHttpRoute.Object, mockTemplateValue));
+
+            routeBuilder.Routes.Add(mockHttpRoute.Object);
+            return routeBuilder.Build();
+        }
+
+        private class PassThroughRouter : IRouter
+        {
+            public VirtualPathData GetVirtualPath(VirtualPathContext context)
+            {
+                context.IsBound = true;
+                return null;
+            }
+
+            public Task RouteAsync(RouteContext context)
+            {
+                context.IsHandled = true;
+                return Task.FromResult(false);
+            }
         }
     }
 }

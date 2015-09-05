@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,27 +6,30 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    // Each of these tests makes two requests, because we want each test to verify that the data is 
+    // Each of these tests makes two requests, because we want each test to verify that the data is
     // PER-REQUEST and does not linger around to impact the next request.
     public class RequestServicesTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(RequestServicesWebSite));
+        private const string SiteName = nameof(RequestServicesWebSite);
         private readonly Action<IApplicationBuilder> _app = new RequestServicesWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new RequestServicesWebSite.Startup().ConfigureServices;
 
         [Theory]
         [InlineData("http://localhost/RequestScoped/FromController")]
         [InlineData("http://localhost/Other/FromFilter")]
         [InlineData("http://localhost/Other/FromView")]
         [InlineData("http://localhost/Other/FromViewComponent")]
+        [InlineData("http://localhost/Other/FromModelProperty")]
+        [InlineData("http://localhost/Other/FromActionArgument")]
         public async Task RequestServices(string url)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act & Assert
@@ -47,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RequestServices_TagHelper()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/Other/FromTagHelper";
@@ -63,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
                 var body = (await response.Content.ReadAsStringAsync()).Trim();
 
-                var expected = "<requestscoped>" + requestId + "</requestscoped>";
+                var expected = "<request-scoped>" + requestId + "</request-scoped>";
                 Assert.Equal(expected, body);
             }
         }
@@ -72,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RequestServices_ActionConstraint()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/Other/FromActionConstraint";

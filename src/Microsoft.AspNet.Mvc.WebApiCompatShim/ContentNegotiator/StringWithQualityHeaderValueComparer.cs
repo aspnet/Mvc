@@ -1,19 +1,19 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNETCORE50
+#if DNXCORE50
 
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 
 namespace System.Net.Http.Formatting
 {
     /// <summary>
     /// Implementation of <see cref="IComparer{T}"/> that can compare content negotiation header fields
-    /// based on their quality values (a.k.a q-values). This applies to values used in accept-charset, 
-    /// accept-encoding, accept-language and related header fields with similar syntax rules. See 
-    /// <see cref="MediaTypeWithQualityHeaderValueComparer"/> for a comparer for media type 
+    /// based on their quality values (a.k.a q-values). This applies to values used in accept-charset,
+    /// accept-encoding, accept-language and related header fields with similar syntax rules. See
+    /// <see cref="MediaTypeWithQualityHeaderValueComparer"/> for a comparer for media type
     /// q-values.
     /// </summary>
     internal class StringWithQualityHeaderValueComparer : IComparer<StringWithQualityHeaderValue>
@@ -31,10 +31,10 @@ namespace System.Net.Http.Formatting
         }
 
         /// <summary>
-        /// Compares two <see cref="StringWithQualityHeaderValue"/> based on their quality value (a.k.a their "q-value").
-        /// Values with identical q-values are considered equal (i.e the result is 0) with the exception of wild-card
-        /// values (i.e. a value of "*") which are considered less than non-wild-card values. This allows to sort
-        /// a sequence of <see cref="StringWithQualityHeaderValue"/> following their q-values ending up with any
+        /// Compares two <see cref="StringWithQualityHeaderValue"/> based on their quality value (a.k.a their
+        /// "q-value"). Values with identical q-values are considered equal (i.e the result is 0) with the exception of
+        /// wild-card values (i.e. a value of "*") which are considered less than non-wild-card values. This allows to
+        /// sort a sequence of <see cref="StringWithQualityHeaderValue"/> following their q-values ending up with any
         /// wild-cards at the end.
         /// </summary>
         /// <param name="stringWithQuality1">The first value to compare.</param>
@@ -43,12 +43,12 @@ namespace System.Net.Http.Formatting
         public int Compare(StringWithQualityHeaderValue stringWithQuality1,
                            StringWithQualityHeaderValue stringWithQuality2)
         {
-            Contract.Assert(stringWithQuality1 != null);
-            Contract.Assert(stringWithQuality2 != null);
+            Debug.Assert(stringWithQuality1 != null);
+            Debug.Assert(stringWithQuality2 != null);
 
-            double quality1 = stringWithQuality1.Quality ?? FormattingUtilities.Match;
-            double quality2 = stringWithQuality2.Quality ?? FormattingUtilities.Match;
-            double qualityDifference = quality1 - quality2;
+            var quality1 = stringWithQuality1.Quality ?? FormattingUtilities.Match;
+            var quality2 = stringWithQuality2.Quality ?? FormattingUtilities.Match;
+            var qualityDifference = quality1 - quality2;
             if (qualityDifference < 0)
             {
                 return -1;
@@ -58,13 +58,13 @@ namespace System.Net.Http.Formatting
                 return 1;
             }
 
-            if (!String.Equals(stringWithQuality1.Value, stringWithQuality2.Value, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(stringWithQuality1.Value, stringWithQuality2.Value, StringComparison.OrdinalIgnoreCase))
             {
-                if (String.Equals(stringWithQuality1.Value, "*", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(stringWithQuality1.Value, "*", StringComparison.Ordinal))
                 {
                     return -1;
                 }
-                else if (String.Equals(stringWithQuality2.Value, "*", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(stringWithQuality2.Value, "*", StringComparison.Ordinal))
                 {
                     return 1;
                 }

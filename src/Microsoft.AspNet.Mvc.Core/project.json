@@ -1,26 +1,30 @@
 {
-  "description": "The core runtime components of ASP.NET MVC.",
-  "version": "6.0.0-*",
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-    "Microsoft.AspNet.FileSystems": "1.0.0-*",
-    "Microsoft.AspNet.Hosting": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.HeaderValueAbstractions": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-    "Microsoft.AspNet.Mvc.ModelBinding": "6.0.0-*",
-    "Microsoft.AspNet.Routing": "1.0.0-*",
-    "Microsoft.AspNet.Security": "1.0.0-*",
-    "Microsoft.AspNet.Security.DataProtection": "1.0.0-*",
-    "Microsoft.Framework.Runtime.Interfaces": { "version": "1.0.0-*", "type": "build" }
-  },
-  "frameworks": {
-    "aspnet50": {},
-    "aspnetcore50": {
-      "dependencies": {
-        "Microsoft.CSharp": "4.0.0-beta-*"
-      }
+    "description": "The core runtime components of ASP.NET MVC.",
+    "version": "6.0.0-*",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aspnet/mvc"
+    },
+    "compilationOptions": {
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Microsoft.AspNet.Authorization": "1.0.0-*",
+        "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-*",
+        "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
+        "Microsoft.AspNet.Mvc.Abstractions": "6.0.0-*",
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*",
+        "Microsoft.Framework.ClosedGenericMatcher.Sources": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.Logging.Abstractions": "1.0.0-*",
+        "Microsoft.Framework.Notification": "1.0.0-*",
+        "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.PropertyActivator.Sources": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.SecurityHelper.Sources": { "version": "1.0.0-*", "type": "build" }
+
+    },
+    "frameworks": {
+        "dnx451": { },
+        "dnxcore50": { }
     }
-  }
 }

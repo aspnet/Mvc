@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -32,8 +34,6 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="methods">The HTTP methods the action supports.</param>
         public AcceptVerbsAttribute(params string[] methods)
         {
-            // TODO: This assumes that the methods are exactly same as standard Http Methods.
-            // The Http Abstractions should take care of these.
             _httpMethods = methods.Select(method => method.ToUpperInvariant());
         }
 

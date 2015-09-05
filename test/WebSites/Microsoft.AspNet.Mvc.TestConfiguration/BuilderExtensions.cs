@@ -1,22 +1,21 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.ConfigurationModel;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNet.Mvc.TestConfiguration;
 
 namespace Microsoft.AspNet.Builder
 {
     public static class BuilderExtensions
     {
-        public static Configuration GetTestConfiguration(this IApplicationBuilder app)
+        // Should be added to the pipeline as early as possible.
+        public static IApplicationBuilder UseCultureReplacer(this IApplicationBuilder app)
         {
-            var configurationProvider = app.ApplicationServices.GetService<ITestConfigurationProvider>();
-            var configuration = configurationProvider == null
-                ? new Configuration()
-                : configurationProvider.Configuration;
+            return app.UseMiddleware<CultureReplacerMiddleware>();
+        }
 
-            return configuration;
+        public static IApplicationBuilder UseErrorReporter(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<ErrorReporterMiddleware>();
         }
     }
 }

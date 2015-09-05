@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
 using Microsoft.Framework.OptionsModel;
 
@@ -15,7 +16,7 @@ namespace WebApiCompatShimWebSite
 {
     public class BasicApiController : ApiController
     {
-        [Activate]
+        [FromServices]
         public IOptions<WebApiCompatShimOptions> OptionsAccessor { get; set; }
 
         // Verifies property activation
@@ -45,9 +46,9 @@ namespace WebApiCompatShimWebSite
         [HttpGet]
         public string[] GetFormatters()
         {
-            return OptionsAccessor.Options.Formatters.Select(f => f.GetType().FullName).ToArray();
+            return OptionsAccessor.Value.Formatters.Select(f => f.GetType().FullName).ToArray();
         }
-        
+
         [HttpGet]
         public bool ValidateObject_Passes()
         {

@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Formatting;
 using System.Text;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 {
     public static class FormDataCollectionExtensions
     {
-        // This is a helper method to use Model Binding over a JQuery syntax. 
+        // This is a helper method to use Model Binding over a JQuery syntax.
         // Normalize from JQuery to MVC keys. The model binding infrastructure uses MVC keys
         // x[] --> x
         // [] --> ""
@@ -26,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             var i = 0;
             while (true)
             {
-                int indexOpen = key.IndexOf('[', i);
+                var indexOpen = key.IndexOf('[', i);
                 if (indexOpen < 0)
                 {
                     // Fast path, no normalization needed.
@@ -47,23 +48,23 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
                 var indexClose = key.IndexOf(']', indexOpen);
                 if (indexClose == -1)
                 {
-                    throw new ArgumentException(Resources.JQuerySyntaxMissingClosingBracket, "key");
+                    throw new ArgumentException(Resources.JQuerySyntaxMissingClosingBracket, nameof(key));
                 }
 
                 if (indexClose == indexOpen + 1)
                 {
-                    // Empty bracket. Signifies array. Just remove. 
+                    // Empty bracket. Signifies array. Just remove.
                 }
                 else
                 {
                     if (char.IsDigit(key[indexOpen + 1]))
                     {
-                        // array index. Leave unchanged. 
+                        // array index. Leave unchanged.
                         sb.Append(key, indexOpen, indexClose - indexOpen + 1);
                     }
                     else
                     {
-                        // Field name.  Convert to dot notation. 
+                        // Field name.  Convert to dot notation.
                         sb.Append('.');
                         sb.Append(key, indexOpen + 1, indexClose - indexOpen - 1);
                     }
@@ -100,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             if (count >= MediaTypeFormatter.MaxHttpCollectionKeys)
             {
                 var message = Resources.FormatMaxHttpCollectionKeyLimitReached(
-                    MediaTypeFormatter.MaxHttpCollectionKeys, 
+                    MediaTypeFormatter.MaxHttpCollectionKeys,
                     typeof(MediaTypeFormatter));
                 throw new InvalidOperationException(message);
             }

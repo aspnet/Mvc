@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,29 +6,27 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class JsonResultTest
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices(nameof(BasicWebSite));
+        private const string SiteName = nameof(BasicWebSite);
         private readonly Action<IApplicationBuilder> _app = new BasicWebSite.Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new BasicWebSite.Startup().ConfigureServices;
 
-        [Theory]
-        [InlineData("application/json")]
-        [InlineData("text/json")]
-        public async Task JsonResult_Conneg(string mediaType)
+        [Fact]
+        public async Task JsonResult_UsesDefaultContentType()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/JsonResult/Plain";
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.TryAddWithoutValidation("Accept", mediaType);
 
             // Act
             var response = await client.SendAsync(request);
@@ -36,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(mediaType, response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
             Assert.Equal("{\"Message\":\"hello\"}", content);
         }
 
@@ -48,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task JsonResult_Conneg_Fails(string mediaType)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/JsonResult/Plain";
@@ -71,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task JsonResult_Null()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/JsonResult/Null";
@@ -93,7 +91,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task JsonResult_String()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/JsonResult/String";
@@ -110,19 +108,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("\"hello\"", content);
         }
 
-        [Theory]
-        [InlineData("application/json")]
-        [InlineData("text/json")]
-        public async Task JsonResult_CustomFormatter_Conneg(string mediaType)
+        [Fact]
+        public async Task JsonResult_Uses_CustomSerializerSettings()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
-            var url = "http://localhost/JsonResult/CustomFormatter";
+            var url = "http://localhost/JsonResult/CustomSerializerSettings";
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.TryAddWithoutValidation("Accept", mediaType);
 
             // Act
             var response = await client.SendAsync(request);
@@ -130,33 +125,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(mediaType, response.Content.Headers.ContentType.MediaType);
-            Assert.Equal("{\"message\":\"hello\"}", content);
-        }
-
-        // Using an Accept header can't force Json to not be Json. If your accept header doesn't jive with the
-        // formatters/content-type configured on the result it will be ignored.
-        [Theory]
-        [InlineData("application/xml")]
-        [InlineData("text/xml")]
-        public async Task JsonResult_CustomFormatter_Conneg_Fails(string mediaType)
-        {
-            // Arrange
-            var server = TestServer.Create(_provider, _app);
-            var client = server.CreateClient();
-
-            var url = "http://localhost/JsonResult/CustomFormatter";
-
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.TryAddWithoutValidation("Accept", mediaType);
-
-            // Act
-            var response = await client.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
             Assert.Equal("{\"message\":\"hello\"}", content);
         }
 
@@ -164,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task JsonResult_CustomContentType()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var url = "http://localhost/JsonResult/CustomContentType";

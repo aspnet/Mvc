@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using ModelBindingWebSite;
+using ModelBindingWebSite.Models;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -23,8 +24,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     /// </summary>
     public class RoundTripTests
     {
-        private readonly IServiceProvider _services = TestHelper.CreateServices("ModelBindingWebSite");
+        private const string SiteName = nameof(ModelBindingWebSite);
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
 
         // Uses the expression p => p.Name
         [Fact]
@@ -32,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var expected = "test-name";
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -54,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var expected = 40;
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -76,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var expected = 12;
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -97,15 +99,21 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RoundTrippedValues_GetsModelBound_ForStringIndexedProperties()
         {
             // Arrange
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
+            var expected = "6 feet";
 
             // Act
             var expression = await client.GetStringAsync("http://localhost/RoundTrip/GetPersonParentHeightAttribute");
+            var keyValuePairs = new[]
+            {
+                new KeyValuePair<string, string>(expression, expected),
+            };
+            var result = await GetPerson(client, keyValuePairs);
 
             // Assert
             Assert.Equal("Parent.Attributes[height]", expression);
-            // TODO Requires resolution in model binding as part of #1418
+            Assert.Equal(expected, result.Parent.Attributes["height"]);
         }
 
         // Uses the expression p => p.Dependents[0].Dependents[0].Name
@@ -114,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         {
             // Arrange
             var expected = "test-nested-name";
-            var server = TestServer.Create(_services, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act

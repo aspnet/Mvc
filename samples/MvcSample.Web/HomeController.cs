@@ -1,7 +1,14 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
 using Microsoft.AspNet.Mvc.Rendering;
 using MvcSample.Web.Models;
 
@@ -34,6 +41,7 @@ namespace MvcSample.Web
             return View();
         }
 
+        [SkipStatusCodePages]
         public ActionResult NotFound()
         {
             return HttpNotFound();
@@ -86,6 +94,41 @@ namespace MvcSample.Web
             return View("MyView", user);
         }
 
+        [FromServices]
+        public IHostingEnvironment HostingEnvironment { get; set; }
+
+        /// <summary>
+        /// Action that shows multiple file upload.
+        /// </summary>
+        public async Task<ActionResult> PostFile(IList<IFormFile> files)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("MyView");
+            }
+
+            foreach (var f in files)
+            {
+                await f.SaveAsAsync(Path.Combine(HostingEnvironment.WebRootPath, "test-file" + files.IndexOf(f)));
+            }
+            return View();
+        }
+
+        public ActionResult AddTempData()
+        {
+            TempData["controllerData"] = "Temporary data from controller through ViewBag.";
+            TempData["tempData"] = "Temporary data directly from TempData.";
+            return RedirectToAction("UseTempData");
+        }
+
+        public ActionResult UseTempData()
+        {
+            var data = TempData["controllerData"];
+            ViewBag.TempData = data;
+
+            return View("MyView", CreateUser());
+        }
+
         /// <summary>
         /// Action that exercises input formatter
         /// </summary>
@@ -132,7 +175,6 @@ namespace MvcSample.Web
                 Alive = true,
                 Age = 13,
                 GPA = 13.37M,
-                Password = "Secure string",
                 Dependent = new User()
                 {
                     Name = "Dependents name",

@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNet.Razor.Generator.Compiler;
+using Microsoft.AspNet.Razor.Chunks;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="modelType">The model type to be used to replace &lt;TModel&gt; tokens.</param>
         public InjectChunkMerger([NotNull] string modelType)
         {
-            _modelType = '<' + modelType + '>';
+            _modelType = "<" + modelType + ">";
         }
 
         /// <inheritdoc />
@@ -34,13 +34,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         /// <inheritdoc />
-        public void Merge([NotNull] CodeTree codeTree, [NotNull] Chunk chunk)
+        public void Merge([NotNull] ChunkTree chunkTree, [NotNull] Chunk chunk)
         {
             var injectChunk = ChunkHelper.EnsureChunk<InjectChunk>(chunk);
             if (!_addedMemberNames.Contains(injectChunk.MemberName))
             {
                 _addedMemberNames.Add(injectChunk.MemberName);
-                codeTree.Chunks.Add(TransformChunk(injectChunk));
+                chunkTree.Chunks.Add(TransformChunk(injectChunk));
             }
         }
 

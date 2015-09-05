@@ -1,6 +1,11 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using MvcSample.Web.Models;
 
 namespace MvcSample.Web.RandomNameSpace
@@ -9,13 +14,10 @@ namespace MvcSample.Web.RandomNameSpace
     {
         private User _user = new User() { Name = "User Name", Address = "Home Address" };
 
-        [Activate]
-        public HttpResponse Response
-        {
-            get; set;
-        }
-
+        [ActionContext]
         public ActionContext ActionContext { get; set; }
+
+        public HttpResponse Response => ActionContext.HttpContext.Response;
 
         public string Index()
         {

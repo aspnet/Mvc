@@ -1,13 +1,16 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net.Http;
 using System.Web.Http;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 {
     /// <summary>
-    /// An action filter which sets <see cref="ActionExecutedContext.Result"/> to an <see cref="ObjectResult"/> 
+    /// An action filter which sets <see cref="ActionExecutedContext.Result"/> to an <see cref="ObjectResult"/>
     /// if the exception type is <see cref="HttpResponseException"/>.
     /// This filter runs immediately after the action.
     /// </summary>

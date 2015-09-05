@@ -1,13 +1,17 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Features;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.PageExecutionInstrumentation;
-using Microsoft.AspNet.PipelineCore;
+using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -16,19 +20,23 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class RazorViewTest
     {
         private const string LayoutPath = "~/Shared/_Layout.cshtml";
+
+#pragma warning disable 1998
         private readonly RenderAsyncDelegate _nullRenderAsyncDelegate = async writer => { };
+#pragma warning restore 1998
 
         [Fact]
-        public async Task RenderAsync_AsPartial_DoesNotBufferOutput()
+        public async Task RenderAsync_AsPartial_BuffersOutput()
         {
             // Arrange
             TextWriter actual = null;
             var page = new TestableRazorPage(v =>
             {
                 actual = v.Output;
+                v.HtmlEncoder = new CommonTestEncoder();
                 v.Write("Hello world");
             });
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -40,8 +48,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             await view.RenderAsync(viewContext);
 
             // Assert
-            Assert.Same(expected, actual);
-            Assert.Equal("Hello world", viewContext.Writer.ToString());
+            Assert.NotSame(expected, actual);
+            Assert.IsAssignableFrom<IBufferedTextWriter>(actual);
+            Assert.Equal("HtmlEncode[[Hello world]]", viewContext.Writer.ToString());
         }
 
         [Fact]
@@ -55,7 +64,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 Assert.Same(viewData, v.ViewContext.ViewData);
             });
             var activator = new Mock<IRazorPageActivator>();
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
                                      page,
@@ -80,6 +89,61 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
+        public async Task ViewContext_ExecutingPagePath_ReturnsPathOfRazorPageBeingExecuted()
+        {
+            // Arrange
+            var pagePath = "/my/view";
+            var paths = new List<string>();
+            var page = new TestableRazorPage(v =>
+            {
+                paths.Add(v.ViewContext.ExecutingFilePath);
+                Assert.Equal(pagePath, v.ViewContext.View.Path);
+            })
+            {
+                Path = pagePath
+            };
+
+            var viewStart = new TestableRazorPage(v =>
+            {
+                v.Layout = LayoutPath;
+                paths.Add(v.ViewContext.ExecutingFilePath);
+                Assert.Equal(pagePath, v.ViewContext.View.Path);
+            })
+            {
+                Path = "_ViewStart"
+            };
+
+            var layout = new TestableRazorPage(v =>
+            {
+                v.RenderBodyPublic();
+                paths.Add(v.ViewContext.ExecutingFilePath);
+                Assert.Equal(pagePath, v.ViewContext.View.Path);
+            })
+            {
+                Path = LayoutPath
+            };
+
+            var activator = Mock.Of<IRazorPageActivator>();
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(v => v.FindPage(It.IsAny<ActionContext>(), LayoutPath))
+                      .Returns(new RazorPageResult(LayoutPath, layout));
+            var view = new RazorView(viewEngine.Object,
+                                     activator,
+                                     CreateViewStartProvider(viewStart),
+                                     page,
+                                     isPartial: false);
+
+            var viewContext = CreateViewContext(view);
+            var expectedWriter = viewContext.Writer;
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            Assert.Equal(new[] { "_ViewStart", pagePath, LayoutPath }, paths);
+        }
+
+        [Fact]
         public async Task RenderAsync_AsPartial_ActivatesViews()
         {
             // Arrange
@@ -87,7 +151,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var activator = new Mock<IRazorPageActivator>();
             activator.Setup(a => a.Activate(page, It.IsAny<ViewContext>()))
                      .Verifiable();
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
                                      page,
@@ -102,15 +166,36 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
-        public async Task RenderAsync_AsPartial_DoesNotExecuteLayoutOrViewStartPages()
+        public async Task RenderAsync_AsPartial_ExecutesLayout_ButNotViewStartPages()
         {
+            // Arrange
+            var htmlEncoder = new CommonTestEncoder();
+            var expected = string.Join(Environment.NewLine,
+                                       "HtmlEncode[[layout-content",
+                                       "]]HtmlEncode[[page-content]]");
             var page = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Layout = LayoutPath;
+                v.Write("page-content");
+            });
+
+            var layout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Write("layout-content" + Environment.NewLine);
+                v.RenderBodyPublic();
             });
             var pageFactory = new Mock<IRazorPageFactory>();
+            pageFactory.Setup(p => p.CreateInstance(LayoutPath))
+                       .Returns(layout);
+
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(v => v.FindPage(It.IsAny<ActionContext>(), LayoutPath))
+                      .Returns(new RazorPageResult(LayoutPath, layout));
+
             var viewStartProvider = CreateViewStartProvider();
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      viewStartProvider,
                                      page,
@@ -121,9 +206,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             await view.RenderAsync(viewContext);
 
             // Assert
-            pageFactory.Verify(v => v.CreateInstance(It.IsAny<string>()), Times.Never());
             Mock.Get(viewStartProvider)
                 .Verify(v => v.GetViewStartPages(It.IsAny<string>()), Times.Never());
+            Assert.Equal(expected, viewContext.Writer.ToString());
         }
 
         [Fact]
@@ -135,7 +220,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 actual = v.Output;
             });
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -159,7 +244,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 v.WriteLiteral("Hello world");
             });
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -185,7 +270,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var activator = new Mock<IRazorPageActivator>();
             activator.Setup(a => a.Activate(page, It.IsAny<ViewContext>()))
                      .Verifiable();
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      activator.Object,
                                      CreateViewStartProvider(),
                                      page,
@@ -227,7 +312,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                      .Verifiable();
             activator.Setup(a => a.Activate(page, It.IsAny<ViewContext>()))
                      .Verifiable();
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      activator.Object,
                                      CreateViewStartProvider(viewStart1, viewStart2),
                                      page,
@@ -242,17 +327,58 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Fact]
+        public async Task RenderAsync_ThrowsIfLayoutPageCannotBeFound()
+        {
+            // Arrange
+            var expected = string.Join(Environment.NewLine,
+                                       "The layout view 'Does-Not-Exist-Layout' could not be located. " +
+                                       "The following locations were searched:",
+                                       "path1",
+                                       "path2");
+
+            var layoutPath = "Does-Not-Exist-Layout";
+            var page = new TestableRazorPage(v =>
+            {
+                v.Layout = layoutPath;
+            });
+
+            var viewEngine = new Mock<IRazorViewEngine>();
+            var activator = new Mock<IRazorPageActivator>();
+            var view = new RazorView(viewEngine.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     Mock.Of<IViewStartProvider>(),
+                                     page,
+                                     isPartial: false);
+            var viewContext = CreateViewContext(view);
+            viewEngine.Setup(v => v.FindPage(viewContext, layoutPath))
+                      .Returns(new RazorPageResult(layoutPath, new[] { "path1", "path2" }))
+                      .Verifiable();
+
+            // Act
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+
+            // Assert
+            Assert.Equal(expected, ex.Message);
+            viewEngine.Verify();
+        }
+
+        [Fact]
         public async Task RenderAsync_ExecutesLayoutPages()
         {
             // Arrange
-            var expected =
-@"layout-content
-head-content
-body-content
-foot-content";
+            var htmlEncoder = new CommonTestEncoder();
+            var htmlEncodedNewLine = htmlEncoder.HtmlEncode(Environment.NewLine);
+            var expected = "HtmlEncode[[layout-content" +
+                           Environment.NewLine +
+                           "]]head-content" +
+                           htmlEncodedNewLine +
+                           "body-content" +
+                           htmlEncodedNewLine +
+                           "foot-content";
 
             var page = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.WriteLiteral("body-content");
                 v.Layout = LayoutPath;
                 v.DefineSection("head", async writer =>
@@ -266,6 +392,7 @@ foot-content";
             });
             var layout = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Write("layout-content" + Environment.NewLine);
                 v.Write(v.RenderSection("head"));
                 v.Write(Environment.NewLine);
@@ -278,16 +405,17 @@ foot-content";
                      .Verifiable();
             activator.Setup(a => a.Activate(layout, It.IsAny<ViewContext>()))
                      .Verifiable();
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance(LayoutPath))
-                       .Returns(layout);
+            var viewEngine = new Mock<IRazorViewEngine>();
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      activator.Object,
                                      CreateViewStartProvider(),
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
+            viewEngine.Setup(p => p.FindPage(viewContext, LayoutPath))
+                       .Returns(new RazorPageResult(LayoutPath, layout))
+                       .Verifiable();
 
             // Act
             await view.RenderAsync(viewContext);
@@ -296,6 +424,7 @@ foot-content";
             // Verify the activator was invoked for the primary page and layout page.
             activator.Verify();
             Assert.Equal(expected, viewContext.Writer.ToString());
+            viewEngine.Verify();
         }
 
         [Fact]
@@ -311,12 +440,15 @@ foot-content";
             var layout = new TestableRazorPage(v =>
             {
                 v.RenderBodyPublic();
-            });
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance(LayoutPath))
-                       .Returns(layout);
+            })
+            {
+                Path = LayoutPath
+            };
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), LayoutPath))
+                       .Returns(new RazorPageResult(LayoutPath, layout));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -325,7 +457,250 @@ foot-content";
 
             // Act and Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
-            Assert.Equal("The following sections have been defined but have not been rendered: 'head, foot'.", ex.Message);
+            Assert.Equal("The following sections have been defined but have not been rendered by the page "
+                + $"at '{LayoutPath}': 'head, foot'.", ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderAsync_SucceedsIfNestedSectionsAreRendered()
+        {
+            // Arrange
+            var expected = string.Join(
+                Environment.NewLine,
+                "layout-section-content",
+                "page-section-content");
+
+            var htmlEncoder = new CommonTestEncoder();
+            var page = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout1.cshtml";
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteAsync("page-section-content");
+                });
+            });
+            var nestedLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout2.cshtml";
+                v.RenderBodyPublic();
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteLineAsync("layout-section-content");
+                    await v.RenderSectionAsync("foo");
+                });
+            })
+            {
+                Path = "/Shared/Layout1.cshtml"
+            };
+            var baseLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.RenderBodyPublic();
+                v.RenderSection("foo");
+            })
+            {
+                Path = "/Shared/Layout2.cshtml"
+            };
+
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout1.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout1.cshtml", nestedLayout));
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout2.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout2.cshtml", baseLayout));
+
+            var view = new RazorView(viewEngine.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
+                                     page,
+                                     isPartial: false);
+            var viewContext = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            Assert.Equal(expected, viewContext.Writer.ToString());
+        }
+
+        [Fact]
+        public async Task RenderAsync_SucceedsIfRenderBodyIsNotInvoked_ButAllSectionsAreRendered()
+        {
+            // Arrange
+            var expected = string.Join(
+                Environment.NewLine,
+                "layout-section-content",
+                "page-section-content");
+
+            var htmlEncoder = new CommonTestEncoder();
+            var page = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "NestedLayout";
+                v.WriteLiteral("Page body content that will not be written");
+                v.DefineSection("sectionA", async writer =>
+                {
+                    await writer.WriteAsync("page-section-content");
+                });
+            });
+            var nestedLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "Layout";
+                v.WriteLiteral("Nested layout content that will not be written");
+                v.DefineSection("sectionB", async writer =>
+                {
+                    await writer.WriteLineAsync("layout-section-content");
+                    await v.RenderSectionAsync("sectionA");
+                });
+            });
+            var baseLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.RenderSection("sectionB");
+            });
+
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "NestedLayout"))
+                       .Returns(new RazorPageResult("NestedLayout", nestedLayout));
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "Layout"))
+                       .Returns(new RazorPageResult("Layout", baseLayout));
+
+            var view = new RazorView(viewEngine.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
+                                     page,
+                                     isPartial: false);
+            var viewContext = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            Assert.Equal(expected, viewContext.Writer.ToString());
+        }
+
+        [Fact]
+        public async Task RenderAsync_WithNestedSections_ThrowsIfSectionsWereDefinedButNotRendered()
+        {
+            // Arrange
+            var htmlEncoder = new CommonTestEncoder();
+            var page = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout1.cshtml";
+                v.WriteLiteral("BodyContent");
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteLineAsync("foo-content");
+                });
+            });
+            var nestedLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout2.cshtml";
+                v.Write("NestedLayout" + Environment.NewLine);
+                v.RenderBodyPublic();
+                v.DefineSection("foo", async _ =>
+                {
+                    await v.RenderSectionAsync("foo");
+                });
+            })
+            {
+                Path = "/Shared/Layout1.cshtml"
+            };
+            var baseLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Write("BaseLayout" + Environment.NewLine);
+                v.RenderBodyPublic();
+            })
+            {
+                Path = "/Shared/Layout2.cshtml"
+            };
+
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout1.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout1.cshtml", nestedLayout));
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout2.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout2.cshtml", baseLayout));
+
+            var view = new RazorView(viewEngine.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
+                                     page,
+                                     isPartial: false);
+            var viewContext = CreateViewContext(view);
+
+            // Act and Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+            Assert.Equal("The following sections have been defined but have not been rendered by the page at "
+                + "'/Shared/Layout1.cshtml': 'foo'.", ex.Message);
+        }
+
+        [Fact]
+        public async Task RenderAsync_WithNestedSectionsOfTheSameName_ThrowsIfSectionsWereDefinedButNotRendered()
+        {
+            // Arrange
+            var htmlEncoder = new CommonTestEncoder();
+            var page = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout1.cshtml";
+                v.WriteLiteral("BodyContent");
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteLineAsync("foo-content");
+                });
+            })
+            {
+                Path = "Page"
+            };
+
+            var nestedLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout2.cshtml";
+                v.Write("NestedLayout" + Environment.NewLine);
+                v.RenderBodyPublic();
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteLineAsync("dont-render-inner-foo");
+                });
+            })
+            {
+                Path = "/Shared/Layout1.cshtml"
+            };
+
+            var baseLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Write("BaseLayout" + Environment.NewLine);
+                v.RenderBodyPublic();
+                v.RenderSection("foo");
+            })
+            {
+                Path = "/Shared/Layout2.cshtml"
+            };
+
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout1.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout1.cshtml", nestedLayout));
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout2.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout2.cshtml", baseLayout));
+
+            var view = new RazorView(viewEngine.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
+                                     page,
+                                     isPartial: false);
+            var viewContext = CreateViewContext(view);
+
+            // Act and Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
+            Assert.Equal("The following sections have been defined but have not been rendered by the page at " +
+                "'/Shared/Layout1.cshtml': 'foo'.", ex.Message);
         }
 
         [Fact]
@@ -338,12 +713,15 @@ foot-content";
             });
             var layout = new TestableRazorPage(v =>
             {
-            });
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance(LayoutPath))
-                       .Returns(layout);
+            })
+            {
+                Path = LayoutPath
+            };
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), LayoutPath))
+                       .Returns(new RazorPageResult(LayoutPath, layout));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -352,22 +730,27 @@ foot-content";
 
             // Act and Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => view.RenderAsync(viewContext));
-            Assert.Equal("RenderBody must be called from a layout page.", ex.Message);
+            Assert.Equal($"RenderBody has not been called for the page at '{LayoutPath}'.", ex.Message);
         }
 
         [Fact]
         public async Task RenderAsync_ExecutesNestedLayoutPages()
         {
             // Arrange
-            var expected =
-@"layout-2
-bar-content
-layout-1
-foo-content
-body-content";
+            var htmlEncoder = new CommonTestEncoder();
+            var expected = "HtmlEncode[[layout-2" +
+                           Environment.NewLine +
+                           "]]bar-content" +
+                           Environment.NewLine +
+                           "HtmlEncode[[layout-1" +
+                           Environment.NewLine +
+                           "]]foo-content" +
+                           Environment.NewLine +
+                           "body-content";
 
             var page = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.DefineSection("foo", async writer =>
                 {
                     await writer.WriteLineAsync("foo-content");
@@ -377,6 +760,7 @@ body-content";
             });
             var layout1 = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Write("layout-1" + Environment.NewLine);
                 v.Write(v.RenderSection("foo"));
                 v.DefineSection("bar", writer => writer.WriteLineAsync("bar-content"));
@@ -385,17 +769,81 @@ body-content";
             });
             var layout2 = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Write("layout-2" + Environment.NewLine);
                 v.Write(v.RenderSection("bar"));
                 v.RenderBodyPublic();
             });
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("~/Shared/Layout1.cshtml"))
-                       .Returns(layout1);
-            pageFactory.Setup(p => p.CreateInstance("~/Shared/Layout2.cshtml"))
-                       .Returns(layout2);
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout1.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout1.cshtml", layout1));
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout2.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout2.cshtml", layout2));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
+                                     Mock.Of<IRazorPageActivator>(),
+                                     CreateViewStartProvider(),
+                                     page,
+                                     isPartial: false);
+            var viewContext = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(viewContext);
+
+            // Assert
+            Assert.Equal(expected, viewContext.Writer.ToString());
+        }
+
+        [Fact]
+        public async Task RenderAsync_ExecutesNestedLayoutsWithNestedSections()
+        {
+            // Arrange
+            var htmlEncoder = new CommonTestEncoder();
+            var expected = "HtmlEncode[[BaseLayout" +
+                           Environment.NewLine +
+                           "]]HtmlEncode[[NestedLayout" +
+                           Environment.NewLine +
+                           "]]BodyContent" +
+                           "foo-content" +
+                           Environment.NewLine +
+                           "HtmlEncode[[]]" +
+                           Environment.NewLine;
+
+            var page = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout1.cshtml";
+                v.WriteLiteral("BodyContent");
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteLineAsync("foo-content");
+                });
+            });
+            var nestedLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Layout = "~/Shared/Layout2.cshtml";
+                v.Write("NestedLayout" + Environment.NewLine);
+                v.RenderBodyPublic();
+                v.DefineSection("foo", async writer =>
+                {
+                    await writer.WriteLineAsync(htmlEncoder.HtmlEncode(v.RenderSection("foo").ToString()));
+                });
+            });
+            var baseLayout = new TestableRazorPage(v =>
+            {
+                v.HtmlEncoder = htmlEncoder;
+                v.Write("BaseLayout" + Environment.NewLine);
+                v.RenderBodyPublic();
+                v.Write(v.RenderSection("foo"));
+            });
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout1.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout1.cshtml", nestedLayout));
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "~/Shared/Layout2.cshtml"))
+                       .Returns(new RazorPageResult("~/Shared/Layout2.cshtml", baseLayout));
+
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -413,14 +861,18 @@ body-content";
         public async Task RenderAsync_DoesNotCopyContentOnceRazorTextWriterIsNoLongerBuffering()
         {
             // Arrange
-            var expected =
-@"layout-1
-body content
-section-content-1
-section-content-2";
+            var htmlEncoder = new CommonTestEncoder();
+            var expected = "HtmlEncode[[layout-1" +
+                           Environment.NewLine +
+                           "]]body content" +
+                           Environment.NewLine +
+                           "section-content-1" +
+                           Environment.NewLine +
+                           "section-content-2";
 
             var page = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Layout = "layout-1";
                 v.WriteLiteral("body content" + Environment.NewLine);
                 v.DefineSection("foo", async _ =>
@@ -433,16 +885,17 @@ section-content-2";
 
             var layout1 = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Write("layout-1" + Environment.NewLine);
                 v.RenderBodyPublic();
                 v.Write(v.RenderSection("foo"));
             });
 
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("layout-1"))
-                       .Returns(layout1);
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "layout-1"))
+                       .Returns(new RazorPageResult("layout-1", layout1));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -460,13 +913,16 @@ section-content-2";
         public async Task FlushAsync_DoesNotThrowWhenInvokedInsideOfASection()
         {
             // Arrange
-            var expected =
-@"layout-1
-section-content-1
-section-content-2";
+            var htmlEncoder = new CommonTestEncoder();
+            var expected = "HtmlEncode[[layout-1" +
+                           Environment.NewLine +
+                           "]]section-content-1" +
+                           Environment.NewLine +
+                           "section-content-2";
 
             var page = new TestableRazorPage(v =>
            {
+               v.HtmlEncoder = htmlEncoder;
                v.Layout = "layout-1";
                v.DefineSection("foo", async _ =>
                {
@@ -478,16 +934,17 @@ section-content-2";
 
             var layout1 = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = htmlEncoder;
                 v.Write("layout-1" + Environment.NewLine);
                 v.RenderBodyPublic();
                 v.Write(v.RenderSection("foo"));
             });
 
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("layout-1"))
-                       .Returns(layout1);
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "layout-1"))
+                       .Returns(new RazorPageResult("layout-1", layout1));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -505,16 +962,18 @@ section-content-2";
         public async Task RenderAsync_ThrowsIfLayoutIsSpecifiedWhenNotBuffered()
         {
             // Arrange
-            var expected = @"A layout page cannot be rendered after 'FlushAsync' has been invoked.";
+            var expected = "Layout page '/Views/TestPath/Test.cshtml' cannot be rendered" +
+                " after 'FlushAsync' has been invoked.";
             var page = new TestableRazorPage(v =>
             {
+                v.Path = "/Views/TestPath/Test.cshtml";
                 v.WriteLiteral("before-flush" + Environment.NewLine);
                 v.FlushAsync().Wait();
                 v.Layout = "test-layout";
                 v.WriteLiteral("after-flush");
             });
 
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -530,9 +989,12 @@ section-content-2";
         public async Task RenderAsync_ThrowsIfFlushWasInvokedInsideRenderedSectionAndLayoutWasSet()
         {
             // Arrange
-            var expected = @"A layout page cannot be rendered after 'FlushAsync' has been invoked.";
+            var expected = "Layout page '/Views/TestPath/Test.cshtml' cannot be rendered" +
+                " after 'FlushAsync' has been invoked.";
             var page = new TestableRazorPage(v =>
             {
+                v.Path = "/Views/TestPath/Test.cshtml";
+                v.HtmlEncoder = new CommonTestEncoder();
                 v.DefineSection("foo", async writer =>
                 {
                     writer.WriteLine("foo-content");
@@ -541,19 +1003,21 @@ section-content-2";
                 v.Layout = "~/Shared/Layout1.cshtml";
                 v.WriteLiteral("body-content");
             });
-            var layout1 = new TestableRazorPage(v =>
+            var layoutPage = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = new CommonTestEncoder();
                 v.Write("layout-1" + Environment.NewLine);
                 v.Write(v.RenderSection("foo"));
                 v.DefineSection("bar", writer => writer.WriteLineAsync("bar-content"));
                 v.RenderBodyPublic();
                 v.Layout = "~/Shared/Layout2.cshtml";
             });
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("~/Shared/Layout1.cshtml"))
-                       .Returns(layout1);
+            var viewEngine = new Mock<IRazorViewEngine>();
+            var layoutPath = "~/Shared/Layout1.cshtml";
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), layoutPath))
+                       .Returns(new RazorPageResult(layoutPath, layoutPage));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -603,7 +1067,8 @@ section-content-2";
 
             var page = new TestableRazorPage(v =>
             {
-                v.Layout = "/Layout.cshtml";
+                v.HtmlEncoder = new CommonTestEncoder();
+                v.Layout = "Layout";
                 Assert.Same(pageWriter, v.Output);
                 Assert.Same(pageContext, v.PageExecutionContext);
             });
@@ -611,6 +1076,7 @@ section-content-2";
 
             var layout = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = new CommonTestEncoder();
                 Assert.Same(layoutWriter, v.Output);
                 Assert.Same(layoutContext, v.PageExecutionContext);
                 v.RenderBodyPublic();
@@ -619,20 +1085,20 @@ section-content-2";
             });
             layout.Path = "/Layout.cshtml";
 
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("/Layout.cshtml"))
-                       .Returns(layout);
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "Layout"))
+                       .Returns(new RazorPageResult("Layout", layout));
             var viewStartProvider = new Mock<IViewStartProvider>();
             viewStartProvider.Setup(v => v.GetViewStartPages(It.IsAny<string>()))
                              .Returns(Enumerable.Empty<IRazorPage>())
                              .Verifiable();
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      viewStartProvider.Object,
                                      page,
                                      isPartial: false);
             var viewContext = CreateViewContext(view);
-            viewContext.HttpContext.SetFeature<IPageExecutionListenerFeature>(feature.Object);
+            viewContext.HttpContext.Features.Set<IPageExecutionListenerFeature>(feature.Object);
 
             // Act
             await view.RenderAsync(viewContext);
@@ -662,6 +1128,7 @@ section-content-2";
 
             var page = new TestableRazorPage(v =>
             {
+                v.HtmlEncoder = new CommonTestEncoder();
                 Assert.IsType<RazorTextWriter>(v.Output);
                 Assert.Same(pageContext, v.PageExecutionContext);
                 executed = true;
@@ -670,14 +1137,14 @@ section-content-2";
             });
             page.Path = "/MyPartialPage.cshtml";
 
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      Mock.Of<IViewStartProvider>(),
                                      page,
                                      isPartial: true);
             var viewContext = CreateViewContext(view);
             viewContext.Writer = writer;
-            viewContext.HttpContext.SetFeature<IPageExecutionListenerFeature>(feature.Object);
+            viewContext.HttpContext.Features.Set<IPageExecutionListenerFeature>(feature.Object);
 
             // Act
             await view.RenderAsync(viewContext);
@@ -685,7 +1152,7 @@ section-content-2";
             // Assert
             feature.Verify();
             Assert.True(executed);
-            Assert.Equal("Hello world", viewContext.Writer.ToString());
+            Assert.Equal("HtmlEncode[[Hello world]]", viewContext.Writer.ToString());
         }
 
         [Theory]
@@ -701,7 +1168,7 @@ section-content-2";
                 executed = true;
             });
 
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      Mock.Of<IViewStartProvider>(),
                                      page,
@@ -738,9 +1205,9 @@ section-content-2";
                 actualViewStart = v.Layout;
                 v.Layout = expectedPage;
             });
-            var pageFactory = Mock.Of<IRazorPageFactory>();
+            var viewEngine = Mock.Of<IRazorViewEngine>();
 
-            var view = new RazorView(pageFactory,
+            var view = new RazorView(viewEngine,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(viewStart1, viewStart2),
                                      page,
@@ -775,9 +1242,9 @@ section-content-2";
                 actual = v.Layout;
                 v.Layout = null;
             });
-            var pageFactory = Mock.Of<IRazorPageFactory>();
+            var viewEngine = Mock.Of<IRazorViewEngine>();
 
-            var view = new RazorView(pageFactory,
+            var view = new RazorView(viewEngine,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(viewStart1, viewStart2),
                                      page,
@@ -813,11 +1280,11 @@ section-content-2";
                 isPartialLayout = v.IsPartial;
                 v.RenderBodyPublic();
             });
-            var pageFactory = new Mock<IRazorPageFactory>();
-            pageFactory.Setup(p => p.CreateInstance("/Layout.cshtml"))
-                       .Returns(layout);
+            var viewEngine = new Mock<IRazorViewEngine>();
+            viewEngine.Setup(p => p.FindPage(It.IsAny<ActionContext>(), "/Layout.cshtml"))
+                       .Returns(new RazorPageResult("Layout", layout));
 
-            var view = new RazorView(pageFactory.Object,
+            var view = new RazorView(viewEngine.Object,
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(viewStart),
                                      page,
@@ -842,7 +1309,7 @@ section-content-2";
             {
                 isPartialPage = v.IsPartial;
             });
-            var view = new RazorView(Mock.Of<IRazorPageFactory>(),
+            var view = new RazorView(Mock.Of<IRazorViewEngine>(),
                                      Mock.Of<IRazorPageActivator>(),
                                      CreateViewStartProvider(),
                                      page,
@@ -873,7 +1340,9 @@ section-content-2";
                 actionContext,
                 view,
                 new ViewDataDictionary(new EmptyModelMetadataProvider()),
-                new StringWriter());
+                Mock.Of<ITempDataDictionary>(),
+                new StringWriter(),
+                new Rendering.HtmlHelperOptions());
         }
 
         private static IViewStartProvider CreateViewStartProvider(params IRazorPage[] viewStartPages)

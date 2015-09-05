@@ -1,12 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNETCORE50
+#if DNXCORE50
 
 namespace System.Net.Http.Formatting
 {
     /// <summary>
-    /// Contains information about the degree to which a <see cref="MediaTypeFormatter"/> matches the  
+    /// Contains information about the degree to which a <see cref="MediaTypeFormatter"/> matches the
     /// explicit or implicit preferences found in an incoming request.
     /// </summary>
     public enum MediaTypeFormatterMatchRanking
@@ -22,7 +22,7 @@ namespace System.Net.Http.Formatting
         MatchOnCanWriteType,
 
         /// <summary>
-        /// Matched on explicit literal accept header in <see cref="HttpRequestMessage"/>, 
+        /// Matched on explicit literal accept header in <see cref="HttpRequestMessage"/>,
         /// e.g. "application/json".
         /// </summary>
         MatchOnRequestAcceptHeaderLiteral,

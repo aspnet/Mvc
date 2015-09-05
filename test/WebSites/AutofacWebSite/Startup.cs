@@ -1,31 +1,33 @@
-﻿using System;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Autofac;
+using Autofac.Framework.DependencyInjection;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.DependencyInjection.Autofac;
 
 namespace AutofacWebSite
 {
     public class Startup
     {
+        // Set up application services
+        public IServiceProvider ConfigureServices(IServiceCollection services)
+        {
+            services.AddMvc();
+            services.AddTransient<HelloWorldBuilder>();
+
+            var builder = new ContainerBuilder();
+            builder.Populate(services);
+
+            var container = builder.Build();
+
+            return container.Resolve<IServiceProvider>();
+        }
+
         public void Configure(IApplicationBuilder app)
         {
-            var configuration = app.GetTestConfiguration();
-
-            app.UseServices(services => {
-                services.AddMvc(configuration);
-                services.AddTransient<HelloWorldBuilder>();
-
-                var builder = new ContainerBuilder();
-                AutofacRegistration.Populate(builder, 
-                                             services, 
-                                             fallbackServiceProvider: app.ApplicationServices);
-
-                var container = builder.Build();
-
-                return container.Resolve<IServiceProvider>();
-            });
+            app.UseCultureReplacer();
 
             app.UseMvc(routes =>
             {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,41 +12,76 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;a&gt; elements.
     /// </summary>
-    [TagName("a")]
+    [TargetElement("a", Attributes = ActionAttributeName)]
+    [TargetElement("a", Attributes = ControllerAttributeName)]
+    [TargetElement("a", Attributes = FragmentAttributeName)]
+    [TargetElement("a", Attributes = HostAttributeName)]
+    [TargetElement("a", Attributes = ProtocolAttributeName)]
+    [TargetElement("a", Attributes = RouteAttributeName)]
+    [TargetElement("a", Attributes = RouteValuesDictionaryName)]
+    [TargetElement("a", Attributes = RouteValuesPrefix + "*")]
     public class AnchorTagHelper : TagHelper
     {
-        private const string RouteAttributePrefix = "route-";
+        private const string ActionAttributeName = "asp-action";
+        private const string ControllerAttributeName = "asp-controller";
+        private const string FragmentAttributeName = "asp-fragment";
+        private const string HostAttributeName = "asp-host";
+        private const string ProtocolAttributeName = "asp-protocol";
+        private const string RouteAttributeName = "asp-route";
+        private const string RouteValuesDictionaryName = "asp-all-route-data";
+        private const string RouteValuesPrefix = "asp-route-";
         private const string Href = "href";
 
-        // Protected to ensure subclasses are correctly activated. Internal for ease of use when testing.
-        [Activate]
-        protected internal IHtmlGenerator Generator { get; set; }
+        /// <summary>
+        /// Creates a new <see cref="AnchorTagHelper"/>.
+        /// </summary>
+        /// <param name="generator">The <see cref="IHtmlGenerator"/>.</param>
+        public AnchorTagHelper(IHtmlGenerator generator)
+        {
+            Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultFrameworkSortOrder;
+            }
+        }
+
+        protected IHtmlGenerator Generator { get; }
 
         /// <summary>
         /// The name of the action method.
         /// </summary>
         /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        [HtmlAttributeName(ActionAttributeName)]
         public string Action { get; set; }
 
         /// <summary>
         /// The name of the controller.
         /// </summary>
         /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        [HtmlAttributeName(ControllerAttributeName)]
         public string Controller { get; set; }
 
         /// <summary>
         /// The protocol for the URL, such as &quot;http&quot; or &quot;https&quot;.
         /// </summary>
+        [HtmlAttributeName(ProtocolAttributeName)]
         public string Protocol { get; set; }
 
         /// <summary>
         /// The host name.
         /// </summary>
+        [HtmlAttributeName(HostAttributeName)]
         public string Host { get; set; }
 
         /// <summary>
         /// The URL fragment name.
         /// </summary>
+        [HtmlAttributeName(FragmentAttributeName)]
         public string Fragment { get; set; }
 
         /// <summary>
@@ -55,46 +90,60 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <remarks>
         /// Must be <c>null</c> if <see cref="Action"/> or <see cref="Controller"/> is non-<c>null</c>.
         /// </remarks>
+        [HtmlAttributeName(RouteAttributeName)]
         public string Route { get; set; }
 
+        /// <summary>
+        /// Additional parameters for the route.
+        /// </summary>
+        [HtmlAttributeName(RouteValuesDictionaryName, DictionaryAttributePrefix = RouteValuesPrefix)]
+        public IDictionary<string, string> RouteValues { get; set; } =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         /// <inheritdoc />
-        /// <remarks>Does nothing if user provides an "href" attribute. Throws an 
-        /// <see cref="InvalidOperationException"/> if "href" attribute is provided and <see cref="Action"/>, 
-        /// <see cref="Controller"/>, or <see cref="Route"/> are non-<c>null</c>.</remarks>
+        /// <remarks>Does nothing if user provides an <c>href</c> attribute.</remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if <c>href</c> attribute is provided and <see cref="Action"/>, <see cref="Controller"/>,
+        /// <see cref="Fragment"/>, <see cref="Host"/>, <see cref="Protocol"/>, or <see cref="Route"/> are
+        /// non-<c>null</c> or if the user provided <c>asp-route-*</c> attributes. Also thrown if <see cref="Route"/>
+        /// and one or both of <see cref="Action"/> and <see cref="Controller"/> are non-<c>null</c>.
+        /// </exception>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            var routePrefixedAttributes = output.FindPrefixedAttributes(RouteAttributePrefix);
-
-            // If there's an "href" on the tag it means it's being used as a normal anchor.
-            if (output.Attributes.ContainsKey(Href))
+            // If "href" is already set, it means the user is attempting to use a normal anchor.
+            if (output.Attributes.ContainsName(Href))
             {
-                if (Action != null || 
-                    Controller != null || 
-                    Route != null || 
-                    Protocol != null || 
-                    Host != null || 
-                    Fragment != null || 
-                    routePrefixedAttributes.Any())
+                if (Action != null ||
+                    Controller != null ||
+                    Route != null ||
+                    Protocol != null ||
+                    Host != null ||
+                    Fragment != null ||
+                    RouteValues.Count != 0)
                 {
                     // User specified an href and one of the bound attributes; can't determine the href attribute.
                     throw new InvalidOperationException(
-                        Resources.FormatAnchorTagHelper_CannotOverrideSpecifiedHref(
+                        Resources.FormatAnchorTagHelper_CannotOverrideHref(
                             "<a>",
-                            nameof(Action).ToLowerInvariant(),
-                            nameof(Controller).ToLowerInvariant(),
-                            nameof(Route).ToLowerInvariant(),
-                            nameof(Protocol).ToLowerInvariant(),
-                            nameof(Host).ToLowerInvariant(),
-                            nameof(Fragment).ToLowerInvariant(),
-                            RouteAttributePrefix,
+                            ActionAttributeName,
+                            ControllerAttributeName,
+                            RouteAttributeName,
+                            ProtocolAttributeName,
+                            HostAttributeName,
+                            FragmentAttributeName,
+                            RouteValuesPrefix,
                             Href));
                 }
             }
             else
             {
-                TagBuilder tagBuilder;
-                var routeValues = GetRouteValues(output, routePrefixedAttributes);
+                // Convert from Dictionary<string, string> to Dictionary<string, object>.
+                var routeValues = RouteValues.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => (object)kvp.Value,
+                    StringComparer.OrdinalIgnoreCase);
 
+                TagBuilder tagBuilder;
                 if (Route == null)
                 {
                     tagBuilder = Generator.GenerateActionLink(linkText: string.Empty,
@@ -112,9 +161,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     throw new InvalidOperationException(
                         Resources.FormatAnchorTagHelper_CannotDetermineHrefRouteActionOrControllerSpecified(
                             "<a>",
-                            nameof(Route).ToLowerInvariant(),
-                            nameof(Action).ToLowerInvariant(),
-                            nameof(Controller).ToLowerInvariant(),
+                            RouteAttributeName,
+                            ActionAttributeName,
+                            ControllerAttributeName,
                             Href));
                 }
                 else
@@ -133,25 +182,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     output.MergeAttributes(tagBuilder);
                 }
             }
-        }
-
-        // TODO: We will not need this method once https://github.com/aspnet/Razor/issues/89 is completed.
-        private static Dictionary<string, object> GetRouteValues(
-            TagHelperOutput output, IEnumerable<KeyValuePair<string, string>> routePrefixedAttributes)
-        {
-            Dictionary<string, object> routeValues = null;
-            if (routePrefixedAttributes.Any())
-            {
-                // Prefixed values should be treated as bound attributes, remove them from the output.
-                output.RemoveRange(routePrefixedAttributes);
-
-                // Generator.GenerateForm does not accept a Dictionary<string, string> for route values.
-                routeValues = routePrefixedAttributes.ToDictionary(
-                    attribute => attribute.Key.Substring(RouteAttributePrefix.Length),
-                    attribute => (object)attribute.Value);
-            }
-
-            return routeValues;
         }
     }
 }

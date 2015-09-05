@@ -1,20 +1,44 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
+    [DebuggerDisplay("ApplicationModel: Controllers: {Controllers.Count}, Filters: {Filters.Count}")]
     public class ApplicationModel
     {
         public ApplicationModel()
         {
+            ApiExplorer = new ApiExplorerModel();
             Controllers = new List<ControllerModel>();
-            Filters = new List<IFilter>();
+            Filters = new List<IFilterMetadata>();
+            Properties = new Dictionary<object, object>();
         }
 
-        public List<ControllerModel> Controllers { get; private set; }
+        /// <summary>
+        /// Gets or sets the <see cref="ApiExplorerModel"/> for the application.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ApplicationModel.ApiExplorer"/> allows configuration of default settings
+        /// for ApiExplorer that apply to all actions unless overridden by 
+        /// <see cref="ControllerModel.ApiExplorer"/> or <see cref="ActionModel.ApiExplorer"/>.
+        /// 
+        /// If using <see cref="ApplicationModel.ApiExplorer"/> to set <see cref="ApiExplorerModel.IsVisible"/> to
+        /// <c>true</c>, this setting will only be honored for actions which use attribute routing.
+        /// </remarks>
+        public ApiExplorerModel ApiExplorer { get; set; }
 
-        public List<IFilter> Filters { get; private set; }
+        public IList<ControllerModel> Controllers { get; private set; }
+
+        public IList<IFilterMetadata> Filters { get; private set; }
+
+        /// <summary>
+        /// Gets a set of properties associated with all actions.
+        /// These properties will be copied to <see cref="Actions.ActionDescriptor.Properties"/>.
+        /// </summary>
+        public IDictionary<object, object> Properties { get; }
     }
 }

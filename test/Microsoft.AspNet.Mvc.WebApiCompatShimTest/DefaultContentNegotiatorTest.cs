@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -6,9 +6,10 @@ using System.Linq;
 using System.Net.Http.Formatting.Mocks;
 using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.AspNet.Testing;
+using Microsoft.TestCommon;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Microsoft.TestCommon;
 
 namespace System.Net.Http.Formatting
 {
@@ -148,7 +149,7 @@ namespace System.Net.Http.Formatting
         {
             get
             {
-#if !ASPNETCORE50
+#if !DNXCORE50
                 // Only mapping and accept makes sense with q != 1.0
                 MediaTypeFormatterMatch matchMapping10 = CreateMatch(1.0, MediaTypeFormatterMatchRanking.MatchOnRequestWithMediaTypeMapping);
                 MediaTypeFormatterMatch matchMapping05 = CreateMatch(0.5, MediaTypeFormatterMatchRanking.MatchOnRequestWithMediaTypeMapping);
@@ -175,7 +176,7 @@ namespace System.Net.Http.Formatting
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10 }, matchAcceptAllRange10 },
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10, matchAcceptSubTypeRange10 }, matchAcceptSubTypeRange10 },
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10, matchAcceptSubTypeRange10, matchAccept10 }, matchAccept10 },
-#if !ASPNETCORE50
+#if !DNXCORE50
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10, matchAcceptSubTypeRange10, matchAccept10, matchMapping10 }, matchMapping10 },
 #endif
                     { new List<MediaTypeFormatterMatch>() { matchAccept05, matchAccept10 }, matchAccept10 },
@@ -186,7 +187,7 @@ namespace System.Net.Http.Formatting
 
                     { new List<MediaTypeFormatterMatch>() { matchAcceptAllRange05, matchAcceptAllRange10 }, matchAcceptAllRange10 },
                     { new List<MediaTypeFormatterMatch>() { matchAcceptAllRange10, matchAcceptAllRange05 }, matchAcceptAllRange10 },
-#if !ASPNETCORE50
+#if !DNXCORE50
                     { new List<MediaTypeFormatterMatch>() { matchMapping05, matchMapping10 }, matchMapping10 },
                     { new List<MediaTypeFormatterMatch>() { matchMapping10, matchMapping05 }, matchMapping10 },
 
@@ -250,7 +251,7 @@ namespace System.Net.Http.Formatting
             Assert.Null(result);
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         [Fact]
         public void Negotiate_MediaTypeMappingTakesPrecedenceOverAcceptHeader()
@@ -358,7 +359,7 @@ namespace System.Net.Http.Formatting
             Assert.IsType<JsonMediaTypeFormatter>(result.Formatter);
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         [Fact]
         public void Negotiate_RespectsFormatterOrdering_ForXhrRequestThatDoesNotSpecifyAcceptHeaders()
@@ -392,7 +393,9 @@ namespace System.Net.Http.Formatting
             _request.Headers.Add("x-requested-with", "XMLHttpRequest");
 
             // Act
-            var result = _negotiator.Negotiate(typeof(JToken), _request, new MediaTypeFormatterCollection());
+            // Mono issue - https://github.com/aspnet/External/issues/27
+            var type = TestPlatformHelper.IsMono ? typeof(string) : typeof(JToken);
+            var result = _negotiator.Negotiate(type, _request, new MediaTypeFormatterCollection());
 
             Assert.Equal("application/json", result.MediaType.MediaType);
             Assert.IsType<JsonMediaTypeFormatter>(result.Formatter);
@@ -455,7 +458,7 @@ namespace System.Net.Http.Formatting
             }
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         [Fact]
         public void MatchMediaTypeMapping_ReturnsMatch()
@@ -671,7 +674,7 @@ namespace System.Net.Http.Formatting
             {
                 return new TheoryData<string[], string[]>
                 {
-                    { 
+                    {
                         new string[]
                         {
                             "application/*",
@@ -689,7 +692,7 @@ namespace System.Net.Http.Formatting
                             "*/*;q=0.4",
                             "text/plain;q=0.6",
                             "text/xml",
-                        }, 
+                        },
                         new string[]
                         {
                             "text/plain",
@@ -807,7 +810,7 @@ namespace System.Net.Http.Formatting
             }
         }
 
-#if !ASPNETCORE50
+#if !DNXCORE50
 
         private class MyMediaTypeMapping : MediaTypeMapping
         {

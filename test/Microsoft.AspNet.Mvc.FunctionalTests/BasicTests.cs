@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,22 +10,25 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BasicWebSite;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.TestHost;
+using Microsoft.Framework.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
     public class BasicTests
     {
-        private readonly IServiceProvider _provider = TestHelper.CreateServices("BasicWebSite");
-        private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
+        private const string SiteName = nameof(BasicWebSite);
 
         // Some tests require comparing the actual response body against an expected response baseline
         // so they require a reference to the assembly on which the resources are located, in order to
         // make the tests less verbose, we get a reference to the assembly with the resources and we
         // use it on all the rest of the tests.
-        private readonly Assembly _resourcesAssembly = typeof(BasicTests).GetTypeInfo().Assembly;
+        private static readonly Assembly _resourcesAssembly = typeof(BasicTests).GetTypeInfo().Assembly;
+
+        private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
+        private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
 
         [Theory]
         [InlineData("http://localhost/")]
@@ -34,16 +37,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CanRender_ViewsWithLayout(string url)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
-
-            // The K runtime compiles every file under compiler/resources as a resource at runtime with the same name
-            // as the file name, in order to update a baseline you just need to change the file in that folder.
-            var expectedContent = await _resourcesAssembly.ReadResourceAsStringAsync("compiler/resources/BasicWebSite.Home.Index.html");
+            var outputFile = "compiler/resources/BasicWebSite.Home.Index.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
 
             // Act
-
             // The host is not important as everything runs in memory and tests are isolated from each other.
             var response = await client.GetAsync(url);
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -51,18 +52,24 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
-            Assert.Equal(expectedContent, responseContent);
+
+#if GENERATE_BASELINES
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+#endif
         }
 
         [Fact]
         public async Task CanRender_SimpleViews()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
-            var expectedContent = await _resourcesAssembly.ReadResourceAsStringAsync("compiler/resources/BasicWebSite.Home.PlainView.html");
             var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
-
+            var outputFile = "compiler/resources/BasicWebSite.Home.PlainView.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
 
             // Act
             var response = await client.GetAsync("http://localhost/Home/PlainView");
@@ -71,14 +78,43 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
-            Assert.Equal(expectedContent, responseContent);
+
+#if GENERATE_BASELINES
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+#endif
+        }
+
+        [Fact]
+        public async Task ViewWithAttributePrefix_RendersWithoutIgnoringPrefix()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+            var outputFile = "compiler/resources/BasicWebSite.Home.ViewWithPrefixedAttributeValue.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/ViewWithPrefixedAttributeValue");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+#if GENERATE_BASELINES
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+#endif
         }
 
         [Fact]
         public async Task CanReturn_ResultsWithoutContent()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -93,26 +129,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ReturningTaskFromAction_ProducesNoContentResult()
+        public async Task ReturningTaskFromAction_ProducesEmptyResult()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
             var response = await client.GetAsync("http://localhost/Home/ActionReturningTask");
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal("Hello world", body);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Hello, World!", Assert.Single(response.Headers.GetValues("Message")));
+            Assert.Empty(await response.Content.ReadAsStringAsync());
         }
 
         [Fact]
         public async Task ActionDescriptors_CreatedOncePerRequest()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             var expectedContent = "1";
@@ -132,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionWithRequireHttps_RedirectsToSecureUrl_ForNonHttpsGetRequests()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -152,7 +188,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionWithRequireHttps_ReturnsBadRequestResponse_ForNonHttpsNonGetRequests()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
             // Act
@@ -174,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ActionWithRequireHttps_AllowsHttpsRequests(string method)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = new HttpClient(server.CreateHandler(), false);
 
             // Act
@@ -190,7 +226,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task JsonViewComponent_RendersJson()
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = new HttpClient(server.CreateHandler(), false);
             var expectedBody = JsonConvert.SerializeObject(new BasicWebSite.Models.Person()
             {
@@ -207,6 +243,66 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var actualBody = await response.Content.ReadAsStringAsync();
             Assert.Equal(expectedBody, actualBody);
+        }
+
+        [Fact]
+        public async Task JsonHelper_RendersJson()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = new HttpClient(server.CreateHandler(), false);
+
+            var json = JsonConvert.SerializeObject(new BasicWebSite.Models.Person()
+            {
+                Id = 9000,
+                Name = "John <b>Smith</b>"
+            });
+
+            var expectedBody = string.Format(
+                @"<script type=""text/javascript"">
+    var json = {0};
+</script>",
+                json);
+
+            // Act
+            var response = await client.GetAsync("https://localhost/Home/JsonHelperInView");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public async Task JsonHelperWithSettings_RendersJson()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = new HttpClient(server.CreateHandler(), false);
+
+            var json = JsonConvert.SerializeObject(new BasicWebSite.Models.Person()
+            {
+                Id = 9000,
+                Name = "John <b>Smith</b>"
+            }, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
+            var expectedBody = string.Format(
+                @"<script type=""text/javascript"">
+    var json = {0};
+</script>",
+                json);
+
+            // Act
+            var response = await client.GetAsync("https://localhost/Home/JsonHelperWithSettingsInView");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody, ignoreLineEndingDifferences: true);
         }
 
         public static IEnumerable<object[]> HtmlHelperLinkGenerationData
@@ -249,7 +345,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task HtmlHelperLinkGeneration(string viewName, string expectedLink)
         {
             // Arrange
-            var server = TestServer.Create(_provider, _app);
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = new HttpClient(server.CreateHandler(), false);
 
             // Act
@@ -259,6 +355,50 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseData = await response.Content.ReadAsStringAsync();
             Assert.Contains(expectedLink, responseData, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public async Task ConfigureMvc_AddsOptionsProperly()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = new HttpClient(server.CreateHandler(), false);
+
+            // Act
+            var response = await client.GetAsync("http://localhost/Home/GetApplicationDescription");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseData = await response.Content.ReadAsStringAsync();
+            Assert.Equal("This is a basic website.", responseData);
+        }
+
+        [Fact]
+        public async Task TypesWithoutControllerSuffix_DerivingFromTypesWithControllerSuffix_CanBeAccessed()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = new HttpClient(server.CreateHandler(), false);
+
+            // Act
+            var response = await client.GetStringAsync("http://localhost/appointments");
+
+            // Assert
+            Assert.Equal("2 appointments available.", response);
+        }
+
+        [Fact]
+        public async Task TypesMarkedAsNonAction_AreInaccessible()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = new HttpClient(server.CreateHandler(), false);
+
+            // Act
+            var response = await client.GetAsync("http://localhost/SqlData/TruncateAllDbRecords");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

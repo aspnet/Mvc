@@ -147,4 +147,7 @@
   <data name="CreatedAtRoute_RouteFailed" xml:space="preserve">
     <value>Failed to generate a URL using route '{0}'.</value>
   </data>
+  <data name="BindingSource_URL" xml:space="preserve">
+    <value>URL</value>
+  </data>
 </root>

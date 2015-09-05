@@ -1,35 +1,47 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Routing;
-using Microsoft.Framework.ConfigurationModel;
-using Microsoft.Framework.OptionsModel;
+using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.Framework.DependencyInjection
 {
     public static class MvcServiceCollectionExtensions
     {
-        public static IServiceCollection AddMvc(this IServiceCollection services)
+        public static IMvcBuilder AddMvc([NotNull] this IServiceCollection services)
         {
-            services.Add(RoutingServices.GetDefaultServices());
-            AddMvcRouteOptions(services);
-            return services.Add(MvcServices.GetDefaultServices());
+            return AddMvc(services, setupAction: null);
         }
 
-        public static IServiceCollection AddMvc(this IServiceCollection services, IConfiguration configuration)
+        public static IMvcBuilder AddMvc([NotNull] this IServiceCollection services, Action<MvcOptions> setupAction)
         {
-            services.Add(RoutingServices.GetDefaultServices());
-            AddMvcRouteOptions(services);
-            return services.Add(MvcServices.GetDefaultServices(configuration));
-        }
+            var builder = services.AddMvcCore();
 
-        private static void AddMvcRouteOptions(IServiceCollection services)
-        {
-            services.Configure<RouteOptions>(routeOptions =>
-                                                    routeOptions.ConstraintMap
-                                                         .Add("exists",
-                                                              typeof(KnownRouteValueConstraint)));
+            builder.AddApiExplorer();
+            builder.AddAuthorization();
+
+            // Order added affects options setup order
+
+            // Default framework order
+            builder.AddFormatterMappings();
+            builder.AddViews();
+            builder.AddRazorViewEngine();
+
+            // +1 order
+            builder.AddDataAnnotations(); // +1 order
+
+            // +10 order
+            builder.AddJsonFormatters();
+
+            builder.AddCors();
+
+            if (setupAction != null)
+            {
+                builder.Services.Configure(setupAction);
+            }
+            return new MvcBuilder(services);
         }
     }
 }

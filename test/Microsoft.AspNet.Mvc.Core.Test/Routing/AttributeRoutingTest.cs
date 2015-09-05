@@ -1,12 +1,17 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if ASPNET50
-using Microsoft.AspNet.Routing;
-using Microsoft.Framework.OptionsModel;
-using Moq;
+#if DNX451
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Routing;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Testing;
+using Microsoft.Framework.OptionsModel;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Routing
@@ -14,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.Routing
     public class AttributeRoutingTest
     {
         [Fact]
-        public void AttributeRouting_SyntaxErrorInTemplate()
+        public async Task AttributeRouting_SyntaxErrorInTemplate()
         {
             // Arrange
             var action = CreateAction("InvalidTemplate", "{a/dkfk}");
@@ -23,22 +28,28 @@ namespace Microsoft.AspNet.Mvc.Routing
                 "The following errors occurred with attribute routing information:" + Environment.NewLine +
                 Environment.NewLine +
                 "For action: 'InvalidTemplate'" + Environment.NewLine +
-                "Error: There is an incomplete parameter in the route template. " +
-                "Check that each '{' character has a matching '}' character." + Environment.NewLine +
+                "Error: The route parameter name 'a/dkfk' is invalid. Route parameter names must be non-empty and " +
+                "cannot contain these characters: '{', '}', '/'. The '?' character marks a parameter as optional, " +
+                "and can occur only at the end of the parameter. The '*' character marks a parameter as catch-all, " +
+                "and can occur only at the start of the parameter." + Environment.NewLine +
                 "Parameter name: routeTemplate";
 
-            var router = CreateRouter();
+            var handler = CreateRouter();
             var services = CreateServices(action);
 
+            var route = AttributeRouting.CreateAttributeMegaRoute(handler, services);
+
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                () => { AttributeRouting.CreateAttributeMegaRoute(router, services); });
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await route.RouteAsync(new RouteContext(new DefaultHttpContext()));
+            });
 
             Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Fact]
-        public void AttributeRouting_DisallowedParameter()
+        public async Task AttributeRouting_DisallowedParameter()
         {
             // Arrange
             var action = CreateAction("DisallowedParameter", "{foo}/{action}");
@@ -51,18 +62,22 @@ namespace Microsoft.AspNet.Mvc.Routing
                 "Error: The attribute route '{foo}/{action}' cannot contain a parameter named '{foo}'. " +
                 "Use '[foo]' in the route template to insert the value 'bleh'.";
 
-            var router = CreateRouter();
+            var handler = CreateRouter();
             var services = CreateServices(action);
 
+            var route = AttributeRouting.CreateAttributeMegaRoute(handler, services);
+
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                () => { AttributeRouting.CreateAttributeMegaRoute(router, services); });
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await route.RouteAsync(new RouteContext(new DefaultHttpContext()));
+            });
 
             Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Fact]
-        public void AttributeRouting_MultipleErrors()
+        public async Task AttributeRouting_MultipleErrors()
         {
             // Arrange
             var action1 = CreateAction("DisallowedParameter1", "{foo}/{action}");
@@ -82,18 +97,22 @@ namespace Microsoft.AspNet.Mvc.Routing
                 "Error: The attribute route 'cool/{action}' cannot contain a parameter named '{action}'. " +
                 "Use '[action]' in the route template to insert the value 'hey'.";
 
-            var router = CreateRouter();
+            var handler = CreateRouter();
             var services = CreateServices(action1, action2);
 
+            var route = AttributeRouting.CreateAttributeMegaRoute(handler, services);
+
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                () => { AttributeRouting.CreateAttributeMegaRoute(router, services); });
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await route.RouteAsync(new RouteContext(new DefaultHttpContext()));
+            });
 
             Assert.Equal(expectedMessage, ex.Message);
         }
 
         [Fact]
-        public void AttributeRouting_WithReflectedActionDescriptor()
+        public async Task AttributeRouting_WithControllerActionDescriptor()
         {
             // Arrange
             var controllerType = typeof(HomeController);
@@ -119,12 +138,16 @@ namespace Microsoft.AspNet.Mvc.Routing
                 "Error: The attribute route '{controller}/{action}' cannot contain a parameter named '{controller}'. " +
                 "Use '[controller]' in the route template to insert the value 'Home'.";
 
-            var router = CreateRouter();
+            var handler = CreateRouter();
             var services = CreateServices(action);
 
+            var route = AttributeRouting.CreateAttributeMegaRoute(handler, services);
+
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                () => { AttributeRouting.CreateAttributeMegaRoute(router, services); });
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await route.RouteAsync(new RouteContext(new DefaultHttpContext()));
+            });
 
             Assert.Equal(expectedMessage, ex.Message);
         }
@@ -163,12 +186,16 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             var routeOptions = new Mock<IOptions<RouteOptions>>();
             routeOptions
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(new RouteOptions());
 
             services
                 .Setup(s => s.GetService(typeof(IInlineConstraintResolver)))
-                .Returns(new DefaultInlineConstraintResolver(services.Object, routeOptions.Object));
+                .Returns(new DefaultInlineConstraintResolver(routeOptions.Object));
+
+            services
+                .Setup(s => s.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
 
             return services.Object;
         }

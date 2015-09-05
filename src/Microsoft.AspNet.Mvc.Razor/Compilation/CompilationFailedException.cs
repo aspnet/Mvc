@@ -1,73 +1,40 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.FileSystems;
+using Microsoft.Dnx.Compilation;
+using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc.Razor
+namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
     /// <summary>
-    /// An exception thrown when accessing the result of a failed compilation.
+    /// An <see cref="Exception"/> thrown when accessing the result of a failed compilation.
     /// </summary>
-    public class CompilationFailedException : Exception
+    public class CompilationFailedException : Exception, ICompilationException
     {
         /// <summary>
         /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
         /// </summary>
-        /// <param name="filePath">The path of the Razor source file that was compiled.</param>
-        /// <param name="fileContent">The contents of the Razor source file.</param>
-        /// <param name="compiledContent">The generated C# content that was compiled.</param>
-        /// <param name="messages">A sequence of <see cref="CompilationMessage"/> encountered
-        /// during compilation.</param>
+        /// <param name="compilationFailures"><see cref="CompilationFailure"/>s containing
+        /// details of the compilation failure.</param>
         public CompilationFailedException(
-                [NotNull] string filePath,
-                [NotNull] string fileContent,
-                [NotNull] string compiledContent,
-                [NotNull] IEnumerable<CompilationMessage> messages)
-            : base(FormatMessage(messages))
+                [NotNull] IEnumerable<CompilationFailure> compilationFailures)
+            : base(FormatMessage(compilationFailures))
         {
-            FilePath = filePath;
-            FileContent = fileContent;
-            CompiledContent = compiledContent;
-            Messages = messages.ToList();
+            CompilationFailures = compilationFailures;
         }
-
-        /// <summary>
-        /// Gets the path of the Razor source file that produced the compilation failure.
-        /// </summary>
-        public string FilePath { get; private set; }
-
-        /// <summary>
-        /// Gets a sequence of <see cref="CompilationMessage"/> instances encountered during compilation.
-        /// </summary>
-        public IEnumerable<CompilationMessage> Messages { get; private set; }
-
-        /// <summary>
-        /// Gets the content of the Razor source file.
-        /// </summary>
-        public string FileContent { get; private set; }
-
-        /// <summary>
-        /// Gets the generated C# content that was compiled.
-        /// </summary>
-        public string CompiledContent { get; private set; }
 
         /// <inheritdoc />
-        public override string Message
-        {
-            get
-            {
-                return Resources.FormatCompilationFailed(FilePath) +
-                       Environment.NewLine +
-                       FormatMessage(Messages);
-            }
-        }
+        public IEnumerable<CompilationFailure> CompilationFailures { get; }
 
-        private static string FormatMessage(IEnumerable<CompilationMessage> messages)
+        private static string FormatMessage(IEnumerable<CompilationFailure> compilationFailures)
         {
-            return string.Join(Environment.NewLine, messages);
+            return Resources.CompilationFailed + Environment.NewLine +
+                string.Join(
+                    Environment.NewLine,
+                    compilationFailures.SelectMany(f => f.Messages).Select(message => message.FormattedMessage));
         }
     }
 }

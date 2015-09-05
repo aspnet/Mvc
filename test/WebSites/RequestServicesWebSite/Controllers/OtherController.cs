@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
@@ -38,6 +38,18 @@ namespace RequestServicesWebSite
         public IActionResult FromViewComponent()
         {
             return View("ViewComponent");
+        }
+
+        [HttpGet]
+        public string FromModelProperty(RequestModel requestContext)
+        {
+            return requestContext.RequestIdService.RequestId;
+        }
+
+        [HttpGet]
+        public string FromActionArgument([FromServices] RequestIdService requestIdService)
+        {
+            return requestIdService.RequestId;
         }
     }
 }

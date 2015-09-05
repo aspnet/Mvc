@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Razor.Generator.Compiler;
+using Microsoft.AspNet.Razor.Chunks;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -22,14 +23,14 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         /// <inheritdoc />
-        public void Merge([NotNull] CodeTree codeTree, [NotNull] Chunk chunk)
+        public void Merge([NotNull] ChunkTree chunkTree, [NotNull] Chunk chunk)
         {
             var namespaceChunk = ChunkHelper.EnsureChunk<UsingChunk>(chunk);
 
             if (!_currentUsings.Contains(namespaceChunk.Namespace))
             {
                 _currentUsings.Add(namespaceChunk.Namespace);
-                codeTree.Chunks.Add(namespaceChunk);
+                chunkTree.Chunks.Add(namespaceChunk);
             }
         }
     }

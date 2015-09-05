@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Routing;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Routing;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -200,7 +200,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             var expected =
                 "While processing template '[area]/[controller]/[action2]', " +
                 "a replacement value for the token 'action2' could not be found. " +
-                "Available tokens: 'area, controller, action'.";
+                "Available tokens: 'action, area, controller'.";
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(
@@ -361,7 +361,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 data.Add(null, Create("/", order: 2), 2);
                 data.Add(null, Create("/", order: null), null);
 
-                // We don't a test case for (left = null, right = null) as it is already tested in another test 
+                // We don't a test case for (left = null, right = null) as it is already tested in another test
                 // and will produce a null ReflectedAttributeRouteModel, which complicates the test case.
 
                 return data;

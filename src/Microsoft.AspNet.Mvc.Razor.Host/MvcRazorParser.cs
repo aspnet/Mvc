@@ -1,48 +1,207 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Razor.Generator.Compiler;
+using Microsoft.AspNet.Mvc.Razor.Host;
+using Microsoft.AspNet.Razor;
+using Microsoft.AspNet.Razor.Chunks;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
+using Microsoft.AspNet.Razor.Parser.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// A subtype of <see cref="RazorParser"/> that <see cref="MvcRazorHost"/> uses to support inheritance of tag
-    /// helpers from _viewstart files.
+    /// helpers from <c>_ViewImports</c> files.
     /// </summary>
     public class MvcRazorParser : RazorParser
     {
-        private readonly IReadOnlyList<Chunk> _viewStartChunks;
+        private readonly IEnumerable<TagHelperDirectiveDescriptor> _viewImportsDirectiveDescriptors;
+        private readonly string _modelExpressionTypeName;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MvcRazorParser"/>.
         /// </summary>
         /// <param name="parser">The <see cref="RazorParser"/> to copy properties from.</param>
-        /// <param name="viewStartChunks">The <see cref="IReadOnlyList{T}"/> of <see cref="Chunk"/>s that are inherited
-        /// by parsed pages from _ViewStart files.</param>
-        public MvcRazorParser(RazorParser parser, IReadOnlyList<Chunk> viewStartChunks)
+        /// <param name="inheritedChunkTrees">The <see cref="IReadOnlyList{ChunkTree}"/>s that are inherited
+        /// from parsed pages from _ViewImports files.</param>
+        /// <param name="defaultInheritedChunks">The <see cref="IReadOnlyList{Chunk}"/> inherited by
+        /// default by all Razor pages in the application.</param>
+        public MvcRazorParser(
+            [NotNull] RazorParser parser,
+            [NotNull] IReadOnlyList<ChunkTree> inheritedChunkTrees,
+            [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks,
+            [NotNull] string modelExpressionTypeName)
             : base(parser)
         {
-            _viewStartChunks = viewStartChunks;
+            // Construct tag helper descriptors from @addTagHelper, @removeTagHelper and @tagHelperPrefix chunks
+            _viewImportsDirectiveDescriptors = GetTagHelperDirectiveDescriptors(
+                inheritedChunkTrees,
+                defaultInheritedChunks);
+
+            _modelExpressionTypeName = modelExpressionTypeName;
         }
 
         /// <inheritdoc />
-        protected override IEnumerable<TagHelperDescriptor> GetTagHelperDescriptors([NotNull] Block documentRoot)
+        protected override IEnumerable<TagHelperDescriptor> GetTagHelperDescriptors(
+            [NotNull] Block documentRoot,
+            [NotNull] ErrorSink errorSink)
         {
-            var descriptors = base.GetTagHelperDescriptors(documentRoot);
+            var visitor = new ViewImportsTagHelperDirectiveSpanVisitor(
+                TagHelperDescriptorResolver,
+                _viewImportsDirectiveDescriptors,
+                errorSink);
 
-            // TODO: https://github.com/aspnet/Razor/issues/112 Needs to support RemvoeHelperChunks too.
+            var descriptors = visitor.GetDescriptors(documentRoot);
+            foreach (var descriptor in descriptors)
+            {
+                foreach (var attributeDescriptor in descriptor.Attributes)
+                {
+                    if (attributeDescriptor.IsIndexer &&
+                        string.Equals(
+                            attributeDescriptor.TypeName,
+                            _modelExpressionTypeName,
+                            StringComparison.Ordinal))
+                    {
+                        errorSink.OnError(
+                            SourceLocation.Undefined,
+                            Resources.FormatMvcRazorParser_InvalidPropertyType(
+                                descriptor.TypeName,
+                                attributeDescriptor.Name,
+                                _modelExpressionTypeName),
+                            length: 0);
+                    }
+                }
+            }
 
-            // Grab all the @addTagHelper chunks from view starts
-            var viewStartDescriptors = _viewStartChunks.OfType<AddTagHelperChunk>()
-                                                       .Select(c => c.LookupText)
-                                                       .SelectMany(TagHelperDescriptorResolver.Resolve);
+            return descriptors;
+        }
 
-            return descriptors.Concat(viewStartDescriptors);
+        private static IEnumerable<TagHelperDirectiveDescriptor> GetTagHelperDirectiveDescriptors(
+           IReadOnlyList<ChunkTree> inheritedChunkTrees,
+           IReadOnlyList<Chunk> defaultInheritedChunks)
+        {
+            var descriptors = new List<TagHelperDirectiveDescriptor>();
+
+            // For tag helpers, the @removeTagHelper only applies tag helpers that were added prior to it.
+            // Consequently we must visit tag helpers outside-in - furthest _ViewImports first and nearest one last.
+            // This is different from the behavior of chunk merging where we visit the nearest one first and ignore
+            // chunks that were previously visited.
+            var chunksFromViewImports = inheritedChunkTrees
+                .Reverse()
+                .SelectMany(tree => tree.Chunks);
+            var chunksInOrder = defaultInheritedChunks.Concat(chunksFromViewImports);
+            foreach (var chunk in chunksInOrder)
+            {
+                // All TagHelperDirectiveDescriptors created here have undefined source locations because the source
+                // that created them is not in the same file.
+                var addTagHelperChunk = chunk as AddTagHelperChunk;
+                if (addTagHelperChunk != null)
+                {
+                    var descriptor = new TagHelperDirectiveDescriptor
+                    {
+                        DirectiveText = addTagHelperChunk.LookupText,
+                        Location = chunk.Start,
+                        DirectiveType = TagHelperDirectiveType.AddTagHelper
+                    };
+
+                    descriptors.Add(descriptor);
+
+                    continue;
+                }
+
+                var removeTagHelperChunk = chunk as RemoveTagHelperChunk;
+                if (removeTagHelperChunk != null)
+                {
+                    var descriptor = new TagHelperDirectiveDescriptor
+                    {
+                        DirectiveText = removeTagHelperChunk.LookupText,
+                        Location = chunk.Start,
+                        DirectiveType = TagHelperDirectiveType.RemoveTagHelper
+                    };
+
+                    descriptors.Add(descriptor);
+
+                    continue;
+                }
+
+                var tagHelperPrefixDirectiveChunk = chunk as TagHelperPrefixDirectiveChunk;
+                if (tagHelperPrefixDirectiveChunk != null)
+                {
+                    var descriptor = new TagHelperDirectiveDescriptor
+                    {
+                        DirectiveText = tagHelperPrefixDirectiveChunk.Prefix,
+                        Location = chunk.Start,
+                        DirectiveType = TagHelperDirectiveType.TagHelperPrefix
+                    };
+
+                    descriptors.Add(descriptor);
+                }
+            }
+
+            return descriptors;
+        }
+
+        private class ViewImportsTagHelperDirectiveSpanVisitor : TagHelperDirectiveSpanVisitor
+        {
+            private readonly IEnumerable<TagHelperDirectiveDescriptor> _viewImportsDirectiveDescriptors;
+
+            public ViewImportsTagHelperDirectiveSpanVisitor(
+                ITagHelperDescriptorResolver descriptorResolver,
+                IEnumerable<TagHelperDirectiveDescriptor> viewImportsDirectiveDescriptors,
+                ErrorSink errorSink)
+                : base(descriptorResolver, errorSink)
+            {
+                _viewImportsDirectiveDescriptors = viewImportsDirectiveDescriptors;
+            }
+
+            protected override TagHelperDescriptorResolutionContext GetTagHelperDescriptorResolutionContext(
+                IEnumerable<TagHelperDirectiveDescriptor> descriptors,
+                ErrorSink errorSink)
+            {
+                var directivesToImport = MergeDirectiveDescriptors(descriptors, _viewImportsDirectiveDescriptors);
+
+                return base.GetTagHelperDescriptorResolutionContext(directivesToImport, errorSink);
+            }
+
+            private static IEnumerable<TagHelperDirectiveDescriptor> MergeDirectiveDescriptors(
+                IEnumerable<TagHelperDirectiveDescriptor> descriptors,
+                IEnumerable<TagHelperDirectiveDescriptor> inheritedDescriptors)
+            {
+                var mergedDescriptors = new List<TagHelperDirectiveDescriptor>();
+                TagHelperDirectiveDescriptor prefixDirectiveDescriptor = null;
+
+                foreach (var descriptor in inheritedDescriptors)
+                {
+                    if (descriptor.DirectiveType == TagHelperDirectiveType.TagHelperPrefix)
+                    {
+                        // Always take the latest @tagHelperPrefix descriptor. Can only have 1 per page.
+                        prefixDirectiveDescriptor = descriptor;
+                    }
+                    else
+                    {
+                        mergedDescriptors.Add(descriptor);
+                    }
+                }
+
+                // We need to see if the provided descriptors contain a @tagHelperPrefix directive. If so, it
+                // takes precedence and overrides any provided by the inheritedDescriptors. If not we need to add the
+                // inherited @tagHelperPrefix directive back into the merged list.
+                if (prefixDirectiveDescriptor != null &&
+                    !descriptors.Any(descriptor => descriptor.DirectiveType == TagHelperDirectiveType.TagHelperPrefix))
+                {
+                    mergedDescriptors.Add(prefixDirectiveDescriptor);
+                }
+
+                mergedDescriptors.AddRange(descriptors);
+
+                return mergedDescriptors;
+            }
         }
     }
 }

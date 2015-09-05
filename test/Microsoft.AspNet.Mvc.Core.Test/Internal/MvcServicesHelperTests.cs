@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -19,7 +19,7 @@ namespace Microsoft.AspNet.Mvc
             services.Setup(o => o.GetService(typeof(IEnumerable<MvcMarkerService>)))
                 .Returns(new List<MvcMarkerService>());
             var expectedMessage = "Unable to find the required services. Please add all the required " +
-                "services by calling 'IServiceCollection.AddMvc()' inside the call to 'IApplicationBuilder.UseServices(...)' " +
+                "services by calling 'IServiceCollection.AddMvc()' inside the call to 'IApplicationBuilder.ConfigureServices(...)' " +
                 "or 'IApplicationBuilder.UseMvc(...)' in the application startup code.";
 
             // Act & Assert
@@ -37,8 +37,8 @@ namespace Microsoft.AspNet.Mvc
             services.Setup(o => o.GetService(typeof(MvcMarkerService)))
                 .Returns(expectedOutput);
 
-            // Act & Assert
-            Assert.DoesNotThrow(() => MvcServicesHelper.ThrowIfMvcNotRegistered(services.Object));
+            // Act & Assert (does not throw)
+            MvcServicesHelper.ThrowIfMvcNotRegistered(services.Object);
         }
     }
 }

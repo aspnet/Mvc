@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Specifies an attribute route on a controller. 
+    /// Specifies an attribute route on a controller.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class RouteAttribute : Attribute, IRouteTemplateProvider

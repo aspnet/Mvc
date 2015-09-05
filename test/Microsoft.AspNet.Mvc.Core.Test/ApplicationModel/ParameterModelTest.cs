@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -14,12 +15,15 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void CopyConstructor_CopiesAllProperties()
         {
             // Arrange
-            var parameter = new ParameterModel(typeof(TestController).GetMethod("Edit").GetParameters()[0]);
+            var parameter = new ParameterModel(typeof(TestController).GetMethod("Edit").GetParameters()[0],
+                                               new List<object>() { new FromBodyAttribute() });
 
-            parameter.Action = new ActionModel(typeof(TestController).GetMethod("Edit"));
-            parameter.Attributes.Add(new FromBodyAttribute());
-            parameter.BinderMetadata = (IBinderMetadata)parameter.Attributes[0];
-            parameter.IsOptional = true;
+            parameter.Action = new ActionModel(typeof(TestController).GetMethod("Edit"), new List<object>());
+            parameter.BindingInfo = new BindingInfo()
+            {
+                BindingSource = BindingSource.Body
+            };
+
             parameter.ParameterName = "id";
 
             // Act
@@ -38,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                     // Ensure non-default value
                     Assert.NotEmpty((IEnumerable<object>)value1);
                 }
-                else if (property.PropertyType.IsValueType || 
+                else if (property.PropertyType.IsValueType ||
                     Nullable.GetUnderlyingType(property.PropertyType) != null)
                 {
                     Assert.Equal(value1, value2);
