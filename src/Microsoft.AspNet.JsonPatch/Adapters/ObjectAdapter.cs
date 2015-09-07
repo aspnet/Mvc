@@ -605,7 +605,7 @@ namespace Microsoft.AspNet.JsonPatch.Adapters
                                 Resources.FormatInvalidIndexForArrayProperty(
                                     operationToReport.op,
                                     path)));
-                            return null;
+                            return new RemovedPropertyTypeResult(null, true);
                         }
 
                         array.RemoveAt(positionAsInteger);

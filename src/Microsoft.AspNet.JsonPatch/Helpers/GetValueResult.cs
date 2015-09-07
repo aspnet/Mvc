@@ -9,8 +9,14 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
     /// versus when it actually is null (much like why RemovedPropertyTypeResult is used for returning 
     /// type in the Remove operation).
     /// </summary>
-    internal class GetValueResult
+    public class GetValueResult
     {
+        public GetValueResult(object propertyValue, bool hasError)
+        {
+            PropertyValue = propertyValue;
+            HasError = hasError;
+        }
+
         /// <summary>
         /// The value of the property we're trying to get
         /// </summary>
@@ -20,11 +26,5 @@ namespace Microsoft.AspNet.JsonPatch.Helpers
         /// HasError: true when an error occurred, the operation didn't complete succesfully
         /// </summary>
         public bool HasError { get; private set; }
-
-        public GetValueResult(object propertyValue, bool hasError)
-        {
-            PropertyValue = propertyValue;
-            HasError = hasError;
-        }
     }
 }
