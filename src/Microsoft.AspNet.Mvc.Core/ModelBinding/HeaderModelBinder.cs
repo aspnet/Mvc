@@ -19,6 +19,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            // This method is optimized to use cached tasks when possible and avoid allocating
+            // using Task.FromResult. If you need to make changes of this nature, profile
+            // allocations afterwards and look for Task<ModelBindingResult>.
+
             var allowedBindingSource = bindingContext.BindingSource;
             if (allowedBindingSource == null ||
                 !allowedBindingSource.CanAcceptDataFrom(BindingSource.Header))

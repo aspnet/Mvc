@@ -23,6 +23,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            // This method is optimized to use cached tasks when possible and avoid allocating
+            // using Task.FromResult. If you need to make changes of this nature, profile
+            // allocations afterwards and look for Task<ModelBindingResult>.
+
             if (bindingContext.BinderType == null)
             {
                 // Return NoResult so that we are able to continue with the default set of model binders,

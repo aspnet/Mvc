@@ -16,42 +16,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            // This method is optimized to use cached tasks when possible and avoid allocating
+            // using Task.FromResult. If you need to make changes of this nature, profile
+            // allocations afterwards and look for Task<ModelBindingResult>.
+
             var binderType = ResolveBinderType(bindingContext);
             if (binderType == null)
             {
                 return ModelBindingResult.NoResultAsync;
             }
 
-            return BindModelCoreAsync(bindingContext, binderType);
-        }
+            var binder = (IModelBinder)Activator.CreateInstance(binderType);
 
-        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext, Type binderType)
-        {
-            binderType = ResolveBinderType(bindingContext);
-            if (binderType != null)
+            var collectionBinder = binder as ICollectionModelBinder;
+            if (collectionBinder != null &&
+                bindingContext.Model == null &&
+                !collectionBinder.CanCreateInstance(bindingContext.ModelType))
             {
-                var binder = (IModelBinder)Activator.CreateInstance(binderType);
-
-                var collectionBinder = binder as ICollectionModelBinder;
-                if (collectionBinder != null &&
-                    bindingContext.Model == null &&
-                    !collectionBinder.CanCreateInstance(bindingContext.ModelType))
-                {
-                    // Able to resolve a binder type but need a new model instance and that binder cannot create it.
-                    return ModelBindingResult.NoResult;
-                }
-
-                var result = await binder.BindModelAsync(bindingContext);
-                var modelBindingResult = result != ModelBindingResult.NoResult ?
-                    result :
-                    ModelBindingResult.Failed(bindingContext.ModelName);
-
-                // Were able to resolve a binder type.
-                // Always tell the model binding system to skip other model binders.
-                return modelBindingResult;
+                // Able to resolve a binder type but need a new model instance and that binder cannot create it.
+                return ModelBindingResult.NoResultAsync;
             }
 
-            return ModelBindingResult.NoResult;
+            return BindModelCoreAsync(bindingContext, binder);
+        }
+
+        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext, IModelBinder binder)
+        {
+            Debug.Assert(binder != null);
+
+            var result = await binder.BindModelAsync(bindingContext);
+            var modelBindingResult = result != ModelBindingResult.NoResult ?
+                result :
+                ModelBindingResult.Failed(bindingContext.ModelName);
+
+            // Were able to resolve a binder type.
+            // Always tell the model binding system to skip other model binders.
+            return modelBindingResult;
         }
 
         private static Type ResolveBinderType(ModelBindingContext context)

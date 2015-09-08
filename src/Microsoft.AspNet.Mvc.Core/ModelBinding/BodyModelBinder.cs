@@ -19,6 +19,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            // This method is optimized to use cached tasks when possible and avoid allocating
+            // using Task.FromResult. If you need to make changes of this nature, profile
+            // allocations afterwards and look for Task<ModelBindingResult>.
+
             var allowedBindingSource = bindingContext.BindingSource;
             if (allowedBindingSource == null ||
                 !allowedBindingSource.CanAcceptDataFrom(BindingSource.Body))
@@ -38,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <returns>
         /// A <see cref="Task{ModelBindingResult}"/> which when completed returns a <see cref="ModelBindingResult"/>.
         /// </returns>
-        protected async Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
+        private async Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
         {
             // For compatibility with MVC 5.0 for top level object we want to consider an empty key instead of
             // the parameter name/a custom name. In all other cases (like when binding body to a property) we
