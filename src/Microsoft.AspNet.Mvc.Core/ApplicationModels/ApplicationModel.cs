@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
@@ -13,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             ApiExplorer = new ApiExplorerModel();
             Controllers = new List<ControllerModel>();
-            Filters = new List<IFilter>();
+            Filters = new List<IFilterMetadata>();
             Properties = new Dictionary<object, object>();
         }
 
@@ -32,11 +33,11 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         public IList<ControllerModel> Controllers { get; private set; }
 
-        public IList<IFilter> Filters { get; private set; }
+        public IList<IFilterMetadata> Filters { get; private set; }
 
         /// <summary>
         /// Gets a set of properties associated with all actions.
-        /// These properties will be copied to <see cref="ActionDescriptor.Properties"/>.
+        /// These properties will be copied to <see cref="Actions.ActionDescriptor.Properties"/>.
         /// </summary>
         public IDictionary<object, object> Properties { get; }
     }

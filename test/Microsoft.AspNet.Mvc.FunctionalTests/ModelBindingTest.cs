@@ -9,9 +9,11 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Testing;
+using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Framework.DependencyInjection;
 using ModelBindingWebSite.Models;
 using ModelBindingWebSite.ViewModels;
@@ -39,9 +41,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var response = await client.GetStringAsync("http://localhost/Validation/DoNotValidateParameter");
 
             // Assert
-            var modelState = JsonConvert.DeserializeObject<ModelStateDictionary>(response);
-            Assert.Empty(modelState);
-            Assert.True(modelState.IsValid);
+            Assert.Equal("true", response);
         }
 
         [Fact]
@@ -52,13 +52,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var client = server.CreateClient();
 
             // Act
-            var response = await client.GetAsync(
-                "http://localhost/Validation/AvoidRecursive?Name=selfish");
+            var response = await client.GetStringAsync("http://localhost/Validation/AvoidRecursive?Name=selfish");
 
             // Assert
-            var stringValue = await response.Content.ReadAsStringAsync();
-            var json = JsonConvert.DeserializeObject<ModelStateDictionary>(stringValue);
-            Assert.True(json.IsValid);
+            Assert.Equal("true", response);
         }
 
         [Theory]
@@ -161,24 +158,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task MultipleParametersMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParametersThrows");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
         public async Task ControllerPropertyAndAnActionWithoutFromBody_InvokesWithoutErrors()
         {
             // Arrange
@@ -190,114 +169,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task ControllerPropertyAndAnActionParameterWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/AddUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task ControllerPropertyAndAModelPropertyWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/AddUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleControllerPropertiesMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/MultiplePropertiesFromBody/GetUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParameterAndPropertiesMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParameterAndPropertyThrows");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParametersMarkedWith_FromFormAndFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_AsParameters_Throws");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParameterAndPropertiesMarkedWith_FromFormAndFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_Throws");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
         }
 
         [Fact]
@@ -696,6 +567,47 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Null(company.Employees);
         }
 
+        [Fact]
+        public async Task PocoGetsCreated_IfTopLevelNoProperties()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/Properties" +
+                     "/GetPerson");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var person = JsonConvert.DeserializeObject<PersonWithNoProperties>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(person);
+            Assert.Null(person.Name);
+        }
+
+        [Fact]
+        public async Task ArrayOfPocoGetsCreated_PoCoWithNoProperties()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var response = await
+                     client.GetAsync("http://localhost/Properties" +
+                     "/GetPeople?people[0].Name=asdf");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var arrperson = JsonConvert.DeserializeObject<ArrayOfPersonWithNoProperties>(
+                            await response.Content.ReadAsStringAsync());
+            Assert.NotNull(arrperson);
+            Assert.NotNull(arrperson.people);
+            Assert.Equal(0, arrperson.people.Length);
+        }
+
         [Theory]
         [InlineData("http://localhost/Home/ActionWithPersonFromUrlWithPrefix/Javier/26")]
         [InlineData("http://localhost/Home/ActionWithPersonFromUrlWithoutPrefix/Javier/26")]
@@ -797,14 +709,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
 
             // 8 is the value of MaxModelValidationErrors for the application being tested.
+            // Mono issue - https://github.com/aspnet/External/issues/19
             Assert.Equal(8, json.Count);
-            Assert.Equal("The Field1 field is required.", json["Field1"]);
-            Assert.Equal("The Field2 field is required.", json["Field2"]);
-            Assert.Equal("The Field3 field is required.", json["Field3"]);
-            Assert.Equal("The Field4 field is required.", json["Field4"]);
-            Assert.Equal("The Field5 field is required.", json["Field5"]);
-            Assert.Equal("The Field6 field is required.", json["Field6"]);
-            Assert.Equal("The Field7 field is required.", json["Field7"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field1 field is required."), json["Field1"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field2 field is required."), json["Field2"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field3 field is required."), json["Field3"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field4 field is required."), json["Field4"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field5 field is required."), json["Field5"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field6 field is required."), json["Field6"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field7 field is required."), json["Field7"]);
             Assert.Equal("The maximum number of allowed model errors has been reached.", json[""]);
         }
 
@@ -821,9 +734,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             Assert.Equal(3, json.Count);
-            Assert.Equal("The Field1 field is required.", json["Field1"]);
-            Assert.Equal("The Field2 field is required.", json["Field2"]);
-            Assert.Equal("The Field3 field is required.", json["Field3"]);
+
+            // The model prefix 'model' is used in the modelstate keys because the key 'model' is present in the 
+            // query string. This causes modelbinding to commit to using the prefix.
+            //
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field1 field is required."), json["model.Field1"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field2 field is required."), json["model.Field2"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field3 field is required."), json["model.Field3"]);
         }
 
         [Fact]
@@ -1262,13 +1180,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var modelStateErrors = JsonConvert.DeserializeObject<IDictionary<string, IEnumerable<string>>>(body);
 
             Assert.Equal(2, modelStateErrors.Count);
+            // OrderBy is used because the order of the results may very depending on the platform / client.
             Assert.Equal(new[] {
                     "The field Year must be between 1980 and 2034.",
                     "Year is invalid"
-                    }, modelStateErrors["Year"]);
+                }, modelStateErrors["Year"].OrderBy(item => item, StringComparer.Ordinal));
 
             var vinError = Assert.Single(modelStateErrors["Vin"]);
-            Assert.Equal("The Vin field is required.", vinError);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Vin field is required."), vinError);
         }
 
         [Fact]
@@ -1342,7 +1262,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
 #if DNX451
-        [Fact]
+        [ConditionalTheory]
+        // Mono issue - https://github.com/aspnet/External/issues/18
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task UpdateVehicle_WithXml_BindsBodyServicesAndHeaders()
         {
             // Arrange
@@ -1412,7 +1334,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            expectedContent = PlatformNormalizer.NormalizeContent(expectedContent);
+            if (TestPlatformHelper.IsMono)
+            {
+                expectedContent = expectedContent.Replace(
+                    "<span class=\"field-validation-error\" data-valmsg-for=\"Vehicle.Year\"" +
+                    " data-valmsg-replace=\"true\">The field Year must be between 1980 and 2034.</span>",
+                    "<span class=\"field-validation-error\" data-valmsg-for=\"Vehicle.Year\"" +
+                    " data-valmsg-replace=\"true\">Year is invalid</span>");
+            }
+
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -1448,7 +1381,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(
+                PlatformNormalizer.NormalizeContent(expectedContent),
+                responseContent,
+                ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -1484,7 +1421,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -1635,7 +1572,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -1659,7 +1596,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(
+                PlatformNormalizer.NormalizeContent(expectedContent),
+                responseContent,
+                ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -1702,7 +1643,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(
+                PlatformNormalizer.NormalizeContent(expectedContent),
+                responseContent,
+                ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -2019,13 +1964,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             var result = await ReadValue<UserWithAddress>(response);
-
-            // Though posted content did not contain any valid Addresses, it is bound as a single-element List
-            // containing null. Slightly odd behavior is specific to this unusual error case: CollectionModelBinder
-            // attempted to bind a comma-separated string as a collection and Address lacks a from-string conversion.
-            // MutableObjectModelBinder does not create model when value providers have no data (unless at top level).
-            var address = Assert.Single(result.Addresses);
-            Assert.Null(address);
+            Assert.Empty(result.Addresses);
         }
 
         [Fact]
@@ -2086,12 +2025,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             var result = await ReadValue<PeopleModel>(response);
 
-            // Though posted content did not contain any valid People, it is bound as a single-element List
-            // containing null. Slightly odd behavior is specific to this unusual error case: CollectionModelBinder
-            // attempted to bind a comma-separated string as a collection and Address lacks a from-string conversion.
-            // MutableObjectModelBinder does not create model when value providers have no data (unless at top level).
-            var person = Assert.Single(result.People);
-            Assert.Null(person);
+            Assert.Empty(result.People);
         }
 
         [Theory]

@@ -10,8 +10,8 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Rendering.Internal;
+using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -90,10 +90,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult<TagHelperContent>(result: null));
+                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(result: null));
             var output = new TagHelperOutput(originalTagName, outputAttributes)
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
             output.Content.SetContent(originalContent);
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
@@ -104,8 +104,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Empty(output.Attributes); // Moved to Content and cleared
-            Assert.Equal(expectedContent, output.Content.GetContent());
-            Assert.True(output.SelfClosing);
+            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Null(output.TagName); // Cleared
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -206,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagOnly,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -237,7 +237,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagOnly, output.TagMode);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -268,7 +268,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(originalContent);
@@ -276,12 +276,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model: false, propertyName: nameof(Model.IsACar));
-            var tagBuilder = new TagBuilder("input", new CommonTestEncoder())
+            var tagBuilder = new TagBuilder("input")
             {
                 Attributes =
                 {
                     { "class", "form-control" },
                 },
+                TagRenderMode = TagRenderMode.SelfClosing
             };
             htmlGenerator
                 .Setup(mock => mock.GenerateCheckBox(
@@ -297,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     tagHelper.ViewContext,
                     tagHelper.For.ModelExplorer,
                     tagHelper.For.Name))
-                .Returns(new TagBuilder("hidden", new NullTestEncoder()))
+                .Returns(new TagBuilder("hidden") { TagRenderMode = TagRenderMode.SelfClosing })
                 .Verifiable();
 
             // Act
@@ -308,9 +309,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             Assert.Empty(output.Attributes);    // Moved to Content and cleared
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
-            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
-            Assert.True(output.SelfClosing);
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Null(output.TagName);       // Cleared
         }
 
@@ -352,7 +353,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -364,7 +365,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagOnly,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -381,7 +382,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 metadataProvider: metadataProvider);
             tagHelper.InputTypeName = inputTypeName;
 
-            var tagBuilder = new TagBuilder("input", new NullTestEncoder())
+            var tagBuilder = new TagBuilder("input")
             {
                 Attributes =
                 {
@@ -405,7 +406,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagOnly, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
@@ -451,7 +452,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -463,7 +464,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagOnly,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -480,7 +481,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 metadataProvider: metadataProvider);
             tagHelper.InputTypeName = inputTypeName;
 
-            var tagBuilder = new TagBuilder("input", new NullTestEncoder())
+            var tagBuilder = new TagBuilder("input")
             {
                 Attributes =
                 {
@@ -503,7 +504,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagOnly, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
@@ -535,8 +536,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedAttributes = new TagHelperAttributeList
             {
                 { "class", "form-control radio-control" },
-                { "type", inputTypeName ?? "radio" },       // Generator restores type attribute; adds "radio" if none.
                 { "value", value },
+                { "type", inputTypeName ?? "radio" },       // Generator restores type attribute; adds "radio" if none.
             };
             var expectedPreContent = "original pre-content";
             var expectedContent = "original content";
@@ -547,7 +548,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -559,7 +560,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagOnly,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -570,7 +571,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             tagHelper.InputTypeName = inputTypeName;
             tagHelper.Value = value;
 
-            var tagBuilder = new TagBuilder("input", new NullTestEncoder())
+            var tagBuilder = new TagBuilder("input")
             {
                 Attributes =
                 {
@@ -594,7 +595,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagOnly, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
@@ -654,7 +655,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -666,7 +667,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagOnly,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -683,7 +684,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 metadataProvider: metadataProvider);
             tagHelper.InputTypeName = inputTypeName;
 
-            var tagBuilder = new TagBuilder("input", new NullTestEncoder())
+            var tagBuilder = new TagBuilder("input")
             {
                 Attributes =
                 {
@@ -707,7 +708,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagOnly, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
@@ -732,14 +733,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "datetime-local", null, "datetime-local" },
                     { "DATETIME-local", null, "datetime-local" },
                     { "Decimal", "{0:0.00}", "text" },
-                    { "Double", null, "number" },
+                    { "Double", null, "text" },
                     { "Int16", null, "number" },
                     { "Int32", null, "number" },
                     { "int32", null, "number" },
                     { "Int64", null, "number" },
                     { "SByte", null, "number" },
-                    { "Single", null, "number" },
-                    { "SINGLE", null, "number" },
+                    { "Single", null, "text" },
+                    { "SINGLE", null, "text" },
                     { "string", null, "text" },
                     { "STRING", null, "text" },
                     { "text", null, "text" },
@@ -774,11 +775,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
 
             var output = new TagHelperOutput(expectedTagName, attributes: new TagHelperAttributeList())
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
 
             var metadataProvider = new TestModelMetadataProvider();
@@ -791,7 +792,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 propertyName: nameof(Model.Text),
                 metadataProvider: metadataProvider);
 
-            var tagBuilder = new TagBuilder("input", new NullTestEncoder());
+            var tagBuilder = new TagBuilder("input");
 
             var htmlAttributes = new Dictionary<string, object>
             {
@@ -818,11 +819,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.True(output.SelfClosing);
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Empty(output.PreContent);
-            Assert.Equal(new[] { string.Empty }, output.Content);
-            Assert.Empty(output.PostContent);
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.Equal(string.Empty, output.Content.GetContent());
+            Assert.Empty(output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 
@@ -855,11 +856,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
 
             var output = new TagHelperOutput(expectedTagName, attributes: new TagHelperAttributeList())
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
 
             var htmlAttributes = new Dictionary<string, object>
@@ -875,7 +876,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 metadataProvider: metadataProvider);
             tagHelper.ViewContext.Html5DateRenderingMode = dateRenderingMode;
 
-            var tagBuilder = new TagBuilder("input", new NullTestEncoder());
+            var tagBuilder = new TagBuilder("input");
             htmlGenerator
                 .Setup(mock => mock.GenerateTextBox(
                     tagHelper.ViewContext,
@@ -893,11 +894,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.True(output.SelfClosing);
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
-            Assert.Empty(output.PreContent);
-            Assert.Equal(new[] { string.Empty }, output.Content);
-            Assert.Empty(output.PostContent);
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.Equal(string.Empty, output.Content.GetContent());
+            Assert.Empty(output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
 

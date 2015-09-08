@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     /// <summary>
     /// An <see cref="ActionResult"/> that returns a Created (201) response with a Location header.
@@ -31,7 +33,7 @@ namespace Microsoft.AspNet.Mvc
         {
             ActionName = actionName;
             ControllerName = controllerName;
-            RouteValues = TypeHelper.ObjectToDictionary(routeValues);
+            RouteValues = PropertyHelper.ObjectToDictionary(routeValues);
             StatusCode = StatusCodes.Status201Created;
         }
 
@@ -73,7 +75,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.NoRoutesMatched);
             }
 
-            context.HttpContext.Response.Headers.Set("Location", url);
+            context.HttpContext.Response.Headers[HeaderNames.Location] = url;
         }
     }
 }

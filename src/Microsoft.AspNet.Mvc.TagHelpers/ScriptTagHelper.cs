@@ -2,11 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Mvc.Razor.TagHelpers;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Caching.Memory;
@@ -28,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     [TargetElement("script", Attributes = FallbackSrcExcludeAttributeName)]
     [TargetElement("script", Attributes = FallbackTestExpressionAttributeName)]
     [TargetElement("script", Attributes = AppendVersionAttributeName)]
-    public class ScriptTagHelper : TagHelper
+    public class ScriptTagHelper : UrlResolutionTagHelper
     {
         private const string SrcIncludeAttributeName = "asp-src-include";
         private const string SrcExcludeAttributeName = "asp-src-exclude";
@@ -78,18 +77,29 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <param name="cache">The <see cref="IMemoryCache"/>.</param>
         /// <param name="htmlEncoder">The <see cref="IHtmlEncoder"/>.</param>
         /// <param name="javaScriptEncoder">The <see cref="IJavaScriptStringEncoder"/>.</param>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
         public ScriptTagHelper(
             ILogger<ScriptTagHelper> logger,
             IHostingEnvironment hostingEnvironment,
             IMemoryCache cache,
             IHtmlEncoder htmlEncoder,
-            IJavaScriptStringEncoder javaScriptEncoder)
+            IJavaScriptStringEncoder javaScriptEncoder,
+            IUrlHelper urlHelper)
+            : base(urlHelper, htmlEncoder)
         {
             Logger = logger;
             HostingEnvironment = hostingEnvironment;
             Cache = cache;
-            HtmlEncoder = htmlEncoder;
             JavaScriptEncoder = javaScriptEncoder;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultFrameworkSortOrder;
+            }
         }
 
         /// <summary>
@@ -164,21 +174,29 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         protected IMemoryCache Cache { get; }
 
-        protected IHtmlEncoder HtmlEncoder { get; }
-
         protected IJavaScriptStringEncoder JavaScriptEncoder { get; }
 
         // Internal for ease of use when testing.
         protected internal GlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
 
         /// <inheritdoc />
-        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+        public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            string resolvedUrl;
+
             // Pass through attribute that is also a well-known HTML attribute.
             if (Src != null)
             {
                 output.CopyHtmlAttribute(SrcAttributeName, context);
             }
+
+            // If there's no "src" attribute in output.Attributes this will noop.
+            ProcessUrlAttribute(SrcAttributeName, output);
+
+            // Retrieve the TagHelperOutput variation of the "src" attribute in case other TagHelpers in the
+            // pipeline have touched the value. If the value is already encoded this ScriptTagHelper may
+            // not function properly.
+            Src = output.Attributes[SrcAttributeName]?.Value as string;
 
             var modeResult = AttributeMatcher.DetermineMode(context, ModeDetails);
 
@@ -190,66 +208,75 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            // Get the highest matched mode
-            var mode = modeResult.FullMatches.Select(match => match.Mode).Max();
-
             // NOTE: Values in TagHelperOutput.Attributes may already be HTML-encoded.
             var attributes = new TagHelperAttributeList(output.Attributes);
 
-            var builder = new DefaultTagHelperContent();
-            var originalContent = await context.GetChildContentAsync();
+            if (AppendVersion == true)
+            {
+                EnsureFileVersionProvider();
 
-            if (mode == Mode.Fallback && string.IsNullOrEmpty(SrcInclude) || mode == Mode.AppendVersion)
-            {
-                // No globbing to do, just build a <script /> tag to match the original one in the source file
-                // Or just add file version to the script tag.
-                BuildScriptTag(originalContent, attributes, builder);
+                if (Src != null)
+                {
+                    output.Attributes[SrcAttributeName].Value = _fileVersionProvider.AddFileVersionToPath(Src);
+                }
             }
-            else
+
+            var builder = new DefaultTagHelperContent();
+
+            // Get the highest matched mode
+            var mode = modeResult.FullMatches.Select(match => match.Mode).Max();
+
+            if (mode == Mode.GlobbedSrc || mode == Mode.Fallback && !string.IsNullOrEmpty(SrcInclude))
             {
-                BuildGlobbedScriptTags(originalContent, attributes, builder);
+                BuildGlobbedScriptTags(attributes, builder);
+                if (string.IsNullOrEmpty(Src))
+                {
+                    // Only SrcInclude is specified. Don't render the original tag.
+                    output.TagName = null;
+                    output.Content.SetContent(string.Empty);
+                }
             }
 
             if (mode == Mode.Fallback)
             {
+                if (TryResolveUrl(FallbackSrc, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
+                {
+                    FallbackSrc = resolvedUrl;
+                }
+
                 BuildFallbackBlock(attributes, builder);
             }
 
-            // We've taken over tag rendering, so prevent rendering the outer tag
-            output.TagName = null;
-            output.Content.SetContent(builder);
+            output.PostElement.SetContent(builder);
         }
 
         private void BuildGlobbedScriptTags(
-            TagHelperContent originalContent,
             TagHelperAttributeList attributes,
             TagHelperContent builder)
         {
             EnsureGlobbingUrlBuilder();
 
             // Build a <script> tag for each matched src as well as the original one in the source file
-            var urls = GlobbingUrlBuilder.BuildUrlList(Src, SrcInclude, SrcExclude);
+            var urls = GlobbingUrlBuilder.BuildUrlList(null, SrcInclude, SrcExclude);
             foreach (var url in urls)
             {
                 // "url" values come from bound attributes and globbing. Must always be non-null.
                 Debug.Assert(url != null);
 
-                var content = originalContent;
-                if (!string.Equals(url, Src, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(url, Src, StringComparison.OrdinalIgnoreCase))
                 {
-                    // Do not copy content into added <script/> elements.
-                    content = null;
+                    // Don't build duplicate script tag for the original source url.
+                    continue;
                 }
 
                 attributes[SrcAttributeName] = url;
-                BuildScriptTag(content, attributes, builder);
+                BuildScriptTag(attributes, builder);
             }
         }
 
         private void BuildFallbackBlock(TagHelperAttributeList attributes, DefaultTagHelperContent builder)
         {
             EnsureGlobbingUrlBuilder();
-            EnsureFileVersionProvider();
 
             var fallbackSrcs = GlobbingUrlBuilder.BuildUrlList(FallbackSrc, FallbackSrcInclude, FallbackSrcExclude);
             if (fallbackSrcs.Any())
@@ -330,11 +357,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         private void BuildScriptTag(
-            TagHelperContent content,
             TagHelperAttributeList attributes,
             TagHelperContent builder)
         {
-            EnsureFileVersionProvider();
             builder.Append("<script");
 
             foreach (var attribute in attributes)
@@ -356,9 +381,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 AppendAttribute(builder, attribute.Name, attributeValue, escapeQuotes: false);
             }
 
-            builder.Append(">")
-                   .Append(content)
-                   .Append("</script>");
+            builder.Append("></script>");
         }
 
         private void AppendAttribute(TagHelperContent content, string key, object value, bool escapeQuotes)

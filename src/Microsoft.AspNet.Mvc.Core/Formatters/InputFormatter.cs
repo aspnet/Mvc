@@ -10,13 +10,25 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
     /// Reads an object from the request body.
     /// </summary>
     public abstract class InputFormatter : IInputFormatter
     {
+        /// <summary>
+        /// Returns UTF8 Encoding without BOM and throws on invalid bytes.
+        /// </summary>
+        protected static readonly Encoding UTF8EncodingWithoutBOM
+            = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+        /// <summary>
+        /// Returns UTF16 Encoding which uses littleEndian byte order with BOM and throws on invalid bytes.
+        /// </summary>
+        protected static readonly Encoding UTF16EncodingLittleEndian
+            = new UnicodeEncoding(bigEndian: false, byteOrderMark: true, throwOnInvalidBytes: true);
+
         /// <summary>
         /// Gets the mutable collection of character encodings supported by
         /// this <see cref="InputFormatter"/>. The encodings are
@@ -70,15 +82,15 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public virtual async Task<object> ReadAsync(InputFormatterContext context)
+        public virtual Task<object> ReadAsync(InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
             if (request.ContentLength == 0)
             {
-                return GetDefaultValueForType(context.ModelType);
+                return Task.FromResult(GetDefaultValueForType(context.ModelType));
             }
 
-            return await ReadRequestBodyAsync(context);
+            return ReadRequestBodyAsync(context);
         }
 
         /// <summary>

@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.OptionsModel;
 
 namespace UrlHelperWebSite
@@ -19,12 +19,14 @@ namespace UrlHelperWebSite
         private readonly IOptions<AppOptions> _appOptions;
         private readonly HttpContext _httpContext;
 
-        public CustomUrlHelper(IScopedInstance<ActionContext> contextAccessor, IActionSelector actionSelector,
-                               IOptions<AppOptions> appOptions)
+        public CustomUrlHelper(
+            IActionContextAccessor contextAccessor,
+            IActionSelector actionSelector,
+            IOptions<AppOptions> appOptions)
             : base(contextAccessor, actionSelector)
         {
             _appOptions = appOptions;
-            _httpContext = contextAccessor.Value.HttpContext;
+            _httpContext = contextAccessor.ActionContext.HttpContext;
         }
 
         /// <summary>
@@ -35,12 +37,12 @@ namespace UrlHelperWebSite
         /// <returns></returns>
         public override string Content(string contentPath)
         {
-            if (_appOptions.Options.ServeCDNContent
+            if (_appOptions.Value.ServeCDNContent
                 && contentPath.StartsWith("~/", StringComparison.Ordinal))
             {
                 var segment = new PathString(contentPath.Substring(1));
 
-                return ConvertToLowercaseUrl(_appOptions.Options.CDNServerBaseUrl + segment);
+                return ConvertToLowercaseUrl(_appOptions.Value.CDNServerBaseUrl + segment);
             }
 
             return ConvertToLowercaseUrl(base.Content(contentPath));
@@ -59,7 +61,7 @@ namespace UrlHelperWebSite
         private string ConvertToLowercaseUrl(string url)
         {
             if (!string.IsNullOrEmpty(url)
-                && _appOptions.Options.GenerateLowercaseUrls)
+                && _appOptions.Value.GenerateLowercaseUrls)
             {
                 return url.ToLowerInvariant();
             }

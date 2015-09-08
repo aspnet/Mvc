@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Xunit;
 
@@ -192,7 +193,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(tagHelperOutputContent.OriginalChildContent);
@@ -206,13 +207,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             output.PreContent.SetContent(expectedPreContent);
             output.PostContent.SetContent(expectedPostContent);
 
-            // LabelTagHelper checks IsContentModified so we don't want to forcibly set it if 
+            // LabelTagHelper checks IsContentModified so we don't want to forcibly set it if
             // tagHelperOutputContent.OriginalContent is going to be null or empty.
             if (!string.IsNullOrEmpty(tagHelperOutputContent.OriginalContent))
             {
                 output.Content.SetContent(tagHelperOutputContent.OriginalContent);
             }
-            
+
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
             tagHelper.ViewContext = viewContext;
 
@@ -222,9 +223,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
-            Assert.Equal(tagHelperOutputContent.ExpectedContent, output.Content.GetContent());
+            Assert.Equal(
+                tagHelperOutputContent.ExpectedContent,
+                HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             Assert.Equal(expectedTagName, output.TagName);
         }
 

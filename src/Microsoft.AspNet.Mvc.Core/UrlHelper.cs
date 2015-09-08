@@ -5,9 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
@@ -18,39 +17,61 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class UrlHelper : IUrlHelper
     {
-        private readonly HttpContext _httpContext;
-        private readonly IRouter _router;
-        private readonly IDictionary<string, object> _ambientValues;
+        private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IActionSelector _actionSelector;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified action context and
         /// action selector.
         /// </summary>
-        /// <param name="contextAccessor">The <see cref="IScopedInstance{TContext}"/> to access the action context
+        /// <param name="actionContextAccessor">The <see cref="IActionContextAccessor"/> to access the action context
         /// of the current request.</param>
         /// <param name="actionSelector">The <see cref="IActionSelector"/> to be used for verifying the correctness of
         /// supplied parameters for a route.
         /// </param>
-        public UrlHelper(IScopedInstance<ActionContext> contextAccessor, IActionSelector actionSelector)
+        public UrlHelper(IActionContextAccessor actionContextAccessor, IActionSelector actionSelector)
         {
-            _httpContext = contextAccessor.Value.HttpContext;
-            _router = contextAccessor.Value.RouteData.Routers[0];
-            _ambientValues = contextAccessor.Value.RouteData.Values;
+            _actionContextAccessor = actionContextAccessor;
             _actionSelector = actionSelector;
         }
+
+        protected IDictionary<string, object> AmbientValues => ActionContext.RouteData.Values;
+
+        protected ActionContext ActionContext => _actionContextAccessor.ActionContext;
+
+        protected HttpContext HttpContext => ActionContext.HttpContext;
+
+        protected IRouter Router => ActionContext.RouteData.Routers[0];
 
         /// <inheritdoc />
         public virtual string Action(UrlActionContext actionContext)
         {
-            var valuesDictionary = TypeHelper.ObjectToDictionary(actionContext.Values);
+            var valuesDictionary = PropertyHelper.ObjectToDictionary(actionContext.Values);
 
-            if (actionContext.Action != null)
+            if (actionContext.Action == null)
+            {
+                object action;
+                if (!valuesDictionary.ContainsKey("action") && 
+                    AmbientValues.TryGetValue("action", out action))
+                {
+                    valuesDictionary["action"] = action;
+                }
+            }
+            else
             {
                 valuesDictionary["action"] = actionContext.Action;
             }
 
-            if (actionContext.Controller != null)
+            if (actionContext.Controller == null)
+            {
+                object controller;
+                if (!valuesDictionary.ContainsKey("controller") && 
+                    AmbientValues.TryGetValue("controller", out controller))
+                {
+                    valuesDictionary["controller"] = controller;
+                }
+            }
+            else
             {
                 valuesDictionary["controller"] = actionContext.Controller;
             }
@@ -65,15 +86,22 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public bool IsLocalUrl(string url)
+        public virtual bool IsLocalUrl(string url)
         {
-            return UrlUtility.IsLocalUrl(url);
+            return
+                !string.IsNullOrEmpty(url) &&
+
+                // Allows "/" or "/foo" but not "//" or "/\".
+                ((url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\'))) ||
+
+                // Allows "~/" or "~/foo".
+                (url.Length > 1 && url[0] == '~' && url[1] == '/'));
         }
 
         /// <inheritdoc />
         public virtual string RouteUrl(UrlRouteContext routeContext)
         {
-            var valuesDictionary = TypeHelper.ObjectToDictionary(routeContext.Values);
+            var valuesDictionary = PropertyHelper.ObjectToDictionary(routeContext.Values);
 
             var path = GeneratePathFromRoute(routeContext.RouteName, valuesDictionary);
             if (path == null)
@@ -98,8 +126,8 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The absolute path of the URL.</returns>
         protected virtual string GeneratePathFromRoute(string routeName, IDictionary<string, object> values)
         {
-            var context = new VirtualPathContext(_httpContext, _ambientValues, values, routeName);
-            var pathData = _router.GetVirtualPath(context);
+            var context = new VirtualPathContext(HttpContext, AmbientValues, values, routeName);
+            var pathData = Router.GetVirtualPath(context);
             if (pathData == null)
             {
                 return null;
@@ -108,7 +136,7 @@ namespace Microsoft.AspNet.Mvc
             // VirtualPathData.VirtualPath returns string.Empty for null.
             Debug.Assert(pathData.VirtualPath != null);
 
-            var fullPath = _httpContext.Request.PathBase.Add(pathData.VirtualPath).Value;
+            var fullPath = HttpContext.Request.PathBase.Add(pathData.VirtualPath).Value;
             if (fullPath.Length == 0)
             {
                 return "/";
@@ -120,9 +148,21 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public virtual string Content([NotNull] string contentPath)
+        public virtual string Content(string contentPath)
         {
-            return GenerateClientUrl(_httpContext.Request.PathBase, contentPath);
+            if (string.IsNullOrEmpty(contentPath))
+            {
+                return null;
+            }
+            else if (contentPath[0] == '~')
+            {
+                var segment = new PathString(contentPath.Substring(1));
+                var applicationPath = HttpContext.Request.PathBase;
+
+                return applicationPath.Add(segment).Value;
+            }
+
+            return contentPath;
         }
 
         /// <inheritdoc />
@@ -132,20 +172,9 @@ namespace Microsoft.AspNet.Mvc
             {
                 RouteName = routeName,
                 Values = values,
-                Protocol = _httpContext.Request.Scheme,
-                Host = _httpContext.Request.Host.ToUriComponent()
+                Protocol = HttpContext.Request.Scheme,
+                Host = HttpContext.Request.Host.ToUriComponent()
             });
-        }
-
-        private static string GenerateClientUrl([NotNull] PathString applicationPath,
-                                                [NotNull] string path)
-        {
-            if (path.StartsWith("~/", StringComparison.Ordinal))
-            {
-                var segment = new PathString(path.Substring(1));
-                return applicationPath.Add(segment).Value;
-            }
-            return path;
         }
 
         private string GenerateUrl(string protocol, string host, string path, string fragment)
@@ -173,7 +202,7 @@ namespace Microsoft.AspNet.Mvc
             else
             {
                 protocol = string.IsNullOrEmpty(protocol) ? "http" : protocol;
-                host = string.IsNullOrEmpty(host) ? _httpContext.Request.Host.Value : host;
+                host = string.IsNullOrEmpty(host) ? HttpContext.Request.Host.Value : host;
 
                 url = protocol + "://" + host + url;
                 return url;

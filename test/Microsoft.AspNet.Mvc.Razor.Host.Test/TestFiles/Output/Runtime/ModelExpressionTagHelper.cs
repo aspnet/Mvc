@@ -1,4 +1,4 @@
-#pragma checksum "TestFiles/Input/ModelExpressionTagHelper.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "3b1d4af116a70f83c556ece1980f2e9364e6baa7"
+#pragma checksum "TestFiles/Input/ModelExpressionTagHelper.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "fd1207a6d248f0e3aeabecaa338dca0ffb99d10d"
 namespace Asp
 {
     using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -48,7 +48,7 @@ namespace Asp
             BeginContext(120, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", true, "test", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", TagMode.SelfClosing, "test", async() => {
             }
             , StartTagHelperWritingScope, EndTagHelperWritingScope);
             __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper = CreateTagHelper<Microsoft.AspNet.Mvc.Razor.InputTestTagHelper>();
@@ -60,12 +60,14 @@ __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__mo
 #line hidden
             __tagHelperExecutionContext.AddTagHelperAttribute("for", __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For);
             __tagHelperExecutionContext.Output = await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+            BeginContext(122, 24, false);
             await WriteTagHelperAsync(__tagHelperExecutionContext);
+            EndContext();
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             BeginContext(146, 2, true);
             WriteLiteral("\r\n");
             EndContext();
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", true, "test", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("input-test", TagMode.SelfClosing, "test", async() => {
             }
             , StartTagHelperWritingScope, EndTagHelperWritingScope);
             __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper = CreateTagHelper<Microsoft.AspNet.Mvc.Razor.InputTestTagHelper>();
@@ -77,7 +79,9 @@ __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For = CreateModelExpression(__mo
 #line hidden
             __tagHelperExecutionContext.AddTagHelperAttribute("for", __Microsoft_AspNet_Mvc_Razor_InputTestTagHelper.For);
             __tagHelperExecutionContext.Output = await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+            BeginContext(148, 27, false);
             await WriteTagHelperAsync(__tagHelperExecutionContext);
+            EndContext();
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
         }
         #pragma warning restore 1998

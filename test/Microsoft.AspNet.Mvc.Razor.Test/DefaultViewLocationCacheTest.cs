@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Xunit;
 
@@ -53,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var result = cache.Get(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(result, ViewLocationCacheResult.None);
         }
 
         [Theory]
@@ -62,13 +63,25 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var cache = new DefaultViewLocationCache();
-            var value = Guid.NewGuid().ToString();
+            var value = new ViewLocationCacheResult(
+                Guid.NewGuid().ToString(),
+                new[]
+                {
+                    Guid.NewGuid().ToString(),
+                    Guid.NewGuid().ToString()
+                });
 
-            // Act
+            // Act - 1
             cache.Set(context, value);
             var result = cache.Get(context);
 
-            // Assert
+            // Assert - 1
+            Assert.Equal(value, result);
+
+            // Act - 2
+            result = cache.Get(context);
+
+            // Assert - 2
             Assert.Equal(value, result);
         }
 

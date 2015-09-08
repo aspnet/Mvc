@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -23,7 +26,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             Attributes = new List<object>(attributes);
             AttributeRoutes = new List<AttributeRouteModel>();
             ActionConstraints = new List<IActionConstraintMetadata>();
-            Filters = new List<IFilter>();
+            Filters = new List<IFilterMetadata>();
             RouteConstraints = new List<IRouteConstraintProvider>();
             Properties = new Dictionary<object, object>();
             ControllerProperties = new List<PropertyModel>();
@@ -40,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             // These are just metadata, safe to create new collections
             ActionConstraints = new List<IActionConstraintMetadata>(other.ActionConstraints);
             Attributes = new List<object>(other.Attributes);
-            Filters = new List<IFilter>(other.Filters);
+            Filters = new List<IFilterMetadata>(other.Filters);
             RouteConstraints = new List<IRouteConstraintProvider>(other.RouteConstraints);
             Properties = new Dictionary<object, object>(other.Properties);
 
@@ -81,7 +84,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         public IList<PropertyModel> ControllerProperties { get; }
 
-        public IList<IFilter> Filters { get; private set; }
+        public IList<IFilterMetadata> Filters { get; private set; }
 
         public IList<IRouteConstraintProvider> RouteConstraints { get; private set; }
 

@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract string BinderModelName { get; }
 
         /// <summary>
-        /// Gets the <see cref="Type"/> of an <see cref="IModelBinder"/> of a model if specified explicitly using 
+        /// Gets the <see cref="Type"/> of an <see cref="IModelBinder"/> of a model if specified explicitly using
         /// <see cref="IBinderTypeProviderMetadata"/>.
         /// </summary>
         public abstract Type BinderType { get; }
@@ -125,8 +125,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract string EditFormatString { get; }
 
         /// <summary>
-        /// Gets the ordered display names and values of all <see cref="Enum"/> values in <see cref="ModelType"/> or
-        /// <c>Nullable.GetUnderlyingType(ModelType)</c>.
+        /// Gets the <see cref="ModelMetadata"/> for elements of <see cref="ModelType"/> if that <see cref="Type"/>
+        /// implements <see cref="IEnumerable"/>.
+        /// </summary>
+        /// <value>
+        /// <see cref="ModelMetadata"/> for <c>T</c> if <see cref="ModelType"/> implements
+        /// <see cref="IEnumerable{T}"/>. <see cref="ModelMetadata"/> for <c>object</c> if <see cref="ModelType"/>
+        /// implements <see cref="IEnumerable"/> but not <see cref="IEnumerable{T}"/>. <c>null</c> otherwise i.e. when
+        /// <see cref="IsCollectionType"/> is <c>false</c>.
+        /// </value>
+        public abstract ModelMetadata ElementMetadata { get; }
+
+        /// <summary>
+        /// Gets the ordered display names and values of all <see cref="Enum"/> values in
+        /// <see cref="UnderlyingOrModelType"/>.
         /// </summary>
         /// <value>
         /// An <see cref="IEnumerable{KeyValuePair{string, string}}"/> of mappings between <see cref="Enum"/> field names
@@ -135,8 +147,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract IEnumerable<KeyValuePair<string, string>> EnumDisplayNamesAndValues { get; }
 
         /// <summary>
-        /// Gets the names and values of all <see cref="Enum"/> values in <see cref="ModelType"/> or
-        /// <c>Nullable.GetUnderlyingType(ModelType)</c>.
+        /// Gets the names and values of all <see cref="Enum"/> values in <see cref="UnderlyingOrModelType"/>.
         /// </summary>
         /// <value>
         /// An <see cref="IReadOnlyDictionary{string, string}"/> of mappings between <see cref="Enum"/> field names
@@ -190,23 +201,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract bool IsBindingRequired { get; }
 
         /// <summary>
-        /// Gets a value indicating whether <see cref="ModelType"/> or <c>Nullable.GetUnderlyingType(ModelType)</c> is
-        /// for an <see cref="Enum"/>.
+        /// Gets a value indicating whether <see cref="UnderlyingOrModelType"/> is for an <see cref="Enum"/>.
         /// </summary>
         /// <value>
         /// <c>true</c> if <c>type.IsEnum</c> (<c>type.GetTypeInfo().IsEnum</c> for DNX Core 5.0) is <c>true</c> for
-        /// <see cref="ModelType"/> or <c>Nullable.GetUnderlyingType(ModelType)</c>; <c>false</c> otherwise.
+        /// <see cref="UnderlyingOrModelType"/>; <c>false</c> otherwise.
         /// </value>
         public abstract bool IsEnum { get; }
 
         /// <summary>
-        /// Gets a value indicating whether <see cref="ModelType"/> or <c>Nullable.GetUnderlyingType(ModelType)</c> is
-        /// for an <see cref="Enum"/> with an associated <see cref="FlagsAttribute"/>.
+        /// Gets a value indicating whether <see cref="UnderlyingOrModelType"/> is for an <see cref="Enum"/> with an
+        /// associated <see cref="FlagsAttribute"/>.
         /// </summary>
         /// <value>
-        /// <c>true</c> if <see cref="IsEnum"/> is <c>true</c> and <see cref="ModelType"/> or
-        /// <c>Nullable.GetUnderlyingType(ModelType)</c> has an associated <see cref="FlagsAttribute"/>; <c>false</c>
-        /// otherwise.
+        /// <c>true</c> if <see cref="IsEnum"/> is <c>true</c> and <see cref="UnderlyingOrModelType"/> has an
+        /// associated <see cref="FlagsAttribute"/>; <c>false</c> otherwise.
         /// </value>
         public abstract bool IsFlagsEnum { get; }
 
@@ -303,7 +312,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public bool IsNullableValueType
         {
-            get { return TypeHelper.IsNullableValueType(ModelType); }
+            get
+            {
+                return Nullable.GetUnderlyingType(ModelType) != null;
+            }
         }
 
         /// <summary>
@@ -330,6 +342,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         /// <summary>
+        /// Gets a value indicating whether or not <see cref="ModelType"/> allows <c>null</c> values.
+        /// </summary>
+        public bool IsReferenceOrNullableType
+        {
+            get
+            {
+                return !ModelType.GetTypeInfo().IsValueType || IsNullableValueType;
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying type argument if <see cref="ModelType"/> inherits from <see cref="Nullable{T}"/>.
+        /// Otherwise gets <see cref="ModelType"/>.
+        /// </summary>
+        /// <remarks>
+        /// Identical to <see cref="ModelType"/> unless <see cref="IsNullableValueType"/> is <c>true</c>.
+        /// </remarks>
+        public Type UnderlyingOrModelType
+        {
+            get
+            {
+                return Nullable.GetUnderlyingType(ModelType) ?? ModelType;
+            }
+        }
+
+        /// <summary>
+        /// Gets a property getter delegate to get the property value from a model object.
+        /// </summary>
+        public abstract Func<object, object> PropertyGetter { get; }
+
+        /// <summary>
+        /// Gets a property setter delegate to set the property value on a model object.
+        /// </summary>
+        public abstract Action<object, object> PropertySetter { get; }
+
+        /// <summary>
         /// Gets a display name for the model.
         /// </summary>
         /// <remarks>
@@ -341,15 +389,5 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             return DisplayName ?? PropertyName ?? ModelType.Name;
         }
-
-        /// <summary>
-        /// Gets or sets a property getter delegate to get the property value from a model object.
-        /// </summary>
-        public abstract Func<object, object> PropertyGetter { get; }
-
-        /// <summary>
-        /// Gets or sets a property setter delegate to set the property value on a model object.
-        /// </summary>
-        public abstract Action<object, object> PropertySetter { get; }
     }
 }

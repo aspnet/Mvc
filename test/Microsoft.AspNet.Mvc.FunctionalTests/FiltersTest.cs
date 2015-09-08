@@ -8,7 +8,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.Xml;
+using Microsoft.AspNet.Mvc.Formatters.Xml;
+using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
@@ -67,12 +68,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var body = await response.Content.ReadAsStringAsync();
 
-            var filters = response.Headers.GetValues("filters").Single().Split(',');
+            var filters = response.Headers.GetValues("filters").ToArray();
 
             var i = 0;
             foreach (var filter in filters)
             {
-                Assert.Equal(filter, expected[i++]);
+                Assert.Equal(expected[i++], filter);
             }
 
             Assert.Equal(expected.Length, filters.Length);
@@ -155,7 +156,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 "http://localhost/AuthorizeUser/Impossible");
 
             // Assert
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [Fact]

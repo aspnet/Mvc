@@ -10,16 +10,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Testing.xunit;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Caching;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.Runtime;
-using Microsoft.Framework.WebEncoders;
 using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -29,10 +30,66 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     public class ScriptTagHelperTest
     {
         [Theory]
+        [InlineData(null, "test.js", "test.js")]
+        [InlineData("abcd.js", "test.js", "test.js")]
+        [InlineData(null, "~/test.js", "virtualRoot/test.js")]
+        [InlineData("abcd.js", "~/test.js", "virtualRoot/test.js")]
+        public void Process_SrcDefaultsToTagHelperOutputSrcAttributeAddedByOtherTagHelper(
+            string src,
+            string srcOutput,
+            string expectedSrcPrefix)
+        {
+            // Arrange
+            var allAttributes = new TagHelperAttributeList(
+                new TagHelperAttributeList
+                {
+                    { "type", new HtmlString("text/javascript") },
+                    { "asp-append-version", true },
+                });
+            var context = MakeTagHelperContext(allAttributes);
+            var outputAttributes = new TagHelperAttributeList
+                {
+                    { "type", new HtmlString("text/javascript") },
+                    { "src", srcOutput },
+                };
+            var output = MakeTagHelperOutput("script", outputAttributes);
+            var logger = new Mock<ILogger<ScriptTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var urlHelper = new Mock<IUrlHelper>();
+
+            // Ensure expanded path does not look like an absolute path on Linux, avoiding
+            // https://github.com/aspnet/External/issues/21
+            urlHelper
+                .Setup(urlhelper => urlhelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url.Replace("~/", "virtualRoot/")));
+
+            var helper = new ScriptTagHelper(
+                logger.Object,
+                hostingEnvironment,
+                MakeCache(),
+                new CommonTestEncoder(),
+                new CommonTestEncoder(),
+                urlHelper.Object)
+            {
+                ViewContext = viewContext,
+                AppendVersion = true,
+                Src = src,
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Equal(
+                expectedSrcPrefix + "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk",
+                (string)output.Attributes["src"].Value,
+                StringComparer.Ordinal);
+        }
+
+        [Theory]
         [MemberData(nameof(LinkTagHelperTest.MultiAttributeSameNameData), MemberType = typeof(LinkTagHelperTest))]
-        public async Task HandlesMultipleAttributesSameNameCorrectly(
-            TagHelperAttributeList outputAttributes,
-            string expectedAttributeString)
+        public async Task HandlesMultipleAttributesSameNameCorrectly(TagHelperAttributeList outputAttributes)
         {
             // Arrange
             var allAttributes = new TagHelperAttributeList(
@@ -60,22 +117,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 FallbackSrc = "~/blank.js",
                 FallbackTestExpression = "http://www.example.com/blank.js",
                 Src = "/blank.js",
             };
+            var expectedAttributes = new TagHelperAttributeList(output.Attributes);
+            expectedAttributes.Add(new TagHelperAttribute("src", "/blank.js"));
 
             // Act
             await helper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.StartsWith(
-                "<script " + expectedAttributeString + " data-extra=\"something\" " +
-                "src=\"HtmlEncode[[/blank.js]]\"",
-                output.Content.GetContent());
+            Assert.Equal(expectedAttributes, output.Attributes);
         }
 
         public static TheoryData RunsWhenRequiredAttributesArePresent_Data
@@ -84,28 +141,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 return new TheoryData<TagHelperAttributeList, Action<ScriptTagHelper>>
                 {
-                    {
-                        new TagHelperAttributeList
-                        {
-                            ["asp-src-include"] = "*.js"
-                        },
-                        tagHelper =>
-                        {
-                            tagHelper.SrcInclude = "*.js";
-                        }
-                    },
-                    {
-                        new TagHelperAttributeList
-                        {
-                            ["asp-src-include"] = "*.js",
-                            ["asp-src-exclude"] = "*.min.js"
-                        },
-                        tagHelper =>
-                        {
-                            tagHelper.SrcInclude = "*.js";
-                            tagHelper.SrcExclude = "*.min.js";
-                        }
-                    },
                     {
                         new TagHelperAttributeList
                         {
@@ -159,42 +194,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         }
                     },
                     // File Version
-                    {
-                        new TagHelperAttributeList
-                        {
-                            ["asp-append-version"] = "true"
-                        },
-                        tagHelper =>
-                        {
-                            tagHelper.AppendVersion = true;
-                        }
-                    },
-                    {
-                        new TagHelperAttributeList
-                        {
-                            ["asp-src-include"] = "*.js",
-                            ["asp-append-version"] = "true"
-                        },
-                        tagHelper =>
-                        {
-                            tagHelper.SrcInclude = "*.js";
-                            tagHelper.AppendVersion = true;
-                        }
-                    },
-                    {
-                        new TagHelperAttributeList
-                        {
-                            ["asp-src-include"] = "*.js",
-                            ["asp-src-exclude"] = "*.min.js",
-                            ["asp-append-version"] = "true"
-                        },
-                        tagHelper =>
-                        {
-                            tagHelper.SrcInclude = "*.js";
-                            tagHelper.SrcExclude = "*.min.js";
-                            tagHelper.AppendVersion = true;
-                        }
-                    },
                     {
                         new TagHelperAttributeList
                         {
@@ -271,15 +270,117 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var logger = CreateLogger();
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
+            var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
+            globbingUrlBuilder.Setup(g => g.BuildUrlList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new[] { "/common.js" });
 
             var helper = new ScriptTagHelper(
                 CreateLogger(),
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
+                GlobbingUrlBuilder = globbingUrlBuilder.Object
+            };
+            setProperties(helper);
+
+            // Act
+            await helper.ProcessAsync(context, output);
+
+            // Assert
+            Assert.NotNull(output.TagName);
+            Assert.False(output.IsContentModified);
+            Assert.True(output.PostElement.IsModified);
+            Assert.Empty(logger.Logged);
+        }
+
+        public static TheoryData RunsWhenRequiredAttributesArePresent_NoSrc_Data
+        {
+            get
+            {
+                return new TheoryData<TagHelperAttributeList, Action<ScriptTagHelper>>
+                {
+                    {
+                        new TagHelperAttributeList
+                        {
+                            ["asp-src-include"] = "*.js"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.SrcInclude = "*.js";
+                        }
+                    },
+                    {
+                        new TagHelperAttributeList
+                        {
+                            ["asp-src-include"] = "*.js",
+                            ["asp-src-exclude"] = "*.min.js"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.SrcInclude = "*.js";
+                            tagHelper.SrcExclude = "*.min.js";
+                        }
+                    },
+                    {
+                        new TagHelperAttributeList
+                        {
+                            ["asp-src-include"] = "*.js",
+                            ["asp-append-version"] = "true"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.SrcInclude = "*.js";
+                            tagHelper.AppendVersion = true;
+                        }
+                    },
+                    {
+                        new TagHelperAttributeList
+                        {
+                            ["asp-src-include"] = "*.js",
+                            ["asp-src-exclude"] = "*.min.js",
+                            ["asp-append-version"] = "true"
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.SrcInclude = "*.js";
+                            tagHelper.SrcExclude = "*.min.js";
+                            tagHelper.AppendVersion = true;
+                        }
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(RunsWhenRequiredAttributesArePresent_NoSrc_Data))]
+        public async Task RunsWhenRequiredAttributesArePresent_NoSrc(
+            TagHelperAttributeList attributes,
+            Action<ScriptTagHelper> setProperties)
+        {
+            // Arrange
+            var context = MakeTagHelperContext(attributes);
+            var output = MakeTagHelperOutput("script");
+            var logger = CreateLogger();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
+            globbingUrlBuilder.Setup(g => g.BuildUrlList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new[] { "/common.js" });
+
+            var helper = new ScriptTagHelper(
+                CreateLogger(),
+                hostingEnvironment,
+                MakeCache(),
+                new CommonTestEncoder(),
+                new CommonTestEncoder(),
+                MakeUrlHelper())
+            {
+                ViewContext = viewContext,
+                GlobbingUrlBuilder = globbingUrlBuilder.Object
             };
             setProperties(helper);
 
@@ -289,6 +390,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Null(output.TagName);
             Assert.True(output.IsContentModified);
+            Assert.True(output.PostElement.IsModified);
             Assert.Empty(logger.Logged);
         }
 
@@ -370,7 +472,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
             };
@@ -382,6 +485,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.NotNull(output.TagName);
             Assert.False(output.IsContentModified);
+            Assert.Empty(output.Attributes);
+            Assert.True(output.PostElement.IsEmpty);
         }
 
         [Theory]
@@ -402,7 +507,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
             };
@@ -414,6 +520,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("script", output.TagName);
             Assert.False(output.IsContentModified);
+            Assert.Empty(output.Attributes);
+            Assert.True(output.PostElement.IsEmpty);
 
             Assert.Equal(2, logger.Logged.Count);
 
@@ -443,7 +551,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 MakeHostingEnvironment(),
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
             };
@@ -454,6 +563,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("script", output.TagName);
             Assert.False(output.IsContentModified);
+            Assert.Empty(output.Attributes);
+            Assert.True(output.PostElement.IsEmpty);
         }
 
         [Fact]
@@ -470,7 +581,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 MakeHostingEnvironment(),
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
             };
@@ -491,7 +603,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         }
 
         [Fact]
-        public async Task PreservesOrderOfSourceAttributesWhenRun()
+        public async Task PreservesOrderOfNonSrcAttributes()
         {
             // Arrange
             var tagHelperContext = MakeTagHelperContext(
@@ -521,7 +633,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 FallbackSrc = "~/blank.js",
@@ -533,9 +646,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.StartsWith(
-                "<script data-extra=\"HtmlEncode[[something]]\" data-more=\"HtmlEncode[[else]]\" src=\"HtmlEncode[[/blank.js]]\"",
-                output.Content.GetContent());
+            Assert.Equal("data-extra", output.Attributes[0].Name);
+            Assert.Equal("src", output.Attributes[1].Name);
+            Assert.Equal("data-more", output.Attributes[2].Name);
             Assert.Empty(logger.Logged);
         }
 
@@ -554,15 +667,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
             var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
-            globbingUrlBuilder.Setup(g => g.BuildUrlList("/js/site.js", "**/*.js", null))
-                .Returns(new[] { "/js/site.js", "/common.js" });
+            globbingUrlBuilder.Setup(g => g.BuildUrlList(null, "**/*.js", null))
+                .Returns(new[] { "/common.js" });
 
             var helper = new ScriptTagHelper(
                 logger.Object,
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 GlobbingUrlBuilder = globbingUrlBuilder.Object,
                 ViewContext = viewContext,
@@ -574,8 +688,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal("<script src=\"HtmlEncode[[/js/site.js]]\"></script>" +
-                "<script src=\"HtmlEncode[[/common.js]]\"></script>", output.Content.GetContent());
+            Assert.Equal("script", output.TagName);
+            Assert.Equal("/js/site.js", output.Attributes["src"].Value);
+            Assert.Equal("<script src=\"HtmlEncode[[/common.js]]\"></script>", output.PostElement.GetContent());
         }
 
         [Fact]
@@ -593,15 +708,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
             var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
-            globbingUrlBuilder.Setup(g => g.BuildUrlList("/js/site.js", "**/*.js", null))
-                .Returns(new[] { "/js/site.js", "/common.js" });
+            globbingUrlBuilder.Setup(g => g.BuildUrlList(null, "**/*.js", null))
+                .Returns(new[] { "/common.js" });
 
             var helper = new ScriptTagHelper(
                 logger.Object,
                 hostingEnvironment,
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 GlobbingUrlBuilder = globbingUrlBuilder.Object,
                 ViewContext = viewContext,
@@ -613,8 +729,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal("<script src=\"HtmlEncode[[/js/site.js]]\"></script>" +
-                "<script src=\"HtmlEncode[[/common.js]]\"></script>", output.Content.GetContent());
+            Assert.Equal("script", output.TagName);
+            Assert.Equal("/js/site.js", output.Attributes["src"].Value);
+            Assert.Equal("<script src=\"HtmlEncode[[/common.js]]\"></script>", output.PostElement.GetContent());
         }
 
         [Fact]
@@ -638,7 +755,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 MakeHostingEnvironment(),
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 AppendVersion = true,
@@ -649,9 +767,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal(
-                "<script src=\"HtmlEncode[[/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
-                "</script>", output.Content.GetContent());
+            Assert.Equal("script", output.TagName);
+            Assert.Equal("/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
         }
 
         [Fact]
@@ -675,7 +792,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 MakeHostingEnvironment(),
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 AppendVersion = true,
@@ -686,9 +804,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal(
-                "<script src=\"HtmlEncode[[/bar/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
-                "</script>", output.Content.GetContent());
+            Assert.Equal("script", output.TagName);
+            Assert.Equal("/bar/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
         }
 
         [Fact]
@@ -714,7 +831,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 MakeHostingEnvironment(),
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 FallbackSrc = "fallback.js",
@@ -727,11 +845,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal(
-                "<script src=\"HtmlEncode[[/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
-                "</script>\r\n<script>(isavailable()||document.write(\"<script src=\\\"JavaScriptStringEncode[[fallback.js" +
-                "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\\\"><\\/script>\"));</script>",
-                output.Content.GetContent());
+            Assert.Equal("script", output.TagName);
+            Assert.Equal("/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
+            Assert.Equal(Environment.NewLine + "<script>(isavailable()||document.write(\"<script " +
+                "src=\\\"JavaScriptStringEncode[[fallback.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\\\">" +
+                "<\\/script>\"));</script>", output.PostElement.GetContent());
         }
 
         [Fact]
@@ -750,15 +868,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
             var globbingUrlBuilder = new Mock<GlobbingUrlBuilder>();
-            globbingUrlBuilder.Setup(g => g.BuildUrlList("/js/site.js", "*.js", null))
-                .Returns(new[] { "/js/site.js", "/common.js" });
+            globbingUrlBuilder.Setup(g => g.BuildUrlList(null, "*.js", null))
+                .Returns(new[] { "/common.js" });
 
             var helper = new ScriptTagHelper(
                 logger.Object,
                 MakeHostingEnvironment(),
                 MakeCache(),
                 new CommonTestEncoder(),
-                new CommonTestEncoder())
+                new CommonTestEncoder(),
+                MakeUrlHelper())
             {
                 GlobbingUrlBuilder = globbingUrlBuilder.Object,
                 ViewContext = viewContext,
@@ -771,9 +890,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await helper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal("<script src=\"HtmlEncode[[/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
-                "</script><script src=\"HtmlEncode[[/common.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
-                "</script>", output.Content.GetContent());
+            Assert.Equal("script", output.TagName);
+            Assert.Equal("/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
+            Assert.Equal("<script src=\"HtmlEncode[[/common.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\">" +
+                "</script>", output.PostElement.GetContent());
         }
 
         private TagHelperContext MakeTagHelperContext(
@@ -786,7 +906,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(content);
@@ -872,6 +992,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         /*options*/ cacheEntryOptions))
                 .Returns(result);
             return cache.Object;
+        }
+
+        private static IUrlHelper MakeUrlHelper()
+        {
+            var urlHelper = new Mock<IUrlHelper>();
+
+            urlHelper
+                .Setup(helper => helper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url));
+
+            return urlHelper.Object;
         }
     }
 }

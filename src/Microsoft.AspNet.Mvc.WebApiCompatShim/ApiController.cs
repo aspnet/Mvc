@@ -7,10 +7,13 @@ using System.Security.Principal;
 using System.Text;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
 using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace System.Web.Http
@@ -180,7 +183,7 @@ namespace System.Web.Http
         /// <summary>
         /// Creates a <see cref="CreatedResult"/> (201 Created) with the specified values.
         /// </summary>
-        /// <param name="location">The location at which the content has been created.</param>
+        /// <param name="uri">The location at which the content has been created.</param>
         /// <param name="content">The content value to format in the entity body.</param>
         /// <returns>A <see cref="CreatedResult"/> with the specified values.</returns>
         [NonAction]
@@ -257,9 +260,7 @@ namespace System.Web.Http
         [NonAction]
         public virtual JsonResult Json<T>([NotNull] T content, [NotNull] JsonSerializerSettings serializerSettings)
         {
-            var formatter = new JsonOutputFormatter(serializerSettings);
-
-            return new JsonResult(content, formatter);
+            return new JsonResult(content, serializerSettings);
         }
 
         /// <summary>
@@ -276,12 +277,13 @@ namespace System.Web.Http
             [NotNull] JsonSerializerSettings serializerSettings,
             [NotNull] Encoding encoding)
         {
-            var formatter = new JsonOutputFormatter(serializerSettings);
+            var result = new JsonResult(content, serializerSettings);
+            result.ContentType = new MediaTypeHeaderValue("application/json")
+            {
+                Encoding = encoding
+            };
 
-            formatter.SupportedEncodings.Clear();
-            formatter.SupportedEncodings.Add(encoding);
-
-            return new JsonResult(content, formatter);
+            return result;
         }
 
         /// <summary>
@@ -295,25 +297,25 @@ namespace System.Web.Http
         }
 
         /// <summary>
-        /// Creates an <see cref="OkResult"/> (200 OK).
+        /// Creates an <see cref="HttpOkResult"/> (200 OK).
         /// </summary>
-        /// <returns>An <see cref="OkResult"/>.</returns>
+        /// <returns>An <see cref="HttpOkResult"/>.</returns>
         [NonAction]
-        public virtual OkResult Ok()
+        public virtual HttpOkResult Ok()
         {
-            return new OkResult();
+            return new HttpOkResult();
         }
 
         /// <summary>
-        /// Creates an <see cref="OkNegotiatedContentResult{T}"/> (200 OK) with the specified values.
+        /// Creates an <see cref="HttpOkObjectResult"/> (200 OK) with the specified values.
         /// </summary>
         /// <typeparam name="T">The type of content in the entity body.</typeparam>
         /// <param name="content">The content value to negotiate and format in the entity body.</param>
-        /// <returns>An <see cref="OkNegotiatedContentResult{T}"/> with the specified values.</returns>
+        /// <returns>An <see cref="HttpOkObjectResult"/> with the specified values.</returns>
         [NonAction]
-        public virtual OkNegotiatedContentResult<T> Ok<T>([NotNull] T content)
+        public virtual HttpOkObjectResult Ok<T>(T content)
         {
-            return new OkNegotiatedContentResult<T>(content);
+            return new HttpOkObjectResult(content);
         }
 
         /// <summary>

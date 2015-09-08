@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Moq;
 using Xunit;
@@ -202,7 +203,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -210,7 +211,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -234,7 +235,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.True(output.SelfClosing);
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
@@ -289,7 +290,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -297,7 +298,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = true,
+                TagMode = TagMode.SelfClosing,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -330,11 +331,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.True(output.SelfClosing);
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
-            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
+            Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.NotNull(viewContext.FormContext?.FormData);
@@ -391,7 +392,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -399,7 +400,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
-                SelfClosing = true
+                TagMode = TagMode.SelfClosing,
             };
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -433,11 +434,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.True(output.SelfClosing);
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
             Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
-            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
+            Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.NotNull(viewContext.FormContext?.FormData);
@@ -477,7 +478,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -556,7 +557,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");

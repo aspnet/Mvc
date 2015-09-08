@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNet.Antiforgery;
 using Microsoft.AspNet.DataProtection;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Routing;
@@ -35,10 +38,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         public TestableHtmlGenerator(
             IModelMetadataProvider metadataProvider,
-            IOptions<MvcOptions> options,
+            IOptions<MvcViewOptions> options,
             IUrlHelper urlHelper,
             IDictionary<string, object> validationAttributes)
-            : base(GetAntiForgery(), options, metadataProvider, urlHelper, new CommonTestEncoder())
+            : base(Mock.Of<IAntiforgery>(), options, metadataProvider, urlHelper, new CommonTestEncoder())
         {
             _validationAttributes = validationAttributes;
         }
@@ -69,9 +72,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             return viewContext;
         }
 
-        public override TagBuilder GenerateAntiForgery(ViewContext viewContext)
+        public override IHtmlContent GenerateAntiforgery(ViewContext viewContext)
         {
-            return new TagBuilder("input", new CommonTestEncoder())
+            var tagBuilder = new TagBuilder("input")
             {
                 Attributes =
                 {
@@ -80,6 +83,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "value", "olJlUDjrouRNWLen4tQJhauj1Z1rrvnb3QD65cmQU1Ykqi6S4" }, // 50 chars of a token.
                 },
             };
+
+            tagBuilder.TagRenderMode = TagRenderMode.SelfClosing;
+            return tagBuilder;
         }
 
         protected override IDictionary<string, object> GetValidationAttributes(
@@ -90,36 +96,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             return ValidationAttributes;
         }
 
-        private static IOptions<MvcOptions> GetOptions()
+        private static IOptions<MvcViewOptions> GetOptions()
         {
-            var mockOptions = new Mock<IOptions<MvcOptions>>();
+            var mockOptions = new Mock<IOptions<MvcViewOptions>>();
             mockOptions
-                .SetupGet(options => options.Options)
-                .Returns(new MvcOptions());
+                .SetupGet(options => options.Value)
+                .Returns(new MvcViewOptions());
 
             return mockOptions.Object;
-        }
-        private static AntiForgery GetAntiForgery()
-        {
-            // AntiForgery must be passed to TestableHtmlGenerator constructor but will never be called.
-            var optionsAccessor = new Mock<IOptions<MvcOptions>>();
-            var mockDataProtectionOptions = new Mock<IOptions<DataProtectionOptions>>();
-            mockDataProtectionOptions
-                .SetupGet(options => options.Options)
-                .Returns(Mock.Of<DataProtectionOptions>());
-            optionsAccessor.SetupGet(o => o.Options).Returns(new MvcOptions());
-            optionsAccessor
-                .SetupGet(o => o.Options)
-                .Returns(new MvcOptions());
-            var antiForgery = new AntiForgery(
-                Mock.Of<IClaimUidExtractor>(),
-                Mock.Of<IDataProtectionProvider>(),
-                Mock.Of<IAntiForgeryAdditionalDataProvider>(),
-                optionsAccessor.Object,
-                new CommonTestEncoder(),
-                mockDataProtectionOptions.Object);
-
-            return antiForgery;
         }
     }
 }

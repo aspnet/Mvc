@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Testing;
@@ -185,7 +186,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             var routeOptions = new Mock<IOptions<RouteOptions>>();
             routeOptions
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(new RouteOptions());
 
             services

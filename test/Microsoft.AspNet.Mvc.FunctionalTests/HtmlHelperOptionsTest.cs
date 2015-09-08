@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Testing;
 using Microsoft.Framework.DependencyInjection;
 using RazorWebSite;
 using Xunit;
@@ -46,10 +47,11 @@ False";
             var body = await client.GetStringAsync("http://localhost/HtmlHelperOptions/HtmlHelperOptionsDefaultsInView");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
+        [ReplaceCulture]
         public async Task OverrideAppWideDefaultsInViewAndPartialView()
         {
             // Arrange
@@ -81,7 +83,11 @@ True";
             var body = await client.GetStringAsync("http://localhost/HtmlHelperOptions/OverrideAppWideDefaultsInView");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(
+                PlatformNormalizer.NormalizeContent(expected),
+                body.Trim(),
+                ignoreLineEndingDifferences: true);
         }
     }
 }

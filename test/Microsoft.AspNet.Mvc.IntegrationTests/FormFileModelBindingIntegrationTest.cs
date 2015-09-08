@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Features.Internal;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.Framework.Primitives;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.IntegrationTests
@@ -27,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             public IFormFile File { get; set; }
         }
 
-        [Fact(Skip = "ModelState.Value not set due to #2445")]
+        [Fact]
         public async Task BindProperty_WithData_WithEmptyPrefix_GetsBound()
         {
             // Arrange
@@ -55,7 +57,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -71,9 +72,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(2, modelState.Count);
             Assert.Single(modelState.Keys, k => k == "Address.Zip");
             var key = Assert.Single(modelState.Keys, k => k == "Address.File");
-            Assert.NotNull(modelState[key].Value); // should be non null bug #2445.
+            Assert.Null(modelState[key].RawValue);
             Assert.Empty(modelState[key].Errors);
-            Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
+            Assert.Equal(ModelValidationState.Skipped, modelState[key].ValidationState);
         }
 
         [Fact]
@@ -81,15 +82,14 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         {
             // Arrange
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
-            var parameter = new ParameterDescriptor()
+            var parameter = new ParameterDescriptor
             {
                 Name = "Parameter1",
-                BindingInfo = new BindingInfo()
+                BindingInfo = new BindingInfo
                 {
                     // Setting a custom parameter prevents it from falling back to an empty prefix.
                     BinderModelName = "CustomParameter",
                 },
-
                 ParameterType = typeof(IFormFile)
             };
 
@@ -107,7 +107,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // Assert
             // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -119,10 +118,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // ModelState
             Assert.True(modelState.IsValid);
-
-            // Validation should be skipped because we do not validate any parameters and since IFormFile is not
-            // IValidatableObject, we should have no entries in the model state dictionary.
-            Assert.Empty(modelState.Keys);
+            var entry = Assert.Single(modelState);
+            Assert.Equal("CustomParameter", entry.Key);
+            Assert.Empty(entry.Value.Errors);
+            Assert.Equal(ModelValidationState.Skipped, entry.Value.ValidationState);
+            Assert.Null(entry.Value.AttemptedValue);
+            Assert.Null(entry.Value.RawValue);
         }
 
         [Fact]
@@ -151,9 +152,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-
-            // ModelBindingResult; expect null because binding failed.
-            Assert.Null(modelBindingResult);
+            Assert.Equal(ModelBindingResult.NoResult, modelBindingResult);
 
             // ModelState
             Assert.True(modelState.IsValid);
@@ -163,7 +162,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         private void UpdateRequest(HttpRequest request, string data, string name)
         {
             var fileCollection = new FormFileCollection();
-            var formCollection = new FormCollection(new Dictionary<string, string[]>(), fileCollection);
+            var formCollection = new FormCollection(new Dictionary<string, StringValues>(), fileCollection);
 
             request.Form = formCollection;
             request.ContentType = "multipart/form-data; boundary=----WebKitFormBoundarymx2fSWqWSd0OxQqq";

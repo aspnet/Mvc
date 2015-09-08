@@ -9,8 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -75,12 +75,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
 
-            // Returns true because it understands the metadata type.
+            // Returns non-null because it understands the metadata type.
             Assert.NotNull(binderResult);
             Assert.False(binderResult.IsModelSet);
             Assert.Null(binderResult.ValidationNode);
             Assert.Null(binderResult.Model);
-            Assert.True(bindingContext.ModelState.ContainsKey("someName"));
+
+            // Key is empty because this was a top-level binding.
+            var entry = Assert.Single(bindingContext.ModelState);
+            Assert.Equal(string.Empty, entry.Key);
+            Assert.Single(entry.Value.Errors);
         }
 
         [Fact]
@@ -119,7 +123,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.Equal(ModelBindingResult.NoResult, binderResult);
         }
 
         [Fact]
@@ -138,7 +142,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.Equal(ModelBindingResult.NoResult, binderResult);
         }
 
         [Fact]
@@ -165,13 +169,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
 
-            // Returns true because it understands the metadata type.
+            // Returns non-null because it understands the metadata type.
             Assert.NotNull(binderResult);
             Assert.False(binderResult.IsModelSet);
             Assert.Null(binderResult.ValidationNode);
             Assert.Null(binderResult.Model);
-            Assert.True(bindingContext.ModelState.ContainsKey("someName"));
-            var errorMessage = bindingContext.ModelState["someName"].Errors[0].Exception.Message;
+
+            // Key is empty because this was a top-level binding.
+            var entry = Assert.Single(bindingContext.ModelState);
+            Assert.Equal(string.Empty, entry.Key);
+            var errorMessage = Assert.Single(entry.Value.Errors).Exception.Message;
             Assert.Equal("Your input is bad!", errorMessage);
         }
 
@@ -198,13 +205,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
 
-            // Returns true because it understands the metadata type.
+            // Returns non-null result because it understands the metadata type.
             Assert.NotNull(binderResult);
             Assert.False(binderResult.IsModelSet);
             Assert.Null(binderResult.Model);
             Assert.Null(binderResult.ValidationNode);
-            Assert.True(bindingContext.ModelState.ContainsKey("someName"));
-            var errorMessage = bindingContext.ModelState["someName"].Errors[0].ErrorMessage;
+
+            // Key is empty because this was a top-level binding.
+            var entry = Assert.Single(bindingContext.ModelState);
+            Assert.Equal(string.Empty, entry.Key);
+            var errorMessage = Assert.Single(entry.Value.Errors).ErrorMessage;
             Assert.Equal("Unsupported content type 'text/xyz'.", errorMessage);
         }
 
@@ -265,6 +275,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             var bindingContext = new ModelBindingContext
             {
+                IsTopLevelObject = true,
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",
                 ValueProvider = Mock.Of<IValueProvider>(),
@@ -274,25 +285,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             };
 
             return bindingContext;
-        }
-
-        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context)
-        {
-            return CreateActionContext(context, (new Mock<IRouter>()).Object);
-        }
-
-        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context, IRouter router)
-        {
-            var routeData = new RouteData();
-            routeData.Routers.Add(router);
-
-            var actionContext = new ActionContext(context,
-                                                  routeData,
-                                                  new ActionDescriptor());
-            var contextAccessor = new Mock<IScopedInstance<ActionContext>>();
-            contextAccessor.SetupGet(c => c.Value)
-                           .Returns(actionContext);
-            return contextAccessor.Object;
         }
 
         private class Person

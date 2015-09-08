@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
-using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
+using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Testing;
 using Microsoft.Framework.OptionsModel;
@@ -19,6 +21,8 @@ namespace Microsoft.AspNet.Mvc
     public class UrlHelperTest
     {
         [Theory]
+        [InlineData(null, null, null)]
+        [InlineData("/myapproot", null, null)]
         [InlineData("", "/Home/About", "/Home/About")]
         [InlineData("/myapproot", "/test", "/test")]
         public void Content_ReturnsContentPath_WhenItDoesNotStartWithToken(string appRoot,
@@ -43,6 +47,7 @@ namespace Microsoft.AspNet.Mvc
         [InlineData("/", "~/", "/")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
         [InlineData("", "~/Home/About", "/Home/About")]
+        [InlineData("/", "~", "/")]
         [InlineData("/myapproot", "~/Content/bootstrap.css", "/myapproot/Content/bootstrap.css")]
         public void Content_ReturnsAppRelativePath_WhenItStartsWithToken(string appRoot,
                                                                          string contentPath,
@@ -60,9 +65,6 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedPath, path);
         }
 
-        // UrlHelper.IsLocalUrl depends on the UrlUtility.IsLocalUrl method.
-        // To avoid duplicate tests, all the tests exercising IsLocalUrl verify
-        // both of UrlHelper.IsLocalUrl and UrlUtility.IsLocalUrl
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -74,12 +76,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -99,12 +95,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.True(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
-
-            // Assert
-            Assert.True(result);
         }
 
         [Theory]
@@ -117,12 +107,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.True(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.True(result);
@@ -139,12 +123,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -165,12 +143,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
         }
 
         [Theory]
@@ -183,12 +155,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -207,12 +173,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
         }
 
         [Theory]
@@ -224,12 +184,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -250,12 +204,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
         }
 
         [Theory]
@@ -271,12 +219,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -299,12 +241,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
         }
 
         [Theory]
@@ -319,12 +255,6 @@ namespace Microsoft.AspNet.Mvc
 
             // Act
             var result = helper.IsLocalUrl(url);
-
-            // Assert
-            Assert.False(result);
-
-            // Arrange & Act
-            result = UrlUtility.IsLocalUrl(url);
 
             // Assert
             Assert.False(result);
@@ -804,6 +734,120 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("https://myhost/named/home/newaction/someid", url);
         }
 
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController()
+        {
+            // Arrage
+            var services = GetServices();
+            var routeBuilder = new RouteBuilder()
+            {
+                DefaultHandler = new PassThroughRouter(),
+                ServiceProvider = services,
+            };
+
+            routeBuilder.MapRoute(
+                "default",
+                "{first}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var actionContext = services.GetService<IActionContextAccessor>().ActionContext;
+            actionContext.RouteData.Values.Add("first", "a");
+            actionContext.RouteData.Values.Add("controller", "Store");
+            actionContext.RouteData.Values.Add("action", "Buy");
+            actionContext.RouteData.Routers.Add(routeBuilder.Build());
+
+            var urlHelper = CreateUrlHelper(services);
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            var url = urlHelper.Action("Checkout", new { first = "b" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/Store/Checkout", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_AffectsOtherRouteValues()
+        {
+            // Arrage
+            var services = GetServices();
+            var routeBuilder = new RouteBuilder()
+            {
+                DefaultHandler = new PassThroughRouter(),
+                ServiceProvider = services,
+            };
+
+            routeBuilder.MapRoute(
+                "default",
+                "{first}/{second}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var actionContext = services.GetService<IActionContextAccessor>().ActionContext;
+            actionContext.RouteData.Values.Add("first", "a");
+            actionContext.RouteData.Values.Add("second", "x");
+            actionContext.RouteData.Values.Add("controller", "Store");
+            actionContext.RouteData.Values.Add("action", "Buy");
+            actionContext.RouteData.Routers.Add(routeBuilder.Build());
+
+            var urlHelper = CreateUrlHelper(services);
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            //
+            // 'second' gets no special treatment, and picks up its default value instead.
+            var url = urlHelper.Action("Checkout", new { first = "b" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/default/Store/Checkout", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController_ActionPassedInRouteValues()
+        {
+            // Arrage
+            var services = GetServices();
+            var routeBuilder = new RouteBuilder()
+            {
+                DefaultHandler = new PassThroughRouter(),
+                ServiceProvider = services,
+            };
+
+            routeBuilder.MapRoute(
+                "default",
+                "{first}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var actionContext = services.GetService<IActionContextAccessor>().ActionContext;
+            actionContext.RouteData.Values.Add("first", "a");
+            actionContext.RouteData.Values.Add("controller", "Store");
+            actionContext.RouteData.Values.Add("action", "Buy");
+            actionContext.RouteData.Routers.Add(routeBuilder.Build());
+
+            var urlHelper = CreateUrlHelper(services);
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            var url = urlHelper.Action(action: null, values: new { first = "b", action = "Checkout" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/Store/Checkout", url);
+        }
+
         private static HttpContext CreateHttpContext(
             IServiceProvider services,
             string appRoot)
@@ -817,23 +861,18 @@ namespace Microsoft.AspNet.Mvc
             return context;
         }
 
-        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context)
+        private static IActionContextAccessor CreateActionContext(HttpContext context)
         {
             return CreateActionContext(context, (new Mock<IRouter>()).Object);
         }
 
-        private static IScopedInstance<ActionContext> CreateActionContext(HttpContext context, IRouter router)
+        private static IActionContextAccessor CreateActionContext(HttpContext context, IRouter router)
         {
             var routeData = new RouteData();
             routeData.Routers.Add(router);
 
-            var actionContext = new ActionContext(context,
-                                                  routeData,
-                                                  new ActionDescriptor());
-            var contextAccessor = new Mock<IScopedInstance<ActionContext>>();
-            contextAccessor.SetupGet(c => c.Value)
-                           .Returns(actionContext);
-            return contextAccessor.Object;
+            var actionContext = new ActionContext(context, routeData, new ActionDescriptor());
+            return new ActionContextAccessor() { ActionContext = actionContext };
         }
 
         private static UrlHelper CreateUrlHelper()
@@ -844,6 +883,14 @@ namespace Microsoft.AspNet.Mvc
 
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(actionContext, actionSelector.Object);
+        }
+
+        private static UrlHelper CreateUrlHelper(IServiceProvider services)
+        {
+            var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
+            return new UrlHelper(
+                services.GetRequiredService<IActionContextAccessor>(),
+                actionSelector.Object);
         }
 
         private static UrlHelper CreateUrlHelper(string host)
@@ -871,7 +918,7 @@ namespace Microsoft.AspNet.Mvc
             return new UrlHelper(actionContext, actionSelector.Object);
         }
 
-        private static UrlHelper CreateUrlHelper(IScopedInstance<ActionContext> contextAccessor)
+        private static UrlHelper CreateUrlHelper(IActionContextAccessor contextAccessor)
         {
             var actionSelector = new Mock<IActionSelector>(MockBehavior.Strict);
             return new UrlHelper(contextAccessor, actionSelector.Object);
@@ -904,7 +951,7 @@ namespace Microsoft.AspNet.Mvc
 
             var optionsAccessor = new Mock<IOptions<RouteOptions>>();
             optionsAccessor
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(new RouteOptions());
             services
                 .Setup(s => s.GetService(typeof(IOptions<RouteOptions>)))
@@ -917,6 +964,21 @@ namespace Microsoft.AspNet.Mvc
             services
                 .Setup(s => s.GetService(typeof(ILoggerFactory)))
                 .Returns(NullLoggerFactory.Instance);
+
+            services
+                .Setup(s => s.GetService(typeof(IActionContextAccessor)))
+                .Returns(new ActionContextAccessor()
+                {
+                    ActionContext = new ActionContext()
+                    {
+                        HttpContext = new DefaultHttpContext()
+                        {
+                            ApplicationServices = services.Object,
+                            RequestServices = services.Object,
+                        },
+                        RouteData = new RouteData(),
+                    },
+                });
 
             return services.Object;
         }
@@ -953,6 +1015,21 @@ namespace Microsoft.AspNet.Mvc
 
             routeBuilder.Routes.Add(mockHttpRoute.Object);
             return routeBuilder.Build();
+        }
+
+        private class PassThroughRouter : IRouter
+        {
+            public VirtualPathData GetVirtualPath(VirtualPathContext context)
+            {
+                context.IsBound = true;
+                return null;
+            }
+
+            public Task RouteAsync(RouteContext context)
+            {
+                context.IsHandled = true;
+                return Task.FromResult(false);
+            }
         }
     }
 }

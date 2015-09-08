@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     /// <summary>
     /// An <see cref="ActionResult"/> that returns a Created (201) response with a Location header.
@@ -50,7 +52,7 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         protected override void OnFormatting([NotNull] ActionContext context)
         {
-            context.HttpContext.Response.Headers.Set("Location", Location);
+            context.HttpContext.Response.Headers[HeaderNames.Location] = Location;
         }
     }
 }

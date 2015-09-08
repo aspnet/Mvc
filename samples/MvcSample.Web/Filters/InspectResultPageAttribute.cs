@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Filters;
 using MvcSample.Web.Models;
 
 namespace MvcSample.Web.Filters
@@ -10,7 +11,7 @@ namespace MvcSample.Web.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class InspectResultPageAttribute : Attribute, IFilterFactory
     {
-        public IFilter CreateInstance(IServiceProvider serviceProvider)
+        public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
         {
             return new InspectResultPageFilter();
         }

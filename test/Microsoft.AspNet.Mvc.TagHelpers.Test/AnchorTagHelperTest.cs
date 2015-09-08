@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something Else");
@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -114,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     "hello=world",
                     It.IsAny<IDictionary<string, object>>(),
                     null))
-                .Returns(new TagBuilder("a", new CommonTestEncoder()))
+                .Returns(new TagBuilder("a"))
                 .Verifiable();
             var anchorTagHelper = new AnchorTagHelper(generator.Object)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     "hello=world",
                     It.IsAny<IDictionary<string, object>>(),
                     null))
-                .Returns(new TagBuilder("a", new CommonTestEncoder()))
+                .Returns(new TagBuilder("a"))
                 .Verifiable();
             var anchorTagHelper = new AnchorTagHelper(generator.Object)
             {

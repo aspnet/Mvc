@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModelSetsModelToNullOnNullOrEmptyString(string value)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider()
+            var valueProvider = new SimpleValueProvider()
             {
                 { "foo", value }
             };
@@ -34,14 +34,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal("foo", binderResult.Key);
             Assert.Null(binderResult.Model);
 
-            Assert.Empty(bindingContext.ModelState); // No submitted value for "foo".
+            var modelState = Assert.Single(bindingContext.ModelState);
+            Assert.Equal("foo", modelState.Key);
+            Assert.Equal(string.Empty, modelState.Value.RawValue);
         }
 
         [Fact]
         public async Task BindModel()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider()
+            var valueProvider = new SimpleValueProvider()
             {
                 { "foo", "Fys1" }
             };
@@ -62,11 +64,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModelAddsModelErrorsOnInvalidCharacters()
         {
             // Arrange
-            var expected = TestPlatformHelper.IsMono ?
-                "Invalid length." :
-                 "The supplied value is invalid for foo.";
+            var expected = "The value '\"Fys1\"' is not valid for foo.";
 
-            var valueProvider = new SimpleHttpValueProvider()
+            var valueProvider = new SimpleValueProvider()
             {
                 { "foo", "\"Fys1\"" }
             };
@@ -88,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_ReturnsWithIsModelSetFalse_WhenValueNotFound()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider()
+            var valueProvider = new SimpleValueProvider()
             {
                 { "someName", "" }
             };
@@ -119,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.Equal(ModelBindingResult.NoResult, binderResult);
         }
 
         private static ModelBindingContext GetBindingContext(IValueProvider valueProvider, Type modelType)
@@ -129,10 +129,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "foo",
+                ModelState = new ModelStateDictionary(),
                 ValueProvider = valueProvider,
                 OperationBindingContext  = new OperationBindingContext
                 {
-                    MetadataProvider = metadataProvider
+                    MetadataProvider = metadataProvider,
                 }
             };
             return bindingContext;

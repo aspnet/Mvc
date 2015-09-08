@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 
@@ -54,7 +56,7 @@ namespace ContentNegotiationWebSite
             var optionsAccessor = ActionContext.HttpContext.RequestServices
                 .GetRequiredService<IOptions<MvcOptions>>();
             objectResult.Formatters.Add(new HttpNotAcceptableOutputFormatter());
-            foreach (var formatter in optionsAccessor.Options.OutputFormatters)
+            foreach (var formatter in optionsAccessor.Value.OutputFormatters)
             {
                 objectResult.Formatters.Add(formatter);
             }
@@ -72,7 +74,7 @@ namespace ContentNegotiationWebSite
                 objectResult.Formatters.Add(new HttpNotAcceptableOutputFormatter());
             }
 
-            foreach (var formatter in optionsAccessor.Options.OutputFormatters)
+            foreach (var formatter in optionsAccessor.Value.OutputFormatters)
             {
                 objectResult.Formatters.Add(formatter);
             }

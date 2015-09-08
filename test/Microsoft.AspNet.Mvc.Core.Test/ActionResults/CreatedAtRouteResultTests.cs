@@ -7,15 +7,16 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
-using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class CreatedAtRouteResultTests
     {
@@ -100,9 +101,9 @@ namespace Microsoft.AspNet.Mvc
 
             httpContext.Setup(o => o.Request)
                        .Returns(request);
-            var optionsAccessor = new MockMvcOptionsAccessor();
-            optionsAccessor.Options.OutputFormatters.Add(new StringOutputFormatter());
-            optionsAccessor.Options.OutputFormatters.Add(new JsonOutputFormatter());
+            var optionsAccessor = new TestOptionsManager<MvcOptions>();
+            optionsAccessor.Value.OutputFormatters.Add(new StringOutputFormatter());
+            optionsAccessor.Value.OutputFormatters.Add(new JsonOutputFormatter());
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
             httpContext.Setup(o => o.RequestServices.GetService(typeof(ILogger<ObjectResult>)))
@@ -110,14 +111,8 @@ namespace Microsoft.AspNet.Mvc
             httpContext.Setup(o => o.Response)
                        .Returns(response);
 
-
-            var mockContextAccessor = new Mock<IScopedInstance<ActionBindingContext>>();
-            mockContextAccessor
-                .SetupGet(o => o.Value)
-                .Returns((ActionBindingContext)null);
-
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))
-                       .Returns(mockContextAccessor.Object);
+            httpContext.Setup(o => o.RequestServices.GetService(typeof(IActionBindingContextAccessor)))
+                       .Returns(new ActionBindingContextAccessor());
 
             return httpContext.Object;
         }

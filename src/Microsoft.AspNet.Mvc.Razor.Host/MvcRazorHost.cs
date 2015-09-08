@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 #if NET45
 using Microsoft.AspNet.FileProviders;
 #endif
@@ -13,6 +14,7 @@ using Microsoft.AspNet.Razor.Chunks;
 using Microsoft.AspNet.Razor.CodeGenerators;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -30,12 +32,16 @@ namespace Microsoft.AspNet.Mvc.Razor
             "Microsoft.AspNet.Mvc",
             "Microsoft.AspNet.Mvc.Rendering",
         };
-        private static readonly Chunk[] _defaultInheritedChunks = new[]
+        private static readonly Chunk[] _defaultInheritedChunks = new Chunk[]
         {
             new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<TModel>", HtmlHelperPropertyName),
             new InjectChunk("Microsoft.AspNet.Mvc.Rendering.IJsonHelper", "Json"),
             new InjectChunk("Microsoft.AspNet.Mvc.IViewComponentHelper", "Component"),
             new InjectChunk("Microsoft.AspNet.Mvc.IUrlHelper", "Url"),
+            new AddTagHelperChunk
+            {
+                LookupText = "Microsoft.AspNet.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNet.Mvc.Razor"
+            },
         };
 
         // CodeGenerationContext.DefaultBaseClass is set to MyBaseType<dynamic>.
@@ -44,6 +50,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IChunkTreeCache _chunkTreeCache;
         private readonly RazorPathNormalizer _pathNormalizer;
         private ChunkInheritanceUtility _chunkInheritanceUtility;
+        private ITagHelperDescriptorResolver _tagHelperDescriptorResolver;
 
         internal MvcRazorHost(IChunkTreeCache chunkTreeCache, RazorPathNormalizer pathNormalizer)
             : base(new CSharpRazorCodeLanguage())
@@ -52,7 +59,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             _baseType = BaseType;
             _chunkTreeCache = chunkTreeCache;
 
-            TagHelperDescriptorResolver = new TagHelperDescriptorResolver();
             DefaultBaseClass = BaseType + "<" + DefaultModel + ">";
             DefaultNamespace = "Asp";
             // Enable instrumentation by default to allow precompiled views to work with BrowserLink.
@@ -98,7 +104,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                     MarkAsHtmlEncodedMethodName = HtmlHelperPropertyName + ".Raw",
                 })
             {
-                ResolveUrlMethodName = "Href",
                 BeginContextMethodName = "BeginContext",
                 EndContextMethodName = "EndContext"
             };
@@ -130,6 +135,27 @@ namespace Microsoft.AspNet.Mvc.Razor
         public MvcRazorHost(IChunkTreeCache chunkTreeCache)
             : this(chunkTreeCache, new RazorPathNormalizer())
         {
+        }
+
+        /// <inheritdoc />
+        public override ITagHelperDescriptorResolver TagHelperDescriptorResolver
+        {
+            get
+            {
+                // The initialization of the _tagHelperDescriptorResolver needs to be lazy to allow for the setting
+                // of DesignTimeMode.
+                if (_tagHelperDescriptorResolver == null)
+                {
+                    _tagHelperDescriptorResolver = new TagHelperDescriptorResolver(DesignTimeMode);
+                }
+
+                return _tagHelperDescriptorResolver;
+            }
+            [param: NotNull]
+            set
+            {
+                _tagHelperDescriptorResolver = value;
+            }
         }
 
         /// <summary>
@@ -199,6 +225,21 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
+        /// <summary>
+        /// Locates and parses _ViewImports.cshtml files applying to the given <paramref name="sourceFileName"/> to
+        /// create <see cref="ChunkTreeResult"/>s.
+        /// </summary>
+        /// <param name="sourceFileName">The path to a Razor file to locate _ViewImports.cshtml for.</param>
+        /// <returns>Inherited <see cref="ChunkTreeResult"/>s.</returns>
+        public IReadOnlyList<ChunkTreeResult> GetInheritedChunkTreeResults([NotNull] string sourceFileName)
+        {
+            // Need the normalized path to resolve inherited chunks only. Full paths are needed for generated Razor
+            // files checksum and line pragmas to enable DesignTime debugging.
+            var normalizedPath = _pathNormalizer.NormalizePath(sourceFileName);
+
+            return ChunkInheritanceUtility.GetInheritedChunkTreeResults(normalizedPath);
+        }
+
         /// <inheritdoc />
         public GeneratorResults GenerateCode(string rootRelativePath, Stream inputStream)
         {
@@ -211,9 +252,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public override RazorParser DecorateRazorParser([NotNull] RazorParser razorParser, string sourceFileName)
         {
-            sourceFileName = _pathNormalizer.NormalizePath(sourceFileName);
+            var inheritedChunkTrees = GetInheritedChunkTrees(sourceFileName);
 
-            var inheritedChunkTrees = ChunkInheritanceUtility.GetInheritedChunkTrees(sourceFileName);
             return new MvcRazorParser(razorParser, inheritedChunkTrees, DefaultInheritedChunks, ModelExpressionType);
         }
 
@@ -228,14 +268,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             [NotNull] CodeGenerator incomingGenerator,
             [NotNull] CodeGeneratorContext context)
         {
-            // Need the normalized path to resolve inherited chunks only. Full paths are needed for generated Razor
-            // files checksum and line pragmas to enable DesignTime debugging.
-            var normalizedPath = _pathNormalizer.NormalizePath(context.SourceFile);
-            var inheritedChunks = ChunkInheritanceUtility.GetInheritedChunkTrees(normalizedPath);
+            var inheritedChunkTrees = GetInheritedChunkTrees(context.SourceFile);
 
             ChunkInheritanceUtility.MergeInheritedChunkTrees(
                 context.ChunkTreeBuilder.ChunkTree,
-                inheritedChunks,
+                inheritedChunkTrees,
                 DefaultModel);
 
             return new MvcCSharpCodeGenerator(
@@ -247,6 +284,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                     ModelExpressionTypeName = ModelExpressionType,
                     CreateModelExpressionMethodName = CreateModelExpressionMethod
                 });
+        }
+
+        private IReadOnlyList<ChunkTree> GetInheritedChunkTrees(string sourceFileName)
+        {
+            var inheritedChunkTrees = GetInheritedChunkTreeResults(sourceFileName)
+                .Select(result => result.ChunkTree)
+                .ToList();
+
+            return inheritedChunkTrees;
         }
     }
 }

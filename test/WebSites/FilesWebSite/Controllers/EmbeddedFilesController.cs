@@ -4,6 +4,7 @@
 using System.Reflection;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
 
 namespace FilesWebSite
 {
@@ -11,7 +12,7 @@ namespace FilesWebSite
     {
         public IActionResult DownloadFileWithFileName()
         {
-            return new FilePathResult("/Greetings.txt", "text/plain")
+            return new VirtualFileProviderResult("/Greetings.txt", "text/plain")
             {
                 FileProvider = new EmbeddedFileProvider(GetType().GetTypeInfo().Assembly, "FilesWebSite.EmbeddedResources"),
                 FileDownloadName = "downloadName.txt"

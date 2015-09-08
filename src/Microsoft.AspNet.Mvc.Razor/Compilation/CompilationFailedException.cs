@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Framework.Runtime;
+using Microsoft.Dnx.Compilation;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
@@ -17,19 +17,19 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// <summary>
         /// Instantiates a new instance of <see cref="CompilationFailedException"/>.
         /// </summary>
-        /// <param name="compilationFailures"><see cref="ICompilationFailure"/>s containing
+        /// <param name="compilationFailures"><see cref="CompilationFailure"/>s containing
         /// details of the compilation failure.</param>
         public CompilationFailedException(
-                [NotNull] IEnumerable<ICompilationFailure> compilationFailures)
+                [NotNull] IEnumerable<CompilationFailure> compilationFailures)
             : base(FormatMessage(compilationFailures))
         {
             CompilationFailures = compilationFailures;
         }
 
         /// <inheritdoc />
-        public IEnumerable<ICompilationFailure> CompilationFailures { get; }
+        public IEnumerable<CompilationFailure> CompilationFailures { get; }
 
-        private static string FormatMessage(IEnumerable<ICompilationFailure> compilationFailures)
+        private static string FormatMessage(IEnumerable<CompilationFailure> compilationFailures)
         {
             return Resources.CompilationFailed + Environment.NewLine +
                 string.Join(

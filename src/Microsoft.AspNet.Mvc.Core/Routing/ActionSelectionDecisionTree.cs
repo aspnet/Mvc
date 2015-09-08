@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 #endif
 using System.Diagnostics;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Internal.DecisionTree;
 
 namespace Microsoft.AspNet.Mvc.Routing
@@ -170,11 +171,11 @@ namespace Microsoft.AspNet.Mvc.Routing
                             // would throw.
 #if DNX451
                             throw new InvalidEnumArgumentException(
-                                "item",
+                                nameof(item),
                                 (int)constraint.KeyHandling,
                                 typeof(RouteKeyHandling));
 #else
-                            throw new ArgumentOutOfRangeException("item");
+                            throw new ArgumentOutOfRangeException(nameof(item));
 #endif
                         }
 

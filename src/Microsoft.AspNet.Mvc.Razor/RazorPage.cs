@@ -8,7 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Antiforgery;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
@@ -124,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public Action<TextWriter> RenderBodyDelegate { get; set; }
+        public Func<TextWriter, Task> RenderBodyDelegateAsync { get; set; }
 
         /// <inheritdoc />
         public bool IsLayoutBeingRendered { get; set; }
@@ -274,7 +277,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var stringCollectionTextWriter = writer as StringCollectionTextWriter;
                 if (stringCollectionTextWriter != null)
                 {
-                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter);
+                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter, HtmlEncoder);
                 }
                 else
                 {
@@ -292,9 +295,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <returns>
         /// A <see cref="Task"/> that on completion writes the <paramref name="tagHelperExecutionContext"/> content.
         /// </returns>
-        public async Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
+        public Task WriteTagHelperAsync([NotNull] TagHelperExecutionContext tagHelperExecutionContext)
         {
-            await WriteTagHelperToAsync(Output, tagHelperExecutionContext);
+            return WriteTagHelperToAsync(Output, tagHelperExecutionContext);
         }
 
         /// <summary>
@@ -314,7 +317,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var tagHelperOutput = tagHelperExecutionContext.Output;
             var isTagNameNullOrWhitespace = string.IsNullOrWhiteSpace(tagHelperOutput.TagName);
 
-            WriteTagHelperContentTo(writer, tagHelperOutput.PreElement);
+            WriteTo(writer, tagHelperOutput.PreElement);
 
             if (!isTagNameNullOrWhitespace)
             {
@@ -334,7 +337,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     }
                 }
 
-                if (tagHelperOutput.SelfClosing)
+                if (tagHelperOutput.TagMode == TagMode.SelfClosing)
                 {
                     writer.Write(" /");
                 }
@@ -342,40 +345,32 @@ namespace Microsoft.AspNet.Mvc.Razor
                 writer.Write('>');
             }
 
-            if (isTagNameNullOrWhitespace || !tagHelperOutput.SelfClosing)
+            if (isTagNameNullOrWhitespace || tagHelperOutput.TagMode == TagMode.StartTagAndEndTag)
             {
-                WriteTagHelperContentTo(writer, tagHelperOutput.PreContent);
+                WriteTo(writer, tagHelperOutput.PreContent);
                 if (tagHelperOutput.IsContentModified)
                 {
-                    WriteTagHelperContentTo(writer, tagHelperOutput.Content);
+                    WriteTo(writer, tagHelperOutput.Content);
                 }
                 else if (tagHelperExecutionContext.ChildContentRetrieved)
                 {
-                    var childContent = await tagHelperExecutionContext.GetChildContentAsync();
-                    WriteTagHelperContentTo(writer, childContent);
+                    var childContent = await tagHelperExecutionContext.GetChildContentAsync(useCachedResult: true);
+                    WriteTo(writer, childContent);
                 }
                 else
                 {
                     await tagHelperExecutionContext.ExecuteChildContentAsync();
                 }
 
-                WriteTagHelperContentTo(writer, tagHelperOutput.PostContent);
+                WriteTo(writer, tagHelperOutput.PostContent);
             }
 
-            if (!isTagNameNullOrWhitespace && !tagHelperOutput.SelfClosing)
+            if (!isTagNameNullOrWhitespace && tagHelperOutput.TagMode == TagMode.StartTagAndEndTag)
             {
                 writer.Write(string.Format(CultureInfo.InvariantCulture, "</{0}>", tagHelperOutput.TagName));
             }
 
-            WriteTagHelperContentTo(writer, tagHelperOutput.PostElement);
-        }
-
-        private void WriteTagHelperContentTo(TextWriter writer, TagHelperContent content)
-        {
-            foreach (var entry in content)
-            {
-                writer.Write(entry);
-            }
+            WriteTo(writer, tagHelperOutput.PostElement);
         }
 
         /// <summary>
@@ -393,8 +388,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="object"/> to write.</param>
         /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter)"/> is invoked for <see cref="HelperResult"/> types.
+        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using
+        /// <see cref="IHtmlContent.WriteTo(TextWriter, IHtmlEncoder)"/>.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
@@ -414,8 +409,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Otherwise writes <see cref="HtmlString"/> values as-is.
         /// </param>
         /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="HtmlString"/> are written without encoding and the
-        /// <see cref="HelperResult.WriteTo(TextWriter)"/> is invoked for <see cref="HelperResult"/> types.
+        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using
+        /// <see cref="IHtmlContent.WriteTo(TextWriter, IHtmlEncoder)"/>.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
         /// <paramref name="writer"/>.
         /// </remarks>
@@ -430,15 +425,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 return;
             }
 
-            var helperResult = value as HelperResult;
-            if (helperResult != null)
-            {
-                helperResult.WriteTo(writer);
-                return;
-            }
-
-            var htmlString = value as HtmlString;
-            if (htmlString != null)
+            var htmlContent = value as IHtmlContent;
+            if (htmlContent != null)
             {
                 if (escapeQuotes)
                 {
@@ -446,9 +434,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // an attribute value that may have been quoted with single quotes, must handle any double quotes
                     // in the value. Writing the value out surrounded by double quotes.
                     //
-                    // Do not combine following condition with check of escapeQuotes; htmlString.ToString() can be
-                    // expensive when the HtmlString is created with a StringCollectionTextWriter.
-                    var stringValue = htmlString.ToString();
+                    // Do not combine following condition with check of escapeQuotes; htmlContent.ToString() can be
+                    // expensive when the IHtmlContent is created with a BufferedHtmlContent.
+                    var stringValue = htmlContent.ToString();
                     if (stringValue.Contains("\""))
                     {
                         writer.Write(stringValue.Replace("\"", "&quot;"));
@@ -456,7 +444,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     }
                 }
 
-                htmlString.WriteTo(writer);
+                htmlContent.WriteTo(writer, encoder);
                 return;
             }
 
@@ -506,6 +494,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Writes the specified <paramref name="value"/> without HTML encoding to <see cref="Output"/>.
         /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
         /// <param name="value">The <see cref="string"/> to write.</param>
         public virtual void WriteLiteralTo([NotNull] TextWriter writer, string value)
         {
@@ -531,95 +520,107 @@ namespace Microsoft.AspNet.Mvc.Razor
             [NotNull] PositionTagged<string> suffix,
             params AttributeValue[] values)
         {
-            var first = true;
-            var wroteSomething = false;
             if (values.Length == 0)
             {
-                // Explicitly empty attribute, so write the prefix and suffix
+                // Explicitly empty attribute, so write the prefix
                 WritePositionTaggedLiteral(writer, prefix);
-                WritePositionTaggedLiteral(writer, suffix);
+            }
+            else if (IsSingleBoolFalseOrNullValue(values))
+            {
+                // Value is either null or the bool 'false' with no prefix; don't render the attribute.
+                return;
+            }
+            else if (UseAttributeNameAsValue(values))
+            {
+                var attributeValue = values[0];
+                var positionTaggedAttributeValue = attributeValue.Value;
+
+                WritePositionTaggedLiteral(writer, prefix);
+
+                var sourceLength = suffix.Position - positionTaggedAttributeValue.Position;
+                var nameAttributeValue = new AttributeValue(
+                    attributeValue.Prefix,
+                    new PositionTagged<object>(name, attributeValue.Value.Position),
+                    literal: attributeValue.Literal);
+
+                // The value is just the bool 'true', write the attribute name instead of the string 'True'.
+                WriteAttributeValue(writer, nameAttributeValue, sourceLength);
             }
             else
             {
+                // This block handles two cases.
+                // 1. Single value with prefix.
+                // 2. Multiple values with or without prefix.
+                WritePositionTaggedLiteral(writer, prefix);
                 for (var i = 0; i < values.Length; i++)
                 {
-                    var attrVal = values[i];
-                    var val = attrVal.Value;
-                    var next = i == values.Length - 1 ?
-                        suffix : // End of the list, grab the suffix
-                        values[i + 1].Prefix; // Still in the list, grab the next prefix
+                    var attributeValue = values[i];
+                    var positionTaggedAttributeValue = attributeValue.Value;
 
-                    if (val.Value == null)
+                    if (positionTaggedAttributeValue.Value == null)
                     {
                         // Nothing to write
                         continue;
                     }
 
-                    // The special cases here are that the value we're writing might already be a string, or that the
-                    // value might be a bool. If the value is the bool 'true' we want to write the attribute name
-                    // instead of the string 'true'. If the value is the bool 'false' we don't want to write anything.
-                    // Otherwise the value is another object (perhaps an HtmlString) and we'll ask it to format itself.
-                    string stringValue;
-
-                    // Intentionally using is+cast here for performance reasons. This is more performant than as+bool?
-                    // because of boxing.
-                    if (val.Value is bool)
-                    {
-                        if ((bool)val.Value)
-                        {
-                            stringValue = name;
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        stringValue = val.Value as string;
-                    }
-
-                    if (first)
-                    {
-                        WritePositionTaggedLiteral(writer, prefix);
-                        first = false;
-                    }
-
-                    if (!string.IsNullOrEmpty(attrVal.Prefix))
-                    {
-                        WritePositionTaggedLiteral(writer, attrVal.Prefix);
-                    }
+                    var next = i == values.Length - 1 ?
+                        suffix : // End of the list, grab the suffix
+                        values[i + 1].Prefix; // Still in the list, grab the next prefix
 
                     // Calculate length of the source span by the position of the next value (or suffix)
-                    var sourceLength = next.Position - attrVal.Value.Position;
+                    var sourceLength = next.Position - attributeValue.Value.Position;
 
-                    BeginContext(attrVal.Value.Position, sourceLength, isLiteral: attrVal.Literal);
-                    // The extra branching here is to ensure that we call the Write*To(string) overload where
-                    // possible.
-                    if (attrVal.Literal && stringValue != null)
-                    {
-                        WriteLiteralTo(writer, stringValue);
-                    }
-                    else if (attrVal.Literal)
-                    {
-                        WriteLiteralTo(writer, val.Value);
-                    }
-                    else if (stringValue != null)
-                    {
-                        WriteTo(writer, stringValue);
-                    }
-                    else
-                    {
-                        WriteTo(writer, val.Value);
-                    }
-
-                    EndContext();
-                    wroteSomething = true;
+                    WriteAttributeValue(writer, attributeValue, sourceLength);
                 }
-                if (wroteSomething)
+            }
+
+            WritePositionTaggedLiteral(writer, suffix);
+        }
+
+        public void AddHtmlAttributeValues(
+            string attributeName,
+            TagHelperExecutionContext executionContext,
+            params AttributeValue[] values)
+        {
+            if (IsSingleBoolFalseOrNullValue(values))
+            {
+                // The first value was 'null' or 'false' indicating that we shouldn't render the attribute. The
+                // attribute is treated as a TagHelper attribute so it's only available in
+                // TagHelperContext.AllAttributes for TagHelper authors to see (if they want to see why the attribute
+                // was removed from TagHelperOutput.Attributes).
+                executionContext.AddTagHelperAttribute(
+                    attributeName,
+                    values[0].Value.Value?.ToString() ?? string.Empty);
+
+                return;
+            }
+            else if (UseAttributeNameAsValue(values))
+            {
+                executionContext.AddHtmlAttribute(attributeName, attributeName);
+            }
+            else
+            {
+                var valueBuffer = new StringCollectionTextWriter(Output.Encoding);
+
+                foreach (var value in values)
                 {
-                    WritePositionTaggedLiteral(writer, suffix);
+                    if (value.Value.Value == null)
+                    {
+                        // Skip null values
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(value.Prefix))
+                    {
+                        WriteLiteralTo(valueBuffer, value.Prefix);
+                    }
+
+                    WriteUnprefixedAttributeValueTo(valueBuffer, value);
                 }
+
+                var htmlString = new HtmlString(valueBuffer.ToString());
+
+                executionContext.AddHtmlAttribute(attributeName, htmlString);
             }
         }
 
@@ -631,6 +632,44 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             return _urlHelper.Content(contentPath);
+        }
+
+        private void WriteAttributeValue(TextWriter writer, AttributeValue attributeValue, int sourceLength)
+        {
+            if (!string.IsNullOrEmpty(attributeValue.Prefix))
+            {
+                WritePositionTaggedLiteral(writer, attributeValue.Prefix);
+            }
+
+            BeginContext(attributeValue.Value.Position, sourceLength, isLiteral: attributeValue.Literal);
+
+            WriteUnprefixedAttributeValueTo(writer, attributeValue);
+
+            EndContext();
+        }
+
+        private void WriteUnprefixedAttributeValueTo(TextWriter writer, AttributeValue attributeValue)
+        {
+            var positionTaggedAttributeValue = attributeValue.Value;
+            var stringValue = positionTaggedAttributeValue.Value as string;
+
+            // The extra branching here is to ensure that we call the Write*To(string) overload where possible.
+            if (attributeValue.Literal && stringValue != null)
+            {
+                WriteLiteralTo(writer, stringValue);
+            }
+            else if (attributeValue.Literal)
+            {
+                WriteLiteralTo(writer, positionTaggedAttributeValue.Value);
+            }
+            else if (stringValue != null)
+            {
+                WriteTo(writer, stringValue);
+            }
+            else
+            {
+                WriteTo(writer, positionTaggedAttributeValue.Value);
+            }
         }
 
         private void WritePositionTaggedLiteral(TextWriter writer, string value, int position)
@@ -647,14 +686,14 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         protected virtual HelperResult RenderBody()
         {
-            if (RenderBodyDelegate == null)
+            if (RenderBodyDelegateAsync == null)
             {
                 var message = Resources.FormatRazorPage_MethodCannotBeCalled(nameof(RenderBody), Path);
                 throw new InvalidOperationException(message);
             }
 
             _renderedBody = true;
-            return new HelperResult(RenderBodyDelegate);
+            return new HelperResult(RenderBodyDelegateAsync);
         }
 
         /// <summary>
@@ -707,7 +746,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             EnsureMethodCanBeInvoked(nameof(RenderSection));
 
             var task = RenderSectionAsyncCore(name, required);
-            return TaskHelper.WaitAndThrowIfFaulted(task);
+            return task.GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -735,10 +774,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// value does not represent the rendered content.</remarks>
         /// <exception cref="InvalidOperationException">if <paramref name="required"/> is <c>true</c> and the section
         /// was not registered using the <c>@section</c> in the Razor page.</exception>
-        public async Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
+        public Task<HtmlString> RenderSectionAsync([NotNull] string name, bool required)
         {
             EnsureMethodCanBeInvoked(nameof(RenderSectionAsync));
-            return await RenderSectionAsyncCore(name, required);
+            return RenderSectionAsyncCore(name, required);
         }
 
         private async Task<HtmlString> RenderSectionAsyncCore(string sectionName, bool required)
@@ -780,8 +819,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <remarks>The value returned is a token value that allows FlushAsync to work directly in an HTML
         /// section. However the value does not represent the rendered content.
         /// This method also writes out headers, so any modifications to headers must be done before
-        /// <see cref="FlushAsync"/> is called. For example, call <see cref="SetAntiForgeryCookieAndHeader"/> to send
-        /// anti-forgery cookie token and X-Frame-Options header to client before this method flushes headers out.
+        /// <see cref="FlushAsync"/> is called. For example, call <see cref="SetAntiforgeryCookieAndHeader"/> to send
+        /// antiforgery cookie token and X-Frame-Options header to client before this method flushes headers out.
         /// </remarks>
         public async Task<HtmlString> FlushAsync()
         {
@@ -822,7 +861,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     throw new InvalidOperationException(Resources.FormatSectionsNotRendered(Path, sectionNames));
                 }
             }
-            else if (RenderBodyDelegate != null && !_renderedBody)
+            else if (RenderBodyDelegateAsync != null && !_renderedBody)
             {
                 // There are no sections defined, but RenderBody was NOT called.
                 // If a body was defined, then RenderBody should have been called.
@@ -842,17 +881,43 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Sets anti-forgery cookie and X-Frame-Options header on the response.
+        /// Sets antiforgery cookie and X-Frame-Options header on the response.
         /// </summary>
         /// <returns>A <see cref="HtmlString"/> that returns a <see cref="HtmlString.Empty"/>.</returns>
-        /// <remarks> Call this method to send anti-forgery cookie token and X-Frame-Options header to client
+        /// <remarks> Call this method to send antiforgery cookie token and X-Frame-Options header to client
         /// before <see cref="FlushAsync"/> flushes the headers. </remarks>
-        public virtual HtmlString SetAntiForgeryCookieAndHeader()
+        public virtual HtmlString SetAntiforgeryCookieAndHeader()
         {
-            var antiForgery = Context.RequestServices.GetRequiredService<AntiForgery>();
-            antiForgery.SetCookieTokenAndHeader(Context);
+            var antiforgery = Context.RequestServices.GetRequiredService<IAntiforgery>();
+            antiforgery.SetCookieTokenAndHeader(Context);
 
             return HtmlString.Empty;
+        }
+
+        private bool IsSingleBoolFalseOrNullValue(AttributeValue[] values)
+        {
+            if (values.Length == 1 && string.IsNullOrEmpty(values[0].Prefix) &&
+                (values[0].Value.Value is bool || values[0].Value.Value == null))
+            {
+                var attributeValue = values[0];
+                var positionTaggedAttributeValue = attributeValue.Value;
+
+                if (positionTaggedAttributeValue.Value == null || !(bool)positionTaggedAttributeValue.Value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool UseAttributeNameAsValue(AttributeValue[] values)
+        {
+            // If the value is just the bool 'true', use the attribute name as the value.
+            return values.Length == 1 &&
+                string.IsNullOrEmpty(values[0].Prefix) &&
+                values[0].Value.Value is bool &&
+                (bool)values[0].Value.Value;
         }
 
         private void EnsureMethodCanBeInvoked(string methodName)

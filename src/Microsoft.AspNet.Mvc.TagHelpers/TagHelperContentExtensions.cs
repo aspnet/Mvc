@@ -23,9 +23,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <param name="value">The <see cref="object"/> to write.</param>
         /// <returns><paramref name="content"/> after the write operation has completed.</returns>
         /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="Rendering.HtmlString"/> are written without encoding and
-        /// <see cref="HelperResult.WriteTo"/> is invoked for <see cref="HelperResult"/> types. For all other types,
-        /// the encoded result of <see cref="object.ToString"/> is written to the <paramref name="content"/>.
+        /// <paramref name="value"/>s of type <see cref="Html.Abstractions.IHtmlContent"/> are written using 
+        /// <see cref="Html.Abstractions.IHtmlContent.WriteTo(System.IO.TextWriter, IHtmlEncoder)"/>.
+        /// For all other types, the encoded result of <see cref="object.ToString"/>
+        /// is written to the <paramref name="content"/>.
         /// </remarks>
         public static TagHelperContent Append(
             [NotNull] this TagHelperContent content,

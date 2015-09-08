@@ -7,6 +7,9 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
 using Moq;
 #endif
@@ -42,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             var context = new ActionExecutingContext(
                 actionContext,
-                filters: new List<IFilter>(),
+                filters: new List<IFilterMetadata>(),
                 actionArguments: new Dictionary<string, object>(),
                 controller: new object());
 
@@ -68,7 +71,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 
             var context = new ActionExecutedContext(
                 actionContext,
-                filters: new List<IFilter>(),
+                filters: new List<IFilterMetadata>(),
                 controller: new object());
 
             context.Exception = new HttpResponseException(HttpStatusCode.BadRequest);

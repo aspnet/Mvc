@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
     /// Always writes a string value to the response, regardless of requested content type.
@@ -14,9 +16,9 @@ namespace Microsoft.AspNet.Mvc
     {
         public StringOutputFormatter()
         {
-            SupportedEncodings.Add(Encodings.UTF8EncodingWithoutBOM);
-            SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
-            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/plain"));
+            SupportedEncodings.Add(Encoding.UTF8);
+            SupportedEncodings.Add(Encoding.Unicode);
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/plain").CopyAsReadOnly());
         }
 
         public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
@@ -36,17 +38,17 @@ namespace Microsoft.AspNet.Mvc
             return false;
         }
 
-        public override async Task WriteResponseBodyAsync(OutputFormatterContext context)
+        public override Task WriteResponseBodyAsync(OutputFormatterContext context)
         {
             var valueAsString = (string)context.Object;
             if (string.IsNullOrEmpty(valueAsString))
             {
-                return;
+                return TaskCache.CompletedTask;
             }
 
             var response = context.HttpContext.Response;
 
-            await response.WriteAsync(valueAsString, context.SelectedEncoding);
+            return response.WriteAsync(valueAsString, context.SelectedEncoding);
         }
     }
 }

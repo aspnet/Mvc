@@ -14,9 +14,7 @@ namespace FormatFilterWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add MVC services to the services container
-            services.AddMvc();
-            services.Configure<MvcOptions>(options =>
+            services.AddMvc(options =>
             {
                 var formatFilter = new FormatFilterAttribute();
                 options.Filters.Add(formatFilter);

@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Internal;
 
 namespace System.Web.Http
@@ -38,10 +40,10 @@ namespace System.Web.Http
         public bool IncludeErrorDetail { get; private set; }
 
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync(ActionContext context)
+        public override Task ExecuteResultAsync(ActionContext context)
         {
             context.HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await base.ExecuteResultAsync(context);
+            return base.ExecuteResultAsync(context);
         }
     }
 }

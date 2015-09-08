@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -724,7 +725,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new TagHelperAttributeList(),
                 items: new Dictionary<object, object>(),
                 uniqueId: id,
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     TagHelperContent tagHelperContent;
                     if(!cache.TryGetValue("key1", out tagHelperContent))
@@ -781,7 +782,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new TagHelperAttributeList(),
                 items: new Dictionary<object, object>(),
                 uniqueId: id,
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(childContent);

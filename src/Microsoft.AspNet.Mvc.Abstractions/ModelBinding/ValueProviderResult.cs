@@ -3,181 +3,191 @@
 
 using System;
 using System.Collections;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
-using Microsoft.AspNet.Mvc.Abstractions;
-using Microsoft.Framework.Internal;
+using Microsoft.Framework.Primitives;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
-    public class ValueProviderResult
+    /// <summary>
+    /// Result of an <see cref="IValueProvider.GetValue(string)"/> operation.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="ValueProviderResult"/> can represent a single submitted value or multiple submitted values.
+    /// </para>
+    /// <para>
+    /// Use <see cref="FirstValue"/> to consume only a single value, regardless of whether a single value or
+    /// multiple values were submitted.
+    /// </para>
+    /// <para>
+    /// Treat <see cref="ValueProviderResult"/> as an <see cref="IEnumerable{string}"/> to consume all values,
+    /// regardless of whether a single value or multiple values were submitted.
+    /// </para>
+    /// </remarks>
+    public struct ValueProviderResult : IEquatable<ValueProviderResult>, IEnumerable<string>
     {
-        private static readonly CultureInfo _staticCulture = CultureInfo.InvariantCulture;
-        private CultureInfo _instanceCulture;
+        private static readonly CultureInfo _invariantCulture = CultureInfo.InvariantCulture;
 
-        // default constructor so that subclassed types can set the properties themselves
-        protected ValueProviderResult()
+        /// <summary>
+        /// A <see cref="ValueProviderResult"/> that represents a lack of data.
+        /// </summary>
+        public static ValueProviderResult None = new ValueProviderResult(new string[0]);
+
+        /// <summary>
+        /// Creates a new <see cref="ValueProviderResult"/> using <see cref="CultureInfo.InvariantCulture"/>.
+        /// </summary>
+        /// <param name="values">The submitted values.</param>
+        public ValueProviderResult(StringValues values)
+            : this(values, _invariantCulture)
         {
         }
 
-        public ValueProviderResult(object rawValue, string attemptedValue, CultureInfo culture)
+        /// <summary>
+        /// Creates a new <see cref="ValueProviderResult"/>.
+        /// </summary>
+        /// <param name="value">The submitted value.</param>
+        /// <param name="culture">The <see cref="CultureInfo"/> associated with this value.</param>
+        public ValueProviderResult(StringValues values, CultureInfo culture)
         {
-            RawValue = rawValue;
-            AttemptedValue = attemptedValue;
-            Culture = culture;
+            Values = values;
+            Culture = culture ?? _invariantCulture;
         }
 
-        public string AttemptedValue { get; protected set; }
+        /// <summary>
+        /// Gets or sets the <see cref="CultureInfo"/> associated with the values.
+        /// </summary>
+        public CultureInfo Culture { get; private set; }
 
-        public CultureInfo Culture
+        /// <summary>
+        /// Gets or sets the values.
+        /// </summary>
+        public StringValues Values { get; private set; }
+
+        /// <summary>
+        /// Gets the first value based on the order values were provided in the request. Use <see cref="FirstValue"/>
+        /// to get a single value for processing regardless of whether a single or multiple values were provided
+        /// in the request.
+        /// </summary>
+        public string FirstValue
         {
             get
             {
-                if (_instanceCulture == null)
+                if (Values.Count == 0)
                 {
-                    _instanceCulture = _staticCulture;
-                }
-                return _instanceCulture;
-            }
-            protected set { _instanceCulture = value; }
-        }
-
-        public object RawValue { get; protected set; }
-
-        public object ConvertTo(Type type)
-        {
-            return ConvertTo(type, culture: null);
-        }
-
-        public virtual object ConvertTo([NotNull] Type type, CultureInfo culture)
-        {
-            var value = RawValue;
-            if (value == null)
-            {
-                // treat null route parameters as though they were the default value for the type
-                return type.GetTypeInfo().IsValueType ? Activator.CreateInstance(type) :
-                                                        null;
-            }
-
-            if (value.GetType().IsAssignableFrom(type))
-            {
-                return value;
-            }
-
-            var cultureToUse = culture ?? Culture;
-            return UnwrapPossibleArrayType(cultureToUse, value, type);
-        }
-
-        private object UnwrapPossibleArrayType(CultureInfo culture, object value, Type destinationType)
-        {
-            // array conversion results in four cases, as below
-            var valueAsArray = value as Array;
-            if (destinationType.IsArray)
-            {
-                var destinationElementType = destinationType.GetElementType();
-                if (valueAsArray != null)
-                {
-                    // case 1: both destination + source type are arrays, so convert each element
-                    var converted = (IList)Array.CreateInstance(destinationElementType, valueAsArray.Length);
-                    for (var i = 0; i < valueAsArray.Length; i++)
-                    {
-                        converted[i] = ConvertSimpleType(culture, valueAsArray.GetValue(i), destinationElementType);
-                    }
-                    return converted;
-                }
-                else
-                {
-                    // case 2: destination type is array but source is single element, so wrap element in
-                    // array + convert
-                    var element = ConvertSimpleType(culture, value, destinationElementType);
-                    var converted = (IList)Array.CreateInstance(destinationElementType, 1);
-                    converted[0] = element;
-                    return converted;
-                }
-            }
-            else if (valueAsArray != null)
-            {
-                // case 3: destination type is single element but source is array, so extract first element + convert
-                if (valueAsArray.Length > 0)
-                {
-                    value = valueAsArray.GetValue(0);
-                    return ConvertSimpleType(culture, value, destinationType);
-                }
-                else
-                {
-                    // case 3(a): source is empty array, so can't perform conversion
                     return null;
                 }
-            }
-
-            // case 4: both destination + source type are single elements, so convert
-            return ConvertSimpleType(culture, value, destinationType);
-        }
-
-        private object ConvertSimpleType(CultureInfo culture, object value, Type destinationType)
-        {
-            if (value == null || value.GetType().IsAssignableFrom(destinationType))
-            {
-                return value;
-            }
-
-            // In case of a Nullable object, we try again with its underlying type.
-            destinationType = UnwrapNullableType(destinationType);
-
-            // if this is a user-input value but the user didn't type anything, return no value
-            var valueAsString = value as string;
-            if (valueAsString != null && string.IsNullOrWhiteSpace(valueAsString))
-            {
-                return null;
-            }
-
-            var converter = TypeDescriptor.GetConverter(destinationType);
-            var canConvertFrom = converter.CanConvertFrom(value.GetType());
-            if (!canConvertFrom)
-            {
-                converter = TypeDescriptor.GetConverter(value.GetType());
-            }
-            if (!(canConvertFrom || converter.CanConvertTo(destinationType)))
-            {
-                // EnumConverter cannot convert integer, so we verify manually
-                if (destinationType.GetTypeInfo().IsEnum && (value is int))
-                {
-                    return Enum.ToObject(destinationType, (int)value);
-                }
-
-                throw new InvalidOperationException(
-                    Resources.FormatValueProviderResult_NoConverterExists(value.GetType(), destinationType));
-            }
-
-            try
-            {
-                return canConvertFrom
-                           ? converter.ConvertFrom(null, culture, value)
-                           : converter.ConvertTo(null, culture, value, destinationType);
-            }
-            catch (Exception ex)
-            {
-                if (ex is FormatException)
-                {
-                    throw ex;
-                }
-                else
-                {
-                    // TypeConverter throws System.Exception wrapping the FormatException,
-                    // so we throw the inner exception.
-                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-
-                    // this code is never reached because the previous line is throwing;
-                    throw;
-                }
+                return Values[0];
             }
         }
 
-        private static Type UnwrapNullableType(Type destinationType)
+        /// <summary>
+        /// Gets the number of submitted values.
+        /// </summary>
+        public int Length
         {
-            return Nullable.GetUnderlyingType(destinationType) ?? destinationType;
+            get
+            {
+                return Values.Count;
+            }
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            var other = obj as ValueProviderResult?;
+            return other.HasValue ? Equals(other.Value) : false;
+        }
+
+        /// <inheritdoc />
+        public bool Equals(ValueProviderResult other)
+        {
+            if (Length != other.Length)
+            {
+                return false;
+            }
+            else
+            {
+                var x = Values;
+                var y = other.Values;
+                for (var i = 0; i < x.Count; i++)
+                {
+                    if (!string.Equals(x[i], y[i], StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Values.ToString();
+        }
+
+        /// <summary>
+        /// Gets an <see cref="IEnumerator{string}"/> for this <see cref="ValueProviderResult"/>.
+        /// </summary>
+        /// <returns>An <see cref="IEnumerator{string}"/>.</returns>
+        public IEnumerator<string> GetEnumerator()
+        {
+            return ((IEnumerable<string>)Values).GetEnumerator();
+        }
+
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Converts the provided <see cref="ValueProviderResult"/> into a comma-separated string containing all
+        /// submitted values.
+        /// </summary>
+        /// <param name="result">The <see cref="ValueProviderResult"/>.</param>
+        public static explicit operator string(ValueProviderResult result)
+        {
+            return result.Values;
+        }
+
+        /// <summary>
+        /// Converts the provided <see cref="ValueProviderResult"/> into a an array of <see cref="string"/> containing
+        /// all submitted values.
+        /// </summary>
+        /// <param name="result">The <see cref="ValueProviderResult"/>.</param>
+        public static explicit operator string[](ValueProviderResult result)
+        {
+            return result.Values;
+        }
+
+        /// <summary>
+        /// Compares two <see cref="ValueProviderResult"/> objects for equality.
+        /// </summary>
+        /// <param name="x">A <see cref="ValueProviderResult"/>.</param>
+        /// <param name="y">A <see cref="ValueProviderResult"/>.</param>
+        /// <returns><c>true</c> if the values are equal, otherwise <c>false</c>.</returns>
+        public static bool operator ==(ValueProviderResult x, ValueProviderResult y)
+        {
+            return x.Equals(y);
+        }
+
+        /// <summary>
+        /// Compares two <see cref="ValueProviderResult"/> objects for inequality.
+        /// </summary>
+        /// <param name="x">A <see cref="ValueProviderResult"/>.</param>
+        /// <param name="y">A <see cref="ValueProviderResult"/>.</param>
+        /// <returns><c>false</c> if the values are equal, otherwise <c>true</c>.</returns>
+        public static bool operator !=(ValueProviderResult x, ValueProviderResult y)
+        {
+            return !x.Equals(y);
         }
     }
 }

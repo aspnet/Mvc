@@ -3,13 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
-    public class RedirectToActionResult : ActionResult
+    public class RedirectToActionResult : ActionResult, IKeepTempDataResult
     {
         public RedirectToActionResult(
             string actionName,
@@ -51,8 +52,6 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.NoRoutesMatched);
             }
 
-            var tempData = context.HttpContext.RequestServices.GetRequiredService<ITempDataDictionary>();
-            tempData.Keep();
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
         }
 

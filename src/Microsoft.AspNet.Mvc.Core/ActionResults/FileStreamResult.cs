@@ -6,10 +6,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     /// <summary>
     /// Represents an <see cref="ActionResult"/> that when executed will
@@ -74,6 +75,9 @@ namespace Microsoft.AspNet.Mvc
 
             using (FileStream)
             {
+                var bufferingFeature = response.HttpContext.Features.Get<IHttpBufferingFeature>();
+                bufferingFeature?.DisableResponseBuffering();
+
                 await FileStream.CopyToAsync(outputStream, BufferSize, cancellation);
             }
         }

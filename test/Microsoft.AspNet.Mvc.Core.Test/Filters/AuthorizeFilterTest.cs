@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Test
+namespace Microsoft.AspNet.Mvc.Filters
 {
     public class AuthorizeFilterTest
     {
@@ -316,8 +318,8 @@ namespace Microsoft.AspNet.Mvc.Test
                 httpContext.Object.User = validUser;
             }
             httpContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
-            auth.Setup(c => c.AuthenticateAsync("Bearer")).ReturnsAsync(new AuthenticationResult(bearerPrincipal, new AuthenticationProperties(), new AuthenticationDescription()));
-            auth.Setup(c => c.AuthenticateAsync("Basic")).ReturnsAsync(new AuthenticationResult(basicPrincipal, new AuthenticationProperties(), new AuthenticationDescription()));
+            auth.Setup(c => c.AuthenticateAsync("Bearer")).ReturnsAsync(bearerPrincipal);
+            auth.Setup(c => c.AuthenticateAsync("Basic")).ReturnsAsync(basicPrincipal);
             auth.Setup(c => c.AuthenticateAsync("Fails")).ReturnsAsync(null);
 
             // AuthorizationContext
@@ -329,7 +331,7 @@ namespace Microsoft.AspNet.Mvc.Test
 
             var authorizationContext = new AuthorizationContext(
                 actionContext,
-                Enumerable.Empty<IFilter>().ToList()
+                Enumerable.Empty<IFilterMetadata>().ToList()
             );
 
             return authorizationContext;

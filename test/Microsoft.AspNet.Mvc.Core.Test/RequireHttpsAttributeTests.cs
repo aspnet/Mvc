@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.WebUtilities;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc
@@ -154,7 +156,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var actionContext = new ActionContext(ctx, new RouteData(), actionDescriptor: null);
 
-            return new AuthorizationContext(actionContext, Enumerable.Empty<IFilter>().ToList());
+            return new AuthorizationContext(actionContext, Enumerable.Empty<IFilterMetadata>().ToList());
         }
     }
 }

@@ -8,16 +8,18 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.Razor.Compilation;
 using Microsoft.AspNet.Mvc.Razor.Directives;
 using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Dnx.Compilation;
+using Microsoft.Dnx.Compilation.CSharp;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.Internal;
-using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor.Precompilation
 {
@@ -25,15 +27,20 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
     {
         public RazorPreCompiler(
             [NotNull] BeforeCompileContext compileContext,
-            [NotNull] IAssemblyLoadContextAccessor loadContextAccessor,
+            [NotNull] IAssemblyLoadContext loadContext,
             [NotNull] IFileProvider fileProvider,
-            [NotNull] IMemoryCache precompilationCache,
-            [NotNull] CompilationSettings compilationSettings)
+            [NotNull] IMemoryCache precompilationCache)
         {
             CompileContext = compileContext;
-            LoadContext = loadContextAccessor.GetLoadContext(GetType().GetTypeInfo().Assembly);
+            LoadContext = loadContext;
             FileProvider = fileProvider;
-            CompilationSettings = compilationSettings;
+            CompilationSettings = new CompilationSettings
+            {
+                CompilationOptions = compileContext.Compilation.Options,
+                // REVIEW: There should always be a syntax tree even if there are no files (we generate one)
+                Defines = compileContext.Compilation.SyntaxTrees[0].Options.PreprocessorSymbolNames,
+                LanguageVersion = compileContext.Compilation.LanguageVersion
+            };
             PreCompilationCache = precompilationCache;
             TagHelperTypeResolver = new PrecompilationTagHelperTypeResolver(CompileContext, LoadContext);
         }
@@ -64,12 +71,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
             var result = CreateFileInfoCollection();
             if (result != null)
             {
-                var collectionGenerator = new RazorFileInfoCollectionGenerator(
-                                                result,
-                                                CompilationSettings);
-
-                var tree = collectionGenerator.GenerateCollection();
-                CompileContext.Compilation = CompileContext.Compilation.AddSyntaxTrees(tree);
+                var generatedCode = RazorFileInfoCollectionGenerator.GenerateCode(result);
+                var syntaxTree = CSharpSyntaxTree.ParseText(
+                    generatedCode,
+                    SyntaxTreeGenerator.GetParseOptions(CompilationSettings));
+                CompileContext.Compilation = CompileContext.Compilation.AddSyntaxTrees(syntaxTree);
             }
         }
 
@@ -93,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
                 var file = filesToProcess[index];
 
                 PrecompilationCacheEntry cacheEntry;
-                if(!PreCompilationCache.TryGetValue(file.RelativePath, out cacheEntry))
+                if (!PreCompilationCache.TryGetValue(file.RelativePath, out cacheEntry))
                 {
                     cacheEntry = GetCacheEntry(file);
                     PreCompilationCache.Set(
@@ -164,21 +170,24 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
             }
             else
             {
-                assemblyStream.Position = 0;
-                var assemblyResource = new ResourceDescription(assemblyResourceName,
-                                                               () => assemblyStream,
-                                                               isPublic: true);
+                var assemblyResource = new ResourceDescriptor()
+                {
+                    FileName = Path.GetFileName(assemblyResourceName),
+                    Name = assemblyResourceName,
+                    StreamFactory = () => GetNonDisposableStream(assemblyStream)
+                };
                 CompileContext.Resources.Add(assemblyResource);
 
                 string symbolsResourceName = null;
                 if (pdbStream != null)
                 {
                     symbolsResourceName = resourcePrefix + ".pdb";
-                    pdbStream.Position = 0;
-
-                    var pdbResource = new ResourceDescription(symbolsResourceName,
-                                                              () => pdbStream,
-                                                              isPublic: true);
+                    var pdbResource = new ResourceDescriptor()
+                    {
+                        FileName = Path.GetFileName(symbolsResourceName),
+                        Name = symbolsResourceName,
+                        StreamFactory = () => GetNonDisposableStream(pdbStream)
+                    };
 
                     CompileContext.Resources.Add(pdbResource);
                 }
@@ -191,7 +200,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
 
         protected IMvcRazorHost GetRazorHost()
         {
-            var descriptorResolver = new TagHelperDescriptorResolver(TagHelperTypeResolver);
+            var descriptorResolver = new TagHelperDescriptorResolver(TagHelperTypeResolver, designTime: false);
             return new MvcRazorHost(new DefaultChunkTreeCache(FileProvider))
             {
                 TagHelperDescriptorResolver = descriptorResolver
@@ -248,16 +257,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
 
                     if (fullTypeName != null)
                     {
-                        var hashAlgorithmVersion = RazorFileHash.HashAlgorithmVersion1;
-                        var hash = RazorFileHash.GetHash(fileInfo.FileInfo, hashAlgorithmVersion);
                         var razorFileInfo = new RazorFileInfo
                         {
                             RelativePath = fileInfo.RelativePath,
-                            LastModified = fileInfo.FileInfo.LastModified,
-                            Length = fileInfo.FileInfo.Length,
-                            FullTypeName = fullTypeName,
-                            Hash = hash,
-                            HashAlgorithmVersion = hashAlgorithmVersion
+                            FullTypeName = fullTypeName
                         };
 
                         return new PrecompilationCacheEntry(razorFileInfo, syntaxTree);
@@ -282,6 +285,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
             {
                 target.Add(diagnostic);
             }
+        }
+
+        private static Stream GetNonDisposableStream(Stream stream)
+        {
+            stream.Position = 0;
+            return new NonDisposableStream(stream);
         }
 
         private class PrecompileRazorFileInfoCollection : RazorFileInfoCollection

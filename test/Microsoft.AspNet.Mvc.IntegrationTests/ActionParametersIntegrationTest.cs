@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -51,7 +52,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -65,9 +65,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             Assert.Equal(1, modelState.Keys.Count);
             var key = Assert.Single(modelState.Keys, k => k == "Address[0].Street");
-            Assert.NotNull(modelState[key].Value);
-            Assert.Equal("SomeStreet", modelState[key].Value.AttemptedValue);
-            Assert.Equal("SomeStreet", modelState[key].Value.RawValue);
+            Assert.Equal("SomeStreet", modelState[key].AttemptedValue);
+            Assert.Equal("SomeStreet", modelState[key].RawValue);
             Assert.Empty(modelState[key].Errors);
             Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
         }
@@ -98,7 +97,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -106,12 +104,18 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.NotNull(boundModel);
             Assert.NotNull(boundModel.Address);
 
-            // Arrays should not be updated.
-            Assert.Equal(0, boundModel.Address.Count());
+            // Read-only collection should not be updated.
+            Assert.Empty(boundModel.Address);
 
-            // ModelState
+            // ModelState (data is valid but is not copied into Address).
             Assert.True(modelState.IsValid);
-            Assert.Empty(modelState.Keys);
+            var entry = Assert.Single(modelState);
+            Assert.Equal("Address[0].Street", entry.Key);
+            var state = entry.Value;
+            Assert.NotNull(state);
+            Assert.Equal(ModelValidationState.Valid, state.ValidationState);
+            Assert.Equal("SomeStreet", state.RawValue);
+            Assert.Equal("SomeStreet", state.AttemptedValue);
         }
 
         private class Person4
@@ -141,7 +145,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -156,9 +159,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             Assert.Equal(1, modelState.Keys.Count);
             var key = Assert.Single(modelState.Keys, k => k == "Address[0].Street");
-            Assert.NotNull(modelState[key].Value);
-            Assert.Equal("SomeStreet", modelState[key].Value.AttemptedValue);
-            Assert.Equal("SomeStreet", modelState[key].Value.RawValue);
+            Assert.Equal("SomeStreet", modelState[key].AttemptedValue);
+            Assert.Equal("SomeStreet", modelState[key].RawValue);
             Assert.Empty(modelState[key].Errors);
             Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
         }
@@ -189,7 +191,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -231,7 +232,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -245,9 +245,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             Assert.Equal(1, modelState.Keys.Count);
             var key = Assert.Single(modelState.Keys, k => k == "prefix.Address[0].Street");
-            Assert.NotNull(modelState[key].Value);
-            Assert.Equal("SomeStreet", modelState[key].Value.AttemptedValue);
-            Assert.Equal("SomeStreet", modelState[key].Value.RawValue);
+            Assert.Equal("SomeStreet", modelState[key].AttemptedValue);
+            Assert.Equal("SomeStreet", modelState[key].RawValue);
             Assert.Empty(modelState[key].Errors);
             Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
         }
@@ -277,7 +276,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -285,12 +283,18 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.NotNull(boundModel);
             Assert.NotNull(boundModel.Address);
 
-            // Arrays should not be updated.
-            Assert.Equal(0, boundModel.Address.Count());
+            // Read-only collection should not be updated.
+            Assert.Empty(boundModel.Address);
 
-            // ModelState
+            // ModelState (data is valid but is not copied into Address).
             Assert.True(modelState.IsValid);
-            Assert.Empty(modelState.Keys);
+            var entry = Assert.Single(modelState);
+            Assert.Equal("prefix.Address[0].Street", entry.Key);
+            var state = entry.Value;
+            Assert.NotNull(state);
+            Assert.Equal(ModelValidationState.Valid, state.ValidationState);
+            Assert.Equal("SomeStreet", state.AttemptedValue);
+            Assert.Equal("SomeStreet", state.RawValue);
         }
 
         [Fact]
@@ -319,7 +323,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -333,9 +336,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             Assert.Equal(1, modelState.Keys.Count);
             var key = Assert.Single(modelState.Keys, k => k == "prefix.Address[0].Street");
-            Assert.NotNull(modelState[key].Value);
-            Assert.Equal("SomeStreet", modelState[key].Value.AttemptedValue);
-            Assert.Equal("SomeStreet", modelState[key].Value.RawValue);
+            Assert.Equal("SomeStreet", modelState[key].AttemptedValue);
+            Assert.Equal("SomeStreet", modelState[key].RawValue);
             Assert.Empty(modelState[key].Errors);
             Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
         }
@@ -364,8 +366,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             // Act
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
-
-            Assert.NotNull(modelBindingResult);
+            
+            // Assert
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -380,11 +382,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Empty(modelState.Keys);
         }
 
-        private class CustomReadOnlyCollection<T> : ICollection<T>, IReadOnlyCollection<T>
+        private class CustomReadOnlyCollection<T> : ICollection<T>
         {
             private ICollection<T> _original;
 
-            public CustomReadOnlyCollection() : this(new List<T>())
+            public CustomReadOnlyCollection()
+                : this(new List<T>())
             {
             }
 

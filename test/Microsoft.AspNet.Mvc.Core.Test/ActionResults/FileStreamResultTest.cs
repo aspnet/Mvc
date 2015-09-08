@@ -3,15 +3,18 @@
 
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class FileStreamResultTest
     {
@@ -116,6 +119,34 @@ namespace Microsoft.AspNet.Mvc
             var outBytes = outStream.ToArray();
             Assert.True(originalBytes.SequenceEqual(outBytes));
             Assert.Equal(expectedContentType, httpContext.Response.ContentType);
+        }
+
+        [Fact]
+        public async Task DisablesResponseBuffering_IfBufferingFeatureAvailable()
+        {
+            // Arrange
+            var expectedContentType = "text/foo; charset=us-ascii";
+            var expected = Encoding.ASCII.GetBytes("Test data");
+
+            var originalStream = new MemoryStream(expected);
+
+            var httpContext = new DefaultHttpContext();
+            var bufferingFeature = new TestBufferingFeature();
+            httpContext.Features.Set<IHttpBufferingFeature>(bufferingFeature);
+            var outStream = new MemoryStream();
+            httpContext.Response.Body = outStream;
+
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+            var result = new FileStreamResult(originalStream, MediaTypeHeaderValue.Parse(expectedContentType));
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            var outBytes = outStream.ToArray();
+            Assert.Equal(expected, outBytes);
+            Assert.Equal(expectedContentType, httpContext.Response.ContentType);
+            Assert.True(bufferingFeature.DisableResponseBufferingInvoked);
         }
     }
 }

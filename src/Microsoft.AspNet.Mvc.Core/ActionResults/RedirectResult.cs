@@ -2,13 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
-    public class RedirectResult : ActionResult
+    public class RedirectResult : ActionResult, IKeepTempDataResult
     {
         private string _url;
 
@@ -60,8 +61,6 @@ namespace Microsoft.AspNet.Mvc
                 destinationUrl = urlHelper.Content(Url);
             }
 
-            var tempData = context.HttpContext.RequestServices.GetRequiredService<ITempDataDictionary>();
-            tempData.Keep();
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
         }
 

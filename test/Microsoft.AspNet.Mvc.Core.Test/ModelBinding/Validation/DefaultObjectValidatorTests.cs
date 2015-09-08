@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 if (!TestPlatformHelper.IsMono)
                 {
                     // In Mono this throws a NullRef Exception.
-                    // Should be investigated - https://github.com/aspnet/Mvc/issues/1261
+                    // https://github.com/aspnet/External/issues/23
                     yield return new object[]
                     {
                         new Dictionary<string, Person> { { "Joe", new Person() } , { "Mark", new Person() } },
@@ -275,10 +275,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     typeof(Uri),
                     new List<Type>() { typeof(Uri) }
                 };
-                yield return new object[] { new Dictionary<string, Uri> {
-                    { "values",  new Uri("/api/values", UriKind.Relative) },
-                    { "hello",  new Uri("/api/hello", UriKind.Relative) }
-                }, typeof(Dictionary<string, Uri>), new List<Type>() { typeof(Uri) } };
+
+                // https://github.com/aspnet/External/issues/23
+                if (!TestPlatformHelper.IsMono)
+                {
+                    yield return new object[] { new Dictionary<string, Uri> {
+                        { "values",  new Uri("/api/values", UriKind.Relative) },
+                        { "hello",  new Uri("/api/hello", UriKind.Relative) }
+                    }, typeof(Dictionary<string, Uri>), new List<Type>() { typeof(Uri) } };
+                }
             }
         }
 
@@ -490,9 +495,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var validationContext = testValidationContext.ModelValidationContext;
 
             // Set the value on model state as a model binder would.
-            validationContext.ModelState.SetModelValue(
-                "user.Password",
-                Mock.Of<ValueProviderResult>());
+            validationContext.ModelState.SetModelValue("user.Password", new string[] { "password" }, "password");
             var validator = new DefaultObjectValidator(
                 testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
@@ -513,6 +516,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             Assert.Equal("user.Password", entry.Key);
             Assert.Empty(entry.Value.Errors);
             Assert.Equal(entry.Value.ValidationState, ModelValidationState.Skipped);
+            Assert.Equal(new string[] { "password" }, entry.Value.RawValue);
+            Assert.Same("password", entry.Value.AttemptedValue);
         }
 
         private class Person2
@@ -536,7 +541,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationContext.ModelState.Add("person.Address", new ModelState());
 
             var validator = new DefaultObjectValidator(
-                testValidationContext.ExcludeFilters, 
+                testValidationContext.ExcludeFilters,
                 testValidationContext.ModelMetadataProvider);
             var modelExplorer = testValidationContext.ModelValidationContext.ModelExplorer;
             var topLevelValidationNode = new ModelValidationNode(

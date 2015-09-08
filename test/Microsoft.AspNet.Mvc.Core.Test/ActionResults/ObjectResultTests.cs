@@ -8,10 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
-using Microsoft.AspNet.Mvc.Xml;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Formatters.Xml;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
@@ -19,7 +22,7 @@ using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class ObjectResultTests
     {
@@ -117,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var httpResponse = new DefaultHttpContext().Response;
             httpResponse.Body = new MemoryStream();
             var actionContext = CreateMockActionContext(
-                outputFormatters: new IOutputFormatter[] 
+                outputFormatters: new IOutputFormatter[]
                 {
                     new HttpNotAcceptableOutputFormatter(),
                     new JsonOutputFormatter()
@@ -170,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var actionContext = CreateMockActionContext(
                 new[] { formatter.Object },
                 setupActionBindingContext: false);
-            
+
             // Set the content type property explicitly to a single value.
             var result = new ObjectResult("someValue");
 
@@ -381,7 +384,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Assert
             Assert.Equal(mockCountingFormatter.Object, formatter);
             mockCountingFormatter.Verify(v => v.CanWriteResult(context, null), Times.Once());
-            
+
             // CanWriteResult is invoked for the following cases:
             // 1. For each accept header present
             // 2. Request Content-Type
@@ -583,7 +586,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             response.VerifySet(resp => resp.ContentType = expectedResponseContentType);
         }
 
-        [Theory]
+        [ConditionalTheory]
+        // Mono issue - https://github.com/aspnet/External/issues/18
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         [InlineData("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "application/xml; charset=utf-8")] // Chrome & Opera
         [InlineData("text/html, application/xhtml+xml, */*",
@@ -621,7 +626,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             response.VerifySet(resp => resp.ContentType = expectedResponseContentType);
         }
 
-        [Theory]
+        [ConditionalTheory]
+        // Mono issue - https://github.com/aspnet/External/issues/18
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         [InlineData("application/xml;q=0.9,text/plain;q=0.5", "application/xml; charset=utf-8", false)]
         [InlineData("application/xml;q=0.9,*/*;q=0.5", "application/json; charset=utf-8", false)]
         [InlineData("application/xml;q=0.9,text/plain;q=0.5", "application/xml; charset=utf-8", true)]
@@ -689,7 +696,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Arrange
             var expectedData = "Hello World!";
             var objectResult = new ObjectResult(expectedData);
-            var outputFormatters = new IOutputFormatter[] 
+            var outputFormatters = new IOutputFormatter[]
             {
                 new HttpNotAcceptableOutputFormatter(),
                 new StringOutputFormatter(),
@@ -721,7 +728,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             // Arrange
             var objectResult = new ObjectResult(new Person() { Name = "John" });
             objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/json"));
-            var outputFormatters = new IOutputFormatter[] 
+            var outputFormatters = new IOutputFormatter[]
             {
                 new HttpNotAcceptableOutputFormatter(),
                 new JsonOutputFormatter()
@@ -754,7 +761,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var objectResult = new ObjectResult(new Person() { Name = "John" });
             objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/foo"));
             objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/json"));
-            var outputFormatters = new IOutputFormatter[] 
+            var outputFormatters = new IOutputFormatter[]
             {
                 new HttpNotAcceptableOutputFormatter(),
                 new JsonOutputFormatter()
@@ -885,35 +892,30 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             request.ContentType = requestContentType;
             request.Body = new MemoryStream(contentBytes);
 
+            httpContext.Setup(o => o.Features).Returns(new FeatureCollection());
             httpContext.Setup(o => o.Request).Returns(request);
             httpContext.Setup(o => o.RequestServices).Returns(GetServiceProvider());
 
-            var optionsAccessor = new MockMvcOptionsAccessor();
+            var optionsAccessor = new TestOptionsManager<MvcOptions>();
             foreach (var formatter in outputFormatters)
             {
-                optionsAccessor.Options.OutputFormatters.Add(formatter);
+                optionsAccessor.Value.OutputFormatters.Add(formatter);
             }
 
-            optionsAccessor.Options.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
+            optionsAccessor.Value.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
             httpContext.Setup(o => o.RequestServices.GetService(typeof(ILogger<ObjectResult>)))
                 .Returns(new Mock<ILogger<ObjectResult>>().Object);
 
-            var mockActionBindingContext = new Mock<IScopedInstance<ActionBindingContext>>();
-
-            ActionBindingContext bindingContext = null;
+            ActionBindingContext actionBindingContext = null;
             if (setupActionBindingContext)
             {
-                bindingContext = new ActionBindingContext { OutputFormatters = outputFormatters.ToList() };
+                actionBindingContext = new ActionBindingContext { OutputFormatters = outputFormatters.ToList() };
             }
 
-            mockActionBindingContext
-                .SetupGet(o => o.Value)
-                .Returns(bindingContext);
-
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))
-                       .Returns(mockActionBindingContext.Object);
+            httpContext.Setup(o => o.RequestServices.GetService(typeof(IActionBindingContextAccessor)))
+                    .Returns(new ActionBindingContextAccessor() { ActionBindingContext = actionBindingContext });
 
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
         }
@@ -942,11 +944,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
         private static IServiceProvider GetServiceProvider()
         {
-            var optionsSetup = new MvcOptionsSetup();
             var options = new MvcOptions();
-            optionsSetup.Configure(options);
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
-            optionsAccessor.SetupGet(o => o.Options).Returns(options);
+            optionsAccessor.SetupGet(o => o.Value).Returns(options);
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddInstance(optionsAccessor.Object);

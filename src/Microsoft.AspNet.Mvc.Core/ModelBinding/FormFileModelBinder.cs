@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if DNXCORE50
 using System.Reflection;
+#endif
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Internal;
@@ -13,40 +15,49 @@ using Microsoft.Net.Http.Headers;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Modelbinder to bind posted files to <see cref="IFormFile"/>.
+    /// <see cref="IModelBinder"/> implementation to bind posted files to <see cref="IFormFile"/>.
     /// </summary>
     public class FormFileModelBinder : IModelBinder
     {
         /// <inheritdoc />
         public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
+            object value;
             if (bindingContext.ModelType == typeof(IFormFile))
             {
                 var postedFiles = await GetFormFilesAsync(bindingContext);
-                var value = postedFiles.FirstOrDefault();
-                var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
-                return new ModelBindingResult(
-                    value,
-                    bindingContext.ModelName,
-                    isModelSet: value != null,
-                    validationNode: validationNode);
+                value = postedFiles.FirstOrDefault();
             }
-            else if (typeof(IEnumerable<IFormFile>).GetTypeInfo().IsAssignableFrom(
-                    bindingContext.ModelType.GetTypeInfo()))
+            else if (typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
             {
                 var postedFiles = await GetFormFilesAsync(bindingContext);
-                var value = ModelBindingHelper.ConvertValuesToCollectionType(bindingContext.ModelType, postedFiles);
-                var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
-                return new ModelBindingResult(
-                    value,
-                    bindingContext.ModelName,
-                    isModelSet: value != null,
-                    validationNode: validationNode);
+                value = ModelBindingHelper.ConvertValuesToCollectionType(bindingContext.ModelType, postedFiles);
             }
+            else
+            {
+                // This binder does not support the requested type.
+                return ModelBindingResult.NoResult;
+            }
+            
+            if (value == null)
+            {
+                return ModelBindingResult.Failed(bindingContext.ModelName);
+            }
+            else
+            { 
+                var validationNode =
+                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value)
+                    {
+                        SuppressValidation = true,
+                    };
 
-            return null;
+                bindingContext.ModelState.SetModelValue(
+                    bindingContext.ModelName,
+                    rawValue: null,
+                    attemptedValue: null);
+
+                return ModelBindingResult.Success(bindingContext.ModelName, value, validationNode);
+            }
         }
 
         private async Task<List<IFormFile>> GetFormFilesAsync(ModelBindingContext bindingContext)
@@ -56,6 +67,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (request.HasFormContentType)
             {
                 var form = await request.ReadFormAsync();
+
+                // If we're at the top level, then use the FieldName (paramter or property name).
+                // This handles the fact that there will be nothing in the ValueProviders for this parameter
+                // and so we'll do the right thing even though we 'fell-back' to the empty prefix.
+                var modelName = bindingContext.IsTopLevelObject
+                    ? bindingContext.FieldName
+                    : bindingContext.ModelName;
 
                 foreach (var file in form.Files)
                 {
@@ -70,8 +88,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         continue;
                     }
 
-                    var modelName = HeaderUtilities.RemoveQuotes(parsedContentDisposition.Name);
-                    if (modelName.Equals(bindingContext.ModelName, StringComparison.OrdinalIgnoreCase))
+                    var fileName = HeaderUtilities.RemoveQuotes(parsedContentDisposition.Name);
+                    if (fileName.Equals(modelName, StringComparison.OrdinalIgnoreCase))
                     {
                         postedFiles.Add(file);
                     }

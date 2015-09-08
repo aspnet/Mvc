@@ -398,7 +398,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     // GetChildContentAsync should not be invoked since we are setting the content below.
                     Assert.True(false);
@@ -407,7 +407,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var output = new TagHelperOutput(expectedTagHelperOutput.TagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagAndEndTag
             };
 
             output.Content.SetContent(originalContent);
@@ -467,7 +467,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(originalContent);
@@ -475,7 +475,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 });
             var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagAndEndTag,
             };
             output.PreContent.SetContent(originalPreContent);
             output.Content.SetContent(originalContent);
@@ -528,7 +528,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 contextAttributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(originalContent);
@@ -537,7 +537,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             var output = new TagHelperOutput(originalTagName, originalAttributes)
             {
-                SelfClosing = false,
+                TagMode = TagMode.StartTagAndEndTag,
             };
             output.PreContent.SetContent(originalPreContent);
             output.Content.SetContent(originalContent);

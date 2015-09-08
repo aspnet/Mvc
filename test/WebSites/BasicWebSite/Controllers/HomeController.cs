@@ -3,8 +3,10 @@
 
 using System.Threading.Tasks;
 using BasicWebSite.Models;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 
 namespace BasicWebSite.Controllers
 {
@@ -51,7 +53,7 @@ namespace BasicWebSite.Controllers
         [RequireHttps]
         public IActionResult HttpsOnlyAction()
         {
-            return new HttpStatusCodeResult(StatusCodes.Status200OK);
+            return Ok();
         }
 
         public Task ActionReturningTask()

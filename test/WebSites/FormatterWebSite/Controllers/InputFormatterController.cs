@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNet.Mvc.ActionResults;
 
 namespace FormatterWebSite.Controllers
 {
@@ -14,8 +15,10 @@ namespace FormatterWebSite.Controllers
         {
             if (!ActionContext.ModelState.IsValid)
             {
-                var parameterBindingErrors = ActionContext.ModelState["dummy"].Errors;
-                if (parameterBindingErrors.Count != 0)
+                // Body model binder normally reports errors for parameters using the empty name.
+                var parameterBindingErrors = ActionContext.ModelState["dummy"]?.Errors ??
+                    ActionContext.ModelState[string.Empty]?.Errors;
+                if (parameterBindingErrors != null && parameterBindingErrors.Count != 0)
                 {
                     return new ErrorInfo
                     {

@@ -24,17 +24,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 yield return new[]
                 {
                     "ViewWithAsyncComponents",
-                    string.Join(Environment.NewLine,
-                                       "<test-component>value-from-component value-from-view</test-component>",
-                                        "ViewWithAsyncComponents InvokeAsync: hello from viewdatacomponent")
+                    @"<test-component>value-from-component value-from-view</test-component>
+ViewWithAsyncComponents InvokeAsync: hello from viewdatacomponent"
                 };
 
                 yield return new[]
                 {
                     "ViewWithSyncComponents",
-                    string.Join(Environment.NewLine,
-                                       "<test-component>value-from-component value-from-view</test-component>",
-                                        "ViewWithSyncComponents Invoke: hello from viewdatacomponent")
+                    @"<test-component>value-from-component value-from-view</test-component>
+ViewWithSyncComponents Invoke: hello from viewdatacomponent"
                 };
             }
         }
@@ -50,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var body = await client.GetStringAsync("http://localhost/Home/" + actionName);
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -64,6 +62,19 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal("10", body.Trim());
+        }
+
+        [Fact]
+        public async Task ViewComponents_InvokeWithViewComponentResult()
+        {
+            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
+            var client = server.CreateClient();
+
+            // Act
+            var body = await client.GetStringAsync("http://localhost/ViewComponentResult/Invoke?number=31");
+
+            // Assert
+            Assert.Equal("31", body.Trim());
         }
 
         [Theory]

@@ -7,13 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
-using Microsoft.AspNet.Routing;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Test
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     public class OutputFormatterTests
     {
@@ -76,24 +75,31 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
-        public void WriteResponseContentHeaders_FormatterWithNoEncoding_Throws()
+        public void WriteResponseContentHeaders_NoSupportedEncodings_NoEncodingIsSet()
         {
             // Arrange
-            var testFormatter = new TestOutputFormatter();
-            var testContentType = MediaTypeHeaderValue.Parse("text/invalid");
-            var formatterContext = new OutputFormatterContext();
-            var mockHttpContext = new Mock<HttpContext>();
-            var httpRequest = new DefaultHttpContext().Request;
-            mockHttpContext.SetupGet(o => o.Request).Returns(httpRequest);
-            formatterContext.HttpContext = mockHttpContext.Object;
+            var formatter = new TestOutputFormatter();
 
-            // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                        () => testFormatter.WriteResponseHeaders(formatterContext));
-            Assert.Equal("No encoding found for output formatter " +
-                         "'Microsoft.AspNet.Mvc.Test.OutputFormatterTests+TestOutputFormatter'." +
-                         " There must be at least one supported encoding registered in order for the" +
-                         " output formatter to write content.", ex.Message);
+            var testContentType = MediaTypeHeaderValue.Parse("text/json");
+
+            formatter.SupportedEncodings.Clear();
+            formatter.SupportedMediaTypes.Clear();
+            formatter.SupportedMediaTypes.Add(testContentType);
+
+            var formatterContext = new OutputFormatterContext()
+            {
+                HttpContext = new DefaultHttpContext(),
+            };
+
+            // Act
+            formatter.WriteResponseHeaders(formatterContext);
+
+            // Assert
+            Assert.Null(formatterContext.SelectedEncoding);
+            Assert.Equal(testContentType, formatterContext.SelectedContentType);
+
+            // If we had set an encoding, it would be part of the content type header
+            Assert.Equal(testContentType, formatterContext.HttpContext.Response.GetTypedHeaders().ContentType);
         }
 
         [Fact]
@@ -113,9 +119,9 @@ namespace Microsoft.AspNet.Mvc.Test
             testFormatter.WriteResponseHeaders(formatterContext);
 
             // Assert
-            Assert.Equal(Encodings.UTF16EncodingLittleEndian.WebName, formatterContext.SelectedEncoding.WebName);
-            Assert.Equal(Encodings.UTF16EncodingLittleEndian, formatterContext.SelectedEncoding);
-            Assert.Equal("application/doesNotSetContext; charset=" + Encodings.UTF16EncodingLittleEndian.WebName,
+            Assert.Equal(Encoding.Unicode.WebName, formatterContext.SelectedEncoding.WebName);
+            Assert.Equal(Encoding.Unicode, formatterContext.SelectedEncoding);
+            Assert.Equal("application/doesNotSetContext; charset=" + Encoding.Unicode.WebName,
                          formatterContext.SelectedContentType.ToString());
         }
 
@@ -307,7 +313,7 @@ namespace Microsoft.AspNet.Mvc.Test
             public DoesNotSetContext()
             {
                 SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/doesNotSetContext"));
-                SupportedEncodings.Add(Encodings.UTF16EncodingLittleEndian);
+                SupportedEncodings.Add(Encoding.Unicode);
             }
 
             public override bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
@@ -330,7 +336,7 @@ namespace Microsoft.AspNet.Mvc.Test
                 SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("image/png"));
                 SupportedEncodings.Add(Encoding.UTF8);
             }
-            
+
             public override Task WriteResponseBodyAsync([NotNull] OutputFormatterContext context)
             {
                 return Task.FromResult(true);

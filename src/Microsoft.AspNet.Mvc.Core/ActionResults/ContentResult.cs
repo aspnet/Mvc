@@ -1,21 +1,21 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Features;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class ContentResult : ActionResult
     {
         private readonly MediaTypeHeaderValue DefaultContentType = new MediaTypeHeaderValue("text/plain")
         {
-            Encoding = Encodings.UTF8EncodingWithoutBOM
+            Encoding = Encoding.UTF8
         };
 
         /// <summary>
@@ -33,35 +33,21 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         public int? StatusCode { get; set; }
 
-        public override async Task ExecuteResultAsync([NotNull] ActionContext context)
+        public override Task ExecuteResultAsync([NotNull] ActionContext context)
         {
             var response = context.HttpContext.Response;
-
             var contentTypeHeader = ContentType;
-            Encoding encoding;
-            if (contentTypeHeader == null)
-            {
-                contentTypeHeader = DefaultContentType;
-                encoding = Encodings.UTF8EncodingWithoutBOM;
-            }
-            else
-            {
-                if (contentTypeHeader.Encoding == null)
-                {
-                    // 1. Do not modify the user supplied content type
-                    // 2. Parse here to handle parameters apart from charset
-                    contentTypeHeader = MediaTypeHeaderValue.Parse(contentTypeHeader.ToString());
-                    contentTypeHeader.Encoding = Encodings.UTF8EncodingWithoutBOM;
 
-                    encoding = Encodings.UTF8EncodingWithoutBOM;
-                }
-                else
-                {
-                    encoding = contentTypeHeader.Encoding;
-                }
+            if (contentTypeHeader != null && contentTypeHeader.Encoding == null)
+            {
+                // Do not modify the user supplied content type, so copy it instead
+                contentTypeHeader = contentTypeHeader.Copy();
+                contentTypeHeader.Encoding = Encoding.UTF8;
             }
 
-            response.ContentType = contentTypeHeader.ToString();
+            response.ContentType = contentTypeHeader?.ToString()
+                ?? response.ContentType
+                ?? DefaultContentType.ToString();
 
             if (StatusCode != null)
             {
@@ -70,8 +56,13 @@ namespace Microsoft.AspNet.Mvc
 
             if (Content != null)
             {
-                await response.WriteAsync(Content, encoding);
+                var bufferingFeature = response.HttpContext.Features.Get<IHttpBufferingFeature>();
+                bufferingFeature?.DisableResponseBuffering();
+
+                return response.WriteAsync(Content, contentTypeHeader?.Encoding ?? DefaultContentType.Encoding);
             }
+
+            return TaskCache.CompletedTask;
         }
     }
 }

@@ -1,58 +1,130 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Internal;
 using Microsoft.Framework.Internal;
+using Microsoft.Framework.Primitives;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Modelbinder to bind form values to <see cref="IFormCollection"/>.
+    /// <see cref="IModelBinder"/> implementation to bind form values to <see cref="IFormCollection"/>.
     /// </summary>
     public class FormCollectionModelBinder : IModelBinder
     {
         /// <inheritdoc />
         public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
-            if (bindingContext.ModelType != typeof(IFormCollection) &&
-                bindingContext.ModelType != typeof(FormCollection))
+            if (bindingContext.ModelType != typeof(IFormCollection))
             {
-                return null;
+                return ModelBindingResult.NoResult;
             }
 
-            object model = null;
+            object model;
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             if (request.HasFormContentType)
             {
                 var form = await request.ReadFormAsync();
-                if (bindingContext.ModelType.GetTypeInfo().IsAssignableFrom(form.GetType().GetTypeInfo()))
-                {
-                    model = form;
-                }
-                else
-                {
-                    var formValuesLookup = form.ToDictionary(p => p.Key,
-                                                             p => p.Value);
-                    model = new FormCollection(formValuesLookup, form.Files);
-                }
+                model = form;
             }
             else
             {
-                model = new FormCollection(new Dictionary<string, string[]>());
+                model = new EmptyFormCollection();
             }
 
             var validationNode =
-                 new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);
-            return new ModelBindingResult(
-                model,
-                bindingContext.ModelName,
-                isModelSet: true,
-                validationNode: validationNode);
+                 new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model)
+                 {
+                     SuppressValidation = true,
+                 };
+
+            return ModelBindingResult.Success(bindingContext.ModelName, model, validationNode);
+        }
+
+        private class EmptyFormCollection : IFormCollection
+        {
+            public StringValues this[string key]
+            {
+                get
+                {
+                    return StringValues.Empty;
+                }
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return 0;
+                }
+            }
+
+            public IFormFileCollection Files
+            {
+                get
+                {
+                    return new EmptyFormFileCollection();
+                }
+            }
+
+            public ICollection<string> Keys
+            {
+                get
+                {
+                    return new List<string>();
+                }
+            }
+
+            public bool ContainsKey(string key)
+            {
+                return false;
+            }
+
+            public string Get(string key)
+            {
+                return null;
+            }
+
+            public IEnumerator<KeyValuePair<string, StringValues>> GetEnumerator()
+            {
+                return Enumerable.Empty<KeyValuePair<string, StringValues>>().GetEnumerator();
+            }
+
+            public IList<StringValues> GetValues(string key)
+            {
+                return null;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        private class EmptyFormFileCollection : List<IFormFile>, IFormFileCollection
+        {
+            public IFormFile this[string name]
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
+            public IFormFile GetFile(string name)
+            {
+                return null;
+            }
+
+            IReadOnlyList<IFormFile> IFormFileCollection.GetFiles(string name)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

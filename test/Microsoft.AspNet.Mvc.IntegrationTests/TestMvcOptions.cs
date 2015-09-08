@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.IntegrationTests
@@ -10,15 +11,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
     {
         public TestMvcOptions()
         {
-            Options = new MvcOptions();
-            MvcOptionsSetup.ConfigureMvc(Options);
+            Value = new MvcOptions();
+            MvcCoreMvcOptionsSetup.ConfigureMvc(Value);
+            MvcDataAnnotationsMvcOptionsSetup.ConfigureMvc(Value);
+            MvcJsonMvcOptionsSetup.ConfigureMvc(Value, SerializerSettingsProvider.CreateSerializerSettings());
         }
 
-        public MvcOptions Options { get; }
-
-        public MvcOptions GetNamedOptions(string name)
-        {
-            throw new NotImplementedException();
-        }
+        public MvcOptions Value { get; }
     }
 }

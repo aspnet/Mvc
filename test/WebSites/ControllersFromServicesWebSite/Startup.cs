@@ -3,45 +3,26 @@
 
 using System;
 using System.Reflection;
+using ControllersFromServicesClassLibrary;
 using Microsoft.AspNet.Builder;
 using Microsoft.Framework.DependencyInjection;
-using ControllersFromServicesClassLibrary;
-
-#if DNX451
-using Autofac;
-using Microsoft.Framework.DependencyInjection.Autofac;
-#endif
 
 namespace ControllersFromServicesWebSite
 {
     public class Startup
     {
-        // Set up application services
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
-                    .WithControllersAsServices(
-                     new[]
-                     {
-                            typeof(TimeScheduleController).GetTypeInfo().Assembly
-                     });
+            services
+                .AddMvc()
+                .AddControllersAsServices(new[]
+                {
+                    typeof(TimeScheduleController).GetTypeInfo().Assembly
+                });
 
             services.AddTransient<QueryValueService>();
 
-#if DNX451
-            // Create the autofac container
-            var builder = new ContainerBuilder();
-
-            // Create the container and use the default application services as a fallback
-            AutofacRegistration.Populate(
-                builder,
-                services);
-
-            return builder.Build()
-                          .Resolve<IServiceProvider>();
-#else
             return services.BuildServiceProvider();
-#endif
         }
 
         public void Configure(IApplicationBuilder app)

@@ -73,19 +73,23 @@ namespace ModelBindingWebSite.Controllers
                     // Doing something slightly different here to make sure we don't get accidentally bound
                     // by the type converter binder.
                     OrderStatus model;
-                    var isModelSet = Enum.TryParse<OrderStatus>("Status" + request.Query.Get("status"), out model);
-                    var validationNode =
-                     new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);
-                    return Task.FromResult(new ModelBindingResult(model, "status", isModelSet, validationNode));
+                    if (Enum.TryParse<OrderStatus>("Status" + request.Query["status"], out model))
+                    {
+                        var validationNode =
+                            new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);
+                        return ModelBindingResult.SuccessAsync("status", model, validationNode);
+                    }
+                    
+                    return ModelBindingResult.FailedAsync("status");
                 }
 
-                return Task.FromResult<ModelBindingResult>(null);
+                return ModelBindingResult.NoResultAsync;
             }
         }
 
         private class ProductModelBinder : IModelBinder
         {
-            public async Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (typeof(Product).IsAssignableFrom(bindingContext.ModelType))
                 {
@@ -97,16 +101,16 @@ namespace ModelBindingWebSite.Controllers
                         string.IsNullOrEmpty(bindingContext.ModelName) ?
                         "productId" :
                         bindingContext.ModelName + "." + "productId";
-
-                    var value = await bindingContext.ValueProvider.GetValueAsync(key);
-                    model.ProductId = (int)value.ConvertTo(typeof(int));
+                    
+                    var value = bindingContext.ValueProvider.GetValue(key);
+                    model.ProductId = value.ConvertTo<int>();
 
                     var validationNode =
                         new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value);
-                    return new ModelBindingResult(model, key, true, validationNode);
+                    return ModelBindingResult.SuccessAsync(key, model, validationNode);
                 }
 
-                return null;
+                return ModelBindingResult.NoResultAsync;
             }
         }
     }

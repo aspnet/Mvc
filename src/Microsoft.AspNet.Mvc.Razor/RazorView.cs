@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.Framework.Internal;
@@ -68,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public virtual async Task RenderAsync([NotNull] ViewContext context)
         {
-            _pageExecutionFeature = context.HttpContext.GetFeature<IPageExecutionListenerFeature>();
+            _pageExecutionFeature = context.HttpContext.Features.Get<IPageExecutionListenerFeature>();
 
             // Partials don't execute _ViewStart pages, but may execute Layout pages if the Layout property
             // is explicitly specified in the page.
@@ -124,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
+        private Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
         {
             page.IsPartial = IsPartial;
             page.ViewContext = context;
@@ -134,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             _pageActivator.Activate(page, context);
-            await page.ExecuteAsync();
+            return page.ExecuteAsync();
         }
 
         private async Task RenderViewStartAsync(ViewContext context)
@@ -189,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 // in the layout.
                 previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
-                layoutPage.RenderBodyDelegate = bodyWriter.CopyTo;
+                layoutPage.RenderBodyDelegateAsync = bodyWriter.CopyToAsync;
                 bodyWriter = await RenderPageAsync(layoutPage, context, executeViewStart: false);
 
                 renderedLayouts.Add(layoutPage);

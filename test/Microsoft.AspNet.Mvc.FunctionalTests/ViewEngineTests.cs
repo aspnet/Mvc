@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Testing;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using RazorWebSite;
 using Xunit;
 
@@ -73,20 +75,19 @@ ViewWithNestedLayout-Content
             var body = await client.GetStringAsync("http://localhost/ViewEngine/" + actionName);
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
         public async Task RazorView_ExecutesPartialPagesWithCorrectContext()
         {
-            var expected = string.Join(Environment.NewLine,
-                                       "<partial>98052",
-                                       "",
-                                       "</partial>",
-                                       "<partial2>98052",
-                                       "",
-                                       "</partial2>",
-                                       "test-value");
+            var expected = @"<partial>98052
+
+</partial>
+<partial2>98052
+
+</partial2>
+test-value";
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
@@ -94,7 +95,7 @@ ViewWithNestedLayout-Content
             var body = await client.GetStringAsync("http://localhost/ViewEngine/ViewWithPartial");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -128,27 +129,28 @@ component-content";
             var body = await client.GetStringAsync("http://localhost/ViewEngine/ViewPassesViewDataToLayout");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         public static IEnumerable<object[]> RazorViewEngine_UsesAllExpandedPathsToLookForViewsData
         {
             get
             {
-                var expected1 = string.Join(Environment.NewLine,
-                                            "expander-index",
-                                            "gb-partial");
-                yield return new[] { "gb", expected1 };
+                var expected1 = @"expander-index
+gb-partial";
+                yield return new[] { "en-GB", expected1 };
 
-                var expected2 = string.Join(Environment.NewLine,
-                                            "fr-index",
-                                            "fr-partial");
+                var expected2 = @"fr-index
+fr-partial";
                 yield return new[] { "fr", expected2 };
 
-                var expected3 = string.Join(Environment.NewLine,
-                                            "expander-index",
-                                            "expander-partial");
-                yield return new[] { "na", expected3 };
+                if (!TestPlatformHelper.IsMono)
+                {
+                    // https://github.com/aspnet/Mvc/issues/2759
+                    var expected3 = @"expander-index
+expander-partial";
+                    yield return new[] { "!-invalid-!", expected3 };
+                }
             }
         }
 
@@ -159,13 +161,16 @@ component-content";
             // Arrange
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
+            var cultureCookie = "c=" + value + "|uic=" + value;
+            client.DefaultRequestHeaders.Add(
+                "Cookie",
+                new CookieHeaderValue("ASPNET_CULTURE", cultureCookie).ToString());
 
             // Act
-            var body = await client.GetStringAsync("http://localhost/TemplateExpander?language-expander-value=" +
-                                                   value);
+            var body = await client.GetStringAsync("http://localhost/TemplateExpander");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         public static TheoryData ViewLocationExpanders_PassesInIsPartialToViewLocationExpanderContextData
@@ -237,10 +242,10 @@ ViewWithNestedLayout-Content
                 };
                 yield return new[]
                 {
-                    "PartialWithModel", string.Join(Environment.NewLine,
-                                                    "my name is judge",
-                                                    "<partial>98052",
-                                                    "</partial>")
+                    "PartialWithModel",
+                    @"my name is judge
+<partial>98052
+</partial>"
                 };
             }
         }
@@ -257,18 +262,17 @@ ViewWithNestedLayout-Content
             var body = await client.GetStringAsync("http://localhost/PartialViewEngine/" + actionName);
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
         public async Task LayoutValueIsPassedBetweenNestedViewStarts()
         {
             // Arrange
-            var expected = string.Join(Environment.NewLine,
-                                       "<title>viewstart-value</title>",
-                                       "",
-                                       "~/Views/NestedViewStarts/NestedViewStarts/Layout.cshtml",
-                                       "index-content");
+            var expected = @"<title>viewstart-value</title>
+
+~/Views/NestedViewStarts/NestedViewStarts/Layout.cshtml
+index-content";
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
 
@@ -276,7 +280,7 @@ ViewWithNestedLayout-Content
             var body = await client.GetStringAsync("http://localhost/NestedViewStarts");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         public static IEnumerable<object[]> RazorViewEngine_UsesExpandersForLayoutsData
@@ -288,8 +292,13 @@ ViewWithNestedLayout-Content
 View With Layout
 </language-layout>";
 
-                yield return new[] { "gb", expected1 };
-                yield return new[] { "na", expected1 };
+                yield return new[] { "en-GB", expected1 };
+
+                if (!TestPlatformHelper.IsMono)
+                {
+                    // https://github.com/aspnet/Mvc/issues/2759
+                    yield return new[] { "!-invalid-!", expected1 };
+                }
 
                 var expected2 =
  @"<fr-language-layout>
@@ -307,13 +316,16 @@ View With Layout
             // Arrange
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
+            var cultureCookie = "c=" + value + "|uic=" + value;
+            client.DefaultRequestHeaders.Add(
+                "Cookie",
+                new CookieHeaderValue("ASPNET_CULTURE", cultureCookie).ToString());
 
             // Act
-            var body = await client.GetStringAsync("http://localhost/TemplateExpander/ViewWithLayout?language-expander-value=" +
-                                                   value);
+            var body = await client.GetStringAsync("http://localhost/TemplateExpander/ViewWithLayout");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -331,7 +343,7 @@ View With Layout
             var body = await client.GetStringAsync(target);
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -352,7 +364,7 @@ Component With Layout</component-body>";
             var body = await client.GetStringAsync("http://localhost/ViewEngine/ViewWithComponentThatHasLayout");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -401,7 +413,7 @@ Partial that specifies Layout
             var body = await client.GetStringAsync("http://localhost/PartialsWithLayout/PartialsRenderedViaRenderPartial");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -421,7 +433,7 @@ Partial that does not specify Layout
             var body = await client.GetStringAsync("http://localhost/PartialsWithLayout/PartialsRenderedViaPartialAsync");
 
             // Assert
-            Assert.Equal(expected, body.Trim());
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -441,7 +453,10 @@ Partial that does not specify Layout
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_assembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            Assert.Equal(
+                PlatformNormalizer.NormalizePath(expectedContent),
+                responseContent,
+                ignoreLineEndingDifferences: true);
 #endif
         }
     }

@@ -10,12 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.Caching;
+using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Framework.Caching.Memory;
+using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -23,6 +25,60 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class ImageTagHelperTest
     {
+        [Theory]
+        [InlineData(null, "test.jpg", "test.jpg")]
+        [InlineData("abcd.jpg", "test.jpg", "test.jpg")]
+        [InlineData(null, "~/test.jpg", "virtualRoot/test.jpg")]
+        [InlineData("abcd.jpg", "~/test.jpg", "virtualRoot/test.jpg")]
+        public void Process_SrcDefaultsToTagHelperOutputSrcAttributeAddedByOtherTagHelper(
+            string src,
+            string srcOutput,
+            string expectedSrcPrefix)
+        {
+            // Arrange
+            var allAttributes = new TagHelperAttributeList(
+                new TagHelperAttributeList
+                {
+                    { "alt", new HtmlString("Testing") },
+                    { "asp-append-version", true },
+                });
+            var context = MakeTagHelperContext(allAttributes);
+            var outputAttributes = new TagHelperAttributeList
+                {
+                    { "alt", new HtmlString("Testing") },
+                    { "src", srcOutput },
+                };
+            var output = new TagHelperOutput("img", outputAttributes);
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var urlHelper = new Mock<IUrlHelper>();
+
+            // Ensure expanded path does not look like an absolute path on Linux, avoiding
+            // https://github.com/aspnet/External/issues/21
+            urlHelper
+                .Setup(urlhelper => urlhelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url.Replace("~/", "virtualRoot/")));
+
+            var helper = new ImageTagHelper(
+                hostingEnvironment,
+                MakeCache(),
+                new CommonTestEncoder(),
+                urlHelper.Object)
+            {
+                ViewContext = viewContext,
+                AppendVersion = true,
+                Src = src,
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Equal(
+                expectedSrcPrefix + "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk",
+                (string)output.Attributes["src"].Value,
+                StringComparer.Ordinal);
+        }
 
         [Fact]
         public void PreservesOrderOfSourceAttributesWhenRun()
@@ -32,7 +88,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList
                 {
                     { "alt", new HtmlString("alt text") },
-                    { "data-extra", new HtmlString("something") },                    
+                    { "data-extra", new HtmlString("something") },
                     { "title", new HtmlString("Image title") },
                     { "src", "testimage.png" },
                     { "asp-append-version", "true" }
@@ -41,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList
                 {
                     { "alt", new HtmlString("alt text") },
-                    { "data-extra", new HtmlString("something") },                    
+                    { "data-extra", new HtmlString("something") },
                     { "title", new HtmlString("Image title") },
                 });
 
@@ -57,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
 
-            var helper = new ImageTagHelper(hostingEnvironment, MakeCache())
+            var helper = new ImageTagHelper(hostingEnvironment, MakeCache(), new CommonTestEncoder(), MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 Src = "testimage.png",
@@ -67,10 +123,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Act
             helper.Process(context, output);
 
-            // Assert            
+            // Assert
             Assert.Equal(expectedOutput.TagName, output.TagName);
             Assert.Equal(4, output.Attributes.Count);
-            
+
             for(int i=0; i < expectedOutput.Attributes.Count; i++)
             {
                 var expectedAtribute = expectedOutput.Attributes[i];
@@ -98,7 +154,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
 
-            var helper = new ImageTagHelper(hostingEnvironment, MakeCache())
+            var helper = new ImageTagHelper(hostingEnvironment, MakeCache(), new CommonTestEncoder(), MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 Src = "/images/test-image.png",
@@ -134,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
 
-            var helper = new ImageTagHelper(hostingEnvironment, MakeCache())
+            var helper = new ImageTagHelper(hostingEnvironment, MakeCache(), new CommonTestEncoder(), MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 Src = "/images/test-image.png",
@@ -170,7 +226,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext("/bar");
 
-            var helper = new ImageTagHelper(hostingEnvironment, MakeCache())
+            var helper = new ImageTagHelper(hostingEnvironment, MakeCache(), new CommonTestEncoder(), MakeUrlHelper())
             {
                 ViewContext = viewContext,
                 Src = "/bar/images/image.jpg",
@@ -215,7 +271,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes,
                 items: new Dictionary<object, object>(),
                 uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(default(string));
@@ -265,6 +321,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         /*options*/ It.IsAny<MemoryCacheEntryOptions>()))
                 .Returns(new object());
             return cache.Object;
+        }
+
+        private static IUrlHelper MakeUrlHelper()
+        {
+            var urlHelper = new Mock<IUrlHelper>();
+
+            urlHelper
+                .Setup(helper => helper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url));
+
+            return urlHelper.Object;
         }
     }
 }

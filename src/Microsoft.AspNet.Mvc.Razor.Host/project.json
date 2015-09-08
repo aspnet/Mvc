@@ -1,6 +1,10 @@
 {
   "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
   "version": "6.0.0-*",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet/mvc"
+  },
   "compilationOptions": {
     "warningsAsErrors": true
   },
@@ -15,16 +19,16 @@
     "net45": { },
     "dnx451": {
       "dependencies": {
-        "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*"
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*"
       }
     },
     "dnxcore50": {
       "dependencies": {
-        "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
-        "System.Collections.Concurrent": "4.0.10-beta-*",
-        "System.ComponentModel.TypeConverter": "4.0.0-beta-*",
-        "System.Reflection.Extensions": "4.0.0-beta-*",
-        "System.Text.Encoding.Extensions": "4.0.10-beta-*"
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*",
+        "System.Collections.Concurrent": "4.0.11-beta-*",
+        "System.ComponentModel.TypeConverter": "4.0.1-beta-*",
+        "System.Reflection.Extensions": "4.0.1-beta-*",
+        "System.Text.Encoding.Extensions": "4.0.11-beta-*"
       }
     }
   },
@@ -32,12 +36,5 @@
     "wwwroot",
     "node_modules",
     "bower_components"
-  ],
-  "packExclude": [
-    "node_modules",
-    "bower_components",
-    "**.kproj",
-    "**.user",
-    "**.vspscc"
   ]
 }

@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.DependencyInjection;
 
 namespace BasicWebSite
@@ -12,16 +12,12 @@ namespace BasicWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add MVC services to the services container
-            services.AddMvc();
-
-            services.AddSingleton<IActionDescriptorProvider, ActionDescriptorCreationCounter>();
-
-            services.ConfigureMvc(options =>
+            services.AddMvc(options =>
             {
                 options.Conventions.Add(new ApplicationDescription("This is a basic website."));
             });
 
+            services.AddSingleton<IActionDescriptorProvider, ActionDescriptorCreationCounter>();
         }
 
         public void Configure(IApplicationBuilder app)

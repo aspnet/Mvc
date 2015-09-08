@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Filters
 {
     public class FilterDescriptorOrderComparer : IComparer<FilterDescriptor>
     {

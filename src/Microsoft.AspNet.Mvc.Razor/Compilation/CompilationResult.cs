@@ -5,7 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Framework.Internal;
-using Microsoft.Framework.Runtime;
+using Microsoft.Dnx.Runtime;
+using Microsoft.Dnx.Compilation;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -33,11 +34,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         public string CompiledContent { get; protected set; }
 
         /// <summary>
-        /// Gets the <see cref="ICompilationFailure"/>s produced from parsing or compiling the Razor file.
+        /// Gets the <see cref="CompilationFailure"/>s produced from parsing or compiling the Razor file.
         /// </summary>
         /// <remarks>This property is <c>null</c> when compilation succeeded. An empty sequence
         /// indicates a failed compilation.</remarks>
-        public IEnumerable<ICompilationFailure> CompilationFailures { get; private set; }
+        public IEnumerable<CompilationFailure> CompilationFailures { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="CompilationResult"/>.
@@ -57,10 +58,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// <summary>
         /// Creates a <see cref="CompilationResult"/> for a failed compilation.
         /// </summary>
-        /// <param name="compilationFailures"><see cref="ICompilationFailure"/>s produced from parsing or
+        /// <param name="compilationFailures"><see cref="CompilationFailure"/>s produced from parsing or
         /// compiling the Razor file.</param>
         /// <returns>A <see cref="CompilationResult"/> instance for a failed compilation.</returns>
-        public static CompilationResult Failed([NotNull] IEnumerable<ICompilationFailure> compilationFailures)
+        public static CompilationResult Failed([NotNull] IEnumerable<CompilationFailure> compilationFailures)
         {
             return new CompilationResult
             {

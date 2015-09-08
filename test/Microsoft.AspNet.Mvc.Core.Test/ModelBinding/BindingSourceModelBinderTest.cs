@@ -35,8 +35,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public async Task BindingSourceModelBinder_ReturnsNull_WithNoSource()
         {
             // Arrange
-            var context = new ModelBindingContext();
-            context.ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(string));
+            var context = new ModelBindingContext()
+            {
+                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(string)),
+                ModelName = "model",
+            };
 
             var binder = new TestableBindingSourceModelBinder(BindingSource.Body, isModelSet: false);
 
@@ -44,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
             Assert.False(binder.WasBindModelCoreCalled);
         }
 
@@ -55,8 +58,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new TestModelMetadataProvider();
             provider.ForType<string>().BindingDetails(d => d.BindingSource = BindingSource.Query);
 
-            var context = new ModelBindingContext();
-            context.ModelMetadata = provider.GetMetadataForType(typeof(string));
+            var context = new ModelBindingContext()
+            {
+                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(string)),
+                ModelName = "model",
+            };
 
             var binder = new TestableBindingSourceModelBinder(BindingSource.Body, isModelSet: false);
 
@@ -64,14 +70,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
             Assert.False(binder.WasBindModelCoreCalled);
         }
 
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task BindingSourceModelBinder_ReturnsNonNull_MatchingSource(bool isModelSet)
+        public async Task BindingSourceModelBinder_ReturnsNonEmptyResult_MatchingSource(bool isModelSet)
         {
             // Arrange
             var provider = new TestModelMetadataProvider();
@@ -79,9 +85,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelMetadata = provider.GetMetadataForType(typeof(string));
             var context = new ModelBindingContext()
             {
-                ModelMetadata = modelMetadata,
+                BinderModelName = modelMetadata.BinderModelName,
                 BindingSource = modelMetadata.BindingSource,
-                BinderModelName = modelMetadata.BinderModelName
+                ModelMetadata = modelMetadata,
+                ModelName = "model",
             };
 
             var binder = new TestableBindingSourceModelBinder(BindingSource.Body, isModelSet);
@@ -90,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.Equal(isModelSet, result.IsModelSet);
             Assert.Null(result.Model);
             Assert.True(binder.WasBindModelCoreCalled);
@@ -111,8 +118,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
             {
                 WasBindModelCoreCalled = true;
-                return Task.FromResult(
-                    new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: _isModelSet));
+
+                if (_isModelSet)
+                {
+                    return ModelBindingResult.SuccessAsync(
+                        bindingContext.ModelName,
+                        model: null,
+                        validationNode: null);
+                }
+                else
+                {
+                    return ModelBindingResult.FailedAsync(bindingContext.ModelName);
+                }
             }
         }
     }

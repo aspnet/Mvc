@@ -3,21 +3,21 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public abstract class ExceptionFilterAttribute : Attribute, IAsyncExceptionFilter, IExceptionFilter, IOrderedFilter
     {
         public int Order { get; set; }
 
-#pragma warning disable 1998
-        public virtual async Task OnExceptionAsync([NotNull] ExceptionContext context)
+        public virtual Task OnExceptionAsync([NotNull] ExceptionContext context)
         {
             OnException(context);
+            return TaskCache.CompletedTask;
         }
-#pragma warning restore 1998
 
         public virtual void OnException([NotNull] ExceptionContext context)
         {

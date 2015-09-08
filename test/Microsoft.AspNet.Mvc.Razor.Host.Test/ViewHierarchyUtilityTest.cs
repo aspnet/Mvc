@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using Microsoft.AspNet.Testing;
+using Microsoft.AspNet.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -41,8 +43,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Views\Home\_ViewStart.cshtml",
-                @"Views\_ViewStart.cshtml",
+                PlatformNormalizer.NormalizePath(@"Views\Home\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Views\_ViewStart.cshtml"),
                 @"_ViewStart.cshtml"
             };
 
@@ -62,8 +64,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Views\Home\_ViewImports.cshtml",
-                @"Views\_ViewImports.cshtml",
+                PlatformNormalizer.NormalizePath(@"Views\Home\_ViewImports.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Views\_ViewImports.cshtml"),
                 @"_ViewImports.cshtml"
             };
 
@@ -83,7 +85,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Views\_ViewStart.cshtml",
+                PlatformNormalizer.NormalizePath(@"Views\_ViewStart.cshtml"),
                 @"_ViewStart.cshtml"
             };
 
@@ -103,8 +105,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Views\Home\_ViewImports.cshtml",
-                @"Views\_ViewImports.cshtml",
+                PlatformNormalizer.NormalizePath(@"Views\Home\_ViewImports.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Views\_ViewImports.cshtml"),
                 @"_ViewImports.cshtml"
             };
 
@@ -124,7 +126,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Views\_ViewImports.cshtml",
+                PlatformNormalizer.NormalizePath(@"Views\_ViewImports.cshtml"),
                 @"_ViewImports.cshtml"
             };
 
@@ -143,11 +145,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Areas\MyArea\Sub\Views\Admin\_ViewStart.cshtml",
-                @"Areas\MyArea\Sub\Views\_ViewStart.cshtml",
-                @"Areas\MyArea\Sub\_ViewStart.cshtml",
-                @"Areas\MyArea\_ViewStart.cshtml",
-                @"Areas\_ViewStart.cshtml",
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\Views\Admin\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\Views\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\_ViewStart.cshtml"),
                 @"_ViewStart.cshtml",
             };
             var viewPath = Path.Combine("Areas", "MyArea", "Sub", "Views", "Admin", fileName);
@@ -168,11 +170,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Areas\MyArea\Sub\Views\Admin\_ViewImports.cshtml",
-                @"Areas\MyArea\Sub\Views\_ViewImports.cshtml",
-                @"Areas\MyArea\Sub\_ViewImports.cshtml",
-                @"Areas\MyArea\_ViewImports.cshtml",
-                @"Areas\_ViewImports.cshtml",
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\Views\Admin\_ViewImports.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\Views\_ViewImports.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\_ViewImports.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\_ViewImports.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\_ViewImports.cshtml"),
                 @"_ViewImports.cshtml",
             };
             var viewPath = Path.Combine("Areas", "MyArea", "Sub", "Views", "Admin", fileName);
@@ -192,10 +194,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             // Arrange
             var expected = new[]
             {
-                @"Areas\MyArea\Sub\Views\_ViewStart.cshtml",
-                @"Areas\MyArea\Sub\_ViewStart.cshtml",
-                @"Areas\MyArea\_ViewStart.cshtml",
-                @"Areas\_ViewStart.cshtml",
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\Views\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\Sub\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\MyArea\_ViewStart.cshtml"),
+                PlatformNormalizer.NormalizePath(@"Areas\_ViewStart.cshtml"),
                 @"_ViewStart.cshtml",
             };
             var viewPath = Path.Combine("Areas", "MyArea", "Sub", "Views", "Admin", fileName);
@@ -215,32 +217,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // Act
             var result = ViewHierarchyUtility.GetViewStartLocations(viewPath);
-
-            // Assert
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void GetViewStartLocations_ReturnsEmptySequence_IfPathIsRooted()
-        {
-            // Arrange
-            var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "Index.cshtml");
-
-            // Act
-            var result = ViewHierarchyUtility.GetViewStartLocations(absolutePath);
-
-            // Assert
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void GetViewImportsLocations_ReturnsEmptySequence_IfPathIsRooted()
-        {
-            // Arrange
-            var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "Index.cshtml");
-
-            // Act
-            var result = ViewHierarchyUtility.GetViewImportsLocations(absolutePath);
 
             // Assert
             Assert.Empty(result);

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -40,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -94,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     null,   // message
                     null,   // headerTag
                     null))  // htmlAttributes
-                .Returns(new TagBuilder("div", new HtmlEncoder()))
+                .Returns(new TagBuilder("div"))
                 .Verifiable();
 
             var validationSummaryTagHelper = new ValidationSummaryTagHelper(generator.Object)
@@ -130,9 +131,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public async Task ProcessAsync_MergesTagBuilderFromGenerateValidationSummary()
         {
             // Arrange
-            var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
+            var tagBuilder = new TagBuilder("span2")
             {
-                InnerHtml = "New HTML"
+                InnerHtml = new HtmlString("New HTML")
             };
 
             tagBuilder.Attributes.Add("data-foo", "bar");
@@ -224,9 +225,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public async Task ProcessAsync_GeneratesValidationSummaryWhenNotNone(ValidationSummary validationSummary)
         {
             // Arrange
-            var tagBuilder = new TagBuilder("span2", new HtmlEncoder())
+            var tagBuilder = new TagBuilder("span2")
             {
-                InnerHtml = "New HTML"
+                InnerHtml = new HtmlString("New HTML")
             };
 
             var generator = new Mock<IHtmlGenerator>();

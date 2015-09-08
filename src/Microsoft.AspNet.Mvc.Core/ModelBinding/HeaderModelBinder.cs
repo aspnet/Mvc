@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+#if DNXCORE50
 using System.Reflection;
+#endif
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -29,21 +32,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelMetadata = bindingContext.ModelMetadata;
 
             // Property name can be null if the model metadata represents a type (rather than a property or parameter).
-            var headerName = bindingContext.BinderModelName ?? modelMetadata.PropertyName ?? bindingContext.ModelName;
+            var headerName = bindingContext.FieldName;
             object model = null;
             if (bindingContext.ModelType == typeof(string))
             {
-                var value = request.Headers.Get(headerName);
+                string value = request.Headers[headerName];
                 if (value != null)
                 {
                     model = value;
                 }
             }
-            else if (typeof(IEnumerable<string>).GetTypeInfo().IsAssignableFrom(
-                bindingContext.ModelType.GetTypeInfo()))
+            else if (typeof(IEnumerable<string>).IsAssignableFrom(bindingContext.ModelType))
             {
                 var values = request.Headers.GetCommaSeparatedValues(headerName);
-                if (values != null)
+                if (values.Length > 0)
                 {
                     model = ModelBindingHelper.ConvertValuesToCollectionType(
                         bindingContext.ModelType,
@@ -51,21 +53,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            ModelValidationNode validationNode = null;
-            if (model != null)
+            if (model == null)
             {
-                validationNode = new ModelValidationNode(
+                return ModelBindingResult.FailedAsync(bindingContext.ModelName);
+            }
+            else
+            {
+                var validationNode = new ModelValidationNode(
                     bindingContext.ModelName,
                     bindingContext.ModelMetadata,
                     model);
-            }
 
-            return Task.FromResult(
-                new ModelBindingResult(
-                    model,
+                bindingContext.ModelState.SetModelValue(
                     bindingContext.ModelName,
-                    isModelSet: model != null,
-                    validationNode: validationNode));
+                    request.Headers.GetCommaSeparatedValues(headerName),
+                    request.Headers[headerName]);
+
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model, validationNode);
+            }
         }
     }
 }

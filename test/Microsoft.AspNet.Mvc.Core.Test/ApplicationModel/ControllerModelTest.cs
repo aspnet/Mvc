@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Filters;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
@@ -49,14 +51,19 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         public void CopyConstructor_CopiesAllProperties()
         {
             // Arrange
-            var controller = new ControllerModel(typeof(TestController).GetTypeInfo(),
-                                                 new List<object>() { new HttpGetAttribute(), new AuthorizeAttribute() });
+            var controller = new ControllerModel(
+                typeof(TestController).GetTypeInfo(),
+                new List<object>()
+                {
+                    new HttpGetAttribute(),
+                    new MyFilterAttribute(),
+                });
 
             controller.ActionConstraints.Add(new HttpMethodConstraint(new string[] { "GET" }));
             controller.Application = new ApplicationModel();
             controller.ControllerName = "cool";
-            controller.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireClaim("whatever").Build()));
-            controller.RouteConstraints.Add(new AreaAttribute("Admin"));
+            controller.Filters.Add(new MyFilterAttribute());
+            controller.RouteConstraints.Add(new MyRouteConstraintAttribute());
             controller.Properties.Add(new KeyValuePair<object, object>("test key", "test value"));
             controller.ControllerProperties.Add(
                 new PropertyModel(typeof(TestController).GetProperty("TestProperty"), new List<object>()));
@@ -118,6 +125,21 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             public void Edit()
             {
             }
+        }
+
+        private class MyFilterAttribute : Attribute, IFilterMetadata
+        {
+        }
+
+        private class MyRouteConstraintAttribute : Attribute, IRouteConstraintProvider
+        {
+            public bool BlockNonAttributedActions { get { return true; } }
+
+            public string RouteKey { get; set; }
+
+            public RouteKeyHandling RouteKeyHandling { get { return RouteKeyHandling.RequireKey; } }
+
+            public string RouteValue { get; set; }
         }
     }
 }

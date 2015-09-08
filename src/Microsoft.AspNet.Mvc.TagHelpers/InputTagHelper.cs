@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;input&gt; elements with an <c>asp-for</c> attribute.
     /// </summary>
-    [TargetElement("input", Attributes = ForAttributeName)]
+    [TargetElement("input", Attributes = ForAttributeName, TagStructure = TagStructure.WithoutEndTag)]
     public class InputTagHelper : TagHelper
     {
         private const string ForAttributeName = "asp-for";
@@ -43,8 +43,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 { nameof(UInt32), "number" },
                 { nameof(Int64), "number" },
                 { nameof(UInt64), "number" },
-                { nameof(Single), "number" },
-                { nameof(Double), "number" },
+                { nameof(Single), InputType.Text.ToString().ToLowerInvariant() },
+                { nameof(Double), InputType.Text.ToString().ToLowerInvariant() },
                 { nameof(Boolean), InputType.CheckBox.ToString().ToLowerInvariant() },
                 { nameof(Decimal), InputType.Text.ToString().ToLowerInvariant() },
                 { nameof(String), InputType.Text.ToString().ToLowerInvariant() },
@@ -69,6 +69,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public InputTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultFrameworkSortOrder;
+            }
         }
 
         protected IHtmlGenerator Generator { get; }
@@ -236,25 +245,29 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
             }
 
-            var tagBuilder = Generator.GenerateCheckBox(
+            var checkBoxTag = Generator.GenerateCheckBox(
                 ViewContext,
                 modelExplorer,
                 For.Name,
                 isChecked: null,
                 htmlAttributes: htmlAttributes);
-            if (tagBuilder != null)
+            if (checkBoxTag != null)
             {
                 // Do not generate current element's attributes or tags. Instead put both <input type="checkbox"/> and
                 // <input type="hidden"/> into the output's Content.
                 output.Attributes.Clear();
                 output.TagName = null;
 
-                output.Content.Append(tagBuilder.ToString(TagRenderMode.SelfClosing));
+                var renderingMode =
+                    output.TagMode == TagMode.SelfClosing ? TagRenderMode.SelfClosing : TagRenderMode.StartTag;
+                checkBoxTag.TagRenderMode = renderingMode;
+                output.Content.Append(checkBoxTag);
 
-                tagBuilder = Generator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, For.Name);
-                if (tagBuilder != null)
+                var hiddenForCheckboxTag = Generator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, For.Name);
+                if (hiddenForCheckboxTag != null)
                 {
-                    output.Content.Append(tagBuilder.ToString(TagRenderMode.SelfClosing));
+                    hiddenForCheckboxTag.TagRenderMode = renderingMode;
+                    output.Content.Append(hiddenForCheckboxTag);
                 }
             }
         }
@@ -373,11 +386,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var fieldType = modelExplorer.ModelType;
             if (typeof(bool?) != fieldType)
             {
-                var underlyingType = Nullable.GetUnderlyingType(fieldType);
-                if (underlyingType != null)
-                {
-                    fieldType = underlyingType;
-                }
+                fieldType = modelExplorer.Metadata.UnderlyingOrModelType;
             }
 
             foreach (string typeName in TemplateRenderer.GetTypeNames(modelExplorer.Metadata, fieldType))

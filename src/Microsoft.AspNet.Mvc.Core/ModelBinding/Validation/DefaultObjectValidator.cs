@@ -166,18 +166,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             ValidationContext validationContext)
         {
             var isValid = true;
-            ExpandValidationNode(validationContext, modelExplorer);
+            var childNodes = GetChildNodes(validationContext, modelExplorer);
 
             IList<IModelValidator> validators = null;
-            if (modelExplorer.Metadata.IsCollectionType && modelExplorer.Model != null)
+            var elementMetadata = modelExplorer.Metadata.ElementMetadata;
+            if (elementMetadata != null)
             {
-                var enumerableModel = (IEnumerable)modelExplorer.Model;
-                var elementType = GetElementType(enumerableModel.GetType());
-                var elementMetadata = _modelMetadataProvider.GetMetadataForType(elementType);
                 validators = GetValidators(validationContext.ModelValidationContext.ValidatorProvider, elementMetadata);
             }
 
-            foreach (var childNode in validationContext.ValidationNode.ChildNodes)
+            foreach (var childNode in childNodes)
             {
                 var childModelExplorer = childNode.ModelMetadata.MetadataKind == Metadata.ModelMetadataKind.Type ?
                     _modelMetadataProvider.GetModelExplorerForType(childNode.ModelMetadata.ModelType, childNode.Model) :
@@ -273,17 +271,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             return filters.Any(filter => filter.IsTypeExcluded(type));
         }
 
-        private void ExpandValidationNode(ValidationContext context, ModelExplorer modelExplorer)
+        private IList<ModelValidationNode> GetChildNodes(ValidationContext context, ModelExplorer modelExplorer)
         {
             var validationNode = context.ValidationNode;
+
+            // This is the trivial case where the node-tree that was built-up during binding already has
+            // all of the nodes we need.
             if (validationNode.ChildNodes.Count != 0 ||
                 !validationNode.ValidateAllProperties ||
                 validationNode.Model == null)
             {
-                return;
+                return validationNode.ChildNodes;
             }
 
-            if (!modelExplorer.Metadata.IsCollectionType)
+            var childNodes = new List<ModelValidationNode>(validationNode.ChildNodes);
+            var elementMetadata = modelExplorer.Metadata.ElementMetadata;
+            if (elementMetadata == null)
             {
                 foreach (var property in validationNode.ModelMetadata.Properties)
                 {
@@ -294,14 +297,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     {
                         ValidateAllProperties = true
                     };
-                    validationNode.ChildNodes.Add(childNode);
+                    childNodes.Add(childNode);
                 }
             }
             else
             {
                 var enumerableModel = (IEnumerable)modelExplorer.Model;
-                var elementType = GetElementType(enumerableModel.GetType());
-                var elementMetadata = _modelMetadataProvider.GetMetadataForType(elementType);
 
                 // An integer index is incorrect in scenarios where there is a custom index provided by the user.
                 // However those scenarios are supported by createing a ModelValidationNode with the right keys.
@@ -315,30 +316,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                         ValidateAllProperties = true
                     };
 
-                    validationNode.ChildNodes.Add(childNode);
+                    childNodes.Add(childNode);
                     index++;
                 }
             }
-        }
 
-        private static Type GetElementType(Type type)
-        {
-            Debug.Assert(typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
-            if (type.IsArray)
-            {
-                return type.GetElementType();
-            }
-
-            foreach (var implementedInterface in type.GetInterfaces())
-            {
-                if (implementedInterface.GetTypeInfo().IsGenericType &&
-                    implementedInterface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    return implementedInterface.GetGenericArguments()[0];
-                }
-            }
-
-            return typeof(object);
+            return childNodes;
         }
 
         private class ValidationContext

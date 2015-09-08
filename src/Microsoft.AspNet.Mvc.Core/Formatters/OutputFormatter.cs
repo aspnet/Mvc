@@ -12,7 +12,7 @@ using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
     /// Writes an object to the output stream.
@@ -158,10 +158,10 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public async Task WriteAsync([NotNull] OutputFormatterContext context)
+        public Task WriteAsync([NotNull] OutputFormatterContext context)
         {
             WriteResponseHeaders(context);
-            await WriteResponseBodyAsync(context);
+            return WriteResponseBodyAsync(context);
         }
 
         /// <summary>
@@ -179,22 +179,29 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.FormatOutputFormatterNoMediaType(GetType().FullName));
             }
 
-            // Clone the media type as we don't want it to affect the next request
-            selectedMediaType = MediaTypeHeaderValue.Parse(selectedMediaType.ToString());
+            // Copy the media type as we don't want it to affect the next request
+            selectedMediaType = selectedMediaType.Copy();
 
+            // Not text-based media types will use an encoding/charset - binary formats just ignore it. We want to
+            // make this class work with media types that use encodings, and those that don't.
+            //
+            // The default implementation of SelectCharacterEncoding will read from the list of SupportedEncodings
+            // and will always choose a default encoding if any are supported. So, the only cases where the 
+            // selectedEncoding can be null are:
+            //
+            // 1). No supported encodings - we assume this is a non-text format
+            // 2). Custom implementation of SelectCharacterEncoding - trust the user and give them what they want.
             var selectedEncoding = SelectCharacterEncoding(context);
-            if (selectedEncoding == null)
+            if (selectedEncoding != null)
             {
-                // No supported encoding was found so there is no way for us to start writing.
-                throw new InvalidOperationException(Resources.FormatOutputFormatterNoEncoding(GetType().FullName));
+                context.SelectedEncoding = selectedEncoding;
+
+                // Override the content type value even if one already existed.
+                selectedMediaType.Charset = selectedEncoding.WebName;
             }
 
-            context.SelectedEncoding = selectedEncoding;
-
-            // Override the content type value even if one already existed.
-            selectedMediaType.Charset = selectedEncoding.WebName;
-
             context.SelectedContentType = context.SelectedContentType ?? selectedMediaType;
+
             var response = context.HttpContext.Response;
             response.ContentType = selectedMediaType.ToString();
         }

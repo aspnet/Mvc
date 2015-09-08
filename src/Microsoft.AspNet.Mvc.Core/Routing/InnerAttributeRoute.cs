@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         /// <summary>
         /// Gets the version of this route. This corresponds to the value of
-        /// <see cref="ActionDescriptorsCollection.Version"/> when this route was created.
+        /// <see cref="Actions.ActionDescriptorsCollection.Version"/> when this route was created.
         /// </summary>
         public int Version { get; }
 
@@ -133,7 +133,7 @@ namespace Microsoft.AspNet.Mvc.Routing
                     continue;
                 }
 
-                _logger.LogInformation(
+                _logger.LogVerbose(
                     "Request successfully matched the route with name '{RouteName}' and template '{RouteTemplate}'.",
                     matchingEntry.RouteName,
                     matchingEntry.RouteTemplate);
@@ -157,11 +157,6 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     break;
                 }
-            }
-
-            if (!context.IsHandled)
-            {
-                _logger.LogVerbose("Request did not match any attribute route.");
             }
         }
 
@@ -299,10 +294,13 @@ namespace Microsoft.AspNet.Mvc.Routing
         {
             foreach (var kvp in values)
             {
-                // This will replace the original value for the specified key.
-                // Values from the matched route will take preference over previous
-                // data in the route context.
-                destination[kvp.Key] = kvp.Value;
+                if (kvp.Value != null)
+                {
+                    // This will replace the original value for the specified key.
+                    // Values from the matched route will take preference over previous
+                    // data in the route context.
+                    destination[kvp.Key] = kvp.Value;
+                }
             }
         }
 

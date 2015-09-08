@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Mvc.Razor.TagHelpers;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Caching.Memory;
@@ -21,16 +21,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <remarks>
     /// The tag helper won't process for cases with just the 'href' attribute.
     /// </remarks>
-    [TargetElement("link", Attributes = HrefIncludeAttributeName)]
-    [TargetElement("link", Attributes = HrefExcludeAttributeName)]
-    [TargetElement("link", Attributes = FallbackHrefAttributeName)]
-    [TargetElement("link", Attributes = FallbackHrefIncludeAttributeName)]
-    [TargetElement("link", Attributes = FallbackHrefExcludeAttributeName)]
-    [TargetElement("link", Attributes = FallbackTestClassAttributeName)]
-    [TargetElement("link", Attributes = FallbackTestPropertyAttributeName)]
-    [TargetElement("link", Attributes = FallbackTestValueAttributeName)]
-    [TargetElement("link", Attributes = AppendVersionAttributeName)]
-    public class LinkTagHelper : TagHelper
+    [TargetElement("link", Attributes = HrefIncludeAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = HrefExcludeAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = FallbackHrefAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = FallbackHrefIncludeAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = FallbackHrefExcludeAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = FallbackTestClassAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = FallbackTestPropertyAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = FallbackTestValueAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    [TargetElement("link", Attributes = AppendVersionAttributeName, TagStructure = TagStructure.WithoutEndTag)]
+    public class LinkTagHelper : UrlResolutionTagHelper
     {
         private static readonly string Namespace = typeof(LinkTagHelper).Namespace;
 
@@ -91,18 +91,29 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <param name="cache">The <see cref="IMemoryCache"/>.</param>
         /// <param name="htmlEncoder">The <see cref="IHtmlEncoder"/>.</param>
         /// <param name="javaScriptEncoder">The <see cref="IJavaScriptStringEncoder"/>.</param>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
         public LinkTagHelper(
             ILogger<LinkTagHelper> logger,
             IHostingEnvironment hostingEnvironment,
             IMemoryCache cache,
             IHtmlEncoder htmlEncoder,
-            IJavaScriptStringEncoder javaScriptEncoder)
+            IJavaScriptStringEncoder javaScriptEncoder,
+            IUrlHelper urlHelper)
+            : base(urlHelper, htmlEncoder)
         {
             Logger = logger;
             HostingEnvironment = hostingEnvironment;
             Cache = cache;
-            HtmlEncoder = htmlEncoder;
             JavaScriptEncoder = javaScriptEncoder;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return DefaultOrder.DefaultFrameworkSortOrder;
+            }
         }
 
         /// <summary>
@@ -195,8 +206,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         protected IMemoryCache Cache { get; }
 
-        protected IHtmlEncoder HtmlEncoder { get; }
-
         protected IJavaScriptStringEncoder JavaScriptEncoder { get; }
 
         // Internal for ease of use when testing.
@@ -205,11 +214,21 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            string resolvedUrl;
+
             // Pass through attribute that is also a well-known HTML attribute.
             if (Href != null)
             {
                 output.CopyHtmlAttribute(HrefAttributeName, context);
             }
+
+            // If there's no "href" attribute in output.Attributes this will noop.
+            ProcessUrlAttribute(HrefAttributeName, output);
+
+            // Retrieve the TagHelperOutput variation of the "href" attribute in case other TagHelpers in the
+            // pipeline have touched the value. If the value is already encoded this LinkTagHelper may
+            // not function properly.
+            Href = output.Attributes[HrefAttributeName]?.Value as string;
 
             var modeResult = AttributeMatcher.DetermineMode(context, ModeDetails);
 
@@ -221,45 +240,64 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 return;
             }
 
-            // Get the highest matched mode
-            var mode = modeResult.FullMatches.Select(match => match.Mode).Max();
-
             // NOTE: Values in TagHelperOutput.Attributes may already be HTML-encoded.
             var attributes = new TagHelperAttributeList(output.Attributes);
 
+            if (AppendVersion == true)
+            {
+                EnsureFileVersionProvider();
+
+                if (Href != null)
+                {
+                    output.Attributes[HrefAttributeName].Value = _fileVersionProvider.AddFileVersionToPath(Href);
+                }
+            }
+
             var builder = new DefaultTagHelperContent();
 
-            if (mode == Mode.Fallback && string.IsNullOrEmpty(HrefInclude) || mode == Mode.AppendVersion)
-            {
-                // No globbing to do, just build a <link /> tag to match the original one in the source file.
-                // Or just add file version to the link tag.
-                BuildLinkTag(attributes, builder);
-            }
-            else
+            // Get the highest matched mode
+            var mode = modeResult.FullMatches.Select(match => match.Mode).Max();
+
+            if (mode == Mode.GlobbedHref || mode == Mode.Fallback && !string.IsNullOrEmpty(HrefInclude))
             {
                 BuildGlobbedLinkTags(attributes, builder);
+                if (string.IsNullOrEmpty(Href))
+                {
+                    // Only HrefInclude is specified. Don't render the original tag.
+                    output.TagName = null;
+                    output.Content.SetContent(string.Empty);
+                }
             }
 
             if (mode == Mode.Fallback)
             {
+                if (TryResolveUrl(FallbackHref, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
+                {
+                    FallbackHref = resolvedUrl;
+                }
+
                 BuildFallbackBlock(builder);
             }
 
-            // We've taken over tag rendering, so prevent rendering the outer tag
-            output.TagName = null;
-            output.Content.SetContent(builder);
+            output.PostElement.SetContent(builder);
         }
 
         private void BuildGlobbedLinkTags(TagHelperAttributeList attributes, TagHelperContent builder)
         {
             EnsureGlobbingUrlBuilder();
 
-            // Build a <link /> tag for each matched href as well as the original one in the source file
-            var urls = GlobbingUrlBuilder.BuildUrlList(Href, HrefInclude, HrefExclude);
+            // Build a <link /> tag for each matched href.
+            var urls = GlobbingUrlBuilder.BuildUrlList(null, HrefInclude, HrefExclude);
             foreach (var url in urls)
             {
                 // "url" values come from bound attributes and globbing. Must always be non-null.
                 Debug.Assert(url != null);
+
+                if (string.Equals(Href, url, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Don't build duplicate link tag for the original href url.
+                    continue;
+                }
 
                 attributes[HrefAttributeName] = url;
                 BuildLinkTag(attributes, builder);
@@ -276,7 +314,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 if (AppendVersion == true)
                 {
-                    for (var i=0; i < fallbackHrefs.Length; i++)
+                    for (var i = 0; i < fallbackHrefs.Length; i++)
                     {
                         // fallbackHrefs come from bound attributes and globbing. Must always be non-null.
                         Debug.Assert(fallbackHrefs[i] != null);
@@ -332,7 +370,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         private void BuildLinkTag(TagHelperAttributeList attributes, TagHelperContent builder)
         {
-            EnsureFileVersionProvider();
             builder.Append("<link ");
 
             foreach (var attribute in attributes)

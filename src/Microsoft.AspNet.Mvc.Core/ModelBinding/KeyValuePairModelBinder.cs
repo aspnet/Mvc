@@ -32,13 +32,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         bindingContext.ModelMetadata,
                         model,
                         childNodes);
-
-                // Success
-                return new ModelBindingResult(
-                    model,
-                    bindingContext.ModelName,
-                    isModelSet: true,
-                    validationNode: modelValidationNode);
+                
+                return ModelBindingResult.Success(bindingContext.ModelName, model, modelValidationNode);
             }
             else if (!keyResult.IsModelSet && valueResult.IsModelSet)
             {
@@ -47,8 +42,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     Resources.KeyValuePair_BothKeyAndValueMustBePresent);
 
                 // Were able to get some data for this model.
-                // Always tell the model binding system to skip other model binders i.e. return non-null.
-                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                // Always tell the model binding system to skip other model binders.
+                return ModelBindingResult.Failed(bindingContext.ModelName);
             }
             else if (keyResult.IsModelSet && !valueResult.IsModelSet)
             {
@@ -57,17 +52,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                     Resources.KeyValuePair_BothKeyAndValueMustBePresent);
 
                 // Were able to get some data for this model.
-                // Always tell the model binding system to skip other model binders i.e. return non-null.
-                return new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                // Always tell the model binding system to skip other model binders.
+                return ModelBindingResult.Failed(bindingContext.ModelName);
             }
             else
             {
-                // If this is the fallback case, and we failed to find data as a top-level model, then generate a
+                // If we failed to find data for a top-level model, then generate a
                 // default 'empty' model and return it.
-                var isTopLevelObject = bindingContext.ModelMetadata.ContainerType == null;
-                var hasExplicitAlias = bindingContext.BinderModelName != null;
-
-                if (isTopLevelObject && (hasExplicitAlias || bindingContext.ModelName == string.Empty))
+                if (bindingContext.IsTopLevelObject)
                 {
                     var model = new KeyValuePair<TKey, TValue>();
 
@@ -76,14 +68,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         bindingContext.ModelMetadata,
                         model);
 
-                    return new ModelBindingResult(
-                        model,
-                        bindingContext.ModelName,
-                        isModelSet: true,
-                        validationNode: validationNode);
+                    return ModelBindingResult.Success(bindingContext.ModelName, model, validationNode);
                 }
 
-                return null;
+                return ModelBindingResult.NoResult;
             }
         }
 
@@ -96,15 +84,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 parentBindingContext.OperationBindingContext.MetadataProvider.GetMetadataForType(typeof(TModel));
             var propertyModelName =
                 ModelNames.CreatePropertyModelName(parentBindingContext.ModelName, propertyName);
-            var propertyBindingContext = ModelBindingContext.GetChildModelBindingContext(
+            var propertyBindingContext = ModelBindingContext.CreateChildBindingContext(
                 parentBindingContext,
+                propertyModelMetadata,
+                propertyName,
                 propertyModelName,
-                propertyModelMetadata);
-            propertyBindingContext.BinderModelName = propertyModelMetadata.BinderModelName;
+                model: null);
 
             var modelBindingResult = await propertyBindingContext.OperationBindingContext.ModelBinder.BindModelAsync(
                 propertyBindingContext);
-            if (modelBindingResult != null)
+            if (modelBindingResult != ModelBindingResult.NoResult)
             {
                 if (modelBindingResult.ValidationNode != null)
                 {
@@ -114,8 +103,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return modelBindingResult;
             }
 
-            // Always return a ModelBindingResult to avoid an NRE in BindModelAsync.
-            return new ModelBindingResult(model: default(TModel), key: propertyModelName, isModelSet: false);
+            return ModelBindingResult.Failed(propertyModelName);
         }
     }
 }

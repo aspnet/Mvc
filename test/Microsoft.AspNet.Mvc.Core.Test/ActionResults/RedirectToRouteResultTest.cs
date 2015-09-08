@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
+using Microsoft.Framework.Internal;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class RedirectToRouteResultTest
     {
@@ -25,15 +27,13 @@ namespace Microsoft.AspNet.Mvc.Core
             var httpContext = new Mock<HttpContext>();
             var httpResponse = new Mock<HttpResponse>();
             httpContext.Setup(o => o.Response).Returns(httpResponse.Object);
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(ITempDataDictionary)))
-                .Returns(Mock.Of<ITempDataDictionary>());
 
             var actionContext = new ActionContext(httpContext.Object,
                                                   new RouteData(),
                                                   new ActionDescriptor());
 
             var urlHelper = GetMockUrlHelper(expectedUrl);
-            var result = new RedirectToRouteResult(null, TypeHelper.ObjectToDictionary(values))
+            var result = new RedirectToRouteResult(null, PropertyHelper.ObjectToDictionary(values))
             {
                 UrlHelper = urlHelper,
             };
@@ -74,32 +74,6 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void RedirectToRoute_Execute_Calls_TempDataKeep()
-        {
-            // Arrange
-            var tempData = new Mock<ITempDataDictionary>();
-            tempData.Setup(t => t.Keep()).Verifiable();
-
-            var httpContext = new Mock<HttpContext>();
-            httpContext.Setup(o => o.Response).Returns(new Mock<HttpResponse>().Object);
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(ITempDataDictionary))).Returns(tempData.Object);
-            var actionContext = new ActionContext(httpContext.Object,
-                                                  new RouteData(),
-                                                  new ActionDescriptor());
-
-            var result = new RedirectToRouteResult("SampleRoute", null)
-            {
-                UrlHelper = GetMockUrlHelper("SampleRoute")
-            };
-
-            // Act
-            result.ExecuteResult(actionContext);
-
-            // Assert
-            tempData.Verify(t => t.Keep(), Times.Once());
-        }
-
-        [Fact]
         public async Task ExecuteResultAsync_UsesRouteName_ToGenerateLocationHeader()
         {
             // Arrange
@@ -113,8 +87,6 @@ namespace Microsoft.AspNet.Mvc.Core
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(sp => sp.GetService(typeof(IUrlHelper)))
                 .Returns(urlHelper.Object);
-            serviceProvider.Setup(sp => sp.GetService(typeof(ITempDataDictionary)))
-                .Returns(new Mock<ITempDataDictionary>().Object);
             var httpContext = new DefaultHttpContext();
             httpContext.RequestServices = serviceProvider.Object;
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());

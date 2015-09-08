@@ -5,10 +5,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Mvc.ActionResults;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Filters
 {
     /// <summary>
     /// An implementation of <see cref="IAsyncAuthorizationFilter"/>
@@ -18,7 +19,7 @@ namespace Microsoft.AspNet.Mvc
         /// <summary>
         /// Authorize filter for a specific policy.
         /// </summary>
-        /// <param name="policy"></param>
+        /// <param name="policy">Authorization policy to be used.</param>
         public AuthorizeFilter([NotNull] AuthorizationPolicy policy)
         {
             Policy = policy;
@@ -30,24 +31,24 @@ namespace Microsoft.AspNet.Mvc
         public AuthorizationPolicy Policy { get; private set; }
 
         /// <inheritdoc />
-        public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
+        public virtual async Task OnAuthorizationAsync([NotNull] Filters.AuthorizationContext context)
         {
             // Build a ClaimsPrincipal with the Policy's required authentication types
             if (Policy.ActiveAuthenticationSchemes != null && Policy.ActiveAuthenticationSchemes.Any())
             {
-                var newPrincipal = new ClaimsPrincipal();
+                ClaimsPrincipal newPrincipal = null;
                 foreach (var scheme in Policy.ActiveAuthenticationSchemes)
                 {
-                    var result = (await context.HttpContext.Authentication.AuthenticateAsync(scheme))?.Principal;
+                    var result = await context.HttpContext.Authentication.AuthenticateAsync(scheme);
                     if (result != null)
                     {
-                        newPrincipal.AddIdentities(result.Identities);
+                        newPrincipal = SecurityHelper.MergeUserPrincipal(newPrincipal, result);
                     }
                 }
                 // If all schemes failed authentication, provide a default identity anyways
-                if (newPrincipal.Identity == null)
+                if (newPrincipal == null)
                 {
-                    newPrincipal.AddIdentity(new ClaimsIdentity());
+                    newPrincipal = new ClaimsPrincipal(new ClaimsIdentity());
                 }
                 context.HttpContext.User = newPrincipal;
             }

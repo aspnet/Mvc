@@ -1,20 +1,23 @@
 {
   "description": "The Razor view engine for ASP.NET MVC.",
   "version": "6.0.0-*",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet/mvc"
+  },
   "compilationOptions": {
-    "warningsAsErrors": false
+    "warningsAsErrors": true
   },
   "dependencies": {
-    "Microsoft.AspNet.Diagnostics.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.Common": { "version": "6.0.0-*", "type": "build" },
-    "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
     "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-*",
+    "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-*",
     "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces": "1.0.0-*",
+    "Microsoft.Framework.HashCodeCombiner.Sources": { "version": "1.0.0-*", "type": "build" },
     "Microsoft.Framework.NotNullAttribute.Sources": { "version": "1.0.0-*", "type": "build" },
     "Microsoft.Framework.PropertyActivator.Sources": { "version": "1.0.0-*", "type": "build" },
     "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Framework.Runtime.Roslyn.Common": "1.0.0-*",
-    "Microsoft.Framework.Runtime.Roslyn.Abstractions": "1.0.0-*"
+    "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-*",
+    "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-*"
   },
   "frameworks": {
     "dnx451": {
@@ -28,7 +31,8 @@
     },
     "dnxcore50": {
       "dependencies": {
-        "System.Threading.Tasks.Parallel": "4.0.0-beta-*"
+        "System.Text.Encoding": "4.0.11-*",
+        "System.Threading.Tasks.Parallel": "4.0.1-beta-*"
       }
     }
   },
@@ -36,12 +40,5 @@
     "wwwroot",
     "node_modules",
     "bower_components"
-  ],
-  "packExclude": [
-    "node_modules",
-    "bower_components",
-    "**.kproj",
-    "**.user",
-    "**.vspscc"
   ]
 }

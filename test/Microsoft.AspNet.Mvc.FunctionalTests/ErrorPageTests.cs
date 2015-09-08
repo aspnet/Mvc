@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
-            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html");
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
 
             // Act
             var response = await client.GetAsync("http://localhost/" + action);
@@ -53,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 + "are you missing a using directive or an assembly reference?)";
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
-            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html");
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
 
             // Act
             var response = await client.GetAsync("http://localhost/ErrorFromViewImports");
@@ -62,7 +63,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
             var content = await response.Content.ReadAsStringAsync();
-            Assert.Contains(@"Views\ErrorFromViewImports\_ViewImports.cshtml", content);
+            Assert.Contains(
+                PlatformNormalizer.NormalizePath(@"Views\ErrorFromViewImports\_ViewImports.cshtml"),
+                content);
+
             Assert.Contains(expectedMessage, content);
         }
     }

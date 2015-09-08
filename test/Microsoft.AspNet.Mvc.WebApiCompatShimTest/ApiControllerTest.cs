@@ -6,11 +6,13 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.WebUtilities;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -250,26 +252,7 @@ namespace System.Web.Http
         }
 
         [Fact]
-        public void ApiController_Json_Settings()
-        {
-            // Arrange
-            var controller = new ConcreteApiController();
-            var product = new Product();
-            var settings = new JsonSerializerSettings();
-
-            // Act
-            var result = controller.Json(product, settings);
-
-            // Assert
-            var jsonResult = Assert.IsType<JsonResult>(result);
-            Assert.Same(product, jsonResult.Value);
-
-            var formatter = Assert.IsType<JsonOutputFormatter>(jsonResult.Formatter);
-            Assert.Same(settings, formatter.SerializerSettings);
-        }
-
-        [Fact]
-        public void ApiController_Json_Settings_Encoding()
+        public void ApiController_Json_Encoding()
         {
             // Arrange
             var controller = new ConcreteApiController();
@@ -283,9 +266,7 @@ namespace System.Web.Http
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.Same(product, jsonResult.Value);
 
-            var formatter = Assert.IsType<JsonOutputFormatter>(jsonResult.Formatter);
-            Assert.Same(settings, formatter.SerializerSettings);
-            Assert.Same(Encoding.UTF8, Assert.Single(formatter.SupportedEncodings));
+            Assert.Same(Encoding.UTF8, jsonResult.ContentType.Encoding);
         }
 
         [Fact]
@@ -311,7 +292,7 @@ namespace System.Web.Http
             var result = controller.Ok();
 
             // Assert
-            Assert.Equal(200, Assert.IsType<OkResult>(result).StatusCode);
+            Assert.Equal(200, Assert.IsType<HttpOkResult>(result).StatusCode);
         }
 
 
@@ -326,8 +307,8 @@ namespace System.Web.Http
             var result = controller.Ok(product);
 
             // Assert
-            var okResult = Assert.IsType<OkNegotiatedContentResult<Product>>(result);
-            Assert.Same(product, okResult.Content);
+            var okResult = Assert.IsType<HttpOkObjectResult>(result);
+            Assert.Same(product, okResult.Value);
         }
 
         [Fact]

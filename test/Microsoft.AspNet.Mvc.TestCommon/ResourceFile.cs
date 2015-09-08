@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -62,7 +63,23 @@ namespace Microsoft.AspNet.Mvc
                 return null;
             }
 
-            return assembly.GetManifestResourceStream(fullName);
+            var stream = assembly.GetManifestResourceStream(fullName);
+            if (sourceFile)
+            {
+                // Normalize line endings to '\r\n' (CRLF). This removes core.autocrlf, core.eol, core.safecrlf, and
+                // .gitattributes from the equation and treats "\r\n" and "\n" as equivalent. Does not handle
+                // some line endings like "\r" but otherwise ensures checksums and line mappings are consistent.
+                string text;
+                using (var streamReader = new StreamReader(stream))
+                {
+                    text = streamReader.ReadToEnd().Replace("\r", "").Replace("\n", "\r\n");
+                }
+
+                var bytes = Encoding.UTF8.GetBytes(text);
+                stream = new MemoryStream(bytes);
+            }
+
+            return stream;
         }
 
         /// <summary>
@@ -101,13 +118,7 @@ namespace Microsoft.AspNet.Mvc
 
                 using (var streamReader = new StreamReader(stream))
                 {
-                    var content = await streamReader.ReadToEndAsync();
-
-                    // Normalize line endings to Environment.NewLine. This removes core.autocrlf, core.eol,
-                    // core.safecrlf, and .gitattributes from the equation and matches what MVC returns.
-                    return content
-                        .Replace("\r", string.Empty)
-                        .Replace("\n", Environment.NewLine);
+                    return await streamReader.ReadToEndAsync();
                 }
             }
         }
@@ -147,13 +158,7 @@ namespace Microsoft.AspNet.Mvc
 
                 using (var streamReader = new StreamReader(stream))
                 {
-                    var content = streamReader.ReadToEnd();
-
-                    // Normalize line endings to Environment.NewLine. This removes core.autocrlf, core.eol,
-                    // core.safecrlf, and .gitattributes from the equation and matches what MVC returns.
-                    return content
-                        .Replace("\r", string.Empty)
-                        .Replace("\n", Environment.NewLine);
+                    return streamReader.ReadToEnd();
                 }
             }
         }
@@ -178,10 +183,15 @@ namespace Microsoft.AspNet.Mvc
         [Conditional("GENERATE_BASELINES")]
         public static void UpdateFile(Assembly assembly, string resourceName, string previousContent, string content)
         {
-            if (!string.Equals(previousContent, content, StringComparison.Ordinal))
+            // Normalize line endings to '\r\n' for comparison. This removes Environment.NewLine from the equation. Not
+            // worth updating files just because we generate baselines on a different system.
+            var normalizedPreviousContent = previousContent?.Replace("\r", "").Replace("\n", "\r\n");
+            var normalizedContent = content.Replace("\r", "").Replace("\n", "\r\n");
+
+            if (!string.Equals(normalizedPreviousContent, normalizedContent, StringComparison.Ordinal))
             {
-                // The DNX runtime compiles every file under the resources folder as a resource available at runtime with
-                // the same name as the file name. Need to update this file on disc.
+                // The DNX runtime compiles every file under the resources folder as a resource available at runtime
+                // with the same name as the file name. Need to update this file on disc.
                 var projectName = assembly.GetName().Name;
                 var projectPath = GetProjectPath(projectName);
                 var fullPath = Path.Combine(projectPath, resourceName);

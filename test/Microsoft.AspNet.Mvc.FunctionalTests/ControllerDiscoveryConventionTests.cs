@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using ControllerDiscoveryConventionsWebSite;
 using Microsoft.AspNet.Builder;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Runtime;
+using Microsoft.Dnx.Runtime;
 using Xunit;
+using Microsoft.AspNet.Mvc.Actions;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -132,7 +133,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             }
 
-            protected override IEnumerable<ILibraryInformation> GetCandidateLibraries()
+            protected override IEnumerable<Library> GetCandidateLibraries()
             {
                 var libraries = base.GetCandidateLibraries();
                 // Filter out other WebSite projects

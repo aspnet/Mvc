@@ -7,8 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.WebEncoders.Testing;
@@ -33,11 +35,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "asp-action", "index" },
                     { "asp-controller", "home" },
                     { "method", "post" },
-                    { "asp-anti-forgery", true }
+                    { "asp-antiforgery", true }
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something Else");
@@ -58,12 +60,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = TestableHtmlGenerator.GetViewContext(model: null,
                                                                    htmlGenerator: htmlGenerator,
                                                                    metadataProvider: metadataProvider);
-            var expectedPostContent = "Something" + htmlGenerator.GenerateAntiForgery(viewContext)
-                                                                 .ToString(TagRenderMode.SelfClosing);
+            var expectedPostContent = "Something" +
+                HtmlContentUtilities.HtmlContentToString(
+                    htmlGenerator.GenerateAntiforgery(viewContext),
+                    new NullTestEncoder());
             var formTagHelper = new FormTagHelper(htmlGenerator)
             {
                 Action = "index",
-                AntiForgery = true,
+                Antiforgery = true,
                 Controller = "home",
                 ViewContext = viewContext,
                 RouteValues =
@@ -93,8 +97,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [InlineData(null, "<input />")]
         [InlineData(true, "<input />")]
         [InlineData(false, "")]
-        public async Task ProcessAsync_GeneratesAntiForgeryCorrectly(
-            bool? antiForgery,
+        public async Task ProcessAsync_GeneratesAntiforgeryCorrectly(
+            bool? antiforgery,
             string expectedPostContent)
         {
             // Arrange
@@ -104,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -122,14 +126,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     It.IsAny<object>(),
                     It.IsAny<string>(),
                     It.IsAny<object>()))
-                .Returns(new TagBuilder("form", new CommonTestEncoder()));
+                .Returns(new TagBuilder("form"));
 
-            generator.Setup(mock => mock.GenerateAntiForgery(viewContext))
-                     .Returns(new TagBuilder("input", new CommonTestEncoder()));
+            generator.Setup(mock => mock.GenerateAntiforgery(viewContext))
+                     .Returns(new HtmlString("<input />"));
             var formTagHelper = new FormTagHelper(generator.Object)
             {
                 Action = "Index",
-                AntiForgery = antiForgery,
+                Antiforgery = antiforgery,
                 ViewContext = viewContext,
             };
 
@@ -138,7 +142,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("form", output.TagName);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreContent.GetContent());
             Assert.True(output.Content.IsEmpty);
@@ -155,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -190,12 +194,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         routeValue = Assert.Single(routeValueDictionary, attr => attr.Key.Equals("-Name"));
                         Assert.Equal("Value", routeValue.Value);
                     })
-                .Returns(new TagBuilder("form", new CommonTestEncoder()))
+                .Returns(new TagBuilder("form"))
                 .Verifiable();
             var formTagHelper = new FormTagHelper(generator.Object)
             {
                 Action = "Index",
-                AntiForgery = false,
+                Antiforgery = false,
                 ViewContext = testViewContext,
                 RouteValues =
                 {
@@ -208,7 +212,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             await formTagHelper.ProcessAsync(context, output);
 
             Assert.Equal("form", output.TagName);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagAndEndTag ,output.TagMode);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(expectedAttribute, attribute);
             Assert.Empty(output.PreContent.GetContent());
@@ -227,7 +231,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -245,12 +249,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     It.IsAny<IDictionary<string, object>>(),
                     null,
                     null))
-                .Returns(new TagBuilder("form", new CommonTestEncoder()))
+                .Returns(new TagBuilder("form"))
                 .Verifiable();
             var formTagHelper = new FormTagHelper(generator.Object)
             {
                 Action = "Index",
-                AntiForgery = false,
+                Antiforgery = false,
                 Controller = "Home",
                 ViewContext = viewContext,
             };
@@ -260,7 +264,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
 
             Assert.Equal("form", output.TagName);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
@@ -278,7 +282,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -295,11 +299,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     It.Is<Dictionary<string, object>>(m => string.Equals(m["name"], "value")),
                     null,
                     null))
-                .Returns(new TagBuilder("form", new CommonTestEncoder()))
+                .Returns(new TagBuilder("form"))
                 .Verifiable();
             var formTagHelper = new FormTagHelper(generator.Object)
             {
-                AntiForgery = false,
+                Antiforgery = false,
                 Route = "Default",
                 ViewContext = viewContext,
                 RouteValues =
@@ -313,7 +317,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             generator.Verify();
 
             Assert.Equal("form", output.TagName);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
@@ -326,19 +330,19 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         [InlineData(true, "<input />")]
         [InlineData(false, "")]
         [InlineData(null, "")]
-        public async Task ProcessAsync_SupportsAntiForgeryIfActionIsSpecified(
-            bool? antiForgery,
+        public async Task ProcessAsync_SupportsAntiforgeryIfActionIsSpecified(
+            bool? antiforgery,
             string expectedPostContent)
         {
             // Arrange
             var viewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
 
-            generator.Setup(mock => mock.GenerateAntiForgery(It.IsAny<ViewContext>()))
-                     .Returns(new TagBuilder("input", new CommonTestEncoder()));
+            generator.Setup(mock => mock.GenerateAntiforgery(It.IsAny<ViewContext>()))
+                     .Returns(new HtmlString("<input />"));
             var formTagHelper = new FormTagHelper(generator.Object)
             {
-                AntiForgery = antiForgery,
+                Antiforgery = antiforgery,
                 ViewContext = viewContext,
             };
 
@@ -352,7 +356,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test",
-                getChildContentAsync: () =>
+                getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
@@ -365,7 +369,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("form", output.TagName);
-            Assert.False(output.SelfClosing);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(new TagHelperAttribute("aCTiON", "my-action"), attribute);
             Assert.Empty(output.PreContent.GetContent());

@@ -2,11 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Mvc.Razor;
+using Microsoft.Dnx.Compilation;
+using Microsoft.Dnx.Runtime;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.OptionsModel;
+using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -17,195 +25,164 @@ namespace Microsoft.AspNet.Mvc
         [Fact]
         public void Setup_SetsUpViewEngines()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcViewOptions>(AddDnxServices);
 
             // Assert
-            Assert.Equal(1, mvcOptions.ViewEngines.Count);
-            Assert.Equal(typeof(RazorViewEngine), mvcOptions.ViewEngines[0].ViewEngineType);
+            var viewEngine = Assert.Single(options.ViewEngines);
+            Assert.IsType<RazorViewEngine>(viewEngine);
         }
 
         [Fact]
         public void Setup_SetsUpModelBinders()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>();
 
             // Assert
             var i = 0;
-            Assert.Equal(13, mvcOptions.ModelBinders.Count);
-            Assert.IsType(typeof(BinderTypeBasedModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(ServicesModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(BodyModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(HeaderModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(TypeConverterModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(TypeMatchModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(CancellationTokenModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(ByteArrayModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(FormFileModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(FormCollectionModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(GenericModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(MutableObjectModelBinder), mvcOptions.ModelBinders[i++]);
-            Assert.IsType(typeof(ComplexModelDtoModelBinder), mvcOptions.ModelBinders[i++]);
+            Assert.Equal(11, options.ModelBinders.Count);
+            Assert.IsType(typeof(BinderTypeBasedModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(ServicesModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(BodyModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(HeaderModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(SimpleTypeModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(CancellationTokenModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(ByteArrayModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(FormFileModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(FormCollectionModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(GenericModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(MutableObjectModelBinder), options.ModelBinders[i++]);
         }
 
         [Fact]
         public void Setup_SetsUpValueProviders()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>();
 
             // Assert
-            var valueProviders = mvcOptions.ValueProviderFactories;
-            Assert.Equal(3, valueProviders.Count);
+            var valueProviders = options.ValueProviderFactories;
+            Assert.Equal(4, valueProviders.Count);
             Assert.IsType<RouteValueValueProviderFactory>(valueProviders[0]);
             Assert.IsType<QueryStringValueProviderFactory>(valueProviders[1]);
             Assert.IsType<FormValueProviderFactory>(valueProviders[2]);
+            Assert.IsType<JQueryFormValueProviderFactory>(valueProviders[3]);
         }
 
         [Fact]
         public void Setup_SetsUpOutputFormatters()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>();
 
             // Assert
-            Assert.Equal(4, mvcOptions.OutputFormatters.Count);
-            Assert.IsType<HttpNoContentOutputFormatter>(mvcOptions.OutputFormatters[0]);
-            Assert.IsType<StringOutputFormatter>(mvcOptions.OutputFormatters[1]);
-            Assert.IsType<StreamOutputFormatter>(mvcOptions.OutputFormatters[2]);
-            Assert.IsType<JsonOutputFormatter>(mvcOptions.OutputFormatters[3]);
+            Assert.Equal(4, options.OutputFormatters.Count);
+            Assert.IsType<HttpNoContentOutputFormatter>(options.OutputFormatters[0]);
+            Assert.IsType<StringOutputFormatter>(options.OutputFormatters[1]);
+            Assert.IsType<StreamOutputFormatter>(options.OutputFormatters[2]);
+            Assert.IsType<JsonOutputFormatter>(options.OutputFormatters[3]);
         }
 
         [Fact]
         public void Setup_SetsUpInputFormatters()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>();
 
             // Assert
-            Assert.Equal(2, mvcOptions.InputFormatters.Count);
-            Assert.IsType<JsonInputFormatter>(mvcOptions.InputFormatters[0]);
-            Assert.IsType<JsonPatchInputFormatter>(mvcOptions.InputFormatters[1]);
+            Assert.Equal(2, options.InputFormatters.Count);
+            Assert.IsType<JsonInputFormatter>(options.InputFormatters[0]);
+            Assert.IsType<JsonPatchInputFormatter>(options.InputFormatters[1]);
         }
 
         [Fact]
         public void Setup_SetsUpModelValidatorProviders()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>();
 
             // Assert
-            Assert.Equal(2, mvcOptions.ModelValidatorProviders.Count);
-            Assert.IsType<DefaultModelValidatorProvider>(mvcOptions.ModelValidatorProviders[0]);
-            Assert.IsType<DataAnnotationsModelValidatorProvider>(mvcOptions.ModelValidatorProviders[1]);
+            Assert.Equal(2, options.ModelValidatorProviders.Count);
+            Assert.IsType<DefaultModelValidatorProvider>(options.ModelValidatorProviders[0]);
+            Assert.IsType<DataAnnotationsModelValidatorProvider>(options.ModelValidatorProviders[1]);
         }
 
         [Fact]
         public void Setup_SetsUpClientModelValidatorProviders()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcViewOptions>(AddDnxServices);
 
             // Assert
-            Assert.Equal(2, mvcOptions.ClientModelValidatorProviders.Count);
-            Assert.IsType<DefaultClientModelValidatorProvider>(mvcOptions.ClientModelValidatorProviders[0]);
-            Assert.IsType<DataAnnotationsClientModelValidatorProvider>(mvcOptions.ClientModelValidatorProviders[1]);
+            Assert.Equal(3, options.ClientModelValidatorProviders.Count);
+            Assert.IsType<DefaultClientModelValidatorProvider>(options.ClientModelValidatorProviders[0]);
+            Assert.IsType<DataAnnotationsClientModelValidatorProvider>(options.ClientModelValidatorProviders[1]);
+            Assert.IsType<NumericClientModelValidatorProvider>(options.ClientModelValidatorProviders[2]);
         }
 
         [Fact]
         public void Setup_IgnoresAcceptHeaderHavingWildCardMediaAndSubMediaTypes()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>();
 
             // Assert
-            Assert.False(mvcOptions.RespectBrowserAcceptHeader);
+            Assert.False(options.RespectBrowserAcceptHeader);
         }
 
         [Fact]
         public void Setup_SetsUpExcludeFromValidationDelegates()
         {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
-
-            // Act
-            setup.Configure(mvcOptions);
+            // Arrange & Act
+            var options = GetOptions<MvcOptions>(services =>
+            {
+                var builder = new MvcCoreBuilder(services);
+                builder.AddXmlDataContractSerializerFormatters();
+            });
 
             // Assert
-            Assert.Equal(8, mvcOptions.ValidationExcludeFilters.Count);
+            Assert.Equal(8, options.ValidationExcludeFilters.Count);
             var i = 0;
 
             // Verify if the delegates registered by default exclude the given types.
-            Assert.IsType(typeof(SimpleTypesExcludeFilter), mvcOptions.ValidationExcludeFilters[i++]);
-            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i]);
-            var xObjectFilter
-                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
-            Assert.Equal(xObjectFilter.ExcludedType, typeof(XObject));
+            Assert.IsType(typeof(SimpleTypesExcludeFilter), options.ValidationExcludeFilters[i++]);
 
-            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i]);
+            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), options.ValidationExcludeFilters[i]);
             var typeFilter
-                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
+                = Assert.IsType<DefaultTypeBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
             Assert.Equal(typeFilter.ExcludedType, typeof(Type));
 
-            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i]);
-            var jTokenFilter 
-                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
-            Assert.Equal(jTokenFilter.ExcludedType, typeof(JToken));
-
-            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i]);
+            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), options.ValidationExcludeFilters[i]);
             var cancellationTokenFilter
-                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
+                = Assert.IsType<DefaultTypeBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
             Assert.Equal(cancellationTokenFilter.ExcludedType, typeof(System.Threading.CancellationToken));
 
-            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i]);
+            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), options.ValidationExcludeFilters[i]);
             var formFileFilter
-                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
+                = Assert.IsType<DefaultTypeBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
             Assert.Equal(formFileFilter.ExcludedType, typeof(Http.IFormFile));
 
             Assert.IsType(
                 typeof(DefaultTypeBasedExcludeFilter),
-                mvcOptions.ValidationExcludeFilters[i]);
+                options.ValidationExcludeFilters[i]);
             var formCollectionFilter
-                = Assert.IsType<DefaultTypeBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
+                = Assert.IsType<DefaultTypeBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
             Assert.Equal(formCollectionFilter.ExcludedType, typeof(Http.IFormCollection));
 
-            Assert.IsType(typeof(DefaultTypeNameBasedExcludeFilter), mvcOptions.ValidationExcludeFilters[i]);
-            var xmlNodeFilter = 
-                     Assert.IsType<DefaultTypeNameBasedExcludeFilter>(mvcOptions.ValidationExcludeFilters[i++]);
+            Assert.IsType(typeof(DefaultTypeBasedExcludeFilter), options.ValidationExcludeFilters[i]);
+            var jTokenFilter
+                = Assert.IsType<DefaultTypeBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
+            Assert.Equal(jTokenFilter.ExcludedType, typeof(JToken));
+
+            Assert.IsType(typeof(DefaultTypeNameBasedExcludeFilter), options.ValidationExcludeFilters[i]);
+            var xObjectFilter
+                = Assert.IsType<DefaultTypeNameBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
+            Assert.Equal(xObjectFilter.ExcludedTypeName, typeof(XObject).FullName);
+
+            Assert.IsType(typeof(DefaultTypeNameBasedExcludeFilter), options.ValidationExcludeFilters[i]);
+            var xmlNodeFilter =
+                     Assert.IsType<DefaultTypeNameBasedExcludeFilter>(options.ValidationExcludeFilters[i++]);
             Assert.Equal(xmlNodeFilter.ExcludedTypeName, "System.Xml.XmlNode");
         }
 
@@ -213,24 +190,61 @@ namespace Microsoft.AspNet.Mvc
         public void Setup_JsonFormattersUseSerializerSettings()
         {
             // Arrange
-            var mvcOptions = new MvcOptions();
-            var setup = new MvcOptionsSetup();
+            var services = GetServiceProvider();
 
             // Act
-            setup.Configure(mvcOptions);
+            var options = services.GetRequiredService<IOptions<MvcOptions>>().Value;
+            var jsonOptions = services.GetRequiredService<IOptions<MvcJsonOptions>>().Value;
 
             // Assert
-            var jsonInputFormatters = mvcOptions.InputFormatters.OfType<JsonInputFormatter>();
+            var jsonInputFormatters = options.InputFormatters.OfType<JsonInputFormatter>();
             foreach (var jsonInputFormatter in jsonInputFormatters)
             {
-                Assert.Same(mvcOptions.SerializerSettings, jsonInputFormatter.SerializerSettings);
+                Assert.Same(jsonOptions.SerializerSettings, jsonInputFormatter.SerializerSettings);
             }
 
-            var jsonOuputFormatters = mvcOptions.OutputFormatters.OfType<JsonOutputFormatter>();
+            var jsonOuputFormatters = options.OutputFormatters.OfType<JsonOutputFormatter>();
             foreach (var jsonOuputFormatter in jsonOuputFormatters)
             {
-                Assert.Same(mvcOptions.SerializerSettings, jsonOuputFormatter.SerializerSettings);
+                Assert.Same(jsonOptions.SerializerSettings, jsonOuputFormatter.SerializerSettings);
             }
+        }
+
+        private static T GetOptions<T>(Action<IServiceCollection> action = null)
+            where T : class, new()
+        {
+            var serviceProvider = GetServiceProvider(action);
+            return serviceProvider.GetRequiredService<IOptions<T>>().Value;
+        }
+
+        private static IServiceProvider GetServiceProvider(Action<IServiceCollection> action = null)
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddMvc();
+
+            if (action != null)
+            {
+                action(serviceCollection);
+            }
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            return serviceProvider;
+        }
+
+        private static void AddDnxServices(IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddInstance(Mock.Of<ILibraryManager>());
+            serviceCollection.AddInstance(Mock.Of<ILibraryExporter>());
+            serviceCollection.AddInstance(Mock.Of<ICompilerOptionsProvider>());
+            serviceCollection.AddInstance(Mock.Of<IAssemblyLoadContextAccessor>());
+            var applicationEnvironment = new Mock<IApplicationEnvironment>();
+
+            // ApplicationBasePath is used to set up a PhysicalFileProvider which requires
+            // a real directory.
+            applicationEnvironment.SetupGet(e => e.ApplicationBasePath)
+                .Returns(Directory.GetCurrentDirectory());
+
+            serviceCollection.AddInstance(applicationEnvironment.Object);
         }
     }
 }

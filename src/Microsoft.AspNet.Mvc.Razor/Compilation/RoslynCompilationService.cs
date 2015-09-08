@@ -14,11 +14,11 @@ using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.Dnx.Compilation;
+using Microsoft.Dnx.Compilation.CSharp;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
-using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.Compilation;
-using Microsoft.Framework.Runtime.Roslyn;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private readonly ConcurrentDictionary<string, AssemblyMetadata> _metadataFileCache =
             new ConcurrentDictionary<string, AssemblyMetadata>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly ILibraryManager _libraryManager;
+        private readonly ILibraryExporter _libraryExporter;
         private readonly IApplicationEnvironment _environment;
         private readonly IAssemblyLoadContext _loader;
         private readonly ICompilerOptionsProvider _compilerOptionsProvider;
@@ -43,22 +43,27 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// Initalizes a new instance of the <see cref="RoslynCompilationService"/> class.
         /// </summary>
         /// <param name="environment">The environment for the executing application.</param>
-        /// <param name="loaderEngine">The loader used to load compiled assemblies.</param>
+        /// <param name="loaderAccessor">
+        /// The accessor for the <see cref="IAssemblyLoadContext"/> used to load compiled assemblies.
+        /// </param>
         /// <param name="libraryManager">The library manager that provides export and reference information.</param>
+        /// <param name="compilerOptionsProvider">
+        /// The <see cref="ICompilerOptionsProvider"/> that provides Roslyn compilation settings.
+        /// </param>
         /// <param name="host">The <see cref="IMvcRazorHost"/> that was used to generate the code.</param>
         public RoslynCompilationService(IApplicationEnvironment environment,
                                         IAssemblyLoadContextAccessor loaderAccessor,
-                                        ILibraryManager libraryManager,
+                                        ILibraryExporter libraryExporter,
                                         ICompilerOptionsProvider compilerOptionsProvider,
                                         IMvcRazorHost host,
                                         IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _environment = environment;
             _loader = loaderAccessor.GetLoadContext(typeof(RoslynCompilationService).GetTypeInfo().Assembly);
-            _libraryManager = libraryManager;
+            _libraryExporter = libraryExporter;
             _applicationReferences = new Lazy<List<MetadataReference>>(GetApplicationReferences);
             _compilerOptionsProvider = compilerOptionsProvider;
-            _fileProvider = optionsAccessor.Options.FileProvider;
+            _fileProvider = optionsAccessor.Value.FileProvider;
             _classPrefix = host.MainClassNamePrefix;
         }
 
@@ -136,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 .Where(IsError)
                 .GroupBy(diagnostic => GetFilePath(relativePath, diagnostic), StringComparer.Ordinal);
 
-            var failures = new List<ICompilationFailure>();
+            var failures = new List<CompilationFailure>();
             foreach (var group in diagnosticGroups)
             {
                 var sourceFilePath = group.Key;
@@ -152,12 +157,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                     sourceFileContent = ReadFileContentsSafely(_fileProvider, sourceFilePath);
                 }
 
-                var compilationFailure = new RoslynCompilationFailure(group)
-                {
-                    CompiledContent = compilationContent,
-                    SourceFileContent = sourceFileContent,
-                    SourceFilePath = sourceFilePath
-                };
+                var compilationFailure = new CompilationFailure(sourceFilePath, sourceFileContent, compilationContent, group.Select(d => d.ToDiagnosticMessage(_environment.RuntimeFramework)));
 
                 failures.Add(compilationFailure);
             }
@@ -182,7 +182,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             // Get the MetadataReference for the executing application. If it's a Roslyn reference,
             // we can copy the references created when compiling the application to the Razor page being compiled.
             // This avoids performing expensive calls to MetadataReference.CreateFromImage.
-            var libraryExport = _libraryManager.GetLibraryExport(_environment.ApplicationName);
+            var libraryExport = _libraryExporter.GetExport(_environment.ApplicationName);
             if (libraryExport?.MetadataReferences != null && libraryExport.MetadataReferences.Count > 0)
             {
                 Debug.Assert(libraryExport.MetadataReferences.Count == 1,
@@ -197,7 +197,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 }
             }
 
-            var export = _libraryManager.GetAllExports(_environment.ApplicationName);
+            var export = _libraryExporter.GetAllExports(_environment.ApplicationName);
             foreach (var metadataReference in export.MetadataReferences)
             {
                 // Taken from https://github.com/aspnet/KRuntime/blob/757ba9bfdf80bd6277e715d6375969a7f44370ee/src/...
@@ -258,7 +258,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 }
             });
 
-            return metadata.GetReference();
+            return metadata.GetReference(filePath: path);
         }
 
         private static bool IsError(Diagnostic diagnostic)

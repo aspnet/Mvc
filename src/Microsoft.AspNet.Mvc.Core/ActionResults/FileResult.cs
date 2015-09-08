@@ -1,15 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     /// <summary>
     /// Represents an <see cref="ActionResult"/> that when executed will
@@ -68,7 +67,7 @@ namespace Microsoft.AspNet.Mvc
                 // basis for the actual filename, where possible.
                 var cd = new ContentDispositionHeaderValue("attachment");
                 cd.SetHttpFileName(FileDownloadName);
-                context.HttpContext.Response.Headers.Set(HeaderNames.ContentDisposition, cd.ToString());
+                context.HttpContext.Response.Headers[HeaderNames.ContentDisposition] = cd.ToString();
             }
 
             // We aren't flowing the cancellation token appropriately, see

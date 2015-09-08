@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// Represents a model binder which can bind models of type <see cref="CancellationToken"/>.
+    /// <see cref="IModelBinder"/> implementation to bind models of type <see cref="CancellationToken"/>.
     /// </summary>
     public class CancellationTokenModelBinder : IModelBinder
     {
@@ -18,15 +18,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 var model = bindingContext.OperationBindingContext.HttpContext.RequestAborted;
                 var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);
-                return Task.FromResult(new ModelBindingResult(
-                    model,
-                    bindingContext.ModelName,
-                    isModelSet: true,
-                    validationNode: validationNode));
+                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model)
+                    {
+                        SuppressValidation = true,
+                    };
+
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model, validationNode);
             }
 
-            return Task.FromResult<ModelBindingResult>(null);
+            return ModelBindingResult.NoResultAsync;
         }
     }
 }

@@ -11,11 +11,12 @@ using System.Threading.Tasks;
 using BasicWebSite;
 using Microsoft.AspNet.Builder;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.WebEncoders;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class TagHelpersTests
+    public class TagHelpersTest
     {
         private const string SiteName = nameof(TagHelpersWebSite);
 
@@ -23,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         // so they require a reference to the assembly on which the resources are located, in order to
         // make the tests less verbose, we get a reference to the assembly with the resources and we
         // use it on all the rest of the tests.
-        private static readonly Assembly _resourcesAssembly = typeof(TagHelpersTests).GetTypeInfo().Assembly;
+        private static readonly Assembly _resourcesAssembly = typeof(TagHelpersTest).GetTypeInfo().Assembly;
 
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
         private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
@@ -32,6 +33,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("Index")]
         [InlineData("About")]
         [InlineData("Help")]
+        [InlineData("UnboundDynamicAttributes")]
         public async Task CanRenderViewsWithTagHelpers(string action)
         {
             // Arrange
@@ -54,7 +56,38 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+#endif
+        }
+
+        [Fact]
+        public async Task CanRenderViewsWithTagHelpersAndUnboundDynamicAttributes_Encoded()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName, services =>
+            {
+                _configureServices(services);
+                services.AddTransient<IHtmlEncoder, TestHtmlEncoder>();
+            });
+            var client = server.CreateClient();
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
+            var outputFile = "compiler/resources/TagHelpersWebSite.Home.UnboundDynamicAttributes.Encoded.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            // Act
+            // The host is not important as everything runs in memory and tests are isolated from each other.
+            var response = await client.GetAsync("http://localhost/Home/UnboundDynamicAttributes");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+#if GENERATE_BASELINES
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -67,45 +100,55 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 {
                     {
                         "NestedViewImportsTagHelper",
-                        string.Format(
-                            "<root>root-content</root>{0}{0}{0}<nested>nested-content</nested>",
-                            Environment.NewLine)
+                        @"<root>root-content</root>
+
+
+<nested>nested-content</nested>"
                     },
                     {
                         "ViewWithLayoutAndNestedTagHelper",
-                        string.Format(
-                            "layout:<root>root-content</root>{0}{0}{0}<nested>nested-content</nested>",
-                            Environment.NewLine)
+                        @"layout:<root>root-content</root>
+
+
+<nested>nested-content</nested>"
                     },
                     {
                         "ViewWithInheritedRemoveTagHelper",
-                        string.Format(
-                            "layout:<root>root-content</root>{0}{0}{0}page:<root/>{0}<nested>nested-content</nested>",
-                            Environment.NewLine)
+                        @"layout:<root>root-content</root>
+
+
+page:<root/>
+<nested>nested-content</nested>"
                     },
                     {
                         "ViewWithInheritedTagHelperPrefix",
-                        string.Format(
-                            "layout:<root>root-content</root>{0}{0}{0}page:<root>root-content</root>",
-                            Environment.NewLine)
+                        @"layout:<root>root-content</root>
+
+
+page:<root>root-content</root>"
                     },
                     {
                         "ViewWithOverriddenTagHelperPrefix",
-                        string.Format(
-                            "layout:<root>root-content</root>{0}{0}{0}{0}page:<root>root-content</root>",
-                            Environment.NewLine)
+                        @"layout:<root>root-content</root>
+
+
+
+page:<root>root-content</root>"
                     },
                     {
                         "ViewWithNestedInheritedTagHelperPrefix",
-                        string.Format(
-                            "layout:<root>root-content</root>{0}{0}{0}page:<root>root-content</root>",
-                            Environment.NewLine)
+                        @"layout:<root>root-content</root>
+
+
+page:<root>root-content</root>"
                     },
                     {
                         "ViewWithNestedOverriddenTagHelperPrefix",
-                        string.Format(
-                            "layout:<root>root-content</root>{0}{0}{0}{0}page:<root>root-content</root>",
-                            Environment.NewLine)
+                        @"layout:<root>root-content</root>
+
+
+
+page:<root>root-content</root>"
                     },
                 };
             }
@@ -123,7 +166,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var result = await client.GetStringAsync("http://localhost/Home/" + action);
 
             // Assert
-            Assert.Equal(expected, result.Trim());
+            Assert.Equal(expected, result.Trim(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -146,7 +189,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(
+                PlatformNormalizer.NormalizeContent(expectedContent),
+                responseContent,
+                ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -180,7 +227,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -214,7 +261,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-            Assert.Equal(expectedContent, responseContent);
+            // Mono issue - https://github.com/aspnet/External/issues/19
+            Assert.Equal(
+                PlatformNormalizer.NormalizeContent(expectedContent),
+                responseContent,
+                ignoreLineEndingDifferences: true);
 #endif
         }
     }

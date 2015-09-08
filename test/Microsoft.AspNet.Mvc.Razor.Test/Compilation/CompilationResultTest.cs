@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Framework.Runtime;
-using Moq;
+using System.Linq;
+using Microsoft.Dnx.Compilation;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         public void EnsureSuccessful_ThrowsIfCompilationFailed()
         {
             // Arrange
-            var compilationFailure = Mock.Of<ICompilationFailure>();
+            var compilationFailure = new CompilationFailure("test", Enumerable.Empty<Dnx.Runtime.DiagnosticMessage>());
             var failures = new[] { compilationFailure };
             var result = CompilationResult.Failed(failures);
 

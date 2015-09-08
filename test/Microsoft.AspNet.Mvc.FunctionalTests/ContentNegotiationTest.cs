@@ -9,7 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ContentNegotiationWebSite;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc.Xml;
+using Microsoft.AspNet.Mvc.Formatters.Xml;
+using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
@@ -48,7 +49,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
             var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = "{\r\n  \"Name\": \"My name\",\r\n  \"Address\": \"My address\"\r\n}";
+            var expectedBody = $"{{{Environment.NewLine}  \"Name\": \"My name\",{Environment.NewLine}" +
+                $"  \"Address\": \"My address\"{Environment.NewLine}}}";
 
             // Act
             var response = await client.GetAsync("http://localhost/Normal/MultipleAllowedContentTypes");
@@ -112,7 +114,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedOutput, actual);
         }
 
-        [Fact]
+        [ConditionalTheory]
+        // Mono issue - https://github.com/aspnet/External/issues/18
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ProducesAttribute_WithTypeAndContentType_UsesContentType()
         {
             // Arrange
@@ -169,17 +173,29 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData("ContactInfoUsingV3Format", "text/vcard; version=v3.0; charset=utf-8", "BEGIN:VCARD#FN:John Williams#END:VCARD#")]
-        [InlineData("ContactInfoUsingV4Format", "text/vcard; version=v4.0; charset=utf-8", "BEGIN:VCARD#FN:John Williams#GENDER:M#END:VCARD#")]
+        [InlineData(
+            "ContactInfoUsingV3Format",
+            "text/vcard; version=v3.0; charset=utf-8",
+            @"BEGIN:VCARD
+FN:John Williams
+END:VCARD
+")]
+        [InlineData(
+            "ContactInfoUsingV4Format",
+            "text/vcard; version=v4.0; charset=utf-8",
+            @"BEGIN:VCARD
+FN:John Williams
+GENDER:M
+END:VCARD
+")]
         public async Task ProducesAttribute_WithMediaTypeHavingParameters_IsCaseInsensitiveMatch(
-                                                                                            string action,
-                                                                                            string expectedMediaType,
-                                                                                            string expectedResponseBody)
+            string action,
+            string expectedMediaType,
+            string expectedResponseBody)
         {
             // Arrange
             var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
             var client = server.CreateClient();
-            expectedResponseBody = expectedResponseBody.Replace("#", Environment.NewLine);
 
             // Act
             var response = await client.GetAsync("http://localhost/ProducesWithMediaTypeParameters/" + action);
@@ -192,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedMediaType, contentType.ToString());
 
             var actualResponseBody = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedResponseBody, actualResponseBody);
+            Assert.Equal(expectedResponseBody, actualResponseBody, ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -307,81 +323,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expectedBody, body);
         }
 
-        [Fact]
-        public async Task JsonResult_UsesDefaultContentTypes_IfNoneAreAddedExplicitly()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-            var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = "{\"MethodName\":\"ReturnJsonResult\"}";
-
-            // Act
-            var response = await client.GetAsync("http://localhost/JsonResult/ReturnJsonResult");
-
-            // Assert
-            Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedBody, body);
-        }
-
-        [Fact]
-        public async Task JsonResult_UsesExplicitContentTypeAndFormatter_IfAdded()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-            var expectedContentType = MediaTypeHeaderValue.Parse("application/custom-json;charset=utf-8");
-            var expectedBody = "{ MethodName = ReturnJsonResult_WithCustomMediaType }";
-
-            // Act
-            var response = await client.GetAsync("http://localhost/JsonResult/ReturnJsonResult_WithCustomMediaType");
-
-            // Assert
-            Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedBody, body);
-        }
-
-        [Fact]
-        public async Task JsonResult_UsesDefaultJsonFormatter_IfNoMatchingFormatterIsFound()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-            var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = "{\"MethodName\":\"ReturnJsonResult_WithCustomMediaType_NoFormatter\"}";
-
-            // Act
-            var response = await client.GetAsync("http://localhost/JsonResult/ReturnJsonResult_WithCustomMediaType_NoFormatter");
-
-            // Assert
-            Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedBody, body);
-        }
-
-        [Fact]
-        public async Task JsonFormatter_SupportedMediaType_DoesNotChangeAcrossRequests()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-            var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = "{\"MethodName\":\"ReturnJsonResult\"}";
-
-            for (int i = 0; i < 5; i++)
-            {
-                // Act and Assert
-                var response = await client.GetAsync("http://localhost/JsonResult/ReturnJsonResult");
-
-                Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
-                var body = await response.Content.ReadAsStringAsync();
-                Assert.Equal(expectedBody, body);
-            }
-        }
-
-        [Fact]
+        [ConditionalTheory]
+        // Mono issue - https://github.com/aspnet/External/issues/18
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task XmlFormatter_SupportedMediaType_DoesNotChangeAcrossRequests()
         {
             // Arrange

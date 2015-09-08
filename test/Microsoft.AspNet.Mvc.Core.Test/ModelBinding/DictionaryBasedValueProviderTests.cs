@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class DictionaryBasedValueProviderTests
     {
         [Fact]
-        public async Task GetValueProvider_ReturnsNull_WhenKeyIsNotFound()
+        public void GetValueProvider_ReturnsNull_WhenKeyIsNotFound()
         {
             // Arrange
             var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -21,14 +21,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await provider.GetValueAsync("not-test-key");
+            var result = provider.GetValue("not-test-key");
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ValueProviderResult.None, result);
         }
 
         [Fact]
-        public async Task GetValueProvider_ReturnsValue_IfKeyIsPresent()
+        public void GetValueProvider_ReturnsValue_IfKeyIsPresent()
         {
             // Arrange
             var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -38,14 +38,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await provider.GetValueAsync("test-key");
+            var result = provider.GetValue("test-key");
 
             // Assert
-            Assert.Equal("test-value", result.RawValue);
+            Assert.Equal("test-value", (string)result);
         }
 
         [Fact]
-        public async Task ContainsPrefixAsync_ReturnsNullValue_IfKeyIsPresent()
+        public void ContainsPrefix_ReturnsNullValue_IfKeyIsPresent()
         {
             // Arrange
             var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -55,19 +55,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await provider.GetValueAsync("test-key");
+            var result = provider.GetValue("test-key");
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Null(result.RawValue);
-            Assert.Null(result.AttemptedValue);
+            Assert.Equal(string.Empty, (string)result);
         }
 
         [Theory]
         [InlineData("foo")]
         [InlineData("bar")]
         [InlineData("bar.baz")]
-        public async Task ContainsPrefixAsync_ReturnsTrue_ForKnownPrefixes(string prefix)
+        public void ContainsPrefix_ReturnsTrue_ForKnownPrefixes(string prefix)
         {
             // Arrange
             var values = new Dictionary<string, object>
@@ -79,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var valueProvider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await valueProvider.ContainsPrefixAsync(prefix);
+            var result = valueProvider.ContainsPrefix(prefix);
 
             // Assert
             Assert.True(result);
@@ -88,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [Theory]
         [InlineData("bar", "1")]
         [InlineData("bar.baz", "2")]
-        public async Task GetValueAsync_ReturnsCorrectValue_ForKnownKeys(string prefix, string expectedValue)
+        public void GetValue_ReturnsCorrectValue_ForKnownKeys(string prefix, string expectedValue)
         {
             // Arrange
             var values = new Dictionary<string, object>
@@ -100,14 +98,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var valueProvider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await valueProvider.GetValueAsync(prefix);
+            var result = valueProvider.GetValue(prefix);
 
             // Assert
-            Assert.Equal(expectedValue, (string)result.AttemptedValue);
+            Assert.Equal(expectedValue, (string)result);
         }
 
         [Fact]
-        public async Task GetValueAsync_DoesNotReturnAValue_ForAKeyPrefix()
+        public void GetValue_DoesNotReturnAValue_ForAKeyPrefix()
         {
             // Arrange
             var values = new Dictionary<string, object>
@@ -118,14 +116,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var valueProvider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await valueProvider.GetValueAsync("bar");
+            var result = valueProvider.GetValue("bar");
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ValueProviderResult.None, result);
         }
 
         [Fact]
-        public async Task ContainsPrefixAsync_ReturnsFalse_IfKeyIsNotPresent()
+        public void ContainsPrefix_ReturnsFalse_IfKeyIsNotPresent()
         {
             // Arrange
             var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -135,14 +133,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await provider.ContainsPrefixAsync("not-test-key");
+            var result = provider.ContainsPrefix("not-test-key");
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public async Task ContainsPrefixAsync_ReturnsTrue_IfKeyIsPresent()
+        public void ContainsPrefix_ReturnsTrue_IfKeyIsPresent()
         {
             // Arrange
             var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -152,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var provider = new DictionaryBasedValueProvider(BindingSource.Query, values);
 
             // Act
-            var result = await provider.ContainsPrefixAsync("test-key");
+            var result = provider.ContainsPrefix("test-key");
 
             // Assert
             Assert.True(result);

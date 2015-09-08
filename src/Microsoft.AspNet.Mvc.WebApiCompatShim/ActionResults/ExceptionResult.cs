@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNet.Mvc.ActionResults;
 
 namespace System.Web.Http
 {
@@ -18,9 +19,6 @@ namespace System.Web.Http
         /// <param name="includeErrorDetail">
         /// <see langword="true"/> if the error should include exception messages; otherwise, <see langword="false"/>.
         /// </param>
-        /// <param name="contentNegotiator">The content negotiator to handle content negotiation.</param>
-        /// <param name="request">The request message which led to this result.</param>
-        /// <param name="formatters">The formatters to use to negotiate and format the content.</param>
         public ExceptionResult(Exception exception, bool includeErrorDetail)
             : base(new HttpError(exception, includeErrorDetail))
         {

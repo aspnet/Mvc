@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
@@ -37,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
             IInlineConstraintResolver constraintResolver,
             IModelMetadataProvider modelMetadataProvider)
         {
-            _outputFormatters = optionsAccessor.Options.OutputFormatters;
+            _outputFormatters = optionsAccessor.Value.OutputFormatters;
             _constraintResolver = constraintResolver;
             _modelMetadataProvider = modelMetadataProvider;
         }
@@ -275,7 +279,7 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
 
             foreach (var segment in parsedTemplate.Segments)
             {
-                var currentSegment = "";
+                var currentSegment = string.Empty;
                 foreach (var part in segment.Parts)
                 {
                     if (part.IsLiteral)
@@ -358,7 +362,7 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
             }
 
             // Unwrap the type if it's a Task<T>. The Task (non-generic) case was already handled.
-            var unwrappedType = TypeHelper.GetTaskInnerTypeOrNull(declaredReturnType) ?? declaredReturnType;
+            var unwrappedType = GetTaskInnerTypeOrNull(declaredReturnType) ?? declaredReturnType;
 
             // If the method is declared to return IActionResult or a derived class, that information
             // isn't valuable to the formatter.
@@ -370,6 +374,13 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
             {
                 return unwrappedType;
             }
+        }
+
+        private static Type GetTaskInnerTypeOrNull(Type type)
+        {
+            var genericType = ClosedGenericMatcher.ExtractGenericInterface(type, typeof(Task<>));
+
+            return genericType?.GenericTypeArguments[0];
         }
 
         private Type GetRuntimeReturnType(Type declaredReturnType, IApiResponseMetadataProvider[] metadataAttributes)
@@ -550,7 +561,7 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
                 //      public class OrderDTO
                 //      {
                 //          public int AccountId { get; set; }
-                //          
+                //
                 //          [FromBody]
                 //          public Order { get; set; }
                 //      }

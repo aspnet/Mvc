@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.Framework.DependencyInjection;
 
 namespace RoutingWebSite
@@ -14,9 +16,9 @@ namespace RoutingWebSite
     {
         private readonly ActionContext _actionContext;
 
-        public TestResponseGenerator(IScopedInstance<ActionContext> contextAccessor)
+        public TestResponseGenerator(IActionContextAccessor contextAccessor)
         {
-            _actionContext = contextAccessor.Value;
+            _actionContext = contextAccessor.ActionContext;
             if (_actionContext == null)
             {
                 throw new InvalidOperationException("ActionContext should not be null here.");

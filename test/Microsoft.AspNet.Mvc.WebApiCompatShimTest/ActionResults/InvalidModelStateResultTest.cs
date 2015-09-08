@@ -4,11 +4,14 @@
 #if DNX451
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Moq;
@@ -83,18 +86,12 @@ namespace System.Web.Http
             options.OutputFormatters.Add(new JsonOutputFormatter());
 
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
-            optionsAccessor.SetupGet(o => o.Options)
+            optionsAccessor.SetupGet(o => o.Value)
                 .Returns(options);
 
-            var mockActionBindingContext = new Mock<IScopedInstance<ActionBindingContext>>();
-
-            var bindingContext = new ActionBindingContext { OutputFormatters = options.OutputFormatters };
-            mockActionBindingContext
-                .SetupGet(o => o.Value)
-                .Returns(bindingContext);
-
-            services.Setup(o => o.GetService(typeof(IScopedInstance<ActionBindingContext>)))
-                    .Returns(mockActionBindingContext.Object);
+            var actionBindingContext = new ActionBindingContext { OutputFormatters = options.OutputFormatters };
+            services.Setup(o => o.GetService(typeof(IActionBindingContextAccessor)))
+                    .Returns(new ActionBindingContextAccessor() { ActionBindingContext = actionBindingContext });
 
             services.Setup(s => s.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor.Object);

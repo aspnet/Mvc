@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Routing;
@@ -35,11 +36,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var httpContext = GetHttpContext(updateRequest, updateOptions);
 
             var services = httpContext.RequestServices;
-            var actionBindingContext = services.GetRequiredService<IScopedInstance<ActionBindingContext>>().Value;
+            var actionBindingContext = services.GetRequiredService<IActionBindingContextAccessor>().ActionBindingContext;
 
             return new OperationBindingContext()
             {
-                BodyBindingState = BodyBindingState.NotBodyBased,
                 HttpContext = httpContext,
                 InputFormatters = actionBindingContext.InputFormatters,
                 MetadataProvider = TestModelMetadataProvider.CreateDefaultProvider(),
@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         public static IObjectModelValidator GetObjectValidator(MvcOptions options = null)
         {
-            options = options ?? new TestMvcOptions().Options;
+            options = options ?? new TestMvcOptions().Value;
             options.MaxModelValidationErrors = 5;
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             return new DefaultObjectValidator(
@@ -77,18 +77,18 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor());
 
             var actionContextAccessor =
-                httpContext.RequestServices.GetRequiredService<IScopedInstance<ActionContext>>();
-            actionContextAccessor.Value = actionContext;
+                httpContext.RequestServices.GetRequiredService<IActionContextAccessor>();
+            actionContextAccessor.ActionContext = actionContext;
 
-            var options = new TestMvcOptions().Options;
+            var options = new TestMvcOptions().Value;
             if (updateOptions != null)
             {
                 updateOptions(options);
             }
 
             var actionBindingContextAccessor =
-                httpContext.RequestServices.GetRequiredService<IScopedInstance<ActionBindingContext>>();
-            actionBindingContextAccessor.Value = GetActionBindingContext(options, actionContext);
+                httpContext.RequestServices.GetRequiredService<IActionBindingContextAccessor>();
+            actionBindingContextAccessor.ActionBindingContext = GetActionBindingContext(options, actionContext);
         }
 
         private static ActionBindingContext GetActionBindingContext(MvcOptions options, ActionContext actionContext)
@@ -97,9 +97,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 actionContext.HttpContext,
                 actionContext.RouteData.Values);
 
-            var valueProvider = CompositeValueProvider.Create(
+            var valueProvider = CompositeValueProvider.CreateAsync(
                 options.ValueProviderFactories,
-                valueProviderFactoryContext);
+                valueProviderFactoryContext).Result;
 
             return new ActionBindingContext()
             {

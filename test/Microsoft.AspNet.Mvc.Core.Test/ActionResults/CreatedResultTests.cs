@@ -5,6 +5,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Actions;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Logging;
@@ -12,7 +14,7 @@ using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ActionResults
 {
     public class CreatedResultTests
     {
@@ -53,7 +55,7 @@ namespace Microsoft.AspNet.Mvc
             var location = "/test/";
             var httpContext = GetHttpContext();
             var actionContext = GetActionContext(httpContext);
-            httpContext.Response.Headers.Set("Location", "/different/location/");
+            httpContext.Response.Headers["Location"] = "/different/location/";
             var result = new CreatedResult(location, "testInput");
 
             // Act
@@ -87,9 +89,9 @@ namespace Microsoft.AspNet.Mvc
                        .Returns(request);
             httpContext.Setup(o => o.Response)
                        .Returns(response);
-            var optionsAccessor = new MockMvcOptionsAccessor();
-            optionsAccessor.Options.OutputFormatters.Add(new StringOutputFormatter());
-            optionsAccessor.Options.OutputFormatters.Add(new JsonOutputFormatter());
+            var optionsAccessor = new TestOptionsManager<MvcOptions>();
+            optionsAccessor.Value.OutputFormatters.Add(new StringOutputFormatter());
+            optionsAccessor.Value.OutputFormatters.Add(new JsonOutputFormatter());
             httpContext
                 .Setup(p => p.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
@@ -97,13 +99,13 @@ namespace Microsoft.AspNet.Mvc
                 .Setup(p => p.RequestServices.GetService(typeof(ILogger<ObjectResult>)))
                 .Returns(new Mock<ILogger<ObjectResult>>().Object);
 
-            var mockActionBindingContext = new Mock<IScopedInstance<ActionBindingContext>>();
-            mockActionBindingContext
-                .SetupGet(o=> o.Value)
-                .Returns(new ActionBindingContext() { OutputFormatters = optionsAccessor.Options.OutputFormatters });
+            var actionBindingContext = new ActionBindingContext()
+            {
+                OutputFormatters = optionsAccessor.Value.OutputFormatters
+            };
             httpContext
-                .Setup(o => o.RequestServices.GetService(typeof(IScopedInstance<ActionBindingContext>)))
-                .Returns(mockActionBindingContext.Object);
+                .Setup(o => o.RequestServices.GetService(typeof(IActionBindingContextAccessor)))
+                .Returns(new ActionBindingContextAccessor() { ActionBindingContext = actionBindingContext });
 
             return httpContext.Object;
         }

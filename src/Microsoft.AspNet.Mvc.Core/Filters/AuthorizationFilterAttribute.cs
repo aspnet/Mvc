@@ -4,10 +4,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNet.Mvc.ActionResults;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public abstract class AuthorizationFilterAttribute :
@@ -15,12 +16,11 @@ namespace Microsoft.AspNet.Mvc
     {
         public int Order { get; set; }
 
-#pragma warning disable 1998
-        public virtual async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
+        public virtual Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
         {
             OnAuthorization(context);
+            return TaskCache.CompletedTask;
         }
-#pragma warning restore 1998
 
         public virtual void OnAuthorization([NotNull] AuthorizationContext context)
         {

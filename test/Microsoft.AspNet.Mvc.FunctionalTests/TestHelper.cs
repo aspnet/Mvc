@@ -8,8 +8,9 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.Infrastructure;
+using Microsoft.Dnx.Runtime;
+using Microsoft.Dnx.Runtime.Infrastructure;
+using Microsoft.AspNet.Mvc.Actions;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -144,7 +145,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Creates a service type that will limit MVC to only the controllers in the test site.
             // We only want this to happen when running in-process.
             var assembly = Assembly.Load(new AssemblyName(siteName));
-            var provider = new FixedSetAssemblyProvider
+            var provider = new StaticAssemblyProvider
             {
                 CandidateAssemblies =
                 {

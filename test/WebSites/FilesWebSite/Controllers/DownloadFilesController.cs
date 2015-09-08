@@ -4,7 +4,7 @@
 using System.IO;
 using System.Text;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.Runtime;
+using Microsoft.Dnx.Runtime;
 
 namespace FilesWebSite
 {
@@ -20,13 +20,13 @@ namespace FilesWebSite
         public IActionResult DowloadFromDisk()
         {
             var path = Path.Combine(_appEnvironment.ApplicationBasePath, "sample.txt");
-            return File(path, "text/plain");
+            return PhysicalFile(path, "text/plain");
         }
 
         public IActionResult DowloadFromDiskWithFileName()
         {
             var path = Path.Combine(_appEnvironment.ApplicationBasePath, "sample.txt");
-            return File(path, "text/plain", "downloadName.txt");
+            return PhysicalFile(path, "text/plain", "downloadName.txt");
         }
 
         public IActionResult DowloadFromStream()

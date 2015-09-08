@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+#if DNXCORE50
 using System.Reflection;
+#endif
 using System.Threading.Tasks;
+using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -13,30 +16,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         public async Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
-            var binderType = ResolveBinderType(bindingContext.ModelType);
+            var binderType = ResolveBinderType(bindingContext);
             if (binderType != null)
             {
                 var binder = (IModelBinder)Activator.CreateInstance(binderType);
-                var result = await binder.BindModelAsync(bindingContext);
 
-                var modelBindingResult = result != null ?
-                    new ModelBindingResult(result.Model, result.Key, result.IsModelSet, result.ValidationNode) :
-                    new ModelBindingResult(model: null, key: bindingContext.ModelName, isModelSet: false);
+                var collectionBinder = binder as ICollectionModelBinder;
+                if (collectionBinder != null &&
+                    bindingContext.Model == null &&
+                    !collectionBinder.CanCreateInstance(bindingContext.ModelType))
+                {
+                    // Able to resolve a binder type but need a new model instance and that binder cannot create it.
+                    return ModelBindingResult.NoResult;
+                }
+
+                var result = await binder.BindModelAsync(bindingContext);
+                var modelBindingResult = result != ModelBindingResult.NoResult ?
+                    result :
+                    ModelBindingResult.Failed(bindingContext.ModelName);
 
                 // Were able to resolve a binder type.
-                // Always tell the model binding system to skip other model binders i.e. return non-null.
+                // Always tell the model binding system to skip other model binders.
                 return modelBindingResult;
             }
 
-            return null;
+            return ModelBindingResult.NoResult;
         }
 
-        private static Type ResolveBinderType(Type modelType)
+        private static Type ResolveBinderType(ModelBindingContext context)
         {
+            var modelType = context.ModelType;
+
             return GetArrayBinder(modelType) ??
-                   GetCollectionBinder(modelType) ??
-                   GetDictionaryBinder(modelType) ??
-                   GetKeyValuePairBinder(modelType);
+                GetDictionaryBinder(modelType) ??
+                GetCollectionBinder(modelType) ??
+                GetEnumerableBinder(context) ??
+                GetKeyValuePairBinder(modelType);
         }
 
         private static Type GetArrayBinder(Type modelType)
@@ -46,64 +61,85 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 var elementType = modelType.GetElementType();
                 return typeof(ArrayModelBinder<>).MakeGenericType(elementType);
             }
+
             return null;
         }
 
         private static Type GetCollectionBinder(Type modelType)
         {
             return GetGenericBinderType(
-                        typeof(ICollection<>),
-                        typeof(List<>),
-                        typeof(CollectionModelBinder<>),
-                        modelType);
+                typeof(ICollection<>),
+                typeof(CollectionModelBinder<>),
+                modelType);
         }
 
         private static Type GetDictionaryBinder(Type modelType)
         {
             return GetGenericBinderType(
-                        typeof(IDictionary<,>),
-                        typeof(Dictionary<,>),
-                        typeof(DictionaryModelBinder<,>),
-                        modelType);
+                typeof(IDictionary<,>),
+                typeof(DictionaryModelBinder<,>),
+                modelType);
         }
 
-        private static Type GetKeyValuePairBinder(Type modelType)
+        private static Type GetEnumerableBinder(ModelBindingContext context)
         {
-            var modelTypeInfo = modelType.GetTypeInfo();
-            if (modelTypeInfo.IsGenericType &&
-                modelTypeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
-            {
-                return typeof(KeyValuePairModelBinder<,>).MakeGenericType(modelTypeInfo.GenericTypeArguments);
-            }
-
-            return null;
-        }
-
-        /// <remarks>
-        /// Example: <c>GetGenericBinderType(typeof(IList&lt;T&gt;), typeof(List&lt;T&gt;),
-        /// typeof(ListBinder&lt;T&gt;), ...)</c> means that the <c>ListBinder&lt;T&gt;</c> type can update models that
-        /// implement <see cref="IList{T}"/>, and if for some reason the existing model instance is not updatable the
-        /// binder will create a <see cref="List{T}"/> object and bind to that instead. This method will return
-        /// <c>ListBinder&lt;T&gt;</c> or <c>null</c>, depending on whether the type and updatability checks succeed.
-        /// </remarks>
-        private static Type GetGenericBinderType(Type supportedInterfaceType,
-                                                 Type newInstanceType,
-                                                 Type openBinderType,
-                                                 Type modelType)
-        {
-            Debug.Assert(supportedInterfaceType != null);
-            Debug.Assert(openBinderType != null);
-            Debug.Assert(modelType != null);
-
-            var modelTypeArguments = GetGenericBinderTypeArgs(supportedInterfaceType, modelType);
-
+            var modelTypeArguments = GetGenericBinderTypeArgs(typeof(IEnumerable<>), context.ModelType);
             if (modelTypeArguments == null)
             {
                 return null;
             }
 
-            var closedNewInstanceType = newInstanceType.MakeGenericType(modelTypeArguments);
-            if (!modelType.GetTypeInfo().IsAssignableFrom(closedNewInstanceType.GetTypeInfo()))
+            if (context.Model == null)
+            {
+                // GetCollectionBinder has already confirmed modelType is not compatible with ICollection<T>. Can a
+                // List<T> (the default CollectionModelBinder type) instance be used instead of that exact type?
+                // Likely this will succeed only if the property type is exactly IEnumerable<T>.
+                var closedListType = typeof(List<>).MakeGenericType(modelTypeArguments);
+                if (!context.ModelType.IsAssignableFrom(closedListType))
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                // A non-null instance must be updated in-place. For that the instance must also implement
+                // ICollection<T>. For example an IEnumerable<T> property may have a List<T> default value. Do not use
+                // IsAssignableFrom() because that does not handle explicit interface implementations and binders all
+                // perform explicit casts.
+                var closedGenericInterface =
+                    ClosedGenericMatcher.ExtractGenericInterface(context.Model.GetType(), typeof(ICollection<>));
+                if (closedGenericInterface == null)
+                {
+                    return null;
+                }
+            }
+
+            return typeof(CollectionModelBinder<>).MakeGenericType(modelTypeArguments);
+        }
+
+        private static Type GetKeyValuePairBinder(Type modelType)
+        {
+            Debug.Assert(modelType != null);
+
+            // Since KeyValuePair is a value type, ExtractGenericInterface() succeeds only on an exact match.
+            var closedGenericType = ClosedGenericMatcher.ExtractGenericInterface(modelType, typeof(KeyValuePair<,>));
+            if (closedGenericType != null)
+            {
+                return typeof(KeyValuePairModelBinder<,>).MakeGenericType(modelType.GenericTypeArguments);
+            }
+
+            return null;
+        }
+
+        // Example: GetGenericBinderType(typeof(IList<T>), typeof(ListBinder<T>), ...) means that the ListBinder<T>
+        // type can update models that implement IList<T>. This method will return
+        // ListBinder<T> or null, depending on whether the type checks succeed.
+        private static Type GetGenericBinderType(Type supportedInterfaceType, Type openBinderType, Type modelType)
+        {
+            Debug.Assert(openBinderType != null);
+
+            var modelTypeArguments = GetGenericBinderTypeArgs(supportedInterfaceType, modelType);
+            if (modelTypeArguments == null)
             {
                 return null;
             }
@@ -114,21 +150,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // Get the generic arguments for the binder, based on the model type. Or null if not compatible.
         private static Type[] GetGenericBinderTypeArgs(Type supportedInterfaceType, Type modelType)
         {
-            var modelTypeInfo = modelType.GetTypeInfo();
-            if (!modelTypeInfo.IsGenericType || modelTypeInfo.IsGenericTypeDefinition)
-            {
-                // not a closed generic type
-                return null;
-            }
+            Debug.Assert(supportedInterfaceType != null);
+            Debug.Assert(modelType != null);
 
-            var modelTypeArguments = modelTypeInfo.GenericTypeArguments;
-            if (modelTypeArguments.Length != supportedInterfaceType.GetTypeInfo().GenericTypeParameters.Length)
-            {
-                // wrong number of generic type arguments
-                return null;
-            }
+            var closedGenericInterface =
+                ClosedGenericMatcher.ExtractGenericInterface(modelType, supportedInterfaceType);
 
-            return modelTypeArguments;
+            return closedGenericInterface?.GenericTypeArguments;
         }
     }
 }
