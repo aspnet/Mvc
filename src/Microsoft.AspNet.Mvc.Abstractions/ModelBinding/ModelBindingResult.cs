@@ -76,20 +76,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return Task.FromResult(Success(key, model, validationNode));
         }
 
-        /// <summary>
-        /// Creates a new <see cref="ModelBindingResult"/> using the provided <paramref name="key"/>.
-        /// </summary>
-        /// <param name="key">The key of the current model binding operation.</param>
-        /// <param name="other">The other <see cref="ModelBindingResult" /> to copy from.</param>
-        public ModelBindingResult([NotNull] string key, ModelBindingResult other)
-        {
-            Key = key;
-
-            Model = other.Model;
-            IsModelSet = other.IsModelSet;
-            ValidationNode = other.ValidationNode;
-        }
-
         private ModelBindingResult(string key, object model, bool isModelSet, ModelValidationNode validationNode)
         {
             Key = key;
@@ -128,6 +114,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// A <see cref="ModelValidationNode"/> associated with the current <see cref="ModelBindingResult"/>.
         /// </summary>
         public ModelValidationNode ValidationNode { get; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            if (Key == null)
+            {
+                return "No Result";
+            }
+            else if (IsModelSet)
+            {
+                return $"Success: {Key} -> {Model}";
+            }
+            else
+            {
+                return $"Failed: {Key}";
+            }
+        }
 
         /// <inheritdoc />
         public override bool Equals(object obj)
