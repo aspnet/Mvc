@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Framework.Internal;
 
@@ -157,7 +156,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
             else if (IsModelSet)
             {
-                return $"Success {Key} -> {Model}";
+                return $"Success {Key} -> '{Model}'";
             }
             else
             {
