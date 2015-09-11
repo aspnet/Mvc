@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -32,11 +33,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="razorPage">The <see cref="IRazorPage"/> instance to execute.</param>
         /// <param name="isPartial">Determines if the view is to be executed as a partial.</param>
         /// pages</param>
-        public RazorView(IRazorViewEngine viewEngine,
-                         IRazorPageActivator pageActivator,
-                         IViewStartProvider viewStartProvider,
-                         IRazorPage razorPage,
-                         bool isPartial)
+        public RazorView(
+            IRazorViewEngine viewEngine,
+            IRazorPageActivator pageActivator,
+            IViewStartProvider viewStartProvider,
+            IRazorPage razorPage,
+            bool isPartial)
         {
             _viewEngine = viewEngine;
             _pageActivator = pageActivator;
@@ -77,9 +79,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             await RenderLayoutAsync(context, bodyWriter);
         }
 
-        private async Task<IBufferedTextWriter> RenderPageAsync(IRazorPage page,
-                                                                ViewContext context,
-                                                                bool executeViewStart)
+        private async Task<IBufferedTextWriter> RenderPageAsync(
+            IRazorPage page,
+            ViewContext context,
+            bool executeViewStart)
         {
             var razorTextWriter = new RazorTextWriter(context.Writer, context.Writer.Encoding);
             var writer = (TextWriter)razorTextWriter;
@@ -164,8 +167,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             RazorPage.Layout = layout;
         }
 
-        private async Task RenderLayoutAsync(ViewContext context,
-                                             IBufferedTextWriter bodyWriter)
+        private async Task RenderLayoutAsync(
+            ViewContext context,
+            IBufferedTextWriter bodyWriter)
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.
@@ -185,6 +189,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 var layoutPage = GetLayoutPage(context, previousPage.Layout);
+
+                if (renderedLayouts.Count > 0 &&
+                    renderedLayouts.Any(l => string.Equals(l.Path, layoutPage.Path, StringComparison.Ordinal)))
+                {
+                    // If the layout has been previously rendered as part of this view, we're potentially in a layout
+                    // rendering cycle.
+                    throw new InvalidOperationException(
+                        Resources.FormatLayoutHasCircularReference(previousPage.Path, layoutPage.Path));
+                }
 
                 // Notify the previous page that any writes that are performed on it are part of sections being written
                 // in the layout.

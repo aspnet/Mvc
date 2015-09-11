@@ -446,6 +446,22 @@ namespace Microsoft.AspNet.Mvc.Razor
             return string.Format(CultureInfo.CurrentCulture, GetString("CouldNotResolveApplicationRelativeUrl_TagHelper"), p0, p1, p2, p3, p4, p5);
         }
 
+        /// <summary>
+        /// Rendering the layout '{0}' specified by the page '{1}' might result in a cycle.
+        /// </summary>
+        internal static string LayoutHasCircularReference
+        {
+            get { return GetString("LayoutHasCircularReference"); }
+        }
+
+        /// <summary>
+        /// Rendering the layout '{0}' specified by the page '{1}' might result in a cycle.
+        /// </summary>
+        internal static string FormatLayoutHasCircularReference(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("LayoutHasCircularReference"), p0, p1);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
