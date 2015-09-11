@@ -112,8 +112,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 applicationPath);
             var environment = new TestApplicationEnvironment(
                 originalEnvironment,
-                applicationBasePath,
-                applicationWebSiteName);
+                applicationWebSiteName,
+                applicationBasePath);
             services.AddInstance<IApplicationEnvironment>(environment);
             var hostingEnvironment = new HostingEnvironment();
             hostingEnvironment.Initialize(applicationBasePath, environmentName: null);
