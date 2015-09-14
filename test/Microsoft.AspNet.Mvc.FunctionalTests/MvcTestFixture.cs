@@ -15,6 +15,8 @@ using Microsoft.AspNet.Testing;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Dnx.Runtime.Infrastructure;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Testing;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -25,21 +27,39 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public MvcTestFixture(object startupInstance)
         {
             var startupTypeInfo = startupInstance.GetType().GetTypeInfo();
-            var configureMethod = (Action<IApplicationBuilder>)startupTypeInfo
+            var configureApplication = (Action<IApplicationBuilder>)startupTypeInfo
                 .DeclaredMethods
-                .FirstOrDefault(m => m.Name == "Configure")
+                .FirstOrDefault(m => m.Name == "Configure" && m.GetParameters().Length == 1)
                 ?.CreateDelegate(typeof(Action<IApplicationBuilder>), startupInstance);
-            Debug.Assert(configureMethod != null);
+            if (configureApplication == null)
+            {
+                var configureWithLogger = (Action<IApplicationBuilder, ILoggerFactory>)startupTypeInfo
+                    .DeclaredMethods
+                    .FirstOrDefault(m => m.Name == "Configure" && m.GetParameters().Length == 2)
+                    ?.CreateDelegate(typeof(Action<IApplicationBuilder, ILoggerFactory>), startupInstance);
+                Debug.Assert(configureWithLogger != null);
+
+                configureApplication = application => configureWithLogger(application, NullLoggerFactory.Instance);
+            }
 
             var buildServices = (Func<IServiceCollection, IServiceProvider>)startupTypeInfo
                 .DeclaredMethods
                 .FirstOrDefault(m => m.Name == "ConfigureServices" && m.ReturnType == typeof(IServiceProvider))
                 ?.CreateDelegate(typeof(Func<IServiceCollection, IServiceProvider>), startupInstance);
-            var configureServices = (Action<IServiceCollection>)startupTypeInfo
-                .DeclaredMethods
-                .FirstOrDefault(m => m.Name == "ConfigureServices" && m.ReturnType == typeof(void))
-                ?.CreateDelegate(typeof(Action<IServiceCollection>), startupInstance);
-            Debug.Assert(buildServices != null || configureServices != null);
+            if (buildServices == null)
+            {
+                var configureServices = (Action<IServiceCollection>)startupTypeInfo
+                    .DeclaredMethods
+                    .FirstOrDefault(m => m.Name == "ConfigureServices" && m.ReturnType == typeof(void))
+                    ?.CreateDelegate(typeof(Action<IServiceCollection>), startupInstance);
+                Debug.Assert(configureServices != null);
+
+                buildServices = services =>
+                {
+                    configureServices(services);
+                    return services.BuildServiceProvider();
+                };
+            }
 
             // RequestLocalizationOptions saves the current culture when constructed, potentially changing response
             // localization i.e. RequestLocalizationMiddleware behavior. Ensure the saved culture
@@ -48,11 +68,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             {
                 _server = TestServer.Create(
                     CallContextServiceLocator.Locator.ServiceProvider,
-                    configureMethod,
-                    configureServices: InitializeServices(
-                        startupTypeInfo.Assembly,
-                        buildServices,
-                        configureServices));
+                    configureApplication,
+                    configureServices: InitializeServices(startupTypeInfo.Assembly, buildServices));
             }
 
             Client = _server.CreateClient();
@@ -73,8 +90,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         private Func<IServiceCollection, IServiceProvider> InitializeServices(
             Assembly startupAssembly,
-            Func<IServiceCollection, IServiceProvider> buildServices,
-            Action<IServiceCollection> configureServices)
+            Func<IServiceCollection, IServiceProvider> buildServices)
         {
             var applicationServices = CallContextServiceLocator.Locator.ServiceProvider;
             var libraryManager = applicationServices.GetRequiredService<ILibraryManager>();
@@ -106,16 +122,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 services.AddInstance<IAssemblyProvider>(assemblyProvider);
 
                 AddAdditionalServices(services);
-                if (buildServices == null)
-                {
-                    configureServices(services);
 
-                    return services.BuildServiceProvider();
-                }
-                else
-                {
-                    return buildServices(services);
-                }
+                return buildServices(services);
             };
         }
     }
