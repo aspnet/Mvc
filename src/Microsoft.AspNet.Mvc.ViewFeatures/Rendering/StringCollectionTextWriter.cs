@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.WebEncoders;
+using Microsoft.AspNet.Mvc.Razor;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
     /// This is primarily designed to avoid creating large in-memory strings.
     /// Refer to https://aspnetwebstack.codeplex.com/workitem/585 for more details.
     /// </remarks>
-    public class StringCollectionTextWriter : TextWriter
+    public class StringCollectionTextWriter : HtmlTextWriter
     {
         private const int MaxCharToStringLength = 1024;
         private static readonly Task _completedTask = Task.FromResult(0);
@@ -94,6 +95,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
 
             _content.Append(value);
+        }
+
+        /// <inheritdoc />
+        public override void Write(IHtmlContent content)
+        {
+            _content.Append(content);
         }
 
         /// <inheritdoc />
@@ -199,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
-        internal class StringCollectionTextWriterContent : IHtmlContent
+        private class StringCollectionTextWriterContent : IHtmlContent
         {
             private readonly List<object> _entries;
 
