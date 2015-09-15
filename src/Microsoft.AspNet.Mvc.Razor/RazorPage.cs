@@ -434,7 +434,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // an attribute value that may have been quoted with single quotes, must handle any double quotes
                     // in the value. Writing the value out surrounded by double quotes.
                     //
-                    // Do not combine following condition with check of escapeQuotes; converting an IHtmlContent to
+                    // Be careful combining IHtmlContent with escapeQuotes= = true converting an IHtmlContent to
                     // a string can be very expensive.
                     using (var stringWriter = new StringWriter())
                     {
@@ -636,9 +636,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                     WriteUnprefixedAttributeValueTo(valueBuffer, value);
                 }
 
-                var htmlString = new HtmlString(valueBuffer.ToString());
+                using (var stringWriter = new StringWriter())
+                {
+                    valueBuffer.Content.WriteTo(stringWriter, HtmlEncoder);
 
-                executionContext.AddHtmlAttribute(attributeName, htmlString);
+                    var htmlString = new HtmlString(stringWriter.ToString());
+                    executionContext.AddHtmlAttribute(attributeName, htmlString);
+                }
             }
         }
 

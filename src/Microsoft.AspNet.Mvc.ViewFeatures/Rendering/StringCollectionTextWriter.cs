@@ -10,11 +10,13 @@ using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.WebEncoders;
 using Microsoft.AspNet.Mvc.Razor;
+using System.Diagnostics;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
-    /// A <see cref="TextWriter"/> that represents individual write operations as a sequence of strings.
+    /// A <see cref="HtmlTextWriter"/> that represents individual write operations as a sequence of
+    /// <see cref="string"/> and <see cref="IHtmlContent"/> instances.
     /// </summary>
     /// <remarks>
     /// This is primarily designed to avoid creating large in-memory strings.
@@ -98,9 +100,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <inheritdoc />
-        public override void Write(IHtmlContent content)
+        public override void Write(IHtmlContent value)
         {
-            _content.Append(content);
+            _content.Append(value);
         }
 
         /// <inheritdoc />
@@ -196,16 +198,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return _completedTask;
         }
 
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            using (var writer = new StringWriter())
-            {
-                Content.WriteTo(writer, HtmlEncoder.Default);
-                return writer.ToString();
-            }
-        }
-
+        [DebuggerDisplay("{DebuggerToString()}")]
         private class StringCollectionTextWriterContent : IHtmlContent
         {
             private readonly List<object> _entries;
@@ -243,6 +236,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
                     {
                         ((IHtmlContent)item).WriteTo(writer, encoder);
                     }
+                }
+            }
+
+            private string DebuggerToString()
+            {
+                using (var writer = new StringWriter())
+                {
+                    WriteTo(writer, HtmlEncoder.Default);
+                    return writer.ToString();
                 }
             }
         }

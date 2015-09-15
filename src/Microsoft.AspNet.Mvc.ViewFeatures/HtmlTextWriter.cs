@@ -6,9 +6,16 @@ using Microsoft.AspNet.Html.Abstractions;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
+    /// <summary>
+    /// A <see cref="TextWriter"/> which supports special processing of <see cref="IHtmlContent"/>.
+    /// </summary>
     public abstract class HtmlTextWriter : TextWriter
     {
-        public abstract void Write(IHtmlContent content);
+        /// <summary>
+        /// Writes an <see cref="IHtmlContent"/> value.
+        /// </summary>
+        /// <param name="value">The <see cref="IHtmlContent"/> value.</param>
+        public abstract void Write(IHtmlContent value);
 
         /// <inheritdoc />
         public override void Write(object value)

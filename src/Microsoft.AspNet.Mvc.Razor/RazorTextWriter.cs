@@ -88,17 +88,17 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        /// <inheritdoct />
-        public override void Write(IHtmlContent content)
+        /// <inheritdoc />
+        public override void Write(IHtmlContent value)
         {
             var htmlTextWriter = TargetWriter as HtmlTextWriter;
             if (htmlTextWriter == null)
             {
-                content.WriteTo(TargetWriter, HtmlEncoder);
+                value.WriteTo(TargetWriter, HtmlEncoder);
             }
             else
             {
-                htmlTextWriter.Write(content);
+                htmlTextWriter.Write(value);
             }
         }
 
