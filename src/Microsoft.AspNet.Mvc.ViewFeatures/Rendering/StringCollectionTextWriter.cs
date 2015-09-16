@@ -3,19 +3,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.WebEncoders;
-using Microsoft.AspNet.Mvc.Razor;
-using System.Diagnostics;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
-    /// A <see cref="HtmlTextWriter"/> that represents individual write operations as a sequence of
+    /// A <see cref="HtmlTextWriter"/> that stores individual write operations as a sequence of
     /// <see cref="string"/> and <see cref="IHtmlContent"/> instances.
     /// </summary>
     /// <remarks>

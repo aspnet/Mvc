@@ -434,8 +434,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // an attribute value that may have been quoted with single quotes, must handle any double quotes
                     // in the value. Writing the value out surrounded by double quotes.
                     //
-                    // Be careful combining IHtmlContent with escapeQuotes= = true converting an IHtmlContent to
-                    // a string can be very expensive.
+                    // This is really not optimal from a perf point of view, but it's the best we can do for right now.
                     using (var stringWriter = new StringWriter())
                     {
                         htmlContent.WriteTo(stringWriter, encoder);

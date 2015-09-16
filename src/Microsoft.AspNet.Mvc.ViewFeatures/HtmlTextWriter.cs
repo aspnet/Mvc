@@ -4,7 +4,7 @@
 using System.IO;
 using Microsoft.AspNet.Html.Abstractions;
 
-namespace Microsoft.AspNet.Mvc.Razor
+namespace Microsoft.AspNet.Mvc.ViewFeatures
 {
     /// <summary>
     /// A <see cref="TextWriter"/> which supports special processing of <see cref="IHtmlContent"/>.
