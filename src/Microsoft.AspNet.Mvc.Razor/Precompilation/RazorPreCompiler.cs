@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
 {
     public class RazorPreCompiler
     {
-        private const string PathSeparator = "/";
+        private const string CacheKeyDirectorySeparator = "/";
 
         public RazorPreCompiler(
             [NotNull] BeforeCompileContext compileContext,
@@ -297,7 +297,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Precompilation
         {
             // We use string.Join instead of Path.Combine here to ensure that the path
             // separator we produce matches the one used by the CompilerCache.
-            return string.Join(PathSeparator, root, name);
+            return string.Join(CacheKeyDirectorySeparator, root, name);
         }
 
         private class PrecompileRazorFileInfoCollection : RazorFileInfoCollection

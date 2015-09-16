@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -19,9 +20,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private readonly IFileProvider _fileProvider;
         private readonly IMemoryCache _cache;
 
-        private readonly object _cacheKeyLookupLock = new object();
-        private readonly Dictionary<string, string> _normalizedPathLookup =
-            new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, string> _normalizedPathLookup =
+            new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Initializes a new instance of <see cref="CompilerCache"/>.
@@ -58,6 +58,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             [NotNull] Func<RelativeFileInfo, CompilationResult> compile)
         {
             CompilerCacheResult cacheResult;
+            // Attempt to lookup the cache entry using the passed in path. This will succeed if the path is already
+            // normalized and a cache entry exists.
             if (!_cache.TryGetValue(relativePath, out cacheResult))
             {
                 var normalizedPath = GetNormalizedPath(relativePath);
@@ -71,11 +73,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         }
 
         private CompilerCacheResult CreateCacheEntry(
-            string relativePath,
+            string normalizedPath,
             Func<RelativeFileInfo, CompilationResult> compile)
         {
             CompilerCacheResult cacheResult;
-            var fileInfo = _fileProvider.GetFileInfo(relativePath);
+            var fileInfo = _fileProvider.GetFileInfo(normalizedPath);
             MemoryCacheEntryOptions cacheEntryOptions;
             CompilerCacheResult cacheResultToCache;
             if (!fileInfo.Exists)
@@ -84,13 +86,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 cacheResult = CompilerCacheResult.FileNotFound;
 
                 cacheEntryOptions = new MemoryCacheEntryOptions();
-                cacheEntryOptions.AddExpirationTrigger(_fileProvider.Watch(relativePath));
+                cacheEntryOptions.AddExpirationTrigger(_fileProvider.Watch(normalizedPath));
             }
             else
             {
-                var relativeFileInfo = new RelativeFileInfo(fileInfo, relativePath);
+                var relativeFileInfo = new RelativeFileInfo(fileInfo, normalizedPath);
                 var compilationResult = compile(relativeFileInfo).EnsureSuccessful();
-                cacheEntryOptions = GetMemoryCacheEntryOptions(relativePath);
+                cacheEntryOptions = GetMemoryCacheEntryOptions(normalizedPath);
 
                 // By default the CompilationResult returned by IRoslynCompiler is an instance of
                 // UncachedCompilationResult. This type has the generated code as a string property and do not want
@@ -100,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 cacheResult = new CompilerCacheResult(compilationResult);
             }
 
-            _cache.Set(relativePath, cacheResultToCache, cacheEntryOptions);
+            _cache.Set(normalizedPath, cacheResultToCache, cacheEntryOptions);
             return cacheResult;
         }
 
@@ -126,23 +128,20 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 return relativePath;
             }
 
-            lock (_cacheKeyLookupLock)
+            string normalizedPath;
+            if (!_normalizedPathLookup.TryGetValue(relativePath, out normalizedPath))
             {
-                string normalizedPath;
-                if (!_normalizedPathLookup.TryGetValue(relativePath, out normalizedPath))
+                var builder = new StringBuilder(relativePath);
+                builder.Replace('\\', '/');
+                if (builder[0] != '/')
                 {
-                    var builder = new StringBuilder(relativePath);
-                    builder.Replace('\\', '/');
-                    if (builder[0] != '/')
-                    {
-                        builder.Insert(0, '/');
-                    }
-                    normalizedPath = builder.ToString();
-                    _normalizedPathLookup[relativePath] = normalizedPath;
+                    builder.Insert(0, '/');
                 }
-
-                return normalizedPath;
+                normalizedPath = builder.ToString();
+                _normalizedPathLookup.TryAdd(relativePath, normalizedPath);
             }
+
+            return normalizedPath;
         }
     }
 }
