@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.ActionResults
         }
 
         [Fact]
-        public void RedirectToRoute_Execute_ThrowsOnNullUrl()
+        public async Task RedirectToRoute_Execute_ThrowsOnNullUrl()
         {
             // Arrange
             var httpContext = new Mock<HttpContext>();
@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.ActionResults
             };
 
             // Act & Assert
-            ExceptionAssert.ThrowsAsync<InvalidOperationException>(
+            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
                 async () =>
                 {
                     await result.ExecuteResultAsync(actionContext);
