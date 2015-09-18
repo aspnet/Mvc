@@ -6,25 +6,26 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
-    /// Reads an object from the request body.
+    /// Reads an <c>object</c> from the request body.
     /// </summary>
     public interface IInputFormatter
     {
         /// <summary>
-        /// Determines whether this <see cref="IInputFormatter"/> can de-serialize
-        /// an object of the specified type.
+        /// Determines whether this <see cref="IInputFormatter"/> can deserialize an <c>object</c> of the
+        /// <paramref name="context"/>'s <see cref="InputFormatterContext.ModelType"/>.
         /// </summary>
-        /// <param name="context">Input formatter context associated with this call.</param>
-        /// <returns>True if this <see cref="IInputFormatter"/> supports the passed in
-        /// request's content-type and is able to de-serialize the request body.
-        /// False otherwise.</returns>
+        /// <param name="context">The <see cref="InputFormatterContext"/>.</param>
+        /// <returns>
+        /// <c>true</c> if this <see cref="IInputFormatter"/> can deserialize an <c>object</c> of the
+        /// <paramref name="context"/>'s <see cref="InputFormatterContext.ModelType"/>. <c>false</c> otherwise.
+        /// </returns>
         bool CanRead(InputFormatterContext context);
 
         /// <summary>
-        /// Called during deserialization to read an object from the request.
+        /// Reads an <c>object</c> from the request body.
         /// </summary>
-        /// <param name="context">Input formatter context associated with this call.</param>
-        /// <returns>A task that deserializes the request body.</returns>
-        Task<object> ReadAsync(InputFormatterContext context);
+        /// <param name="context">The <see cref="InputFormatterContext"/>.</param>
+        /// <returns>A task that on completion deserializes the request body.</returns>
+        Task<InputFormatterResult> ReadAsync(InputFormatterContext context);
     }
 }

@@ -49,16 +49,21 @@ namespace Microsoft.AspNet.Mvc.Formatters
         }
 
         /// <inheritdoc />
-        public override Task<object> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
+        public override Task<InputFormatterResult> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
         {
             var type = context.ModelType;
             var request = context.HttpContext.Request;
-            MediaTypeHeaderValue requestContentType = null;
+
+            MediaTypeHeaderValue requestContentType;
             MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
 
-            // Get the character encoding for the content
-            // Never non-null since SelectCharacterEncoding() throws in error / not found scenarios
+            // Get the character encoding for the content.
             var effectiveEncoding = SelectCharacterEncoding(requestContentType);
+            if (effectiveEncoding == null)
+            {
+                context.ModelState.TryAddModelError(context.ModelName, GetNoEncodingMessage());
+                return InputFormatterResult.FailedAsync();
+            }
 
             using (var jsonReader = CreateJsonReader(context, request.Body, effectiveEncoding))
             {
@@ -66,31 +71,53 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
                 var jsonSerializer = CreateJsonSerializer();
 
-                EventHandler<Newtonsoft.Json.Serialization.ErrorEventArgs> errorHandler = null;
-                errorHandler = (sender, e) =>
+                var successful = true;
+                EventHandler<Newtonsoft.Json.Serialization.ErrorEventArgs> errorHandler = (sender, e) =>
                 {
+                    successful = false;
+
                     var exception = e.ErrorContext.Error;
-                    context.ModelState.TryAddModelError(e.ErrorContext.Path, e.ErrorContext.Error);
+
+                    // Handle path combinations such as "" + "Property", "Parent" + "Property", or "Parent" + "[12]".
+                    var key = e.ErrorContext.Path;
+                    if (!string.IsNullOrEmpty(context.ModelName))
+                    {
+                        if (string.IsNullOrEmpty(e.ErrorContext.Path) || e.ErrorContext.Path[0] == '[')
+                        {
+                            key = context.ModelName + e.ErrorContext.Path;
+                        }
+                        else
+                        {
+                            key = context.ModelName + "." + e.ErrorContext.Path;
+                        }
+                    }
+
+                    context.ModelState.TryAddModelError(key, e.ErrorContext.Error);
 
                     // Error must always be marked as handled
                     // Failure to do so can cause the exception to be rethrown at every recursive level and
                     // overflow the stack for x64 CLR processes
                     e.ErrorContext.Handled = true;
                 };
-                jsonSerializer.Error += errorHandler;
 
+                object model;
+                jsonSerializer.Error += errorHandler;
                 try
                 {
-                    return Task.FromResult(jsonSerializer.Deserialize(jsonReader, type));
+                    model = jsonSerializer.Deserialize(jsonReader, type);
                 }
                 finally
                 {
                     // Clean up the error handler in case CreateJsonSerializer() reuses a serializer
-                    if (errorHandler != null)
-                    {
-                        jsonSerializer.Error -= errorHandler;
-                    }
+                    jsonSerializer.Error -= errorHandler;
                 }
+
+                if (successful)
+                {
+                    return InputFormatterResult.SuccessfulAsync(model);
+                }
+
+                return InputFormatterResult.FailedAsync();
             }
         }
 
