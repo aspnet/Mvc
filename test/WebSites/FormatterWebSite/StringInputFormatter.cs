@@ -22,20 +22,17 @@ namespace FormatterWebSite
 
         public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
-            var request = context.HttpContext.Request;
-            MediaTypeHeaderValue requestContentType = null;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
-            var effectiveEncoding = SelectCharacterEncoding(requestContentType);
+            var effectiveEncoding = SelectCharacterEncoding(context);
             if (effectiveEncoding == null)
             {
-                context.ModelState.TryAddModelError(context.ModelName, GetNoEncodingMessage());
-                return InputFormatterResult.FailedAsync();
+                return InputFormatterResult.FailureAsync();
             }
 
+            var request = context.HttpContext.Request;
             using (var reader = new StreamReader(request.Body, effectiveEncoding))
             {
                 var stringContent = reader.ReadToEnd();
-                return InputFormatterResult.SuccessfulAsync(stringContent);
+                return InputFormatterResult.SuccessAsync(stringContent);
             }
         }
     }

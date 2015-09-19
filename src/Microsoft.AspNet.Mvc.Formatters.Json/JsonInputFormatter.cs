@@ -51,57 +51,56 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// <inheritdoc />
         public override Task<InputFormatterResult> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
         {
-            var type = context.ModelType;
-            var request = context.HttpContext.Request;
-
-            MediaTypeHeaderValue requestContentType;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
-
             // Get the character encoding for the content.
-            var effectiveEncoding = SelectCharacterEncoding(requestContentType);
+            var effectiveEncoding = SelectCharacterEncoding(context);
             if (effectiveEncoding == null)
             {
-                context.ModelState.TryAddModelError(context.ModelName, GetNoEncodingMessage());
-                return InputFormatterResult.FailedAsync();
+                return InputFormatterResult.FailureAsync();
             }
 
+            var request = context.HttpContext.Request;
             using (var jsonReader = CreateJsonReader(context, request.Body, effectiveEncoding))
             {
                 jsonReader.CloseInput = false;
 
-                var jsonSerializer = CreateJsonSerializer();
-
                 var successful = true;
-                EventHandler<Newtonsoft.Json.Serialization.ErrorEventArgs> errorHandler = (sender, e) =>
+                EventHandler<Newtonsoft.Json.Serialization.ErrorEventArgs> errorHandler = (sender, eventArgs) =>
                 {
                     successful = false;
 
-                    var exception = e.ErrorContext.Error;
+                    var exception = eventArgs.ErrorContext.Error;
 
                     // Handle path combinations such as "" + "Property", "Parent" + "Property", or "Parent" + "[12]".
-                    var key = e.ErrorContext.Path;
+                    var key = eventArgs.ErrorContext.Path;
                     if (!string.IsNullOrEmpty(context.ModelName))
                     {
-                        if (string.IsNullOrEmpty(e.ErrorContext.Path) || e.ErrorContext.Path[0] == '[')
+                        if (string.IsNullOrEmpty(eventArgs.ErrorContext.Path))
                         {
-                            key = context.ModelName + e.ErrorContext.Path;
+                            key = context.ModelName;
+                        }
+                        else if (eventArgs.ErrorContext.Path[0] == '[')
+                        {
+                            key = context.ModelName + eventArgs.ErrorContext.Path;
                         }
                         else
                         {
-                            key = context.ModelName + "." + e.ErrorContext.Path;
+                            key = context.ModelName + "." + eventArgs.ErrorContext.Path;
                         }
                     }
 
-                    context.ModelState.TryAddModelError(key, e.ErrorContext.Error);
+                    context.ModelState.TryAddModelError(key, eventArgs.ErrorContext.Error);
 
                     // Error must always be marked as handled
                     // Failure to do so can cause the exception to be rethrown at every recursive level and
                     // overflow the stack for x64 CLR processes
-                    e.ErrorContext.Handled = true;
+                    eventArgs.ErrorContext.Handled = true;
                 };
 
-                object model;
+                var type = context.ModelType;
+                var jsonSerializer = CreateJsonSerializer();
                 jsonSerializer.Error += errorHandler;
+
+                object model;
                 try
                 {
                     model = jsonSerializer.Deserialize(jsonReader, type);
@@ -114,10 +113,10 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
                 if (successful)
                 {
-                    return InputFormatterResult.SuccessfulAsync(model);
+                    return InputFormatterResult.SuccessAsync(model);
                 }
 
-                return InputFormatterResult.FailedAsync();
+                return InputFormatterResult.FailureAsync();
             }
         }
 

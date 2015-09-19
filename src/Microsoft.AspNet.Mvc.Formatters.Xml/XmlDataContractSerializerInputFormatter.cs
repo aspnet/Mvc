@@ -89,17 +89,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// <inheritdoc />
         public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
-            var request = context.HttpContext.Request;
-
-            MediaTypeHeaderValue requestContentType;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
-            var effectiveEncoding = SelectCharacterEncoding(requestContentType);
+            var effectiveEncoding = SelectCharacterEncoding(context);
             if (effectiveEncoding == null)
             {
-                context.ModelState.TryAddModelError(context.ModelName, GetNoEncodingMessage());
-                return InputFormatterResult.FailedAsync();
+                return InputFormatterResult.FailureAsync();
             }
 
+            var request = context.HttpContext.Request;
             using (var xmlReader = CreateXmlReader(new NonDisposableStream(request.Body), effectiveEncoding))
             {
                 var type = GetSerializableType(context.ModelType);
@@ -117,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
                     }
                 }
 
-                return InputFormatterResult.SuccessfulAsync(deserializedObject);
+                return InputFormatterResult.SuccessAsync(deserializedObject);
             }
         }
 

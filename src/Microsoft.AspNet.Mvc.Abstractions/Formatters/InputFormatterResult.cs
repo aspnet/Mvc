@@ -10,8 +10,8 @@ namespace Microsoft.AspNet.Mvc.Formatters
     /// </summary>
     public class InputFormatterResult
     {
-        private static readonly InputFormatterResult _failed = new InputFormatterResult();
-        private static readonly Task<InputFormatterResult> _failedAsync = Task.FromResult(_failed);
+        private static readonly InputFormatterResult _failure = new InputFormatterResult();
+        private static readonly Task<InputFormatterResult> _failureAsync = Task.FromResult(_failure);
 
         private InputFormatterResult()
         {
@@ -44,9 +44,9 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// An <see cref="InputFormatterResult"/> indicating the <see cref="IInputFormatter.ReadAsync"/>
         /// operation failed i.e. with <see cref="HasError"/> <c>true</c>.
         /// </returns>
-        public static InputFormatterResult Failed()
+        public static InputFormatterResult Failure()
         {
-            return _failed;
+            return _failure;
         }
 
         /// <summary>
@@ -57,9 +57,9 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// A <see cref="Task"/> that on completion provides an <see cref="InputFormatterResult"/> indicating the
         /// <see cref="IInputFormatter.ReadAsync"/> operation failed i.e. with <see cref="HasError"/> <c>true</c>.
         /// </returns>
-        public static Task<InputFormatterResult> FailedAsync()
+        public static Task<InputFormatterResult> FailureAsync()
         {
-            return _failedAsync;
+            return _failureAsync;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// An <see cref="InputFormatterResult"/> indicating the <see cref="IInputFormatter.ReadAsync"/>
         /// operation succeeded i.e. with <see cref="HasError"/> <c>false</c>.
         /// </returns>
-        public static InputFormatterResult Successful(object model)
+        public static InputFormatterResult Success(object model)
         {
             return new InputFormatterResult(model);
         }
@@ -85,9 +85,9 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// A <see cref="Task"/> that on completion provides an <see cref="InputFormatterResult"/> indicating the
         /// <see cref="IInputFormatter.ReadAsync"/> operation succeeded i.e. with <see cref="HasError"/> <c>false</c>.
         /// </returns>
-        public static Task<InputFormatterResult> SuccessfulAsync(object model)
+        public static Task<InputFormatterResult> SuccessAsync(object model)
         {
-            return Task.FromResult(Successful(model));
+            return Task.FromResult(Success(model));
         }
     }
 }

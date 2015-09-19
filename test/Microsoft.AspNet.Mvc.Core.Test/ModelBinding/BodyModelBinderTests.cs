@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 .Returns(true)
                 .Verifiable();
             mockInputFormatter.Setup(o => o.ReadAsync(It.IsAny<InputFormatterContext>()))
-                              .Returns(InputFormatterResult.SuccessfulAsync(new Person()))
+                              .Returns(InputFormatterResult.SuccessAsync(new Person()))
                               .Verifiable();
             var inputFormatter = mockInputFormatter.Object;
 
@@ -327,7 +327,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             public Task<InputFormatterResult> ReadAsync(InputFormatterContext context)
             {
-                return InputFormatterResult.SuccessfulAsync(this);
+                return InputFormatterResult.SuccessAsync(this);
             }
         }
     }

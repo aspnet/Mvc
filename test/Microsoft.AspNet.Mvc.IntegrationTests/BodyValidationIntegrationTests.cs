@@ -164,6 +164,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         {
             public int Number { get; set; }
 
+            // Required attribute does not cause an error in test scenarios. JSON deserializer ok w/ missing data.
             [Required]
             public int RequiredNumber { get; set; }
         }
@@ -209,6 +210,60 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.Value.AttemptedValue);
             Assert.Same(boundPerson.Address, entry.Value.RawValue);
             Assert.Empty(entry.Value.Errors);
+        }
+
+        [Fact]
+        public async Task FromBodyWithInvalidPropertyData_JsonFormatterAddsModelError()
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "Parameter1",
+                BindingInfo = new BindingInfo
+                {
+                    BinderModelName = "CustomParameter",
+                },
+                ParameterType = typeof(Person5)
+            };
+
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+                request =>
+                {
+                    request.Body = new MemoryStream(Encoding.UTF8.GetBytes("{ \"Number\": \"not a number\" }"));
+                    request.ContentType = "application/json";
+                });
+
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var boundPerson = Assert.IsType<Person5>(modelBindingResult.Model);
+            Assert.Null(boundPerson.Address);
+
+            Assert.False(modelState.IsValid);
+            Assert.Equal(2, modelState.Count);
+            Assert.Equal(1, modelState.ErrorCount);
+
+            var state = modelState["CustomParameter.Address"];
+            Assert.NotNull(state);
+            Assert.Null(state.AttemptedValue);
+            Assert.Null(state.RawValue);
+            Assert.Empty(state.Errors);
+
+            state = modelState["CustomParameter.Address.Number"];
+            Assert.NotNull(state);
+            Assert.Null(state.AttemptedValue);
+            Assert.Null(state.RawValue);
+            var error = Assert.Single(state.Errors);
+            Assert.NotNull(error.Exception);
+
+            // Json.NET currently throws an Exception with a Message starting with "Could not convert string to
+            // integer: not a number." but do not tie test to a particular Json.NET build.
+            Assert.NotEmpty(error.Exception.Message);
         }
 
         private class Person2
