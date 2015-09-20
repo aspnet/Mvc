@@ -13,6 +13,7 @@ using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Dnx.Compilation;
 using Microsoft.Dnx.Compilation.CSharp;
@@ -90,10 +91,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             var compilationOptions = compilationSettings.CompilationOptions
                                                         .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
-            var compilation = CSharpCompilation.Create(assemblyName,
-                        options: compilationOptions,
-                        syntaxTrees: new[] { syntaxTree },
-                        references: references);
+            var compilation = CSharpCompilation.Create(
+                assemblyName,
+                options: compilationOptions,
+                syntaxTrees: new[] { syntaxTree },
+                references: references);
+
+            compilation = Rewrite(compilation);
 
             using (var ms = new MemoryStream())
             {
@@ -138,6 +142,24 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                     return UncachedCompilationResult.Successful(type, compilationContent);
                 }
             }
+        }
+
+        private CSharpCompilation Rewrite(CSharpCompilation compilation)
+        {
+            var rewrittenTrees = new List<SyntaxTree>();
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+                var walker = new WalkerTexasRanger(semanticModel);
+                walker.Visit(tree.GetRoot());
+
+                var sidekick = new JamesTrivette(semanticModel, walker.Expressions);
+                var rewrittenNode = (CSharpSyntaxNode)sidekick.Visit(tree.GetRoot());
+
+                rewrittenTrees.Add(tree.WithRootAndOptions(rewrittenNode, tree.Options));
+            }
+
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(rewrittenTrees);
         }
 
         // Internal for unit testing
@@ -299,6 +321,157 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             }
 
             return null;
+        }
+
+        public class WalkerTexasRanger : CSharpSyntaxWalker
+        {
+            public WalkerTexasRanger(SemanticModel semanticModel)
+            {
+                SemanticModel = semanticModel;
+            }
+
+            private SemanticModel SemanticModel { get; }
+
+            public List<SimpleLambdaExpressionSyntax> Expressions { get; } = new List<SimpleLambdaExpressionSyntax>();
+
+            public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+            {
+                var type = SemanticModel.GetTypeInfo(node);
+                if (type.ConvertedType.Name != "Expression" && type.ConvertedType.ContainingAssembly.Name != "System.Core")
+                {
+                    return;
+                }
+
+                if (!node.Parent.IsKind(SyntaxKind.Argument))
+                {
+                    return;
+                }
+
+                var parameter = node.Parameter;
+                if (IsValidForHoisting(parameter, node.Body))
+                {
+                    Expressions.Add(node);
+                }
+            }
+
+            private bool IsValidForHoisting(ParameterSyntax parameter, CSharpSyntaxNode node)
+            {
+                if (node.IsKind(SyntaxKind.IdentifierName))
+                {
+                    var identifier = (IdentifierNameSyntax)node;
+                    if (identifier.Identifier.Text == parameter.Identifier.Text)
+                    {
+                        return true;
+                    }
+                }
+                else if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    var memberAccess = (MemberAccessExpressionSyntax)node;
+                    var lhs = memberAccess.Expression;
+                    return IsValidForHoisting(parameter, lhs);
+                }
+
+                return false;
+            }
+        }
+
+        public class JamesTrivette : CSharpSyntaxRewriter
+        {
+            public JamesTrivette(SemanticModel semanticModel, IList<SimpleLambdaExpressionSyntax> expressions)
+            {
+                SemanticModel = semanticModel;
+                Expressions = expressions;
+            }
+
+            public IList<SimpleLambdaExpressionSyntax> Expressions { get; }
+
+            public SemanticModel SemanticModel { get; }
+
+            public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
+            {
+                var i = 0;
+                var memberDeclaractions = new List<MemberDeclarationSyntax>();
+                foreach (var expression in Expressions)
+                {
+                    var typeName = SemanticModel.GetTypeInfo(expression).ConvertedType.ToDisplayString();
+                    var declaration = SyntaxFactory.FieldDeclaration(
+                        SyntaxFactory.List<AttributeListSyntax>(),
+                        SyntaxFactory.TokenList(
+                            SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                            SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                            SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.ParseTypeName(typeName),
+                            SyntaxFactory.SingletonSeparatedList<VariableDeclaratorSyntax>(
+                                SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier($"__Razor_ExpressionHoist_{i++}"),
+                                    SyntaxFactory.BracketedArgumentList(),
+                                    SyntaxFactory.EqualsValueClause(expression)))))
+                        .WithTriviaFrom(expression);
+                    memberDeclaractions.Add(declaration);
+                }
+
+                var classDeclaration = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
+                return classDeclaration.AddMembers(memberDeclaractions.ToArray());
+            }
+
+            public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
+            {
+                var shouldRewrite = false;
+                for (var i = 0; i < node.Arguments.Count && !shouldRewrite; i++)
+                {
+                    var argument = node.Arguments[i];
+                    if (!argument.Expression.IsKind(SyntaxKind.SimpleLambdaExpression))
+                    {
+                        continue;
+                    }
+
+                    for (var j = 0; j < Expressions.Count; j++)
+                    {
+                        if (argument.Expression == Expressions[j])
+                        {
+                            shouldRewrite = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!shouldRewrite)
+                {
+                    return base.VisitArgumentList(node);
+                }
+
+                var arguments = new List<ArgumentSyntax>();
+                for (var i = 0; i < node.Arguments.Count; i++)
+                {
+                    var argument = node.Arguments[i];
+
+                    string memberName = null;
+                    SimpleLambdaExpressionSyntax expression = null;
+                    for (var j = 0; j < Expressions.Count; j++)
+                    {
+                        if (argument.Expression == Expressions[j])
+                        {
+                            expression = Expressions[j];
+                            memberName = $"__Razor_ExpressionHoist_{j}";
+                            break;
+                        }
+                    }
+
+                    if (expression == null)
+                    {
+                        arguments.Add(argument);
+                    }
+                    else
+                    {
+                        arguments.Add(argument.WithExpression(SyntaxFactory.IdentifierName(memberName)));
+                    }
+                }
+
+                return
+                    ((ArgumentListSyntax)base.VisitArgumentList(node))
+                    .WithArguments(SyntaxFactory.SeparatedList<ArgumentSyntax>(arguments));
+            }
         }
     }
 }
