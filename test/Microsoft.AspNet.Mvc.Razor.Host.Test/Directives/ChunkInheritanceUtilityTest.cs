@@ -66,6 +66,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
                             var setBaseTypeChunk = Assert.IsType<SetBaseTypeChunk>(chunk);
                             Assert.Equal("MyBaseType", setBaseTypeChunk.TypeName);
                             Assert.Equal(viewImportsPath, chunk.Start.FilePath);
+
                         },
                         chunk =>
                         {
