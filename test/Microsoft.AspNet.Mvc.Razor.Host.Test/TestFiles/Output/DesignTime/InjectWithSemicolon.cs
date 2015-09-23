@@ -9,7 +9,7 @@ namespace Asp
         {
             #pragma warning disable 219
 #line 1 "TestFiles/Input/InjectWithSemicolon.cshtml"
-       MyModel __modelHelper = default(MyModel)
+var __modelHelper = default(MyModel);
 
 #line default
 #line hidden

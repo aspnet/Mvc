@@ -46,6 +46,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 // Microsoft.Aspnet.Mvc.Razor.RazorPage<TModel>
                 TypeName = BaseType + ChunkHelper.TModelToken,
+                // Set the Start to Undefined to prevent Razor design time code generation from rendering a line mapping
+                // for this chunk.
                 Start = SourceLocation.Undefined
             }
         };

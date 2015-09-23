@@ -9,7 +9,7 @@ namespace Asp
         {
             #pragma warning disable 219
 #line 1 "TestFiles/Input/InjectWithModel.cshtml"
-       MyModel __modelHelper = default(MyModel)
+var __modelHelper = default(MyModel);
 
 #line default
 #line hidden

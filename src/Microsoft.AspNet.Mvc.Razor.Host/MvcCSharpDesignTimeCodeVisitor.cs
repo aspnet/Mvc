@@ -43,6 +43,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private void Visit(ModelChunk chunk)
         {
+            Debug.Assert(chunk != null);
             _modelChunk = chunk;
         }
 
@@ -53,16 +54,16 @@ namespace Microsoft.AspNet.Mvc.Razor
             using (var lineMappingWriter =
                 Writer.BuildLineMapping(_modelChunk.Start, _modelChunk.ModelType.Length, Context.SourceFile))
             {
-                Writer.Indent(_modelChunk.Start.CharacterIndex);
+                // var __modelHelper = default(MyModel);
+                Writer.Write("var ")
+                    .Write(ModelVariable)
+                    .Write(" = default(");
 
-                // MyModel __modelHelper = default(MyModel);
                 lineMappingWriter.MarkLineMappingStart();
                 Writer.Write(_modelChunk.ModelType);
                 lineMappingWriter.MarkLineMappingEnd();
 
-                Writer.Write(" ")
-                    .Write(ModelVariable)
-                    .Write($" = default({_modelChunk.ModelType})");
+                Writer.WriteLine(");");
             }
         }
     }

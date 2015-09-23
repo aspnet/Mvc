@@ -9,7 +9,7 @@ namespace Asp
         {
             #pragma warning disable 219
 #line 2 "TestFiles/Input/MultipleModels.cshtml"
-       System.Collections.IEnumerable __modelHelper = default(System.Collections.IEnumerable)
+var __modelHelper = default(System.Collections.IEnumerable);
 
 #line default
 #line hidden

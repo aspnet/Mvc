@@ -23,7 +23,7 @@ namespace Asp
 #line hidden
             ;
 #line 1 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
-       DateTime __modelHelper = default(DateTime)
+var __modelHelper = default(DateTime);
 
 #line default
 #line hidden
