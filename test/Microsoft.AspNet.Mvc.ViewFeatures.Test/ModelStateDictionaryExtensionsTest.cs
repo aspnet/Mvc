@@ -225,6 +225,101 @@ namespace Microsoft.AspNet.Mvc
             Assert.Empty(modelState);
         }
 
+        [Fact]
+        public void RemoveAll_ForSingleExpression_RemovesModelStateKeys()
+        {
+            // Arrange
+            var state = new ModelState();
+            var modelState = new ModelStateDictionary();
+
+            modelState.Add("Key", state);
+            modelState.Add("Text", new ModelState());
+            modelState.Add("Text.Length", new ModelState());
+
+            // Act
+            modelState.RemoveAll<TestModel>(model => model.Text);
+
+            // Assert
+            Assert.Equal("Key", modelState.Single().Key);
+            Assert.Same(state, modelState.Single().Value);
+        }
+
+        [Fact]
+        public void RemoveAll_ForRelationExpression_RemovesModelStateKeys()
+        {
+            // Arrange
+            var state = new ModelState();
+            var modelState = new ModelStateDictionary();
+
+            modelState.Add("Key", state);
+            modelState.Add("Child", new ModelState());
+            modelState.Add("Child.Text", new ModelState());
+
+            // Act
+            modelState.RemoveAll<TestModel>(model => model.Child);
+
+            // Assert
+            Assert.Equal("Key", modelState.Single().Key);
+            Assert.Same(state, modelState.Single().Value);
+        }
+
+        [Fact]
+        public void RemoveAll_ForImplicitlyCastedToObjectExpression_RemovesModelStateKeys()
+        {
+            // Arrange
+            var state = new ModelState();
+            var modelState = new ModelStateDictionary();
+
+            modelState.Add("Child", state);
+            modelState.Add("Child.Value", new ModelState());
+
+            // Act
+            modelState.RemoveAll<TestModel>(model => model.Child.Value);
+
+            // Assert
+            Assert.Equal("Child", modelState.Single().Key);
+            Assert.Same(state, modelState.Single().Value);
+        }
+
+        [Fact]
+        public void RemoveAll_ForExplicitlyCastedToObjectExpression_RemovesModelStateKeys()
+        {
+            // Arrange
+            var state = new ModelState();
+            var modelState = new ModelStateDictionary();
+
+            modelState.Add("Child", state);
+            modelState.Add("Child.Value", new ModelState());
+
+            // Act
+            modelState.RemoveAll<TestModel>(model => (object)model.Child.Value);
+
+            // Assert
+            Assert.Equal("Child", modelState.Single().Key);
+            Assert.Same(state, modelState.Single().Value);
+        }
+
+        [Fact]
+        public void RemoveAll_ForExpressionWithoutStringRepresentation_RemovesModelPropertyKeys()
+        {
+            // Arrange
+            var state = new ModelState();
+            var modelState = new ModelStateDictionary();
+
+            modelState.Add("Key", state);
+            modelState.Add("Text", new ModelState());
+            modelState.Add("Child", new ModelState());
+            modelState.Add("Child.Text", new ModelState());
+            modelState.Add("Child.NoValue", new ModelState());
+
+            // Act
+            modelState.RemoveAll<TestModel>(model => model.ToString());
+
+            // Assert
+            Assert.Equal("Key", modelState.Single().Key);
+            Assert.Same(state, modelState.Single().Value);
+        }
+
         private class TestModel
         {
             public string Text { get; set; }

@@ -5,6 +5,7 @@ using System;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ViewFeatures;
+using System.Linq;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -52,6 +53,44 @@ namespace Microsoft.AspNet.Mvc
         public static bool Remove<TModel>(this ModelStateDictionary modelState, Expression<Func<TModel, object>> expression)
         {
             return modelState.Remove(GetExpressionText(expression));
+        }
+
+        /// <summary>
+        /// Removes all the entries for the specified <paramref name="expression"/> from the <see cref="ModelStateDictionary"/>.
+        /// </summary>
+        /// <typeparam name="TModel">The type of the model.</typeparam>
+        /// <param name="modelState">The <see cref="ModelStateDictionary"/> instance this method extends.</param>
+        /// <param name="expression">An expression to be evaluated against an item in the current model.</param>
+        public static void RemoveAll<TModel>(this ModelStateDictionary modelState, Expression<Func<TModel, object>> expression)
+        {
+            string modelKey = GetExpressionText(expression);
+            if (string.IsNullOrEmpty(modelKey))
+            {
+                var modelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(TModel));
+                var elementMetadata = modelMetadata.ElementMetadata;
+                if (elementMetadata != null)
+                {
+                    modelMetadata = elementMetadata;
+                }
+
+                foreach (var property in modelMetadata.Properties)
+                {
+                    var childKey = property.BinderModelName ?? property.PropertyName;
+                    var entries = modelState.FindKeysWithPrefix(childKey).ToArray();
+                    foreach (var entry in entries)
+                    {
+                        modelState.Remove(entry.Key);
+                    }
+                }
+            }
+            else
+            {
+                var entries = modelState.FindKeysWithPrefix(modelKey).ToArray();
+                foreach (var entry in entries)
+                {
+                    modelState.Remove(entry.Key);
+                }
+            }
         }
 
         private static string GetExpressionText(LambdaExpression expression)
