@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("Name={ActionName}({Methods()}), Type={Controller.ControllerType.Name}," +
                      " Route: {AttributeRouteModel?.Template}, Filters: {Filters.Count}")]
-    public class ActionModel
+    public class ActionModel : ICommonModel, IAttributeModel
     {
         public ActionModel(
             [NotNull] MethodInfo actionMethod,

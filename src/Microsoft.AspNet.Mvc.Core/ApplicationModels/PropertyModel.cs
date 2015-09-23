@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
     /// A type which is used to represent a property in a <see cref="ControllerModel"/>.
     /// </summary>
     [DebuggerDisplay("PropertyModel: Name={PropertyName}")]
-    public class PropertyModel
+    public class PropertyModel : IAttributeModel, IBindingModel
     {
         /// <summary>
         /// Creates a new instance of <see cref="PropertyModel"/>.

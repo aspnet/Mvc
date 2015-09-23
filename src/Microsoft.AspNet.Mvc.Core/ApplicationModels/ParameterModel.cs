@@ -10,7 +10,7 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("ParameterModel: Name={ParameterName}")]
-    public class ParameterModel
+    public class ParameterModel : IAttributeModel, IBindingModel
     {
         public ParameterModel(
             [NotNull] ParameterInfo parameterInfo,
