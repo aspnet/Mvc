@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc
     public class ModelStateDictionaryExtensionsTest
     {
         [Fact]
-        public void AddsModelErrorMessage_ForSingleExpression()
+        public void AddModelError_ForSingleExpression_AddsExpectedMessage()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -25,7 +25,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorMessage_ForRelationExpression()
+        public void AddModelError_ForRelationExpression_AddsExpectedMessage()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorMessage_ForImplicitlyCastedToObjectExpression()
+        public void AddModelError_ForImplicitlyCastedToObjectExpression_AddsExpectedMessage()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorMessage_ForExplicitlyCastedToObjectExpression()
+        public void AddModelError_ForExplicitlyCastedToObjectExpression_AddsExpectedMessage()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorMessage_ForExpressionWithoutTextRepresentation()
+        public void AddModelError_ForExpressionWithoutStringRepresentation_AddsExpectedMessage()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorException_ForSingleExpression()
+        public void AddModelError_ForSingleExpression_AddsExpectedException()
         {
             // Arrange
             var exception = new Exception();
@@ -96,7 +96,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorException_ForRelationExpression()
+        public void AddModelError_ForRelationExpression_AddsExpectedException()
         {
             // Arrange
             var exception = new Exception();
@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorException_ForImplicitlyCastedToObjectExpression()
+        public void AddModelError_ForImplicitlyCastedToObjectExpression_AddsExpectedException()
         {
             // Arrange
             var exception = new Exception();
@@ -126,7 +126,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorException_ForExplicitlyCastedToObjectExpression()
+        public void AddModelError_ForExplicitlyCastedToObjectExpression_AddsExpectedException()
         {
             // Arrange
             var exception = new Exception();
@@ -141,7 +141,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void AddsModelErrorException_ForExpressionWithoutTextRepresentation()
+        public void AddModelError_ForExpressionWithoutStringRepresentation_AddsExpectedException()
         {
             // Arrange
             var exception = new Exception();
@@ -156,7 +156,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void RemovesModelStateKey_ForSingleExpression()
+        public void Remove_ForSingleExpression_RemovesModelStateKey()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -170,7 +170,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void RemovesModelStateKey_ForRelationExpression()
+        public void Remove_ForRelationExpression_RemovesModelStateKey()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -184,7 +184,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void RemovesModelStateKey_ForImplicitlyCastedToObjectExpression()
+        public void Remove_ForImplicitlyCastedToObjectExpression_RemovesModelStateKey()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -198,7 +198,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void RemovesModelStateKey_ForExplicitlyCastedToObjectExpression()
+        public void Remove_ForExplicitlyCastedToObjectExpression_RemovesModelStateKey()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
@@ -212,7 +212,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         [Fact]
-        public void RemovesModelStateKey_ForExpressionWithoutTextRepresentation()
+        public void Remove_ForExpressionWithoutStringRepresentation_RemovesModelStateKey()
         {
             // Arrange
             var modelState = new ModelStateDictionary();
