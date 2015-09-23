@@ -45,7 +45,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             new SetBaseTypeChunk
             {
                 // Microsoft.Aspnet.Mvc.Razor.RazorPage<TModel>
-                TypeName = BaseType + ChunkHelper.TModelToken
+                TypeName = BaseType + ChunkHelper.TModelToken,
+                Start = SourceLocation.Undefined
             }
         };
 
