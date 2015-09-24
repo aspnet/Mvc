@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Mvc.DataAnnotations;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
@@ -16,8 +17,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     {
         public DataTypeAttributeAdapter(
             DataTypeAttribute attribute,
-            string ruleName)
-            : base(attribute)
+            string ruleName,
+            IStringLocalizer stringLocalizer)
+            : base(attribute, stringLocalizer)
         {
             if (string.IsNullOrEmpty(ruleName))
             {

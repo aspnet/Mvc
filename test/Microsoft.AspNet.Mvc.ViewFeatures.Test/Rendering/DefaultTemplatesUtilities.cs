@@ -219,7 +219,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 options.HtmlHelperOptions.IdAttributeDotReplacement = idAttributeDotReplacement;
             }
-            options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider());
+            options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider(
+                options: null,
+                stringLocalizerFactory: null));
             var optionsAccessor = new Mock<IOptions<MvcViewOptions>>();
             optionsAccessor
                 .SetupGet(o => o.Value)

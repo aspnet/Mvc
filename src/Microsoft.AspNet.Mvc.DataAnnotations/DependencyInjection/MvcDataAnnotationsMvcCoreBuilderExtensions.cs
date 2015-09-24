@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.DataAnnotations.Internal;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Framework.DependencyInjection.Extensions;
 using Microsoft.Framework.OptionsModel;
 
@@ -22,11 +23,32 @@ namespace Microsoft.Framework.DependencyInjection
             return builder;
         }
 
+        public static IMvcCoreBuilder AddDataAnnotationsLocalization(
+            this IMvcCoreBuilder builder,
+            Action<MvcDataAnnotationsLocalizationOptions> setupAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            AddDataAnnotationsLocalizationServices(builder.Services, setupAction);
+            return builder;
+        }
+
         // Internal for testing.
         internal static void AddDataAnnotationsServices(IServiceCollection services)
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcDataAnnotationsMvcOptionsSetup>());
+        }
+
+        // Internal for testing.
+        internal static void AddDataAnnotationsLocalizationServices(
+            IServiceCollection services,
+            Action<MvcDataAnnotationsLocalizationOptions> setupAction)
+        {
+            DataAnnotationsLocalizationService.AddDataAnnotationsLocalizationServices(services, setupAction);
         }
     }
 }

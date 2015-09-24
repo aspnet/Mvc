@@ -5,12 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
     public class DataAnnotationsModelValidator : IModelValidator
     {
-        public DataAnnotationsModelValidator(ValidationAttribute attribute)
+        public DataAnnotationsModelValidator(ValidationAttribute attribute): this(attribute, null)
+        {
+        }
+
+        public DataAnnotationsModelValidator(ValidationAttribute attribute, IStringLocalizer stringLocalizer)
         {
             if (attribute == null)
             {
@@ -18,9 +23,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
 
             Attribute = attribute;
+            StringLocalizer = stringLocalizer;
         }
 
         public ValidationAttribute Attribute { get; private set; }
+
+        public IStringLocalizer StringLocalizer { get; private set; }
 
         public bool IsRequired
         {
@@ -59,7 +67,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     errorMemberName = null;
                 }
 
-                var validationResult = new ModelValidationResult(errorMemberName, result.ErrorMessage);
+                string errorMessage = null;
+                if (StringLocalizer != null)
+                {
+                    errorMessage = StringLocalizer[Attribute.ErrorMessage];
+                }
+
+                var validationResult = new ModelValidationResult(errorMemberName, errorMessage ?? result.ErrorMessage);
                 return new ModelValidationResult[] { validationResult };
             }
 

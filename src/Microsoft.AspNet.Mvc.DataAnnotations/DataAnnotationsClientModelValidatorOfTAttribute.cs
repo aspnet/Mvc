@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
@@ -18,15 +19,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         /// Create a new instance of <see cref="DataAnnotationsClientModelValidator{TAttribute}"/>.
         /// </summary>
         /// <param name="attribute">The <typeparamref name="TAttribute"/> instance to validate.</param>
-        public DataAnnotationsClientModelValidator(TAttribute attribute)
+        /// <param name="stringLocalizer">The <see cref="IStringLocalizer"/>.</param>
+        public DataAnnotationsClientModelValidator(TAttribute attribute, IStringLocalizer stringLocalizer)
         {
             Attribute = attribute;
+            StringLocalizer = stringLocalizer;
         }
 
         /// <summary>
         /// Gets the <typeparamref name="TAttribute"/> instance.
         /// </summary>
         public TAttribute Attribute
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="IStringLocalizer"/>.
+        /// </summary>
+        public IStringLocalizer StringLocalizer
         {
             get;
         }
@@ -48,6 +59,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 throw new ArgumentNullException(nameof(modelMetadata));
             }
 
+            if (StringLocalizer != null)
+            {
+                return StringLocalizer[modelMetadata.GetDisplayName()];
+            }
+            
             return Attribute.FormatErrorMessage(modelMetadata.GetDisplayName());
         }
     }

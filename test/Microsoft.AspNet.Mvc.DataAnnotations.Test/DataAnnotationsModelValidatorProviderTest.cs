@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators_ReturnsValidatorForIValidatableObject()
         {
             // Arrange
-            var provider = new DataAnnotationsModelValidatorProvider();
+            var provider = new DataAnnotationsModelValidatorProvider(options: null, stringLocalizerFactory: null);
             var mockValidatable = Mock.Of<IValidatableObject>();
             var metadata = _metadataProvider.GetMetadataForType(mockValidatable.GetType());
 
@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void UnknownValidationAttributeGetsDefaultAdapter()
         {
             // Arrange
-            var provider = new DataAnnotationsModelValidatorProvider();
+            var provider = new DataAnnotationsModelValidatorProvider(options: null, stringLocalizerFactory: null);
             var metadata = _metadataProvider.GetMetadataForType(typeof(DummyClassWithDummyValidationAttribute));
 
             var providerContext = new ModelValidatorProviderContext(metadata);
@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void IValidatableObjectGetsAValidator()
         {
             // Arrange
-            var provider = new DataAnnotationsModelValidatorProvider();
+            var provider = new DataAnnotationsModelValidatorProvider(options: null, stringLocalizerFactory: null);
             var mockValidatable = new Mock<IValidatableObject>();
             var metadata = _metadataProvider.GetMetadataForType(mockValidatable.Object.GetType());
 
