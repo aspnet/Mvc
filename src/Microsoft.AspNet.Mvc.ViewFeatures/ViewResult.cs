@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.Mvc
                             actionContext = context,
                             result = this,
                             viewName = viewName,
-                            viewEgineType = viewEngine.GetType(),
+                            viewEngineType = viewEngine.GetType(),
                             searchedLocations = viewEngineResult.SearchedLocations
                         });
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.AspNet.Mvc
                         actionContext = context,
                         result = this,
                         viewName,
-                        viewEgineType = viewEngine.GetType(),
+                        viewEngineType = viewEngine.GetType(),
                         view = view
                     });
             }
