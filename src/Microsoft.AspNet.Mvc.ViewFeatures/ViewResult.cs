@@ -79,6 +79,7 @@ namespace Microsoft.AspNet.Mvc
                             actionContext = context,
                             result = this,
                             viewName = viewName,
+                            viewEgineType = viewEngine.GetType(),
                             searchedLocations = viewEngineResult.SearchedLocations
                         });
                 }
@@ -94,7 +95,14 @@ namespace Microsoft.AspNet.Mvc
             {
                 telemetry.WriteTelemetry(
                     "Microsoft.AspNet.Mvc.ViewResultViewFound",
-                    new { actionContext = context, result = this, viewName, view = view });
+                    new
+                    {
+                        actionContext = context,
+                        result = this,
+                        viewName,
+                        viewEgineType = viewEngine.GetType(),
+                        view = view
+                    });
             }
 
             logger.LogVerbose("The view '{ViewName}' was found.", viewName);

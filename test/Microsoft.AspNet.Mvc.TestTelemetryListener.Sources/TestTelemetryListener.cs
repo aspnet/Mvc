@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Framework.TelemetryAdapter;
 
@@ -57,6 +58,7 @@ namespace Microsoft.AspNet.Mvc
             public IProxyActionResult Result { get; set; }
             public string ViewName { get; set; }
             public IProxyView View { get; set; }
+            public Type ViewEngineType { get; set; }
         }
 
         public OnViewResultViewFoundEventData ViewResultViewFound { get; set; }
@@ -66,6 +68,7 @@ namespace Microsoft.AspNet.Mvc
             IProxyActionContext actionContext,
             IProxyActionResult result,
             string viewName,
+            Type viewEngineType,
             IProxyView view)
         {
             ViewResultViewFound = new OnViewResultViewFoundEventData()
@@ -73,6 +76,7 @@ namespace Microsoft.AspNet.Mvc
                 ActionContext = actionContext,
                 Result = result,
                 ViewName = viewName,
+                ViewEngineType = viewEngineType,
                 View = view,
             };
         }
@@ -83,6 +87,7 @@ namespace Microsoft.AspNet.Mvc
             public IProxyActionResult Result { get; set; }
             public string ViewName { get; set; }
             public IEnumerable<string> SearchedLocations { get; set; }
+            public Type ViewEngineType { get; set; }
         }
 
         public OnViewResultViewNotFoundEventData ViewResultViewNotFound { get; set; }
@@ -92,6 +97,7 @@ namespace Microsoft.AspNet.Mvc
             IProxyActionContext actionContext,
             IProxyActionResult result,
             string viewName,
+            Type viewEngineType,
             IEnumerable<string> searchedLocations)
         {
             ViewResultViewNotFound = new OnViewResultViewNotFoundEventData()
@@ -99,6 +105,7 @@ namespace Microsoft.AspNet.Mvc
                 ActionContext = actionContext,
                 Result = result,
                 ViewName = viewName,
+                ViewEngineType = viewEngineType,
                 SearchedLocations = searchedLocations,
             };
         }
