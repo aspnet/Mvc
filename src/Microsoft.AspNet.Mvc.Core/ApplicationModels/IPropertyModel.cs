@@ -2,8 +2,8 @@
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
-    public interface IAttributeModel
+    public interface IPropertyModel
     {
-        IReadOnlyList<object> Attributes { get; }
+        IDictionary<object, object> Properties { get; }
     }
 }
