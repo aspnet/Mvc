@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators_AddsRequiredAttribute_ForIsRequiredTrue()
         {
             // Arrange
-            var provider = new DataAnnotationsClientModelValidatorProvider();
+            var provider = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null);
 
             var metadata = _metadataProvider.GetMetadataForProperty(
                 typeof(DummyRequiredAttributeHelperClass),
@@ -37,7 +37,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators_DoesNotAddRequiredAttribute_ForIsRequiredFalse()
         {
             // Arrange
-            var provider = new DataAnnotationsClientModelValidatorProvider();
+            var provider = new DataAnnotationsClientModelValidatorProvider(
+                options: null,
+                stringLocalizerFactory: null);
 
             var metadata = _metadataProvider.GetMetadataForProperty(
                 typeof(DummyRequiredAttributeHelperClass),
@@ -56,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators_DoesNotAddExtraRequiredAttribute_IfAttributeIsSpecifiedExplicitly()
         {
             // Arrange
-            var provider = new DataAnnotationsClientModelValidatorProvider();
+            var provider = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null);
 
             var metadata = _metadataProvider.GetMetadataForProperty(
                 typeof(DummyRequiredAttributeHelperClass),
@@ -122,11 +124,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             Type expectedAdapterType)
         {
             // Arrange
-            var adapters = new DataAnnotationsClientModelValidatorProvider().AttributeFactories;
+            var adapters = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null)
+                .AttributeFactories;
             var adapterFactory = adapters.Single(kvp => kvp.Key == attribute.GetType()).Value;
 
             // Act
-            var adapter = adapterFactory(attribute);
+            var adapter = adapterFactory(attribute, stringLocalizer: null);
 
             // Assert
             Assert.IsType(expectedAdapterType, adapter);
@@ -150,11 +153,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             string expectedRuleName)
         {
             // Arrange
-            var adapters = new DataAnnotationsClientModelValidatorProvider().AttributeFactories;
+            var adapters = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null)
+                .AttributeFactories;
             var adapterFactory = adapters.Single(kvp => kvp.Key == attribute.GetType()).Value;
 
             // Act
-            var adapter = adapterFactory(attribute);
+            var adapter = adapterFactory(attribute, stringLocalizer: null);
 
             // Assert
             var dataTypeAdapter = Assert.IsType<DataTypeAttributeAdapter>(adapter);
@@ -165,7 +169,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void UnknownValidationAttribute_IsNotAddedAsValidator()
         {
             // Arrange
-            var provider = new DataAnnotationsClientModelValidatorProvider();
+            var provider = new DataAnnotationsClientModelValidatorProvider(
+                options: null,
+                stringLocalizerFactory: null);
             var metadata = _metadataProvider.GetMetadataForType(typeof(DummyClassWithDummyValidationAttribute));
 
             var providerContext = new ClientValidatorProviderContext(metadata);

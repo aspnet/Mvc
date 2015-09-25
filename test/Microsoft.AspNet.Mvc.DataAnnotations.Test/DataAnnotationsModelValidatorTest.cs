@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 #endif
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Localization;
 #if DNX451
 using Moq;
 using Moq.Protected;
@@ -216,6 +217,36 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Assert
             ModelValidationResult validationResult = Assert.Single(results);
             Assert.Equal("Name", validationResult.MemberName);
+        }
+
+        [Fact]
+        public void ValidateWithIsValidFalse_StringLocalizerReturnsLocalizerErrorMessage()
+        {
+            // Arrange
+            var modelExplorer = _metadataProvider
+                .GetModelExplorerForType(typeof(string), "Hello")
+                .GetExplorerForProperty("Length");
+
+            var attribute = new Mock<ValidationAttribute> { CallBase = true };
+            attribute.Setup(a => a.IsValid(modelExplorer.Model)).Returns(false);
+
+            attribute.Object.ErrorMessage = "Length";
+
+            var localizedString = new LocalizedString("Length", "Longueur est invalide");
+            var stringLocalizer = new Mock<IStringLocalizer>();
+            stringLocalizer.Setup(s => s["Length"]).Returns(localizedString);
+
+           
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer.Object);
+            var validationContext = CreateValidationContext(modelExplorer);
+
+            // Act
+            var result = validator.Validate(validationContext);
+
+            // Assert
+            var validationResult = result.Single();
+            Assert.Equal("", validationResult.MemberName);
+            Assert.Equal("Longueur est invalide", validationResult.Message);
         }
 #endif
 

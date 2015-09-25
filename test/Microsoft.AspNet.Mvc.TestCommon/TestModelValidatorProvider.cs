@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var providers = new IModelValidatorProvider[]
             {
                 new DefaultModelValidatorProvider(),
-                new DataAnnotationsModelValidatorProvider(),
+                new DataAnnotationsModelValidatorProvider(options: null, stringLocalizerFactory: null),
             };
 
             return new TestModelValidatorProvider(providers);
