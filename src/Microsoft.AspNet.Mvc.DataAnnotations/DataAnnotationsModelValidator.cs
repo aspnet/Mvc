@@ -11,6 +11,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
     public class DataAnnotationsModelValidator : IModelValidator
     {
+        private IStringLocalizer _stringLocalizer;
+
         public DataAnnotationsModelValidator(ValidationAttribute attribute) : this(attribute, null)
         {
         }
@@ -23,12 +25,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
 
             Attribute = attribute;
-            StringLocalizer = stringLocalizer;
+            _stringLocalizer = stringLocalizer;
         }
 
-        public ValidationAttribute Attribute { get; private set; }
-
-        public IStringLocalizer StringLocalizer { get; private set; }
+        public ValidationAttribute Attribute { get; }
 
         public bool IsRequired
         {
@@ -68,9 +68,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 }
 
                 string errorMessage = null;
-                if (StringLocalizer != null)
+                if (_stringLocalizer != null)
                 {
-                    errorMessage = StringLocalizer[Attribute.ErrorMessage];
+                    errorMessage = _stringLocalizer[Attribute.ErrorMessage];
                 }
 
                 var validationResult = new ModelValidationResult(errorMemberName, errorMessage ?? result.ErrorMessage);

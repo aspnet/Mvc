@@ -15,6 +15,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     public abstract class DataAnnotationsClientModelValidator<TAttribute> : IClientModelValidator
         where TAttribute : ValidationAttribute
     {
+        private readonly IStringLocalizer _stringLocalizer;
         /// <summary>
         /// Create a new instance of <see cref="DataAnnotationsClientModelValidator{TAttribute}"/>.
         /// </summary>
@@ -23,21 +24,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public DataAnnotationsClientModelValidator(TAttribute attribute, IStringLocalizer stringLocalizer)
         {
             Attribute = attribute;
-            StringLocalizer = stringLocalizer;
+            _stringLocalizer = stringLocalizer;
         }
 
         /// <summary>
         /// Gets the <typeparamref name="TAttribute"/> instance.
         /// </summary>
         public TAttribute Attribute
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Gets the <see cref="IStringLocalizer"/>.
-        /// </summary>
-        public IStringLocalizer StringLocalizer
         {
             get;
         }
@@ -60,9 +53,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
 
             var displayName = modelMetadata.GetDisplayName();
-            if (StringLocalizer != null)
+            if (_stringLocalizer != null)
             {
-                return StringLocalizer[displayName];
+                return _stringLocalizer[displayName];
             }
             
             return Attribute.FormatErrorMessage(displayName);

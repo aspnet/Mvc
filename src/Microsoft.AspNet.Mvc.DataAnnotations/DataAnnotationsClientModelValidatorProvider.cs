@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Localization;
 using Microsoft.Framework.OptionsModel;
 
@@ -21,8 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     public class DataAnnotationsClientModelValidatorProvider : IClientModelValidatorProvider
     {
         // A factory for validators based on ValidationAttribute.
-        internal delegate IClientModelValidator
-            DataAnnotationsClientModelValidationFactory(
+        internal delegate IClientModelValidator DataAnnotationsClientModelValidationFactory(
             ValidationAttribute attribute,
             IStringLocalizer stringLocalizer);
 
@@ -31,17 +29,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         private IOptions<MvcDataAnnotationsLocalizationOptions> _options;
         private IStringLocalizerFactory _stringLocalizerFactory;
 
-        internal Dictionary<Type, DataAnnotationsClientModelValidationFactory> AttributeFactories
-        {
-            get { return _attributeFactories; }
-        }
-
+        /// <summary>
+        /// Create a new instance of <see cref="DataAnnotationsClientModelValidatorProvider"/>.
+        /// </summary>
+        /// <param name="options">The <see cref="IOptions{MvcDataAnnotationsLocalizationOptions}"/>.</param>
+        /// <param name="stringLocalizerFactory">The <see cref="IStringLocalizerFactory"/>.</param>
         public DataAnnotationsClientModelValidatorProvider(
             IOptions<MvcDataAnnotationsLocalizationOptions> options,
             IStringLocalizerFactory stringLocalizerFactory)
         {
             _options = options;
             _stringLocalizerFactory = stringLocalizerFactory;
+        }
+
+        internal Dictionary<Type, DataAnnotationsClientModelValidationFactory> AttributeFactories
+        {
+            get { return _attributeFactories; }
         }
 
         /// <inheritdoc />
@@ -52,7 +55,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 throw new ArgumentNullException(nameof(context));
             }
             IStringLocalizer stringLocalizer = null;
-            if (_options.Value.DataAnnotationLocalizerProvider != null && _stringLocalizerFactory != null)
+            if (_options != null &&
+                _options.Value.DataAnnotationLocalizerProvider != null &&
+                _stringLocalizerFactory != null)
             {
                 // This will pass first non-null type (either containerType or modelType) to delegate.
                 stringLocalizer = _options.Value.DataAnnotationLocalizerProvider(

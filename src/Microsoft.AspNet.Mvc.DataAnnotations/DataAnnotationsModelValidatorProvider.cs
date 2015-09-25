@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Localization;
 using Microsoft.Framework.OptionsModel;
 
@@ -18,9 +17,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     /// </summary>
     public class DataAnnotationsModelValidatorProvider : IModelValidatorProvider
     {
-        private IOptions<MvcDataAnnotationsLocalizationOptions> _options;
-        private IStringLocalizerFactory _stringLocalizerFactory;
+        private readonly IOptions<MvcDataAnnotationsLocalizationOptions> _options;
+        private readonly IStringLocalizerFactory _stringLocalizerFactory;
 
+        /// <summary>
+        /// Create a new instance of <see cref="DataAnnotationsModelValidatorProvider"/>.
+        /// </summary>
+        /// <param name="options">The <see cref="IOptions{MvcDataAnnotationsLocalizationOptions}"/>.</param>
+        /// <param name="stringLocalizerFactory">The <see cref="IStringLocalizerFactory"/>.</param>
         public DataAnnotationsModelValidatorProvider(
             IOptions<MvcDataAnnotationsLocalizationOptions> options,
             IStringLocalizerFactory stringLocalizerFactory)

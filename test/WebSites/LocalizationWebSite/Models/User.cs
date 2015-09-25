@@ -15,7 +15,7 @@ namespace LocalizationWebSite.Models
 
     public class Product
     {
-        [Required(ErrorMessage ="ProductName")]
+        [Required(ErrorMessage = "ProductName")]
         public string ProductName { get; set; }
     }
 }

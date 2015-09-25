@@ -16,9 +16,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         {
             Value = new MvcOptions();
             MvcCoreMvcOptionsSetup.ConfigureMvc(Value);
+            var collection = new ServiceCollection().AddOptions();
             MvcDataAnnotationsMvcOptionsSetup.ConfigureMvc(
                 Value,
-                new ServiceCollection().BuildServiceProvider());
+                collection.BuildServiceProvider());
             MvcJsonMvcOptionsSetup.ConfigureMvc(Value, SerializerSettingsProvider.CreateSerializerSettings());
         }
 

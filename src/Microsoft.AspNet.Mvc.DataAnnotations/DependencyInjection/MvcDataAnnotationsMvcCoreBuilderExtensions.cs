@@ -10,8 +10,16 @@ using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.Framework.DependencyInjection
 {
+    /// <summary>
+    /// Extensions for configuring MVC data annotations using an <see cref="IMvcBuilder"/>.
+    /// </summary>
     public static class MvcDataAnnotationsMvcCoreBuilderExtensions
     {
+        /// <summary>
+        /// Registers MVC data annotations.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcCoreBuilder AddDataAnnotations(this IMvcCoreBuilder builder)
         {
             if (builder == null)
@@ -23,6 +31,13 @@ namespace Microsoft.Framework.DependencyInjection
             return builder;
         }
 
+        /// <summary>
+        /// Registers an action to configure <see cref="MvcDataAnnotationsLocalizationOptions"/> for MVC data
+        /// annotations localization.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <param name="setupAction">An <see cref="Action{MvcDataAnnotationsLocalizationOptions}"/>.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcCoreBuilder AddDataAnnotationsLocalization(
             this IMvcCoreBuilder builder,
             Action<MvcDataAnnotationsLocalizationOptions> setupAction)

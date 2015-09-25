@@ -15,10 +15,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     /// </summary>
     public class DataTypeAttributeAdapter : DataAnnotationsClientModelValidator<DataTypeAttribute>
     {
-        public DataTypeAttributeAdapter(
-            DataTypeAttribute attribute,
-            string ruleName,
-            IStringLocalizer stringLocalizer)
+        public DataTypeAttributeAdapter(DataTypeAttribute attribute, string ruleName, IStringLocalizer stringLocalizer)
             : base(attribute, stringLocalizer)
         {
             if (string.IsNullOrEmpty(ruleName))

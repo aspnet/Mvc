@@ -15,20 +15,17 @@ namespace Microsoft.AspNet.Mvc.DataAnnotations.Internal
     /// </summary>
     public class MvcDataAnnotationsMvcOptionsSetup : ConfigureOptions<MvcOptions>
     {
-        public MvcDataAnnotationsMvcOptionsSetup(
-           IServiceProvider serviceProvider)
+        public MvcDataAnnotationsMvcOptionsSetup(IServiceProvider serviceProvider)
             : base(options => ConfigureMvc(options, serviceProvider))
         {
         }
 
-        public static void ConfigureMvc(
-            MvcOptions options,
-            IServiceProvider serviceProvider)
+        public static void ConfigureMvc(MvcOptions options, IServiceProvider serviceProvider)
         {
             var dataAnnotationLocalizationOptions =
                 serviceProvider.GetRequiredService<IOptions<MvcDataAnnotationsLocalizationOptions>>();
 
-            //This service will be registered only if AddDataAnnotationsLocalization() is added to service collection.
+            // This service will be registered only if AddDataAnnotationsLocalization() is added to service collection.
             var stringLocalizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
 
             options.ModelMetadataDetailsProviders.Add(new DataAnnotationsMetadataProvider());
