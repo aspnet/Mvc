@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Framework.Internal;
 
@@ -414,7 +414,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 bindingContext.ModelState.TryAddModelError(
                     modelStateKey,
-                    Resources.FormatModelBinding_MissingBindRequiredMember(propertyName));
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        propertyExplorer.Metadata.ValidationErrorMessages.MissingBindRequiredValueResource(),
+                        propertyName));
             }
 
             // For each property that BindPropertiesAsync() attempted to bind, call the setter, recording

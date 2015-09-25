@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
@@ -23,6 +24,12 @@ namespace Microsoft.AspNet.Mvc.Internal
 
         public static void ConfigureMvc(MvcOptions options)
         {
+            // Set up default error messages
+            var errorMetadata = options.ValidationErrorMetadata;
+            errorMetadata.MissingBindRequiredValueResource = () => Resources.ModelBinding_MissingBindRequiredMember;
+            errorMetadata.MissingKeyOrValueResource = () => Resources.KeyValuePair_BothKeyAndValueMustBePresent;
+            errorMetadata.ValueInvalid_MustNotBeNullResource = () => Resources.Common_ValueNotValidForProperty;
+
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());
             options.ModelBinders.Add(new ServicesModelBinder());
@@ -49,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.Internal
 
             // Set up metadata providers
             options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider());
-            options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider());
+            options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider(errorMetadata));
 
             // Set up validators
             options.ModelValidatorProviders.Add(new DefaultModelValidatorProvider());

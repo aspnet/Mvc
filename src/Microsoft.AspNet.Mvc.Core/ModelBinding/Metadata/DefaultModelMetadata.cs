@@ -31,6 +31,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private bool? _isRequired;
         private ModelPropertyCollection _properties;
         private ReadOnlyCollection<object> _validatorMetadata;
+        private ValidationErrorMessages _validationErrorMessages;
 
         /// <summary>
         /// Creates a new <see cref="DefaultModelMetadata"/>.
@@ -527,6 +528,36 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             {
                 return _details.PropertySetter;
             }
+        }
+
+        public override ValidationErrorMessages ValidationErrorMessages
+        {
+            get
+            {
+                if (_validationErrorMessages == null)
+                {
+                    _validationErrorMessages = new DefaultErrorMessages(ValidationMetadata.ValidationErrorMetadata);
+                }
+
+                return _validationErrorMessages;
+            }
+        }
+
+
+        private class DefaultErrorMessages : ValidationErrorMessages
+        {
+            public DefaultErrorMessages(ValidationErrorMetadata validationErrorMetadata)
+            {
+                MissingBindRequiredValueResource = validationErrorMetadata.MissingBindRequiredValueResource;
+                MissingKeyOrValueResource = validationErrorMetadata.MissingKeyOrValueResource;
+                ValueInvalid_MustNotBeNullResource = validationErrorMetadata.ValueInvalid_MustNotBeNullResource;
+            }
+
+            public override Func<string> MissingBindRequiredValueResource { get; }
+
+            public override Func<string> MissingKeyOrValueResource { get; }
+
+            public override Func<string> ValueInvalid_MustNotBeNullResource { get; }
         }
     }
 }

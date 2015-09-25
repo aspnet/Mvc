@@ -26,5 +26,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// in this list, to be consumed later by an <see cref="Validation.IModelValidatorProvider"/>.
         /// </remarks>
         public IList<object> ValidatorMetadata { get; } = new List<object>();
+
+        public ValidationErrorMetadata ValidationErrorMetadata { get; set; }
     }
 }

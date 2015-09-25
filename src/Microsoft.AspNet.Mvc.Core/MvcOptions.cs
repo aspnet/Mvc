@@ -30,6 +30,7 @@ namespace Microsoft.AspNet.Mvc
             ModelBinders = new List<IModelBinder>();
             ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
+            ValidationErrorMetadata = new ValidationErrorMetadata();
             ValidationExcludeFilters = new ExcludeTypeValidationFilterCollection();
             ValueProviderFactories = new List<IValueProviderFactory>();
         }
@@ -87,7 +88,7 @@ namespace Microsoft.AspNet.Mvc
         public IList<IModelBinder> ModelBinders { get; }
 
         /// <summary>
-        /// Gets a list of <see cref="IMetadataDetailsProvider"/> instances that will be used to 
+        /// Gets a list of <see cref="IMetadataDetailsProvider"/> instances that will be used to
         /// create <see cref="ModelMetadata"/> instances.
         /// </summary>
         /// <remarks>
@@ -112,10 +113,12 @@ namespace Microsoft.AspNet.Mvc
         public FormatterCollection<IOutputFormatter> OutputFormatters { get; }
 
         /// <summary>
-        /// Gets or sets the flag which causes content negotiation to ignore Accept header 
+        /// Gets or sets the flag which causes content negotiation to ignore Accept header
         /// when it contains the media type */*. <see langword="false"/> by default.
         /// </summary>
         public bool RespectBrowserAcceptHeader { get; set; }
+
+        public ValidationErrorMetadata ValidationErrorMetadata { get; }
 
         /// <summary>
         /// Gets a collection of <see cref="IExcludeTypeValidationFilter"/>s that are used by this application.

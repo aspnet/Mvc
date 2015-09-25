@@ -284,6 +284,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// </summary>
         public abstract string TemplateHint { get; }
 
+        public abstract ValidationErrorMessages ValidationErrorMessages { get; }
+
         /// <summary>
         /// Gets a collection of metadata items for validators.
         /// </summary>
