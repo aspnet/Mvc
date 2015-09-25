@@ -26,7 +26,8 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
             MvcViewOptions options,
             IServiceProvider serviceProvider)
         {
-            var dataAnnotationsLocalizationOptions = serviceProvider.GetService<IOptions<MvcDataAnnotationsLocalizationOptions>>();
+            var dataAnnotationsLocalizationOptions =
+                serviceProvider.GetRequiredService<IOptions<MvcDataAnnotationsLocalizationOptions>>();
             var stringLocalizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
 
             // Set up client validators

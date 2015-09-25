@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
     public class DataAnnotationsModelValidator : IModelValidator
     {
-        public DataAnnotationsModelValidator(ValidationAttribute attribute): this(attribute, null)
+        public DataAnnotationsModelValidator(ValidationAttribute attribute) : this(attribute, null)
         {
         }
 

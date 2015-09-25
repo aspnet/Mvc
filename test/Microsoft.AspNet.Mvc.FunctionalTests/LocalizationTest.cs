@@ -147,11 +147,7 @@ Salut John      ! Vous êtes en 2015 an aujourd'hui est Thursday";
             var body = await response.Content.ReadAsStringAsync();
 
             // Assert
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent(expected),
-                body.Trim(),
-                ignoreLineEndingDifferences: true);
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
     }
 }

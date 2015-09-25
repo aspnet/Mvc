@@ -9,7 +9,7 @@ using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.DataAnnotations.Internal
 {
-    public static class DataAnnotationsLocalizationService
+    public static class DataAnnotationsLocalizationServices
     {
         public static void AddDataAnnotationsLocalizationServices(
             IServiceCollection services,

@@ -12,10 +12,6 @@ namespace LocalizationWebSite
         {
             services
                 .AddMvc()
-                .AddViewOptions(options =>
-                {
-                    options.HtmlHelperOptions.ClientValidationEnabled = true;
-                })
                 .AddViewLocalization(options => options.ResourcesPath = "Resources")
                 .AddDataAnnotationsLocalization();
         }

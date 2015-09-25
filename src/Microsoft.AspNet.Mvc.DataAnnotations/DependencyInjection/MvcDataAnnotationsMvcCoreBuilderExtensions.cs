@@ -48,7 +48,7 @@ namespace Microsoft.Framework.DependencyInjection
             IServiceCollection services,
             Action<MvcDataAnnotationsLocalizationOptions> setupAction)
         {
-            DataAnnotationsLocalizationService.AddDataAnnotationsLocalizationServices(services, setupAction);
+            DataAnnotationsLocalizationServices.AddDataAnnotationsLocalizationServices(services, setupAction);
         }
     }
 }

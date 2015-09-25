@@ -25,7 +25,10 @@ namespace Microsoft.AspNet.Mvc.DataAnnotations.Internal
             MvcOptions options,
             IServiceProvider serviceProvider)
         {
-            var dataAnnotationLocalizationOptions = serviceProvider.GetService<IOptions<MvcDataAnnotationsLocalizationOptions>>();
+            var dataAnnotationLocalizationOptions =
+                serviceProvider.GetRequiredService<IOptions<MvcDataAnnotationsLocalizationOptions>>();
+
+            //This service will be registered only if AddDataAnnotationsLocalization() is added to service collection.
             var stringLocalizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
 
             options.ModelMetadataDetailsProviders.Add(new DataAnnotationsMetadataProvider());

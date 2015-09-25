@@ -59,12 +59,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 throw new ArgumentNullException(nameof(modelMetadata));
             }
 
+            var displayName = modelMetadata.GetDisplayName();
             if (StringLocalizer != null)
             {
-                return StringLocalizer[modelMetadata.GetDisplayName()];
+                return StringLocalizer[displayName];
             }
             
-            return Attribute.FormatErrorMessage(modelMetadata.GetDisplayName());
+            return Attribute.FormatErrorMessage(displayName);
         }
     }
 }

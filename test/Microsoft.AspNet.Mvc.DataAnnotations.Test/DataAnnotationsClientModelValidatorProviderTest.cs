@@ -17,7 +17,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators_AddsRequiredAttribute_ForIsRequiredTrue()
         {
             // Arrange
-            var provider = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null);
+            var provider = new DataAnnotationsClientModelValidatorProvider(
+                new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
+                stringLocalizerFactory: null);
 
             var metadata = _metadataProvider.GetMetadataForProperty(
                 typeof(DummyRequiredAttributeHelperClass),
@@ -38,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var provider = new DataAnnotationsClientModelValidatorProvider(
-                options: null,
+                new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
                 stringLocalizerFactory: null);
 
             var metadata = _metadataProvider.GetMetadataForProperty(
@@ -58,7 +60,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators_DoesNotAddExtraRequiredAttribute_IfAttributeIsSpecifiedExplicitly()
         {
             // Arrange
-            var provider = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null);
+            var provider = new DataAnnotationsClientModelValidatorProvider(
+                new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
+                stringLocalizerFactory: null);
 
             var metadata = _metadataProvider.GetMetadataForProperty(
                 typeof(DummyRequiredAttributeHelperClass),
@@ -124,7 +128,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             Type expectedAdapterType)
         {
             // Arrange
-            var adapters = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null)
+            var adapters = new DataAnnotationsClientModelValidatorProvider(
+                new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
+                stringLocalizerFactory: null)
                 .AttributeFactories;
             var adapterFactory = adapters.Single(kvp => kvp.Key == attribute.GetType()).Value;
 
@@ -153,7 +159,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             string expectedRuleName)
         {
             // Arrange
-            var adapters = new DataAnnotationsClientModelValidatorProvider(options: null, stringLocalizerFactory: null)
+            var adapters = new DataAnnotationsClientModelValidatorProvider(
+                new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
+                stringLocalizerFactory: null)
                 .AttributeFactories;
             var adapterFactory = adapters.Single(kvp => kvp.Key == attribute.GetType()).Value;
 
@@ -170,7 +178,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var provider = new DataAnnotationsClientModelValidatorProvider(
-                options: null,
+                new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
                 stringLocalizerFactory: null);
             var metadata = _metadataProvider.GetMetadataForType(typeof(DummyClassWithDummyValidationAttribute));
 

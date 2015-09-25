@@ -22,7 +22,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     {
         // A factory for validators based on ValidationAttribute.
         internal delegate IClientModelValidator
-            DataAnnotationsClientModelValidationFactory(ValidationAttribute attribute, IStringLocalizer stringLocalizer);
+            DataAnnotationsClientModelValidationFactory(
+            ValidationAttribute attribute,
+            IStringLocalizer stringLocalizer);
 
         private readonly Dictionary<Type, DataAnnotationsClientModelValidationFactory> _attributeFactories =
             BuildAttributeFactoriesDictionary();
@@ -50,10 +52,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 throw new ArgumentNullException(nameof(context));
             }
             IStringLocalizer stringLocalizer = null;
-            if (_options != null &&
-                _options.Value.DataAnnotationLocalizerProvider != null &&
-                _stringLocalizerFactory != null)
+            if (_options.Value.DataAnnotationLocalizerProvider != null && _stringLocalizerFactory != null)
             {
+                // This will pass first non-null type (either containerType or modelType) to delegate.
                 stringLocalizer = _options.Value.DataAnnotationLocalizerProvider(
                     context.ModelMetadata.ContainerType ?? context.ModelMetadata.ModelType,
                     _stringLocalizerFactory);

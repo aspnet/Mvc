@@ -7,6 +7,9 @@ using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.Framework.DependencyInjection
 {
+    /// <summary>
+    /// Extension methods for configuring MVC data annotations localization.
+    /// </summary>
     public static class MvcDataAnnotationsMvcBuilderExtensions
     {
         /// <summary>
@@ -40,7 +43,7 @@ namespace Microsoft.Framework.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            DataAnnotationsLocalizationService.AddDataAnnotationsLocalizationServices(
+            DataAnnotationsLocalizationServices.AddDataAnnotationsLocalizationServices(
                 builder.Services,
                 setupAction);
 
