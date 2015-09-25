@@ -8,7 +8,7 @@ using Microsoft.AspNet.Mvc.Filters;
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("ApplicationModel: Controllers: {Controllers.Count}, Filters: {Filters.Count}")]
-    public class ApplicationModel : IFilteringModel, IApiExploringModel, IPropertyModel
+    public class ApplicationModel : IFilterModel, IApiExplorerModel, IPropertyModel
     {
         public ApplicationModel()
         {

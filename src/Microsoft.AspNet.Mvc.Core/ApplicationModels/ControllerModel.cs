@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("Name={ControllerName}, Type={ControllerType.Name}," +
                      " Routes: {AttributeRoutes.Count}, Filters: {Filters.Count}")]
-    public class ControllerModel : ICommonModel, IFilteringModel, IApiExploringModel
+    public class ControllerModel : ICommonModel, IFilterModel, IApiExplorerModel
     {
         public ControllerModel(
             [NotNull] TypeInfo controllerType,
