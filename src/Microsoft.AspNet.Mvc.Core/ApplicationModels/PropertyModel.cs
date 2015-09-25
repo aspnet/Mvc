@@ -40,7 +40,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             BindingInfo = other.BindingInfo;
             PropertyInfo = other.PropertyInfo;
             PropertyName = other.PropertyName;
-            Properties = new Dictionary<object, object>(other.Properties);
+            Properties = other.Properties;
         }
 
         /// <summary>

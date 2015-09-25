@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             BindingInfo = other.BindingInfo;
             ParameterInfo = other.ParameterInfo;
             ParameterName = other.ParameterName;
-            Properties = new Dictionary<object, object>(other.Properties);
+            Properties = other.Properties;
         }
 
         public ActionModel Action { get; set; }
