@@ -10,14 +10,14 @@ using Microsoft.Framework.Internal;
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("ParameterModel: Name={ParameterName}")]
-    public class ParameterModel
+    public class ParameterModel : ICommonModel, IBindingModel
     {
         public ParameterModel(
             [NotNull] ParameterInfo parameterInfo,
             [NotNull] IReadOnlyList<object> attributes)
         {
             ParameterInfo = parameterInfo;
-
+            Properties = new Dictionary<object, object>();
             Attributes = new List<object>(attributes);
         }
 
@@ -28,11 +28,18 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             BindingInfo = other.BindingInfo;
             ParameterInfo = other.ParameterInfo;
             ParameterName = other.ParameterName;
+            Properties = other.Properties;
         }
 
         public ActionModel Action { get; set; }
 
         public IReadOnlyList<object> Attributes { get; }
+
+        public IDictionary<object, object> Properties { get; }
+
+        MemberInfo ICommonModel.MemberInfo => ParameterInfo.Member;
+
+        string ICommonModel.Name => ParameterName;
 
         public ParameterInfo ParameterInfo { get; private set; }
 
