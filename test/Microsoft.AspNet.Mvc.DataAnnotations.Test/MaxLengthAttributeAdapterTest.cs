@@ -70,9 +70,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Arrange
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
             var metadata = provider.GetMetadataForProperty(typeof(string), "Length");
+            var errorKey = metadata.GetDisplayName();
             var attribute = new MaxLengthAttribute(10);
+            attribute.ErrorMessage = errorKey;
 
-            string errorKey = metadata.GetDisplayName();
             var localizedString = new LocalizedString(errorKey, "Longueur est invalide");
             var stringLocalizer = new Mock<IStringLocalizer>();
             stringLocalizer.Setup(s => s[errorKey]).Returns(localizedString);

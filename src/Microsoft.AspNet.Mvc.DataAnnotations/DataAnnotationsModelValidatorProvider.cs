@@ -36,9 +36,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void GetValidators(ModelValidatorProviderContext context)
         {
             IStringLocalizer stringLocalizer = null;
-            if (_options != null &&
-                _options.Value.DataAnnotationLocalizerProvider != null &&
-                _stringLocalizerFactory != null)
+            if (_options.Value.DataAnnotationLocalizerProvider != null && _stringLocalizerFactory != null)
             {
                 stringLocalizer = _options.Value.DataAnnotationLocalizerProvider(
                     context.ModelMetadata.ContainerType ?? context.ModelMetadata.ModelType,
@@ -47,17 +45,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
             foreach (var attribute in context.ValidatorMetadata.OfType<ValidationAttribute>())
             {
-                if (stringLocalizer != null &&
-                    !string.IsNullOrEmpty(attribute.ErrorMessage) &&
-                    string.IsNullOrEmpty(attribute.ErrorMessageResourceName) &&
-                    attribute.ErrorMessageResourceType == null)
-                {
-                    context.Validators.Add(new DataAnnotationsModelValidator(attribute, stringLocalizer));
-                }
-                else
-                {
-                    context.Validators.Add(new DataAnnotationsModelValidator(attribute));
-                }
+                context.Validators.Add(new DataAnnotationsModelValidator(attribute, stringLocalizer));
             }
 
             // Produce a validator if the type supports IValidatableObject

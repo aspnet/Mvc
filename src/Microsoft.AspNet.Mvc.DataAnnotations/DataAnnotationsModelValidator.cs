@@ -13,10 +13,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     {
         private IStringLocalizer _stringLocalizer;
 
-        public DataAnnotationsModelValidator(ValidationAttribute attribute) : this(attribute, null)
-        {
-        }
-
         public DataAnnotationsModelValidator(ValidationAttribute attribute, IStringLocalizer stringLocalizer)
         {
             if (attribute == null)
@@ -68,7 +64,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 }
 
                 string errorMessage = null;
-                if (_stringLocalizer != null)
+                if (_stringLocalizer != null &&
+                    !string.IsNullOrEmpty(Attribute.ErrorMessage) &&
+                    string.IsNullOrEmpty(Attribute.ErrorMessageResourceName) &&
+                    Attribute.ErrorMessageResourceType == null)
                 {
                     errorMessage = _stringLocalizer[Attribute.ErrorMessage];
                 }

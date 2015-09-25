@@ -219,8 +219,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 options.HtmlHelperOptions.IdAttributeDotReplacement = idAttributeDotReplacement;
             }
+            var localizationOptionsAccesor = new Mock<IOptions<MvcDataAnnotationsLocalizationOptions>>();
+
+            localizationOptionsAccesor.SetupGet(o => o.Value).Returns(new MvcDataAnnotationsLocalizationOptions());
+
             options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider(
-                options: null,
+                localizationOptionsAccesor.Object,
                 stringLocalizerFactory: null));
             var optionsAccessor = new Mock<IOptions<MvcViewOptions>>();
             optionsAccessor
@@ -234,6 +238,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             serviceProvider
                 .Setup(s => s.GetService(typeof(IUrlHelper)))
                 .Returns(urlHelper);
+            serviceProvider
+                .Setup(s => s.GetService(typeof(IViewComponentHelper)))
+                .Returns(new Mock<IViewComponentHelper>().Object);
             serviceProvider
                 .Setup(s => s.GetService(typeof(IViewComponentHelper)))
                 .Returns(new Mock<IViewComponentHelper>().Object);

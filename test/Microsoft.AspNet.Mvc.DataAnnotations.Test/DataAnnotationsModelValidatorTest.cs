@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var attribute = new RequiredAttribute();
 
             // Act
-            var validator = new DataAnnotationsModelValidator(attribute);
+            var validator = new DataAnnotationsModelValidator(attribute, stringLocalizer : null);
 
             // Assert
             Assert.Same(attribute, validator.Attribute);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                      })
                      .Returns(ValidationResult.Success)
                      .Verifiable();
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
             var validationContext = CreateValidationContext(modelExplorer);
 
             // Act
@@ -90,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Setup(a => a.IsValid(modelExplorer.Model)).Returns(true);
 
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
             var validationContext = CreateValidationContext(modelExplorer);
 
             // Act
@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var attribute = new Mock<ValidationAttribute> { CallBase = true };
             attribute.Setup(a => a.IsValid(modelExplorer.Model)).Returns(false);
 
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
             var validationContext = CreateValidationContext(modelExplorer);
 
             // Act
@@ -135,7 +135,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(ValidationResult.Success);
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
             var validationContext = CreateValidationContext(modelExplorer);
 
             // Act
@@ -159,7 +159,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             attribute.Protected()
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(new ValidationResult(errorMessage, memberNames: null));
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
 
             var validationContext = CreateValidationContext(modelExplorer);
 
@@ -185,7 +185,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(new ValidationResult(errorMessage, new[] { "FirstName" }));
 
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
             var validationContext = CreateValidationContext(modelExplorer);
 
             // Act
@@ -208,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                      .Setup<ValidationResult>("IsValid", ItExpr.IsAny<object>(), ItExpr.IsAny<ValidationContext>())
                      .Returns(new ValidationResult("Name error", new[] { "Name" }));
 
-            var validator = new DataAnnotationsModelValidator(attribute.Object);
+            var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer: null);
             var validationContext = CreateValidationContext(modelExplorer);
 
             // Act
@@ -236,7 +236,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var stringLocalizer = new Mock<IStringLocalizer>();
             stringLocalizer.Setup(s => s["Length"]).Returns(localizedString);
 
-           
             var validator = new DataAnnotationsModelValidator(attribute.Object, stringLocalizer.Object);
             var validationContext = CreateValidationContext(modelExplorer);
 
@@ -254,9 +253,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         public void IsRequiredTests()
         {
             // Arrange & Act & Assert
-            Assert.False(new DataAnnotationsModelValidator(new RangeAttribute(10, 20)).IsRequired);
-            Assert.True(new DataAnnotationsModelValidator(new RequiredAttribute()).IsRequired);
-            Assert.True(new DataAnnotationsModelValidator(new DerivedRequiredAttribute()).IsRequired);
+            Assert.False(new DataAnnotationsModelValidator(new RangeAttribute(10, 20), stringLocalizer: null)
+                .IsRequired);
+            Assert.True(new DataAnnotationsModelValidator(new RequiredAttribute(), stringLocalizer: null).IsRequired);
+            Assert.True(new DataAnnotationsModelValidator(new DerivedRequiredAttribute(), stringLocalizer: null)
+                .IsRequired);
         }
 
         private static ModelValidationContext CreateValidationContext(ModelExplorer modelExplorer)
