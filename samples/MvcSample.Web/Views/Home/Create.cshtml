@@ -45,16 +45,6 @@
             <table>
                 <tr>
                     <td>
-                        <label class="control-label col-md-2" for="Name">Enum Select List</label>
-                    </td>
-                    <td>
-                         @Html.DropDownList("Name", Html.GetEnumSelectList(typeof(TestEnum)))
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
                         <label class="control-label col-md-2" for="Name">Model.Name</label>
                     </td>
                     <td>
@@ -117,10 +107,20 @@
                 </tr>
                 <tr>
                     <td>
+                        <label class="control-label col-md-2" for="Name">Model.EnumInformation</label>
+                    </td>
+                    <td>
+                        @Html.DropDownList("EnumInformation", Html.GetEnumSelectList<TestEnum>())
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
                         <input type="submit" value="Save" class="btn btn-default" style="margin-left: 10px" />
                     </td>
                     <td></td>
                 </tr>
+
             </table>
         }
     </div>
