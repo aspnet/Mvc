@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -14,70 +13,69 @@ namespace Microsoft.AspNet.Mvc
         public void AddModelError_ForSingleExpression_AddsExpectedMessage()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => model.Text, "Message");
+            dictionary.AddModelError<TestModel>(model => model.Text, "Message");
 
             // Assert
-            Assert.Equal("Text", modelState.Single().Key);
-            Assert.Equal("Message", modelState.Single().Value.Errors.Single().ErrorMessage);
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
+
+            Assert.Equal("Text", modelState.Key);
+            Assert.Equal("Message", modelError.ErrorMessage);
         }
 
         [Fact]
         public void AddModelError_ForRelationExpression_AddsExpectedMessage()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => model.Child.Text, "Message");
+            dictionary.AddModelError<TestModel>(model => model.Child.Text, "Message");
 
             // Assert
-            Assert.Equal("Child.Text", modelState.Single().Key);
-            Assert.Equal("Message", modelState.Single().Value.Errors.Single().ErrorMessage);
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
+
+            Assert.Equal("Child.Text", modelState.Key);
+            Assert.Equal("Message", modelError.ErrorMessage);
         }
 
         [Fact]
         public void AddModelError_ForImplicitlyCastedToObjectExpression_AddsExpectedMessage()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => model.Child.Value, "Message");
+            dictionary.AddModelError<TestModel>(model => model.Child.Value, "Message");
 
             // Assert
-            Assert.Equal("Child.Value", modelState.Single().Key);
-            Assert.Equal("Message", modelState.Single().Value.Errors.Single().ErrorMessage);
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
+
+            Assert.Equal("Child.Value", modelState.Key);
+            Assert.Equal("Message", modelError.ErrorMessage);
         }
 
         [Fact]
-        public void AddModelError_ForExplicitlyCastedToObjectExpression_AddsExpectedMessage()
+        public void AddModelError_ForNotModelsExpression_AddsExpectedMessage()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
+            var variable = "Test";
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => (object)model.Child.Value, "Message");
+            dictionary.AddModelError<TestModel>(model => variable, "Message");
 
             // Assert
-            Assert.Equal("Child.Value", modelState.Single().Key);
-            Assert.Equal("Message", modelState.Single().Value.Errors.Single().ErrorMessage);
-        }
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
 
-        [Fact]
-        public void AddModelError_ForExpressionWithoutStringRepresentation_AddsExpectedMessage()
-        {
-            // Arrange
-            var modelState = new ModelStateDictionary();
-
-            // Act
-            modelState.AddModelError<TestModel>(model => model.ToString(), "Message");
-
-            // Assert
-            Assert.Equal("", modelState.Single().Key);
-            Assert.Equal("Message", modelState.Single().Value.Errors.Single().ErrorMessage);
+            Assert.Equal("variable", modelState.Key);
+            Assert.Equal("Message", modelError.ErrorMessage);
         }
 
         [Fact]
@@ -85,14 +83,17 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var exception = new Exception();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => model.Text, exception);
+            dictionary.AddModelError<TestModel>(model => model.Text, exception);
 
             // Assert
-            Assert.Equal("Text", modelState.Single().Key);
-            Assert.Same(exception, modelState.Single().Value.Errors.Single().Exception);
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
+
+            Assert.Equal("Text", modelState.Key);
+            Assert.Same(exception, modelError.Exception);
         }
 
         [Fact]
@@ -100,14 +101,17 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var exception = new Exception();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => model.Child.Text, exception);
+            dictionary.AddModelError<TestModel>(model => model.Child.Text, exception);
 
             // Assert
-            Assert.Equal("Child.Text", modelState.Single().Key);
-            Assert.Same(exception, modelState.Single().Value.Errors.Single().Exception);
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
+
+            Assert.Equal("Child.Text", modelState.Key);
+            Assert.Same(exception, modelError.Exception);
         }
 
         [Fact]
@@ -115,114 +119,93 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var exception = new Exception();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => model.Child.Value, exception);
+            dictionary.AddModelError<TestModel>(model => model.Child.Value, exception);
 
             // Assert
-            Assert.Equal("Child.Value", modelState.Single().Key);
-            Assert.Same(exception, modelState.Single().Value.Errors.Single().Exception);
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
+
+            Assert.Equal("Child.Value", modelState.Key);
+            Assert.Same(exception, modelError.Exception);
         }
 
         [Fact]
-        public void AddModelError_ForExplicitlyCastedToObjectExpression_AddsExpectedException()
+        public void AddModelError_ForNotModelsExpression_AddsExpectedException()
         {
             // Arrange
+            var variable = "Test";
             var exception = new Exception();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
             // Act
-            modelState.AddModelError<TestModel>(model => (object)model.Child.Value, exception);
+            dictionary.AddModelError<TestModel>(model => variable, exception);
 
             // Assert
-            Assert.Equal("Child.Value", modelState.Single().Key);
-            Assert.Same(exception, modelState.Single().Value.Errors.Single().Exception);
-        }
+            var modelState = Assert.Single(dictionary);
+            var modelError = Assert.Single(modelState.Value.Errors);
 
-        [Fact]
-        public void AddModelError_ForExpressionWithoutStringRepresentation_AddsExpectedException()
-        {
-            // Arrange
-            var exception = new Exception();
-            var modelState = new ModelStateDictionary();
-
-            // Act
-            modelState.AddModelError<TestModel>(model => model.ToString(), exception);
-
-            // Assert
-            Assert.Equal("", modelState.Single().Key);
-            Assert.Same(exception, modelState.Single().Value.Errors.Single().Exception);
+            Assert.Equal("variable", modelState.Key);
+            Assert.Same(exception, modelError.Exception);
         }
 
         [Fact]
         public void Remove_ForSingleExpression_RemovesModelStateKey()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
-            modelState.Add("Text", new ModelState());
+            var dictionary = new ModelStateDictionary();
+            dictionary.Add("Text", new ModelState());
 
             // Act
-            modelState.Remove<TestModel>(model => model.Text);
+            dictionary.Remove<TestModel>(model => model.Text);
 
             // Assert
-            Assert.Empty(modelState);
+            Assert.Empty(dictionary);
         }
 
         [Fact]
         public void Remove_ForRelationExpression_RemovesModelStateKey()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
-            modelState.Add("Child.Text", new ModelState());
+            var dictionary = new ModelStateDictionary();
+            dictionary.Add("Child.Text", new ModelState());
 
             // Act
-            modelState.Remove<TestModel>(model => model.Child.Text);
+            dictionary.Remove<TestModel>(model => model.Child.Text);
 
             // Assert
-            Assert.Empty(modelState);
+            Assert.Empty(dictionary);
         }
 
         [Fact]
         public void Remove_ForImplicitlyCastedToObjectExpression_RemovesModelStateKey()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
-            modelState.Add("Child.Value", new ModelState());
+            var dictionary = new ModelStateDictionary();
+            dictionary.Add("Child.Value", new ModelState());
 
             // Act
-            modelState.Remove<TestModel>(model => model.Child.Value);
+            dictionary.Remove<TestModel>(model => model.Child.Value);
 
             // Assert
-            Assert.Empty(modelState);
+            Assert.Empty(dictionary);
         }
 
         [Fact]
-        public void Remove_ForExplicitlyCastedToObjectExpression_RemovesModelStateKey()
+        public void Remove_ForNotModelsExpression_RemovesModelStateKey()
         {
             // Arrange
-            var modelState = new ModelStateDictionary();
-            modelState.Add("Child.Value", new ModelState());
+            var variable = "Test";
+            var dictionary = new ModelStateDictionary();
+            dictionary.Add("variable", new ModelState());
 
             // Act
-            modelState.Remove<TestModel>(model => (object)model.Child.Value);
+            dictionary.Remove<TestModel>(model => variable);
 
             // Assert
-            Assert.Empty(modelState);
-        }
-
-        [Fact]
-        public void Remove_ForExpressionWithoutStringRepresentation_RemovesModelStateKey()
-        {
-            // Arrange
-            var modelState = new ModelStateDictionary();
-            modelState.Add("", new ModelState());
-
-            // Act
-            modelState.Remove<TestModel>(model => model.ToString());
-
-            // Assert
-            Assert.Empty(modelState);
+            Assert.Empty(dictionary);
         }
 
         [Fact]
@@ -230,18 +213,20 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var state = new ModelState();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
-            modelState.Add("Key", state);
-            modelState.Add("Text", new ModelState());
-            modelState.Add("Text.Length", new ModelState());
+            dictionary.Add("Key", state);
+            dictionary.Add("Text", new ModelState());
+            dictionary.Add("Text.Length", new ModelState());
 
             // Act
-            modelState.RemoveAll<TestModel>(model => model.Text);
+            dictionary.RemoveAll<TestModel>(model => model.Text);
 
             // Assert
-            Assert.Equal("Key", modelState.Single().Key);
-            Assert.Same(state, modelState.Single().Value);
+            var modelState = Assert.Single(dictionary);
+
+            Assert.Equal("Key", modelState.Key);
+            Assert.Same(state, modelState.Value);
         }
 
         [Fact]
@@ -249,18 +234,20 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var state = new ModelState();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
-            modelState.Add("Key", state);
-            modelState.Add("Child", new ModelState());
-            modelState.Add("Child.Text", new ModelState());
+            dictionary.Add("Key", state);
+            dictionary.Add("Child", new ModelState());
+            dictionary.Add("Child.Text", new ModelState());
 
             // Act
-            modelState.RemoveAll<TestModel>(model => model.Child);
+            dictionary.RemoveAll<TestModel>(model => model.Child);
 
             // Assert
-            Assert.Equal("Key", modelState.Single().Key);
-            Assert.Same(state, modelState.Single().Value);
+            var modelState = Assert.Single(dictionary);
+
+            Assert.Equal("Key", modelState.Key);
+            Assert.Same(state, modelState.Value);
         }
 
         [Fact]
@@ -268,56 +255,65 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var state = new ModelState();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
-            modelState.Add("Child", state);
-            modelState.Add("Child.Value", new ModelState());
+            dictionary.Add("Child", state);
+            dictionary.Add("Child.Value", new ModelState());
 
             // Act
-            modelState.RemoveAll<TestModel>(model => model.Child.Value);
+            dictionary.RemoveAll<TestModel>(model => model.Child.Value);
 
             // Assert
-            Assert.Equal("Child", modelState.Single().Key);
-            Assert.Same(state, modelState.Single().Value);
+            var modelState = Assert.Single(dictionary);
+
+            Assert.Equal("Child", modelState.Key);
+            Assert.Same(state, modelState.Value);
         }
 
         [Fact]
-        public void RemoveAll_ForExplicitlyCastedToObjectExpression_RemovesModelStateKeys()
+        public void RemoveAll_ForNotModelsExpression_RemovesModelStateKeys()
         {
             // Arrange
+            var variable = "Test";
             var state = new ModelState();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
-            modelState.Add("Child", state);
-            modelState.Add("Child.Value", new ModelState());
+            dictionary.Add("Key", state);
+            dictionary.Add("variable", new ModelState());
+            dictionary.Add("variable.Text", new ModelState());
+            dictionary.Add("variable.Value", new ModelState());
 
             // Act
-            modelState.RemoveAll<TestModel>(model => (object)model.Child.Value);
+            dictionary.RemoveAll<TestModel>(model => variable);
 
             // Assert
-            Assert.Equal("Child", modelState.Single().Key);
-            Assert.Same(state, modelState.Single().Value);
+            var modelState = Assert.Single(dictionary);
+
+            Assert.Equal("Key", modelState.Key);
+            Assert.Same(state, modelState.Value);
         }
 
         [Fact]
-        public void RemoveAll_ForExpressionWithoutStringRepresentation_RemovesModelPropertyKeys()
+        public void RemoveAll_ForModelExpression_RemovesModelPropertyKeys()
         {
             // Arrange
             var state = new ModelState();
-            var modelState = new ModelStateDictionary();
+            var dictionary = new ModelStateDictionary();
 
-            modelState.Add("Key", state);
-            modelState.Add("Text", new ModelState());
-            modelState.Add("Child", new ModelState());
-            modelState.Add("Child.Text", new ModelState());
-            modelState.Add("Child.NoValue", new ModelState());
+            dictionary.Add("Key", state);
+            dictionary.Add("Text", new ModelState());
+            dictionary.Add("Child", new ModelState());
+            dictionary.Add("Child.Text", new ModelState());
+            dictionary.Add("Child.NoValue", new ModelState());
 
             // Act
-            modelState.RemoveAll<TestModel>(model => model.ToString());
+            dictionary.RemoveAll<TestModel>(model => model);
 
             // Assert
-            Assert.Equal("Key", modelState.Single().Key);
-            Assert.Same(state, modelState.Single().Value);
+            var modelState = Assert.Single(dictionary);
+
+            Assert.Equal("Key", modelState.Key);
+            Assert.Same(state, modelState.Value);
         }
 
         private class TestModel

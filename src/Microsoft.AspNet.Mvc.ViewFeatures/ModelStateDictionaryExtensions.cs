@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using System.Linq;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -67,11 +67,6 @@ namespace Microsoft.AspNet.Mvc
             if (string.IsNullOrEmpty(modelKey))
             {
                 var modelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(TModel));
-                var elementMetadata = modelMetadata.ElementMetadata;
-                if (elementMetadata != null)
-                {
-                    modelMetadata = elementMetadata;
-                }
 
                 foreach (var property in modelMetadata.Properties)
                 {
@@ -95,9 +90,13 @@ namespace Microsoft.AspNet.Mvc
 
         private static string GetExpressionText(LambdaExpression expression)
         {
+            // We check if expression is wrapped with conversion to object expression
+            // and unwrap it if necessary, because Expression<Func<TModel, object>>
+            // automatically creates a convert to object expression for expresions
+            // returning value types
             var unaryExpression = expression.Body as UnaryExpression;
 
-            if (IsConvertibleToObject(unaryExpression))
+            if (IsConversionToObject(unaryExpression))
             {
                 return ExpressionHelper.GetExpressionText(Expression.Lambda(unaryExpression.Operand, expression.Parameters[0]));
             }
@@ -105,10 +104,10 @@ namespace Microsoft.AspNet.Mvc
             return ExpressionHelper.GetExpressionText(expression);
         }
 
-        private static bool IsConvertibleToObject(UnaryExpression expression)
+        private static bool IsConversionToObject(UnaryExpression expression)
         {
             return expression?.NodeType == ExpressionType.Convert &&
-                expression.Operand is MemberExpression &&
+                expression.Operand?.NodeType == ExpressionType.MemberAccess &&
                 expression.Type == typeof(object);
         }
     }
