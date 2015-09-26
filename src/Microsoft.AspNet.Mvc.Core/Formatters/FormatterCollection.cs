@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.Formatters
 {
@@ -19,10 +18,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// <typeparam name="T">The type to remove.</typeparam>
         public void RemoveType<T>() where T : TFormatter
         {
-            var formatters = this.OfType<T>().ToList();
-            foreach (var formatter in formatters)
+            for (var i = Count - 1; i >= 0; i--)
             {
-                Remove(formatter);
+                var formatter = this[i];
+                if (formatter is T)
+                {
+                    RemoveAt(i);
+                }
             }
         }
     }
