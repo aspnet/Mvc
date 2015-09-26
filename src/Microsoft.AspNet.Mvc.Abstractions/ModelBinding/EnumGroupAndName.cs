@@ -4,7 +4,7 @@
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// An abstraction used when grouping enum values for <see cref="ModelMetadata.EnumGroupedDisplayNameAndValues"/>
+    /// An abstraction used when grouping enum values for <see cref="ModelMetadata.EnumGroupedDisplayNamesAndValues"/>
     /// </summary>
     public struct EnumGroupAndName
     {
