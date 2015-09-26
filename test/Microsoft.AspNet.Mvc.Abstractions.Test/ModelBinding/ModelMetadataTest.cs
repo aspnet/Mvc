@@ -369,7 +369,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            public override IEnumerable<KeyValuePair<Tuple<string, string>, string>> EnumGroupedDisplayNamesAndValues
+            public override IEnumerable<KeyValuePair<EnumGroupAndName, string>> EnumGroupedDisplayNamesAndValues
             {
                 get
                 {

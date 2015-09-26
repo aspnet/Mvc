@@ -1173,18 +1173,18 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             {
                 var selectListItem = new SelectListItem
                 {
-                    Text = keyValuePair.Key.Item2,
+                    Text = keyValuePair.Key.Name,
                     Value = keyValuePair.Value,
                 };
 
-                if(string.IsNullOrEmpty(keyValuePair.Key.Item1) == false)
+                if (!string.IsNullOrEmpty(keyValuePair.Key.Group))
                 {
-                    if(groupList.ContainsKey(keyValuePair.Key.Item1) == false)
+                    if(!groupList.ContainsKey(keyValuePair.Key.Group))
                     {
-                        groupList[keyValuePair.Key.Item1] = new SelectListGroup() { Name = keyValuePair.Key.Item1 };
+                        groupList[keyValuePair.Key.Group] = new SelectListGroup() { Name = keyValuePair.Key.Group };
                     }
 
-                    selectListItem.Group = groupList[keyValuePair.Key.Item1];
+                    selectListItem.Group = groupList[keyValuePair.Key.Group];
                 }
 
                 selectList.Add(selectListItem);

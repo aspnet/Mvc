@@ -120,7 +120,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 // Order EnumDisplayNamesAndValues to match Enum.GetNames(). That method orders by absolute value,
                 // then its behavior is undefined (but hopefully stable). Add to EnumNamesAndValues in same order but
                 // Dictionary does not guarantee order will be preserved.
-                var groupedDisplayNamesAndValues = new List<KeyValuePair<Tuple<string, string>, string>>();
+                var groupedDisplayNamesAndValues = new List<KeyValuePair<EnumGroupAndName, string>>();
                 var namesAndValues = new Dictionary<string, string>();
                 foreach (var name in Enum.GetNames(underlyingType))
                 {
@@ -129,7 +129,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                     var groupName = GetDisplayGroup(field);
                     var value = ((Enum)field.GetValue(obj: null)).ToString("d");
 
-                    groupedDisplayNamesAndValues.Add(new KeyValuePair<Tuple<string, string>, string>(Tuple.Create(groupName, displayName), value));
+                    groupedDisplayNamesAndValues.Add(new KeyValuePair<EnumGroupAndName, string>(new EnumGroupAndName(groupName, displayName), value));
                     namesAndValues.Add(name, value);
                 }
 

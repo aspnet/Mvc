@@ -61,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// <see cref="ModelMetadata.UnderlyingOrModelType"/>. See
         /// <see cref="ModelMetadata.EnumGroupedDisplayNamesAndValues"/>.
         /// </summary>
-        public IEnumerable<KeyValuePair<Tuple<string, string>, string>> EnumGroupedDisplayNamesAndValues { get; set; }
+        public IEnumerable<KeyValuePair<EnumGroupAndName, string>> EnumGroupedDisplayNamesAndValues { get; set; }
 
         /// <summary>
         /// Gets the names and values of all <see cref="System.Enum"/> values in

@@ -143,11 +143,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <see cref="UnderlyingOrModelType"/>.
         /// </summary>
         /// <value>
-        /// An <see cref="IEnumerable{KeyValuePair{Tuple{string, string}, string}"/> of mappings between <see cref="Enum"/> field groups, names
-        /// and values. <c>null</c> if <see cref="IsEnum"/> is <c>false</c>. The first item in the tuple is the group name (empty string if not defined).
-        /// The second item in the tuple is the display name.
+        /// An <see cref="IEnumerable{KeyValuePair{EnumGroupAndName, string}"/> of mappings between
+        /// <see cref="Enum"/> field groups, names and values. <c>null</c> if <see cref="IsEnum"/> is <c>false</c>.
         /// </value>
-        public abstract IEnumerable<KeyValuePair<Tuple<string, string>, string>> EnumGroupedDisplayNamesAndValues { get; }
+        public abstract IEnumerable<KeyValuePair<EnumGroupAndName, string>> EnumGroupedDisplayNamesAndValues { get; }
 
         /// <summary>
         /// Gets the names and values of all <see cref="Enum"/> values in <see cref="UnderlyingOrModelType"/>.
