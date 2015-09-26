@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace Microsoft.AspNet.Mvc.Formatters
 {
+    /// <summary>
+    /// Represents a collection of formatters.
+    /// </summary>
+    /// <typeparam name="TFormatter">The type of formatters in the collection.</typeparam>
     public class FormatterCollection<TFormatter> : Collection<TFormatter>
     {
 
