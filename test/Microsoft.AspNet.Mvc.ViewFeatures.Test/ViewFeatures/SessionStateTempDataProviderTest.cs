@@ -16,17 +16,40 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
     public class SessionStateTempDataProviderTest
     {
         [Fact]
+        public void Load_ThrowsException_WhenSessionIsNotEnabled()
+        {
+            // Arrange
+            var testProvider = new SessionStateTempDataProvider();
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(() => testProvider.LoadTempData(
+                GetHttpContext(session: null, sessionEnabled: false)));
+        }
+
+        [Fact]
+        public void Save_ThrowsException_WhenSessionIsNotEnabled()
+        {
+            // Arrange
+            var testProvider = new SessionStateTempDataProvider();
+            var values = new Dictionary<string, object>();
+            values.Add("key1", "value1");
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(() => testProvider.SaveTempData(
+                GetHttpContext(session: null, sessionEnabled: false), values));
+        }
+
+        [Fact]
         public void Load_NullSession_ReturnsEmptyDictionary()
         {
             // Arrange
             var testProvider = new SessionStateTempDataProvider();
 
-            // Act
-            var tempDataDictionary = testProvider.LoadTempData(
-                GetHttpContext(session: null, sessionEnabled: true));
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(() => testProvider.LoadTempData(
+                GetHttpContext(session: null, sessionEnabled: true)));
 
-            // Assert
-            Assert.Null(tempDataDictionary);
+            Assert.Equal("Session cannot be null.", exception.Message);
         }
 
         [Fact]
@@ -41,27 +64,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             // Assert
             Assert.Empty(tempDataDictionary);
-        }
-
-        [Fact]
-        public void Save_NullSession_NullDictionary_DoesNotThrow()
-        {
-            // Arrange
-            var testProvider = new SessionStateTempDataProvider();
-
-            // Act & Assert (does not throw)
-            testProvider.SaveTempData(GetHttpContext(session: null, sessionEnabled: false), null);
-        }
-
-        [Fact]
-        public void Save_NullSession_EmptyDictionary_DoesNotThrow()
-        {
-            // Arrange
-            var testProvider = new SessionStateTempDataProvider();
-
-            // Act & Assert (does not throw)
-            testProvider.SaveTempData(
-                GetHttpContext(session: null, sessionEnabled: false), new Dictionary<string, object>());
         }
 
         [Fact]

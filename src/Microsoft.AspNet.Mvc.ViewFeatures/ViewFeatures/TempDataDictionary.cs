@@ -101,6 +101,13 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// <inheritdoc />
         public void Keep()
         {
+            // if the data is not loaded, we can assume none of it has been read
+            // and so silently return.
+            if (!_loaded)
+            {
+                return;
+            }
+
             Load();
             _retainedKeys.Clear();
             _retainedKeys.UnionWith(_data.Keys);

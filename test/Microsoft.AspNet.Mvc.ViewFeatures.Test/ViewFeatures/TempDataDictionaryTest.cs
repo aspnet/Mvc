@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 using Moq;
@@ -10,6 +11,26 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 {
     public class TempDataDictionaryTest
     {
+        [Fact]
+        public void ThrowsException_OnSettingValue_AndWhenSessionIsNotEnabled()
+        {
+            // Arrange
+            var tempData = new TempDataDictionary(GetHttpContextAccessor(), new SessionStateTempDataProvider());
+
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => tempData["key1"] = "value1");
+        }
+
+        [Fact]
+        public void Keep_DoesNotThrowException_WhenDataIsNotLoaded()
+        {
+            // Arrange
+            var tempData = new TempDataDictionary(GetHttpContextAccessor(), new SessionStateTempDataProvider());
+
+            // Act & Assert
+            tempData.Keep();
+        }
+
         [Fact]
         public void TempData_Load_CreatesEmptyDictionaryIfProviderReturnsNull()
         {
