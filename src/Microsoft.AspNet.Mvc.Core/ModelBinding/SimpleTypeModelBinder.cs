@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     bindingContext.ModelState.TryAddModelError(
                         bindingContext.ModelName,
-                        bindingContext.ModelMetadata.ModelBindingMessages.ValueMustNotBeNullResource(
+                        bindingContext.ModelMetadata.ModelBindingMessageProvider.ValueMustNotBeNullAccessor(
                             valueProviderResult.ToString()));
 
                     return ModelBindingResult.FailedAsync(bindingContext.ModelName);

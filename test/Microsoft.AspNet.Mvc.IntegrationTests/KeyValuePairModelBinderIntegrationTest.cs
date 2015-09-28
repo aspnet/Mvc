@@ -98,11 +98,11 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider
                 .ForType(typeof(KeyValuePair<string, int>))
-                .BindingDetails(binding =>
+                .BindingDetails((System.Action<ModelBinding.Metadata.BindingMetadata>)(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.MissingKeyOrValueResource = () => $"Hurts when nothing is provided.";
-                });
+                    binding.ModelBindingMessageProvider.MissingKeyOrValueAccessor = () => $"Hurts when nothing is provided.";
+                }));
 
             var argumentBinder = new DefaultControllerActionArgumentBinder(
                 metadataProvider,
@@ -183,11 +183,11 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider
                 .ForType(typeof(KeyValuePair<string, int>))
-                .BindingDetails(binding =>
+                .BindingDetails((System.Action<ModelBinding.Metadata.BindingMetadata>)(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.MissingKeyOrValueResource = () => $"Hurts when nothing is provided.";
-                });
+                    binding.ModelBindingMessageProvider.MissingKeyOrValueAccessor = () => $"Hurts when nothing is provided.";
+                }));
             var argumentBinder = new DefaultControllerActionArgumentBinder(
                 metadataProvider,
                 ModelBindingTestHelper.GetObjectValidator());

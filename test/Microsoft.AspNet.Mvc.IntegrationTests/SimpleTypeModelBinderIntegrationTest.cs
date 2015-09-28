@@ -298,12 +298,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider
                 .ForType(parameterType)
-                .BindingDetails(binding =>
+                .BindingDetails((Action<ModelBinding.Metadata.BindingMetadata>)(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.ValueMustNotBeNullResource =
-                        value => $"Hurts when '{ value }' is provided.";
-                });
+                    binding.ModelBindingMessageProvider.ValueMustNotBeNullAccessor =
+                        (object value) => $"Hurts when '{ value }' is provided.";
+                }));
             var argumentBinder = new DefaultControllerActionArgumentBinder(
                 metadataProvider,
                 ModelBindingTestHelper.GetObjectValidator());

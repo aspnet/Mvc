@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc
             InputFormatters = new FormatterCollection<IInputFormatter>();
             OutputFormatters = new FormatterCollection<IOutputFormatter>();
             ModelBinders = new List<IModelBinder>();
-            ModelBindingMessages = new ModelBindingMessages();
+            ModelBindingMessageProvider = new ModelBindingMessageProvider();
             ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
             ValidationExcludeFilters = new ExcludeTypeValidationFilterCollection();
@@ -88,11 +88,11 @@ namespace Microsoft.AspNet.Mvc
         public IList<IModelBinder> ModelBinders { get; }
 
         /// <summary>
-        /// Gets the default <see cref="IModelBindingMessages"/>. Changes here are copied to the
-        /// <see cref="ModelMetadata.ModelBindingMessages"/> property of all <see cref="ModelMetadata"/> instances
-        /// unless overridden in a custom <see cref="IBindingMetadataProvider"/>.
+        /// Gets the default <see cref="IModelBindingMessageProvider"/>. Changes here are copied to the
+        /// <see cref="ModelMetadata.ModelBindingMessageProvider"/> property of all <see cref="ModelMetadata"/>
+        /// instances unless overridden in a custom <see cref="IBindingMetadataProvider"/>.
         /// </summary>
-        public ModelBindingMessages ModelBindingMessages { get; }
+        public ModelBindingMessageProvider ModelBindingMessageProvider { get; }
 
         /// <summary>
         /// Gets a list of <see cref="IMetadataDetailsProvider"/> instances that will be used to

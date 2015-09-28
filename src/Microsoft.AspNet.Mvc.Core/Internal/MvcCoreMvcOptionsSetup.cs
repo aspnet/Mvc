@@ -25,10 +25,10 @@ namespace Microsoft.AspNet.Mvc.Internal
         public static void ConfigureMvc(MvcOptions options)
         {
             // Set up default error messages
-            var bindingMessages = options.ModelBindingMessages;
-            bindingMessages.MissingBindRequiredValueResource = Resources.FormatModelBinding_MissingBindRequiredMember;
-            bindingMessages.MissingKeyOrValueResource = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent;
-            bindingMessages.ValueMustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid;
+            var messageProvider = options.ModelBindingMessageProvider;
+            messageProvider.MissingBindRequiredValueAccessor = Resources.FormatModelBinding_MissingBindRequiredMember;
+            messageProvider.MissingKeyOrValueAccessor = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent;
+            messageProvider.ValueMustNotBeNullAccessor = Resources.FormatModelBinding_NullValueNotValid;
 
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Internal
             options.ValueProviderFactories.Add(new JQueryFormValueProviderFactory());
 
             // Set up metadata providers
-            options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider(bindingMessages));
+            options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider(messageProvider));
             options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider());
 
             // Set up validators

@@ -1591,12 +1591,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider
                 .ForType(typeof(Order10))
-                .BindingDetails(binding =>
+                .BindingDetails((Action<ModelBinding.Metadata.BindingMetadata>)(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.MissingBindRequiredValueResource =
-                        propertyPath => $"Hurts when '{ propertyPath }' is not provided.";
-                });
+                    binding.ModelBindingMessageProvider.MissingBindRequiredValueAccessor =
+                        (string propertyPath) => $"Hurts when '{ propertyPath }' is not provided.";
+                }));
             var argumentBinder = new DefaultControllerActionArgumentBinder(
                 metadataProvider,
                 ModelBindingTestHelper.GetObjectValidator());

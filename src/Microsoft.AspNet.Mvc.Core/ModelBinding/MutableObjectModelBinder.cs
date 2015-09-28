@@ -412,7 +412,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
                 bindingContext.ModelState.TryAddModelError(
                     modelStateKey,
-                    bindingContext.ModelMetadata.ModelBindingMessages.MissingBindRequiredValueResource(propertyName));
+                    bindingContext.ModelMetadata.ModelBindingMessageProvider.MissingBindRequiredValueAccessor(propertyName));
             }
 
             // For each property that BindPropertiesAsync() attempted to bind, call the setter, recording

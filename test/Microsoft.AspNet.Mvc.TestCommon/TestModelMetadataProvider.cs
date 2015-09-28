@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             var detailsProviders = new IMetadataDetailsProvider[]
             {
-                new DefaultBindingMetadataProvider(CreateBindingMessages()),
+                new DefaultBindingMetadataProvider(CreateMessageProvider()),
                 new DefaultValidationMetadataProvider(),
                 new DataAnnotationsMetadataProvider(),
                 new DataMemberRequiredBindingMetadataProvider(),
@@ -36,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         private TestModelMetadataProvider(TestModelMetadataDetailsProvider detailsProvider)
             : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
                 {
-                    new DefaultBindingMetadataProvider(CreateBindingMessages()),
+                    new DefaultBindingMetadataProvider(CreateMessageProvider()),
                     new DefaultValidationMetadataProvider(),
                     new DataAnnotationsMetadataProvider(),
                     detailsProvider
@@ -76,13 +76,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             return ForProperty(typeof(TContainer), propertyName);
         }
 
-        private static ModelBindingMessages CreateBindingMessages()
+        private static ModelBindingMessageProvider CreateMessageProvider()
         {
-            return new ModelBindingMessages
+            return new ModelBindingMessageProvider
             {
-                MissingBindRequiredValueResource = name => $"A value for the '{ name }' property was not provided.",
-                MissingKeyOrValueResource = () => $"A value is required.",
-                ValueMustNotBeNullResource = value => $"The value '{ value }' is invalid.",
+                MissingBindRequiredValueAccessor = name => $"A value for the '{ name }' property was not provided.",
+                MissingKeyOrValueAccessor = () => $"A value is required.",
+                ValueMustNotBeNullAccessor = value => $"The value '{ value }' is invalid.",
             };
         }
 

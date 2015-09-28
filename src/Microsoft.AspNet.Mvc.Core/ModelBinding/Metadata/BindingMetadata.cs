@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// </summary>
     public class BindingMetadata
     {
-        private ModelBindingMessages _modelBindingMessages;
+        private ModelBindingMessageProvider _messageProvider;
 
         /// <summary>
         /// Gets or sets the <see cref="ModelBinding.BindingSource"/>.
@@ -53,14 +53,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public bool? IsReadOnly { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="Metadata.ModelBindingMessages"/> instance containing messages for errors the model
-        /// binding system detects. See <see cref="ModelMetadata.ModelBindingMessages"/>.
+        /// Gets the <see cref="Metadata.ModelBindingMessageProvider"/> instance. See
+        /// <see cref="ModelMetadata.ModelBindingMessageProvider"/>.
         /// </summary>
-        public ModelBindingMessages ModelBindingMessages
+        public ModelBindingMessageProvider ModelBindingMessageProvider
         {
             get
             {
-                return _modelBindingMessages;
+                return _messageProvider;
             }
             set
             {
@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                _modelBindingMessages = value;
+                _messageProvider = value;
             }
         }
 

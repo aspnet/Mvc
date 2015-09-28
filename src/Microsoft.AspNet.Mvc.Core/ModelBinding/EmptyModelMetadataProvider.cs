@@ -18,21 +18,22 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
         private class MessageOnlyBindingProvider : IBindingMetadataProvider
         {
-            private readonly ModelBindingMessages _modelBindingMessages = CreateBindingMessages();
+            private readonly ModelBindingMessageProvider _messageProvider = CreateMessageProvider();
 
             public void GetBindingMetadata(BindingMetadataProviderContext context)
             {
-                // Don't bother with ModelBindingMessages copy constructor. No other provider can change the messages.
-                context.BindingMetadata.ModelBindingMessages = _modelBindingMessages;
+                // Don't bother with ModelBindingMessageProvider copy constructor. No other provider can change the
+                // delegates.
+                context.BindingMetadata.ModelBindingMessageProvider = _messageProvider;
             }
 
-            private static ModelBindingMessages CreateBindingMessages()
+            private static ModelBindingMessageProvider CreateMessageProvider()
             {
-                return new ModelBindingMessages
+                return new ModelBindingMessageProvider
                 {
-                    MissingBindRequiredValueResource = Resources.FormatModelBinding_MissingBindRequiredMember,
-                    MissingKeyOrValueResource = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent,
-                    ValueMustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid,
+                    MissingBindRequiredValueAccessor = Resources.FormatModelBinding_MissingBindRequiredMember,
+                    MissingKeyOrValueAccessor = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent,
+                    ValueMustNotBeNullAccessor = Resources.FormatModelBinding_NullValueNotValid,
                 };
             }
         }

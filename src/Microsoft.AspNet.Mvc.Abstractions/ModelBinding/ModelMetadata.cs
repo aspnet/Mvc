@@ -243,10 +243,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract bool IsRequired { get; }
 
         /// <summary>
-        /// Gets the <see cref="IModelBindingMessages"/> instance containing messages for errors the model
-        /// binding system detects.
+        /// Gets the <see cref="IModelBindingMessageProvider"/> instance.
         /// </summary>
-        public abstract IModelBindingMessages ModelBindingMessages { get; }
+        public abstract IModelBindingMessageProvider ModelBindingMessageProvider { get; }
 
         /// <summary>
         /// Gets a value indicating where the current metadata should be ordered relative to other properties

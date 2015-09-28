@@ -457,7 +457,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            public override IModelBindingMessages ModelBindingMessages
+            public override IModelBindingMessageProvider ModelBindingMessageProvider
             {
                 get
                 {

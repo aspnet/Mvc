@@ -419,11 +419,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc />
-        public override IModelBindingMessages ModelBindingMessages
+        public override IModelBindingMessageProvider ModelBindingMessageProvider
         {
             get
             {
-                return BindingMetadata.ModelBindingMessages;
+                return BindingMetadata.ModelBindingMessageProvider;
             }
         }
 

@@ -14,16 +14,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// </summary>
     public class DefaultBindingMetadataProvider : IBindingMetadataProvider
     {
-        private readonly ModelBindingMessages _modelBindingMessages;
+        private readonly ModelBindingMessageProvider _messageProvider;
 
-        public DefaultBindingMetadataProvider(ModelBindingMessages modelBindingMessages)
+        public DefaultBindingMetadataProvider(ModelBindingMessageProvider messageProvider)
         {
-            if (modelBindingMessages == null)
+            if (messageProvider == null)
             {
-                throw new ArgumentNullException(nameof(modelBindingMessages));
+                throw new ArgumentNullException(nameof(messageProvider));
             }
 
-            _modelBindingMessages = modelBindingMessages;
+            _messageProvider = messageProvider;
         }
 
         /// <inheritdoc />
@@ -59,9 +59,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 }
             }
 
-            // ModelBindingMessages
+            // ModelBindingMessageProvider
             // Provide a unique instance based on one passed to the constructor.
-            context.BindingMetadata.ModelBindingMessages = new ModelBindingMessages(_modelBindingMessages);
+            context.BindingMetadata.ModelBindingMessageProvider = new ModelBindingMessageProvider(_messageProvider);
 
             // PropertyBindingPredicateProvider
             var predicateProviders = context.Attributes.OfType<IPropertyBindingPredicateProvider>().ToArray();

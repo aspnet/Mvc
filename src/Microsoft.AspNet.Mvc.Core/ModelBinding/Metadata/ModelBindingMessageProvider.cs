@@ -6,40 +6,40 @@ using System;
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
     /// <summary>
-    /// Read / write <see cref="IModelBindingMessages"/> implementation.
+    /// Read / write <see cref="IModelBindingMessageProvider"/> implementation.
     /// </summary>
-    public class ModelBindingMessages : IModelBindingMessages
+    public class ModelBindingMessageProvider : IModelBindingMessageProvider
     {
-        private Func<object, string> _missingBindRequiredValueResource;
+        private Func<string, string> _missingBindRequiredValueResource;
         private Func<string> _missingKeyOrValueResource;
         private Func<object, string> _valueInvalid_MustNotBeNullResource;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ModelBindingMessages"/> class.
+        /// Initializes a new instance of the <see cref="ModelBindingMessageProvider"/> class.
         /// </summary>
-        public ModelBindingMessages()
+        public ModelBindingMessageProvider()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ModelBindingMessages"/> class based on
-        /// <paramref name="originalMessages"/>.
+        /// Initializes a new instance of the <see cref="ModelBindingMessageProvider"/> class based on
+        /// <paramref name="originalProvider"/>.
         /// </summary>
-        /// <param name="originalMessages">The <see cref="ModelBindingMessages"/> to duplicate.</param>
-        public ModelBindingMessages(ModelBindingMessages originalMessages)
+        /// <param name="originalProvider">The <see cref="ModelBindingMessageProvider"/> to duplicate.</param>
+        public ModelBindingMessageProvider(ModelBindingMessageProvider originalProvider)
         {
-            if (originalMessages == null)
+            if (originalProvider == null)
             {
-                throw new ArgumentNullException(nameof(originalMessages));
+                throw new ArgumentNullException(nameof(originalProvider));
             }
 
-            MissingBindRequiredValueResource = originalMessages.MissingBindRequiredValueResource;
-            MissingKeyOrValueResource = originalMessages.MissingKeyOrValueResource;
-            ValueMustNotBeNullResource = originalMessages.ValueMustNotBeNullResource;
+            MissingBindRequiredValueAccessor = originalProvider.MissingBindRequiredValueAccessor;
+            MissingKeyOrValueAccessor = originalProvider.MissingKeyOrValueAccessor;
+            ValueMustNotBeNullAccessor = originalProvider.ValueMustNotBeNullAccessor;
         }
 
         /// <inheritdoc/>
-        public Func<object, string> MissingBindRequiredValueResource
+        public Func<string, string> MissingBindRequiredValueAccessor
         {
             get
             {
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<string> MissingKeyOrValueResource
+        public Func<string> MissingKeyOrValueAccessor
         {
             get
             {
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<object, string> ValueMustNotBeNullResource
+        public Func<object, string> ValueMustNotBeNullAccessor
         {
             get
             {
