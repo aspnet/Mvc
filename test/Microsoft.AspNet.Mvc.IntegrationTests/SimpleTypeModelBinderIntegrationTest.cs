@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Controllers;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.Primitives;
 using Xunit;
@@ -284,7 +285,61 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(string.Empty, modelState[key].AttemptedValue);
             Assert.Equal(string.Empty, modelState[key].RawValue);
             var error = Assert.Single(modelState[key].Errors);
-            Assert.Equal(error.ErrorMessage, "The value '' is invalid.", StringComparer.Ordinal);
+            Assert.Equal("A null value is invalid for 'Parameter1'.", error.ErrorMessage, StringComparer.Ordinal);
+            Assert.Null(error.Exception);
+        }
+
+        [Theory]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(bool))]
+        public async Task BindParameter_WithEmptyData_AndPerTypeMessage_AddsGivenMessage(Type parameterType)
+        {
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForType(parameterType)
+                .BindingDetails(binding =>
+                {
+                    // A real details provider could customize message based on BindingMetadataProviderContext.
+                    binding.ModelBindingMessages.ValueInvalid_MustNotBeNullResource =
+                        propertyPath => $"Hurts when '{ propertyPath }' of type '{ parameterType.Name }' is null.";
+                });
+            var argumentBinder = new DefaultControllerActionArgumentBinder(
+                metadataProvider,
+                ModelBindingTestHelper.GetObjectValidator());
+            var parameter = new ParameterDescriptor
+            {
+                Name = "Parameter1",
+                BindingInfo = new BindingInfo(),
+
+                ParameterType = parameterType
+            };
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
+            {
+                request.QueryString = QueryString.Create("Parameter1", string.Empty);
+            });
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            // ModelBindingResult
+            Assert.False(modelBindingResult.IsModelSet);
+
+            // Model
+            Assert.Null(modelBindingResult.Model);
+
+            // ModelState
+            Assert.False(modelState.IsValid);
+            var key = Assert.Single(modelState.Keys);
+            Assert.Equal("Parameter1", key);
+            Assert.Equal(string.Empty, modelState[key].AttemptedValue);
+            Assert.Equal(string.Empty, modelState[key].RawValue);
+            var error = Assert.Single(modelState[key].Errors);
+            Assert.Equal(
+                $"Hurts when 'Parameter1' of type '{ parameterType.Name }' is null.",
+                error.ErrorMessage, StringComparer.Ordinal);
             Assert.Null(error.Exception);
         }
 

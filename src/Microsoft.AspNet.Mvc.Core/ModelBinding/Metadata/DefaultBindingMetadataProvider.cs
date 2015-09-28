@@ -14,6 +14,18 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// </summary>
     public class DefaultBindingMetadataProvider : IBindingMetadataProvider
     {
+        private readonly ModelBindingMessages _modelBindingMessages;
+
+        public DefaultBindingMetadataProvider(ModelBindingMessages modelBindingMessages)
+        {
+            if (modelBindingMessages == null)
+            {
+                throw new ArgumentNullException(nameof(modelBindingMessages));
+            }
+
+            _modelBindingMessages = modelBindingMessages;
+        }
+
         /// <inheritdoc />
         public void GetBindingMetadata([NotNull] BindingMetadataProviderContext context)
         {
@@ -47,6 +59,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 }
             }
 
+            // ModelBindingMessages
+            // Provide a unique instance based on one passed to the constructor.
+            context.BindingMetadata.ModelBindingMessages = new ModelBindingMessages(_modelBindingMessages);
+
             // PropertyBindingPredicateProvider
             var predicateProviders = context.Attributes.OfType<IPropertyBindingPredicateProvider>().ToArray();
             if (predicateProviders.Length > 0)
@@ -62,7 +78,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 var bindingBehavior = context.PropertyAttributes.OfType<BindingBehaviorAttribute>().FirstOrDefault();
                 if (bindingBehavior == null)
                 {
-                    bindingBehavior = 
+                    bindingBehavior =
                         context.Key.ContainerType.GetTypeInfo()
                         .GetCustomAttributes(typeof(BindingBehaviorAttribute), inherit: true)
                         .OfType<BindingBehaviorAttribute>()

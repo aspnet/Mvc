@@ -105,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Null(result.Model);
 
             var error = Assert.Single(bindingContext.ModelState["theModelName"].Errors);
-            Assert.Equal(error.ErrorMessage, "The value '' is invalid.", StringComparer.Ordinal);
+            Assert.Equal("A null value is invalid for 'theModelName'.", error.ErrorMessage, StringComparer.Ordinal);
             Assert.Null(error.Exception);
         }
 

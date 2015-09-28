@@ -10,6 +10,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// </summary>
     public class BindingMetadata
     {
+        private ModelBindingMessages _modelBindingMessages;
+
         /// <summary>
         /// Gets or sets the <see cref="ModelBinding.BindingSource"/>.
         /// See <see cref="ModelMetadata.BindingSource"/>.
@@ -49,6 +51,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// of the property accessor and model <see cref="Type"/>. See <see cref="ModelMetadata.IsReadOnly"/>.
         /// </summary>
         public bool? IsReadOnly { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="Metadata.ModelBindingMessages"/> instance containing messages for errors the model
+        /// binding system detects. See <see cref="ModelMetadata.ModelBindingMessages"/>.
+        /// </summary>
+        public ModelBindingMessages ModelBindingMessages
+        {
+            get
+            {
+                return _modelBindingMessages;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _modelBindingMessages = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="ModelBinding.IPropertyBindingPredicateProvider"/>.

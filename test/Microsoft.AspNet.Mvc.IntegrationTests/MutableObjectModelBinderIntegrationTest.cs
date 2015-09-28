@@ -10,6 +10,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Features.Internal;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Controllers;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.Primitives;
@@ -859,8 +860,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Need to have a key here so that the MutableObjectModelBinder will recurse to bind elements.
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
             {
-                request.QueryString =
-                    new QueryString("?Name=bill&ProductIds[0]=10&ProductIds[1]=11");
+                request.QueryString = new QueryString("?Name=bill&ProductIds[0]=10&ProductIds[1]=11");
             });
 
             var modelState = new ModelStateDictionary();
@@ -1032,8 +1032,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Need to have a key here so that the MutableObjectModelBinder will recurse to bind elements.
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
             {
-                request.QueryString =
-                    new QueryString("?Name=bill&ProductIds[0]=10&ProductIds[1]=11");
+                request.QueryString = new QueryString("?Name=bill&ProductIds[0]=10&ProductIds[1]=11");
             });
 
             var modelState = new ModelStateDictionary();
@@ -1205,8 +1204,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Need to have a key here so that the MutableObjectModelBinder will recurse to bind elements.
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
             {
-                request.QueryString =
-                    new QueryString("?Name=bill&ProductIds[0].Key=key0&ProductIds[0].Value=10");
+                request.QueryString = new QueryString("?Name=bill&ProductIds[0].Key=key0&ProductIds[0].Value=10");
             });
 
             var modelState = new ModelStateDictionary();
@@ -1378,8 +1376,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Need to have a key here so that the MutableObjectModelBinder will recurse to bind elements.
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
             {
-                request.QueryString =
-                    new QueryString("?Name=bill&ProductId.Key=key0&ProductId.Value=10");
+                request.QueryString = new QueryString("?Name=bill&ProductId.Key=key0&ProductId.Value=10");
             });
 
             var modelState = new ModelStateDictionary();
@@ -1563,9 +1560,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             };
 
             // No Data
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
-            {
-            });
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
 
             var modelState = new ModelStateDictionary();
 
@@ -1587,6 +1582,53 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.AttemptedValue);
             var error = Assert.Single(modelState["Customer"].Errors);
             Assert.Equal("A value for the 'Customer' property was not provided.", error.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task MutableObjectModelBinder_WithBindRequired_NoData_AndCustomizedMessage_AddsGivenMessage()
+        {
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForType(typeof(Order10))
+                .BindingDetails(binding =>
+                {
+                    // A real details provider could customize message based on BindingMetadataProviderContext.
+                    binding.ModelBindingMessages.MissingBindRequiredValueResource =
+                        propertyPath => $"Hurts when '{ propertyPath }' is not provided.";
+                });
+            var argumentBinder = new DefaultControllerActionArgumentBinder(
+                metadataProvider,
+                ModelBindingTestHelper.GetObjectValidator());
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "parameter",
+                ParameterType = typeof(Order10)
+            };
+
+            // No Data
+            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
+
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+
+            var model = Assert.IsType<Order10>(modelBindingResult.Model);
+            Assert.Null(model.Customer);
+
+            Assert.Equal(1, modelState.Count);
+            Assert.Equal(1, modelState.ErrorCount);
+            Assert.False(modelState.IsValid);
+
+            var entry = Assert.Single(modelState, e => e.Key == "Customer").Value;
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
+            var error = Assert.Single(modelState["Customer"].Errors);
+            Assert.Equal("Hurts when 'Customer' is not provided.", error.ErrorMessage);
         }
 
         private class Order11
@@ -1644,7 +1686,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.RawValue);
             Assert.Null(entry.AttemptedValue);
             var error = Assert.Single(modelState["parameter.Customer.Name"].Errors);
-            Assert.Equal("A value for the 'Name' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'parameter.Customer.Name' property was not provided.", error.ErrorMessage);
         }
 
         [Fact]
@@ -1689,7 +1731,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.RawValue);
             Assert.Null(entry.AttemptedValue);
             var error = Assert.Single(modelState["Customer.Name"].Errors);
-            Assert.Equal("A value for the 'Name' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'Customer.Name' property was not provided.", error.ErrorMessage);
         }
 
         [Fact]
@@ -1738,7 +1780,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.RawValue);
             Assert.Null(entry.AttemptedValue);
             var error = Assert.Single(modelState["customParameter.Customer.Name"].Errors);
-            Assert.Equal("A value for the 'Name' property was not provided.", error.ErrorMessage);
+            Assert.Equal(
+                "A value for the 'customParameter.Customer.Name' property was not provided.",
+                error.ErrorMessage);
         }
 
         private class Order12
@@ -1826,7 +1870,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.RawValue);
             Assert.Null(entry.AttemptedValue);
             var error = Assert.Single(modelState["customParameter.ProductName"].Errors);
-            Assert.Equal("A value for the 'ProductName' property was not provided.", error.ErrorMessage);
+            Assert.Equal(
+                "A value for the 'customParameter.ProductName' property was not provided.",
+                error.ErrorMessage);
         }
 
         [Fact]
@@ -1951,7 +1997,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.RawValue);
             Assert.Null(entry.AttemptedValue);
             var error = Assert.Single(modelState["customParameter.OrderIds"].Errors);
-            Assert.Equal("A value for the 'OrderIds' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'customParameter.OrderIds' property was not provided.", error.ErrorMessage);
         }
 
         [Fact]
@@ -2036,7 +2082,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(string.Empty, entry.RawValue);
 
             var error = Assert.Single(entry.Errors);
-            Assert.Equal("The value '' is invalid.", error.ErrorMessage);
+            Assert.Equal("A null value is invalid for 'parameter.ProductId'.", error.ErrorMessage);
             Assert.Null(error.Exception);
         }
 

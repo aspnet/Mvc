@@ -28,9 +28,9 @@ namespace Microsoft.AspNet.Mvc
             InputFormatters = new FormatterCollection<IInputFormatter>();
             OutputFormatters = new FormatterCollection<IOutputFormatter>();
             ModelBinders = new List<IModelBinder>();
+            ModelBindingMessages = new ModelBindingMessages();
             ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
-            ValidationErrorMetadata = new ValidationErrorMetadata();
             ValidationExcludeFilters = new ExcludeTypeValidationFilterCollection();
             ValueProviderFactories = new List<IValueProviderFactory>();
         }
@@ -88,6 +88,13 @@ namespace Microsoft.AspNet.Mvc
         public IList<IModelBinder> ModelBinders { get; }
 
         /// <summary>
+        /// Gets the default <see cref="IModelBindingMessages"/>. Changes here are copied to the
+        /// <see cref="ModelMetadata.ModelBindingMessages"/> property of all <see cref="ModelMetadata"/> instances
+        /// unless overridden in a custom <see cref="IBindingMetadataProvider"/>.
+        /// </summary>
+        public ModelBindingMessages ModelBindingMessages { get; }
+
+        /// <summary>
         /// Gets a list of <see cref="IMetadataDetailsProvider"/> instances that will be used to
         /// create <see cref="ModelMetadata"/> instances.
         /// </summary>
@@ -117,8 +124,6 @@ namespace Microsoft.AspNet.Mvc
         /// when it contains the media type */*. <see langword="false"/> by default.
         /// </summary>
         public bool RespectBrowserAcceptHeader { get; set; }
-
-        public ValidationErrorMetadata ValidationErrorMetadata { get; }
 
         /// <summary>
         /// Gets a collection of <see cref="IExcludeTypeValidationFilter"/>s that are used by this application.

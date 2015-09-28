@@ -11,18 +11,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     /// </summary>
     public class DefaultValidationMetadataProvider : IValidationMetadataProvider
     {
-        private readonly ValidationErrorMetadata _validationErrorMetadata;
-
-        public DefaultValidationMetadataProvider(ValidationErrorMetadata validationErrorMetadata)
-        {
-            _validationErrorMetadata = validationErrorMetadata;
-        }
-
         /// <inheritdoc />
         public void GetValidationMetadata([NotNull] ValidationMetadataProviderContext context)
         {
-            context.ValidationMetadata.ValidationErrorMetadata = _validationErrorMetadata;
-
             foreach (var attribute in context.Attributes)
             {
                 if (attribute is IModelValidator || attribute is IClientModelValidator)

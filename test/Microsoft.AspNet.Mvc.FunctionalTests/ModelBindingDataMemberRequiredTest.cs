@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var error = Assert.Single(errors, kvp => kvp.Key == "model.RequiredProperty");
             Assert.Equal(
-                "A value for the 'RequiredProperty' property was not provided.",
+                "A value for the 'model.RequiredProperty' property was not provided.",
                 ((JArray)error.Value)[0].Value<string>());
         }
 

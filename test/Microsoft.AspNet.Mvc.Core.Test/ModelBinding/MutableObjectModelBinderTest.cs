@@ -787,7 +787,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 property => ModelBindingResult.Failed(property.PropertyName));
             var nameProperty = containerMetadata.Properties[nameof(model.Name)];
             results[nameProperty] = ModelBindingResult.Success(string.Empty, "John Doe");
-            
+
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act
@@ -804,7 +804,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("A value for the 'Age' property was not provided.", modelError.ErrorMessage);
+            Assert.Equal("A value for the 'theModel.Age' property was not provided.", modelError.ErrorMessage);
         }
 
         [Fact]
@@ -854,7 +854,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
             Assert.NotNull(modelError.ErrorMessage);
-            Assert.Equal("A value for the 'Age' property was not provided.", modelError.ErrorMessage);
+            Assert.Equal("A value for the 'theModel.Age' property was not provided.", modelError.ErrorMessage);
         }
 
         [Fact]
@@ -1139,7 +1139,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 .Value;
             var error = Assert.Single(entry.Errors);
             Assert.Null(error.Exception);
-            Assert.Equal("A value for the 'ValueTypeProperty' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'theModel.ValueTypeProperty' property was not provided.", error.ErrorMessage);
 
             // Model gets provided values.
             Assert.Equal(0, model.ValueTypeProperty);
@@ -1186,7 +1186,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 .Value;
             var error = Assert.Single(entry.Errors);
             Assert.Null(error.Exception);
-            Assert.Equal("A value for the 'ReferenceTypeProperty' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'theModel.ReferenceTypeProperty' property was not provided.", error.ErrorMessage);
 
             // Model gets provided values.
             Assert.Equal(17, model.ValueTypeProperty);
@@ -1219,7 +1219,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             results[lastNameProperty] = ModelBindingResult.Success(
                 nameof(model.LastName),
                 "Doe");
-            
+
             var testableBinder = new TestableMutableObjectModelBinder();
 
             // Act

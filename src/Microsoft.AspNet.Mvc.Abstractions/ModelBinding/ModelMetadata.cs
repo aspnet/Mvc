@@ -243,6 +243,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract bool IsRequired { get; }
 
         /// <summary>
+        /// Gets the <see cref="IModelBindingMessages"/> instance containing messages for errors the model
+        /// binding system detects.
+        /// </summary>
+        public abstract IModelBindingMessages ModelBindingMessages { get; }
+
+        /// <summary>
         /// Gets a value indicating where the current metadata should be ordered relative to other properties
         /// in its containing type.
         /// </summary>
@@ -283,8 +289,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// Gets a string used by the templating system to discover display-templates and editor-templates.
         /// </summary>
         public abstract string TemplateHint { get; }
-
-        public abstract ValidationErrorMessages ValidationErrorMessages { get; }
 
         /// <summary>
         /// Gets a collection of metadata items for validators.

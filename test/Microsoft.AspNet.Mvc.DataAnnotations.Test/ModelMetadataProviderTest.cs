@@ -1026,11 +1026,21 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             public AttributeInjectModelMetadataProvider(object[] attributes)
                 : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
                     {
-                        new DefaultBindingMetadataProvider(),
+                        new DefaultBindingMetadataProvider(CreateBindingMessages()),
                         new DataAnnotationsMetadataProvider(),
                     }))
             {
                 _attributes = attributes;
+            }
+
+            private static ModelBindingMessages CreateBindingMessages()
+            {
+                return new ModelBindingMessages
+                {
+                    MissingBindRequiredValueResource = key => $"A value for the '{ key }' property was not provided.",
+                    MissingKeyOrValueResource = key => $"A value is required for '{ key }'.",
+                    ValueInvalid_MustNotBeNullResource = key => $"A null value is invalid for '{ key }'.",
+                };
             }
 
             protected override DefaultMetadataDetails CreateTypeDetails(ModelMetadataIdentity key)

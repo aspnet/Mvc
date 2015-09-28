@@ -328,13 +328,13 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Null(entry.RawValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
             var error = Assert.Single(entry.Errors);
-            Assert.Equal("A value for the 'Name' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'parameter[0].Name' property was not provided.", error.ErrorMessage);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[1].Name").Value;
             Assert.Null(entry.RawValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
             error = Assert.Single(entry.Errors);
-            Assert.Equal("A value for the 'Name' property was not provided.", error.ErrorMessage);
+            Assert.Equal("A value for the 'parameter[1].Name' property was not provided.", error.ErrorMessage);
         }
 
         [Fact]

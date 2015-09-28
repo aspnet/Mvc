@@ -25,10 +25,10 @@ namespace Microsoft.AspNet.Mvc.Internal
         public static void ConfigureMvc(MvcOptions options)
         {
             // Set up default error messages
-            var errorMetadata = options.ValidationErrorMetadata;
-            errorMetadata.MissingBindRequiredValueResource = () => Resources.ModelBinding_MissingBindRequiredMember;
-            errorMetadata.MissingKeyOrValueResource = () => Resources.KeyValuePair_BothKeyAndValueMustBePresent;
-            errorMetadata.ValueInvalid_MustNotBeNullResource = () => Resources.Common_ValueNotValidForProperty;
+            var bindingMessages = options.ModelBindingMessages;
+            bindingMessages.MissingBindRequiredValueResource = Resources.FormatModelBinding_MissingBindRequiredMember;
+            bindingMessages.MissingKeyOrValueResource = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent;
+            bindingMessages.ValueInvalid_MustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid;
 
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());
@@ -55,8 +55,8 @@ namespace Microsoft.AspNet.Mvc.Internal
             options.ValueProviderFactories.Add(new JQueryFormValueProviderFactory());
 
             // Set up metadata providers
-            options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider());
-            options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider(errorMetadata));
+            options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider(bindingMessages));
+            options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider());
 
             // Set up validators
             options.ModelValidatorProviders.Add(new DefaultModelValidatorProvider());

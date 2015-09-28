@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 bindingContext.ModelState.TryAddModelError(
                     keyResult.Key,
-                    bindingContext.ModelMetadata.ValidationErrorMessages.MissingKeyOrValueResource());
+                    bindingContext.ModelMetadata.ModelBindingMessages.MissingKeyOrValueResource(keyResult.Key));
 
                 // Were able to get some data for this model.
                 // Always tell the model binding system to skip other model binders.
@@ -39,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             {
                 bindingContext.ModelState.TryAddModelError(
                     valueResult.Key,
-                    bindingContext.ModelMetadata.ValidationErrorMessages.MissingKeyOrValueResource());
+                    bindingContext.ModelMetadata.ModelBindingMessages.MissingKeyOrValueResource(valueResult.Key));
 
                 // Were able to get some data for this model.
                 // Always tell the model binding system to skip other model binders.

@@ -5,27 +5,30 @@ using System;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 {
-    public class ValidationErrorMetadata
+    /// <summary>
+    /// Messages for errors the model binding system detects.
+    /// </summary>
+    public interface IModelBindingMessages
     {
         /// <summary>
         /// Error message the model binding system adds when a property with an associated
-        /// <see cref="BindRequiredAttribute"/> is not bound.
+        /// <c>BindRequiredAttribute</c> is not bound.
         /// </summary>
         /// <value>Default <see cref="string"/> is "A value for the '{0}' property was not provided.".</value>
-        public Func<string> MissingBindRequiredValueResource { get; set; }
+        Func<object, string> MissingBindRequiredValueResource { get; }
 
         /// <summary>
         /// Error message the model binding system adds when either the key or the value of a
         /// <see cref="System.Collections.Generic.KeyValuePair{TKey, TValue}"/> is bound but not both.
         /// </summary>
-        /// <value>Default <see cref="string"/> is "A value is required.".</value>
-        public Func<string> MissingKeyOrValueResource { get; set; }
+        /// <value>Default <see cref="string"/> is "A value is required for '{0}'.".</value>
+        Func<object, string> MissingKeyOrValueResource { get; }
 
         /// <summary>
         /// Error message the model binding system adds when a <c>null</c> value is bound to a
         /// non-<see cref="Nullable"/> property.
         /// </summary>
-        /// <value>Default <see cref="string"/> is "The value '{0}' is invalid.".</value>
-        public Func<string> ValueInvalid_MustNotBeNullResource { get; set; }
+        /// <value>Default <see cref="string"/> is "A null value is invalid for '{0}'.".</value>
+        Func<object, string> ValueInvalid_MustNotBeNullResource { get; }
     }
 }

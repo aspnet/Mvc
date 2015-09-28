@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -51,10 +50,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     bindingContext.ModelState.TryAddModelError(
                         bindingContext.ModelName,
-                        string.Format(
-                            CultureInfo.CurrentCulture,
-                            bindingContext.ModelMetadata.ValidationErrorMessages.ValueInvalid_MustNotBeNullResource(),
-                            model));
+                        bindingContext.ModelMetadata.ModelBindingMessages.ValueInvalid_MustNotBeNullResource(
+                            bindingContext.ModelName));
 
                     return ModelBindingResult.FailedAsync(bindingContext.ModelName);
                 }
